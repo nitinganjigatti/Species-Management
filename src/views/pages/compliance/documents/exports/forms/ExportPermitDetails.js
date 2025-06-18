@@ -3,6 +3,7 @@ import { Grid, Box, Typography } from '@mui/material'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ImageUpload from 'src/views/forms/form-fields/ImageUpload'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 
 const ExportPermitDetails = ({ control, errors, isEdit }) => {
   // Options data
@@ -56,27 +57,17 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <ControlledTextField
-            name='issued_date'
-            label='Date Of Issue*'
-            control={control}
-            errors={errors}
-            type='date'
-            required
-            fullWidth
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <ControlledTextField
+          <ControlledDatePicker
             name='valid_until'
             label='Last day of validity*'
             control={control}
             errors={errors}
-            type='date'
             required
-            fullWidth
           />
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <ControlledDatePicker name='issued_date' label='Date of Issue*' control={control} errors={errors} required />
         </Grid>
 
         <Grid item xs={12} md={6}>
@@ -149,11 +140,9 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        {!isEdit && (
-          <Grid item xs={12} md={6}>
-            <ImageUpload name='certificate_file' label='Upload Permit' control={control} errors={errors} />
-          </Grid>
-        )}
+        <Grid item xs={12} md={6}>
+          <ImageUpload name='certificate_file' label='Upload Permit' control={control} errors={errors} />
+        </Grid>
       </Grid>
     </Box>
   )

@@ -20,9 +20,10 @@ const AddEditExportPermit = () => {
   const [expanded, setExpanded] = useState('permit-details') // Accordion open state
 
   useEffect(() => {
-    if (isEdit) {
-      fetchPermitData()
-    }
+    // if (isEdit) {
+    // fetchPermitData()
+    // }
+    console.log('id', id)
   }, [id, isEdit])
 
   const fetchPermitData = async () => {
@@ -90,7 +91,7 @@ const AddEditExportPermit = () => {
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <ExportPermitForm onSubmit={handlePermitDetailsSubmit} onReset={handlePermitDetailsReset} />
+        <ExportPermitForm onSubmit={handlePermitDetailsSubmit} onReset={handlePermitDetailsReset} id={id} />
       </CustomAccordion>
 
       {/* <CustomAccordion

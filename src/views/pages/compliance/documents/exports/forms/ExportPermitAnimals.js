@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Box, Typography, IconButton, Divider, Button, Alert, Card, CardContent, Grid } from '@mui/material'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import SelectableSpeciesCard from '../SelectableSpeciesCard'
 import { useTheme, alpha } from '@mui/material/styles'
 
@@ -12,8 +12,7 @@ const ExportPermitAnimals = ({
   speciesList,
   handleSpeciesUpdate,
   handleRemoveSpecies,
-  setSpeciesDrawerOpen,
-  isEdit
+  setSpeciesDrawerOpen
 }) => {
   const theme = useTheme()
 
@@ -31,9 +30,10 @@ const ExportPermitAnimals = ({
     { label: 'Group Tag', value: 'group_tag' }
   ]
 
-  const animalTypeOptions = [
-    { label: 'Single', value: 'single' },
-    { label: 'Group', value: 'group' }
+  const appendixOptions = [
+    { label: 'Appendix 1', value: 'appendix_1' },
+    { label: 'Appendix 2', value: 'appendix_2' },
+    { label: 'Appendix 3', value: 'appendix_3' }
   ]
 
   // Calculate totals
@@ -45,7 +45,7 @@ const ExportPermitAnimals = ({
     const totalCount = species.maleCount + species.femaleCount + species.undeterminedCount
 
     const animalDetailsCount = species.animalDetails.reduce(
-      (sum, detail) => sum + (parseInt(detail.animalCount) || 0),
+      (sum, detail) => sum + (parseInt(detail.animal_count) || 0),
       0
     )
 
@@ -64,15 +64,23 @@ const ExportPermitAnimals = ({
     handleSpeciesUpdate(species.id, updatedSpecies)
   }
 
+  const handleSpecieUpdate = (speciesIndex, field, value) => {
+    const species = speciesList[speciesIndex]
+    const updatedSpecies = { ...species, [field]: value }
+
+    handleSpeciesUpdate(species.id, updatedSpecies)
+  }
+
   const handleAddAnimal = speciesIndex => {
     const species = speciesList[speciesIndex]
 
     const newAnimal = {
-      id: "",
-      animalType: 'single',
-      animalCount: 1,
-      gender: '',
-      identifierType: '',
+      id: '',
+
+      // animalType: 'single',
+      // animal_count: 1,
+      gender: { label: '', value: null },
+      identifierType: { label: '', value: null },
       identifierValue: ''
     }
 
@@ -166,7 +174,6 @@ const ExportPermitAnimals = ({
                     }}
                     selectionType='cross'
                     onClick={() => handleRemoveSpecies(speciesItem.id)}
-                    disabled={isEdit}
                   />
 
                   {/* Animal Counts Section */}
@@ -185,9 +192,22 @@ const ExportPermitAnimals = ({
                   </Typography>
 
                   <Grid container spacing={4} sx={{ mb: 2 }}>
-                    <Grid item xs={12} md={4}>
+                    <Grid item xs={12} md={3}>
+                      <ControlledAutocomplete
+                        name={`speciesList.${speciesIndex}.appendix`}
+                        label='Select Appendix'
+                        control={control}
+                        errors={errors}
+                        options={appendixOptions}
+                        getOptionLabel={option => option.label}
+                        isOptionEqualToValue={(option, value) => option.value === value?.value}
+                        onChangeOverride={value => handleSpecieUpdate(speciesIndex, 'appendix', value)}
+                        sx={{ backgroundColor: theme.palette.common.white }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={3}>
                       <ControlledTextField
-                        name={`speciesList.${speciesIndex}.maleCount`}
+                        name={`speciesList.${speciesIndex}.male_count`}
                         label='# Male'
                         type='number'
                         control={control}
@@ -195,12 +215,11 @@ const ExportPermitAnimals = ({
                         onChangeOverride={e => handleCountChange(speciesIndex, 'maleCount', e.target.value)}
                         inputProps={{ min: 0 }}
                         sx={{ backgroundColor: theme.palette.common.white }}
-                        disabled={isEdit}
                       />
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                    <Grid item xs={12} md={3}>
                       <ControlledTextField
-                        name={`speciesList.${speciesIndex}.femaleCount`}
+                        name={`speciesList.${speciesIndex}.female_count`}
                         label='# Female'
                         type='number'
                         control={control}
@@ -208,12 +227,11 @@ const ExportPermitAnimals = ({
                         onChangeOverride={e => handleCountChange(speciesIndex, 'femaleCount', e.target.value)}
                         inputProps={{ min: 0 }}
                         sx={{ backgroundColor: theme.palette.common.white }}
-                        disabled={isEdit}
                       />
                     </Grid>
-                    <Grid item xs={12} md={4}>
+                    <Grid item xs={12} md={3}>
                       <ControlledTextField
-                        name={`speciesList.${speciesIndex}.undeterminedCount`}
+                        name={`speciesList.${speciesIndex}.undeterminate_count`}
                         label='# Undetermined'
                         type='number'
                         control={control}
@@ -221,7 +239,6 @@ const ExportPermitAnimals = ({
                         onChangeOverride={e => handleCountChange(speciesIndex, 'undeterminedCount', e.target.value)}
                         inputProps={{ min: 0 }}
                         sx={{ backgroundColor: theme.palette.common.white }}
-                        disabled={isEdit}
                       />
                     </Grid>
                   </Grid>
@@ -233,10 +250,10 @@ const ExportPermitAnimals = ({
 
                   {/* Count Mismatch Warning */}
                   {!isValidCount && speciesItem.totalCount > 0 && (
-                    <Alert severity='warning' sx={{ mb: 2 }}>
+                    <Alert severity='error' sx={{ mb: 2 }}>
                       Animal details count (
-                      {speciesItem.animalDetails.reduce((sum, detail) => sum + (parseInt(detail.animalCount) || 0), 0)})
-                      must be less than total count ({speciesItem.totalCount})
+                      {speciesItem.animalDetails.reduce((sum, detail) => sum + (parseInt(detail.animal_count) || 0), 0)}
+                      ) must be less than total count ({speciesItem.totalCount})
                     </Alert>
                   )}
 
@@ -254,13 +271,12 @@ const ExportPermitAnimals = ({
                       }}
                     >
                       Animal Details (Count:{' '}
-                      {speciesItem.animalDetails.reduce((sum, detail) => sum + (parseInt(detail.animalCount) || 0), 0)})
+                      {speciesItem.animalDetails.reduce((sum, detail) => sum + (parseInt(detail.animal_count) || 0), 0)}
+                      )
                     </Typography>
-                    {!isEdit && (
-                      <Button startIcon={<AddIcon />} onClick={() => handleAddAnimal(speciesIndex)}>
-                        Add Animal
-                      </Button>
-                    )}
+                    <Button startIcon={<AddIcon />} onClick={() => handleAddAnimal(speciesIndex)}>
+                      Add Animal
+                    </Button>
                   </Box>
 
                   {/* Animal Details List */}
@@ -269,65 +285,60 @@ const ExportPermitAnimals = ({
                       <Box key={animalIndex} sx={{ mb: 3 }}>
                         <Grid container spacing={4} alignItems='center'>
                           <Grid item xs={12} md={4}>
-                            <ControlledSelect
+                            <ControlledAutocomplete
                               name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.gender`}
                               label='Gender'
                               control={control}
                               errors={errors}
                               options={genderOptions}
                               getOptionLabel={option => option.label}
-                              getOptionValue={option => option.value}
-                              onChangeExtra={e =>
-                                handleAnimalDetailChange(speciesIndex, animalIndex, 'gender', e.target.value)
+                              isOptionEqualToValue={(option, value) => option.value === value?.value}
+                              onChangeOverride={value =>
+                                handleAnimalDetailChange(speciesIndex, animalIndex, 'gender', value)
                               }
                               sx={{ backgroundColor: theme.palette.common.white }}
-                              disabled={isEdit}
                             />
                           </Grid>
                           <Grid item xs={12} md={4}>
-                            <ControlledSelect
-                              name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifierType`}
+                            <ControlledAutocomplete
+                              name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifier_type`}
                               label='Identifier Type'
                               control={control}
                               errors={errors}
                               options={identifierOptions}
                               getOptionLabel={option => option.label}
-                              getOptionValue={option => option.value}
-                              onChangeExtra={e =>
-                                handleAnimalDetailChange(speciesIndex, animalIndex, 'identifierType', e.target.value)
+                              isOptionEqualToValue={(option, value) => option.value === value?.value}
+                              onChangeOverride={value =>
+                                handleAnimalDetailChange(speciesIndex, animalIndex, 'identifier_type', value)
                               }
                               sx={{ backgroundColor: theme.palette.common.white }}
-                              disabled={isEdit}
                             />
                           </Grid>
                           <Grid item xs={12} md={3}>
                             <ControlledTextField
-                              name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifierValue`}
+                              name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifier_value`}
                               label='Identifier Value'
                               control={control}
                               errors={errors}
                               onChangeOverride={e =>
-                                handleAnimalDetailChange(speciesIndex, animalIndex, 'identifierValue', e.target.value)
+                                handleAnimalDetailChange(speciesIndex, animalIndex, 'identifier_value', e.target.value)
                               }
                               sx={{ backgroundColor: theme.palette.common.white }}
-                              disabled={isEdit}
                             />
                           </Grid>
-                          {!isEdit && (
-                            <Grid
-                              item
-                              xs={12}
-                              md={1}
-                              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          <Grid
+                            item
+                            xs={12}
+                            md={1}
+                            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <IconButton
+                              onClick={() => handleRemoveAnimal(speciesIndex, animalIndex)}
+                              sx={{ backgroundColor: theme.palette.customColors.neutral05 }}
                             >
-                              <IconButton
-                                onClick={() => handleRemoveAnimal(speciesIndex, animalIndex)}
-                                sx={{ backgroundColor: theme.palette.customColors.neutral05 }}
-                              >
-                                <CloseIcon />
-                              </IconButton>
-                            </Grid>
-                          )}
+                              <CloseIcon />
+                            </IconButton>
+                          </Grid>
                         </Grid>
                       </Box>
                     )
@@ -339,38 +350,36 @@ const ExportPermitAnimals = ({
         </Box>
       </Box>
 
-      {!isEdit && (
-        <Box
+      <Box
+        sx={{
+          width: '100%',
+          backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.4),
+          p: 8,
+          my: 4,
+          borderRadius: 2
+        }}
+      >
+        <Button
+          variant='outlined'
+          onClick={() => setSpeciesDrawerOpen(true)}
+          startIcon={<AddIcon />}
           sx={{
             width: '100%',
-            backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.4),
-            p: 8,
-            my: 4,
-            borderRadius: 2
+            py: 2,
+            fontSize: '1rem',
+            fontWeight: 500,
+            border: '2px dashed',
+            borderColor: theme.palette.primary.main,
+            backgroundColor: theme.palette.common.white,
+            '&:hover': {
+              border: '2px dashed',
+              backgroundColor: theme.palette.action.hover
+            }
           }}
         >
-          <Button
-            variant='outlined'
-            onClick={() => setSpeciesDrawerOpen(true)}
-            startIcon={<AddIcon />}
-            sx={{
-              width: '100%',
-              py: 2,
-              fontSize: '1rem',
-              fontWeight: 500,
-              border: '2px dashed',
-              borderColor: theme.palette.primary.main,
-              backgroundColor: theme.palette.common.white,
-              '&:hover': {
-                border: '2px dashed',
-                backgroundColor: theme.palette.action.hover
-              }
-            }}
-          >
-            Add Species
-          </Button>
-        </Box>
-      )}
+          Add Species
+        </Button>
+      </Box>
 
       {speciesList.length === 0 && (
         <Alert severity='info' sx={{ mt: 2 }}>
