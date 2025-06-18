@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useState } from 'react'
+
 import {
   Drawer,
   Typography,
@@ -10,7 +12,6 @@ import {
   Tooltip,
   Avatar,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   debounce,
@@ -18,14 +19,13 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+
+import moment from 'moment'
+import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
-import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
-import { useCallback, useEffect, useState } from 'react'
 import DashboardFilter from './dashboardFilter'
 import { getDashboardDiscardList } from 'src/lib/api/egg/dashboard'
-import Utility from 'src/utility'
-import moment from 'moment'
-import { lightBlue } from '@mui/material/colors'
 
 const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
@@ -56,7 +56,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       'Security status': [],
       Condition: [],
       Reason: [],
-      Site: []
+      Site: [],
+      selecteMenu: { id: 1, name: 'Species' }
     }
   }
 
@@ -192,7 +193,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const searchData = useCallback(
     debounce(async searchVal => {
-      // console.log('first', isSearchOpen)
       if (isSearchOpen === true) {
         console.log('first', isSearchOpen)
         setDiscardList([])
@@ -202,8 +202,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     }, 1000),
     [date, tabStatus, applyFilters, isSearchOpen]
   )
-
-  // const debouncedSearchData = searchData
 
   const handelOnclose = () => {
     setOpenDiscard(false)
@@ -238,7 +236,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         <Stack
           direction='row'
           sx={{
-            // width: filterList?.length ? '545px' : '562px',
             width: '100%',
             height: '60px',
             display: 'flex',
@@ -381,8 +378,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         key={index}
                         sx={{
                           display: 'flex',
-
-                          // justifyContent: 'center',
                           alignItems: 'center',
                           gap: '6px',
                           px: '8px',
@@ -418,8 +413,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   }
 
   const Card = ({ list }) => {
-    // console.log('list :>> ', list)
-
     return (
       <>
         {listCount > 0 && discardList?.length > 0 && (
@@ -464,8 +457,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         fontWeight: '500',
                         lineHeight: '19.36px',
                         overflow: 'hidden',
-
-                        // textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         boxSizing: 'border-box'
                       }}
@@ -478,8 +469,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         sx={{
                           borderRadius: '4px',
                           px: 3,
-
-                          // width: '100%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -761,8 +750,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         overflow: 'hidden',
                         textAlign: 'center',
                         mt: 5,
-
-                        // textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         boxSizing: 'border-box'
                       }}
@@ -809,8 +796,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         overflow: 'hidden',
                         textAlign: 'center',
                         mt: 5,
-
-                        // textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         boxSizing: 'border-box'
                       }}
@@ -829,37 +814,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               </TabPanel>
             </TabContext>
           </Box>
-
-          {/* bottom buttons */}
-          {/* <Box
-          sx={{
-            height: '122px',
-            width: '100%',
-            maxWidth: '562px',
-            position: 'fixed',
-            bottom: 0,
-            px: 4,
-            bgcolor: 'white',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 5,
-            display: 'flex',
-
-            boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.1)',
-            zIndex: 123
-          }}
-        >
-          <LoadingButton
-            fullWidth
-            variant='contained'
-            size='large'
-            sx={{ height: '58px' }}
-
-            // onClick={handleApplyFilter}
-          >
-            VIEW DETAILS
-          </LoadingButton>
-        </Box> */}
         </Box>
       </Drawer>
       {isFilterOpen && (
@@ -871,6 +825,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           setSelectedOptions={setSelectedOptions}
           setFilterList={setFilterList}
           setApplyFilters={setApplyFilters}
+          applyFilters={applyFilters}
           filterList={filterList}
           setDiscardList={setDiscardList}
           setSearch={setSearch}
@@ -1458,4 +1413,4 @@ export default DiscardEggSlider
 //     }
 //   }
 
-//   const debouncedHandleScroll = debounce(e => handleScroll(e), 1000)
+// const debouncedHandleScroll = debounce(e => handleScroll(e), 1000)
