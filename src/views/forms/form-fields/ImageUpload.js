@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react'
 import { Box, Typography, IconButton } from '@mui/material'
-import { CloudUpload as UploadIcon, Close as CloseIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material'
+import { Close as CloseIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material'
 import { useController } from 'react-hook-form'
-import { useTheme, alpha } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles'
 
 const ImageUpload = ({ name, control, errors, label = 'Upload Permit' }) => {
   const theme = useTheme()
@@ -91,7 +91,12 @@ const ImageUpload = ({ name, control, errors, label = 'Upload Permit' }) => {
             {isPdf ? (
               <PdfIcon sx={{ color: theme.palette.error.main, fontSize: 22, mr: 1 }} />
             ) : (
-              <UploadIcon sx={{ color: theme.palette.primary.main, fontSize: 22, mr: 1 }} />
+              <Box
+                component='img'
+                src='/images/upload_invoice_icon.png'
+                alt='Upload Icon'
+                sx={{ width: 24, height: 24, mr: 1 }}
+              />
             )}
             <Typography variant='body2' sx={{ flex: 1, fontWeight: 500, color: theme.palette.text.primary }}>
               {value.name}
@@ -133,8 +138,16 @@ const ImageUpload = ({ name, control, errors, label = 'Upload Permit' }) => {
                 gap: '8px'
               }}
             >
-              <UploadIcon sx={{ color: hasError ? theme.palette.error.main : theme.palette.text.primary, fontSize: 22, mr: 1 }} />
-              <Typography variant='body2' sx={{ fontSize: '0.875rem', color: hasError ? theme.palette.error.main : theme.palette.text.secondary }}>
+              <Box
+                component='img'
+                src='/images/upload_invoice_icon.png'
+                alt='Upload'
+                sx={{ width: 24, height: 24, mr: 1 }}
+              />
+              <Typography
+                variant='body2'
+                sx={{ fontSize: '1rem', color: hasError ? theme.palette.error.main : theme.palette.text.secondary }}
+              >
                 {label}
               </Typography>
             </label>

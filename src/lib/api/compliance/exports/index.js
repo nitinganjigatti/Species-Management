@@ -1,5 +1,5 @@
-import { GET_EXPORTS_LIST } from "src/constants/ApiConstant"
-import { axiosGet } from "../../utility"
+import { GET_EXPORTS_DETAILS, GET_EXPORTS_LIST } from 'src/constants/ApiConstant'
+import { axiosGet } from '../../utility'
 
 export const getExportCountries = async () => {
   return {
@@ -23,10 +23,18 @@ export const getSpecies = async () => {
   }
 }
 
-export const getExportList = async (params) => {
+export const getExportList = async params => {
   const response = await axiosGet({
     url: `${GET_EXPORTS_LIST}`,
     params
+  })
+
+  return response.data
+}
+
+export const getExportDetails = async id => {
+  const response = await axiosGet({
+    url: `${GET_EXPORTS_DETAILS}/${id}`
   })
 
   return response.data

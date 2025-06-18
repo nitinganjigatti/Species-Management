@@ -552,3 +552,5 @@ export const GET_TRADE_CONTEXT_TYPE = 'v1/trade/context/types' // Add `/id` dyna
 
 export const GET_EXPORTS_LIST = 'v1/trade/exports'
 
+export const GET_EXPORTS_DETAILS = 'v1/trade/exports'
+

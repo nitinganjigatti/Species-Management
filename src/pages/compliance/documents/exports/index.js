@@ -15,6 +15,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import { useRouter } from 'next/router'
 import { getExportCountries, getSpecies, getExportList } from 'src/lib/api/compliance/exports'
 import Icon from 'src/@core/components/icon'
+import Utility from 'src/utility'
 
 const CitesExportPermitIndex = () => {
   const { userData } = useContext(AuthContext)
@@ -129,13 +130,6 @@ const CitesExportPermitIndex = () => {
     debouncedSearch(val)
   }
 
-  const formatDate = dateString => {
-    if (!dateString || dateString === '-') return '-'
-    const date = new Date(dateString)
-
-    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  }
-
   const columns = [
     {
       flex: 0.12,
@@ -209,7 +203,9 @@ const CitesExportPermitIndex = () => {
       minWidth: 120,
       field: 'expiry_date',
       headerName: 'EXPIRY',
-      renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{formatDate(params.value)}</Typography>
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
+      )
     },
     {
       flex: 0.1,
@@ -261,8 +257,12 @@ const CitesExportPermitIndex = () => {
           title='Export Documents'
           titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
           action={
-            <AddButtonContained title='ADD NEW' action={() => router.push('/compliance/documents/exports/AddEditExportPermit')} />
-          } l
+            <AddButtonContained
+              title='ADD NEW'
+              action={() => router.push('/compliance/documents/exports/AddEditExportPermit')}
+            />
+          }
+          l
         />
 
         <Grid container spacing={4} sx={{ px: 5, pt: 2 }} alignItems='center'>
