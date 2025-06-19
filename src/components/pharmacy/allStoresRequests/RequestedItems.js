@@ -237,8 +237,20 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
     {
       width: 300,
@@ -273,11 +285,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               params?.row?.package ||
               params?.row?.package_qty ||
               params?.row?.package_uom_label ||
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'
+              (params?.row?.product_form_label &&
+                `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                  params?.row?.package_uom_label
+                } ${params?.row?.product_form_label}`)
             }
             placement='top'
           >

@@ -31,7 +31,8 @@ import Router from 'next/router'
 import FulfillDialog from 'src/components/pharmacy/return/FulfillDialog'
 import ShipRequest from 'src/components/pharmacy/return/ShipRequestForm'
 import CommonDialogBox from 'src/components/CommonDialogBox'
-import OrderReceiveForm from 'src/components/pharmacy/return/OrderReceiveForm'
+
+import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 
 import DisputeItemView from 'src/components/pharmacy/return/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/return/DispenseItemView'
