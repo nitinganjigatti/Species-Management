@@ -107,7 +107,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         setNurseryList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
   useEffect(() => {
@@ -139,7 +139,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         setRoomList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 

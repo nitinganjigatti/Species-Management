@@ -183,7 +183,7 @@ const EggComment = ({ eggDetails, eggId }) => {
         setCommentLoader(false)
       }
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
       setCommentLoader(false)
     }
   }

@@ -64,7 +64,7 @@ const DashboardFilter = ({
   }
 
   const handleMenuClick = menu => {
-    console.log('menu', menu)
+    // console.log('menu', menu)
     setSelectedMenu(menu)
     setTimeout(() => {
       setSelectedOptions({
@@ -76,7 +76,7 @@ const DashboardFilter = ({
     searchData('')
 
     const allOptions = getOptionsForMenu(menu)
-    console.log('selectedOptions', selectedOptions)
+    // console.log('selectedOptions', selectedOptions)
 
     // Always update selectAll based on the new selection state
     if (allOptions?.length > 0) {
@@ -96,7 +96,7 @@ const DashboardFilter = ({
         setNurseryList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -110,7 +110,7 @@ const DashboardFilter = ({
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -125,7 +125,7 @@ const DashboardFilter = ({
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -140,7 +140,7 @@ const DashboardFilter = ({
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 

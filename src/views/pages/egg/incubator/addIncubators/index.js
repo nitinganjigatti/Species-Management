@@ -163,7 +163,7 @@ const AddIncubators = ({
   }
 
   const onError = errors => {
-    console.log('Form errros', errors)
+    console.error('Form errors', errors)
   }
 
   const RenderSidebarFooter = () => {

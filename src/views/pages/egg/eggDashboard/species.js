@@ -1871,7 +1871,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     try {
       setLoading(true)
 
-      console.log('sortModelcccc', sortModel)
+      // console.log('sortModelcccc', sortModel)
 
       const params = {
         ref_type: statuss || status,
