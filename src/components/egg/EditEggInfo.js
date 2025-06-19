@@ -71,7 +71,7 @@ const EditEggInfo = ({ eggDetails, openEditDrawer, closeEditDrawer, getDetails }
       }
     } catch (e) {
       setLoader(false)
-      console.log(e)
+      console.error(e)
     }
   }
 

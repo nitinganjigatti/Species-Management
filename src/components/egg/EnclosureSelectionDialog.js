@@ -189,7 +189,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
   })
 
   const onSubmit = params => {
-    console.log(params)
+    // console.log(params)
     getEnclosureDetails(params?.enclosure)
     handleClose(true)
   }
