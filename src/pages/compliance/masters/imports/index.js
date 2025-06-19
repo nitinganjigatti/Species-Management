@@ -104,8 +104,6 @@ const Imports = () => {
   }
 
   const handleEdit = async row => {
-    console.log('Details >', row)
-
     // Collect context types based on boolean flags
     const contexts = []
     if (row.importer === '1') contexts.push('importer')
@@ -285,7 +283,6 @@ const Imports = () => {
 
   const handleSubmitData = async (payload, editId = null) => {
     try {
-      debugger
       setSubmitLoader(true)
 
       // Construct params with comma-separated 'type'

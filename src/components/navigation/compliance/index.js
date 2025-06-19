@@ -42,14 +42,14 @@ const composeComplianceNavigation = () => {
 
   const mastersParent = {
     title: 'masters',
-    path: '',
+    path: '/compliance/documents/masters',
     icon: 'mdi:file-document-outline',
     children: []
   }
 
   const masterdocuments = {
     title: 'Document Types',
-    path: '/compliance/masters/documents' 
+    path: '/compliance/masters/documents'
   }
 
   const masterimports = {
@@ -63,11 +63,11 @@ const composeComplianceNavigation = () => {
   }
 
   // Add all items under Documents
-  documentsParent.children.push(exports, imports, shipments, files, species, animals)
+  documentsParent.children.push(exports, imports, shipments, files, species, animals, mastersParent)
 
   mastersParent.children.push(masterdocuments, masterimports, masterexports)
 
-  const complianceNavigation = [complianceTitle, documentsParent, mastersParent]
+  const complianceNavigation = [complianceTitle, documentsParent]
 
   return complianceNavigation
 }

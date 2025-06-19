@@ -44,7 +44,6 @@ const AddImportSlider = ({
     await handleSubmitData(payload, editId)
   }
 
-  console.log('Edit >', editId)
 
   return (
     <>

@@ -63,7 +63,7 @@ const NewForm = ({
       <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{
-            border: `1px solid ${theme.palette.customColors.Outline}`,
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             p: 4,
             borderRadius: '8px',
             bgcolor: theme.palette.common.white
@@ -242,7 +242,7 @@ const NewForm = ({
 
           <Box
             sx={{
-              border: `1px solid ${theme.palette.customColors.Outline}`,
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               p: 2,
               pt: 4,
               pb: 4,
@@ -301,8 +301,9 @@ const NewForm = ({
                         }
                         sx={{
                           border: `1px solid ${field.value?.includes(option) ? '#37BD69' : '#D0D5DD'}`,
-                          borderRadius: '8px',
+                          borderRadius: '4px',
                           p: 2,
+                          bgcolor: `${field.value?.includes(option) ? '#F2FFF8' : '#fff'}`,
                           display: 'flex',
                           alignItems: 'center',
                           minWidth: '30%'

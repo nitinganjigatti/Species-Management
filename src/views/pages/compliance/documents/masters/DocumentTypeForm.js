@@ -67,7 +67,7 @@ const DocumentTypeForm = ({
       <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{
-            border: `1px solid ${theme.palette.customColors.Outline}`,
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             p: 4,
             borderRadius: '8px',
             bgcolor: theme.palette.common.white
@@ -105,8 +105,8 @@ const DocumentTypeForm = ({
           {contextLoading ? (
             <Box
               sx={{
-                border: `1px solid ${theme.palette.customColors.Outline}`,
-                borderRadius: '4px',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                borderRadius: '8px',
                 bgcolor: theme.palette.common.white,
                 mt: 5,
                 width: '100%',
@@ -119,7 +119,7 @@ const DocumentTypeForm = ({
           ) : (
             <Box
               sx={{
-                border: `1px solid ${theme.palette.customColors.Outline}`,
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 p: 2,
                 pt: 4,
                 pb: 4,
@@ -174,9 +174,10 @@ const DocumentTypeForm = ({
                         }
                         sx={{
                           border: `1px solid ${field.value?.includes(opt.id) ? '#37BD69' : '#D0D5DD'}`,
-
-                          borderRadius: '8px',
+                          m: 1.7,
+                          borderRadius: '4px',
                           p: 2,
+                          bgcolor: `${field.value?.includes(opt.id) ? '#F2FFF8' : '#fff'}`,
                           display: 'inline-flex',
                           alignItems: 'center'
                         }}

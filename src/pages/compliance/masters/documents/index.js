@@ -28,9 +28,9 @@ import { AuthContext } from 'src/context/AuthContext'
 import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
 
 const tabConfig = [
-  { label: 'Export', value: 'exports', component: '' },
-  { label: 'Import', value: 'imports', component: '' },
-  { label: 'Shippment', value: 'shippment', component: '' }
+  { label: 'Export', value: 'exports', context_id: 1 },
+  { label: 'Import', value: 'imports', context_id: 2 },
+  { label: 'Shippment', value: 'shippment', context_id: 3 }
 ]
 
 const DocumentTypes = () => {
@@ -42,6 +42,7 @@ const DocumentTypes = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
+  const [tradeContextTabs, setTradeContextTabs] = useState([])
 
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
@@ -50,6 +51,7 @@ const DocumentTypes = () => {
   const [sortColumn, setSortColumn] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [selectedTab, setSelectedTab] = useState('exports')
 
   const [tradeContextTypes, setTradeContextTypes] = useState([])
   const [contextLoading, setContextLoading] = useState(false)
@@ -73,7 +75,17 @@ const DocumentTypes = () => {
     try {
       const res = await getTradeContextTypes()
       if (res?.success) {
+        const tabList = res.data.map(item => ({
+          label: item.label,
+          value: item.context_key, // assuming this is the unique identifier for tab selection
+          context_id: item.id
+        }))
+        setTradeContextTabs(tabList)
         setTradeContextTypes(res.data || [])
+        const defaultTab = tabList.find(tab => tab.context_id === 1)
+        if (defaultTab) {
+          setSelectedTab(defaultTab.value)
+        }
       }
     } catch (e) {
       console.error(e)
@@ -182,11 +194,17 @@ const DocumentTypes = () => {
       try {
         setLoading(true)
 
+        // Get context_id based on selected tab
+        // Use dynamically set tab config
+        const contextId = tradeContextTabs.find(tab => tab.value === selectedTab)?.context_id
+
         const params = {
           q,
           page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          context_id: contextId
         }
+
         const res = await getDocumentTypeList(params)
         const startingIndex = paginationModel.page * paginationModel.pageSize
 
@@ -202,12 +220,16 @@ const DocumentTypes = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, selectedTab, tradeContextTabs] // selectedTab must be a dependency!
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn) 
+    fetchTableData(sort, searchValue, sortColumn)
   }, [fetchTableData])
+
+  useEffect(() => {
+    fetchTradeContextTypes()
+  }, [])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -224,6 +246,9 @@ const DocumentTypes = () => {
     }, 1000),
     []
   )
+  const handleTabChange = (event, newValue) => {
+    setSelectedTab(newValue)
+  }
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -273,7 +298,7 @@ const DocumentTypes = () => {
         <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Masters</Typography>
       </Breadcrumbs>
       <Card>
-        <CardHeader 
+        <CardHeader
           title='Document Types'
           titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
           action={headerAction}
@@ -289,9 +314,9 @@ const DocumentTypes = () => {
             sx={{ mt: 2, justifyContent: 'flex-end' }}
           />
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={''} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-              {tabConfig.map(tab => (
-                <Tab key={tab.value} label={tab.label} value={tab.value} />
+            <Tabs value={selectedTab} onChange={handleTabChange}>
+              {tradeContextTabs.map(tab => (
+                <Tab key={tab.context_id} label={tab.label} value={tab.value} />
               ))}
             </Tabs>
           </Box>
