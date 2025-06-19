@@ -157,11 +157,11 @@ const RoomsList = () => {
     }
   }
 
-  const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
-    event.stopPropagation()
-    setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
-    setIsOpen(true)
-  }
+  // const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
+  //   event.stopPropagation()
+  //   setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
+  //   setIsOpen(true)
+  // }
 
   // 📌 Fetch Nursery List
   const NurseryList = async (q = '') => {

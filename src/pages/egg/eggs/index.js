@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useContext } from 'react'
+import React, { useCallback, useEffect, useState, useContext, useMemo } from 'react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 
@@ -11,6 +11,7 @@ import {
   Card,
   CardHeader,
   Chip,
+  CircularProgress,
   Divider,
   Stack,
   Tab,
@@ -108,6 +109,7 @@ const EggList = () => {
   const [filterList, setFilterList] = useState([])
 
   // nursery filter dropdown
+  const [nurseryLoading, setNurseryLoading] = useState(false)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
@@ -2080,6 +2082,7 @@ const EggList = () => {
   )
 
   const NurseryList = async q => {
+    setNurseryLoading(true)
     try {
       const params = {
         search: q,
@@ -2096,6 +2099,8 @@ const EggList = () => {
       })
     } catch (e) {
       console.error(e)
+    } finally {
+      setNurseryLoading(false)
     }
   }
 
@@ -2116,6 +2121,15 @@ const EggList = () => {
     NurseryList()
   }, [])
 
+  // 👇 debounce the function just once using useMemo
+  const debouncedSetFilterByNurseryId = useMemo(
+    () =>
+      debounce(value => {
+        NurseryList(value)
+      }, 400),
+    []
+  )
+
   const headerAction = (
     <>
       <Box>
@@ -2128,12 +2142,19 @@ const EggList = () => {
           value={defaultNursery}
           disablePortal
           id='nursery'
+          onInputChange={(event, newInputValue, reason) => {
+            if (reason === 'reset') {
+              debouncedSetFilterByNurseryId(newInputValue)
+            }
+            debouncedSetFilterByNurseryId(newInputValue)
+          }}
+          loading={nurseryLoading}
           options={nurseryList?.length > 0 ? nurseryList : []}
           getOptionLabel={option => option.nursery_name}
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
             if (val === null || val.nursery_id === '') {
-              setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
+              // setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
               setFilterByNurseryId('')
               write('Nursery', JSON.stringify({ nursery_id: '', nursery_name: 'All' }))
             } else {
@@ -2144,12 +2165,18 @@ const EggList = () => {
           }}
           renderInput={params => (
             <TextField
-              onChange={e => {
-                searchNursery(e.target.value)
-              }}
               {...params}
               label='Select Nursery *'
               placeholder='Search & Select'
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {nurseryLoading ? <CircularProgress size={20} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                )
+              }}
             />
           )}
         />
