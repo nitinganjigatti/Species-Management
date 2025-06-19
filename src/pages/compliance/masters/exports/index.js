@@ -345,10 +345,9 @@ const Exports = () => {
             paginationModel={paginationModel}
             handleSortModel={handleSortModel}
             setPaginationModel={setPaginationModel}
-            pageSizeOptions={[10]}
+            pageSizeOptions={[7, 10, 25, 50, 100]}
             loading={loading}
             searchValue={searchValue}
-            disablePagination={false}
           />
         </Grid>
       </Card>

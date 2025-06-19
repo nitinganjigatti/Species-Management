@@ -161,7 +161,6 @@ const Imports = () => {
       minWidth: 20,
       field: 'name',
       headerName: 'Name',
-      sortable: false,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -182,7 +181,6 @@ const Imports = () => {
       minWidth: 20,
       field: 'active',
       headerName: 'Status',
-      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -342,10 +340,9 @@ const Imports = () => {
             paginationModel={paginationModel}
             handleSortModel={handleSortModel}
             setPaginationModel={setPaginationModel}
-            pageSizeOptions={[10]}
+            pageSizeOptions={[7, 10, 25, 50, 100]}
             loading={loading}
             searchValue={searchValue}
-            disablePagination={false}
           />
         </Grid>
       </Card>

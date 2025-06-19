@@ -133,7 +133,6 @@ const DocumentTypes = () => {
       minWidth: 20,
       field: 'name',
       headerName: 'Name',
-      sortable: false,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -154,7 +153,6 @@ const DocumentTypes = () => {
       minWidth: 20,
       field: 'active',
       headerName: 'Status',
-      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -169,7 +167,6 @@ const DocumentTypes = () => {
     flex: 0.2,
     minWidth: 20,
     headerName: 'Action',
-    sortable: false,
     renderCell: params => (
       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right', px: 2 }}>
         {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -328,10 +325,9 @@ const DocumentTypes = () => {
             paginationModel={paginationModel}
             handleSortModel={handleSortModel}
             setPaginationModel={setPaginationModel}
-            pageSizeOptions={[10]}
+            pageSizeOptions={[7, 10, 25, 50, 100]}
             loading={loading}
             searchValue={searchValue}
-            disablePagination={false}
           />
         </Grid>
       </Card>

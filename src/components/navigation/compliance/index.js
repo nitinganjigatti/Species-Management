@@ -43,7 +43,7 @@ const composeComplianceNavigation = () => {
   const mastersParent = {
     title: 'masters',
     path: '/compliance/documents/masters',
-    icon: 'mdi:file-document-outline',
+    icon: '',
     children: []
   }
 
