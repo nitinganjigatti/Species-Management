@@ -279,7 +279,6 @@ const AddLocalDispatch = () => {
 
     if (isMedicineAlreadyExists) {
       setDuplicateMedError(true)
-      console.log('Medicine already exists')
 
       return
     }
@@ -520,7 +519,6 @@ const AddLocalDispatch = () => {
   const getListOfItemsById = async id => {
     try {
       const result = await getDirectDispatchItemsListById(id)
-      console.log('direct dispatch items id ', result)
 
       if (result.success === true && result?.data?.request_item_details?.length > 0) {
         const lineItems = result?.data?.request_item_details.map(el => {
@@ -651,18 +649,16 @@ const AddLocalDispatch = () => {
   }
 
   const cancelDirectDispatch = async id => {
-    console.log('id', id)
     if (id) {
       try {
         const result = await cancelDirectDispatchItems(id)
-        console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.replace(`/pharmacy/local-dispatch/`)
         } else {
           toast.error(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
+          // setDeleteDialog(false)
+          // setDeleteItemId(null)
         }
       } catch (error) {
         toast.error(error.data)
