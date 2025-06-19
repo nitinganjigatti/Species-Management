@@ -175,7 +175,8 @@ const StepBasicDetails = ({
     clearErrors,
     formState: { errors },
     trigger,
-    setValue: setFormValue
+    setValue: setFormValue,
+    setError
   } = useForm({
     mode: 'all',
     defaultValues,

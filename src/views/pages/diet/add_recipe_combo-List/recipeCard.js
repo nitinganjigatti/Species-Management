@@ -79,6 +79,7 @@ const RecipeCard = ({
 
     // Update selectedCardRecipe with merged objects
     const currentSelectedCardRecipe = selectedCardRecipe || []
+
     const updatedSelectedCard = [
       ...currentSelectedCardRecipe,
       ...selectedValuesWithCheckId
@@ -164,6 +165,7 @@ const RecipeCard = ({
           return updatedDay // Use the updated selection if available
         } else {
           const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+
           return existingDay || { cardId: row.id, days: Day }
         }
       })
@@ -206,6 +208,7 @@ const RecipeCard = ({
       selectedCardRecipe?.length > 0
     ) {
       const previousSelectedDays = selectedDays || []
+
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
@@ -236,6 +239,7 @@ const RecipeCard = ({
       })
 
       setSelectedDays(updatedSelectedDays)
+
       //setRemarks({})
     } else if (searchValue !== '' && !dietid) {
       const previousSelectedDays = selectedDays || []
@@ -263,6 +267,7 @@ const RecipeCard = ({
       setRemarks({})
     } else if (!searchValue && selectedCardRecipe.length <= 0) {
       const previousSelectedDays = selectedDays || []
+
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
@@ -357,8 +362,10 @@ const RecipeCard = ({
   const handleSelected = () => {
     if (selectedCardRecipe.length === 0) {
       toast.error('Recipes are required.')
+
       return // Exit early to prevent further processing
     }
+
     const filteredItems = selectedCardRecipe.map(item => {
       // Find the selected days for the current item
 

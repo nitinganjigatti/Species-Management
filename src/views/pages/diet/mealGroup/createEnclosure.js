@@ -20,6 +20,7 @@ import { AddEnclosureToExistng, getMealGroupList } from 'src/lib/api/diet/mealgr
 import SelectedEnclosure from './selectedEnclosure'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CreateEnclosure = ({
   enclosureDrawer,
