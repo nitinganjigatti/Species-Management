@@ -272,7 +272,6 @@ const CustomOptionDateRangePickers = ({
 
   const handleDateChange = range => {
     setTempRange(range)
-    console.log('Selected Range:', range)
   }
 
   const handleApply = () => {
@@ -344,6 +343,7 @@ const CustomOptionDateRangePickers = ({
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
+        // eslint-disable-next-line lines-around-comment
         // PaperProps={{
         //   elevation: 3,
         //   sx: {

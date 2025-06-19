@@ -235,13 +235,24 @@ const AllRequestedItemsReport = () => {
       )
     },
     {
-      width: 5,
+      width: 100,
       field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
-      textAlign: 'center',
-      sortable: false,
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row.priority)}</Box>
+      headerName: 'Priority',
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility?.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
     {
       minWidth: 20,
@@ -583,9 +594,13 @@ const AllRequestedItemsReport = () => {
                   </Grid>
 
                   <Grid item size={{ xs: 12, sm: 7 }}>
-                    <Grid container spacing={2} sx={{
-                      justifyContent: { xs: 'flex-end' }
-                    }}>
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{
+                        justifyContent: { xs: 'flex-end' }
+                      }}
+                    >
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
@@ -678,7 +693,7 @@ const AllRequestedItemsReport = () => {
         <Error404 />
       )}
     </>
-  );
+  )
 }
 
 export default AllRequestedItemsReport

@@ -336,7 +336,6 @@ const AddIngredients = props => {
       master_cut_size_id: feed_type !== '' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
       master_cut_size: feed_type !== '' ? (newUom ? newUom.cut_size : size[item.id]?.name || '') : ''
     }
-    console.log('boxValues :>> ', boxValues)
 
     const existingIndex = selectedCard.findIndex(card => card.ingredient_id === item.id)
 
@@ -566,7 +565,6 @@ const AddIngredients = props => {
     debounce(async search => {
       try {
         setLoading(true)
-        console.log(feed, 'feed')
         const params = { page: 1, q: search, sort, status: 1, limit: 20, feed_type: feed }
         const res = await getIngredientList({ params })
         if (res?.data?.result.length > 0) {

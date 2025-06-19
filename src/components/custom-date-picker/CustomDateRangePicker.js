@@ -44,8 +44,6 @@ const CustomDateRangePicker = ({
     ? addMonths(currentDate, monthsShown - 2)
     : subMonths(currentDate, monthsShown - 1)
 
-  console.log(selectFutureDates, disableFutureDates, 'selectFutureDates')
-
   return (
     <DatePickerWrapper>
       <Box

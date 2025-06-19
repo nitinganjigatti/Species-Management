@@ -44,13 +44,10 @@ const ProductsChart = ({
     December: 'Dec'
   }
 
-  console.log(data, 'data123')
-
   // Extract months from data
   const monthsFromApi = data?.[seriesBarName.toLowerCase().replace(' ', '_')]?.[0]
     ? Object.keys(data[seriesBarName.toLowerCase().replace(' ', '_')][0])
     : []
-  console.log(monthsFromApi)
 
   const barData = monthsFromApi?.map(
     month => parseFloat(data?.[seriesBarName?.toLowerCase()?.replace(' ', '_')][0][month]) / 100000 || 0

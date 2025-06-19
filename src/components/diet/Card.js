@@ -51,11 +51,9 @@ const Card = props => {
 
   const handleAddRemarks = event => {
     event.stopPropagation()
-    console.log('Remarks', event.target.value)
   }
 
   const [activeDay, setActiveDay] = useState([])
-  console.log('activeDay', activeDay)
 
   const handleDayClick = (event, id, title) => {
     event.stopPropagation()

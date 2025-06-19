@@ -54,13 +54,11 @@ const slidesImg = {
 }
 
 const Slides = ({ sliderData }) => {
-  console.log(sliderData, 'sliderData')
-
   const formatTitleCase = str => {
     return str
       .replace(/_/g, ' ') // Replace underscores with spaces
       .toLowerCase() // Convert the entire string to lowercase
-      .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
+      .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize the first letter of each word
   }
 
   return (
@@ -146,7 +144,6 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
   // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
-  console.log(pharmacyData, 'pharmacyData')
 
   // ** Hook
   const theme = useTheme()
@@ -168,7 +165,6 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
   return (
     <Card sx={{ bgcolor: '#1F515B' }}>
       <CardHeader
-        // title='Pharmacy'
         title={
           <Typography sx={{ fontSize: '20px', fontWeight: 500, color: '#FFFFFF', textAlign: 'start' }}>
             {pharmacyData[currentSlide]?.title}
@@ -238,7 +234,7 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 export default DashboardPharmacyDetails

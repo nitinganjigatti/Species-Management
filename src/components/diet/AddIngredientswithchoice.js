@@ -267,7 +267,6 @@ const AddIngredientswithChoice = props => {
         setSelectedDays(daysOfWeek)
       } else {
         const allDayIds = Day.map(day => day.id)
-        console.log(allDayIds, 'allDayIds')
         setShowDays(true)
         setSelectedDays(allDayIds)
       }
