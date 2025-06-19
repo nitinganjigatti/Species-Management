@@ -21,6 +21,7 @@ import { debounce } from 'lodash'
 import { fontSize } from '@mui/system'
 import { object } from 'yup'
 import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CreateMealGroup = ({
   openDrawer,

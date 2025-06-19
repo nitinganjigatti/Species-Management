@@ -247,10 +247,10 @@ const MortalityReason = () => {
     }
   ]
 
-  const handleCellClick = params => {
-    setEditParams(params)
-    setOpenDetailsDrawer(true)
-  }
+  // const handleCellClick = params => {
+  //   setEditParams(params)
+  //   setOpenDetailsDrawer(true)
+  // }
 
   const headerAction = (
     <div>

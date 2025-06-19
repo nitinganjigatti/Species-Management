@@ -121,7 +121,7 @@ const RoomsList = () => {
         setTotal(parseInt(res?.data?.total_count ?? '0'))
         setRows(loadServerRows(paginationModel.page, res?.data?.result))
       } catch (e) {
-        console.error('Error fetching room list:', error)
+        console.error('Error fetching room list:', e)
       } finally {
         setLoading(false)
       }
@@ -166,7 +166,7 @@ const RoomsList = () => {
   // 📌 Fetch Nursery List
   const NurseryList = async (q = '') => {
     try {
-      console.log('q', q)
+      // console.log('q', q)
       const params = { search: q, page: 1, limit: 50 }
       const res = await GetNurseryList({ params })
       setNurseryList(res?.data?.result ?? [])

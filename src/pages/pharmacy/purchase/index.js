@@ -2,29 +2,23 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 
 // ** MUI Imports
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { Card, CardHeader, Typography, Grid, TextField, CardContent, InputAdornment, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
-import { format, subDays, subMonths } from 'date-fns'
+import { format, subMonths } from 'date-fns'
 
 import Router from 'next/router'
-import Error404 from 'src/pages/404'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton, ExcelExportButton } from 'src/components/Buttons'
+import { ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 
-import { useForm, Controller } from 'react-hook-form'
-import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
-import TableWithFilter from 'src/components/TableWithFilter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
@@ -94,7 +88,6 @@ const ListOfPurchase = () => {
 
         await getPurchaseList({ params }).then(res => {
           if (res?.success === true && res?.data?.length > 0) {
-            console.log('RESPONSE >>', res?.data)
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
 
@@ -180,9 +173,9 @@ const ListOfPurchase = () => {
       try {
         await fetchTableData({ sort, q, column, filterDates })
         updateUrlParams({
-          sort: newModel[0].sort,
+          sort: sort,
           q: q,
-          column: newModel[0].field,
+          column: column,
           page: paginationModel?.page,
           limit: paginationModel?.pageSize,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
@@ -214,15 +207,11 @@ const ListOfPurchase = () => {
         startDate: Utility.formatDate(startDate),
         endDate: Utility.formatDate(endDate)
       })
-
-      console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
         startDate: '',
         endDate: ''
       })
-
-      console.log('Empty date range selected,', { startDate, endDate })
     }
   }
 
@@ -335,13 +324,13 @@ const ListOfPurchase = () => {
       field: 'created_by',
       headerName: 'Created by ',
       renderCell: params => (
-        (<>
+        <>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_created_profile_pic,
             params?.row?.created_by_user_name,
             params?.row?.created_at
           )}
-        </>)
+        </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
@@ -362,13 +351,13 @@ const ListOfPurchase = () => {
       field: 'updated_by',
       headerName: 'Updated by',
       renderCell: params => (
-        (<>
+        <>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_updated_profile_pic,
             params?.row?.updated_by_user_name,
             params?.row?.updated_at
           )}
-        </>)
+        </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
@@ -386,9 +375,7 @@ const ListOfPurchase = () => {
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
+  const handleHeaderAction = () => {}
 
   const getInventoryDataToExport = async () => {
     try {
@@ -409,7 +396,6 @@ const ListOfPurchase = () => {
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       }
       const response = await getPurchaseList({ params })
-      console.log('Response inventory>', response)
       setExcelLoader(false)
 
       if (response?.success === true && response?.data?.length > 0) {
@@ -477,7 +463,6 @@ const ListOfPurchase = () => {
   )
 
   const onRowClick = params => {
-    console.log('Params >', params)
     if (
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
@@ -562,9 +547,13 @@ const ListOfPurchase = () => {
                   </Grid>
 
                   <Grid item size={{ xs: 12, sm: 6 }}>
-                    <Grid container spacing={2} sx={{
-                      justifyContent: { xs: 'flex-end' }
-                    }}>
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{
+                        justifyContent: { xs: 'flex-end' }
+                      }}
+                    >
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
@@ -691,7 +680,7 @@ const ListOfPurchase = () => {
         )
       ) : null}
     </>
-  );
+  )
 }
 
 export default ListOfPurchase

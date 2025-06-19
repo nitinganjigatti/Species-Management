@@ -54,6 +54,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     clearErrors,
     watch,
     setValue,
+    setError,
     formState: { errors }
   } = useForm({
     mode: 'all',

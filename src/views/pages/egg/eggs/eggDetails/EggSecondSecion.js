@@ -95,10 +95,10 @@ const EggSecondSecion = ({
 
   const historyData = {
     history1: {
-      Site: eggDetails?.site_name,
-      Section: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.section_name,
-      Enclosure: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.user_enclosure_name, // taken from h2
-      'Clutch No': eggDetails?.clutch_number ? eggDetails?.clutch_number : '-'
+      Site: eggDetails?.site_name || 'NA',
+      Section: (eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.section_name) || 'NA',
+      Enclosure: (eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.user_enclosure_name) || 'NA', // taken from h2
+      'Clutch No': eggDetails?.clutch_number || 'NA'
     },
     history2: {
       'Mother id':
@@ -313,7 +313,7 @@ const EggSecondSecion = ({
   })
 
   const onError = errors => {
-    // console.log('Form errros', errors)
+    // console.error('Form errors', errors)
   }
 
   const onSubmit = val => {
@@ -348,7 +348,7 @@ const EggSecondSecion = ({
           }
         })
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     } else {
       try {
@@ -364,7 +364,7 @@ const EggSecondSecion = ({
           }
         })
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     }
   }
@@ -409,7 +409,7 @@ const EggSecondSecion = ({
           setRows(loadServerRows(paginationModel.page, listWithId))
           setRowsWeight(rowWeights.reverse())
         } else {
-          console.log('res', res.message)
+          console.error('res', res?.message)
         }
       })
       setLoading(false)

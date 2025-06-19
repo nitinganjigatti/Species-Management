@@ -66,7 +66,7 @@ const EggDetail = () => {
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -82,7 +82,7 @@ const EggDetail = () => {
       })
     } catch (error) {
       setLoader(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -95,7 +95,7 @@ const EggDetail = () => {
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -110,7 +110,7 @@ const EggDetail = () => {
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 

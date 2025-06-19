@@ -176,8 +176,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
       }
     } catch (error) {
       setLoading(false)
-
-      console.log('error :>> ', error)
+      console.error('error :>> ', error)
     }
   }
 

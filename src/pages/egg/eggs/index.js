@@ -114,7 +114,7 @@ const EggList = () => {
 
   useEffect(() => {
     if (filter_list) {
-      console.log('filter_list', filter_list)
+      // console.log('filter_list', filter_list)
       setFilterList(JSON.parse(filter_list))
     }
     if (selected_options) {
@@ -148,7 +148,7 @@ const EggList = () => {
 
   const checkAddPermission = () => {
     if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
-      console.log('animal_record_access', animal_record_access)
+      // console.log('animal_record_access', animal_record_access)
 
       return true
     } else {
@@ -772,7 +772,7 @@ const EggList = () => {
       headerName: 'Animal Id',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-          {console.log(params.row.animal_id)}
+          {/* {console.log(params.row.animal_id)} */}
           {params.row.animal_id ? (
             <Typography
               style={{
@@ -1975,7 +1975,7 @@ const EggList = () => {
           : ''
 
         // console.log('status', status)
-        console.log('first')
+        // console.log('first')
         // console.log('isDiscarded', isDiscarded)
         const params = {
           sort,
@@ -2038,7 +2038,7 @@ const EggList = () => {
         }
         setLoading(false)
       } catch (error) {
-        console.log(error)
+        console.error(error)
         setLoading(false)
       }
     },
@@ -2095,7 +2095,7 @@ const EggList = () => {
         setNurseryList(updatedList)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -2315,7 +2315,8 @@ const EggList = () => {
               sx={{
                 color: 'text.primary',
                 cursor: 'pointer'
-              }}>
+              }}
+            >
               Egg List
             </Typography>
           </Breadcrumbs>
@@ -2501,7 +2502,7 @@ const EggList = () => {
         <ErrorScreen></ErrorScreen>
       )}
     </>
-  );
+  )
 }
 
 export default EggList

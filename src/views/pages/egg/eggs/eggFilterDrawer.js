@@ -143,7 +143,7 @@ const EggFilterDrawer = ({
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -160,7 +160,7 @@ const EggFilterDrawer = ({
         setNurseryList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -177,7 +177,7 @@ const EggFilterDrawer = ({
         setCollectedByList(res?.data?.data?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -194,7 +194,7 @@ const EggFilterDrawer = ({
         setDiscardedByList(res?.data?.data?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 

@@ -50,10 +50,10 @@ const Organization = () => {
     return data
   }
 
-  const handleChange = (event, newValue) => {
-    setTotal(0)
-    setValue(newValue)
-  }
+  // const handleChange = (event, newValue) => {
+  //   setTotal(0)
+  //   setValue(newValue)
+  // }
 
   const onClose = () => {
     setDialog(false)
