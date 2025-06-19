@@ -78,6 +78,7 @@ const AnimalList = () => {
   const [isDownloading, setIsDownloading] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
   const [isLoader, setIsLoader] = useState(false)
+
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
       { label: 'Class', key: 'include_class', checked: false },
@@ -114,6 +115,7 @@ const AnimalList = () => {
       [] ||
       [],
     Species: speciesList
+
     // Organization: organizationList?.sort((a, b) => a.organization_name.localeCompare(b.organization_name)) || []
 
     // Section: ['North', 'South', 'East', 'West'],
@@ -553,6 +555,7 @@ const AnimalList = () => {
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
+
                       // maxWidth: '200px'\
                       textAlign: 'left',
                       overflow: 'hidden',
@@ -575,6 +578,7 @@ const AnimalList = () => {
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
+
                       // maxWidth: '200px',
                       textAlign: 'left',
                       overflow: 'hidden',

@@ -30,9 +30,11 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import ClearIcon from '@mui/icons-material/Clear'
 import { styled } from '@mui/material/styles'
 import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
+import { useTheme } from '@emotion/react'
 
 const SpeciesDetail = () => {
   const router = useRouter()
+  const theme = useTheme()
   let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const { id, animal_id } = router.query
   const authData = useContext(AuthContext)

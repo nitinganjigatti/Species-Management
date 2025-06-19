@@ -121,7 +121,7 @@ const RoomsList = () => {
         setTotal(parseInt(res?.data?.total_count ?? '0'))
         setRows(loadServerRows(paginationModel.page, res?.data?.result))
       } catch (e) {
-        console.error('Error fetching room list:', error)
+        console.error('Error fetching room list:', e)
       } finally {
         setLoading(false)
       }

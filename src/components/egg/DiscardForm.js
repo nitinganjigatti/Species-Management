@@ -65,7 +65,7 @@
 //         }
 //       })
 //     } catch (e) {
-//       console.log(e)
+//       console.error(e)
 //     }
 //   }
 
@@ -73,7 +73,7 @@
 //     try {
 //       getEggMasterData()
 //     } catch (error) {
-//       console.log('error :>> ', error)
+//       console.error('error :>> ', error)
 //     }
 //   }, [])
 
@@ -633,7 +633,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
