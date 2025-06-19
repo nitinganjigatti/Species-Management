@@ -53,7 +53,7 @@ const TransferDetails = () => {
         setNurseryList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -68,7 +68,7 @@ const TransferDetails = () => {
         setFromSiteList(res?.data?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -83,7 +83,7 @@ const TransferDetails = () => {
         setToSiteList(res?.data?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -484,7 +484,7 @@ const TransferDetails = () => {
         })
         setLoading(false)
       } catch (e) {
-        console.log(e)
+        console.error(e)
         setLoading(false)
       }
     },

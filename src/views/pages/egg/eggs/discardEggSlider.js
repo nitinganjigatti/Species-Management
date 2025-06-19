@@ -194,7 +194,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const searchData = useCallback(
     debounce(async searchVal => {
       if (isSearchOpen === true) {
-        console.log('first', isSearchOpen)
+        // console.log('first', isSearchOpen)
         setDiscardList([])
         setListCount('0')
         await DiscardList(searchVal, date?.to_date, date?.from_date)
@@ -806,7 +806,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
                   {loader && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                      {console.log('loader when scroll', loader)}
+                      {/* {console.log('loader when scroll', loader)} */}
                       <CircularProgress />
                     </Box>
                   )}

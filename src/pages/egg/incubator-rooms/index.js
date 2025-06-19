@@ -166,7 +166,7 @@ const RoomsList = () => {
   // 📌 Fetch Nursery List
   const NurseryList = async (q = '') => {
     try {
-      console.log('q', q)
+      // console.log('q', q)
       const params = { search: q, page: 1, limit: 50 }
       const res = await GetNurseryList({ params })
       setNurseryList(res?.data?.result ?? [])

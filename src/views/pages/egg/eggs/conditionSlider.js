@@ -108,7 +108,7 @@ const ConditionSlider = ({
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -116,7 +116,7 @@ const ConditionSlider = ({
     try {
       getEggMasterData()
     } catch (error) {
-      console.log('error :>> ', error)
+      console.error('error :>> ', error)
     }
   }, [])
 
@@ -304,7 +304,7 @@ const ConditionSlider = ({
   })
 
   const onError = errors => {
-    console.log('Form errros', errors)
+    console.error('Form errors', errors)
   }
 
   const handleAddImageClick = () => {

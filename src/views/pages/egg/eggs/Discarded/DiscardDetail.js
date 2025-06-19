@@ -60,7 +60,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
       const res = await GetDiscardedSummary(params)
       setSummary(res?.data?.data)
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -72,7 +72,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
       const res = await GetDiscardedEggList(params)
       setEggList(res?.data?.data?.result)
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -85,7 +85,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 

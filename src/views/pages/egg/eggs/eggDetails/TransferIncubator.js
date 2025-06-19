@@ -78,7 +78,7 @@ const TransferIncubator = ({
         setNurseryList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
   useEffect(() => {
@@ -109,7 +109,7 @@ const TransferIncubator = ({
         setRoomList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
