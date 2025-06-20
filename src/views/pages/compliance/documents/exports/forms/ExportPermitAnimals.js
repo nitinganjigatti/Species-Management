@@ -39,11 +39,31 @@ const ExportPermitAnimals = ({
   // Calculate totals
   const totalSpeciesCount = speciesList.length
 
-  const totalAnimalCount = speciesList.reduce((sum, species) => {
-    const count = species.animalDetails?.reduce((s, a) => s + (parseInt(a.animal_count) || 0), 0)
+  const totalAnimalCount = speciesList.reduce(
+    (sum, species) =>
+      sum +
+      (parseInt(species.male_count) || 0) +
+      (parseInt(species.female_count) || 0) +
+      (parseInt(species.undeterminate_count) || 0),
+    0
+  )
 
-    return sum + count
-  }, 0)
+  // Helper to get available gender counts
+  const getAvailableGenderCounts = species => {
+    const maleCount = parseInt(species.male_count) || 0
+    const femaleCount = parseInt(species.female_count) || 0
+    const undeterminedCount = parseInt(species.undeterminate_count) || 0
+
+    const usedMale = species.animalDetails.filter(a => a.gender?.value === 'male').length
+    const usedFemale = species.animalDetails.filter(a => a.gender?.value === 'female').length
+    const usedUndetermined = species.animalDetails.filter(a => a.gender?.value === 'unknown').length
+
+    return {
+      male: maleCount - usedMale,
+      female: femaleCount - usedFemale,
+      undetermined: undeterminedCount - usedUndetermined
+    }
+  }
 
   // Validation helper
   const validateAnimalCounts = species => {
@@ -53,12 +73,19 @@ const ExportPermitAnimals = ({
 
     const totalCount = male + female + undetermined
 
-    const animalDetailsCount = species.animalDetails.reduce(
-      (sum, detail) => sum + (parseInt(detail.animal_count) || 0),
-      0
-    )
+    const animalDetailsCount = species.animalDetails.length
 
-    return totalCount >= animalDetailsCount
+    // Count of each gender in animal details
+    const maleDetails = species.animalDetails.filter(a => a.gender?.value === 'male').length
+    const femaleDetails = species.animalDetails.filter(a => a.gender?.value === 'female').length
+    const undeterminedDetails = species.animalDetails.filter(a => a.gender?.value === 'unknown').length
+
+    return (
+      totalCount >= animalDetailsCount &&
+      male >= maleDetails &&
+      female >= femaleDetails &&
+      undetermined >= undeterminedDetails
+    )
   }
 
   const handleCountChange = (speciesIndex, field, value) => {
@@ -69,7 +96,7 @@ const ExportPermitAnimals = ({
 
     // Recalculate total count
     updatedSpecies.total_count =
-      updatedSpecies.male_count + updatedSpecies.female_count + updatedSpecies.undeterminate_count
+      (updatedSpecies.male_count || 0) + (updatedSpecies.female_count || 0) + (updatedSpecies.undeterminate_count || 0)
 
     handleSpeciesUpdate(species.id, updatedSpecies)
   }
@@ -161,6 +188,8 @@ const ExportPermitAnimals = ({
         {speciesList?.map((speciesItem, speciesIndex) => {
           const isValidCount = validateAnimalCounts(speciesItem)
           const speciesErrors = errors.speciesList?.[speciesIndex] || {}
+          const availableCounts = getAvailableGenderCounts(speciesItem)
+          console.log('speciesItem.species', speciesItem.species)
 
           return (
             <Card
@@ -259,17 +288,11 @@ const ExportPermitAnimals = ({
                   </Grid>
                 </Grid>
 
-                {/* Total Count Display */}
-                {/* <Typography variant='body2' sx={{ mb: 2, fontWeight: 500 }}>
-                  Total Count: {speciesItem.total_count}
-                </Typography> */}
-
                 {/* Count Mismatch Warning */}
                 {!isValidCount && (
                   <Alert severity='error' sx={{ mb: 2, mt: 4 }}>
-                    Animal details count (
-                    {speciesItem.animalDetails.reduce((sum, detail) => sum + (parseInt(detail.animal_count) || 0), 0)})
-                    must be less than total count ({speciesItem.total_count})
+                    Animal details count ({speciesItem.animalDetails.length}) must be less than or equal to total count
+                    ({speciesItem.total_count}), and individual gender counts must not exceed their specified limits.
                   </Alert>
                 )}
 
@@ -288,13 +311,33 @@ const ExportPermitAnimals = ({
                   >
                     Animal Details
                   </Typography>
-                  <Button startIcon={<AddIcon />} onClick={() => handleAddAnimal(speciesIndex)}>
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={() => handleAddAnimal(speciesIndex)}
+                    disabled={
+                      (!speciesItem.male_count && !speciesItem.female_count && !speciesItem.undeterminate_count) ||
+                      speciesItem.animalDetails.length >= speciesItem.total_count
+                    }
+                  >
                     Add Animal
                   </Button>
                 </Box>
 
                 {/* Animal Details List */}
                 {speciesItem.animalDetails.map((detail, animalIndex) => {
+                  const filteredGenderOptions = genderOptions
+                    .map(option => {
+                      const countLeft = availableCounts[option.value === 'unknown' ? 'undetermined' : option.value]
+
+                      return {
+                        ...option,
+                        disabled: countLeft <= 0 && detail.gender?.value !== option.value
+                      }
+                    })
+
+                    // Filter out options that are disabled and not currently selected
+                    .filter(option => !option.disabled || detail.gender?.value === option.value)
+
                   return (
                     <Box key={animalIndex} sx={{ mt: 4 }}>
                       <Grid container spacing={4} alignItems='center'>
@@ -304,7 +347,7 @@ const ExportPermitAnimals = ({
                             label='Gender'
                             control={control}
                             errors={errors}
-                            options={genderOptions}
+                            options={filteredGenderOptions}
                             getOptionLabel={option => option.label}
                             isOptionEqualToValue={(option, value) => option.value === value?.value}
                             onChangeOverride={value =>

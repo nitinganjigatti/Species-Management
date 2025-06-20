@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import ImageUpload from 'src/views/forms/form-fields/ImageUpload'
+import FileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 
 // import AnimalDetailsModal from '../modals/AnimalDetailsModal'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
@@ -460,7 +460,7 @@ const ExportPermitForm = ({ onSubmit, onReset }) => {
           />
         </Grid>
         <Grid item xs={12} md={6}>
-          <ImageUpload name='certificate_file' label='Permit Image' control={control} errors={errors} />
+          <FileUpload name='certificate_file' label='Permit Image' control={control} errors={errors} />
         </Grid>
       </Grid>
 

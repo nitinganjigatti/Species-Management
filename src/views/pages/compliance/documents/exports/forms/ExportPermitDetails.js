@@ -2,7 +2,7 @@ import React from 'react'
 import { Grid, Box, Typography } from '@mui/material'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import ImageUpload from 'src/views/forms/form-fields/ImageUpload'
+import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 
 const ExportPermitDetails = ({ control, errors, isEdit }) => {
@@ -141,7 +141,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <ImageUpload name='certificate_file' label='Upload Permit' control={control} errors={errors} />
+          <ControlledFileUpload name='certificate_file' label='Upload Permit' control={control} errors={errors} />
         </Grid>
       </Grid>
     </Box>
