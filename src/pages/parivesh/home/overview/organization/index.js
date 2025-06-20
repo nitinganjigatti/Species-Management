@@ -38,7 +38,7 @@ const Organization = () => {
   const { selectedParivesh } = usePariveshContext()
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('accepted_on')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [dialog, setDialog] = useState(false)

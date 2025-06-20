@@ -37,7 +37,7 @@ const ReportedBatches = ({ type }) => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
   const [sortBy, setSortBy] = useState('DESC')
@@ -104,6 +104,7 @@ const ReportedBatches = ({ type }) => {
 
         await getBatchListSpecies({ params: params }).then(res => {
           console.log('response', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.data.map((el, i) => {
             return { ...el, id: i + 1 }
@@ -161,6 +162,7 @@ const ReportedBatches = ({ type }) => {
       const response = await deleteBatchToOrg(payload, selectedId)
       if (response.success === true) {
         Toaster({ type: 'success', message: `Batch has been successfully deleted` })
+
         // Reload the table data
         fetchTableData(sortBy, searchValue, sortColumn)
       } else {
@@ -207,6 +209,7 @@ const ReportedBatches = ({ type }) => {
         </Typography>
       )
     },
+
     // {
     //   flex: 0.4,
     //   minWidth: 30,
@@ -321,6 +324,7 @@ const ReportedBatches = ({ type }) => {
         </Box>
       )
     },
+
     // {
     //   flex: 0.3,
     //   minWidth: 20,
@@ -395,6 +399,7 @@ const ReportedBatches = ({ type }) => {
               event.stopPropagation()
               handleDelete(params.row.batch_id)
               console.log('delete clicked', params)
+
               // Your edit logic here
             }}
             aria-label='delete'
@@ -405,6 +410,7 @@ const ReportedBatches = ({ type }) => {
       )
     }
   ]
+
   const headerAction = (
     <>
       {/* <div>
