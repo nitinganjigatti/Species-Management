@@ -1,52 +1,34 @@
-import { TabContext, TabList } from '@mui/lab'
-import {
-  Box,
-  Button,
-  Card,
-  CardHeader,
-  Checkbox,
-  CircularProgress,
-  FormControl,
-  InputAdornment,
-  Popover,
-  TextField,
-  Typography
-} from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
-import { useTheme } from '@emotion/react'
-import { AuthContext } from 'src/context/AuthContext'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
+
+import { Box, Button, Card, CardHeader, Checkbox, CircularProgress, Popover, Typography, Tooltip } from '@mui/material'
+import { TabContext, TabList } from '@mui/lab'
+import { useTheme } from '@emotion/react'
+import toast from 'react-hot-toast'
+import moment from 'moment'
+
+import { AuthContext } from 'src/context/AuthContext'
 import { useAnimalContext } from 'src/context/AnimalContext'
 import { usePariveshContext } from 'src/context/PariveshContext'
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
-import { getAllAnimalReport, getAnimalReportById, getReportFilterList, getSpeciesListing } from 'src/lib/api/report'
-import toast from 'react-hot-toast'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
-import Organization from 'src/pages/parivesh/home/overview/organization'
 import Error404 from 'src/pages/404'
-
-import Icon from 'src/@core/components/icon'
-import Tooltip from '@mui/material/Tooltip'
 import StickyTable from 'src/views/table/sticky-table'
-import moment from 'moment'
+import { getAllAnimalReport, getAnimalReportById, getSpeciesListing } from 'src/lib/api/report'
 
 const AnimalList = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { animalId } = router.query
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
 
+  // filter options
   const categories = ['Site', 'Species']
   const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
-  const { animalId } = router.query
 
-  console.log('Animal Id >>', animalId)
-
+  // console.log('Animal Id >>', animalId)
   const [status, setStatus] = useState('statistics')
-
-  // const [selectedSites, setSelectedSites] = useState([])
   const [animalList, setAnimalList] = useState([])
 
   const [dataList, setDataList] = useState([])
@@ -64,7 +46,7 @@ const AnimalList = () => {
     setSelectedOptions
   } = useAnimalContext()
 
-  console.log('selected >', selectedAnimal)
+  // console.log('selected >', selectedAnimal)
 
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
@@ -108,21 +90,6 @@ const AnimalList = () => {
     include_site: 0,
     include_genus: 0
   })
-
-  const options = {
-    Site:
-      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
-      [] ||
-      [],
-    Species: speciesList
-
-    // Organization: organizationList?.sort((a, b) => a.organization_name.localeCompare(b.organization_name)) || []
-
-    // Section: ['North', 'South', 'East', 'West'],
-    // Enclosure: ['Enclosure 1', 'Enclosure 2'],
-    // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
-    // Breed: ['Breed A', 'Breed B']
-  }
 
   // const [apiFilterParams, setApiFilterParams] = useState({
   //   include_housing: 0,
@@ -345,8 +312,6 @@ const AnimalList = () => {
   // Function to trigger the CSV download
   const getAnimalDataToExport = async () => {
     await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
-
-    // await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
 
   const getSpecificAnimalDataToExport = async () => {
@@ -360,11 +325,8 @@ const AnimalList = () => {
         limit: paginationModel.pageSize,
         ...param
       }
-
       setIsLoading(true)
-
       await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
-
       initialLoad.current = false
     },
     [paginationModel]
@@ -455,7 +417,6 @@ const AnimalList = () => {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
-
       return updatedData
     })
   }
@@ -464,36 +425,7 @@ const AnimalList = () => {
     if (text.length > maxLength) {
       return <>{`${text.substring(0, maxLength)}...`}</>
     }
-
     return text
-  }
-
-  const handleFilterConfirm = async () => {
-    let updatedApiParams = {}
-
-    // Process `popoverData` to extract only checked options for other categories
-    Object.keys(popoverData).forEach(category => {
-      popoverData[category].forEach(option => {
-        if (option.checked) {
-          updatedApiParams[option.key] = 1 // Store only selected options
-        }
-      })
-    })
-
-    // Store selected site IDs from selectedSites state
-    const selectedSiteIds = selectedSites.length > 0 ? selectedSites : ''
-
-    // ✅ Apply `.join(',')` only if selectedSiteIds is an array (not empty string)
-    updatedApiParams.sids =
-      Array.isArray(selectedSiteIds) && selectedSiteIds.length > 0 ? selectedSiteIds.join(',') : ''
-
-    // Update selected sites in the context state
-    setSelectedSites(selectedSiteIds.includes('All Sites') ? sites : selectedSiteIds)
-
-    // Update filterParams and reset pagination
-    setApiFilterParams(updatedApiParams) // Store filter params in context
-    setAnchorEl(null)
-    setPaginationModel(prev => ({ ...prev, page: 0 }))
   }
 
   const getSpecificTotalSelectedFilters = selectedOptions => {
@@ -555,8 +487,6 @@ const AnimalList = () => {
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-
-                      // maxWidth: '200px'\
                       textAlign: 'left',
                       overflow: 'hidden',
                       whiteSpace: 'nowrap',
@@ -578,8 +508,6 @@ const AnimalList = () => {
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-
-                      // maxWidth: '200px',
                       textAlign: 'left',
                       overflow: 'hidden',
                       whiteSpace: 'nowrap',
@@ -662,8 +590,44 @@ const AnimalList = () => {
     return data
   }
 
+  // filter section
+
+  const options = {
+    Site:
+      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [],
+    Species: speciesList || []
+  }
+
   const handleFilterSection = () => {
     setOpenFilterDrawer(true)
+  }
+
+  const handleFilterConfirm = async () => {
+    let updatedApiParams = {}
+
+    // Process `popoverData` to extract only checked options for other categories
+    Object.keys(popoverData).forEach(category => {
+      popoverData[category].forEach(option => {
+        if (option.checked) {
+          updatedApiParams[option.key] = 1 // Store only selected options
+        }
+      })
+    })
+
+    // Store selected site IDs from selectedSites state
+    const selectedSiteIds = selectedSites.length > 0 ? selectedSites : ''
+
+    // ✅ Apply `.join(',')` only if selectedSiteIds is an array (not empty string)
+    updatedApiParams.sids =
+      Array.isArray(selectedSiteIds) && selectedSiteIds.length > 0 ? selectedSiteIds.join(',') : ''
+
+    // Update selected sites in the context state
+    setSelectedSites(selectedSiteIds.includes('All Sites') ? sites : selectedSiteIds)
+
+    // Update filterParams and reset pagination
+    setApiFilterParams(updatedApiParams) // Store filter params in context
+    setAnchorEl(null)
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
   }
 
   return (
@@ -697,7 +661,6 @@ const AnimalList = () => {
                             variant='body2'
                           >
                             {selectedAnimal?.scientific_name}
-                            {/* {truncateText(params.row.scientific_name, 40)} */}
                           </Typography>
 
                           <Typography
@@ -713,7 +676,6 @@ const AnimalList = () => {
                             variant='body2'
                           >
                             {selectedAnimal?.common_name}
-                            {/* {truncateText(params.row.common_name, 53)} */}
                           </Typography>
                         </>
                       }
@@ -1044,63 +1006,6 @@ const AnimalList = () => {
                 )}
               </Box>
               <Box sx={{ width: '100%', px: 5, mt: 4 }}>
-                {/* <Box sx={{ borderRadius: '8px' }}>
-                  <DataGrid
-                    sx={{
-                      mt: 3,
-                      mx: 2,
-                      borderRadius: '8px',
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
-                      '& .MuiDataGrid-columnHeader': {
-                        backgroundColor: '#DDEBE9',
-                        color: '#1F415B',
-                        fontWeight: 600,
-                        fontSize: '12px',
-                        fontFamily: 'Inter',
-                        // textTransform: 'capitalize',
-                        borderBottom: '2px solid #C3CEC7'
-                      },
-                      '.MuiDataGrid-main': {
-                        borderLeft: '1px solid #C3CEC7',
-                        borderRight: '1px solid #C3CEC7',
-                        borderTop: '1px solid #C3CEC7',
-                        borderBottom: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        overflow: 'hidden'
-                      },
-                      '& .MuiDataGrid-footerContainer': {
-                        borderTop: 'none'
-                      },
-
-                      '& .MuiDataGrid-cell': {
-                        fontFamily: 'Inter',
-                        fontSize: '14px',
-                        fontWeight: 400,
-                        lineHeight: '16.94px',
-                        textAlign: 'left',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }
-                    }}
-                    rows={reportRows}
-                    disableColumnSorting={true}
-                    rowCount={total}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={isLoading}
-                    autoHeight
-                    disableColumnFilter={false}
-                    hideFooterSelectedRowCount
-                    rowHeight={70}
-                    scrollbarSize={10}
-                  />
-                </Box> */}
-
                 {columns.length > 0 ? (
                   <StickyTable
                     rows={reportRows.length && reportRows}
@@ -1115,23 +1020,10 @@ const AnimalList = () => {
                     paginationModel={paginationModel}
                     onPaginationModelChange={setPaginationModel}
                     loading={isLoading}
-                    // sortConfig={sortModel}
-                    // onSortChange={handleSortModelChange}
-                    // onCellClick={onCellClick}
-                    // onRowClick={handleRowClick}
-                    // rowSelection
-                    // onRowSelect={onRowSelect}
                     downloadExcel
-                    // modifyColumnPinning
                     headerName='Species'
                     searchMode='server'
-                    // onSearch={onSearch}
                     disableColumnSorting={true}
-
-                    // autoHeight
-                    // disableColumnFilter={false}
-                    // hideFooterSelectedRowCount
-                    // scrollbarSize={10}
                   />
                 ) : (
                   <Box sx={{ py: 4, textAlign: 'center' }}>

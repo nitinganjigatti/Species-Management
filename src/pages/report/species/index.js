@@ -622,6 +622,7 @@ const SpeciesReport = () => {
   }
 
   const getTotalSelectedFilters = selectedOptions => {
+    // console.log('selectedOptions', selectedOptions)
     // Use Object.values to extract arrays of selected items
     return Object.values(selectedOptions)
       .flat() // Flatten to combine all selected items into a single array
@@ -971,8 +972,6 @@ const SpeciesReport = () => {
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
-
-                        // mr: 2,
                         gap: 1,
                         minWidth: '100px'
                       }}
@@ -1061,7 +1060,6 @@ const SpeciesReport = () => {
 
               <Box sx={{ width: '98%', margin: 4 }}>
                 <Box sx={{ borderRadius: '8px' }}>
-                  
                   {columns.length > 0 && (
                     <StickyTable
                       rows={reportRows}
