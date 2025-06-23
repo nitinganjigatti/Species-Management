@@ -272,8 +272,7 @@ const SpeciesReport = () => {
   const initialLoad = useRef(true)
 
   const fetchData = useCallback(
-    async (param, q, paginationModel) => {
-   
+    async (param, q) => {
       let params = {
         page: paginationModel?.page + 1,
         limit: paginationModel?.pageSize,
