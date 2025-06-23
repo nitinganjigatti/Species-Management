@@ -58,6 +58,7 @@ import UploadReports from 'src/components/lab/request/UploadReports'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
+import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
 
 // APIs
 import {
@@ -69,13 +70,17 @@ import {
   postBulkTransfer,
   getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
-import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
 
 const RequestDetails = () => {
   const theme = useTheme()
-
   const router = useRouter()
   const authData = useContext(AuthContext)
+  const localLabData = authData?.userData?.modules?.lab_data?.lab
+
+  const { id, lab_id, page, q, pageSize } = Router.query
+  const searchParams = useSearchParams()
+  const Selectedlab_id = searchParams.get('lab_id')
+
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
@@ -92,11 +97,6 @@ const RequestDetails = () => {
 
   const [transferStatus, setTransferStatus] = useState('')
 
-  const { id, lab_id, page, q, pageSize } = Router.query
-
-  const searchParams = useSearchParams()
-  const Selectedlab_id = searchParams.get('lab_id')
-
   const [medicineId, setMedicineId] = useState()
 
   const [LabRequestId, setLabRequestId] = useState()
@@ -112,8 +112,6 @@ const RequestDetails = () => {
   const [permissions, setPermissions] = useState(null)
 
   const [status, setStatus] = React.useState('awaiting_sample')
-
-  const localLabData = authData?.userData?.modules?.lab_data?.lab
 
   const PrvLabId = request[0]?.lab_id
 
@@ -533,9 +531,7 @@ const RequestDetails = () => {
         </Box>
       )
     },
-
     {
-      // flex: 0.4,
       width: 300,
       field: 'sample_name',
       sortable: false,
@@ -570,7 +566,6 @@ const RequestDetails = () => {
       align: 'center',
       renderCell: params => {
         const isSelected = selectedRowData?.some(item => item?.id === params?.id)
-
         return (
           <>
             <Box sx={{ minWidth: 260 }}>
@@ -839,7 +834,6 @@ const RequestDetails = () => {
           }
         ]
       : []),
-
     ,
   ]
 
@@ -923,7 +917,6 @@ const RequestDetails = () => {
       Toaster({ type: 'error', message: "A test with status 'completed' was found!" })
       setOpenTransfer(false)
     } else {
-      // if (selectedRow?.length > 1) {
       const payloadMulti = {
         test_ids: selectedRow,
         replaced_lab_id,
@@ -936,7 +929,6 @@ const RequestDetails = () => {
         transfer_reason
       }
 
-      // console.log('params1', params)
       const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
         handleCloseTransfer()
@@ -1579,7 +1571,6 @@ const RequestDetails = () => {
                 baseButton: {
                   variant: 'outlined'
                 }
-
                 // toolbar: {
                 //   value: searchValue,
                 //   clearSearch: () => handleSearch(''),
