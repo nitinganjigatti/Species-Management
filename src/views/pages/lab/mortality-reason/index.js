@@ -1,23 +1,10 @@
 import { useCallback, useEffect, Fragment, useRef } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
-import {
-  Box,
-  Drawer,
-  FormControl,
-  FormHelperText,
-  IconButton,
-  TextField,
-  Typography,
-  FormControlLabel,
-  FormLabel,
-  RadioGroup,
-  Radio
-} from '@mui/material'
+import { Box, Drawer, FormControl, FormHelperText, IconButton, TextField, Typography } from '@mui/material'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@mui/material/styles'
 import { getMortalityReasonsById } from 'src/lib/api/lab/mortality'
 
 const schema = yup.object().shape({
@@ -31,7 +18,7 @@ const defaultValues = {
 }
 
 const AddMortalityReasons = props => {
-  const theme = useTheme()
+  const inputRef = useRef()
   const { addEventSidebarOpen, setOpenDrawer, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {
@@ -50,7 +37,6 @@ const AddMortalityReasons = props => {
   const getMortalityReasonById = useCallback(
     async id => {
       const response = await getMortalityReasonsById(id)
-      console.log('add state comp', response)
       if (response?.is_success) {
         const data = {
           ...response.data?.result,
@@ -76,21 +62,15 @@ const AddMortalityReasons = props => {
   }, [resetForm, editParams, reset, getMortalityReasonById])
 
   const onSubmit = async params => {
-    console.log(params, 'log')
-
     const { name, description, active } = { ...params }
-
     const payload = {
       name
-
       // description,
       // active
     }
 
     await handleSubmitData(payload)
   }
-
-  const inputRef = useRef()
 
   useEffect(() => {
     if (inputRef.current && control._formValues.name) {
