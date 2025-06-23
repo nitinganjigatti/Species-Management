@@ -63,6 +63,10 @@ const EggList = () => {
     selected_filters_options
   } = router.query
 
+  const authData = useContext(AuthContext)
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
+
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
   const [loader, setLoader] = useState(false)
@@ -126,10 +130,6 @@ const EggList = () => {
       setSelectedFiltersOptions(JSON.parse(selected_filters_options))
     }
   }, [])
-
-  const authData = useContext(AuthContext)
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
-  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
 
   const handleDiscard = (e, eggId) => {
     e.stopPropagation()

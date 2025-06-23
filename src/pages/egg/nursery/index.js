@@ -37,7 +37,6 @@ const NurseryList = () => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('nursery_name')
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
@@ -47,32 +46,6 @@ const NurseryList = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
-
-  // const fetchTableData = useCallback(
-  //   async (q, siteId) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         search: q || '',
-  //         site_id: siteId,
-  //         type: 'all',
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-
-  //       await GetNurseryList({ params: params }).then(res => {
-  //         setTotal(parseInt(res?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
 
   const fetchTableData = useCallback(
     async (q = '', siteId) => {
@@ -118,22 +91,9 @@ const NurseryList = () => {
     if (newModel.length) {
       const { sort: newSort, field: newField } = newModel[0]
       setSort(newSort)
-      setSortColumn(newField)
       fetchTableData(searchValue, defaultSite?.site_id)
     }
   }
-
-  // const searchTableData = useCallback(
-  //   debounce(async (q, siteId) => {
-  //     setSearchValue(q)
-  //     try {
-  //       await fetchTableData(q, siteId)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   []
-  // )
 
   const searchTableData = useCallback(
     debounce(async (q, siteId) => {
@@ -178,7 +138,6 @@ const NurseryList = () => {
       field: 'Nursery Name',
       headerName: 'Nursery Name',
       align: 'left',
-
       renderCell: params => (
         <Typography
           noWrap
@@ -243,7 +202,6 @@ const NurseryList = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'SITE NAME',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -263,7 +221,6 @@ const NurseryList = () => {
       sortable: false,
       align: 'left',
       field: 'active',
-
       // headerAlign: 'left',
       headerName: 'Status',
       renderCell: params => (
@@ -487,7 +444,6 @@ const NurseryList = () => {
                 '.MuiDataGrid-main': {
                   borderLeft: '1px solid #0000000D',
                   borderRight: '1px solid #0000000D',
-
                   marginLeft: '16px',
                   marginRight: '16px',
                   borderRadius: '8px',
