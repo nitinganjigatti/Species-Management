@@ -12,7 +12,6 @@ import {
   Tooltip
 } from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
 import { TabContext, TabList } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
@@ -134,7 +133,7 @@ const SpeciesReport = () => {
         setIsLoader(false)
         setSpeciesList(response.data.result)
       } else {
-        console.log('Error something went wrong')
+        console.error('Error something went wrong')
       }
     }
     fetchSpeciesList()
@@ -194,7 +193,7 @@ const SpeciesReport = () => {
       } else if (response.success) {
         const { header, datalist, total_count } = response.data || {}
 
-        console.log(response)
+        // console.log(response)
 
         // setDataList(datalist || [])
         // if (setHeaders) setHeaderList(header)

@@ -109,7 +109,7 @@ const Animal = () => {
         if (response) {
           setReportData(response)
         } else {
-          console.log('error >')
+          console.error('error >')
         }
       }
       fetchReportType()
@@ -161,7 +161,7 @@ const Animal = () => {
       }
     } catch (error) {
       Toaster({ type: 'error', message: 'Error on exporting data' })
-      console.log('Error exporting data:', error)
+      console.error('Error exporting data:', error)
     }
   }
 
@@ -402,7 +402,11 @@ const Animal = () => {
                     }}
                     alt='Filter Icon'
                   />
-                  <Typography sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}>Show/Hide</Typography>
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
+                  >
+                    Show/Hide
+                  </Typography>
                 </Button>
                 <Popover
                   id={id}

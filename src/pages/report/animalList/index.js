@@ -157,10 +157,10 @@ const AnimalList = () => {
         const response = await getSpeciesListing()
         if (response.success) {
           setIsLoader(false)
-          console.log('Response >', response.data)
+          // console.log('Response >', response.data)
           setSpeciesList(response.data.result)
         } else {
-          console.log('Error: Something went wrong')
+          console.error('Error: Something went wrong')
         }
       } catch (error) {
         console.error('Error fetching species:', error)
@@ -255,7 +255,7 @@ const AnimalList = () => {
     try {
       setIsLoading(true)
       const response = await getAllAnimalReport(params)
-      console.log(response)
+      // console.log(response)
       if (responseType === 'csv' && response && response.data) {
         handleCsvResponse(response.data)
       } else if (response.success) {
@@ -385,7 +385,7 @@ const AnimalList = () => {
       setIsLoading(true)
       const response = await getAnimalReportById(params)
       if (response.success) {
-        console.log('Response Data >', response?.data)
+        // console.log('Response Data >', response?.data)
         const { header, animal_list, total_animal } = response.data
 
         setTotal(total_animal)

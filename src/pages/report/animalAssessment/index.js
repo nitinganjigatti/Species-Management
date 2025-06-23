@@ -116,7 +116,7 @@ const AnimalAssessment = () => {
       setMaxAssessmentCount(res?.data?.max_assessment_count || 0)
       setTotal(res?.data?.total_records)
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     } finally {
       setIsLoading(false)
     }
@@ -436,7 +436,6 @@ const AnimalAssessment = () => {
               flex: 1,
               backgroundColor: theme.palette.customColors.cardHeaderBg,
               height: '100%'
-
               // mr: headerList.length === i + 1 ? '-20px' : 0
             }}
           ></Box>
@@ -523,7 +522,7 @@ const AnimalAssessment = () => {
           console.warn('No  data available to export')
         }
       } catch (error) {
-        console.log('error', error)
+        console.error('error', error)
       } finally {
         setIsLoading(false)
       }
