@@ -50,6 +50,7 @@ const SiteSheet = ({
   const filteredSites = sites.filter(site => site.site_name.toLowerCase().includes(searchValue.toLowerCase()))
 
   const handleConfirmSelection = () => {
+   
     const totalSites = [...sites] // Assuming sites is an array of objects
     const selectedArr = [...tempSelectedSites] // Array of selected site IDs
 

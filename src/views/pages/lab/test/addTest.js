@@ -40,23 +40,23 @@ const AddTest = props => {
   const { addEventSidebarOpen, setOpenDrawer, handleSubmitData, resetForm, submitLoader, editParams } = props
   const [subTests, setSubTests] = useState([])
 
-  console.log('subTests', subTests)
+  // console.log('subTests', subTests)
   const [sampleTypes, setSampleTypes] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
   const [existingSubTests, setExistingSubTests] = useState([])
-  console.log('existingSubTests', existingSubTests)
+  // console.log('existingSubTests', existingSubTests)
 
-  console.log('existingSubTests', existingSubTests)
+  // console.log('existingSubTests', existingSubTests)
   const [newSubTests, setNewSubTests] = useState([])
 
-  console.log('newSubTests', newSubTests)
+  // console.log('newSubTests', newSubTests)
   const [deletedSubTests, setDeletedSubTests] = useState([])
-  console.log('deletedSubTests', deletedSubTests)
+  // console.log('deletedSubTests', deletedSubTests)
   const [deletedIds, setDeletedIds] = useState([])
-  console.log('deletedIds', deletedIds)
+  // console.log('deletedIds', deletedIds)
 
-  console.log('deletedSubTests', deletedSubTests)
+  // console.log('deletedSubTests', deletedSubTests)
 
   // console.log('editParams', editParams)
 
@@ -125,7 +125,7 @@ const AddTest = props => {
   }, [resetForm, editParams, reset, getLabTestById])
 
   const onSubmit = async params => {
-    console.log(params, 'log')
+    // console.log(params, 'log')
     const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
 
     if (editParams?.id !== null) {
@@ -159,7 +159,7 @@ const AddTest = props => {
         sample_ids: sampleIdsOnly,
         sub_tests: newSubTests
       }
-      console.log(payload, 'Submission Data')
+      // console.log(payload, 'Submission Data')
 
       await handleSubmitData(payload)
     }
@@ -258,7 +258,7 @@ const AddTest = props => {
         setSampleTypes(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }, [])
 

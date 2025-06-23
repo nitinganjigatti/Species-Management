@@ -54,7 +54,7 @@ const AnimalAssessment = () => {
   const [maxAssessmentCount, setMaxAssessmentCount] = useState(0)
   const [headerList, setHeaderList] = useState([])
   const [dataList, setDataList] = useState([])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
   const [total, setTotal] = useState(0)
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -116,7 +116,7 @@ const AnimalAssessment = () => {
       setMaxAssessmentCount(res?.data?.max_assessment_count || 0)
       setTotal(res?.data?.total_records)
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     } finally {
       setIsLoading(false)
     }
@@ -436,7 +436,6 @@ const AnimalAssessment = () => {
               flex: 1,
               backgroundColor: theme.palette.customColors.cardHeaderBg,
               height: '100%'
-
               // mr: headerList.length === i + 1 ? '-20px' : 0
             }}
           ></Box>
@@ -523,7 +522,7 @@ const AnimalAssessment = () => {
           console.warn('No  data available to export')
         }
       } catch (error) {
-        console.log('error', error)
+        console.error('error', error)
       } finally {
         setIsLoading(false)
       }

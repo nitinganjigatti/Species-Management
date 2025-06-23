@@ -43,7 +43,6 @@ const RoomsList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
-  const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
@@ -65,7 +64,6 @@ const RoomsList = () => {
   )
 
   // 📌 Serial Number Calculation
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
   const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -78,31 +76,6 @@ const RoomsList = () => {
     return data
   }
 
-  // it can be removeed if there is no issue after long time
-  // const fetchTableData = useCallback(
-  //   async (q, nurseryId, status) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         search: q || '',
-  //         nursery_id: nurseryId,
-  //         status: status || 'all',
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-  //       await GetRoomList({ params: params }).then(res => {
-  //         setTotal(parseInt(res?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
   const fetchTableData = useCallback(
     async (q = '', nurseryId, status) => {
       setLoading(true)
@@ -126,6 +99,7 @@ const RoomsList = () => {
         setLoading(false)
       }
     },
+    //   [paginationModel]
     [paginationModel, sort]
   )
 
@@ -152,16 +126,15 @@ const RoomsList = () => {
     if (newModel.length > 0) {
       const { sort, field } = newModel[0]
       setSort(sort)
-      setSortColumn(field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     }
   }
 
-  const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
-    event.stopPropagation()
-    setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
-    setIsOpen(true)
-  }
+  // const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
+  //   event.stopPropagation()
+  //   setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
+  //   setIsOpen(true)
+  // }
 
   // 📌 Fetch Nursery List
   const NurseryList = async (q = '') => {
@@ -176,11 +149,8 @@ const RoomsList = () => {
   }
 
   // 📌 Debounced Nursery Search
-  // const searchNursery = useCallback(
-  //   debounce(q => NurseryList(q), 1000),
-  //   []
-  // )
   const searchNursery = useCallback(debounce(NurseryList, 1000), [])
+  // const searchNursery = useCallback(debounce(q => NurseryList(q), 1000),[])
 
   useEffect(() => {
     NurseryList()
@@ -452,7 +422,6 @@ const RoomsList = () => {
                 <Grid item size={{ xs: 12 }}>
                   <Card>
                     <CardHeader title='Incubator Rooms' action={headerAction} />
-
                     <Grid sx={{ ml: 4, mb: 6 }} container columns={15} spacing={6}>
                       <Grid item size={{ xs: 3 }}>
                         <Box

@@ -85,36 +85,6 @@ const NurseryDetails = () => {
     setOpenRedirectionDialog(false)
   }
 
-  // const toggleHatcheryStatus = () => {
-  //   setStatusLoading(true)
-  //   try {
-  //     hatcheryStatus({
-  //       ref_type: 'nursery',
-  //       ref_id: id,
-  //       status: active ? 'deactivate' : 'activate'
-  //     }).then(response => {
-  //       if (response.success) {
-  //         Toaster({ type: 'success', message: response.message })
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //         setActive(!active)
-  //         fetchNurseryDetails()
-  //       } else {
-  //         Toaster({ type: 'error', message: response.message })
-  //         setEditMessage(response?.message)
-  //         setOpenRedirectionDialog(true)
-  //         fetchNurseryDetails()
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //       }
-  //     })
-  //   } catch (error) {
-  //     setOpenStatusDialog(false)
-  //     setStatusLoading(false)
-  //     Toaster({ type: 'error', message: response.message })
-  //   }
-  // }
-
   // API Call: Toggle Active Status
   const toggleHatcheryStatus = async () => {
     setStatusLoading(true)
@@ -251,32 +221,6 @@ const NurseryDetails = () => {
     [paginationModel, sort]
   )
 
-  // const fetchTableData = useCallback(
-  //   async (q, column, status) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         search: q || '',
-  //         column,
-  //         status,
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-
-  //       await GetRoomByNursery(id, params).then(res => {
-  //         setTotal(parseInt(res?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
-
   const searchTableData = useCallback(
     debounce(async (value, column, status) => {
       setSearchValue(value)
@@ -308,38 +252,7 @@ const NurseryDetails = () => {
       fetchTableData(searchValue, sortColumn, defaultStatus?.key)
     }
   }, [])
-
-  // useEffect(() => {
-  //   if (egg_nursery_permission || egg_collection_permission) {
-  //     fetchTableData(searchValue, sortColumn, defaultStatus?.key)
-  //   }
   // }, [fetchTableData])
-
-  // const searchTableData = useCallback(
-  //   debounce(async (q, column, status) => {
-  //     setSearchValue(q)
-  //     try {
-  //       await fetchTableData(q, column, status)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   []
-  // )
-
-  // const handleSearch = (value, status) => {
-  //   setSearchValue(value)
-  //   searchTableData(value, sortColumn, status)
-  // }
-
-  // const handleSortModel = newModel => {
-  //   if (newModel.length) {
-  //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
-  //   } else {
-  //   }
-  // }
 
   const columns = [
     {
@@ -563,7 +476,6 @@ const NurseryDetails = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            {/* <CardHeader title={'Nursery Details'} action={headerAction} /> */}
             <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <Icon
