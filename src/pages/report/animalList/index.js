@@ -24,7 +24,7 @@ const AnimalList = () => {
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
 
   // filter options
-  const categories = ['Site', 'Species']
+  const categories = ['Site', 'Organization']
   const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
 
   // console.log('Animal Id >>', animalId)
@@ -214,6 +214,7 @@ const AnimalList = () => {
 
   const handleSelection = async (selectedIDs, category) => {
     let params = {}
+    setIsLoading(true)
     const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
     const key = category === 'Site' ? 'sids' : 'oids'
     const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
@@ -234,7 +235,7 @@ const AnimalList = () => {
         stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
       }
     }
-
+    setIsLoading(false)
     // Ensure pagination and API params are updated
     setPaginationModel(prev => ({ ...prev, page: 0 }))
     setApiFilterParams(prev => ({
@@ -244,10 +245,7 @@ const AnimalList = () => {
   }
 
   const getTotalSelectedFilters = selectedOptions => {
-    // Use Object.values to extract arrays of selected items
-    return Object.values(selectedOptions)
-      .flat() // Flatten to combine all selected items into a single array
-      .filter(item => item !== 'All Sites' && item !== 'All Organizations').length // Exclude "All" selections if needed // Count the total number of items
+    return Object.values(selectedOptions).filter(selected => selected.length > 0).length
   }
 
   const fetchAndSetDataList = async (params, options = {}) => {
@@ -427,14 +425,12 @@ const AnimalList = () => {
     }
     return text
   }
-
   const getSpecificTotalSelectedFilters = selectedOptions => {
-    // Use Object.values to extract arrays of selected items
-    return Object.values(selectedOptions)
-      .flat() // Flatten to combine all selected items into a single array
-      .filter(item => item !== 'All Sites' && item !== 'All Organizations').length // Exclude "All" selections if needed // Count the total number of items
+    return Object.values(selectedOptions).filter(items => {
+      const filtered = items.filter(item => item !== 'All Sites' && item !== 'All Organizations')
+      return filtered.length > 0
+    }).length
   }
-
   const columns = headerList.map(header => {
     // Convert the key array to a string for field identification
     const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
@@ -595,7 +591,8 @@ const AnimalList = () => {
   const options = {
     Site:
       authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [],
-    Species: speciesList || []
+    Organization: organizationList?.sort((a, b) => a.organization_name.localeCompare(b.organization_name)) || []
+    // Species: speciesList || []
   }
 
   const handleFilterSection = () => {

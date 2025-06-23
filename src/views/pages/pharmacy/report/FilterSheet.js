@@ -61,7 +61,7 @@ const FilterSheet = ({
   const handleSelectAll = event => {
     if (event.target.checked) {
       const currentOptions = filteredOptions.map(option =>
-        activeCategory === 'Site' ? option.site_id : option.taxonomy_id
+        activeCategory === 'Site' ? option.site_id : option.id
       )
       setSelectedOptions(prev => ({
         ...prev,
@@ -76,6 +76,7 @@ const FilterSheet = ({
   }
 
   const handleToggleOption = (optionId, category) => {
+    
     setSelectedOptions(prevSelectedOptions => {
       const updatedOptions = { ...prevSelectedOptions }
 
@@ -99,8 +100,8 @@ const FilterSheet = ({
     handleSelection(selectedSiteIDs, 'Site')
 
     // Handle Organizations
-    const selectedOrganizationIDs = selectedOptions.Species || []
-    handleSelection(selectedOrganizationIDs, 'Species')
+    const selectedOrganizationIDs = selectedOptions.Organization || []
+    handleSelection(selectedOrganizationIDs, 'Organization')
 
     // Close the drawer
     setOpenFilterDrawer(false)
@@ -116,10 +117,11 @@ const FilterSheet = ({
         return option?.site_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
 
-      if (activeCategory === 'Species') {
-        return option?.default_common_name?.toLowerCase().includes(searchValue.toLowerCase())
+      if (activeCategory === 'Organization') {
+        return option?.organization_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
     }) || []
+  console.log('Selected options >', filteredOptions)
 
   const handleCategoryClick = category => {
     setActiveCategory(category)
@@ -306,11 +308,11 @@ const FilterSheet = ({
                     filteredOptions.map((option, index) => (
                       <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                         <Checkbox
-                          checked={(selectedOptions[activeCategory] || []).includes(option.taxonomy_id)}
-                          onChange={() => handleToggleOption(option.taxonomy_id, activeCategory)}
+                          checked={(selectedOptions[activeCategory] || []).includes(option.id)}
+                          onChange={() => handleToggleOption(option.id, activeCategory)}
                         />
                         <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                          {option.default_common_name}
+                          {option.organization_name}
                         </Typography>
                       </Box>
                     ))

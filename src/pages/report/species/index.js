@@ -9,7 +9,11 @@ import {
   TextField,
   debounce,
   InputAdornment,
-  Tooltip
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { TabContext, TabList } from '@mui/lab'
@@ -24,6 +28,7 @@ import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import StickyTable from 'src/views/table/sticky-table'
 import Icon from 'src/@core/components/icon'
 import { useAnimalContext } from 'src/context/AnimalContext'
+import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 
 const SpeciesReport = () => {
   const router = useRouter()
@@ -268,6 +273,7 @@ const SpeciesReport = () => {
 
   const fetchData = useCallback(
     async (param, q, paginationModel) => {
+   
       let params = {
         page: paginationModel?.page + 1,
         limit: paginationModel?.pageSize,
@@ -300,7 +306,7 @@ const SpeciesReport = () => {
 
   useEffect(() => {
     if (reports_module && enable_specie_report) {
-      fetchData(apiFilterParams, searchValue, paginationModel)
+      fetchData(apiFilterParams, searchValue)
     }
   }, [fetchData, apiFilterParams])
 
@@ -650,6 +656,107 @@ const SpeciesReport = () => {
     searchTableData(value)
   }
 
+  // const handleSelectedSite = async selectedSiteIDs => {
+  //   let params = {}
+
+  //   if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
+  //     // "All Sites" selected and was not already selected
+  //     params = {
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSites(['All Sites'])
+  //   } else if (selectedSiteIDs.includes('All Sites')) {
+  //     // Remove "All Sites" and use specific site IDs
+  //     const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
+  //     params = {
+  //       site_ids: filteredSiteIDs.toString(),
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSites(filteredSiteIDs)
+  //   } else if (selectedSiteIDs.length === 0) {
+  //     // No sites selected, fallback to "All Sites"
+  //     params = {
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSites(['All Sites'])
+  //   } else {
+  //     // Specific site IDs selected
+  //     params = {
+  //       site_ids: selectedSiteIDs.toString(),
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSites(selectedSiteIDs)
+  //   }
+  // }
+
+  const handleSelectedSite = async selectedSiteIDs => {
+    let params = {}
+
+    if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
+      // "All Sites" selected and was not already selected
+      params = {
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(['All Sites'])
+    } else if (selectedSiteIDs.includes('All Sites')) {
+      // Remove "All Sites" and use specific site IDs
+      const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
+      params = {
+        site_ids: filteredSiteIDs.toString(),
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(filteredSiteIDs)
+    } else if (selectedSiteIDs.length === 0) {
+      // No sites selected, fallback to "All Sites"
+      params = {
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(['All Sites'])
+    } else {
+      // Specific site IDs selected
+      params = {
+        site_ids: selectedSiteIDs.toString(),
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(selectedSiteIDs)
+    }
+
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setApiFilterParams(params)
+  }
+
   return (
     <>
       {reports_module && enable_specie_report ? (
@@ -764,43 +871,7 @@ const SpeciesReport = () => {
                       mr: 2
                     }}
                   >
-                    {/* <FormControl fullWidth sx={{ maxWidth: '200px' }}>
-                      <InputLabel
-                        sx={{
-                          fontSize: '14px',
-                          fontFamily: 'Inter',
-                          fontWeight: 400,
-                          color: '#44544A',
-                          width: '152px',
-                          height: '17px',
-                          mt: 0.5
-                        }}
-                      >
-                        All Sites
-                      </InputLabel>
-                      <Select
-                        multiple
-                        value={selectedSite}
-                        onChange={handleSelectedSite}
-                        label='Site'
-                        sx={{
-                          height: '40px',
-                          mt: 2,
-                          width: '200px',
-                          borderRadius: '4px',
-                          mr: { sm: 1, xs: 0 }
-                        }}
-                      >
-                        <MenuItem value='All Sites'>All Sites</MenuItem>
-                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => (
-                          <MenuItem key={index} value={item?.site_id}>
-                            {item?.site_name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl> */}
-
-                    {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
+                    <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
                       <Button
                         variant='outlined'
                         onClick={() => setOpenSiteDrawer(true)}
@@ -871,90 +942,7 @@ const SpeciesReport = () => {
                       selectedSites={selectedSites}
                       setSelectedSites={setSelectedSites}
                       handleSelectedSite={handleSelectedSite}
-                    /> */}
-
-                    <Button
-                      onClick={() => handleFilterSection()}
-                      variant='outlined'
-                      sx={{
-                        width: '129px',
-                        height: '40px',
-                        mt: 2,
-                        display: 'flex',
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        borderRadius: '4px',
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        fontFamily: 'Inter',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 2,
-                        minWidth: '100px'
-                      }}
-                    >
-                      <img
-                        src={`/images/${
-                          getTotalSelectedFilters(selectedOptions) > 0 ? 'filterIconActive' : 'filterIcon'
-                        }.svg`}
-                        style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
-                        alt='Filter Icon'
-                      />
-
-                      <Typography
-                        sx={{
-                          color:
-                            getTotalSelectedFilters(selectedOptions) > 0
-                              ? theme.palette.customColors.OnPrimaryContainer
-                              : theme.palette.customColors.OnSurfaceVariant,
-                          textTransform: 'capitalize',
-                          mr: 8,
-                          fontSize: '16px',
-                          fontWeight: 400
-                        }}
-                      >
-                        Filter
-                      </Typography>
-
-                      {getTotalSelectedFilters(selectedOptions) > 0 && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: '5px',
-                            right: '6px',
-                            width: '29px',
-                            height: '27px',
-                            borderRadius: '69%',
-                            backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-                            color: theme.palette.customColors.OnPrimary,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '12px',
-                            fontWeight: 500
-                          }}
-                        >
-                          {getTotalSelectedFilters(selectedOptions)}
-                          {/* Replace this with the actual count from your state */}
-                        </Box>
-                      )}
-                    </Button>
-                    {
-                      <FilterSheet
-                        open={openFilterDrawer}
-                        setOpenFilterDrawer={setOpenFilterDrawer}
-                        categories={categories}
-                        sites={sites}
-                        setSites={setSites}
-                        isLoader={isLoader}
-                        selectedSites={selectedSites}
-                        setSelectedSites={setSelectedSites}
-                        options={options}
-                        selectedOptions={selectedOptions}
-                        setSelectedOptions={setSelectedOptions}
-                        handleSelection={handleSpeciesSelection}
-                        getTotalSelectedFilters={getTotalSelectedFilters}
-                      />
-                    }
+                    />
 
                     <Button
                       onClick={handleClick}
