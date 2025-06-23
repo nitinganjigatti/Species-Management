@@ -1,50 +1,36 @@
 import React, { useState } from 'react'
-import {
-  Box,
-  Typography,
-  List,
-  IconButton,
-  Collapse,
-  alpha,
-  useMediaQuery
-} from '@mui/material'
+import { Box, Typography, List, IconButton, Collapse, alpha, useMediaQuery, CircularProgress } from '@mui/material'
 import { Edit as EditIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { useTheme } from '@mui/material/styles'
 import DocumentUploadDrawer from '../drawer/DocumentUploadDrawer'
-import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
+import { useRouter } from 'next/router'
+import dayjs from 'dayjs'
+import Toaster from 'src/components/Toaster'
+import { addDocument, updateDocument } from 'src/lib/api/compliance/exports'
+import Utility from 'src/utility'
 
-const documentTypes = [
-  { id: 1, name: 'Donation Letter', required: true },
-  { id: 2, name: 'Acceptance Letter', required: true },
-  { id: 3, name: 'Agreement', required: true },
-  { id: 4, name: 'CZA Application', required: true },
-  { id: 5, name: 'CZA Approval', required: false },
-  { id: 6, name: 'Partvesh/CWLW NOC', required: false },
-  { id: 7, name: 'AQCS NoC', required: false },
-  { id: 8, name: 'Health Certificate', required: false },
-  { id: 9, name: 'Test Reports', required: false },
-  { id: 10, name: 'Certificate of Origin', required: false },
-  { id: 11, name: 'Health Certificate submission letter to AQCS', required: false },
-  { id: 12, name: 'AQCS Final Clearance Certificate', required: false },
-  { id: 13, name: 'Final CITES Clearance', required: false },
-  { id: 14, name: 'Reimbursement', required: false }
-]
-
-const SupportingDocuments = ({ initialDocuments = [] }) => {
-  const [documents, setDocuments] = useState(initialDocuments)
+const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSuccess }) => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [currentDocumentType, setCurrentDocumentType] = useState(null)
   const [currentDocumentData, setCurrentDocumentData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [expanded, setExpanded] = useState(null)
+  const router = useRouter()
+
+  const { id } = router.query
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const handleOpenDrawer = (docType, docData = null) => {
-    setCurrentDocumentType(docType)
-    setCurrentDocumentData(docData)
+  const handleOpenDrawer = document => {
+    setCurrentDocumentType(document.file_path)
+    
+    // Ensure dates are properly formatted when setting current document data
+    setCurrentDocumentData({
+      ...document,
+      issued_date: document.issued_date ? dayjs(document.issued_date) : null
+    })
     setDrawerOpen(true)
   }
 
@@ -54,63 +40,60 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
     setCurrentDocumentData(null)
   }
 
-  const handleDocumentSubmit = async (documentTypeId, formData) => {
+  const handleDocumentSubmit = async formData => {
+    console.log('formData', formData)
+    console.log('currentDocumentData', currentDocumentData)
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const document = {
+        document: formData.file ? formData.file : currentDocumentData?.file_path,
 
-      const newDocument = {
-        document_type_id: documentTypeId.toString(),
-        file_path: formData.file ? URL.createObjectURL(formData.file) : currentDocumentData?.file_path,
-        file_original_name: formData.file ? formData.file.name : currentDocumentData?.file_original_name,
-        issued_date: formData.issued_date || '',
+        // document: formData.file ? URL.createObjectURL(formData.file) : currentDocumentData?.file_path,
+        // issued_date: formData.issued_date || '',
+        issued_date: formData.issued_date ? dayjs(formData.issued_date).format('YYYY-MM-DD') : null,
+        document_type_id: currentDocumentData?.document_type_id || currentDocumentData.document_id || null,
+        export_id: id,
+        type: 1, // Type 1 for export
         reference_number: formData.reference_number || ''
       }
 
-      setDocuments(prev => [...prev.filter(doc => doc.document_type_id !== documentTypeId.toString()), newDocument])
+      console.log('newDocument', document)
+      const response = currentDocumentData?.file_path ? await updateDocument(id, document) : await addDocument(document)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: 'Document type ' + response?.message })
+        onAddEditSuccess()
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
       handleCloseDrawer()
     } catch (error) {
+      Toaster({ type: 'error', message: error?.message })
       console.error('Error:', error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDeleteDocument = async documentTypeId => {
-    setIsLoading(true)
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      setDocuments(prev => prev.filter(doc => doc.document_type_id !== documentTypeId.toString()))
-      if (expanded === documentTypeId) {
-        setExpanded(null)
-      }
-    } catch (error) {
-      console.error('Delete failed:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const getDocumentForType = documentTypeId => {
-    return documents.find(doc => doc.document_type_id === documentTypeId.toString())
-  }
-
-  const completedCount = documents.filter(doc =>
-    documentTypes.some(dt => dt.id.toString() === doc.document_type_id)
-  ).length
+  const completedCount = documentList?.filter(doc => doc.file_path).length || 0
 
   const handleAccordionChange = panel => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : null)
   }
 
+  if (isFetching) {
+    return (
+      <Box display='flex' justifyContent='center' alignItems='center'>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
   return (
     <Box sx={{ mt: 2 }}>
       <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-        {completedCount}/{documentTypes.length} Documents added
+        {completedCount}/{totalCount} Documents added
       </Typography>
 
       <List
@@ -118,16 +101,15 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          gap: isMobile ? 3 : 4,
+          gap: isMobile ? 3 : 4
         }}
       >
-        {documentTypes.map(docType => {
-          const document = getDocumentForType(docType.id)
-          const isExpanded = expanded === docType.id
+        {documentList?.map(document => {
+          const isExpanded = expanded === document.id
 
           return (
             <Box
-              key={docType.id}
+              key={document.id}
               sx={{
                 border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
@@ -137,7 +119,7 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
                   : alpha(theme.palette.customColors.addPrimary, 0.2)
               }}
             >
-              {document ? (
+              {document?.file_path ? (
                 <Box>
                   <Box
                     sx={{
@@ -161,9 +143,9 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
                       <Box sx={{ flex: 1 }}>
                         <Box
                           sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                          onClick={e => handleAccordionChange(docType.id)(e, !isExpanded)}
+                          onClick={e => handleAccordionChange(document.id)(e, !isExpanded)}
                         >
-                          <Typography sx={{ fontWeight: 500, mr: 1 }}>{docType.name}</Typography>
+                          <Typography sx={{ fontWeight: 500, mr: 1 }}>{document.name}</Typography>
                           <ExpandMoreIcon
                             sx={{
                               transition: 'transform 0.2s',
@@ -176,7 +158,7 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
                         <Collapse in={isExpanded}>
                           <Box sx={{ py: 1 }}>
                             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                              Issued Date: {document.issued_date || 'Not specified'}
+                              Issued Date: {Utility.formatDisplayDate(document.issued_date) || 'Not specified'}
                             </Typography>
                             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                               Reference Number: {document.reference_number || 'Not specified'}
@@ -185,7 +167,7 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
                         </Collapse>
                       </Box>
                     </Box>
-                    <IconButton onClick={() => handleOpenDrawer(docType, document)} disabled={isLoading} size='small'>
+                    <IconButton onClick={() => handleOpenDrawer(document)} disabled={isLoading} size='small'>
                       <EditIcon fontSize='small' />
                     </IconButton>
                   </Box>
@@ -201,7 +183,7 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
                     gap: isMobile ? 2 : 0
                   }}
                 >
-                  <Typography sx={{ fontWeight: 500 }}>{docType.name}</Typography>
+                  <Typography sx={{ fontWeight: 500 }}>{document.name}</Typography>
                   <Box
                     sx={{
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -216,7 +198,7 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
                       maxWidth: '215px',
                       bgcolor: theme.palette.common.white
                     }}
-                    onClick={() => handleOpenDrawer(docType)}
+                    onClick={() => handleOpenDrawer(document)}
                   >
                     <img
                       src='/images/compliance/attach_file_add_colored.svg'
@@ -241,8 +223,7 @@ const SupportingDocuments = ({ initialDocuments = [] }) => {
         onClose={handleCloseDrawer}
         documentType={currentDocumentType}
         documentData={currentDocumentData}
-        onUpload={handleDocumentSubmit}
-        onEdit={handleDocumentSubmit}
+        onAddEdit={handleDocumentSubmit}
         isLoading={isLoading}
       />
     </Box>

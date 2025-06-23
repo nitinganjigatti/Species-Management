@@ -7,7 +7,7 @@ import ExportPermitDetails from './ExportPermitDetails'
 import ExportPermitAnimals from './ExportPermitAnimals'
 import SpeciesDrawer from '../drawer/SpeciesDrawer'
 import { useRouter } from 'next/router'
-import { getExportDetails, addExport, updateExport } from 'src/lib/api/compliance/exports'
+import { addExport, updateExport } from 'src/lib/api/compliance/exports'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
@@ -179,6 +179,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('exporting_country', { label: exportData.exporting_country, value: exportData.exporting_country })
       setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })
       setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_name })
+      setValue('certificate_file', exportData.attachment)
 
       // Transform species data
       const transformedSpeciesList = exportData.species.map(species => ({
@@ -193,6 +194,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         female_count: parseInt(species.female_count) || 0,
         undeterminate_count: parseInt(species.undeterminate_count) || 0,
         total_count: parseInt(species.total_count) || 0,
+        appendix: { label: species.appendix, value: species.appendix },
         animalDetails: species.animals.map(animal => ({
           id: animal.id,
           animal_type: animal.animal_type,
@@ -218,7 +220,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
           id: species.tsn_id,
           tsn_id: species.tsn_id,
           common_name: species.common_name,
-          scientific_name: species.scientific_name,
+          scientific_name: species.scientific_name || species.complete_name,
           default_icon: species.default_icon
         },
         male_count: 0,
@@ -250,21 +252,6 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   const handleFormSubmit = async data => {
     console.log('handleFormSubmit data', data)
 
-    // Validate that all species have matching animal details count
-    const hasInvalidCounts = data.speciesList.some(species => {
-      const totalCount =
-        (parseInt(species.male_count) || 0) +
-        (parseInt(species.female_count) || 0) +
-        (parseInt(species.undeterminate_count) || 0)
-
-      const animalDetailsCount = species.animalDetails?.reduce(
-        (sum, detail) => sum + (parseInt(detail.animal_count) || 0),
-        0
-      )
-
-      return totalCount !== animalDetailsCount
-    })
-
     // Transform data for API
     const transformedData = {
       export_number: data.export_number,
@@ -276,9 +263,14 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       export_date: dayjs(data.export_date).format('YYYY-MM-DD'),
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
+      attachment: data.certificate_file,
       species: JSON.stringify(
         data.speciesList.map(item => ({
           taxonomy_id: item.species?.tsn_id || item.species?.id || '',
+          common_name: item.species?.common_name || '',
+          scientific_name: item.species?.scientific_name || '',
+          default_icon: item?.species?.default_icon,
+          appendix: item.appendix?.value || '',
           male_count: parseInt(item.male_count) || 0,
           female_count: parseInt(item.female_count) || 0,
           undeterminate_count: parseInt(item.undeterminate_count) || 0,
@@ -303,8 +295,9 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })
         setSubmitLoader(false)
 
-        // TODO: route to detail page check with backend for response
-        router.push(`/compliance/documents/exports/ExportPermitDetails?id=${id}`)
+        // Route to detail page
+        if (id) router.push(`/compliance/documents/exports/${id}`)
+        else router.push(`/compliance/documents/exports/ExportPermitDetails?id=${response?.data?.id}`)
       } else {
         setSubmitLoader(false)
         Toaster({ type: 'error', message: response?.message })

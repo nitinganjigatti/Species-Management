@@ -178,7 +178,7 @@ const ExportPermitAnimals = ({
       </Box>
 
       {/* Species List Error */}
-      {errors.speciesList && !Array.isArray(errors.speciesList) && (
+      {errors.speciesList?.message && speciesList.length === 0 && (
         <Alert severity='error' sx={{ mb: 2 }}>
           {errors.speciesList.message}
         </Alert>

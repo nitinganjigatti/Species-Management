@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Box, Typography, IconButton } from '@mui/material'
 import { useController } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
@@ -51,9 +51,7 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
               width='20px'
               style={{ marginRight: '15px', marginLeft: '10px' }}
             />
-            <Typography sx={{ color: color ?? '#839D8D', fontWeight: 400 }}>
-              {label || 'Upload File'}
-            </Typography>
+            <Typography sx={{ color: color ?? '#839D8D', fontWeight: 400 }}>{label || 'Upload File'}</Typography>
             <input
               type='file'
               id={`file-upload-${name}`}
@@ -79,24 +77,27 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
               width: '100%'
             }}
           >
-            <Typography
+            <Box
               sx={{
                 mr: 2,
                 display: 'flex',
                 alignItems: 'center',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '200px'
+                overflow: 'hidden'
               }}
             >
-              <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
-              {value.name}
-            </Typography>
-            <IconButton
-              onClick={handleRemoveFile}
-              sx={{ ml: 1, background: '#0000000D', p: 0 }}
-            >
+              <Box component='img' src='/icons/pdf_icon2.svg' width='18px' sx={{ mr: 2 }} />
+              <Typography
+                sx={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {value.name}
+              </Typography>
+            </Box>
+
+            <IconButton onClick={handleRemoveFile} sx={{ ml: 1, background: '#0000000D', p: 0 }}>
               <Icon icon='ion:close-outline' style={{ color: '#1F515B', fontSize: '20px' }} />
             </IconButton>
           </Box>

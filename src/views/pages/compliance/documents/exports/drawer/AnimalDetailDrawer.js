@@ -23,9 +23,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
         {/* Header */}
         <Box sx={{ px: isMobile ? 3 : 4, pt: isMobile ? 2 : 3, pb: isMobile ? 1.5 : 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography sx={{ fontSize: isMobile ? '1.125rem' : '1.5rem', fontWeight: 500 }}>
-                Animal Details
-            </Typography>
+            <Typography sx={{ fontSize: isMobile ? '1.125rem' : '1.5rem', fontWeight: 500 }}>Animal Details</Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -34,7 +32,6 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
 
         {/* Content */}
         <Box sx={{ px: isMobile ? 3 : 4, flex: 1, overflowY: 'auto', pb: isMobile ? 3 : 4 }}>
-
           {/* Species Info */}
           <Typography
             sx={{
@@ -133,16 +130,18 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
           </Box>
 
           {/* Animals with Identifier */}
-          {specie?.animals?.length && <Typography
-            sx={{
-              mb: 3,
-              fontWeight: 500,
-              fontSize: isMobile ? '1rem' : '1.25rem',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Animals with identifier ({specie?.animals?.length})
-          </Typography>}
+          {specie?.animals?.length && (
+            <Typography
+              sx={{
+                mb: 3,
+                fontWeight: 500,
+                fontSize: isMobile ? '1rem' : '1.25rem',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Animals with identifier ({specie?.animals?.length})
+            </Typography>
+          )}
 
           <Box
             sx={{
@@ -174,15 +173,15 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                     width: 40,
                     height: 40,
                     backgroundColor:
-                      animal.gender === 'M'
+                      animal.gender === 'male'
                         ? `${theme.palette.customColors.SecondaryContainer}80`
-                        : animal.gender === 'F'
+                        : animal.gender === 'female'
                         ? `${theme.palette.customColors.customDropdownColor}4D`
                         : theme.palette.customColors.displaybgSecondary,
                     color:
-                      animal.gender === 'M'
+                      animal.gender === 'male'
                         ? theme.palette.customColors.addPrimary
-                        : animal.gender === 'F'
+                        : animal.gender === 'female'
                         ? theme.palette.customColors.customDropdownColor
                         : theme.palette.customColors.OnPrimaryContainer,
                     fontWeight: 600,
@@ -193,15 +192,25 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                     fontSize: '1rem'
                   }}
                 >
-                  {animal.gender}
+                  {animal.gender ? animal.gender[0].toUpperCase() : '-'}
                 </Box>
                 <Box>
                   <Box sx={{ fontSize: '0.875rem' }}>
-                    Species: {" "} <Typography component='span' sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>{animal.identifier_type}</Typography>
+                    Species:{' '}
+                    <Typography
+                      component='span'
+                      sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      {animal.identifier_type}
+                    </Typography>
                   </Box>
                   <Box sx={{ fontSize: '0.875rem' }}>
-                    Microchip ID: {" "} 
-                    <Typography component='span' sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>{animal.identifier_value}
+                    Microchip ID:{' '}
+                    <Typography
+                      component='span'
+                      sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      {animal.identifier_value}
                     </Typography>
                   </Box>
                 </Box>

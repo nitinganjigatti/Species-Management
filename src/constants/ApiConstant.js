@@ -560,3 +560,8 @@ export const ADD_EXPORT = 'v1/trade/exports'
 
 export const EDIT_EXPORT = 'v1/trade/exports'
 
+export const GET_DOCUMENT_TYPE = 'v1/trade/support/docs'
+
+export const ADD_DOCUMENT = 'v1/trade/support/docs'
+
+export const EDIT_DOCUMENT = 'v1/trade/support/docs'

@@ -140,7 +140,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={3}>
           <ControlledFileUpload name='certificate_file' label='Upload Permit' control={control} errors={errors} />
         </Grid>
       </Grid>

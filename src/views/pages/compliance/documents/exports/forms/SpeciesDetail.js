@@ -29,11 +29,12 @@ const SpeciesDetail = ({ species = [], totalShipped, totalAllowed }) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          borderRadius: '8px'
+          borderRadius: '8px',
+          mt: 4
         }}
       >
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
-          No Linked Shipments
+          No Species Found
         </Typography>
       </Box>
     )

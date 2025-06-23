@@ -32,7 +32,7 @@ const documentSchema = yup.object().shape({
     })
 })
 
-const DocumentUploadDrawer = ({ open, onClose, documentType, documentData, onUpload, onEdit, isLoading }) => {
+const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoading }) => {
   const {
     control,
     handleSubmit,
@@ -56,6 +56,16 @@ const DocumentUploadDrawer = ({ open, onClose, documentType, documentData, onUpl
     if (documentData) {
       setValue('reference_number', documentData.reference_number || '')
       setValue('issued_date', documentData.issued_date || null)
+      setValue(
+        'document_file',
+        documentData.file_path
+          ? {
+              name: documentData.file_original_name,
+              url: documentData.file_path || null,
+              type: documentData.file_type
+            }
+          : null
+      )
     }
   }, [documentData, setValue])
 
@@ -65,12 +75,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentType, documentData, onUpl
       issued_date: data.issued_date,
       reference_number: data.reference_number
     }
-
-    if (documentData) {
-      onEdit(documentType.id, formData)
-    } else {
-      onUpload(documentType.id, formData)
-    }
+    onAddEdit(formData)
   }
 
   const handleClose = () => {
@@ -93,7 +98,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentType, documentData, onUpl
         {/* Header */}
         <Box sx={{ px: 5, pt: 4, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{documentType?.name}</Typography>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{documentData?.name}</Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -160,7 +165,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentType, documentData, onUpl
           }}
         >
           <Button type='submit' variant='contained' disabled={isLoading} fullWidth onClick={handleSubmit(onSubmit)}>
-            {isLoading ? <CircularProgress size={24} /> : documentData ? 'Update Document' : 'Upload Document'}
+            {isLoading ? <CircularProgress size={24} /> : documentData?.file_path ? 'Update Document' : 'Add Document'}
           </Button>
         </Box>
       </Box>

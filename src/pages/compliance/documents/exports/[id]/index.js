@@ -1,14 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useRouter } from 'next/router'
-import {
-  CardHeader,
-  Grid,
-  Box,
-  Breadcrumbs,
-  Typography,
-  CircularProgress,
-  alpha
-} from '@mui/material'
+import { CardHeader, Grid, Box, Breadcrumbs, Typography, CircularProgress, alpha } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import { getExportDetails } from 'src/lib/api/compliance/exports'
@@ -212,6 +204,7 @@ const ExportPermitDetails = () => {
     try {
       const res = await getExportDetails(id)
       if (res.success) {
+        console.log('res.data', res.data)
         setExportData({
           ...res.data,
 
@@ -267,146 +260,146 @@ const ExportPermitDetails = () => {
           </Box>
         ) : (
           <>
-          <Box
-            sx={{
-              alignItems: 'flex-start',
-              px: 6,
-              py: 4,
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.4)
-            }}
-          >
-            <Grid container spacing={4} sx={{ alignItems: 'center' }}>
-              {/* First Column */}
-              <Grid item xs={12} sm={6} md={2.4}>
-                <Box sx={{ mb: 4 }}>
-                  <Typography
-                    sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
-                  >
-                    Certificate ID
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
-                  >
-                    {exportData.export_number || '-'}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography
-                    sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
-                  >
-                    Exporting Country
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
-                  >
-                    {exportData.exporting_country || '-'}
-                  </Typography>
-                </Box>
-              </Grid>
+            <Box
+              sx={{
+                alignItems: 'flex-start',
+                px: 6,
+                py: 4,
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                borderRadius: '8px',
+                backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.4)
+              }}
+            >
+              <Grid container spacing={4} sx={{ alignItems: 'center' }}>
+                {/* First Column */}
+                <Grid item xs={12} sm={6} md={2.4}>
+                  <Box sx={{ mb: 4 }}>
+                    <Typography
+                      sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
+                    >
+                      Certificate ID
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
+                    >
+                      {exportData.export_number || '-'}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
+                    >
+                      Exporting Country
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
+                    >
+                      {exportData.exporting_country || '-'}
+                    </Typography>
+                  </Box>
+                </Grid>
 
-              {/* Second Column */}
-              <Grid item xs={12} sm={6} md={2.4}>
-                <Box sx={{ mb: 4 }}>
-                  <Typography
-                    sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
-                  >
-                    Date Of Issue
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
-                  >
-                    {Utility.formatDate(exportData.issued_date)}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography
-                    sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
-                  >
-                    Exporter Name
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
-                  >
-                    {exportData.exporter_name || '-'}
-                  </Typography>
-                </Box>
-              </Grid>
+                {/* Second Column */}
+                <Grid item xs={12} sm={6} md={2.4}>
+                  <Box sx={{ mb: 4 }}>
+                    <Typography
+                      sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
+                    >
+                      Date Of Issue
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
+                    >
+                      {Utility.formatDate(exportData.issued_date)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
+                    >
+                      Exporter Name
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
+                    >
+                      {exportData.exporter_name || '-'}
+                    </Typography>
+                  </Box>
+                </Grid>
 
-              {/* Third Column */}
-              <Grid item xs={12} sm={6} md={2.4}>
-                <Box sx={{ mb: 4 }}>
-                  <Typography
-                    sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
-                  >
-                    Last Day Of Validity
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
-                  >
-                    {Utility.formatDate(exportData.valid_until)}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography
-                    sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
-                  >
-                    Importer
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
-                  >
-                    {exportData.importer_name || '-'}
-                  </Typography>
-                </Box>
-              </Grid>
+                {/* Third Column */}
+                <Grid item xs={12} sm={6} md={2.4}>
+                  <Box sx={{ mb: 4 }}>
+                    <Typography
+                      sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
+                    >
+                      Last Day Of Validity
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
+                    >
+                      {Utility.formatDate(exportData.valid_until)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
+                    >
+                      Importer
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
+                    >
+                      {exportData.importer_name || '-'}
+                    </Typography>
+                  </Box>
+                </Grid>
 
-              {/* Fourth Column */}
-              <Grid item xs={12} sm={6} md={2.4}>
-                <Box sx={{ mb: 4 }}>
-                  <Typography
-                    sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
-                  >
-                    Country Of Origin
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
-                  >
-                    {exportData.origin_country || '-'}
-                  </Typography>
-                </Box>
+                {/* Fourth Column */}
+                <Grid item xs={12} sm={6} md={2.4}>
+                  <Box sx={{ mb: 4 }}>
+                    <Typography
+                      sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
+                    >
+                      Country Of Origin
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
+                    >
+                      {exportData.origin_country || '-'}
+                    </Typography>
+                  </Box>
 
-                <Box>
-                  <Typography
-                    sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
-                  >
-                    Purpose Of Transfer
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
-                  >
-                    {exportData.export_purpose || '-'}
-                  </Typography>
-                </Box>
-              </Grid>
+                  <Box>
+                    <Typography
+                      sx={{ fontWeight: 500, color: theme.palette.customColors.neutralSecondary, fontSize: '1rem' }}
+                    >
+                      Purpose Of Transfer
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}
+                    >
+                      {exportData.export_purpose || '-'}
+                    </Typography>
+                  </Box>
+                </Grid>
 
-              {/* Fifth Column - File Card */}
-              <Grid item xs={12} sm={6} md={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <PdfFileCard
-                  media={{
-                    file: exportData.documents?.[0]?.file_path,
-                    file_original_name: exportData.documents?.[0]?.file_original_name || 'Export_document.pdf',
-                    created_at: exportData.documents?.[0]?.uploaded_at
-                  }}
-                  isBorderedCard
-                />
+                {/* Fifth Column - File Card */}
+                <Grid item xs={12} sm={6} md={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <PdfFileCard
+                    media={{
+                      file: exportData.documents?.[0]?.file_path,
+                      file_original_name: exportData.documents?.[0]?.file_original_name || 'Export_document.pdf',
+                      created_at: exportData.documents?.[0]?.uploaded_at
+                    }}
+                    isBorderedCard
+                  />
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        <Box>
-          <SpeciesDetail species={speciesData} totalShipped={25} totalAllowed={60} />
-        </Box>
+            </Box>
+            <Box>
+              <SpeciesDetail species={exportData?.species || []} totalShipped={25} totalAllowed={60} />
+            </Box>
           </>
         )}
       </CustomAccordion>

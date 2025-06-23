@@ -8,7 +8,8 @@ import ExportPermitForm from 'src/views/pages/compliance/documents/exports/forms
 import SupportingDocuments from 'src/views/pages/compliance/documents/exports/forms/SupportingDocuments'
 import LinkedImports from 'src/views/pages/compliance/documents/exports/forms/LinkedImports'
 import LinkedShipments from 'src/views/pages/compliance/documents/exports/forms/LinkedShipments'
-import { getExportDetails } from 'src/lib/api/compliance/exports'
+import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/exports'
+import Toaster from 'src/components/Toaster'
 
 const testDocuments = [
   {
@@ -150,6 +151,9 @@ const AddEditExportPermit = () => {
   const [expanded, setExpanded] = useState('permit-details') // Accordion open state
   const [exportData, setExportData] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(false)
+  const [documentList, setDocumentList] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     if (isEdit) {
@@ -172,6 +176,39 @@ const AddEditExportPermit = () => {
 
   const handleFormSubmit = data => {
     console.log('Parent form data:', data)
+  }
+
+  const fetchDocumentTypeList = async () => {
+    setIsFetching(true)
+    try {
+      const params = {
+        export_id: id,
+        type: 'export'
+      }
+      const res = await getDocumentTypeList(params)
+      if (res.success) {
+        console.log('res.data', res.data)
+        setDocumentList(res.data.items)
+        setTotalCount(res.data.total)
+      } else {
+        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+      }
+    } catch (error) {
+      console.error('Error fetching export details:', error)
+      Toaster({ type: 'error', message: 'Error fetching export details' })
+    } finally {
+      setIsFetching(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchDocumentTypeList()
+  }, [id])
+
+  const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
+
+  const handleAddEditSuccess = () => {
+    fetchDocumentTypeList()
   }
 
   return (
@@ -206,11 +243,16 @@ const AddEditExportPermit = () => {
       <CustomAccordion
         id='supporting-documents'
         title='Supporting Documents'
-        docsCount='0/14 Documents added'
+        docsCount={`${uploadedFileCount}/${totalCount} Documents added`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <SupportingDocuments initialDocuments={testDocuments} />
+        <SupportingDocuments
+          isFetching={isFetching}
+          documentList={documentList}
+          totalCount={totalCount}
+          onAddEditSuccess={handleAddEditSuccess}
+        />
       </CustomAccordion>
 
       <CustomAccordion
