@@ -139,11 +139,10 @@ export const exportPermitValidationSchema = yup.object().shape({
     )
 })
 
-const ExportPermitForm = ({ onSubmit, onReset, id }) => {
+const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   const router = useRouter()
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
 
   const {
@@ -169,62 +168,45 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
   })
 
   useEffect(() => {
-    if (id) {
-      fetchExportDetails()
-    }
-  }, [id])
+    if (exportData) {
+      // Set basic form values
+      setValue('export_number', exportData.export_number)
+      setValue('export_date', new Date(exportData.export_date))
+      setValue('issued_date', exportData.issued_date !== '0000-00-00' ? dayjs(exportData.issued_date) : null)
+      setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
+      setValue('export_purpose', { label: exportData.export_purpose, value: exportData.export_purpose })
+      setValue('origin_country', { label: exportData.origin_country, value: exportData.origin_country })
+      setValue('exporting_country', { label: exportData.exporting_country, value: exportData.exporting_country })
+      setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })
+      setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_name })
 
-  const fetchExportDetails = async () => {
-    setIsLoading(true)
-    try {
-      const res = await getExportDetails(id)
-      if (res.success) {
-        const data = res.data
-
-        console.log('res.data', data)
-
-        // Set basic form values
-        setValue('export_number', data.export_number)
-        setValue('export_date', new Date(data.export_date))
-        setValue('issued_date', data.issued_date !== '0000-00-00' ? dayjs(data.issued_date) : null)
-        setValue('valid_until', data.valid_until !== '0000-00-00' ? dayjs(data.valid_until) : null)
-        setValue('export_purpose', { label: data.export_purpose, value: data.export_purpose })
-        setValue('origin_country', { label: data.origin_country, value: data.origin_country })
-        setValue('exporting_country', { label: data.exporting_country, value: data.exporting_country })
-        setValue('importer_name', { label: data.importer_name, value: data.importer_name })
-        setValue('exporter_name', { label: data.exporter_name, value: data.exporter_name })
-
-        // Transform species data
-        const transformedSpeciesList = data.species.map(species => ({
-          id: species.id,
-          species: {
-            id: species.taxonomy_id,
-            tsn_id: species.taxonomy_id,
-            common_name: species.common_name,
-            scientific_name: species.scientific_name
-          },
-          male_count: parseInt(species.male_count) || 0,
-          female_count: parseInt(species.female_count) || 0,
-          undeterminate_count: parseInt(species.undeterminate_count) || 0,
-          total_count: parseInt(species.total_count) || 0,
-          animalDetails: species.animals.map(animal => ({
-            id: animal.id,
-            animal_type: animal.animal_type,
-            animal_count: parseInt(animal.animal_count) || 0,
-            gender: { label: animal.gender, value: animal.gender },
-            identifier_type: { label: animal.identifier_type, value: animal.identifier_type },
-            identifier_value: animal.identifier_value
-          }))
+      // Transform species data
+      const transformedSpeciesList = exportData.species.map(species => ({
+        id: species.id,
+        species: {
+          id: species.taxonomy_id,
+          tsn_id: species.taxonomy_id,
+          common_name: species.common_name,
+          scientific_name: species.scientific_name
+        },
+        male_count: parseInt(species.male_count) || 0,
+        female_count: parseInt(species.female_count) || 0,
+        undeterminate_count: parseInt(species.undeterminate_count) || 0,
+        total_count: parseInt(species.total_count) || 0,
+        animalDetails: species.animals.map(animal => ({
+          id: animal.id,
+          animal_type: animal.animal_type,
+          animal_count: parseInt(animal.animal_count) || 0,
+          gender: { label: animal.gender, value: animal.gender },
+          identifier_type: { label: animal.identifier_type, value: animal.identifier_type },
+          identifier_value: animal.identifier_value
         }))
+      }))
 
-        setSpeciesList(transformedSpeciesList)
-        setValue('speciesList', transformedSpeciesList)
-      }
-    } catch (error) {
-      console.error('Error fetching export details:', error)
+      setSpeciesList(transformedSpeciesList)
+      setValue('speciesList', transformedSpeciesList)
     }
-    setIsLoading(false)
-  }
+  }, [exportData])
 
   const handleSpeciesSelect = selectedSpecies => {
     // Create new species items for those not already in the list
@@ -294,26 +276,28 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
       export_date: dayjs(data.export_date).format('YYYY-MM-DD'),
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
-      species: data.speciesList.map(item => ({
-        taxonomy_id: item.species?.tsn_id || item.species?.id || '',
-        male_count: parseInt(item.male_count) || 0,
-        female_count: parseInt(item.female_count) || 0,
-        undeterminate_count: parseInt(item.undeterminate_count) || 0,
-        animals: item.animalDetails.map(detail => ({
-          id: detail.id,
-          gender: detail.gender?.value || '',
-          identifier_type: detail.identifier_type?.value || '',
-          identifier_value: detail.identifier_value || '',
-          animal_type: detail.animal_type || '',
-          animal_count: parseInt(detail.animal_count) || 0
+      species: JSON.stringify(
+        data.speciesList.map(item => ({
+          taxonomy_id: item.species?.tsn_id || item.species?.id || '',
+          male_count: parseInt(item.male_count) || 0,
+          female_count: parseInt(item.female_count) || 0,
+          undeterminate_count: parseInt(item.undeterminate_count) || 0,
+          animals: item.animalDetails.map(detail => ({
+            id: detail.id,
+            gender: detail.gender?.value || '',
+            identifier_type: detail.identifier_type?.value || '',
+            identifier_value: detail.identifier_value || '',
+            animal_type: detail.animal_type || '',
+            animal_count: parseInt(detail.animal_count) || 0
+          }))
         }))
-      }))
+      )
     }
-
+    console.log('transformedData', transformedData)
     try {
       setSubmitLoader(true)
 
-      const response = id ? await addExport(id, transformedData) : await updateExport(transformedData)
+      const response = id ? await updateExport(id, transformedData) : await addExport(transformedData)
 
       if (response?.success) {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })
@@ -330,6 +314,7 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
       setSubmitLoader(false)
       Toaster({ type: 'error', message: JSON.stringify(e) })
     }
+
     onSubmit(transformedData)
   }
 
@@ -347,7 +332,6 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
       speciesList: []
     })
     setSpeciesList([])
-    onReset()
   }
 
   if (isLoading) {

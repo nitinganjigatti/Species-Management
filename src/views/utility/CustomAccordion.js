@@ -1,8 +1,8 @@
 import React from 'react'
-import { Box, Typography, IconButton, useTheme, Collapse } from '@mui/material'
-import { Add, Remove } from '@mui/icons-material'
+import { Box, Typography, IconButton, useTheme, Collapse, Button, alpha } from '@mui/material'
+import { Add, Remove, EditOutlined } from '@mui/icons-material'
 
-const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = null }) => {
+const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = null, editable, handleEditClick }) => {
   const theme = useTheme()
   const isExpanded = expanded === id
 
@@ -32,10 +32,13 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
           <Typography variant='h5' sx={{ fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
             {title}
           </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {docsCount !== null && (
             <Box
               sx={{
-                ml: 2,
+                mr: 2,
                 px: 1.5,
                 py: 0.5,
                 borderRadius: 10,
@@ -47,15 +50,34 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
               {docsCount}
             </Box>
           )}
-        </Box>
+          {editable && (
+            <Button
+              variant='contained'
+              startIcon={<EditOutlined color={theme.palette.primary.OnSurface} />}
+              onClick={handleEditClick}
+              sx={{
+                backgroundColor: theme => theme.palette.customColors.OnBackground,
+                color: theme.palette.primary.OnSurface,
+                boxShadow: 'none',
+                mr: 2,
+                '&:hover': {
+                  backgroundColor: theme => alpha(theme.palette.customColors.OnBackground, 0.8),
+                  boxShadow: 'none'
+                }
+              }}
+            >
+              Edit
+            </Button>
+          )}
 
-        <IconButton
-          size='small'
-          sx={{ color: theme.palette.customColors.OnPrimaryContainer }}
-          onClick={() => onChange(id)}
-        >
-          {isExpanded ? <Remove fontSize='small' /> : <Add fontSize='small' />}
-        </IconButton>
+          <IconButton
+            size='small'
+            sx={{ color: theme.palette.customColors.OnPrimaryContainer }}
+            onClick={() => onChange(id)}
+          >
+            {isExpanded ? <Remove fontSize='small' /> : <Add fontSize='small' />}
+          </IconButton>
+        </Box>
       </Box>
 
       <Collapse in={isExpanded}>

@@ -143,7 +143,7 @@ const CitesExportPermitIndex = () => {
             px: 2,
             width: '100%'
           }}
-          onClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${params.row.id}`)}
+          onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
         >
           {params.value}
         </Typography>
@@ -206,44 +206,45 @@ const CitesExportPermitIndex = () => {
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
       )
-    },
-    {
-      flex: 0.1,
-      minWidth: 120,
-      field: 'actions',
-      headerName: 'ACTIONS',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            px: 2,
-            width: '100%'
-          }}
-        >
-          {canEdit && (
-            <IconButton
-              size='small'
-              onClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${params.row.id}`)}
-              aria-label='Edit'
-              sx={{ mx: 0.5 }}
-            >
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          )}
-          <IconButton
-            size='small'
-            onClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${params.row.id}`)}
-            aria-label='View'
-            sx={{ mx: 0.5 }}
-          >
-            <Icon icon='mdi:eye-outline' />
-          </IconButton>
-        </Box>
-      )
     }
   ]
+
+  // {
+  //   flex: 0.1,
+  //   minWidth: 120,
+  //   field: 'actions',
+  //   headerName: 'ACTIONS',
+  //   sortable: false,
+  //   renderCell: params => (
+  //     <Box
+  //       sx={{
+  //         display: 'flex',
+  //         justifyContent: 'center',
+  //         px: 2,
+  //         width: '100%'
+  //       }}
+  //     >
+  //       {canEdit && (
+  //         <IconButton
+  //           size='small'
+  //           onClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${params.row.id}`)}
+  //           aria-label='Edit'
+  //           sx={{ mx: 0.5 }}
+  //         >
+  //           <Icon icon='mdi:pencil-outline' />
+  //         </IconButton>
+  //       )}
+  //       <IconButton
+  //         size='small'
+  //         onClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${params.row.id}`)}
+  //         aria-label='View'
+  //         sx={{ mx: 0.5 }}
+  //       >
+  //         <Icon icon='mdi:eye-outline' />
+  //       </IconButton>
+  //     </Box>
+  //   )
+  // }
 
   return (
     <>

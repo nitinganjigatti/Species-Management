@@ -1,5 +1,5 @@
 import { ADD_EXPORT, EDIT_EXPORT, GET_EXPORTS_DETAILS, GET_EXPORTS_LIST } from 'src/constants/ApiConstant'
-import { axiosGet, axiosPost } from '../../utility'
+import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
 
 export const getExportCountries = async () => {
   return {
@@ -43,7 +43,7 @@ export const getExportDetails = async id => {
 export async function addExport(payload) {
   try {
     const url = `${ADD_EXPORT}`
-    const response = await axiosPost({ url, body: payload })
+    const response = await axiosFormPost({ url, body: payload })
 
     return response?.data
   } catch (error) {

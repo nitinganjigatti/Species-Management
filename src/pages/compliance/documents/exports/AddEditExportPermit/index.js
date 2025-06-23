@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { CardHeader, Box, Breadcrumbs, Typography } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
@@ -8,6 +8,7 @@ import ExportPermitForm from 'src/views/pages/compliance/documents/exports/forms
 import SupportingDocuments from 'src/views/pages/compliance/documents/exports/forms/SupportingDocuments'
 import LinkedImports from 'src/views/pages/compliance/documents/exports/forms/LinkedImports'
 import LinkedShipments from 'src/views/pages/compliance/documents/exports/forms/LinkedShipments'
+import { getExportDetails } from 'src/lib/api/compliance/exports'
 
 const testDocuments = [
   {
@@ -44,6 +45,8 @@ const sampleLinkedImports = [
 ]
 
 // Example usage:
+export const shipmentsDataNoFile = []
+
 export const shipmentsData = [
   {
     shipmentId: '123123412',
@@ -145,6 +148,31 @@ const AddEditExportPermit = () => {
   const isEdit = Boolean(id && id !== 'new')
   const { userData } = useContext(AuthContext)
   const [expanded, setExpanded] = useState('permit-details') // Accordion open state
+  const [exportData, setExportData] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isEdit) {
+      fetchExportDetails()
+    }
+  }, [id])
+
+  const fetchExportDetails = async () => {
+    setLoading(true)
+    try {
+      const res = await getExportDetails(id)
+      if (res.success) {
+        setExportData(res.data)
+      }
+    } catch (error) {
+      console.error('Error fetching export details:', error)
+    }
+    setLoading(false)
+  }
+
+  const handleFormSubmit = data => {
+    console.log('Parent form data:', data)
+  }
 
   return (
     <>
@@ -172,7 +200,7 @@ const AddEditExportPermit = () => {
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <ExportPermitForm id={id} />
+        <ExportPermitForm id={id} exportData={exportData} isLoading={loading} onSubmit={handleFormSubmit} />
       </CustomAccordion>
 
       <CustomAccordion

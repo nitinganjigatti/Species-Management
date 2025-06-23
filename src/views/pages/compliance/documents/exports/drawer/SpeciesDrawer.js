@@ -38,7 +38,6 @@ const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], ti
     queryKey: [data?.queryKey, data?.id, search, open],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await getAllSpeciesList({
-        site_id: 16, // Temporary hardcoded
         ...data?.params,
         page_no: pageParam,
         limit: PAGE_SIZE,
