@@ -630,7 +630,6 @@ const AddLocalDispatch = () => {
       }
     } else {
       try {
-        console.log('postData', postData)
 
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {

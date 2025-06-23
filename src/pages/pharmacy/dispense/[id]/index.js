@@ -160,7 +160,6 @@ const IndividualDispense = () => {
     sl_no: index + 1
   }))
 
-  console.log(dispenseRows, 'dispenseRows')
 
   const totalDispenseQuantity = dispenseRows?.reduce((sum, item) => {
     return sum + Number(item.qty) * Number(item.unit_price)

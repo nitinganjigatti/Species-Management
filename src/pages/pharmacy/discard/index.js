@@ -67,7 +67,6 @@ const ListOfDiscardProducts = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, page, limit, filterDates }) => {
-      console.log(page, 'page')
 
       try {
         setLoading(true)
@@ -87,7 +86,6 @@ const ListOfDiscardProducts = () => {
         }
 
         await getDiscardList({ params: params }).then(res => {
-          console.log('getDiscardList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -368,7 +366,6 @@ const ListOfDiscardProducts = () => {
       }
 
       const response = await getDiscardList({ params })
-      console.log('Response inventory>', response)
       setExcelLoader(false)
       if (response?.success === true && response?.data?.list_items?.length > 0) {
         const data = response?.data?.list_items?.map(el => ({
@@ -483,7 +480,6 @@ const ListOfDiscardProducts = () => {
         from_date: formattedStartDate,
         to_date: formattedEndDate
       })
-      console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
         startDate: '',
@@ -493,7 +489,6 @@ const ListOfDiscardProducts = () => {
         from_date: '',
         to_date: ''
       })
-      console.log('Empty date range selected,', { startDate, endDate })
     }
   }
 

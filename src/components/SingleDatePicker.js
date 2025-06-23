@@ -31,6 +31,9 @@ const SingleDatePicker = ({
         popperPlacement={popperPlacement}
         onChange={onChangeHandler}
         maxDate={maxDate ? maxDate : null}
+        popperProps={{
+          strategy: 'fixed'
+        }}
         placeholderText='select a date'
         customInput={
           <CustomInput
