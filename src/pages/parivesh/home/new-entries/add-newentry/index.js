@@ -830,6 +830,47 @@ const AddNewEntry = () => {
   //   }
   // })
 
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+  //     'application/pdf': ['.pdf'],
+  //     'application/msword': ['.doc'],
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  //     'application/vnd.ms-excel': ['.xls'],
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+  //   },
+  //   multiple: true,
+  //   onDrop: acceptedFiles => {
+  //     // Handle multiple file uploads
+  //     // setImgSrc(prevFiles => [
+  //     //   ...prevFiles,
+  //     //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
+  //     // ])
+  //     // setDisplayFile(prevFiles => [
+  //     //   ...prevFiles,
+  //     //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
+  //     // ])
+  //     // const currentAttachments = getValues('attachments')
+  //     // setValue('attachments', [
+  //     //   ...currentAttachments,
+  //     //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
+  //     // ])
+  //     const newFiles = acceptedFiles.map(file =>
+  //       Object.assign(file, {
+  //         fileSrc: URL.createObjectURL(file),
+  //         isBackendFile: false
+  //       })
+  //     )
+
+  //     setImgSrc(prevFiles => [...prevFiles, ...newFiles])
+  //     setDisplayFile(prevFiles => [...prevFiles, ...newFiles])
+
+  //     const currentAttachments = getValues('attachments')
+  //     setValue('attachments', [...currentAttachments, ...newFiles])
+  //     clearErrors('attachments')
+  //   }
+  // })
+
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
@@ -840,36 +881,125 @@ const AddNewEntry = () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
     multiple: true,
-    onDrop: acceptedFiles => {
-      // Handle multiple file uploads
-      // setImgSrc(prevFiles => [
-      //   ...prevFiles,
-      //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
-      // ])
-      // setDisplayFile(prevFiles => [
-      //   ...prevFiles,
-      //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
-      // ])
-      // const currentAttachments = getValues('attachments')
-      // setValue('attachments', [
-      //   ...currentAttachments,
-      //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
-      // ])
-      const newFiles = acceptedFiles.map(file =>
-        Object.assign(file, {
-          fileSrc: URL.createObjectURL(file),
-          isBackendFile: false
+
+    // Add these properties for better iPad compatibility
+    noClick: false,
+    noKeyboard: false,
+    onDrop: (acceptedFiles, rejectedFiles) => {
+      console.log('Accepted files:', acceptedFiles)
+      console.log('Rejected files:', rejectedFiles)
+
+      if (acceptedFiles && acceptedFiles.length > 0) {
+        const newFiles = acceptedFiles.map(file => {
+          console.log('Processing file:', file)
+
+          return Object.assign(file, {
+            fileSrc: URL.createObjectURL(file),
+            isBackendFile: false,
+
+            // Add unique identifier for better tracking
+            uniqueId: Date.now() + Math.random()
+          })
         })
-      )
+
+        console.log('New files processed:', newFiles)
+
+        setImgSrc(prevFiles => {
+          const updated = [...prevFiles, ...newFiles]
+          console.log('Updated imgSrc:', updated)
+
+          return updated
+        })
+
+        setDisplayFile(prevFiles => {
+          const updated = [...prevFiles, ...newFiles]
+          console.log('Updated displayFile:', updated)
+
+          return updated
+        })
+
+        const currentAttachments = getValues('attachments') || []
+        const updatedAttachments = [...currentAttachments, ...newFiles]
+        console.log('Setting attachments:', updatedAttachments)
+
+        setValue('attachments', updatedAttachments)
+        clearErrors('attachments')
+      }
+    },
+    onError: error => {
+      console.error('Dropzone error:', error)
+    }
+  })
+
+  const handleFileInputChange = event => {
+    const files = Array.from(event.target.files || [])
+    console.log('File input change:', files)
+
+    if (files.length > 0) {
+      const newFiles = files.map(file => {
+        console.log('Processing input file:', file)
+
+        return Object.assign(file, {
+          fileSrc: URL.createObjectURL(file),
+          isBackendFile: false,
+          uniqueId: Date.now() + Math.random()
+        })
+      })
 
       setImgSrc(prevFiles => [...prevFiles, ...newFiles])
       setDisplayFile(prevFiles => [...prevFiles, ...newFiles])
 
-      const currentAttachments = getValues('attachments')
+      const currentAttachments = getValues('attachments') || []
       setValue('attachments', [...currentAttachments, ...newFiles])
       clearErrors('attachments')
     }
-  })
+
+    event.target.value = ''
+  }
+
+  useEffect(() => {
+    return () => {
+      // Cleanup object URLs when component unmounts
+      displayFile.forEach(file => {
+        if (file.fileSrc && file.fileSrc.startsWith('blob:')) {
+          URL.revokeObjectURL(file.fileSrc)
+        }
+      })
+    }
+  }, [])
+
+  // Enhanced removeSelectedImage function with better error handling
+  // const removeSelectedImage = async (index, fileId) => {
+  //   console.log('Removing image:', { index, fileId })
+
+  //   if (fileId) {
+  //     setSelectedFileId(fileId)
+  //     setIsModalOpenDelete(true)
+  //   } else {
+  //     // Get the file being removed for cleanup
+  //     const fileToRemove = displayFile[index]
+
+  //     // Cleanup object URL to prevent memory leaks
+  //     if (fileToRemove?.fileSrc && fileToRemove.fileSrc.startsWith('blob:')) {
+  //       URL.revokeObjectURL(fileToRemove.fileSrc)
+  //     }
+
+  //     setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
+  //     setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
+
+  //     const currentFiles = getValues('attachments') || []
+  //     const updatedFiles = currentFiles.filter((_, i) => i !== index)
+  //     setValue('attachments', updatedFiles)
+
+  //     if (index === currentImageIndex && imgSrc.length > 1) {
+  //       setCurrentImageIndex(prev => (prev === imgSrc.length - 1 ? prev - 1 : prev))
+  //     } else if (index < currentImageIndex) {
+  //       setCurrentImageIndex(prev => prev - 1)
+  //     }
+
+  //     console.log('File removed successfully')
+  //   }
+  // }
 
   return (
     <>
@@ -1249,30 +1379,63 @@ const AddNewEntry = () => {
                         name='attachments'
                         control={control}
                         render={({ field: { onChange, value } }) => (
-                          <div
-                            {...getRootProps({ className: 'dropzone' })}
-                            style={{
-                              border: '1px solid #d3d3d3',
-                              width: 'auto',
-                              padding: '0.8rem',
-                              borderRadius: '10px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <input {...getInputProps()} onChange={onChange} />
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                flexDirection: ['column', 'column', 'row'],
-                                alignItems: 'center'
+                          <>
+                            {/* Primary dropzone */}
+                            <div
+                              {...getRootProps({ className: 'dropzone' })}
+                              style={{
+                                border: '1px solid #d3d3d3',
+                                width: 'auto',
+                                padding: '0.8rem',
+                                borderRadius: '10px',
+                                cursor: 'pointer',
+
+                                // Add touch-friendly styling for iPad
+                                WebkitTapHighlightColor: 'transparent',
+                                touchAction: 'manipulation'
                               }}
                             >
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
-                                <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
-                                <Typography sx={{ display: 'flex', alignItems: 'center' }}>Add Attachments</Typography>
+                              <input {...getInputProps()} />
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: ['column', 'column', 'row'],
+                                  alignItems: 'center'
+                                }}
+                              >
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
+                                  <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                                  <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                                    Add Attachments
+                                  </Typography>
+                                </Box>
                               </Box>
-                            </Box>
-                          </div>
+                            </div>
+
+                            {/* Fallback file input for iPad - hidden but accessible */}
+                            <input
+                              ref={fileInputRef}
+                              type='file'
+                              multiple
+                              accept='image/*,.pdf,.doc,.docx,.xls,.xlsx'
+                              style={{ display: 'none' }}
+                              onChange={handleFileInputChange}
+                            />
+
+                            {/* Alternative button for iPad users */}
+                            <Button
+                              variant='outlined'
+                              onClick={() => fileInputRef.current?.click()}
+                              sx={{
+                                mt: 1,
+                                width: '100%',
+                                display: { xs: 'flex', sm: 'none' } // Show only on small screens (iPad/mobile)
+                              }}
+                              startIcon={<Icon icon='material-symbols-light:attach-file-add' />}
+                            >
+                              Choose Files
+                            </Button>
+                          </>
                         )}
                       />
                       {errors.attachments && (
@@ -1281,13 +1444,14 @@ const AddNewEntry = () => {
                       {/* </FormControl> */}
                     </Grid>
 
+                    {/* Enhanced file display with better iPad support */}
                     {displayFile.map((src, index) => {
-                      console.log(src, 'vvvvv')
+                      console.log('Rendering file:', src)
 
-                      const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
+                      const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/i.test(src?.name)
 
                       return (
-                        <Grid item size={{ xs: 12, sm: 'auto', md: 'auto', lg: 'auto' }} key={index}>
+                        <Grid item size={{ xs: 12, sm: 'auto', md: 'auto', lg: 'auto' }} key={src.uniqueId || index}>
                           <FormControl fullWidth>
                             <Box
                               sx={{
@@ -1304,17 +1468,57 @@ const AddNewEntry = () => {
                               }}
                             >
                               {isImage ? (
-                                <img
-                                  style={{
+                                <Box
+                                  sx={{
                                     height: '60px',
                                     width: '60px',
                                     borderRadius: '20%',
-                                    objectFit: 'cover',
-                                    padding: '8px'
+                                    padding: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#f0f0f0'
                                   }}
-                                  alt={`Uploaded image ${index + 1}`}
-                                  src={src?.fileSrc}
-                                />
+                                >
+                                  {src?.fileSrc ? (
+                                    <img
+                                      style={{
+                                        height: '44px',
+                                        width: '44px',
+                                        borderRadius: '20%',
+                                        objectFit: 'cover'
+                                      }}
+                                      alt={`Uploaded image ${index + 1}`}
+                                      src={src.fileSrc}
+                                      onError={e => {
+                                        console.error('Image load error:', e)
+
+                                        // Fallback for image load errors on iPad
+                                        e.target.style.display = 'none'
+                                        e.target.parentNode.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: center; height: 44px; width: 44px; background: #ddd; border-radius: 20%; font-size: 12px;">
+                          IMG
+                        </div>
+                      `
+                                      }}
+                                    />
+                                  ) : (
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: '44px',
+                                        width: '44px',
+                                        backgroundColor: '#ddd',
+                                        borderRadius: '20%',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      IMG
+                                    </Box>
+                                  )}
+                                </Box>
                               ) : (
                                 <Box
                                   sx={{
@@ -1331,6 +1535,10 @@ const AddNewEntry = () => {
                                     style={{
                                       height: '40px',
                                       width: '40px'
+                                    }}
+                                    onError={e => {
+                                      console.error('Icon load error:', e)
+                                      e.target.style.display = 'none'
                                     }}
                                   />
                                   <Tooltip title={src?.name}>
@@ -1353,7 +1561,11 @@ const AddNewEntry = () => {
                                   backgroundColor: theme.palette.customColors.secondaryBg,
                                   display: 'flex',
                                   justifyContent: 'center',
-                                  alignItems: 'center'
+                                  alignItems: 'center',
+
+                                  // Better touch target for iPad
+                                  minHeight: '24px',
+                                  minWidth: '24px'
                                 }}
                                 onClick={() => removeSelectedImage(index, src?.id)}
                               >
