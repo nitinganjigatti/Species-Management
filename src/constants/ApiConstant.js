@@ -544,6 +544,8 @@ export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
 
 export const GET_DOCUMENT_TYPE_LIST = 'v1/document-types'
 
+export const GET_TRADE_PARTIES_LIST = 'v1/trade/parties'
+
 export const CREATE_DOCUMENT_TYPE = 'v1/document-types'
 
 export const UPDATE_DOCUMENT_TYPE = 'v1/document-types' // Add `/id` dynamically
@@ -554,3 +556,12 @@ export const GET_EXPORTS_LIST = 'v1/trade/exports'
 
 export const GET_EXPORTS_DETAILS = 'v1/trade/exports'
 
+export const ADD_EXPORT = 'v1/trade/exports'
+
+export const EDIT_EXPORT = 'v1/trade/exports'
+
+export const GET_DOCUMENT_TYPE = 'v1/trade/support/docs'
+
+export const ADD_DOCUMENT = 'v1/trade/support/docs'
+
+export const EDIT_DOCUMENT = 'v1/trade/support/docs'

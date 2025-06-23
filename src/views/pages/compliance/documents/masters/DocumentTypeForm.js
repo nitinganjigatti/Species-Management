@@ -64,40 +64,51 @@ const DocumentTypeForm = ({
       }}
     >
       {/* Scrollable Form Content */}
-      <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{
-            border: `1px solid ${theme.palette.customColors.Outline}`,
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             p: 4,
             borderRadius: '8px',
             bgcolor: theme.palette.common.white
           }}
         >
-          <ControlledTextField name='name' label='Document Name' control={control} errors={errors} required />
+          <ControlledTextField name='name' label='Document Name*' control={control} errors={errors} required />
         </Box>
 
-        <ControlledTextField
+        {/* <ControlledTextField
           name='description'
           label='Description*'
           control={control}
           errors={errors}
           fullWidth
           inputProps={{ multiline: true, rows: 3 }}
-        />
+        /> */}
 
         <FormControl fullWidth error={!!errors.contexts}>
-          <FormLabel sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 600 }}>
+          <FormLabel
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontWeight: 500,
+              fontSize: '20px',
+              mb: 2,
+              '&.Mui-focused': {
+                color: theme.palette.customColors.OnSurfaceVariant
+              },
+              '&.Mui-error': {
+                color: theme.palette.customColors.OnSurfaceVariant
+              }
+            }}
+          >
             Select Form Type
           </FormLabel>
           {contextLoading ? (
             <Box
               sx={{
-                border: `1px solid ${theme.palette.customColors.Outline}`,
-                py: 2,
-                px: 5,
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 bgcolor: theme.palette.common.white,
-                mt: 2,
+                mt: 5,
                 width: '100%',
                 display: 'flex',
                 justifyContent: 'center'
@@ -108,9 +119,10 @@ const DocumentTypeForm = ({
           ) : (
             <Box
               sx={{
-                border: `1px solid ${theme.palette.customColors.Outline}`,
-                py: 2,
-                px: 5,
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                p: 2,
+                pt: 4,
+                pb: 4,
                 borderRadius: '8px',
                 bgcolor: theme.palette.common.white,
                 mt: 2
@@ -124,6 +136,7 @@ const DocumentTypeForm = ({
                     {tradeContextTypes.map(opt => (
                       <FormControlLabel
                         key={opt.id}
+                        labelPlacement='start'
                         control={
                           <Checkbox
                             value={opt.id}
@@ -134,16 +147,40 @@ const DocumentTypeForm = ({
                                 : (field.value || []).filter(v => v !== opt.id)
                               field.onChange(newVal)
                             }}
+                            sx={{
+                              ml: 13,
+                              p: 1,
+                              '&.MuiCheckbox-root': {
+                                color: theme.palette.customColors.Antz_Minor_Medium
+                              },
+                              '& .MuiSvgIcon-root': {
+                                borderRadius: '4px',
+                                backgroundColor: 'transparent'
+                              }
+                            }}
                           />
                         }
                         label={
                           <Box
                             component='span'
-                            sx={{ color: theme.palette.customColors.Antz_Minor_Medium, fontWeight: 500 }}
+                            sx={{
+                              color: theme.palette.customColors.Antz_Minor_Medium,
+                              fontWeight: 500,
+                              fontSize: '14px'
+                            }}
                           >
                             {opt.label}
                           </Box>
                         }
+                        sx={{
+                          border: `1px solid ${field.value?.includes(opt.id) ? '#37BD69' : '#D0D5DD'}`,
+                          m: 1.7,
+                          borderRadius: '4px',
+                          p: 2,
+                          bgcolor: `${field.value?.includes(opt.id) ? '#F2FFF8' : '#fff'}`,
+                          display: 'inline-flex',
+                          alignItems: 'center'
+                        }}
                       />
                     ))}
                   </>
@@ -154,7 +191,7 @@ const DocumentTypeForm = ({
           {errors.contexts && <FormHelperText>{errors.contexts.message}</FormHelperText>}
         </FormControl>
 
-        <FormControl fullWidth>
+        {/* <FormControl fullWidth>
           <FormLabel>Status</FormLabel>
           <Controller
             name='active'
@@ -167,7 +204,7 @@ const DocumentTypeForm = ({
             )}
           />
           {errors.active && <FormHelperText error>{errors.active.message}</FormHelperText>}
-        </FormControl>
+        </FormControl> */}
       </Box>
 
       {/* Sticky Submit Button */}

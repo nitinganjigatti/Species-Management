@@ -1,5 +1,13 @@
-import { GET_EXPORTS_DETAILS, GET_EXPORTS_LIST } from 'src/constants/ApiConstant'
-import { axiosGet } from '../../utility'
+import {
+  ADD_DOCUMENT,
+  ADD_EXPORT,
+  EDIT_DOCUMENT,
+  EDIT_EXPORT,
+  GET_DOCUMENT_TYPE,
+  GET_EXPORTS_DETAILS,
+  GET_EXPORTS_LIST
+} from 'src/constants/ApiConstant'
+import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
 
 export const getExportCountries = async () => {
   return {
@@ -38,4 +46,85 @@ export const getExportDetails = async id => {
   })
 
   return response.data
+}
+
+export async function addExport(payload) {
+  try {
+    const url = `${ADD_EXPORT}`
+    const response = await axiosFormPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function updateExport(id, payload) {
+  try {
+    const url = `${EDIT_EXPORT}/${id}`
+    const response = await axiosFormPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export const getDocumentTypeList = async params => {
+  const response = await axiosGet({
+    url: `${GET_DOCUMENT_TYPE}`,
+    params
+  })
+
+  return response.data
+}
+
+export async function addDocument(payload) {
+  try {
+    const url = `${ADD_DOCUMENT}`
+    const response = await axiosFormPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function updateDocument(id, payload) {
+  try {
+    const url = `${EDIT_DOCUMENT}/${id}`
+    const response = await axiosFormPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
 }

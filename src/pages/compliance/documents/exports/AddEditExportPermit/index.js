@@ -1,68 +1,214 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, Button } from '@mui/material'
-import { useForm } from 'react-hook-form'
+import { CardHeader, Box, Breadcrumbs, Typography } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
-import Toaster from 'src/components/Toaster'
-
-// import { citesExportPermitAPI } from 'src/services/api'
 
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import ExportPermitForm from 'src/views/pages/compliance/documents/exports/forms/ExportPermitForm'
+import SupportingDocuments from 'src/views/pages/compliance/documents/exports/forms/SupportingDocuments'
+import LinkedImports from 'src/views/pages/compliance/documents/exports/forms/LinkedImports'
+import LinkedShipments from 'src/views/pages/compliance/documents/exports/forms/LinkedShipments'
+import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/exports'
+import Toaster from 'src/components/Toaster'
+
+const testDocuments = [
+  {
+    document_type_id: '1',
+    file_path: 'https://example.com/documents/donation-letter.pdf',
+    file_original_name: 'Donation_Letter_2025.pdf'
+  },
+  {
+    document_type_id: '3',
+    file_path: 'https://example.com/documents/agreement.docx',
+    file_original_name: 'Export_Agreement.docx'
+  },
+  {
+    document_type_id: '5',
+    file_path: 'https://example.com/documents/cza-approval.pdf',
+    file_original_name: 'CZA_Approval_Notice.pdf'
+  },
+  {
+    document_type_id: '8',
+    file_path: 'https://example.com/documents/health-certificate.pdf',
+    file_original_name: 'Health_Certificate_Zebra.pdf'
+  },
+  {
+    document_type_id: '12',
+    file_path: 'https://example.com/documents/aqcs-clearance.pdf',
+    file_original_name: 'AQCS_Final_Clearance.pdf'
+  }
+]
+
+// Example usage with sample data:
+const sampleLinkedImports = [
+  { certificateId: '123456789', dateOfIssue: '24/01/24', linkedImportsCount: 3 },
+  { certificateId: '987654321', dateOfIssue: '15/03/24', linkedImportsCount: 1 }
+]
+
+// Example usage:
+export const shipmentsDataNoFile = []
+
+export const shipmentsData = [
+  {
+    shipmentId: '123123412',
+    shipmentDate: '24/01/24',
+    shippedAnimals: 5,
+    totalAllowed: 60,
+    speciesName: 'Red fox',
+    scientificName: 'Vulpes vulpes',
+    cites: 'Appendix I',
+    totalAnimals: 5,
+    maleCount: 3,
+    femaleCount: 2,
+    unknownCount: 0,
+    fileName: 'file.pdf',
+    species: [
+      {
+        commonName: 'Rainbow Lorikeet',
+        scientificName: 'Lorikeet',
+        microchipId: '132143124132143124',
+        gender: 'M',
+        totalCount: 5,
+        maleCount: 3,
+        femaleCount: 2,
+        unknownCount: 0
+      },
+      {
+        commonName: 'Rainbow Lorikeet',
+        scientificName: 'Lorikeet',
+        microchipId: '132143124132143125',
+        gender: 'F',
+        totalCount: 5,
+        maleCount: 3,
+        femaleCount: 2,
+        unknownCount: 5
+      },
+      {
+        commonName: 'Rainbow Lorikeet',
+        scientificName: 'Lorikeet',
+        microchipId: '132143124132143126',
+        gender: 'U',
+        totalCount: 5,
+        maleCount: 0,
+        femaleCount: 0,
+        unknownCount: 0
+      }
+    ]
+  },
+  {
+    shipmentId: '12312341',
+    shipmentDate: '24/01/24',
+    shippedAnimals: 5,
+    totalAllowed: 60,
+    speciesName: 'Red fox',
+    scientificName: 'Vulpes vulpes',
+    cites: 'Appendix I',
+    totalAnimals: 5,
+    maleCount: 3,
+    femaleCount: 2,
+    unknownCount: 0,
+    fileName: 'file.pdf',
+    species: [
+      {
+        commonName: 'Rainbow Lorikeet',
+        scientificName: 'Lorikeet',
+        microchipId: '132143124132143124',
+        gender: 'M',
+        totalCount: 5,
+        maleCount: 3,
+        femaleCount: 2,
+        unknownCount: 0
+      },
+      {
+        commonName: 'Rainbow Lorikeet',
+        scientificName: 'Lorikeet',
+        microchipId: '132143124132143125',
+        gender: 'F',
+        totalCount: 5,
+        maleCount: 3,
+        femaleCount: 2,
+        unknownCount: 5
+      },
+      {
+        commonName: 'Rainbow Lorikeet',
+        scientificName: 'Lorikeet',
+        microchipId: '132143124132143126',
+        gender: 'U',
+        totalCount: 5,
+        maleCount: 0,
+        femaleCount: 0,
+        unknownCount: 0
+      }
+    ]
+  }
+]
 
 const AddEditExportPermit = () => {
   const router = useRouter()
   const { id } = router.query
   const isEdit = Boolean(id && id !== 'new')
   const { userData } = useContext(AuthContext)
-
-  const [loading, setLoading] = useState(false)
   const [expanded, setExpanded] = useState('permit-details') // Accordion open state
+  const [exportData, setExportData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(false)
+  const [documentList, setDocumentList] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
-    // if (isEdit) {
-    // fetchPermitData()
-    // }
-    console.log('id', id)
-  }, [id, isEdit])
+    if (isEdit) {
+      fetchExportDetails()
+    }
+  }, [id])
 
-  const fetchPermitData = async () => {
+  const fetchExportDetails = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-
-      // const res = await citesExportPermitAPI.getById(id)
-      // if (res.success) {
-      //   Object.keys(res.data).forEach(key => {
-      //     setValue(key, res.data[key])
-      //   })
-      // }
+      const res = await getExportDetails(id)
+      if (res.success) {
+        setExportData(res.data)
+      }
     } catch (error) {
-      console.error('Error fetching permit data:', error)
-      Toaster({ type: 'error', message: 'Failed to fetch permit data' })
+      console.error('Error fetching export details:', error)
+    }
+    setLoading(false)
+  }
+
+  const handleFormSubmit = data => {
+    console.log('Parent form data:', data)
+  }
+
+  const fetchDocumentTypeList = async () => {
+    setIsFetching(true)
+    try {
+      const params = {
+        export_id: id,
+        type: 'export'
+      }
+      const res = await getDocumentTypeList(params)
+      if (res.success) {
+        console.log('res.data', res.data)
+        setDocumentList(res.data.items)
+        setTotalCount(res.data.total)
+      } else {
+        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+      }
+    } catch (error) {
+      console.error('Error fetching export details:', error)
+      Toaster({ type: 'error', message: 'Error fetching export details' })
     } finally {
-      setLoading(false)
+      setIsFetching(false)
     }
   }
 
-  const handlePermitDetailsSubmit = data => {
-    const permitDetails = {
-      certificate_id: data.certificate_id,
-      date_of_issue: data.date_of_issue,
-      last_day_of_validity: data.last_day_of_validity,
-      country_of_origin: data.country_of_origin,
-      exporter_name: data.exporter_name,
-      importer: data.importer,
-      purpose_of_transfer: data.purpose_of_transfer,
-      species: data.species,
-      animals: data.animals
-    }
+  useEffect(() => {
+    fetchDocumentTypeList()
+  }, [id])
 
-    console.log('Permit Details Submitted:', permitDetails)
-    Toaster({ type: 'success', message: 'Permit Details Saved' })
-  }
+  const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
-  const handlePermitDetailsReset = () => {
-    Toaster({ type: 'info', message: 'Permit Details Reset' })
+  const handleAddEditSuccess = () => {
+    fetchDocumentTypeList()
   }
 
   return (
@@ -91,36 +237,41 @@ const AddEditExportPermit = () => {
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <ExportPermitForm onSubmit={handlePermitDetailsSubmit} onReset={handlePermitDetailsReset} id={id} />
+        <ExportPermitForm id={id} exportData={exportData} isLoading={loading} onSubmit={handleFormSubmit} />
       </CustomAccordion>
 
-      {/* <CustomAccordion
+      <CustomAccordion
         id='supporting-documents'
         title='Supporting Documents'
-        docsCount='0/14 Documents added'
+        docsCount={`${uploadedFileCount}/${totalCount} Documents added`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <SupportingDocumentsForm />
+        <SupportingDocuments
+          isFetching={isFetching}
+          documentList={documentList}
+          totalCount={totalCount}
+          onAddEditSuccess={handleAddEditSuccess}
+        />
       </CustomAccordion>
 
       <CustomAccordion
         id='linked-imports'
-        title='Linked Imports'
+        title={`Linked Imports - ${sampleLinkedImports.length}`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <LinkedImportForm />
+        <LinkedImports imports={sampleLinkedImports} />
       </CustomAccordion>
 
       <CustomAccordion
         id='linked-shipments'
-        title='Linked Shipments'
+        title={`Linked Shipments - ${shipmentsData.length}`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <LinkedShipmentsForm />
-      </CustomAccordion> */}
+        <LinkedShipments shipments={shipmentsData} totalShipped={25} totalAllowed={60} />
+      </CustomAccordion>
     </>
   )
 }

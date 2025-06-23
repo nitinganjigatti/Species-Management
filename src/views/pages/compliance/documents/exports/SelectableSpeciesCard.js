@@ -1,49 +1,43 @@
 import React from 'react';
-import {
-  Box,
-  Checkbox,
-  IconButton,
-  ListItemButton,
-  Radio
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import SpeciesCard from 'src/views/utility/SpeciesCard';
-import { useTheme } from '@mui/material/styles';
+import { Box, Checkbox, IconButton, Radio } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { useTheme } from '@mui/material/styles'
 
 const SelectableSpeciesCard = ({
   species,
   selected,
+  borderColor,
   onClick,
   selectionType = 'checkbox' // 'checkbox' | 'radio' | 'cross'
 }) => {
-  const theme = useTheme();
+  const theme = useTheme()
 
   return (
-    <ListItemButton
-      onClick={onClick}
+    <Box
       sx={{
         p: 0,
         borderRadius: '8px',
-        border: selected ? '1px solid #2E7D32' : '2px solid transparent',
-        backgroundColor: selected ? '#E8F5E9' : 'white',
-        '&:hover': {
-          backgroundColor: selected ? '#E8F5E9' : theme.palette.action.hover
-        }
+        border: selected
+          ? `1px solid ${borderColor ? borderColor : theme.palette.primary.main}`
+          : '1px solid transparent',
+        backgroundColor: 'white'
       }}
     >
       <Box
         sx={{
           display: 'flex',
           width: '100%',
-          alignItems: 'stretch', // make children fill vertically
+          padding: 0,
+          alignItems: 'stretch' // make children fill vertically
         }}
       >
         {/* Species Card */}
-        <Box sx={{ flex: 1, px: 2, py: 1.5 }}>
+        <Box sx={{ flex: 1, px: 4, py: 3 }}>
           <SpeciesCard
             species={{
               common_name: species.common_name,
-              scientific_name: species.scientific_name,
+              scientific_name: species.scientific_name || species.complete_name,
               default_icon: species.default_icon
             }}
           />
@@ -57,26 +51,27 @@ const SelectableSpeciesCard = ({
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: theme.palette.customColors.Surface,
-            height: '100%',
+            minHeight: '100%',
+            paddingRight: '1rem',
             borderTopRightRadius: '8px',
-            borderBottomRightRadius: '8px',
+            borderBottomRightRadius: '8px'
           }}
         >
           {selectionType === 'checkbox' && (
-            <Checkbox edge="end" checked={selected} tabIndex={-1} disableRipple />
+            <Checkbox onClick={onClick} edge='end' checked={selected} tabIndex={-1} disableRipple />
           )}
           {selectionType === 'radio' && (
-            <Radio edge="end" checked={selected} tabIndex={-1} disableRipple />
+            <Radio onClick={onClick} edge='end' checked={selected} tabIndex={-1} disableRipple />
           )}
           {selectionType === 'cross' && (
-            <IconButton edge="end" onClick={onClick}>
+            <IconButton sx={{ pr: 2 }} edge='end' onClick={onClick}>
               <CloseIcon />
             </IconButton>
           )}
         </Box>
       </Box>
-    </ListItemButton>
-  );
-};
+    </Box>
+  )
+}
 
 export default SelectableSpeciesCard;
