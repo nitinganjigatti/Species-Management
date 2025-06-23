@@ -70,6 +70,9 @@
   .edit_contxt {
     gap: 400px !important;
   }
+  .editanimals_contxt {
+    gap: 450px !important;
+  }
   .diet_steps .MuiStepper-root {
     display: -webkit-inline-box;
     align-items: center;

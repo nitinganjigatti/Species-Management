@@ -104,14 +104,14 @@ const ShipmentPage = () => {
           }
           sx={{ px: 5, pb: 0 }}
         />
-        <Box sx={{ px: 5, borderBottom: theme => `1px solid ${theme.palette.divider}`, mt: 2, mb: 4 }}>
+        {/* <Box sx={{ px: 5, borderBottom: theme => `1px solid ${theme.palette.divider}`, mt: 2, mb: 4 }}>
           <Tabs value={activeTab} onChange={handleTabChange} indicatorColor='primary' textColor='primary'>
             <Tab value='cities' label='CITIES' />
             <Tab value='non-cities' label='Non - CITIES' />
           </Tabs>
-        </Box>
+        </Box> */}
 
-        <Grid container spacing={4} sx={{ px: 5, py: 2 }} alignItems='center'>
+        <Grid container spacing={4} sx={{ px: 5, py: 2, mt: 2 }} alignItems='center'>
           <Grid item xs={12} md={4}>
             <Search
               placeholder='Search'
