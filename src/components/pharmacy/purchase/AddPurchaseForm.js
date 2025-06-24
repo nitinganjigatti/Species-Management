@@ -1542,7 +1542,7 @@ const AddPurchaseForm = () => {
             rowGap: { xs: 3, lg: 0, md: 0, xl: 0, sm: 0 }
           }}
         >
-          {/* {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+          {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
             <AddButton
               title='Process Invoice'
               action={() => {
@@ -1550,7 +1550,7 @@ const AddPurchaseForm = () => {
                 setInvoiceUploadDialog(true)
               }}
             />
-          )} */}
+          )}
           {authData?.userData?.roles?.settings?.add_pharmacy && (
             <AddButton
               title='Add Supplier'
