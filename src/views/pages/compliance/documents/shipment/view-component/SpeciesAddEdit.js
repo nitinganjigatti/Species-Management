@@ -269,7 +269,7 @@ const SpeciesAddEdit = ({
           </Button>
           <Button
             variant='outlined'
-            //onClick={() => setSpeciesDrawerOpen(true)}
+            onClick={() => setSpeciesDrawerOpen(true)}
             startIcon={<AddIcon />}
             sx={{
               width: !isSmallDevice ? '49%' : '45%',

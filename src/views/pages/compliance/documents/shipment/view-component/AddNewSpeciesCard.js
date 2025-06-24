@@ -20,13 +20,16 @@ const AddNewSpeciesCard = () => {
         {!isAdding ? (
           <Button
             variant='contained'
-            sx={{ background: '#1F515B', width: '70%', borderRadius: '8px', mx: 4, mb: 5 }}
+            sx={{ background: '#1F515B', width: '70%', borderRadius: '8px', mx: 4, mb: 5, height: '50px' }}
             onClick={() => setIsAdding(true)}
           >
             Add New Species
           </Button>
         ) : (
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+          <Paper
+            elevation={2}
+            sx={{ p: 4, borderRadius: '8px', border: '1px solid #C3CEC7', boxShadow: 'none', mx: 4 }}
+          >
             <Typography fontWeight={500} mb={3}>
               Add New Species
             </Typography>
@@ -52,6 +55,7 @@ const AddNewSpeciesCard = () => {
               variant='contained'
               sx={{
                 backgroundColor: '#225B5B',
+                height: '50px',
                 '&:hover': { backgroundColor: '#1b4b4b' }
               }}
               onClick={handleSave}

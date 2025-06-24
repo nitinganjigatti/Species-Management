@@ -8,7 +8,7 @@ const AnimalsData = ({ onEditClick, showEditAnimals, setShowEditAnimals }) => {
   const [linkedShipmentsDrawerOpen, setLinkedShipmentsDrawerOpen] = useState(false)
 
   const handleSave = () => {
-    // setShowEditAnimals(false) // on save, hide edit
+    setShowEditAnimals(false) // on save, hide edit
   }
 
   const handleEditClick = () => {

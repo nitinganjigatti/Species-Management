@@ -1,5 +1,17 @@
 import React, { useState } from 'react'
-import { Box, Typography, Grid, TextField, Select, MenuItem, IconButton, Button, Paper, Drawer } from '@mui/material'
+import {
+  Box,
+  Typography,
+  Grid,
+  TextField,
+  Select,
+  MenuItem,
+  IconButton,
+  Button,
+  Paper,
+  Drawer,
+  Avatar
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import Search from 'src/views/utility/Search'
@@ -97,6 +109,23 @@ const AddanimalCountDrawer = ({ open, onClose, title }) => {
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
+          </Box>
+        </Box>
+
+        <Box
+          display='flex'
+          alignItems='center'
+          gap={2}
+          sx={{ background: '#fff', mt: 3, mx: 5, p: 5, border: '1px solid #C3CEC7', borderRadius: '8px' }}
+        >
+          <Avatar src='images/housing/Enclosure icon.png' sx={{ width: 40, height: 40 }} />
+          <Box sx={{ ml: 2 }}>
+            <Typography fontWeight={600} color='#44544A'>
+              Rainbow Lorikeet
+            </Typography>
+            <Typography fontStyle='italic' color='#44544A' fontWeight={400}>
+              Trichoglossus moluccanus
+            </Typography>
           </Box>
         </Box>
 

@@ -565,3 +565,5 @@ export const GET_DOCUMENT_TYPE = 'v1/trade/support/docs'
 export const ADD_DOCUMENT = 'v1/trade/support/docs'
 
 export const EDIT_DOCUMENT = 'v1/trade/support/docs'
+
+export const GET_SHIPMENTS_LIST = 'v1/trade/shipments'

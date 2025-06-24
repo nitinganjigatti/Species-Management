@@ -71,7 +71,7 @@ const AddEditShipment = () => {
             }}
           >
             <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>
-            {!showEdit && expanded ? (
+            {!showEdit && expanded === 'permit-details' ? (
               <Box
                 sx={{
                   display: 'flex',
@@ -106,7 +106,7 @@ const AddEditShipment = () => {
       </CustomAccordion>
 
       <CustomAccordion
-        id='supporting-documents'
+        id='animals-details'
         title={
           <Box
             className='editanimals_contxt'
@@ -119,7 +119,7 @@ const AddEditShipment = () => {
             }}
           >
             <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>
-            {!showEditAnimals && expanded ? (
+            {!showEditAnimals && expanded === 'animals-details' ? (
               <Box
                 sx={{
                   display: 'flex',

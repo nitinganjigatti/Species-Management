@@ -1,88 +1,154 @@
-import React, { useState, useCallback, useEffect } from 'react'
-import {
-  Badge,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  Tab,
-  Tabs,
-  Typography
-} from '@mui/material'
-import Icon from 'src/@core/components/icon'
+import React, { useState, useCallback, useEffect, useContext } from 'react'
+import { Badge, Box, Breadcrumbs, Button, Card, CardHeader, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Search from 'src/views/utility/Search'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import FilterListIcon from '@mui/icons-material/FilterList'
+import { debounce } from 'lodash'
+import Toaster from 'src/components/Toaster'
+import { getShipmentList } from 'src/lib/api/compliance/shipment'
+import { formatDate } from 'src/@core/utils/format'
 
 const ShipmentPage = () => {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('cities')
-  const [searchValue, setSearchValue] = useState('')
-  const [filterDate, setFilterDate] = useState({})
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [sortModel, setSortModel] = useState([])
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-
+  const [searchValue, setSearchValue] = useState('')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [sortModel, setSortModel] = useState([])
+  const [filterDate, setFilterDate] = useState({})
   const filterCount = 0
-
-  const handleSearch = useCallback(val => {
-    setPaginationModel({ page: 0, pageSize: 10 })
-    setSearchValue(val)
-  }, [])
-
-  const handleTabChange = (_, newValue) => {
-    setActiveTab(newValue)
-  }
-
-  const fetchShipments = useCallback(() => {
-    setLoading(true)
-
-    // mock API call logic here
-    const sampleData = Array.from({ length: 10 }).map((_, i) => ({
-      id: i + 1,
-      shipmentId: `72WS124243${20 + i}`,
-      shipmentDate: '30 Oct 2024',
-      exports: 2,
-      species: 5,
-      animals: 3,
-      documents: 1
-    }))
-    setRows(sampleData)
-    setTotal(60)
-    setLoading(false)
-  }, [])
 
   const handleFilterDrawer = () => {}
 
+  const fetchExportPermits = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = {
+        q: searchValue,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        sort: sortModel?.[0]?.sort,
+        sortBy: sortModel?.[0]?.field,
+        from_date: filterDate.startDate,
+        to_date: filterDate.endDate
+      }
+      const res = await getShipmentList(params)
+      const start = paginationModel.page * paginationModel.pageSize
+      setRows(
+        res.data.records.map((r, i) => ({
+          ...r,
+          uid: start + i + 1,
+          shipment_number: r.shipment_number || '-',
+          shipment_state: r.shipment_state || '-',
+          shipment_date: r.shipment_date || '-',
+          export_count: r.export_count || '-',
+          species_count: r.species_count || '-',
+          animal_counts: r.animal_counts || '-',
+          documents_count: r.documents_count || '-'
+        }))
+      )
+      setTotal(res.data.total)
+    } catch (error) {
+      console.error('Error fetching export permits:', error)
+      Toaster({ type: 'error', message: 'Failed to fetch export permits' })
+    }
+    setLoading(false)
+  }, [searchValue, paginationModel, sortModel, filterDate])
+
   useEffect(() => {
-    fetchShipments()
-  }, [searchValue, filterDate, activeTab])
+    fetchExportPermits()
+  }, [fetchExportPermits])
+
+  const debouncedSearch = useCallback(
+    debounce(val => {
+      setSearchValue(val)
+    }, 500),
+    []
+  )
+
+  const handleSearch = val => {
+    debouncedSearch(val)
+  }
 
   const columns = [
-    { field: 'shipmentId', headerName: 'SHIPMENT ID', flex: 0.2 },
-    { field: 'shipmentDate', headerName: 'SHIPMENT DATE', flex: 0.2 },
-    { field: 'exports', headerName: 'EXPORTS', flex: 0.1 },
-    { field: 'species', headerName: 'SPECIES', flex: 0.1 },
-    { field: 'animals', headerName: 'ANIMALS', flex: 0.1 },
-    { field: 'documents', headerName: 'DOCUMENTS', flex: 0.1 },
     {
-      field: 'actions',
-      headerName: 'ACTIONS',
-      flex: 0.1,
-      sortable: false,
-      renderCell: () => (
-        <IconButton>
-          <Icon icon='tabler:dots-vertical' />
-        </IconButton>
+      flex: 0.12,
+      minWidth: 100,
+      field: 'shipment_number',
+      headerName: 'Shipment ID',
+      renderCell: params => (
+        <Typography
+          sx={{
+            cursor: 'pointer',
+            px: 3,
+            width: '100%'
+          }}
+          onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
+        >
+          {params.value}
+        </Typography>
       )
+    },
+    {
+      flex: 0.03,
+      minWidth: 10,
+      field: 'shipment_state',
+      headerName: '',
+      renderCell: params => (
+        <>
+          <Box
+            component='span'
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              display: 'inline-block',
+              backgroundColor: params.value === 'draft' ? '#FFE86E' : params.value === 'completed' ? '#52F990' : '',
+              ml: 3
+            }}
+          />
+        </>
+      )
+    },
+    {
+      flex: 0.15,
+      minWidth: 180,
+      field: 'shipment_date',
+      headerName: 'Shipment Date',
+      renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{formatDate(params.value)}</Typography>
+    },
+    {
+      flex: 0.08,
+      minWidth: 100,
+      field: 'export_count',
+      headerName: 'EXPORTS',
+      renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
+    },
+
+    {
+      flex: 0.08,
+      minWidth: 100,
+      field: 'species_count',
+      headerName: 'SPECIES',
+      renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
+    },
+    {
+      flex: 0.08,
+      minWidth: 100,
+      field: 'animal_counts',
+      headerName: 'ANIMALS',
+      renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
+    },
+    {
+      flex: 0.1,
+      minWidth: 120,
+      field: 'documents_count',
+      headerName: 'DOCUMENTS',
+      renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
     }
   ]
 
@@ -104,13 +170,6 @@ const ShipmentPage = () => {
           }
           sx={{ px: 5, pb: 0 }}
         />
-        {/* <Box sx={{ px: 5, borderBottom: theme => `1px solid ${theme.palette.divider}`, mt: 2, mb: 4 }}>
-          <Tabs value={activeTab} onChange={handleTabChange} indicatorColor='primary' textColor='primary'>
-            <Tab value='cities' label='CITIES' />
-            <Tab value='non-cities' label='Non - CITIES' />
-          </Tabs>
-        </Box> */}
-
         <Grid container spacing={4} sx={{ px: 5, py: 2, mt: 2 }} alignItems='center'>
           <Grid item xs={12} md={4}>
             <Search
@@ -121,12 +180,13 @@ const ShipmentPage = () => {
           </Grid>
           <Grid item xs={12} md={2} />
           <Grid item xs={12} md={4.5}>
-            <CommonDateRangePickers
+            {/* <CommonDateRangePickers
               filterDates={filterDate}
               onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
-            />
+            /> */}
           </Grid>
-          <Grid item xs={12} md={1.5}>
+
+          {/* <Grid item xs={12} md={1.5}>
             <Grid item xs='auto'>
               <Button
                 variant='outlined'
@@ -153,7 +213,7 @@ const ShipmentPage = () => {
                 Filter
               </Button>
             </Grid>
-          </Grid>
+          </Grid> */}
 
           <Grid item xs={12}>
             <CommonTable
