@@ -1,123 +1,65 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress, Divider, Button, Drawer, IconButton } from '@mui/material'
+import React, { useState, useEffect } from 'react'
+import { Typography, Box, Drawer, IconButton, Tabs, Tab, Button } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import debounce from 'lodash/debounce'
-import { useInView } from 'react-intersection-observer'
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-
-import Search from 'src/views/utility/Search'
-import { getAllSpeciesList } from 'src/lib/api/housing'
 import CloseIcon from '@mui/icons-material/Close'
 import { CellInfo } from 'src/utility/render'
-import SelectableSpeciesCard from '../SelectableSpeciesCard' // New reusable component
-
-const PAGE_SIZE = 10
+import AntzDatabaseTab from '../forms/AntzDatabaseTab'
+import NewSpeciesTab from '../forms/NewSpeciesTab'
 
 const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], title = 'Select Species' }) => {
   const theme = useTheme()
-  const queryClient = useQueryClient()
-
-  const [localSearch, setLocalSearch] = useState('')
-  const [search, setSearch] = useState('')
-
+  const [activeTab, setActiveTab] = useState(0)
   const [prevSelectedItems, setPrevSelectedItems] = useState([])
-  const [newlySelectedItems, setNewlySelectedItems] = useState([])
-
-  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
-  const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
-
-  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch])
-
-  const {
-    data: queryData,
-    fetchNextPage,
-    hasNextPage,
-    isFetching,
-    isFetchingNextPage
-  } = useInfiniteQuery({
-    queryKey: [data?.queryKey, data?.id, search, open],
-    queryFn: async ({ pageParam = 1 }) => {
-      const res = await getAllSpeciesList({
-        ...data?.params,
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        search
-      })
-
-      return {
-        result: res?.data?.listing || [],
-        nextPage: res?.data?.listing?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total: res?.data?.total_scies_count || 0
-      }
-    },
-    getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: Boolean(open && data?.id && data?.queryKey)
-  })
-
-  const cooldownRef = useRef(false)
-
-  const loadMore = useCallback(() => {
-    if (cooldownRef.current || isFetchingNextPage || !hasNextPage) return
-    cooldownRef.current = true
-    fetchNextPage().finally(() => setTimeout(() => (cooldownRef.current = false), 300))
-  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
-
-  useEffect(() => {
-    if (inView) loadMore()
-  }, [inView, loadMore])
+  const [newlySelectedAntzItems, setNewlySelectedAntzItems] = useState([])
+  const [newlySelectedCustomItems, setNewlySelectedCustomItems] = useState([])
 
   useEffect(() => {
     if (open) {
-      setLocalSearch('')
-      setSearch('')
       setPrevSelectedItems(selectedSpecies)
-      setNewlySelectedItems([])
+      setNewlySelectedAntzItems([])
+      setNewlySelectedCustomItems([])
+      setActiveTab(0)
     }
-  }, [open, data?.id, selectedSpecies])
+  }, [open])
 
-  useEffect(() => {
-    if (!open) {
-      queryClient.cancelQueries({ queryKey: [data?.queryKey, data?.id, search] })
-      cooldownRef.current = false
-    }
-  }, [open, data?.id, search, queryClient])
-
-  const handleSearchChange = e => {
-    const value = e.target.value
-    setLocalSearch(value)
-    debouncedSearch(value)
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
   }
 
-  const handleSearchClear = () => {
-    setLocalSearch('')
-    debouncedSearch('')
-  }
-
-  const handleToggle = speciesItem => {
-    console.log("speciesItem",speciesItem)
-    const isSelected = newlySelectedItems.some(item => item.tsn_id === speciesItem.tsn_id)
+  const handleAntzToggle = speciesItem => {
+    const isSelected = newlySelectedAntzItems.some(item => item.tsn_id === speciesItem.tsn_id)
 
     const updated = isSelected
-      ? newlySelectedItems.filter(item => item.tsn_id !== speciesItem.tsn_id)
-      : [...newlySelectedItems, speciesItem]
+      ? newlySelectedAntzItems.filter(item => item.tsn_id !== speciesItem.tsn_id)
+      : [...newlySelectedAntzItems, speciesItem]
+    setNewlySelectedAntzItems(updated)
+  }
 
-    setNewlySelectedItems(updated)
+  const handleCustomToggle = speciesItem => {
+    const isSelected = newlySelectedCustomItems.some(item => item.tsn_id === speciesItem.tsn_id)
+
+    const updated = isSelected
+      ? newlySelectedCustomItems.filter(item => item.tsn_id !== speciesItem.tsn_id)
+      : [...newlySelectedCustomItems, speciesItem]
+    setNewlySelectedCustomItems(updated)
+  }
+
+  const handleAddCustomSpecies = newSpecies => {
+    const customSpecies = {
+      ...newSpecies,
+      tsn_id: `custom_${Date.now()}`,
+      isCustom: true
+    }
+    setNewlySelectedCustomItems(prev => [...prev, customSpecies])
   }
 
   const handleDone = () => {
-    const combined = [...prevSelectedItems, ...newlySelectedItems]
+    const combined = [...prevSelectedItems, ...newlySelectedAntzItems, ...newlySelectedCustomItems]
     onSelect(combined)
     onClose()
   }
 
-  const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
-
-  // 🔍 Filter out previously selected species
-  const list = useMemo(() => {
-    const all = queryData?.pages?.flatMap(page => page?.result) || []
-    
-return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === species.tsn_id))
-  }, [queryData, prevSelectedItems])
+  const totalSelectedCount = newlySelectedAntzItems.length + newlySelectedCustomItems.length
 
   return (
     <Drawer open={open} onClose={onClose} anchor='right'>
@@ -128,7 +70,9 @@ return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === spe
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: theme.palette.customColors.Background
+          backgroundColor: theme.palette.common.white
+
+          // backgroundColor: theme.palette.customColors.Background
         }}
       >
         {/* Header */}
@@ -141,8 +85,54 @@ return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === spe
           </Box>
         </Box>
 
-        {/* Scrollable content */}
-        <Box sx={{ px: 5, flex: 1, overflowY: 'auto' }}>
+        {/* Tabs */}
+        <Box
+          sx={{
+            px: 5,
+            width: '100%',
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.common.white
+          }}
+        >
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant='fullWidth' // This makes tabs take equal width
+            sx={{
+              '& .MuiTabs-indicator': {
+                display: 'none' // Hide default indicator
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                position: 'relative',
+                minWidth: 0, // Override default minWidth
+                flex: 1, // Equal flex distribution
+                '&.Mui-selected': {
+                  color: theme.palette.primary.main,
+                  '&::after': {
+                    // Custom border indicator
+                    content: '""',
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 2,
+                    backgroundColor: theme.palette.primary.main
+                  }
+                },
+                '&:not(.Mui-selected)': {
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }
+              }
+            }}
+          >
+            <Tab label='Antz Database' />
+            <Tab label='Custom Species' />
+          </Tabs>
+        </Box>
+
+        <Box sx={{ px: 5, flex: 1, overflowY: 'auto', backgroundColor: theme.palette.customColors.Background }}>
           {data?.name && (
             <Box
               sx={{
@@ -164,67 +154,24 @@ return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === spe
             </Box>
           )}
 
-          <Search
-            sx={{ width: '100%' }}
-            textFielsSX={{
-              width: '100%',
-              height: 52,
-              borderRadius: '8px',
-              backgroundColor: theme.palette.common.white
-            }}
-            placeholder='Search for species'
-            value={localSearch}
-            onChange={handleSearchChange}
-            onClear={handleSearchClear}
-            backgroundColor={theme.palette.common.white}
-          />
-
-          <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, my: 4 }}>
-            Species {total ? `(${total})` : ''}
-          </Typography>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 2 }}>
-            {list.map(species => {
-              const isSelected = newlySelectedItems.some(item => item.tsn_id === species.tsn_id)
-
-              return (
-                <SelectableSpeciesCard
-                  key={species.tsn_id}
-                  species={species}
-                  selected={isSelected}
-                  onClick={() => handleToggle(species)}
-                  selectionType='checkbox'
-                />
-              )
-            })}
-
-            {isFetching && list.length === 0 && (
-              <Box display='flex' justifyContent='center' py={2}>
-                <CircularProgress />
-              </Box>
-            )}
-
-            {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
-              <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
-                <CircularProgress />
-              </Box>
-            )}
-
-            {!isFetching && list.length === 0 && (
-              <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-                No species found
-              </Typography>
-            )}
-
-            {!hasNextPage && list.length > 0 && (
-              <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                No more species to load
-              </Typography>
-            )}
-          </Box>
+          {activeTab === 0 ? (
+            <AntzDatabaseTab
+              data={data}
+              selectedItems={newlySelectedAntzItems}
+              onToggle={handleAntzToggle}
+              prevSelectedItems={prevSelectedItems}
+            />
+          ) : (
+            <NewSpeciesTab
+              selectedItems={newlySelectedCustomItems}
+              onToggle={handleCustomToggle}
+              prevSelectedItems={prevSelectedItems}
+              onAddSpecies={handleAddCustomSpecies}
+            />
+          )}
         </Box>
 
-        {/* Sticky footer */}
+        {/* Footer */}
         <Box
           sx={{
             position: 'sticky',
@@ -238,8 +185,8 @@ return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === spe
             zIndex: 1
           }}
         >
-          <Button fullWidth variant='contained' onClick={handleDone} disabled={newlySelectedItems.length === 0}>
-            Done ({newlySelectedItems.length})
+          <Button fullWidth variant='contained' onClick={handleDone} disabled={totalSelectedCount === 0}>
+            Done ({totalSelectedCount})
           </Button>
         </Box>
       </Box>

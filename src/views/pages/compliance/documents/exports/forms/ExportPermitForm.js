@@ -57,13 +57,7 @@ export const exportPermitValidationSchema = yup.object().shape({
     })
     .required('Exporter name is required'),
 
-  export_purpose: yup
-    .object()
-    .shape({
-      label: yup.string().required('Export purpose is required'),
-      value: yup.string().required('Export purpose is required')
-    })
-    .required('Export purpose is required'),
+  export_purpose: yup.string().required('Export purpose is required').min(1, 'Export purpose is required'),
 
   certificate_file: yup
     .mixed()
@@ -155,7 +149,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
     defaultValues: {
       export_number: '',
       export_date: null,
-      issued_date: null,
+      issued_date: dayjs(),
       valid_until: null,
       export_purpose: null,
       destination_country: null,
@@ -174,7 +168,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('export_date', new Date(exportData.export_date))
       setValue('issued_date', exportData.issued_date !== '0000-00-00' ? dayjs(exportData.issued_date) : null)
       setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
-      setValue('export_purpose', { label: exportData.export_purpose, value: exportData.export_purpose })
+      setValue('export_purpose', exportData.export_purpose)
       setValue('origin_country', { label: exportData.origin_country, value: exportData.origin_country })
       setValue('exporting_country', { label: exportData.exporting_country, value: exportData.exporting_country })
       setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })
@@ -259,7 +253,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       exporting_country: data.exporting_country?.value || '',
       exporter_name: data.exporter_name?.value || '',
       importer_name: data.importer_name?.value || '',
-      export_purpose: data.export_purpose?.value || '',
+      export_purpose: data.export_purpose || '',
       export_date: dayjs(data.export_date).format('YYYY-MM-DD'),
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
@@ -294,10 +288,11 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       if (response?.success) {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })
         setSubmitLoader(false)
+        onSubmit(response?.data?.id)
 
         // Route to detail page
-        if (id) router.push(`/compliance/documents/exports/${id}`)
-        else router.push(`/compliance/documents/exports/ExportPermitDetails?id=${response?.data?.id}`)
+        // if (id) router.push(`/compliance/documents/exports/${id}`)
+        // else router.push(`/compliance/documents/exports/ExportPermitDetails?id=${response?.data?.id}`)
       } else {
         setSubmitLoader(false)
         Toaster({ type: 'error', message: response?.message })
@@ -307,8 +302,6 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setSubmitLoader(false)
       Toaster({ type: 'error', message: JSON.stringify(e) })
     }
-
-    onSubmit(transformedData)
   }
 
   const handleFormReset = () => {

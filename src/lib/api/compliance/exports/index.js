@@ -5,7 +5,8 @@ import {
   EDIT_EXPORT,
   GET_DOCUMENT_TYPE,
   GET_EXPORTS_DETAILS,
-  GET_EXPORTS_LIST
+  GET_EXPORTS_LIST,
+  GET_SPECIES_LIST
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
 
@@ -29,6 +30,12 @@ export const getSpecies = async () => {
       { label: 'Species 3', value: 'manifest' }
     ]
   }
+}
+
+export async function getSpeciesList(params) {
+  const response = await axiosGet({ url: `${GET_SPECIES_LIST}`, params })
+
+  return response.data
 }
 
 export const getExportList = async params => {

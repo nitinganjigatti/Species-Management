@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, alpha } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 
 import CustomAccordion from 'src/views/utility/CustomAccordion'
@@ -10,34 +10,7 @@ import LinkedImports from 'src/views/pages/compliance/documents/exports/forms/Li
 import LinkedShipments from 'src/views/pages/compliance/documents/exports/forms/LinkedShipments'
 import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/exports'
 import Toaster from 'src/components/Toaster'
-
-const testDocuments = [
-  {
-    document_type_id: '1',
-    file_path: 'https://example.com/documents/donation-letter.pdf',
-    file_original_name: 'Donation_Letter_2025.pdf'
-  },
-  {
-    document_type_id: '3',
-    file_path: 'https://example.com/documents/agreement.docx',
-    file_original_name: 'Export_Agreement.docx'
-  },
-  {
-    document_type_id: '5',
-    file_path: 'https://example.com/documents/cza-approval.pdf',
-    file_original_name: 'CZA_Approval_Notice.pdf'
-  },
-  {
-    document_type_id: '8',
-    file_path: 'https://example.com/documents/health-certificate.pdf',
-    file_original_name: 'Health_Certificate_Zebra.pdf'
-  },
-  {
-    document_type_id: '12',
-    file_path: 'https://example.com/documents/aqcs-clearance.pdf',
-    file_original_name: 'AQCS_Final_Clearance.pdf'
-  }
-]
+import { useTheme } from '@mui/material/styles'
 
 // Example usage with sample data:
 const sampleLinkedImports = [
@@ -154,6 +127,7 @@ const AddEditExportPermit = () => {
   const [isFetching, setIsFetching] = useState(false)
   const [documentList, setDocumentList] = useState([])
   const [totalCount, setTotalCount] = useState(0)
+  const theme = useTheme()
 
   useEffect(() => {
     if (isEdit) {
@@ -174,15 +148,19 @@ const AddEditExportPermit = () => {
     setLoading(false)
   }
 
-  const handleFormSubmit = data => {
-    console.log('Parent form data:', data)
+  const handleFormSubmit = exportId => {
+    console.log('id', exportId)
+    if (!isEdit) {
+      setExpanded('supporting-documents')
+      fetchDocumentTypeList(exportId)
+    }
   }
 
-  const fetchDocumentTypeList = async () => {
+  const fetchDocumentTypeList = async exportId => {
     setIsFetching(true)
     try {
       const params = {
-        export_id: id,
+        export_id: id || exportId,
         type: 'export'
       }
       const res = await getDocumentTypeList(params)
@@ -202,7 +180,7 @@ const AddEditExportPermit = () => {
   }
 
   useEffect(() => {
-    fetchDocumentTypeList()
+    if (id) fetchDocumentTypeList()
   }, [id])
 
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
@@ -247,31 +225,50 @@ const AddEditExportPermit = () => {
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <SupportingDocuments
-          isFetching={isFetching}
-          documentList={documentList}
-          totalCount={totalCount}
-          onAddEditSuccess={handleAddEditSuccess}
-        />
+        {!isEdit && !documentList?.length ? (
+          <Box
+            sx={{
+              height: '150px',
+              width: '100%',
+              mx: 'auto',
+              backgroundColor: alpha(theme.palette.common.black, 0.05),
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: '8px'
+            }}
+          >
+            <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
+              Please save form details to add supporting documents
+            </Typography>
+          </Box>
+        ) : (
+          <SupportingDocuments
+            isFetching={isFetching}
+            documentList={documentList}
+            totalCount={totalCount}
+            onAddEditSuccess={handleAddEditSuccess}
+          />
+        )}
       </CustomAccordion>
 
-      <CustomAccordion
+      {/* <CustomAccordion
         id='linked-imports'
         title={`Linked Imports - ${sampleLinkedImports.length}`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
         <LinkedImports imports={sampleLinkedImports} />
-      </CustomAccordion>
+      </CustomAccordion> */}
 
-      <CustomAccordion
+      {/* <CustomAccordion
         id='linked-shipments'
         title={`Linked Shipments - ${shipmentsData.length}`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
         <LinkedShipments shipments={shipmentsData} totalShipped={25} totalAllowed={60} />
-      </CustomAccordion>
+      </CustomAccordion> */}
     </>
   )
 }

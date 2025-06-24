@@ -1,5 +1,6 @@
 import React from 'react'
 import { Grid, Box, Typography } from '@mui/material'
+import dayjs from 'dayjs'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
@@ -15,14 +16,6 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
     { label: 'Japan', value: 'JP' },
     { label: 'India', value: 'IN' },
     { label: 'Thailand', value: 'TH' }
-  ]
-
-  const purposeOptions = [
-    { label: 'Rescue', value: 'rescue' },
-    { label: 'Research', value: 'research' },
-    { label: 'Conservation', value: 'conservation' },
-    { label: 'Education', value: 'education' },
-    { label: 'Breeding', value: 'breeding' }
   ]
 
   const exporterOptions = [
@@ -63,11 +56,19 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             control={control}
             errors={errors}
             required
+            minDate={dayjs().startOf('day')} // Only allow future dates
           />
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <ControlledDatePicker name='issued_date' label='Date of Issue*' control={control} errors={errors} required />
+          <ControlledDatePicker
+            name='issued_date'
+            label='Date of Issue*'
+            control={control}
+            errors={errors}
+            required
+            disabled // Always disabled
+          />
         </Grid>
 
         <Grid item xs={12} md={6}>
@@ -127,16 +128,13 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <ControlledAutocomplete
+          <ControlledTextField
             name='export_purpose'
             label='Purpose of transfer*'
             control={control}
             errors={errors}
-            options={purposeOptions}
             required
             fullWidth
-            isOptionEqualToValue={(option, value) => option.value === value?.value}
-            getOptionLabel={option => option.label || ''}
           />
         </Grid>
 
