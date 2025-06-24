@@ -84,7 +84,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
   }
 
   return (
-    <Drawer open={open} onClose={handleClose} anchor='right'>
+    <Drawer open={open} anchor='right'>
       <Box
         sx={{
           width: 570,
@@ -99,7 +99,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
         <Box sx={{ px: 5, pt: 4, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{documentData?.name}</Typography>
-            <IconButton onClick={onClose}>
+            <IconButton onClick={handleClose}>
               <CloseIcon />
             </IconButton>
           </Box>
