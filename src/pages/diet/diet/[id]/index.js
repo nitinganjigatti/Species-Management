@@ -4195,6 +4195,7 @@ const DietDetail = () => {
                                                   {itemd.notes &&
                                                   (itemd?.ingredient?.length >= 1 ||
                                                     itemd?.ingredientwithchoice?.length >= 1 ||
+                                                    itemd?.combo?.length >= 1 ||
                                                     itemd?.recipe?.length >= 1) ? (
                                                     <>
                                                       <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>
