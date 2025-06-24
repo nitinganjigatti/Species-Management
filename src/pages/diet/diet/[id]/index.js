@@ -626,7 +626,13 @@ const DietDetail = () => {
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
                   Diet
                 </Typography>
-                <Typography color='text.primary'>Diet Details</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.primary'
+                  }}
+                >
+                  Diet Details
+                </Typography>
               </Breadcrumbs>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <DietDetailCard
@@ -1587,6 +1593,7 @@ const DietDetail = () => {
                                                       background: theme.palette.primary.contrastText,
                                                       height: '185px',
                                                       pl: '1rem !important',
+
                                                       //display: 'flex',
                                                       //flexDirection: 'column',
                                                       justifyContent: 'center',

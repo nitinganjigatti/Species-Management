@@ -84,6 +84,7 @@ const ComboCard = ({
 
     // Update selectedCardCombo with merged objects
     const currentselectedCardCombo = selectedCardCombo || []
+
     const updatedSelectedCard = [
       ...currentselectedCardCombo,
       ...selectedValuesWithCheckId
@@ -189,6 +190,7 @@ const ComboCard = ({
           return updatedDay // Use the updated selection if available
         } else {
           const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+
           return existingDay || { cardId: row.id, days: Day }
         }
       })
@@ -231,6 +233,7 @@ const ComboCard = ({
       selectedCardCombo?.length > 0
     ) {
       const previousSelectedDays = selectedDays || []
+
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
@@ -261,6 +264,7 @@ const ComboCard = ({
       })
 
       setSelectedDays(updatedSelectedDays)
+
       //setRemarks({})
     } else if (searchValue !== '' && !dietid) {
       const previousSelectedDays = selectedDays || []
@@ -288,6 +292,7 @@ const ComboCard = ({
       setRemarks({})
     } else if (!searchValue && selectedCardCombo.length <= 0) {
       const previousSelectedDays = selectedDays || []
+
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
@@ -384,8 +389,10 @@ const ComboCard = ({
       toast.error('Combos are required.', {
         duration: 1000
       })
+
       return
     }
+
     // Check for missing cut sizes in all selected combos
     const cardsWithMissingCutSize = selectedCardCombo.filter(item =>
       item.ingredients.some(ingredient => !size[item.id]?.[ingredient.ingredient_id]?.id)
@@ -397,6 +404,7 @@ const ComboCard = ({
         duration: 1000
       })
       setShowErrors(true)
+
       return
     }
     setShowErrors(false)

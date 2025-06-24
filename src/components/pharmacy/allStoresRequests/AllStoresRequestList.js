@@ -525,53 +525,20 @@ const AllStoresRequestList = () => {
     return (
       <>
         {renderHeader(title)}
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'start', gap: '10px' }}>
-          <TextField
-            variant='outlined'
-            size='small'
-            placeholder='Search...'
-            value={drawerSearchValue}
-            onChange={e => {
-              const value = e.target.value
-              setDrawerSearchValue(value)
 
-              // Use the debounced search function
-              searchDrawerData({
-                stock_status: activeTab,
-                q: value
-              })
-            }}
-            sx={{
-              borderRadius: '8px',
-              width: '90%'
-            }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  </InputAdornment>
-                )
-              }
-            }}
-          />
-          <Box sx={{ border: '1px', borderColor: '#000', ml: 'auto' }}>
-            <ExportButton
-              loading={excelLoader}
-              onClick={() => handleExcelExport(title)}
-              bgcolor={theme.palette.customColors.OnPrimary}
-            />
-          </Box>
-        </Box>
         {isLoadingMore && isInitialLoadRef.current ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <CircularProgress size={24} />
           </Box>
         ) : (
           <Box sx={{ flexGrow: 1 }}>
-            <Grid container direction='column' sx={{
-              gap: 1
-            }}>
+            <Grid
+              container
+              direction='column'
+              sx={{
+                gap: 1
+              }}
+            >
               {uniquePendingData.map((med, index) => (
                 <Grid item size={{ xs: 12 }} key={index} sx={{ padding: 0, margin: 0 }}>
                   <MedicineCard
@@ -599,7 +566,7 @@ const AllStoresRequestList = () => {
           </Box>
         )}
       </>
-    );
+    )
   }
 
   return (
@@ -722,13 +689,15 @@ const AllStoresRequestList = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
-                }}>
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 2
-                  }}>
+                  }}
+                >
                   <Typography sx={{ fontSize: '20px', fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}>
                     Unique Pending items
                   </Typography>
@@ -773,6 +742,50 @@ const AllStoresRequestList = () => {
                   <Tab value='All' label='All items' sx={{ width: '30%' }} />
                 </TabList>
               </TabContext>
+              <Box
+                sx={{
+                  mx: 'auto',
+                  my: 4,
+                  display: 'flex',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  width: '90%'
+                }}
+              >
+                <TextField
+                  variant='outlined'
+                  size='small'
+                  placeholder='Search...'
+                  value={drawerSearchValue}
+                  onChange={e => {
+                    const value = e.target.value
+                    setDrawerSearchValue(value)
+
+                    // Use the debounced search function
+                    searchDrawerData({
+                      stock_status: activeTab,
+                      q: value
+                    })
+                  }}
+                  sx={{
+                    borderRadius: '8px',
+                    width: '90%'
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                />
+                <Box sx={{ ml: 'auto' }}>
+                  <ExportButton loading={excelLoader} onClick={() => handleExcelExport(activeTab)} />
+                </Box>
+              </Box>
             </Box>
 
             {/* Content Section - Allow scrolling here */}
@@ -804,7 +817,7 @@ const AllStoresRequestList = () => {
         <Error404></Error404>
       )}
     </>
-  );
+  )
 }
 
 export default AllStoresRequestList

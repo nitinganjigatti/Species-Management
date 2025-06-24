@@ -372,7 +372,6 @@ const AddDirectDispatch = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
-      console.log(searchResults, 'searchResults')
 
       if (searchResults?.data?.list_items?.length > 0) {
         setOptionsMedicineList(
@@ -749,7 +748,6 @@ const AddDirectDispatch = () => {
     return total + item.request_item_qty * parseFloat(item.unit_price)
   }, 0)
 
-  console.log(editParams.request_item_details, 'editParams')
 
   return (
     <>

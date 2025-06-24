@@ -122,6 +122,7 @@ const StepAddIngredients = ({
     clearErrors,
     formState: { errors },
     trigger,
+    setError,
     getValues,
     setValue: setFormValue
   } = useForm({
@@ -193,6 +194,7 @@ const StepAddIngredients = ({
         container
         sx={{
           mb: 5,
+
           //px: 4,
           mt: 4,
 
@@ -885,8 +887,10 @@ const StepAddIngredients = ({
                   sx={{
                     px: 5,
                     background: theme.palette.customColors.displaybgPrimary,
+
                     //my: 2,
                     borderRadius: 0.5,
+
                     //mx: 4
                     mb: '1.25rem'
                   }}

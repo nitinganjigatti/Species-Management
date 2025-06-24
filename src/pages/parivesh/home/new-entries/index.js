@@ -66,7 +66,7 @@ const NewEntry = ({}) => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
@@ -106,6 +106,7 @@ const NewEntry = ({}) => {
     const allCurrentPageSelected = currentPageRows.every(row => selectedRows.includes(row.id))
     setSelectAll(allCurrentPageSelected && currentPageRows.length > 0)
   }
+
   const handleSelectAll = event => {
     event.stopPropagation()
     const isChecked = event.target.checked
@@ -176,6 +177,7 @@ const NewEntry = ({}) => {
       const newSelected = prevSelected.includes(id) ? prevSelected.filter(rowId => rowId !== id) : [...prevSelected, id]
 
       updateSelectAllState(paginationModel)
+
       return newSelected
     })
   }
@@ -183,10 +185,10 @@ const NewEntry = ({}) => {
     updateSelectAllState(paginationModel)
   }, [rows, selectedRows, paginationModel])
 
-  const handleChange = (event, newValue) => {
-    setTotal(0)
-    setValue(newValue)
-  }
+  // const handleChange = (event, newValue) => {
+  //   setTotal(0)
+  //   setValue(newValue)
+  // }
 
   const onClose = () => {
     setDialog(false)
@@ -264,6 +266,7 @@ const NewEntry = ({}) => {
 
   const handleEdit = async (event, params) => {
     event.stopPropagation()
+
     // console.log('params >>', params)
 
     // Ensure params.id exists and is a string or number
@@ -289,6 +292,7 @@ const NewEntry = ({}) => {
       const response = await deleteSpeciesToOrganization(selectedId, payload)
       if (response.success === true) {
         Toaster({ type: 'success', message: `Species has been successfully deleted` })
+
         // Reload the table data
         fetchTableData(sort, searchValue, sortColumn)
       } else {
@@ -368,6 +372,7 @@ const NewEntry = ({}) => {
         </Tooltip>
       )
     },
+
     // {
     //   flex: 0.4,
     //   minWidth: 10,
@@ -493,6 +498,7 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'checkbox',
       sortable: false,
+
       // headerName: (
       //   <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
       // ),
@@ -518,6 +524,7 @@ const NewEntry = ({}) => {
     console.log(params, 'params  12345>>>')
     setIsEditModal(true)
     setDetailData(params?.row)
+
     // Router.push('/parivesh/home/new-entries/add-newentry')
     // console.log(params, 'params')
     // const clickedColumn = params.field !== 'switch'
@@ -928,8 +935,10 @@ const NewEntry = ({}) => {
   }, [fetchOrgCountData])
 
   console.log('Details', detailData)
+
   const capitalizeFirstLetter = str => {
     if (!str) return ''
+
     return str.charAt(0).toUpperCase() + str.slice(1)
   }
 

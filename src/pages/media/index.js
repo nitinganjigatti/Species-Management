@@ -316,11 +316,35 @@ const Media = () => {
       ) : (
         <>
           <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Box display='flex' flexDirection='column'>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
               <Card sx={{ p: 4, mb: 6 }}>
-                <Grid container spacing={2} direction='column' alignItems='flex-start'>
-                  <Grid item size={{ xs: 12 }} width='100%'>
-                    <Grid container justifyContent='space-between' alignItems='center'>
+                <Grid
+                  container
+                  spacing={2}
+                  direction='column'
+                  sx={{
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  <Grid
+                    item
+                    size={{ xs: 12 }}
+                    sx={{
+                      width: '100%'
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
                       <Grid item>
                         <Typography
                           variant='h6'
@@ -616,7 +640,7 @@ const Media = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default Media

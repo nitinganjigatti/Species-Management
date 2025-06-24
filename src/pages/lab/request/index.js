@@ -1,55 +1,59 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
+import { useRouter } from 'next/router'
 
-import { getNoOfLab, GetLabReportById, GetLabRequestTestStatusById } from 'src/lib/api/lab/getLabRequest'
-
-import Button from '@mui/material/Button'
-import FallbackSpinner from 'src/@core/components/spinner/index'
-
-// ** MUI Imports
-
-import Typography from '@mui/material/Typography'
-import CardHeader from '@mui/material/CardHeader'
+import {
+  Box,
+  Stack,
+  CircularProgress,
+  Breadcrumbs,
+  Select,
+  MenuItem,
+  FormControl,
+  Typography,
+  CardHeader,
+  InputLabel,
+  Card
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
-import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { debounce } from 'lodash'
-// import { useTheme } from '@emotion/react'
 import { useTheme } from '@mui/material/styles'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, Stack, CircularProgress, Breadcrumbs } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-
-// import Router from 'next/router'
-import Utility from 'src/utility'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import { useRouter } from 'next/router'
-import { AuthContext } from 'src/context/AuthContext'
-import { readAsync, write, remove } from 'src/lib/windows/utils'
-
+import { debounce } from 'lodash'
 import moment from 'moment'
 
-// import { callRefreshToken } from 'src/lib/api/auth'
+import { AuthContext } from 'src/context/AuthContext'
+import Icon from 'src/@core/components/icon'
+import FallbackSpinner from 'src/@core/components/spinner/index'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+
+import { GetLabReportById, GetLabRequestTestStatusById } from 'src/lib/api/lab/getLabRequest'
+import { readAsync, write } from 'src/lib/windows/utils'
 
 const ListOfRequest = () => {
   const theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext)
 
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
-
-  const authData = useContext(AuthContext)
   const [lab, setLab] = useState(authData?.userData?.modules?.lab_data?.lab)
-
+  const [stats, setStats] = useState()
   const [selectedLab, setSelectedLab] = useState(
     authData?.userData?.modules?.lab_data?.lab.length > 0 ? authData?.userData?.modules?.lab_data?.lab[0]?.lab_id : null
   )
-  const [stats, setStats] = useState()
+
+  /***** Serverside pagination */
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [sortColumn, setSortColumn] = useState('name')
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: router?.query?.page ? parseInt(router?.query?.page) : 0,
+    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
+  })
+  const [loading, setLoading] = useState(false)
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
@@ -146,7 +150,15 @@ const ListOfRequest = () => {
       sortable: false,
       headerName: 'Status',
       renderCell: params => (
-        <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
+        <Stack
+          direction='row'
+          spacing={2}
+          sx={{
+            gap: 2,
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
           {params.row.total_tests_pending > 0 && (
             <Box
               sx={{
@@ -208,10 +220,8 @@ const ListOfRequest = () => {
       width: 200,
       field: 'Reports',
       headerName: 'Reports',
-
       // align: 'center',
       sortable: false,
-
       renderCell: params => (
         <>
           {params?.row?.total_attachments > 0 && (
@@ -237,18 +247,6 @@ const ListOfRequest = () => {
       )
     }
   ]
-
-  /***** Serverside pagination */
-  const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({
-    page: router?.query?.page ? parseInt(router?.query?.page) : 0,
-    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
-  })
-  const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -380,23 +378,16 @@ const ListOfRequest = () => {
   }, [])
 
   const handleLabChange = async value => {
-    // setSelectedLab(event.target.value)
     write('selectedLAB', value)
     setPaginationModel({ page: 0, pageSize: 10 })
     setLabSelected(value)
     const storedLabData = await readAsync('selectedLAB')
     if (storedLabData) {
       setSelectedLab(value)
-
       // remove('selectedLAB')
     } else {
       setSelectedLab(value)
     }
-    // updateUrlParams({
-    //   q: searchValue,
-    //   page: paginationModel.page + 1,
-    //   pageSize: paginationModel.pageSize
-    // })
 
     const params = {
       sort,
@@ -412,7 +403,6 @@ const ListOfRequest = () => {
   }
 
   const handlePaginationModelChange = async data => {
-    // if (paginationModel?.page == 0) return
     const params = {
       sort,
       q: searchValue,
@@ -432,10 +422,6 @@ const ListOfRequest = () => {
     await fetchData(params)
   }
 
-  // useEffect(() => {
-  //   handlePaginationModelChange()
-  // }, [paginationModel])
-
   const handleSearch = async value => {
     setSearchValue(value)
     updateUrlParams({
@@ -446,20 +432,6 @@ const ListOfRequest = () => {
     setPaginationModel({ page: 0, pageSize: 10 })
     await searchTableData({ sort, q: value, column: sortColumn, lab_id: selectedLab })
   }
-
-  // const getSlNo = (index, labTestId) => {
-  //   if (labTestId !== null) {
-  //     return labTestId + '_' + index
-  //   }
-
-  //   return 'no_lab_test_id_' + index
-  // }
-
-  // const indexedRows = rows?.map((row, index) => ({
-  //   ...row,
-  //   id: getSlNo(index, row.lab_test_id),
-  //   sl_no: index + 1
-  // }))
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -484,13 +456,15 @@ const ListOfRequest = () => {
       ) : (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-      Lab
-    </Typography> */}
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Labs
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Requests list
             </Typography>
           </Breadcrumbs>
@@ -539,8 +513,11 @@ const ListOfRequest = () => {
               <Stack
                 direction={{ md: 'row', sm: 'row', sx: 'column' }}
                 spacing={2}
-                gap={2}
-                sx={{ display: 'flex', alignItems: 'center' }}
+                sx={{
+                  gap: 2,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
               >
                 <Typography>
                   Total Requests -{' '}
@@ -588,8 +565,8 @@ const ListOfRequest = () => {
                 </Box>
               </Stack>
             </Box>
-            {/* Status */}
 
+            {/* Status */}
             <Stack
               direction={{ md: 'row', sm: 'row', sx: 'column' }}
               spacing={4}
@@ -598,15 +575,33 @@ const ListOfRequest = () => {
               <>
                 <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
               </>
-              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  gap: 1,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.customDropdownColor} />
                 <Typography variant='subtitle1'>Pending</Typography>
               </Box>
-              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  gap: 1,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.moderateSecondary} />
                 <Typography variant='subtitle1'>In Progress</Typography>
               </Box>
-              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  gap: 1,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.primary.main} />
                 <Typography variant='subtitle1'>Completed</Typography>
               </Box>

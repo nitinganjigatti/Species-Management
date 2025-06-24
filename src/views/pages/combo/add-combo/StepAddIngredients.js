@@ -142,7 +142,8 @@ const StepAddIngredients = ({
     formState: { errors },
     trigger,
     getValues,
-    setValue: setFormValue
+    setValue: setFormValue,
+    setError
   } = useForm({
     defaultValues,
     shouldUnregister: false,

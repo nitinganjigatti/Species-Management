@@ -44,11 +44,14 @@ const CustomDateRangePicker = ({
     ? addMonths(currentDate, monthsShown - 2)
     : subMonths(currentDate, monthsShown - 1)
 
-  console.log(selectFutureDates, disableFutureDates, 'selectFutureDates')
-
   return (
     <DatePickerWrapper>
-      <Box p={2} sx={{ width: '100%' }}>
+      <Box
+        sx={{
+          p: 2,
+          width: '100%'
+        }}
+      >
         <DatePicker
           selectsRange
           monthsShown={monthsShown}

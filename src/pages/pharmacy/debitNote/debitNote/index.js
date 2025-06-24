@@ -25,7 +25,6 @@ const ListOfDebitNote = () => {
     setLoader(true)
     const response = await getDebitNote()
     if (response?.length > 0) {
-      console.log('list', response)
 
       // response.sort((a, b) => a.id - b.id)
       let listWithId = response
@@ -159,7 +158,6 @@ const ListOfDebitNote = () => {
   ]
 
   const handleHeaderAction = () => {
-    console.log('Handle Header Action')
   }
 
   return (

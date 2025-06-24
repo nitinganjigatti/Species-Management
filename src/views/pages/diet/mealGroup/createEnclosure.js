@@ -20,6 +20,7 @@ import { AddEnclosureToExistng, getMealGroupList } from 'src/lib/api/diet/mealgr
 import SelectedEnclosure from './selectedEnclosure'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CreateEnclosure = ({
   enclosureDrawer,
@@ -158,9 +159,12 @@ const CreateEnclosure = ({
         {/* Left: Selected Dropdown */}
         <Box
           onClick={handleSelected}
-          display='flex'
-          alignItems='center'
-          sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'center', sm: 'flex-start' } }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: { xs: '100%', sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'flex-start' }
+          }}
         >
           <Typography
             sx={{
@@ -178,12 +182,14 @@ const CreateEnclosure = ({
             <Icon icon='mdi:chevron-down' />
           </IconButton>
         </Box>
-
         {/* Right: Cancel + Add Buttons */}
         <Box
-          display='flex'
-          gap={2}
-          sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'center', sm: 'flex-end' } }}
+          sx={{
+            display: 'flex',
+            gap: 2,
+            width: { xs: '100%', sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'flex-end' }
+          }}
         >
           <Button
             onClick={event => {
@@ -292,7 +298,13 @@ const CreateEnclosure = ({
             {/* Outer wrapper with padding from all sides */}
             <Box sx={{ p: 4, backgroundColor: '#EEF5F1', borderRadius: '8px', mt: 3 }}>
               {/* Search */}
-              <Box display='flex' gap={1} mb={6}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  mb: 6
+                }}
+              >
                 <TextField
                   placeholder='Search...'
                   variant='outlined'

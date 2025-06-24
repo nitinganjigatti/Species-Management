@@ -168,14 +168,11 @@ const EditAnimalSpeciesMapped = ({
 
     // Convert string IDs to numbers
     const numericRemovedIds = removedIds.map(id => Number(id))
-    console.log(numericRemovedIds, 'numericRemovedIds')
 
     const payload = {
       edit_data: JSON.stringify(editData),
       remove_ids: JSON.stringify(numericRemovedIds)
     }
-
-    console.log('Final Payload:', payload)
 
     setLoader(true)
     try {

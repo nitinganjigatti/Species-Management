@@ -11,6 +11,7 @@ import 'react-credit-cards/es/styles-compiled.css'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   const theme = useTheme()
+
   const columns = [
     {
       flex: 0.5,

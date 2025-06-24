@@ -239,8 +239,7 @@ function AddDispense() {
   const totalQty = productArrayUi.reduce((sum, item) => sum + item.qty, 0)
   const totalUnitPrice = productArrayUi.reduce((sum, item) => sum + Number(item.unit_price) * item.qty, 0)
 
-  console.log(productArrayUi, 'productArrayUi')
-  console.log(productArray, 'productArray')
+
 
   return (
     <>
@@ -557,7 +556,6 @@ function AddDispense() {
                       <TableCell>Action</TableCell>
                     </TableRow>
                   </TableHead>
-                  {console.log('animals_s', animals_s)}
                   <TableBody>
                     {animals_s.length > 0
                       ? animals_s.map((elmnt, index) => {

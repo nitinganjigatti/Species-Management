@@ -3,6 +3,7 @@ import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import { useContext, useState } from 'react'
 import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const SelectedEnclosure = ({
   selectedEnclosureDrawer,
@@ -46,6 +47,7 @@ const SelectedEnclosure = ({
         ModalProps={{ keepMounted: true }}
         sx={{
           '& .MuiDrawer-paper': { width: '100%', maxWidth: '562px' },
+
           // position: 'fixed',
           position: 'relative',
           top: 0,
@@ -86,6 +88,7 @@ const SelectedEnclosure = ({
               size='small'
               onClick={() => {
                 setSelectedEnclosureDrawer(false)
+
                 // setEditItems([])
                 // setSelectedItems([])
               }}
@@ -152,6 +155,7 @@ const SelectedEnclosure = ({
                             fontSize: '14px',
                             color: theme.palette.customColors.OnSurfaceVariant,
                             maxWidth: '100px',
+
                             // overflow: 'hidden',
                             // textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
@@ -199,4 +203,5 @@ const SelectedEnclosure = ({
     <Error404 />
   )
 }
+
 export default SelectedEnclosure

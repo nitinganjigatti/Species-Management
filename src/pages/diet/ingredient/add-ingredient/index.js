@@ -464,7 +464,13 @@ const AddIngredient = () => {
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/ingredient')}>
                 Items
               </Typography>
-              <Typography color='text.primary'>{id ? 'Update' : 'Add'} new item</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                {id ? 'Update' : 'Add'} new item
+              </Typography>
             </Breadcrumbs>
           </Box>
           {loading ? (

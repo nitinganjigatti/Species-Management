@@ -45,7 +45,12 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
             }}
           />
         </Box>
-        <Box flex='1' ml={2}>
+        <Box
+          sx={{
+            flex: '1',
+            ml: 2
+          }}
+        >
           {value && (
             <Tooltip
               title={value}
@@ -99,13 +104,18 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
           )}
         </Box>
         {showIcon && (
-          <Typography variant='body2' color='customColors.customHeadingTextColor'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'customColors.customHeadingTextColor'
+            }}
+          >
             <Icon icon='weui:arrow-filled' />
           </Typography>
         )}
       </Box>
     </Grid>
-  );
+  )
 }
 
 export default StyleWithIconCardComponent

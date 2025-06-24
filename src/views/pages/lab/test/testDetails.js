@@ -31,7 +31,7 @@ const TestDetails = props => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
-  console.log('editParams', editParams)
+  // console.log('editParams', editParams)
 
   const getLabTestById = useCallback(async id => {
     const params = {
@@ -39,7 +39,7 @@ const TestDetails = props => {
     }
     setLoading(true)
     const response = await getLabTestDetailsById(params)
-    console.log('add state comp', response)
+    // console.log('add state comp', response)
     if (response?.success) {
       setTestDetails(response.data)
       setLoading(false)
@@ -78,7 +78,7 @@ const TestDetails = props => {
   }
 
   const handleDelete = sample => {
-    console.log('Delete:', sample)
+    // console.log('Delete:', sample)
     setIsModalOpenDelete(true)
     setSelectedId(testDetails?.id)
 
@@ -153,7 +153,12 @@ const TestDetails = props => {
                   <Box>
                     <CardContent>
                       <Box sx={{ bgcolor: '#E1F9ED', p: 3, mb: 6, borderRadius: 1 }}>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary'
+                          }}
+                        >
                           Test Name
                         </Typography>
                         <Typography variant='h5' component='div'>
@@ -161,7 +166,14 @@ const TestDetails = props => {
                         </Typography>
                       </Box>
 
-                      <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{
+                          color: 'text.secondary',
+                          mt: 2,
+                          mb: 2
+                        }}
+                      >
                         Sample Types
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', mb: 6 }}>
@@ -181,7 +193,14 @@ const TestDetails = props => {
                       </Box>
 
                       {testDetails.child_tests?.length > 0 && (
-                        <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
+                        <Typography
+                          variant='subtitle2'
+                          sx={{
+                            color: 'text.secondary',
+                            mt: 2,
+                            mb: 2
+                          }}
+                        >
                           Sub Tests
                         </Typography>
                       )}

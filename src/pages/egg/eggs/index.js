@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useContext } from 'react'
+import React, { useCallback, useEffect, useState, useContext, useMemo } from 'react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 
@@ -11,6 +11,7 @@ import {
   Card,
   CardHeader,
   Chip,
+  CircularProgress,
   Divider,
   Stack,
   Tab,
@@ -62,6 +63,10 @@ const EggList = () => {
     selected_filters_options
   } = router.query
 
+  const authData = useContext(AuthContext)
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
+
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
   const [loader, setLoader] = useState(false)
@@ -108,13 +113,14 @@ const EggList = () => {
   const [filterList, setFilterList] = useState([])
 
   // nursery filter dropdown
+  const [nurseryLoading, setNurseryLoading] = useState(false)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
 
   useEffect(() => {
     if (filter_list) {
-      console.log('filter_list', filter_list)
+      // console.log('filter_list', filter_list)
       setFilterList(JSON.parse(filter_list))
     }
     if (selected_options) {
@@ -124,10 +130,6 @@ const EggList = () => {
       setSelectedFiltersOptions(JSON.parse(selected_filters_options))
     }
   }, [])
-
-  const authData = useContext(AuthContext)
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
-  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
 
   const handleDiscard = (e, eggId) => {
     e.stopPropagation()
@@ -148,7 +150,7 @@ const EggList = () => {
 
   const checkAddPermission = () => {
     if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
-      console.log('animal_record_access', animal_record_access)
+      // console.log('animal_record_access', animal_record_access)
 
       return true
     } else {
@@ -772,7 +774,7 @@ const EggList = () => {
       headerName: 'Animal Id',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-          {console.log(params.row.animal_id)}
+          {/* {console.log(params.row.animal_id)} */}
           {params.row.animal_id ? (
             <Typography
               style={{
@@ -1975,7 +1977,7 @@ const EggList = () => {
           : ''
 
         // console.log('status', status)
-        console.log('first')
+        // console.log('first')
         // console.log('isDiscarded', isDiscarded)
         const params = {
           sort,
@@ -2038,7 +2040,7 @@ const EggList = () => {
         }
         setLoading(false)
       } catch (error) {
-        console.log(error)
+        console.error(error)
         setLoading(false)
       }
     },
@@ -2080,6 +2082,7 @@ const EggList = () => {
   )
 
   const NurseryList = async q => {
+    setNurseryLoading(true)
     try {
       const params = {
         search: q,
@@ -2095,7 +2098,9 @@ const EggList = () => {
         setNurseryList(updatedList)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
+    } finally {
+      setNurseryLoading(false)
     }
   }
 
@@ -2116,6 +2121,15 @@ const EggList = () => {
     NurseryList()
   }, [])
 
+  // 👇 debounce the function just once using useMemo
+  const debouncedSetFilterByNurseryId = useMemo(
+    () =>
+      debounce(value => {
+        NurseryList(value)
+      }, 400),
+    []
+  )
+
   const headerAction = (
     <>
       <Box>
@@ -2128,12 +2142,19 @@ const EggList = () => {
           value={defaultNursery}
           disablePortal
           id='nursery'
+          onInputChange={(event, newInputValue, reason) => {
+            if (reason === 'reset') {
+              debouncedSetFilterByNurseryId(newInputValue)
+            }
+            debouncedSetFilterByNurseryId(newInputValue)
+          }}
+          loading={nurseryLoading}
           options={nurseryList?.length > 0 ? nurseryList : []}
           getOptionLabel={option => option.nursery_name}
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
             if (val === null || val.nursery_id === '') {
-              setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
+              // setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
               setFilterByNurseryId('')
               write('Nursery', JSON.stringify({ nursery_id: '', nursery_name: 'All' }))
             } else {
@@ -2144,12 +2165,18 @@ const EggList = () => {
           }}
           renderInput={params => (
             <TextField
-              onChange={e => {
-                searchNursery(e.target.value)
-              }}
               {...params}
               label='Select Nursery *'
               placeholder='Search & Select'
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {nurseryLoading ? <CircularProgress size={20} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                )
+              }}
             />
           )}
         />
@@ -2311,7 +2338,12 @@ const EggList = () => {
               Egg
             </Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Egg List
             </Typography>
           </Breadcrumbs>

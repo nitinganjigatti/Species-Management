@@ -80,7 +80,6 @@ const RoomDetails = () => {
   const [editMessage, setEditMessage] = useState('')
 
   // ✅ Extracted helper functions and cleaned structure for clarity
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
   const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -89,40 +88,6 @@ const RoomDetails = () => {
   }))
 
   const loadServerRows = (currentPage, data) => data
-
-  // const fetchTableData = useCallback(
-  //   async (q, availability) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         q,
-  //         room_id: id,
-  //         availability,
-  //         til_date: cuurent_date,
-  //         page_no: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-
-  //       await getIncubatorList({ params }).then(res => {
-  //         // Generate uid field based on the index
-  //         let listWithId = res?.data?.data?.result?.map((el, i) => {
-  //           return { ...el, id: i + 1 }
-  //         })
-  //         setTotal(parseInt(res?.data?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, listWithId))
-
-  //         // setstatusCheckval(res?.data?.result.map(all => all.active))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       console.log(e)
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
 
   // ✅ Fetch incubator list
   const fetchTableData = useCallback(
@@ -562,7 +527,12 @@ const RoomDetails = () => {
                 >
                   Incubator Room
                 </Typography>
-                <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
+                <Typography
+                  sx={{
+                    color: 'text.primary',
+                    cursor: 'pointer'
+                  }}
+                >
                   Room Details
                 </Typography>
               </Breadcrumbs>

@@ -419,7 +419,11 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <Box className='sidebar-body' sx={{ px: '24px', overflowY: 'auto' }}>
-              <Box mb={35}>
+              <Box
+                sx={{
+                  mb: 35
+                }}
+              >
                 <Card fullWidth sx={{ py: '20px', px: '16px' }}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller

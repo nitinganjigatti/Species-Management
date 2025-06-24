@@ -192,7 +192,13 @@ const RecipeDetail = () => {
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
                 Combo
               </Typography>
-              <Typography color='text.primary'>Combo Details</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                Combo Details
+              </Typography>
             </Breadcrumbs>
             {Object.keys(IngredientsDetailsval).length !== 0 ? (
               <>

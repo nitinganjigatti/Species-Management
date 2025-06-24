@@ -676,7 +676,12 @@ function ProductForm({
         }
       />
       <form onSubmit={handleSubmit(editMode ? EditItems : submitItems, onError)}>
-        <Grid container mb={5}>
+        <Grid
+          container
+          sx={{
+            mb: 5
+          }}
+        >
           <Grid item size={{ xs: 12 }}>
             <FormControl fullWidth>
               {/* <Typography sx={{ my: 2 }}>
@@ -769,28 +774,40 @@ function ProductForm({
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px'
+                      }}
                     >
                       Package:
                     </Typography>
                     <Typography
-                      color='primary.light'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {watch('stock_id')?.packageDetails}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px'
+                      }}
                     >
                       Manufactured by:
                     </Typography>
                     <Typography
-                      color='primary.light'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {watch('stock_id')?.manufacture}
                     </Typography>
@@ -798,14 +815,20 @@ function ProductForm({
 
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px'
+                      }}
                     >
                       Total Available Quantity:
                     </Typography>
                     <Typography
-                      color='primary.light'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {`${errors?.stock_id || watch('stock_id')?.value === '' ? '' : totalQty} `}
                     </Typography>
@@ -937,15 +960,27 @@ function ProductForm({
                                   <Box sx={{ p: 1 }}>
                                     <Typography
                                       variant='body2'
-                                      color='customColors.customHeadingTextColor'
-                                      sx={{ fontWeight: 600 }}
+                                      sx={{
+                                        color: 'customColors.customHeadingTextColor',
+                                        fontWeight: 600
+                                      }}
                                     >
                                       {option.label}
                                     </Typography>
-                                    <Typography variant='body2' color='customColors.neutralSecondary'>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: 'customColors.neutralSecondary'
+                                      }}
+                                    >
                                       Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
                                     </Typography>
-                                    <Typography variant='body2' color='primary.main'>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: 'primary.main'
+                                      }}
+                                    >
                                       Availability: {option?.qty}
                                     </Typography>
                                   </Box>
@@ -1079,10 +1114,15 @@ function ProductForm({
         ) : (
           <Grid
             container
-            mb={3}
             rowSpacing={4}
             columnSpacing={2}
-            sx={{ bgcolor: '#0000000D', padding: 2, pl: 0, borderRadius: 1 }}
+            sx={{
+              mb: 3,
+              bgcolor: '#0000000D',
+              padding: 2,
+              pl: 0,
+              borderRadius: 1
+            }}
           >
             <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
@@ -1145,15 +1185,27 @@ function ProductForm({
                               <Box sx={{ p: 1 }}>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.customHeadingTextColor'
-                                  sx={{ fontWeight: 600 }}
+                                  sx={{
+                                    color: 'customColors.customHeadingTextColor',
+                                    fontWeight: 600
+                                  }}
                                 >
                                   {option.label}
                                 </Typography>
-                                <Typography variant='body2' color='customColors.neutralSecondary'>
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: 'customColors.neutralSecondary'
+                                  }}
+                                >
                                   Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
                                 </Typography>
-                                <Typography variant='body2' color='primary.main'>
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: 'primary.main'
+                                  }}
+                                >
                                   Availability: {option?.qty}
                                 </Typography>
                               </Box>
@@ -1248,7 +1300,14 @@ function ProductForm({
           </FormHelperText>
         )}
         <Grid item size={{ xs: 12, sm: 12 }} sx={{ mt: '40px' }}>
-          <Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
+          <Grid
+            container
+            sx={{
+              alignItems: 'flex-end',
+              justifyContent: 'flex-end',
+              height: '100%'
+            }}
+          >
             {editMode ? (
               <Button type='submit' variant='contained'>
                 Update

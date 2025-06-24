@@ -77,7 +77,12 @@ const PharmacyProductCard = ({
           }}
         />
       </Box>
-      <Box flex='1' ml={marginLeft}>
+      <Box
+        sx={{
+          flex: '1',
+          ml: marginLeft
+        }}
+      >
         {title && (
           <ToolTip title={title}>
             <Box

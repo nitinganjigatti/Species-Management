@@ -176,8 +176,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
       }
     } catch (error) {
       setLoading(false)
-
-      console.log('error :>> ', error)
+      console.error('error :>> ', error)
     }
   }
 
@@ -307,7 +306,12 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                   )}
                   <Grid item size={{ md: 12 }}>
                     {imgSrc !== '' && (
-                      <Stack direction='row' gap={'24px'}>
+                      <Stack
+                        direction='row'
+                        sx={{
+                          gap: '24px'
+                        }}
+                      >
                         <Box sx={{ display: 'flex', width: '48px', height: '48px' }}>
                           <img
                             style={{

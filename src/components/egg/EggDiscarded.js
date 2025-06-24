@@ -23,7 +23,7 @@ import Utility from 'src/utility'
 const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDrawer }) => {
   const theme = useTheme()
 
-  console.log('eggList :>> ', eggList)
+  // console.log('eggList :>> ', eggList)
 
   const [iseOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -51,7 +51,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
     // console.log('params  handleDelete :>> ', payload)
     try {
       await DeleteEggById(payload).then(res => {
-        console.log('res :>> ', res)
+        // console.log('res :>> ', res)
 
         if (res?.success) {
           setLoading(false)
@@ -72,7 +72,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
       })
     } catch (error) {
       setLoading(false)
-      console.log('error :>> ', error)
+      console.error('error :>> ', error)
     }
   }
 

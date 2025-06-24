@@ -152,7 +152,6 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
           )}
         </Box>
       )}
-
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Animals {total ? `(${total})` : ''}
       </Typography>
@@ -172,20 +171,34 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
           backgroundColor={theme.palette.common.white}
         />
       </Box>
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(animal => (
           <AnimalCard key={animal?.animal_id} data={animal} textColor={theme.palette.customColors.OnSurfaceVariant} />
         ))}
 
         {isFetching && list.length === 0 && (
-          <Box display='flex' justifyContent='center' p={2} mt={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              p: 2,
+              mt: 2
+            }}
+          >
             <CircularProgress />
           </Box>
         )}
 
         {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
+          <Box
+            ref={loaderRef}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              p: 2,
+              mt: 2
+            }}
+          >
             <CircularProgress />
           </Box>
         )}

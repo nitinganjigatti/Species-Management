@@ -24,6 +24,7 @@ const defaultValues = {
 const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => {
   const theme = useTheme()
   const router = useRouter()
+
   const handelClose = () => {
     setIsOpen(false)
   }
@@ -62,6 +63,7 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => 
           : 'Combo name should be unique. Please enter a different name.'
 
       Toaster({ type: 'error', message })
+
       return
     }
 
@@ -87,7 +89,6 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => 
           gap: '24px'
         }}
       >
-        {console.log(type, 'type')}
         <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%' }}>
           <Box
             className='sidebar-header'

@@ -275,7 +275,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
               <Box>
                 <FormGroup>
                   {fields.map((field, index) => (
-                    <Grid container gap={3} key={field?.id} sx={{ mb: 4 }}>
+                    <Grid
+                      container
+                      key={field?.id}
+                      sx={{
+                        gap: 3,
+                        mb: 4
+                      }}
+                    >
                       <Grid item size={{ xs: 12, sm: 5 }}>
                         <FormControl fullWidth>
                           <Controller
@@ -395,8 +402,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
                       <Grid
                         item
-                        alignSelf='center'
                         sx={{
+                          alignSelf: 'center',
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center'

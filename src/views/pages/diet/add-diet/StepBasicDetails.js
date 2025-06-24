@@ -175,7 +175,8 @@ const StepBasicDetails = ({
     clearErrors,
     formState: { errors },
     trigger,
-    setValue: setFormValue
+    setValue: setFormValue,
+    setError
   } = useForm({
     mode: 'all',
     defaultValues,
@@ -737,16 +738,6 @@ const StepBasicDetails = ({
       <>
         <Grid
           container
-          justifyContent='center'
-          alignItems='center'
-          sx={{
-            mt: 12,
-            border: `3px dotted ${theme.palette.primary.main}`,
-            padding: '8px 16px',
-            backgroundColor: '#37bd6912',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
           onClick={() => {
             appendIngredients({
               mealid: `meal${fieldsIngredients.length}`,
@@ -755,6 +746,16 @@ const StepBasicDetails = ({
               meal_to_time: '',
               notes: ''
             })
+          }}
+          sx={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            mt: 12,
+            border: `3px dotted ${theme.palette.primary.main}`,
+            padding: '8px 16px',
+            backgroundColor: '#37bd6912',
+            borderRadius: '8px',
+            cursor: 'pointer'
           }}
         >
           <Typography
@@ -860,6 +861,7 @@ const StepBasicDetails = ({
             return !hasMatchingIngredient
           })
         }
+
         return field
       })
       setfinalvalueingredientchoice(updatedFieldsIngredients)
@@ -971,6 +973,7 @@ const StepBasicDetails = ({
             ingredientwithchoice: updatedIngredientWithChoice?.length > 0 ? updatedIngredientWithChoice : undefined
           }
         }
+
         return field
       })
 

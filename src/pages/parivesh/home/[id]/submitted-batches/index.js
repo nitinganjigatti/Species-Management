@@ -22,7 +22,7 @@ const SubmittedBatches = ({ type }) => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
   const [sort, setSort] = useState('DESC')

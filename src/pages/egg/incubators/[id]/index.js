@@ -145,39 +145,6 @@ const IncubatorDetails = () => {
     return data
   }
 
-  // const hatcheryStatusFunc = () => {
-  //   setStatusLoading(true)
-  //   try {
-  //     hatcheryStatus({
-  //       ref_type: 'incubator',
-  //       ref_id: id,
-  //       status: active ? 'deactivate' : 'activate'
-  //     }).then(response => {
-  //       if (response.success) {
-  //         Toaster({
-  //           type: 'success',
-  //           message: active ? 'Incubator Deactivated Successfully' : 'Incubator Activated Successfully'
-  //         })
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //         setActive(!active)
-  //         getIncubatorDetailFunc()
-  //       } else {
-  //         Toaster({ type: 'error', message: response.message })
-  //         setEditMessage(response?.message)
-  //         setOpenRedirectionDialog(true)
-  //         getIncubatorDetailFunc()
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //       }
-  //     })
-  //   } catch (error) {
-  //     setOpenStatusDialog(false)
-  //     setStatusLoading(false)
-  //     Toaster({ type: 'error', message: response.message })
-  //   }
-  // }
-
   const hatcheryStatusFunc = async () => {
     setStatusLoading(true)
 
@@ -305,8 +272,6 @@ const IncubatorDetails = () => {
                       params.row.egg_status === 'Hatched'
                     ? theme.palette.customColors.lightBg
                     : theme.palette.customColors.lightBg,
-
-                // textAlign: 'center',
                 borderRadius: '4px',
                 display: 'inline-block'
               }}
@@ -654,46 +619,6 @@ const IncubatorDetails = () => {
     getspeciesFunc()
   }, [])
 
-  // const fetchTableData = useCallback(
-  //   async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         q,
-  //         page_no: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize,
-  //         nursery_id: '',
-  //         type: 'eggs_incubation',
-  //         allocate_date: allocation_date,
-  //         collected_date,
-  //         taxonomy_id,
-  //         incubator_id: id
-  //       }
-
-  //       await GetEggList({ params: params }).then(res => {
-  //         if (res?.data?.result) {
-  //           // Generate uid field based on the index
-  //           let listWithId = res.data.result.map((el, i) => {
-  //             return { ...el, uid: i + 1 }
-  //           })
-  //           setTotal(parseInt(res?.data?.total_count))
-  //           setRows(loadServerRows(paginationModel.page, listWithId))
-  //         } else {
-  //           setTotal(parseInt(res?.data?.total_count))
-  //           setRows([])
-  //         }
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       console.log(e)
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
-
   const fetchTableData = useCallback(
     async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
       setLoading(true)
@@ -824,7 +749,12 @@ const IncubatorDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/incubators/')}>
               Incubator List
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Incubator Details
             </Typography>
           </Breadcrumbs>

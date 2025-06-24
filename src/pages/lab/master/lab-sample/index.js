@@ -320,7 +320,12 @@ const LabSamples = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab Samples
             </Typography>
           </Breadcrumbs>

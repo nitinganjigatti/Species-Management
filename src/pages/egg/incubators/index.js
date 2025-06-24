@@ -45,7 +45,6 @@ const IncubatorsList = () => {
   const loadServerRows = (currentPage, data) => data
 
   // Utility: Generate serial number for each row
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
   const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
   // 🟩 Transform rows to include sl_no
@@ -132,8 +131,8 @@ const IncubatorsList = () => {
   useEffect(() => {
     fetchAvailabilityList()
   }, [])
-
   // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
+
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData(
@@ -145,7 +144,6 @@ const IncubatorsList = () => {
       )
     }
   }, [paginationModel])
-
   // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
 
   const columns = [
@@ -396,7 +394,12 @@ const IncubatorsList = () => {
           <>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Egg</Typography>
-              <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              <Typography
+                sx={{
+                  color: 'text.primary',
+                  cursor: 'pointer'
+                }}
+              >
                 Incubator List
               </Typography>
             </Breadcrumbs>
@@ -491,7 +494,6 @@ const IncubatorsList = () => {
                               height: 40,
                               borderRadius: '4px'
                             },
-
                             '& .MuiInputLabel-root': {
                               top: -7
                             },

@@ -329,7 +329,6 @@ const AddDiscardProducts = () => {
     const year = parts[0]
     const month = Number(parts[1]) - 1
     const day = parts[2]
-    console.log('new Date :-', new Date(year, month, day))
 
     return new Date(year, month, day)
   }
@@ -415,7 +414,6 @@ const AddDiscardProducts = () => {
     try {
       const result = await getDiscardItemsListById(id)
       if (result.success === true && result?.data?.item_details?.length > 0) {
-        console.log('result', result.data?.item_details)
 
         const lineItems = result?.data?.item_details?.map(el => {
           return {
@@ -442,7 +440,6 @@ const AddDiscardProducts = () => {
             unit_price: el?.unit_price
           }
         })
-        console.log('lineItems', lineItems)
 
         setEditParams({
           ...editParams,
@@ -552,7 +549,6 @@ const AddDiscardProducts = () => {
     setSelectedComment('')
   }
 
-  console.log(selectedComment)
 
   // const headerAction = (
   //   <ExcelExportButton
@@ -566,13 +562,11 @@ const AddDiscardProducts = () => {
   //   />
   // )
 
-  console.log('Supplier >>', supplierList)
 
   const getAddDiscardData = async () => {
     try {
       setExcelLoader(true)
       const response = await getDiscardItemsListById(id)
-      console.log('Response inventory>', response)
 
       if (response?.success === true && response?.data?.item_details?.length > 0) {
         setExcelLoader(false)
@@ -851,7 +845,6 @@ const AddDiscardProducts = () => {
                 <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
                   {editParams?.items
                     ? editParams?.items?.map((el, index) => {
-                        console.log(el, ';;;')
 
                         return (
                           <TableRow

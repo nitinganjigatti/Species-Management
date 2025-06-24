@@ -21,6 +21,7 @@ import { debounce } from 'lodash'
 import { fontSize } from '@mui/system'
 import { object } from 'yup'
 import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -474,7 +475,14 @@ const CreateMealGroup = ({
               Selected enclosures
             </Typography>
             {mealType.type !== 'view' && (
-              <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  mt: 2,
+                  flexDirection: { xs: 'column', sm: 'row' }
+                }}
+              >
                 <TextField
                   placeholder='Search...'
                   value={Object.keys(editParam).length > 0 ? editSearchValue : searchTerm}

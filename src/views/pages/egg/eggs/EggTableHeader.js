@@ -65,7 +65,7 @@ const EggTableHeader = ({
 
   const handleExport = async () => {
     try {
-      console.log('export')
+      // console.log('export')
       setExcelLoading(true)
       const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
 
@@ -286,12 +286,12 @@ const EggTableHeader = ({
           }
           Utility.exportToCSV(tableData, fileName)
         } else {
-          console.log('excel download fail')
+          console.error('excel download fail')
         }
       })
       setExcelLoading(false)
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
       setExcelLoading(true)
     }
   }

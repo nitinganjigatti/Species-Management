@@ -444,7 +444,6 @@ const DirectDispatchList = () => {
   ]
 
   const handleRowClick = params => {
-    console.log(params)
   }
 
   const TabBadge = ({ label, totalCount }) => (

@@ -39,6 +39,7 @@ const CommonMediaView = ({
 
   function convertUTCToLocal(date) {
     var stillUtc = moment.utc(date).toDate()
+
     // var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
     var local = moment(stillUtc).local(true).format('DD-MMM-YYY')
 
@@ -342,7 +343,12 @@ const CommonMediaView = ({
             height='24'
             color={theme.palette.customColors.Error}
           />
-          <Typography fontSize={20} fontWeight='bold'>
+          <Typography
+            sx={{
+              fontSize: 20,
+              fontWeight: 'bold'
+            }}
+          >
             Delete File!
           </Typography>
         </DialogTitle>

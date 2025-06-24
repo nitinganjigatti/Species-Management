@@ -227,8 +227,7 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            cursor: 'pointer',
-         
+            cursor: 'pointer'
           }}
           onClick={e => {
             e.stopPropagation()
@@ -270,8 +269,7 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            cursor: 'pointer',
-        
+            cursor: 'pointer'
           }}
           onClick={e => {
             e.stopPropagation()
@@ -315,8 +313,7 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            cursor: 'default',
-            
+            cursor: 'default'
           }}
 
           // onClick={e => {
@@ -392,7 +389,12 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
 
         return isSmallScreen ? (
           phoneNumber ? (
-            <Box display='flex' gap={4}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 4
+              }}
+            >
               {/* Call Icon */}
               <Box
                 component='img'

@@ -244,7 +244,6 @@ const CommonDateRangePickers = ({
 
   const handleDateChange = range => {
     setTempRange(range)
-    console.log('Selected Range:', range)
   }
 
   const handleApply = () => {
@@ -317,23 +316,38 @@ const CommonDateRangePickers = ({
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        PaperProps={{
-          elevation: 3,
-          sx: {
-            width: '300px',
-            maxHeight: 'none',
-            mt: 1,
-            '& .MuiList-root': {
-              padding: 0
-            }
+        // eslint-disable-next-line lines-around-comment
+        // PaperProps={{
+        //   elevation: 3,
+        //   sx: {
+        //     width: '300px',
+        //     maxHeight: 'none',
+        //     mt: 1,
+        //     '& .MuiList-root': {
+        //       padding: 0
+        //     }
 
-            // borderRadius: '8px'
-            // border: '1px solid #E0E0E0'
-          }
-        }}
+        //     // borderRadius: '8px'
+        //     // border: '1px solid #E0E0E0'
+        //   }
+        // }}
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         slotProps={{
+          paper: {
+            elevation: 3,
+            sx: {
+              width: '300px',
+              maxHeight: 'none',
+              mt: 1,
+              '& .MuiList-root': {
+                padding: 0
+              }
+
+              // borderRadius: '8px'
+              // border: '1px solid #E0E0E0'
+            }
+          },
           list: {
             'aria-labelledby': 'date-range-button'
           }

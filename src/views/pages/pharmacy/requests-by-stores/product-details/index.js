@@ -434,9 +434,9 @@ const RequestedProductDetails = props => {
                       requestedProducts?.package_qty ||
                       requestedProducts?.package_uom_label ||
                       requestedProducts?.product_form_label
-                        ? `${requestedProducts?.package} of ${Utility.formatNumber(requestedProducts?.package_qty)} ${
+                        ? `${requestedProducts?.package} of ${Utility?.formatNumber(requestedProducts?.package_qty)} ${
                             requestedProducts?.package_uom_label
-                          } `
+                          } ${requestedProducts?.product_form_label}`
                         : 'NA'
                     }
                     secondSubTitle={

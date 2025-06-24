@@ -63,7 +63,6 @@ const NewDashboard = () => {
     try {
       const result = await getAllLists()
 
-      console.log('total list', result)
 
       if (result?.success === true && result?.data) {
         const dataArray = Object.keys(result?.data).map(key => ({ name: key, value: result?.data[key] }))
@@ -169,7 +168,6 @@ const NewDashboard = () => {
         )}
         {selectedPharmacy.type === 'central' ? (
           <Grid item size={{ xs: 12, md: 12 }}>
-            {console.log(totalList, 'totalList')}
             <TotalListCard
               data={
                 selectedPharmacy.type === 'central'

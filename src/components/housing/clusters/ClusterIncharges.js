@@ -219,7 +219,14 @@ const ClusterIncharges = () => {
       renderCell: params => (
         <>
           {params.row.incharge_name ? (
-            <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 3
+              }}
+            >
               <Box
                 component='img'
                 src='/images/call.png'

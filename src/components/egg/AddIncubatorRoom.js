@@ -75,7 +75,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
         setNurseryList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 

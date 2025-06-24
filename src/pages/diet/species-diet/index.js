@@ -734,7 +734,12 @@ const SpeciesDietList = () => {
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography color='inherit'>Diet</Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Species Diet List
             </Typography>
           </Breadcrumbs>

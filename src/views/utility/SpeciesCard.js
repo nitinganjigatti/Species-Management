@@ -114,12 +114,12 @@ function SpeciesCard({ species }) {
               fontStyle: 'italic'
             }}
           >
-            {species.scientific_name ? species.scientific_name : '-'}
+            {species.scientific_name ? species.scientific_name : species.complete_name ? species.complete_name : '-'}
           </Typography>
         </Tooltip>
       </Box>
     </Box>
-  );
+  )
 }
 
 export default SpeciesCard

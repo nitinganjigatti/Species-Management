@@ -1038,7 +1038,17 @@ const StepPreviewDiet = ({
                 Enter Values for Meals
               </Typography>
               {formData.diet_type_name === 'By Weight' ? (
-                <Grid container justifyContent='flex-end' sx={{ overflowX: 'auto', pt: 2, pr: 3, width: '50%', mb: 8 }}>
+                <Grid
+                  container
+                  sx={{
+                    justifyContent: 'flex-end',
+                    overflowX: 'auto',
+                    pt: 2,
+                    pr: 3,
+                    width: '50%',
+                    mb: 8
+                  }}
+                >
                   <Button onClick={() => setActivitySidebarOpen(true)} variant='contained'>
                     Add Diet Type
                   </Button>
@@ -1484,6 +1494,7 @@ const StepPreviewDiet = ({
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText,
                                           pl: '1.25rem !important'
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -2148,6 +2159,7 @@ const StepPreviewDiet = ({
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText,
                                           pl: '1.25rem !important'
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -2839,6 +2851,7 @@ const StepPreviewDiet = ({
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText,
                                           pl: '1.25rem !important'
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -3424,6 +3437,7 @@ const StepPreviewDiet = ({
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText,
                                           pl: '1.25rem !important'
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -3954,7 +3968,6 @@ const StepPreviewDiet = ({
                                 })}
                               </>
                             </TableRow>
-
                             <TableRow
                               sx={{
                                 width: '100%', // Ensure the row spans the full width of the table

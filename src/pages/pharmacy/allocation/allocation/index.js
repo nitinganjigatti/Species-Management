@@ -143,9 +143,7 @@ const Allocation = () => {
           <IconButton
             size='small'
             sx={{ mr: 0.5 }}
-            onClick={() => {
-              console.log(params.row.id)
-            }}
+
           >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
@@ -160,7 +158,6 @@ const Allocation = () => {
   ]
 
   const handleHeaderAction = () => {
-    console.log('Handle Header Action')
   }
 
   return (
