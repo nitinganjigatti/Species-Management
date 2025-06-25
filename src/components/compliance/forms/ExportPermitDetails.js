@@ -1,12 +1,17 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Grid, Box, Typography } from '@mui/material'
 import dayjs from 'dayjs'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import { debounce } from 'lodash'
+import { getMasterImports } from 'src/lib/api/compliance/masters'
 
 const ExportPermitDetails = ({ control, errors, isEdit }) => {
+  const [exportersOptions, setExportersOptions] = useState([])
+  const [importersOptions, setImportersOptions] = useState([])
+
   // Options data
   const countryOptions = [
     { label: 'France', value: 'FR' },
@@ -29,6 +34,64 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
     { label: 'Research Institute International', value: 'rii002' },
     { label: 'Wildlife Conservation Org', value: 'wco003' }
   ]
+
+  const getExportersList = async ({ key, page, limit }) => {
+    try {
+      const params = {
+        type: 'exporter',
+        q: key,
+        page,
+        limit
+      }
+      const res = await getMasterImports(params)
+      if (res) {
+        console.log('getMasterImports', res)
+        const exportersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
+        setExportersOptions(exportersOptions)
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getImportersList = async ({ key, page, limit }) => {
+    try {
+      const params = {
+        type: 'importer',
+        q: key,
+        page,
+        limit
+      }
+      const res = await getMasterImports(params)
+      if (res) {
+        console.log('setImporters', res)
+        setImportersOptions(res?.data?.list_items)
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const importersSearch = debounce(async value => {
+    try {
+      await getImportersList({ key: value, page: 1, limit: 20 })
+    } catch (error) {
+      console.error(error)
+    }
+  }, 500)
+
+  const exportersSearch = debounce(async value => {
+    try {
+      await getExportersList({ key: value, page: 1, limit: 20 })
+    } catch (error) {
+      console.error(error)
+    }
+  }, 500)
+
+  useEffect(() => {
+    getImportersList({ key: '', page: 1, limit: 20 })
+    getExportersList({ key: '', page: 1, limit: 20 })
+  }, [])
 
   return (
     <Box>
@@ -105,11 +168,14 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             label='Exporter name*'
             control={control}
             errors={errors}
-            options={exporterOptions}
+            options={exportersOptions}
             required
             fullWidth
             isOptionEqualToValue={(option, value) => option.value === value?.value}
             getOptionLabel={option => option.label || ''}
+            onKeyUp={e => exportersSearch(e.target.value)}
+            onBlur={e => e.target.value && exportersSearch('')}
+            onItemClear={() => exportersSearch('')}
           />
         </Grid>
 

@@ -3,7 +3,7 @@ import { Box, Typography, IconButton, Divider, Button, Alert, Card, CardContent,
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import SelectableSpeciesCard from '../SelectableSpeciesCard'
+import SelectableSpeciesCard from 'src/views/pages/compliance/documents/exports/SelectableSpeciesCard'
 import { useTheme, alpha } from '@mui/material/styles'
 
 const ExportPermitAnimals = ({

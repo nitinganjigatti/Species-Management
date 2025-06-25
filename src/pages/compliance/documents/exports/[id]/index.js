@@ -6,11 +6,11 @@ import Toaster from 'src/components/Toaster'
 import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/exports'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { useTheme } from '@mui/material/styles'
-import SpeciesDetail from 'src/views/pages/compliance/documents/exports/forms/SpeciesDetail'
+import SpeciesDetail from 'src/components/compliance/SpeciesDetail'
 import ExportPermitDetailsContent from 'src/views/pages/compliance/documents/exports/ExportPermitDetailsContent'
-import LinkedImports from 'src/views/pages/compliance/documents/exports/forms/LinkedImports'
-import LinkedShipments from 'src/views/pages/compliance/documents/exports/forms/LinkedShipments'
-import SupportingDocuments from 'src/views/pages/compliance/documents/exports/forms/SupportingDocuments'
+import LinkedImports from 'src/components/compliance/LinkedImports'
+import LinkedShipments from 'src/components/compliance/LinkedShipments'
+import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 
 // Example usage with sample data:
 const sampleLinkedImports = [

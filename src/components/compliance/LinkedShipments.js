@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Typography, Divider, useTheme, Grid, Chip, alpha } from '@mui/material'
 import { ChevronRight as ChevronRightIcon } from '@mui/icons-material'
-import ShippedAnimalsDrawer from '../drawer/ShippedAnimalsDrawer'
+import ShippedAnimalsDrawer from 'src/components/compliance/drawer/ShippedAnimalsDrawer'
 
 const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
   const theme = useTheme()

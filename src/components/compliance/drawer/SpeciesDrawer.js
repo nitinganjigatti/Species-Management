@@ -3,8 +3,8 @@ import { Typography, Box, Drawer, IconButton, Tabs, Tab, Button } from '@mui/mat
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import { CellInfo } from 'src/utility/render'
-import AntzDatabaseTab from '../forms/AntzDatabaseTab'
-import NewSpeciesTab from '../forms/NewSpeciesTab'
+import AntzDatabaseTab from 'src/components/compliance/tabs/AntzDatabaseTab'
+import NewSpeciesTab from 'src/components/compliance/tabs/NewSpeciesTab'
 
 const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], title = 'Select Species' }) => {
   const theme = useTheme()

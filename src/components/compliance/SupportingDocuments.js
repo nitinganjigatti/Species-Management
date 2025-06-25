@@ -3,7 +3,7 @@ import { Box, Typography, List, IconButton, Collapse, alpha, useMediaQuery, Circ
 import { Edit as EditIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { useTheme } from '@mui/material/styles'
-import DocumentUploadDrawer from '../drawer/DocumentUploadDrawer'
+import DocumentUploadDrawer from './drawer/DocumentUploadDrawer'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'

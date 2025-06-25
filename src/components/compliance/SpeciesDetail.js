@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Typography, Divider, useTheme, Grid, Chip, alpha } from '@mui/material'
 import { ChevronRight as ChevronRightIcon } from '@mui/icons-material'
-import AnimalDetailDrawer from '../drawer/AnimalDetailDrawer'
+import AnimalDetailDrawer from 'src/components/compliance/drawer/AnimalDetailDrawer'
 
 const SpeciesDetail = ({ species = [], totalShipped, totalAllowed }) => {
   const theme = useTheme()

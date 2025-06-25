@@ -14,6 +14,7 @@ const ControlledAutocomplete = ({
   fullWidth = true,
   onChangeOverride = () => {},
   onKeyUp = () => {},
+  onItemClear = () => {},
   onBlur = () => {},
   getOptionLabel = option => option.label || '',
   isOptionEqualToValue = (option, value) => option.value === value?.value,
@@ -39,9 +40,12 @@ const ControlledAutocomplete = ({
             getOptionLabel={getOptionLabel}
             value={field.value ?? null} // ensures Autocomplete is always controlled
             isOptionEqualToValue={isOptionEqualToValue}
-            onChange={(e, value) => {
+            onChange={(e, value, reason) => {
               field.onChange(value)
               onChangeOverride(value)
+              if (reason === 'clear') {
+                onItemClear()
+              }
             }}
             onKeyUp={onKeyUp}
             onBlur={onBlur}
