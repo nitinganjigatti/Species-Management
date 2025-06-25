@@ -1,5 +1,5 @@
 import { LoadingButton } from '@mui/lab'
-import { Drawer, IconButton, Typography, CircularProgress, Box, Chip } from '@mui/material'
+import { Drawer, IconButton, Typography, CircularProgress, Box, Chip, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -228,20 +228,26 @@ function AssessmentTypeFilter({
                       border: isSelected ? `1px solid ${theme.palette.primary.main}` : '0px'
                     }}
                   >
-                    <Typography
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '16px',
-                        lineHeight: '100%',
-                        letterSpacing: 0
-                      }}
-                    >
-                      {item?.assessments_type_label}
-                    </Typography>
+                    <Tooltip title={species.assessments_type_label}>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '16px',
+                          letterSpacing: 0,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 1,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {item?.assessments_type_label}
+                      </Typography>
+                    </Tooltip>
                     <Box
                       sx={{
                         bgcolor: theme.palette.customColors.Surface,
-                        width: '56px',
+                        minWidth: '56px',
                         height: '100%',
                         display: 'flex',
                         justifyContent: 'center',

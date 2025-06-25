@@ -216,7 +216,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
                     <Box
                       sx={{
                         bgcolor: theme.palette.customColors.Surface,
-                        width: '56px',
+                        minWidth: '56px',
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',

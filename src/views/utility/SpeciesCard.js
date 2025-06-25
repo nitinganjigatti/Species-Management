@@ -99,19 +99,33 @@ function SpeciesCard({ species }) {
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
-              fontWeight: 600
+              fontWeight: 600,
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}
           >
             {species.common_name ? species.common_name : '-'}
           </Typography>
         </Tooltip>
-        <Tooltip title={species.scientific_name}>
+        <Tooltip
+          title={
+            species.scientific_name ? species.scientific_name : species.complete_name ? species.complete_name : '-'
+          }
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: 400,
-              fontStyle: 'italic'
+              fontStyle: 'italic',
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}
           >
             {species.scientific_name ? species.scientific_name : species.complete_name ? species.complete_name : '-'}
