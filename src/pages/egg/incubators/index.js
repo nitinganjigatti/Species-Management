@@ -60,11 +60,11 @@ const IncubatorsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (q, siteId, roomId, availability, status) => {
+    async (q = '', siteId, roomId, availability, status) => {
       setLoading(true)
       try {
         const params = {
-          q: q || searchValue,
+          q,
           sort,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
@@ -90,7 +90,7 @@ const IncubatorsList = () => {
         setLoading(false)
       }
     },
-    [paginationModel, sort, searchValue]
+    [paginationModel, sort]
   )
 
   const debouncedSearch = useCallback(
@@ -116,7 +116,6 @@ const IncubatorsList = () => {
   )
 
   const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
-  // const indexedRows = rows?.map((row, index) => ({ ...row, sl_no: getSlNo(index) }))
   const indexedRows = useMemo(() => rows.map((row, i) => ({ ...row, sl_no: getSlNo(i) })), [rows, paginationModel])
 
   useEffect(() => {
@@ -422,9 +421,7 @@ const IncubatorsList = () => {
                   }
                 }}
                 slotProps={{
-                  input: {
-                    // disableUnderline: true
-                  }
+                  input: {}
                 }}
               />
             </Box>
@@ -470,24 +467,12 @@ const IncubatorsList = () => {
                       backgroundColor: theme.palette.primary.contrastText,
                       borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       width: '100%',
-                      '& .MuiOutlinedInput-root': {
-                        height: 40,
-                        borderRadius: '4px'
-                      },
-                      '& .MuiInputLabel-root': {
-                        top: -7
-                      },
-                      '& .MuiInputLabel-shrink': {
-                        top: 0
-                      },
-                      '& input': {
-                        position: 'relative',
-                        top: -0
-                      }
+                      '& .MuiOutlinedInput-root': { height: 40, borderRadius: '4px' },
+                      '& .MuiInputLabel-root': { top: -7 },
+                      '& .MuiInputLabel-shrink': { top: 0 },
+                      '& input': { position: 'relative', top: -0 }
                     }}
-                    onChange={e => {
-                      searchNursery(e.target.value)
-                    }}
+                    onChange={e => {}}
                     {...params}
                     label='Status'
                     placeholder='Search & Select'
