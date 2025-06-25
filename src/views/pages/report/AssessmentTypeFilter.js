@@ -228,7 +228,7 @@ function AssessmentTypeFilter({
                       border: isSelected ? `1px solid ${theme.palette.primary.main}` : '0px'
                     }}
                   >
-                    <Tooltip title={species.assessments_type_label}>
+                    <Tooltip title={item.assessments_type_label}>
                       <Typography
                         sx={{
                           fontWeight: 600,
