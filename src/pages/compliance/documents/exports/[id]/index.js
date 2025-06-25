@@ -251,7 +251,7 @@ const ExportPermitDetails = () => {
       <CustomAccordion
         id='supporting-documents'
         title='Supporting Documents'
-        docsCount={`${uploadedFileCount}/${totalCount} Documents added`}
+        docsCount={`${uploadedFileCount}/${totalCount}`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >

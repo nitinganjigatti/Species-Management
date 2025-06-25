@@ -1,11 +1,10 @@
 import React from 'react'
-import { Box, Typography, Drawer, IconButton, Grid, useMediaQuery, Chip } from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Grid, Chip } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { useTheme } from '@mui/material/styles'
 
 const AnimalDetailDrawer = ({ open, onClose, specie }) => {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   if (!specie) return null
 
@@ -13,7 +12,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
     <Drawer open={open} onClose={onClose} anchor='right'>
       <Box
         sx={{
-          width: isMobile ? '100vw' : 570,
+          width: { xs: '100vw', sm: 570 },
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',
@@ -21,9 +20,9 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
         }}
       >
         {/* Header */}
-        <Box sx={{ px: isMobile ? 3 : 4, pt: isMobile ? 2 : 3, pb: isMobile ? 1.5 : 2 }}>
+        <Box sx={{ px: 4, pt: 3, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography sx={{ fontSize: isMobile ? '1.125rem' : '1.5rem', fontWeight: 500 }}>Animal Details</Typography>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>Animal Details</Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -31,13 +30,13 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
         </Box>
 
         {/* Content */}
-        <Box sx={{ px: isMobile ? 3 : 4, flex: 1, overflowY: 'auto', pb: isMobile ? 3 : 4 }}>
+        <Box sx={{ px: 4, flex: 1, overflowY: 'auto', pb: 4 }}>
           {/* Species Info */}
           <Typography
             sx={{
               mb: 3,
               fontWeight: 500,
-              fontSize: isMobile ? '1rem' : '1.25rem',
+              fontSize: '1.25rem',
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
@@ -48,8 +47,8 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
               mb: 3,
               border: `1px solid ${theme.palette.divider}`,
               borderRadius: '8px',
-              px: isMobile ? 2 : 4,
-              py: isMobile ? 1.5 : 4,
+              px: 4,
+              py: 4,
               backgroundColor: theme.palette.common.white
             }}
           >
@@ -135,7 +134,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
               sx={{
                 mb: 3,
                 fontWeight: 500,
-                fontSize: isMobile ? '1rem' : '1.25rem',
+                fontSize: '1.25rem',
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
@@ -148,8 +147,8 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
               mb: 3,
               border: `1px solid ${theme.palette.divider}`,
               borderRadius: '8px',
-              px: isMobile ? 2 : 4,
-              py: isMobile ? 1.5 : 4,
+              px: 4,
+              py: 4,
               backgroundColor: theme.palette.common.white,
               display: 'flex',
               flexDirection: 'column',
@@ -165,7 +164,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                   gap: 4,
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
-                  p: isMobile ? 2 : 3
+                  p: 3
                 }}
               >
                 <Box

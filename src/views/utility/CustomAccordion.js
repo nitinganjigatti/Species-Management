@@ -11,7 +11,7 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
       sx={{
         mb: 3,
         borderRadius: 1,
-        px: 8,
+        px: { xs: 4, sm: 6, md: 8 },
         boxShadow: isExpanded ? `0px 4px 24px rgba(0, 0, 0, 0.1)` : `0px 1px 3px rgba(0, 0, 0, 0.06)`,
         border: `1px solid ${theme.palette.divider}`,
         overflow: 'hidden',
@@ -25,7 +25,7 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
           justifyContent: 'space-between',
           cursor: 'pointer',
           py: 5,
-          borderBottom: isExpanded ? `1px solid ${theme.palette.divider}` : 'none'
+          borderBottom: isExpanded ? { sm: `1px solid ${theme.palette.divider}` } : 'none'
         }}
       >
         <Box display='flex' alignItems='center' gap={1}>
@@ -34,20 +34,25 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        {/* Desktop-only controls */}
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
           {docsCount !== null && (
             <Box
               sx={{
                 mr: 2,
-                px: 1.5,
-                py: 0.5,
+                px: 3,
+                py: 1,
                 borderRadius: 10,
-                fontSize: '0.75rem',
                 backgroundColor: theme.palette.grey[200],
-                color: theme.palette.text.secondary
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2
               }}
             >
-              {docsCount}
+              <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
+                {docsCount}
+              </Typography>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Documents added</Typography>
             </Box>
           )}
           {editable && (
@@ -78,6 +83,68 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
             {isExpanded ? <Remove fontSize='small' /> : <Add fontSize='small' />}
           </IconButton>
         </Box>
+
+        {/* Mobile-only expand button (no other controls) */}
+        <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}>
+          <IconButton
+            size='small'
+            sx={{ color: theme.palette.customColors.OnPrimaryContainer }}
+            onClick={() => onChange(id)}
+          >
+            {isExpanded ? <Remove fontSize='small' /> : <Add fontSize='small' />}
+          </IconButton>
+        </Box>
+      </Box>
+
+      {/* Mobile-only controls row */}
+      <Box
+        sx={{
+          display: { xs: 'flex', sm: 'none' },
+          alignItems: 'center',
+          px: 4,
+          py: 2,
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}
+      >
+        {docsCount !== null && (
+          <Box
+            sx={{
+              mr: 2,
+              px: 3,
+              py: 1,
+              borderRadius: 10,
+              backgroundColor: theme.palette.grey[200],
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              mb: 4
+            }}
+          >
+            <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
+              {docsCount}
+            </Typography>
+            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Documents added</Typography>
+          </Box>
+        )}
+        {editable && (
+          <Button
+            variant='contained'
+            startIcon={<EditOutlined color={theme.palette.primary.OnSurface} />}
+            onClick={handleEditClick}
+            sx={{
+              backgroundColor: theme => theme.palette.customColors.OnBackground,
+              color: theme.palette.primary.OnSurface,
+              boxShadow: 'none',
+              mb: 4,
+              '&:hover': {
+                backgroundColor: theme => alpha(theme.palette.customColors.OnBackground, 0.8),
+                boxShadow: 'none'
+              }
+            }}
+          >
+            Edit
+          </Button>
+        )}
       </Box>
 
       <Collapse in={isExpanded}>

@@ -221,7 +221,7 @@ const AddEditExportPermit = () => {
       <CustomAccordion
         id='supporting-documents'
         title='Supporting Documents'
-        docsCount={`${uploadedFileCount}/${totalCount} Documents added`}
+        docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
@@ -235,7 +235,8 @@ const AddEditExportPermit = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              px: 4
             }}
           >
             <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
