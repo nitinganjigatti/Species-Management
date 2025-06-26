@@ -104,7 +104,7 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }) =
             species={species}
             selected={selectedItems.some(item => item.tsn_id === species.tsn_id)}
             onClick={() => onToggle(species)}
-            selectionType='checkbox'
+            selectionType='radio'
           />
         ))}
 

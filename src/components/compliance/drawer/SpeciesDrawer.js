@@ -10,14 +10,12 @@ const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], ti
   const theme = useTheme()
   const [activeTab, setActiveTab] = useState(0)
   const [prevSelectedItems, setPrevSelectedItems] = useState([])
-  const [newlySelectedAntzItems, setNewlySelectedAntzItems] = useState([])
-  const [newlySelectedCustomItems, setNewlySelectedCustomItems] = useState([])
+  const [newlySelectedAntzItems, setNewlySelectedItems] = useState([])
 
   useEffect(() => {
     if (open) {
       setPrevSelectedItems(selectedSpecies)
-      setNewlySelectedAntzItems([])
-      setNewlySelectedCustomItems([])
+      setNewlySelectedItems([])
       setActiveTab(0)
     }
   }, [open])
@@ -26,40 +24,22 @@ const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], ti
     setActiveTab(newValue)
   }
 
-  const handleAntzToggle = speciesItem => {
-    const isSelected = newlySelectedAntzItems.some(item => item.tsn_id === speciesItem.tsn_id)
-
-    const updated = isSelected
-      ? newlySelectedAntzItems.filter(item => item.tsn_id !== speciesItem.tsn_id)
-      : [...newlySelectedAntzItems, speciesItem]
-    setNewlySelectedAntzItems(updated)
-  }
-
-  const handleCustomToggle = speciesItem => {
-    const isSelected = newlySelectedCustomItems.some(item => item.tsn_id === speciesItem.tsn_id)
-
-    const updated = isSelected
-      ? newlySelectedCustomItems.filter(item => item.tsn_id !== speciesItem.tsn_id)
-      : [...newlySelectedCustomItems, speciesItem]
-    setNewlySelectedCustomItems(updated)
+  const handleToggle = speciesItem => {
+    setNewlySelectedItems([speciesItem])
   }
 
   const handleAddCustomSpecies = newSpecies => {
-    const customSpecies = {
-      ...newSpecies,
-      tsn_id: `custom_${Date.now()}`,
-      isCustom: true
-    }
-    setNewlySelectedCustomItems(prev => [...prev, customSpecies])
+    setNewlySelectedItems([newSpecies])
+    handleDone(newSpecies)
   }
 
-  const handleDone = () => {
-    const combined = [...prevSelectedItems, ...newlySelectedAntzItems, ...newlySelectedCustomItems]
+  const handleDone = specieItem => {
+    const combined = specieItem ? [...prevSelectedItems, specieItem] : [...prevSelectedItems, ...newlySelectedAntzItems]
     onSelect(combined)
     onClose()
   }
 
-  const totalSelectedCount = newlySelectedAntzItems.length + newlySelectedCustomItems.length
+  const totalSelectedCount = newlySelectedAntzItems.length
 
   return (
     <Drawer open={open} onClose={onClose} anchor='right'>
@@ -158,13 +138,13 @@ const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], ti
             <AntzDatabaseTab
               data={data}
               selectedItems={newlySelectedAntzItems}
-              onToggle={handleAntzToggle}
+              onToggle={handleToggle}
               prevSelectedItems={prevSelectedItems}
             />
           ) : (
             <NewSpeciesTab
-              selectedItems={newlySelectedCustomItems}
-              onToggle={handleCustomToggle}
+              selectedItems={newlySelectedAntzItems}
+              onToggle={handleToggle}
               prevSelectedItems={prevSelectedItems}
               onAddSpecies={handleAddCustomSpecies}
             />
@@ -185,7 +165,7 @@ const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], ti
             zIndex: 1
           }}
         >
-          <Button fullWidth variant='contained' onClick={handleDone} disabled={totalSelectedCount === 0}>
+          <Button fullWidth variant='contained' onClick={() => handleDone()} disabled={totalSelectedCount === 0}>
             Done ({totalSelectedCount})
           </Button>
         </Box>

@@ -306,9 +306,9 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
 
   const handleFormReset = () => {
     reset({
-      export_number: '',
+      export_number: id ? exportData?.export_number : '',
       export_date: null,
-      issued_date: null,
+      issued_date: id ? dayjs(exportData?.issued_date) : dayjs(),
       valid_until: null,
       export_purpose: null,
       destination_country: null,

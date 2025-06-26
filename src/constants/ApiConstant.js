@@ -567,3 +567,7 @@ export const ADD_DOCUMENT = 'v1/trade/support/docs'
 export const EDIT_DOCUMENT = 'v1/trade/support/docs'
 
 export const GET_SPECIES_LIST = 'master/taxonomy/search'
+
+export const GET_MASTER_SPECIES_LIST = 'v1/trade/master-species'
+
+export const CREATE_MASTER_SPECIES = 'v1/trade/master-species'

@@ -4,9 +4,10 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import Search from 'src/views/utility/Search'
 import SelectableSpeciesCard from '../../../views/pages/compliance/documents/exports/SelectableSpeciesCard'
-import { getCustomSpeciesList, getSpeciesList } from 'src/lib/api/compliance/exports'
+import { createSpecies, getMasterSpeciesList } from 'src/lib/api/compliance/exports'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import debounce from 'lodash/debounce'
+import Toaster from 'src/components/Toaster'
 
 const PAGE_SIZE = 10
 
@@ -21,6 +22,7 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
   const [hasMore, setHasMore] = useState(true)
   const [search, setSearch] = useState('')
   const [localSearch, setLocalSearch] = useState('')
+  const [createSpeciesLoader, setCreateSpeciesLoader] = useState(false)
 
   // Debounced search
   const debouncedSearch = useRef(
@@ -37,20 +39,18 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
   const fetchData = useCallback(async (pageNum = 1, searchQuery = '') => {
     setIsLoading(true)
     try {
-      //   const res = await getCustomSpeciesList({
-      const res = await getSpeciesList({
+      const res = await getMasterSpeciesList({
         page_no: pageNum,
         limit: PAGE_SIZE,
         q: searchQuery
       })
 
       const newItems =
-        res?.data?.map(item => ({
+        res?.data?.records?.map(item => ({
           ...item,
-          tsn_id: item.tsn,
-          isCustom: true
+          tsn_id: item?.taxonomy_id || item?.id
         })) || []
-      const totalCount = res?.data?.length || 0
+      const totalCount = res?.data?.total || 0
 
       setTotal(totalCount)
       setList(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
@@ -81,13 +81,29 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
     setFormData({ commonName: '', scientificName: '' })
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (formData.commonName.trim() && formData.scientificName.trim()) {
-      onAddSpecies({
-        common_name: formData.commonName.trim(),
-        scientific_name: formData.scientificName.trim()
-      })
-      handleCancel()
+      setCreateSpeciesLoader(true)
+      try {
+        const params = {
+          common_name: formData.commonName.trim(),
+          scientific_name: formData.scientificName.trim()
+        }
+
+        const res = await createSpecies(params)
+
+        if (res.success) {
+          onAddSpecies({
+            tsn_id: res.data.id,
+            common_name: formData.commonName.trim(),
+            scientific_name: formData.scientificName.trim()
+          })
+          Toaster({ type: 'success', message: res.message })
+          handleCancel()
+        }
+      } finally {
+        setCreateSpeciesLoader(false)
+      }
     }
   }
 
@@ -121,7 +137,11 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
           }}
         >
           <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
-            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}>Add New Species</Typography>
+            <Typography
+              sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
+            >
+              Add New Species
+            </Typography>
             <IconButton onClick={handleCancel}>
               <CloseIcon />
             </IconButton>
@@ -147,16 +167,32 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
             <Button
               variant='contained'
               onClick={handleSubmit}
-              disabled={!formData.commonName.trim() || !formData.scientificName.trim()}
+              disabled={!formData.commonName.trim() || !formData.scientificName.trim() || createSpeciesLoader}
               sx={{
                 backgroundColor: theme.palette.customColors.OnPrimaryContainer,
                 color: theme.palette.common.white,
                 py: 4,
                 width: '100%',
-                '&:hover': { backgroundColor: theme.palette.customColors.OnPrimaryContainer }
+                '&:hover': { backgroundColor: theme.palette.customColors.OnPrimaryContainer },
+                position: 'relative' // Needed for absolute positioning of loader
               }}
             >
-              Save & Select
+              {createSpeciesLoader ? (
+                <>
+                  <CircularProgress
+                    size={24}
+                    sx={{
+                      color: theme.palette.common.white,
+                      position: 'absolute',
+                      left: '50%',
+                      marginLeft: '-12px'
+                    }}
+                  />
+                  <span style={{ opacity: 0 }}>Save & Select</span>
+                </>
+              ) : (
+                'Save & Select'
+              )}
             </Button>
           </Box>
         </Box>
@@ -184,9 +220,7 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
         backgroundColor={theme.palette.common.white}
       />
 
-      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, my: 4 }}>
-        Species {total ? `(${total})` : ''}
-      </Typography>
+      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, my: 4 }}>Species {total ? `(${total})` : ''}</Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 2 }}>
         {filteredList.map(species => (
@@ -195,7 +229,7 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
             species={species}
             selected={selectedItems.some(item => item.tsn_id === species.tsn_id)}
             onClick={() => onToggle(species)}
-            selectionType='checkbox'
+            selectionType='radio'
           />
         ))}
 

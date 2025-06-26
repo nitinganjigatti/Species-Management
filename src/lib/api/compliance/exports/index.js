@@ -1,11 +1,13 @@
 import {
   ADD_DOCUMENT,
   ADD_EXPORT,
+  CREATE_MASTER_SPECIES,
   EDIT_DOCUMENT,
   EDIT_EXPORT,
   GET_DOCUMENT_TYPE,
   GET_EXPORTS_DETAILS,
   GET_EXPORTS_LIST,
+  GET_MASTER_SPECIES_LIST,
   GET_SPECIES_LIST
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
@@ -34,6 +36,12 @@ export const getSpecies = async () => {
 
 export async function getSpeciesList(params) {
   const response = await axiosGet({ url: `${GET_SPECIES_LIST}`, params })
+
+  return response.data
+}
+
+export async function getMasterSpeciesList(params) {
+  const response = await axiosGet({ url: `${GET_MASTER_SPECIES_LIST}`, params })
 
   return response.data
 }
@@ -122,6 +130,24 @@ export async function updateDocument(id, payload) {
   try {
     const url = `${EDIT_DOCUMENT}/${id}`
     const response = await axiosFormPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function createSpecies(payload) {
+  try {
+    const url = `${CREATE_MASTER_SPECIES}`
+    const response = await axiosPost({ url, body: payload })
 
     return response?.data
   } catch (error) {
