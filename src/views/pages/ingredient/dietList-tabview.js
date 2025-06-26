@@ -30,7 +30,7 @@ const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange }) => {
   const [rows, setRows] = useState([])
   const [sort, setSort] = useState('desc')
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
   const [status, setStatus] = useState('1')
@@ -44,6 +44,7 @@ const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange }) => {
     setTotal(0)
     setStatus(newValue)
   }
+
   const fetchTableData = useCallback(
     async (sortBy, q, status) => {
       try {
@@ -58,8 +59,10 @@ const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange }) => {
         }
         await getDietListonIngredientDtl(id, params).then(res => {
           console.log('response', res)
+
           // Generate uid field based on the index
           const startingIndex = paginationModel.page * paginationModel.pageSize
+
           let listWithId = res.data.data.result.map((el, i) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
@@ -246,7 +249,7 @@ const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange }) => {
                 sortingMode='server'
                 onSortModelChange={handleSortModel}
                 paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
+                pageSizeOptions={[7, 10, 25, 50, 100]}
                 paginationModel={paginationModel}
                 slots={{ toolbar: ServerSideToolbar }}
                 onPaginationModelChange={setPaginationModel}

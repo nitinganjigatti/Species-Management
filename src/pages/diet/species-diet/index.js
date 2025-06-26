@@ -43,7 +43,7 @@ const SpeciesDietList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortModel, setSortModel] = useState([{ field: 'scientific_name', sort: 'asc' }])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
@@ -56,6 +56,7 @@ const SpeciesDietList = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
   const [filterCount, setFilterCount] = useState(0)
+
   const [selectedOptions, setSelectedOptions] = useState({
     Class: []
   })
@@ -964,7 +965,7 @@ const SpeciesDietList = () => {
               columns={columns}
               sortingMode='server'
               paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[7, 10, 25, 50, 100]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               sortModel={sortModel}

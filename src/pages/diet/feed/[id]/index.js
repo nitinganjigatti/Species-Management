@@ -75,7 +75,7 @@ const FeedDetails = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('ASC')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
 
@@ -579,7 +579,7 @@ const FeedDetails = () => {
                                 columns={columns}
                                 sortingMode='server'
                                 paginationMode='server'
-                                pageSizeOptions={[5, 10, 25, 50]}
+                                pageSizeOptions={[5, 10, 25, 50, 100]}
                                 paginationModel={paginationModel}
                                 onSortModelChange={handleSortModel}
                                 slots={{
