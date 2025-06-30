@@ -66,6 +66,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
           ? {
               name: documentData.file_original_name,
               url: documentData.file_path || null,
+              file_path: documentData.file_path || null,
               type: documentData.file_type
             }
           : null

@@ -41,13 +41,10 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
   }
 
   const handleDocumentSubmit = async formData => {
-    console.log('formData', formData)
-    console.log('currentDocumentData', currentDocumentData)
     setIsLoading(true)
 
     try {
-      const document = {
-        document: formData.file ? formData.file : currentDocumentData?.file_path,
+      const payload = {
         issued_date: formData.issued_date ? dayjs(formData.issued_date).format('YYYY-MM-DD') : null,
         document_type_id: currentDocumentData?.document_id ?? currentDocumentData.id,
         export_id: id,
@@ -55,9 +52,14 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
         reference_number: formData.reference_number || ''
       }
 
+      // Check if a new file was uploaded (not the existing file object)
+      if (formData.file && formData.file instanceof File) {
+        payload.document = formData.file
+      }
+
       const response = currentDocumentData?.document_id
-        ? await updateDocument(currentDocumentData?.document_id, document)
-        : await addDocument(document)
+        ? await updateDocument(currentDocumentData?.document_id, payload)
+        : await addDocument(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })
