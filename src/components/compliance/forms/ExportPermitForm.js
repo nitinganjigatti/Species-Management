@@ -7,7 +7,7 @@ import ExportPermitDetails from './ExportPermitDetails'
 import ExportPermitAnimals from './ExportPermitAnimals'
 import SpeciesDrawer from 'src/components/compliance/drawer/SpeciesDrawer'
 import { useRouter } from 'next/router'
-import { addExport, updateExport } from 'src/lib/api/compliance/exports'
+import { addExport, getMastersData, updateExport } from 'src/lib/api/compliance/exports'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
@@ -139,6 +139,13 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   const [speciesList, setSpeciesList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
 
+  const [mastersData, setMastersData] = useState({
+    genders: [],
+    appendix: [],
+    identifierTypes: []
+  })
+  const [loading, setLoading] = useState(false)
+
   const {
     setValue,
     handleSubmit,
@@ -161,8 +168,55 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
     resolver: yupResolver(exportPermitValidationSchema)
   })
 
+  const fetchMastersData = async () => {
+    try {
+      setLoading(true)
+      const res = await getMastersData()
+      if (res?.success) {
+        const data = res.data
+
+        // Transform genders data
+        const genderOptions =
+          data.genders?.map(gender => ({
+            label: gender[0].charAt(0).toUpperCase() + gender[0].slice(1),
+            value: gender[0]
+          })) || []
+
+        // Transform appendix data
+        const appendixOptions =
+          data.appendix?.map(item => ({
+            label: item[0],
+            value: item[0]
+          })) || []
+
+        // Transform identifier types data
+        const identifierTypeOptions =
+          data.identifier_type?.map(item => ({
+            label: item.label,
+            value: item.id,
+            key: item.key,
+            id: item.id
+          })) || []
+        console.log('Addition', {
+          genders: genderOptions,
+          appendix: appendixOptions,
+          identifierTypes: identifierTypeOptions
+        })
+        setMastersData({
+          genders: genderOptions,
+          appendix: appendixOptions,
+          identifierTypes: identifierTypeOptions
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    if (exportData) {
+    if (exportData && mastersData?.identifierTypes?.length > 0) {
       // Set basic form values
       setValue('export_number', exportData.export_number)
       setValue('export_date', new Date(exportData.export_date))
@@ -173,7 +227,16 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('exporting_country', { label: exportData.exporting_country, value: exportData.exporting_country })
       setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })
       setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_name })
-      setValue('certificate_file', exportData.attachment)
+      setValue(
+        'certificate_file',
+        exportData?.documents?.[0]?.document_type_id
+          ? {
+              document_type_id: exportData?.documents?.[0]?.document_type_id,
+              file_path: exportData?.documents?.[0]?.file_path,
+              name: exportData?.documents?.[0]?.file_original_name
+            }
+          : null
+      )
 
       // Transform species data
       const transformedSpeciesList = exportData.species.map(species => ({
@@ -193,16 +256,23 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
           id: animal.id,
           animal_type: animal.animal_type,
           animal_count: parseInt(animal.animal_count) || 0,
-          gender: { label: animal.gender, value: animal.gender },
-          identifier_type: { label: animal.identifier_type, value: animal.identifier_type },
+          gender: {
+            label: animal.gender ? animal.gender.charAt(0).toUpperCase() + animal.gender.slice(1) : '',
+            value: animal.gender
+          },
+          identifier_type: {
+            label: mastersData?.identifierTypes.find(item => item.id == animal.identifier_type)?.label || '',
+            value: mastersData?.identifierTypes.find(item => item.value == animal.identifier_type)?.value || null
+          },
           identifier_value: animal.identifier_value
         }))
       }))
 
       setSpeciesList(transformedSpeciesList)
       setValue('speciesList', transformedSpeciesList)
+      console.log('speciesList', transformedSpeciesList)
     }
-  }, [exportData])
+  }, [exportData, mastersData?.identifierTypes])
 
   const handleSpeciesSelect = selectedSpecies => {
     // Create new species items for those not already in the list
@@ -320,6 +390,10 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
     setSpeciesList([])
   }
 
+  useEffect(() => {
+    fetchMastersData()
+  }, [])
+
   if (isLoading) {
     return (
       <Box
@@ -359,6 +433,9 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         handleRemoveSpecies={handleRemoveSpecies}
         setSpeciesDrawerOpen={setSpeciesDrawerOpen}
         isEdit={!!id}
+        appendixOptions={mastersData.appendix}
+        identifierOptions={mastersData.identifierTypes}
+        genderOptions={mastersData.genders}
       />
 
       <SpeciesDrawer

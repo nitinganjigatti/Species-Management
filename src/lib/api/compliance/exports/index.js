@@ -7,7 +7,9 @@ import {
   GET_DOCUMENT_TYPE,
   GET_EXPORTS_DETAILS,
   GET_EXPORTS_LIST,
+  GET_LINKED_SHIPMENT_DETAILS,
   GET_MASTER_SPECIES_LIST,
+  GET_MASTERS_DATA,
   GET_SPECIES_LIST
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
@@ -58,6 +60,14 @@ export const getExportList = async params => {
 export const getExportDetails = async id => {
   const response = await axiosGet({
     url: `${GET_EXPORTS_DETAILS}/${id}`
+  })
+
+  return response.data
+}
+
+export const getLinkedShipmentDetails = async id => {
+  const response = await axiosGet({
+    url: `${GET_LINKED_SHIPMENT_DETAILS}/${id}`
   })
 
   return response.data
@@ -160,4 +170,12 @@ export async function createSpecies(payload) {
 
     return error
   }
+}
+
+export const getMastersData = async () => {
+  const response = await axiosGet({
+    url: `${GET_MASTERS_DATA}`
+  })
+
+  return response.data
 }

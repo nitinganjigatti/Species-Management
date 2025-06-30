@@ -87,7 +87,8 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
       try {
         const params = {
           common_name: formData.commonName.trim(),
-          scientific_name: formData.scientificName.trim()
+          scientific_name: formData.scientificName.trim(),
+          default_icon: '/branding/antz/Antz_logomark_h_color.svg'
         }
 
         const res = await createSpecies(params)
@@ -100,7 +101,11 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
           })
           Toaster({ type: 'success', message: res.message })
           handleCancel()
+        } else {
+          Toaster({ type: 'error', message: res.message })
         }
+      } catch (error) {
+        Toaster({ type: 'error', message: error.message })
       } finally {
         setCreateSpeciesLoader(false)
       }
@@ -182,7 +187,6 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
                   <CircularProgress
                     size={24}
                     sx={{
-                      color: theme.palette.common.white,
                       position: 'absolute',
                       left: '50%',
                       marginLeft: '-12px'

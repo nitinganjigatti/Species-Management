@@ -18,13 +18,52 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
     onChange(selectedFile || null)
   }
 
-  const handleRemoveFile = () => {
+  const handleRemoveFile = e => {
+    e.stopPropagation() // Prevent triggering the file open when removing
     onChange(null)
     const input = document.getElementById(`file-upload-${name}`)
     if (input) input.value = ''
   }
 
+  const handleFileClick = () => {
+    if (!value) return
+
+    // If it's a File object (new upload)
+    if (value instanceof File) {
+      const fileURL = URL.createObjectURL(value)
+      window.open(fileURL, '_blank')
+
+      // Clean up the object URL when done
+      setTimeout(() => URL.revokeObjectURL(fileURL), 100)
+    }
+
+    // If it's an existing file with path (from API)
+    else if (value.file_path) {
+      window.open(value.file_path, '_blank')
+    }
+  }
+
   const hasError = Boolean(errors?.[name] || error)
+
+  // Get file name whether it's a File object or API response object
+  const getFileName = () => {
+    if (!value) return ''
+
+    return value.name || value.file_original_name || ''
+  }
+
+  // Get appropriate icon based on file extension
+  const getFileIcon = () => {
+    const fileName = getFileName().toLowerCase()
+    if (fileName.endsWith('.pdf')) return '/icons/pdf_icon2.svg'
+
+    // if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) return '/icons/doc_icon.svg'
+    // if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png')) {
+    //   return '/icons/image_icon.svg'
+    // }
+
+    return '/icons/pdf_icon2.svg' // default icon
+  }
 
   return (
     <Box>
@@ -42,6 +81,7 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
           height: '50px',
           backgroundColor: value ? '#F4F6F5' : 'transparent'
         }}
+        onClick={handleFileClick}
       >
         {!value ? (
           <>
@@ -82,10 +122,11 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
                 mr: 2,
                 display: 'flex',
                 alignItems: 'center',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                flex: 1
               }}
             >
-              <Box component='img' src='/icons/pdf_icon2.svg' width='18px' sx={{ mr: 2 }} />
+              <Box component='img' src={getFileIcon()} width='18px' sx={{ mr: 2 }} />
               <Typography
                 sx={{
                   whiteSpace: 'nowrap',
@@ -93,11 +134,21 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
                   textOverflow: 'ellipsis'
                 }}
               >
-                {value.name}
+                {getFileName()}
               </Typography>
             </Box>
 
-            <IconButton onClick={handleRemoveFile} sx={{ ml: 1, background: '#0000000D', p: 0 }}>
+            <IconButton
+              onClick={handleRemoveFile}
+              sx={{
+                ml: 1,
+                background: '#0000000D',
+                p: 0,
+                '&:hover': {
+                  background: '#0000001A'
+                }
+              }}
+            >
               <Icon icon='ion:close-outline' style={{ color: '#1F515B', fontSize: '20px' }} />
             </IconButton>
           </Box>

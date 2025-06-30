@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
-import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/exports'
+import { getDocumentTypeList, getExportDetails, getLinkedShipmentDetails } from 'src/lib/api/compliance/exports'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { useTheme } from '@mui/material/styles'
 import SpeciesDetail from 'src/components/compliance/SpeciesDetail'
@@ -126,6 +126,10 @@ const ExportPermitDetails = () => {
   const [isFetching, setIsFetching] = useState(false)
   const [documentList, setDocumentList] = useState([])
   const [totalCount, setTotalCount] = useState(0)
+  const [linkedShipments, setLinkedShipments] = useState([])
+  const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
+  const [linkedImports, setLinkedImports] = useState([])
+  const [totalLinkedImports, setTotalLinkedImports] = useState(0)
 
   const [loading, setLoading] = useState(true)
 
@@ -195,6 +199,25 @@ const ExportPermitDetails = () => {
     }
   }
 
+  const fetchLinkedShipmentsDetails = async () => {
+    setLoading(true)
+    try {
+      const res = await getLinkedShipmentDetails(id)
+      if (res.success) {
+        console.log('getLinkedShipmentDetails res.data', res.data)
+        setTotalLinkedShipments(res.data.total)
+        setLinkedShipments(res.data.records)
+      } else {
+        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+      }
+    } catch (error) {
+      console.error('Error fetching export details:', error)
+      Toaster({ type: 'error', message: 'Error fetching export details' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
   const handleAddEditSuccess = () => {
@@ -205,6 +228,7 @@ const ExportPermitDetails = () => {
     if (id) {
       fetchExportDetails()
       fetchDocumentTypeList()
+      fetchLinkedShipmentsDetails()
     }
   }, [id])
 
@@ -273,11 +297,11 @@ const ExportPermitDetails = () => {
 
       <CustomAccordion
         id='linked-shipments'
-        title={`Linked Shipments - ${shipmentsData.length}`}
+        title={`Linked Shipments - ${totalLinkedShipments}`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <LinkedShipments shipments={shipmentsData} totalShipped={25} totalAllowed={60} />
+        <LinkedShipments shipments={linkedShipments} totalShipped={25} totalAllowed={60} />
       </CustomAccordion>
     </>
   )

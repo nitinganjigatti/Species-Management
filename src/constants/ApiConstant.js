@@ -556,6 +556,8 @@ export const GET_EXPORTS_LIST = 'v1/trade/exports'
 
 export const GET_EXPORTS_DETAILS = 'v1/trade/exports'
 
+export const GET_LINKED_SHIPMENT_DETAILS = 'v1/trade/exports/linked-shipments'
+
 export const ADD_EXPORT = 'v1/trade/exports'
 
 export const EDIT_EXPORT = 'v1/trade/exports'
@@ -566,8 +568,10 @@ export const ADD_DOCUMENT = 'v1/trade/support/docs'
 
 export const EDIT_DOCUMENT = 'v1/trade/support/docs'
 
-export const GET_SPECIES_LIST = 'master/taxonomy/search'
+export const GET_SPECIES_LIST = 'master/taxonomy/search-pagination'
 
 export const GET_MASTER_SPECIES_LIST = 'v1/trade/master-species'
 
 export const CREATE_MASTER_SPECIES = 'v1/trade/master-species'
+
+export const GET_MASTERS_DATA = 'v1/trade/exports/masters'

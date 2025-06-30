@@ -7,6 +7,7 @@ import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUplo
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import { debounce } from 'lodash'
 import { getMasterImports } from 'src/lib/api/compliance/masters'
+import { getMastersData } from 'src/lib/api/compliance/exports'
 
 const ExportPermitDetails = ({ control, errors, isEdit }) => {
   const [exportersOptions, setExportersOptions] = useState([])
@@ -21,18 +22,6 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
     { label: 'Japan', value: 'JP' },
     { label: 'India', value: 'IN' },
     { label: 'Thailand', value: 'TH' }
-  ]
-
-  const exporterOptions = [
-    { label: 'Wildlife Exporters Inc.', value: 'wex001' },
-    { label: 'Global Fauna Trading', value: 'gft002' },
-    { label: 'Nature Partners Co.', value: 'npc003' }
-  ]
-
-  const importerOptions = [
-    { label: 'Zoo Worldwide', value: 'zw001' },
-    { label: 'Research Institute International', value: 'rii002' },
-    { label: 'Wildlife Conservation Org', value: 'wco003' }
   ]
 
   const getExportersList = async ({ key, page, limit }) => {
@@ -64,8 +53,8 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
       }
       const res = await getMasterImports(params)
       if (res) {
-        console.log('setImporters', res)
-        setImportersOptions(res?.data?.list_items)
+        const importersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
+        setImportersOptions(importersOptions)
       }
     } catch (e) {
       console.log(e)
@@ -185,11 +174,14 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             label='Importer*'
             control={control}
             errors={errors}
-            options={importerOptions}
+            options={importersOptions}
             required
             fullWidth
             isOptionEqualToValue={(option, value) => option.value === value?.value}
             getOptionLabel={option => option.label || ''}
+            onKeyUp={e => importersSearch(e.target.value)}
+            onBlur={e => e.target.value && importersSearch('')}
+            onItemClear={() => importersSearch('')}
           />
         </Grid>
 

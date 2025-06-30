@@ -38,7 +38,7 @@ const SelectableSpeciesCard = ({
             species={{
               common_name: species.common_name,
               scientific_name: species.scientific_name || species.complete_name,
-              default_icon: species.default_icon
+              default_icon: species.default_icon || '/branding/antz/Antz_logomark_h_color.svg'
             }}
           />
         </Box>

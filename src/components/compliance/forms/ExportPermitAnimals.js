@@ -12,29 +12,12 @@ const ExportPermitAnimals = ({
   speciesList,
   handleSpeciesUpdate,
   handleRemoveSpecies,
-  setSpeciesDrawerOpen
+  setSpeciesDrawerOpen,
+  genderOptions,
+  appendixOptions,
+  identifierOptions
 }) => {
   const theme = useTheme()
-
-  const genderOptions = [
-    { label: 'Male', value: 'male' },
-    { label: 'Female', value: 'female' },
-    { label: 'Unknown', value: 'unknown' }
-  ]
-
-  const identifierOptions = [
-    { label: 'Microchip', value: 'microchip' },
-    { label: 'Tag', value: 'tag' },
-    { label: 'Band', value: 'band' },
-    { label: 'Tattoo', value: 'tattoo' },
-    { label: 'Group Tag', value: 'group_tag' }
-  ]
-
-  const appendixOptions = [
-    { label: 'Appendix 1', value: 'appendix_1' },
-    { label: 'Appendix 2', value: 'appendix_2' },
-    { label: 'Appendix 3', value: 'appendix_3' }
-  ]
 
   // Calculate totals
   const totalSpeciesCount = speciesList.length

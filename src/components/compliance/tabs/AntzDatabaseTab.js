@@ -37,17 +37,21 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }) =
       try {
         const res = await getSpeciesList({
           ...data?.params,
-          page_no: pageNum,
+          page: pageNum,
           limit: PAGE_SIZE,
           q: searchQuery
         })
 
-        const newItems = res?.data?.map(item => ({ ...item, tsn_id: item.tsn })) || []
-        const totalCount = res?.data?.length || 0
+        const newItems =
+          res?.data?.data?.map(item => ({
+            ...item,
+            tsn_id: item.tsn
+          })) || []
+        const totalCount = res?.data?.total_count || 0
 
         setTotal(totalCount)
         setList(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
-        setHasMore(newItems.length === PAGE_SIZE)
+        setHasMore(newItems.length < totalCount)
       } finally {
         setIsLoading(false)
       }

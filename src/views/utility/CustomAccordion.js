@@ -112,10 +112,11 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
               mr: 2,
               px: 3,
               py: 1,
-              borderRadius: 10,
+              borderRadius: '4px',
               backgroundColor: theme.palette.grey[200],
               display: 'flex',
               alignItems: 'center',
+              border: `1px solid ${theme.palette.divider}`,
               gap: 2,
               mb: 4
             }}
