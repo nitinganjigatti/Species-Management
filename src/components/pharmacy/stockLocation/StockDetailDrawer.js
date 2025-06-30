@@ -18,7 +18,7 @@ import React from 'react'
 import Icon from 'src/@core/components/icon'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
-const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
+const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
   const theme = useTheme()
   console.log(stockDetail)
 
@@ -42,7 +42,7 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
     <Drawer
       anchor='right'
       open={openDrawer}
-      onClose={() => setOpenDrawer(false)}
+      onClose={setDrawerClose}
       PaperProps={{
         sx: {
           width: {
@@ -71,7 +71,7 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
           <Typography variant='h6' fontWeight='bold'>
             Rack and Shelves
           </Typography>
-          <IconButton onClick={() => setOpenDrawer(false)}>
+          <IconButton onClick={setDrawerClose}>
             <Icon icon='mdi:close' />
           </IconButton>
         </Box>
@@ -82,9 +82,9 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '20px',
+            padding: '18px',
             borderRadius: '8px',
-            mt: 2,
+            mt: 1,
             backgroundColor: 'customColors.neutral05'
           }}
         >
@@ -94,7 +94,7 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
             icon={stockDetail?.image}
           />
           <Typography sx={{ fontSize: '14px' }}>
-            Reorder-Level: <strong>{stockDetail?.min_qty ? stockDetail?.min_qty : 0}</strong>
+            Reorder Level: <strong>{stockDetail?.min_qty ? stockDetail?.min_qty : 0}</strong>
           </Typography>
         </Box>
 
@@ -104,30 +104,46 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
             backgroundColor: '#FFFFFF',
             borderRadius: '8px',
             marginBottom: 2,
-            marginTop: 8,
+            marginTop: 6,
 
             boxShadow: 'none'
           }}
         >
-          <Typography
+          {/* <Typography
             variant='subtitle1'
             marginBottom={2}
             sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
           >
             Rack and Shelves Details
-          </Typography>
+          </Typography> */}
           <Card
             sx={{
-              // m: 6,
-              border: '1px solid',
-              borderColor: 'customColors.customTableBorderBg',
               boxShadow: 'none'
             }}
           >
             <TableContainer component={Paper}>
-              <Table aria-label='rack and shelves table'>
+              <Table
+                aria-label='rack and shelves table'
+                sx={{
+                  border: '1px solid #e0e0e0',
+                  '& .MuiTableCell-root': {
+                    border: '1px solid #e0e0e0'
+                  },
+                  '& .MuiTableBody-root .MuiTableRow-root:last-child .MuiTableCell-root': {
+                    borderBottom: '1px solid #e0e0e0'
+                  }
+                }}
+              >
                 <TableHead>
-                  <TableRow>
+                  <TableRow
+                    sx={{
+                      backgroundColor: '#c8d0d0',
+                      '& .MuiTableCell-root': {
+                        backgroundColor: '#c8d0d0',
+                        fontWeight: 'bold'
+                      }
+                    }}
+                  >
                     <TableCell>
                       <strong>Rack</strong>
                     </TableCell>
