@@ -24,22 +24,16 @@ import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
-// import FormControlLabel from '@mui/material/FormControlLabel'
-import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
-import { Checkbox, FormControlLabel } from '@mui/material'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
-import { Tooltip } from '@mui/material'
 import Image from 'next/image'
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback, useRef } from 'react'
-import CustomChip from 'src/@core/components/mui/chip'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -187,8 +181,6 @@ const AddRequestForm = () => {
     0
   )
 
-  console.log('Edit Params >>', editParams)
-
   const addItemsToTable = () => {
     const newData = {
       medicine_name: nestedRowMedicine.medicine_name,
@@ -235,7 +227,6 @@ const AddRequestForm = () => {
   }
 
   const validate = values => {
-    // console.log('validate', values.request_item_qty)
     const itemErrors = {}
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
@@ -440,7 +431,6 @@ const AddRequestForm = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
-      console.log('searchResults', searchResults)
       if (searchResults?.data?.list_items.length > 0) {
         let optionMedListFromApi = searchResults?.data?.list_items?.map(item => ({
           value: item.id,
@@ -489,7 +479,6 @@ const AddRequestForm = () => {
       const searchResults = await getGenericMedicineList({ params: params })
       if (searchResults?.data?.list_items?.length > 0) {
         const medicalProducts = searchResults?.data?.list_items?.filter(el => el.stock_type != 'Non Medical')
-        console.log('medicalProducts', medicalProducts)
         setOptionsGenericMedicineList(
           medicalProducts?.map(item => ({
             value: item.id,
@@ -611,7 +600,6 @@ const AddRequestForm = () => {
       var result
       if (operation === 'update') {
         result = await getUpdatedMedicineData(getItems[0]?.medicine_name)
-        console.log('result: ', result)
       }
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -690,8 +678,6 @@ const AddRequestForm = () => {
       total_qty: totalQty
     }
 
-    console.log('Payload to be sent >', postData)
-
     if (id) {
       try {
         const response = await updateRequestItems(id, postData)
@@ -718,11 +704,9 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          console.log(JSON.stringify(response))
           toast.error(JSON.stringify(response), { position: 'top-left' })
         }
       } catch (error) {
-        console.log('Error:', JSON.stringify(error))
         toast.error(JSON.stringify(error), { position: 'top-left' })
       }
     }
@@ -779,8 +763,9 @@ const AddRequestForm = () => {
     try {
       const result = await getRequestPendingProductsList(id)
 
-      console.log(result, 'result')
-      setShowWarning(result.data)
+      if (result?.success === true) {
+        setShowWarning(result.data)
+      }
     } catch (error) {
       // toast.error(error.data)
       console.error('error', error)

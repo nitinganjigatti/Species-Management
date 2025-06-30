@@ -152,7 +152,7 @@ function ProductForm({
                   return inputQty <= batchQty
                 })
                 if (!isValid) {
-                  return this.createError({ message: 'Quantity cannot be more than total available quantity' })
+                  return this.createError({ message: 'Quantity exceeds available stock' })
                 }
 
                 return isValid
@@ -675,7 +675,7 @@ function ProductForm({
           </>
         }
       />
-      <form onSubmit={handleSubmit(editMode ? EditItems : submitItems, onError)}>
+      <form style={{ width: '100%' }} onSubmit={handleSubmit(editMode ? EditItems : submitItems, onError)}>
         <Grid
           container
           sx={{
@@ -895,11 +895,11 @@ function ProductForm({
         </Box>
 
         {!editMode ? (
-          <FormGroup sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1 }}>
+          <Box sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1, width: '100%' }}>
             {fields.map((field, index) => (
-              <Grid container spacing={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
-                <Grid item size={{ xs: 12, sm: 3, md: 3.5 }}>
-                  <FormControl fullWidth>
+              <Grid container columnSpacing={2} key={field?.id} sx={{ mb: 2, mt: 2 }}>
+                <Grid xs={12} sm={3} md={3.5}>
+                  <FormControl fullWidth sx={{ minWidth: 100 }}>
                     <Controller
                       name={`product_batches[${index}].batch_no`}
                       control={control}
@@ -1026,7 +1026,7 @@ function ProductForm({
                     />
                   </FormControl>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 3, md: 3.5 }}>
+                <Grid xs={12} sm={3} md={3.5}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].multiplier`}
@@ -1053,10 +1053,10 @@ function ProductForm({
                           }}
                         />
                       )}
-                    ></Controller>
+                    />
                   </FormControl>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 3, md: 3.5 }}>
+                <Grid xs={12} sm={3} md={3.5}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].qty`}
@@ -1082,8 +1082,14 @@ function ProductForm({
                         </>
                       )}
                     />
+                    {errors?.product_batches?.[index]?.qty && (
+                      <FormHelperText sx={{ color: 'error.main', maxWidth: 300 }}>
+                        {errors?.product_batches?.[index]?.qty?.message}
+                      </FormHelperText>
+                    )}
                   </FormControl>
-                  <Typography sx={{ fontSize: 12, ml: 2 }}>
+
+                  {/* <Typography sx={{ fontSize: 12, ml: 2 }}>
                     {` ${
                       getValues('product_batches')[index]?.batch_no?.value === '' ||
                       getValues('product_batches')[index]?.batch_no?.value === null ||
@@ -1094,12 +1100,12 @@ function ProductForm({
                         ? ''
                         : selectedBatches[index] && 'Available Batch Quantity: ' + selectedBatches[index].qty
                     }`}
-                  </Typography>
+                  </Typography> */}
                 </Grid>
-
                 <Grid
-                  item
-                  size={{ xs: 12, sm: 3, md: 1.5 }}
+                  xs={12}
+                  sm={1.5}
+                  md={1.5}
                   sx={{
                     display: 'flex',
                     justifyContent: { xs: 'flex-start', sm: 'flex-end' },
@@ -1110,7 +1116,7 @@ function ProductForm({
                 </Grid>
               </Grid>
             ))}
-          </FormGroup>
+          </Box>
         ) : (
           <Grid
             container
@@ -1227,7 +1233,7 @@ function ProductForm({
                 />
               </FormControl>
             </Grid>
-            <Grid item size={{ xs: 12, sm: 4 }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='multiplier'
@@ -1294,11 +1300,11 @@ function ProductForm({
             </Grid>
           </Grid>
         )}
-        {errors?.product_batches?.some(batch => batch?.qty) && (
-          <FormHelperText sx={{ color: 'error.main', fontSize: 16 }} id='validation-basic-first-name'>
+        {/* {errors?.product_batches?.some(batch => batch?.qty) && (
+          <FormHelperText sx={{ color: 'error.main', fontSize: 16 }}>
             {errors.product_batches.find(batch => batch?.qty)?.qty?.message || 'Quantity should be greater than 0'}
           </FormHelperText>
-        )}
+        )} */}
         <Grid item size={{ xs: 12, sm: 12 }} sx={{ mt: '40px' }}>
           <Grid
             container

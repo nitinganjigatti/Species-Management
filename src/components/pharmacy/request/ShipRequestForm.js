@@ -506,7 +506,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                         size='big'
                         variant='contained'
                         onClick={() => {
-                          handleRequestEdit()
+                          // handleRequestEdit()
                         }}
                       >
                         Edit
@@ -641,6 +641,16 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                                 label='Search & Select the Driver'
                                 error={Boolean(errors.product)}
                                 helperText={errors.product?.message}
+                                slotProps={{
+                                  inputLabel: {
+                                    style: {
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      width: '80%'
+                                    }
+                                  }
+                                }}
                               />
                             )}
                           />

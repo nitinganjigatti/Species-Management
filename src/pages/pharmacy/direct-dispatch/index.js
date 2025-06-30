@@ -363,7 +363,7 @@ const DirectDispatchList = () => {
     {
       minWidth: 120,
       field: 'total_qty',
-      headerName: 'Total Qty',
+      headerName: 'Total items',
       type: 'number',
       headerAlign: 'left',
       align: 'left',
@@ -443,8 +443,7 @@ const DirectDispatchList = () => {
     }
   ]
 
-  const handleRowClick = params => {
-  }
+  const handleRowClick = params => {}
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>

@@ -508,7 +508,7 @@ const ReturnRequestList = () => {
     {
       minWidth: 140,
       field: 'total_qty',
-      headerName: 'Total Quantity',
+      headerName: 'Total items',
       type: 'number',
       headerAlign: 'left',
       align: 'left',
@@ -821,7 +821,7 @@ const ReturnRequestList = () => {
           </Card>
         )}
       </>
-    );
+    )
   }
 
   return (

@@ -460,14 +460,13 @@ const ListOfStores = () => {
         setSubmitLoader(true)
         const response = await deleteStoreById(editParams?.id)
 
-        // console.log('response', response)
         handleResponse(response)
 
         // closeStoreValidate()
         // setTempPayload(null)
       } catch (error) {
         console.error(error)
-        handleResponse(response)
+        // handleResponse(response)
       }
     }
   }
@@ -634,7 +633,7 @@ const ListOfStores = () => {
                         icon='material-symbols:delete-outline-rounded'
                       />
                     ) : (
-                      (<>
+                      <>
                         <Icon
                           style={{
                             cursor: 'pointer',
@@ -657,7 +656,7 @@ const ListOfStores = () => {
                           }}
                           icon='heroicons:no-symbol-16-solid'
                         />
-                      </>)
+                      </>
 
                       // <Icon
                       //   style={{
@@ -807,7 +806,7 @@ const ListOfStores = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default ListOfStores
