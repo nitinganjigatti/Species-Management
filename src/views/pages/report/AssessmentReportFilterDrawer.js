@@ -84,17 +84,43 @@ const AssessmentReportFilterDrawer = ({
     setOpenFilterDrawer(false)
   }
 
+  // const calculateFilterCount = () => {
+  //   let count = 0
+
+  //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
+  //     if (Array.isArray(value)) {
+  //       count += value.length // For Site, Section, Enclosure, gender
+  //     } else if (typeof value === 'string' && value.trim() !== '') {
+  //       count += 1 // For accession_start and accession_end (non-empty strings)
+  //       // it will increase count by 2 in selection of 1 because on onchange is handling 2 keys
+  //     }
+  //   })
+
+  //   setFilterCount(count)
+  // }
   const calculateFilterCount = () => {
     let count = 0
 
     Object.entries(tempSelectedItems).forEach(([key, value]) => {
+      if (key === 'accession_start' || key === 'accession_end') {
+        // skip individual counting here
+        return
+      }
+
       if (Array.isArray(value)) {
-        count += value.length // For Site, Section, Enclosure, gender
+        count += value.length
       } else if (typeof value === 'string' && value.trim() !== '') {
-        count += 1 // For accession_start and accession_end (non-empty strings)
-        // it will increase count by 2 in selection of 1 because on onchange is handling 2 keys
+        count += 1
       }
     })
+
+    // Accession Date: Count only once if either start or end is selected
+    if (
+      (tempSelectedItems.accession_start && tempSelectedItems.accession_start.trim() !== '') ||
+      (tempSelectedItems.accession_end && tempSelectedItems.accession_end.trim() !== '')
+    ) {
+      count += 1
+    }
 
     setFilterCount(count)
   }
@@ -236,26 +262,69 @@ const AssessmentReportFilterDrawer = ({
       >
         <Grid container sx={{ px: 5 }}>
           <Grid item md={4} sm={4} xs={4}>
-            {tabsforfilter.map(menu => (
-              <Box
-                key={menu}
-                sx={{
-                  width: '190px',
-                  bgcolor: activeTab === menu ? 'white' : 'transparent',
-                  cursor: 'pointer',
-                  p: 4,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px'
-                }}
-                onClick={() => {
-                  setActiveTab(menu)
-                }}
-              >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                  {menu}
-                </Typography>
-              </Box>
-            ))}
+            {tabsforfilter.map(menu => {
+              let count = 0
+
+              if (menu === 'Site, Sec or Encl.') {
+                count =
+                  (tempSelectedItems?.Site?.length || 0) +
+                  (tempSelectedItems?.Section?.length || 0) +
+                  (tempSelectedItems?.Enclosure?.length || 0)
+              } else if (menu === 'Gender') {
+                count = tempSelectedItems?.gender?.length || 0
+              } else if (menu === 'Accession Date') {
+                if (
+                  (tempSelectedItems?.accession_start && tempSelectedItems?.accession_start.trim() !== '') ||
+                  (tempSelectedItems?.accession_end && tempSelectedItems?.accession_end.trim() !== '')
+                ) {
+                  count = 1 // Show just "1" if date filter is applied
+                }
+              }
+              return (
+                <Box
+                  key={menu}
+                  sx={{
+                    width: '190px',
+                    bgcolor: activeTab === menu ? 'white' : 'transparent',
+                    cursor: 'pointer',
+                    p: 4,
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                  onClick={() => {
+                    setActiveTab(menu)
+                  }}
+                >
+                  <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                    {menu}
+                  </Typography>
+
+                  {count > 0 && (
+                    <Box
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        borderRadius: '12px',
+                        minWidth: '24px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 2,
+                        px: 2
+                      }}
+                    >
+                      {count}
+                    </Box>
+                  )}
+                </Box>
+              )
+            })}
           </Grid>
           <Grid item md={8} sm={8} xs={8}>
             <Box
