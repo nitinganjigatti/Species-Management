@@ -18,104 +18,6 @@ const sampleLinkedImports = [
   { certificateId: '987654321', dateOfIssue: '15/03/24', linkedImportsCount: 1 }
 ]
 
-// Example usage:
-export const shipmentsDataNoFile = []
-
-export const shipmentsData = [
-  {
-    shipmentId: '123123412',
-    shipmentDate: '24/01/24',
-    shippedAnimals: 5,
-    totalAllowed: 60,
-    speciesName: 'Red fox',
-    scientificName: 'Vulpes vulpes',
-    cites: 'Appendix I',
-    totalAnimals: 5,
-    maleCount: 3,
-    femaleCount: 2,
-    unknownCount: 0,
-    fileName: 'file.pdf',
-    species: [
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143124',
-        gender: 'M',
-        totalCount: 5,
-        maleCount: 3,
-        femaleCount: 2,
-        unknownCount: 0
-      },
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143125',
-        gender: 'F',
-        totalCount: 5,
-        maleCount: 3,
-        femaleCount: 2,
-        unknownCount: 5
-      },
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143126',
-        gender: 'U',
-        totalCount: 5,
-        maleCount: 0,
-        femaleCount: 0,
-        unknownCount: 0
-      }
-    ]
-  },
-  {
-    shipmentId: '12312341',
-    shipmentDate: '24/01/24',
-    shippedAnimals: 5,
-    totalAllowed: 60,
-    speciesName: 'Red fox',
-    scientificName: 'Vulpes vulpes',
-    cites: 'Appendix I',
-    totalAnimals: 5,
-    maleCount: 3,
-    femaleCount: 2,
-    unknownCount: 0,
-    fileName: 'file.pdf',
-    species: [
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143124',
-        gender: 'M',
-        totalCount: 5,
-        maleCount: 3,
-        femaleCount: 2,
-        unknownCount: 0
-      },
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143125',
-        gender: 'F',
-        totalCount: 5,
-        maleCount: 3,
-        femaleCount: 2,
-        unknownCount: 5
-      },
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143126',
-        gender: 'U',
-        totalCount: 5,
-        maleCount: 0,
-        femaleCount: 0,
-        unknownCount: 0
-      }
-    ]
-  }
-]
-
 const ExportPermitDetails = () => {
   const router = useRouter()
   const theme = useTheme()
@@ -268,7 +170,11 @@ const ExportPermitDetails = () => {
         ) : (
           <>
             <ExportPermitDetailsContent exportData={exportData} loading={loading} />
-            <SpeciesDetail species={exportData?.species || []} totalShipped={25} totalAllowed={60} />
+            <SpeciesDetail
+              species={exportData?.species || []}
+              speciesCount={exportData?.species_count || 0}
+              animalsCount={exportData?.animals_count || 0}
+            />
           </>
         )}
       </CustomAccordion>

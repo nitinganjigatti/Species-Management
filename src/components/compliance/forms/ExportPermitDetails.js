@@ -7,22 +7,14 @@ import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUplo
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import { debounce } from 'lodash'
 import { getMasterImports } from 'src/lib/api/compliance/masters'
-import { getMastersData } from 'src/lib/api/compliance/exports'
+import countryList from 'react-select-country-list'
+import { useMemo } from 'react'
 
 const ExportPermitDetails = ({ control, errors, isEdit }) => {
   const [exportersOptions, setExportersOptions] = useState([])
   const [importersOptions, setImportersOptions] = useState([])
 
-  // Options data
-  const countryOptions = [
-    { label: 'France', value: 'FR' },
-    { label: 'United States of America', value: 'US' },
-    { label: 'United Kingdom', value: 'UK' },
-    { label: 'Germany', value: 'DE' },
-    { label: 'Japan', value: 'JP' },
-    { label: 'India', value: 'IN' },
-    { label: 'Thailand', value: 'TH' }
-  ]
+  const countryOptions = useMemo(() => countryList().getData(), [])
 
   const getExportersList = async ({ key, page, limit }) => {
     try {
@@ -34,12 +26,11 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
       }
       const res = await getMasterImports(params)
       if (res) {
-        console.log('getMasterImports', res)
         const exportersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
         setExportersOptions(exportersOptions)
       }
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -57,7 +48,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
         setImportersOptions(importersOptions)
       }
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 

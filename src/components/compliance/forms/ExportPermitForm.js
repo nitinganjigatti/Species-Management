@@ -13,10 +13,7 @@ import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
 
 export const exportPermitValidationSchema = yup.object().shape({
-  export_number: yup
-    .string()
-    .required('Export number is required')
-    .min(3, 'Export number must be at least 3 characters'),
+  export_number: yup.string().required('Export number is required'),
 
   issued_date: yup.date().required('Issued date is required'),
 
@@ -219,7 +216,6 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
     if (exportData && mastersData?.identifierTypes?.length > 0) {
       // Set basic form values
       setValue('export_number', exportData.export_number)
-      setValue('export_date', new Date(exportData.export_date))
       setValue('issued_date', exportData.issued_date !== '0000-00-00' ? dayjs(exportData.issued_date) : null)
       setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
       setValue('export_purpose', exportData.export_purpose)
@@ -262,7 +258,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
           },
           identifier_type: {
             label: mastersData?.identifierTypes.find(item => item.id == animal.identifier_type)?.label || '',
-            value: mastersData?.identifierTypes.find(item => item.value == animal.identifier_type)?.value || null
+            value: mastersData?.identifierTypes.find(item => item.value == animal.identifier_type)?.label || null
           },
           identifier_value: animal.identifier_value
         }))
@@ -324,7 +320,6 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       exporter_name: data.exporter_name?.value || '',
       importer_name: data.importer_name?.value || '',
       export_purpose: data.export_purpose || '',
-      export_date: dayjs(data.export_date).format('YYYY-MM-DD'),
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
       attachment: data.certificate_file,

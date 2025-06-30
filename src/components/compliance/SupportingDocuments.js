@@ -48,18 +48,16 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
     try {
       const document = {
         document: formData.file ? formData.file : currentDocumentData?.file_path,
-
-        // document: formData.file ? URL.createObjectURL(formData.file) : currentDocumentData?.file_path,
-        // issued_date: formData.issued_date || '',
         issued_date: formData.issued_date ? dayjs(formData.issued_date).format('YYYY-MM-DD') : null,
-        document_type_id: currentDocumentData?.document_type_id || currentDocumentData.document_id || null,
+        document_type_id: currentDocumentData?.document_id ?? currentDocumentData.id,
         export_id: id,
         type: 1, // Type 1 for export
         reference_number: formData.reference_number || ''
       }
 
-      console.log('newDocument', document)
-      const response = currentDocumentData?.file_path ? await updateDocument(id, document) : await addDocument(document)
+      const response = currentDocumentData?.document_id
+        ? await updateDocument(currentDocumentData?.document_id, document)
+        : await addDocument(document)
 
       if (response?.success) {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })

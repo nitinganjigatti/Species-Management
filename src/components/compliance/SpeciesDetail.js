@@ -3,7 +3,7 @@ import { Box, Typography, Divider, useTheme, Grid, Chip, alpha } from '@mui/mate
 import { ChevronRight as ChevronRightIcon } from '@mui/icons-material'
 import AnimalDetailDrawer from 'src/components/compliance/drawer/AnimalDetailDrawer'
 
-const SpeciesDetail = ({ species = [], totalShipped, totalAllowed }) => {
+const SpeciesDetail = ({ species = [], speciesCount, animalsCount }) => {
   const theme = useTheme()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [selectedSpecie, setSelectedSpecie] = useState(null)
@@ -64,7 +64,7 @@ const SpeciesDetail = ({ species = [], totalShipped, totalAllowed }) => {
           }}
         >
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-            {species?.length} Species
+            {speciesCount} Species
           </Typography>
           <Typography
             component='span'
@@ -76,7 +76,7 @@ const SpeciesDetail = ({ species = [], totalShipped, totalAllowed }) => {
             }}
           />
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-            {100} Animal
+            {animalsCount} Animal
           </Typography>
         </Box>
 

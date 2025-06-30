@@ -8,6 +8,8 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import { useTheme } from '@mui/material/styles'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
+import { useRouter } from 'next/router'
+import dayjs from 'dayjs'
 
 // Validation Schema
 const documentSchema = yup.object().shape({
@@ -43,19 +45,21 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
   } = useForm({
     resolver: yupResolver(documentSchema),
     defaultValues: {
-      reference_number: documentData?.reference_number || '',
-      issued_date: documentData?.issued_date || null,
+      reference_number: '',
+      issued_date: dayjs(),
       document_file: null
     }
   })
+  const router = useRouter()
+  const id = router.query.id
 
   const theme = useTheme()
   const fileValue = watch('document_file')
 
   useEffect(() => {
-    if (documentData) {
+    if (documentData?.reference_number && documentData?.issued_date) {
       setValue('reference_number', documentData.reference_number || '')
-      setValue('issued_date', documentData.issued_date || null)
+      setValue('issued_date', dayjs(documentData?.issued_date))
       setValue(
         'document_file',
         documentData.file_path
@@ -127,7 +131,14 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
               Document Details
             </Typography>
 
-            <ControlledDatePicker name='issued_date' label='Issued Date*' control={control} errors={errors} required />
+            <ControlledDatePicker
+              name='issued_date'
+              label='Issued Date*'
+              disabled
+              control={control}
+              errors={errors}
+              required
+            />
 
             <ControlledTextField
               name='reference_number'
