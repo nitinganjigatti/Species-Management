@@ -247,16 +247,16 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }) => {
                       component='span'
                       sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {animal?.commonName || '-'}
+                      {shipment?.species?.[specieIndex]?.common_name || '-'}
                     </Typography>
                   </Box>
                   <Box sx={{ fontSize: '0.875rem' }}>
-                    Microchip ID:{' '}
+                    {Utility.formatIdentifierType(animal.identifier_type)}:{' '}
                     <Typography
                       component='span'
                       sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {animal?.microchipId || '-'}
+                      {animal?.identifier_value || '-'}
                     </Typography>
                   </Box>
                 </Box>

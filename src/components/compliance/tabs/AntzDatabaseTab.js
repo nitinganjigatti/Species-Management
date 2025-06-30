@@ -1,79 +1,103 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Box, Typography, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Search from 'src/views/utility/Search'
 import SelectableSpeciesCard from 'src/views/pages/compliance/documents/exports/SelectableSpeciesCard'
 import { getSpeciesList } from 'src/lib/api/compliance/exports'
-import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
+import { useInView } from 'react-intersection-observer'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 
 const PAGE_SIZE = 10
 
 const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }) => {
   const theme = useTheme()
-  const [list, setList] = useState([])
-  const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
-  const [search, setSearch] = useState('')
-  const [localSearch, setLocalSearch] = useState('')
 
-  // Debounced search
-  const debouncedSearch = useRef(
-    debounce(searchValue => {
-      setSearch(searchValue)
-      setPage(1)
-    }, 500)
-  ).current
+  const [localSearch, setLocalSearch] = useState('')
+  const [search, setSearch] = useState('')
+
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
+
+  const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
 
   useEffect(() => {
-    return () => debouncedSearch.cancel()
+    return () => {
+      debouncedSearch.cancel()
+    }
   }, [debouncedSearch])
 
-  const fetchData = useCallback(
-    async (pageNum = 1, searchQuery = '') => {
-      setIsLoading(true)
-      try {
-        const res = await getSpeciesList({
-          ...data?.params,
-          page: pageNum,
-          limit: PAGE_SIZE,
-          q: searchQuery
-        })
+  const {
+    data: queryData,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage
+  } = useInfiniteQuery({
+    queryKey: ['antzSpecies', data?.params, search],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getSpeciesList({
+        ...data?.params,
+        page: pageParam,
+        limit: PAGE_SIZE,
+        q: search
+      })
 
-        const newItems =
-          res?.data?.data?.map(item => ({
-            ...item,
-            tsn_id: item.tsn
-          })) || []
-        const totalCount = res?.data?.total_count || 0
+      const items =
+        res?.data?.data?.map(item => ({
+          ...item,
+          tsn_id: item.tsn
+        })) || []
 
-        setTotal(totalCount)
-        setList(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
-        setHasMore(newItems.length < totalCount)
-      } finally {
-        setIsLoading(false)
+      return {
+        result: items,
+        nextPage: items.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total: res?.data?.total_count || 0
       }
     },
-    [data?.params]
-  )
+    getNextPageParam: lastPage => lastPage.nextPage,
+    enabled: true
+  })
+
+  // cooldownRef to prevent multiple rapid calls
+  const cooldownRef = useRef(false)
 
   const loadMore = useCallback(() => {
-    if (!isLoading && hasMore) {
-      const nextPage = page + 1
-      setPage(nextPage)
-      fetchData(nextPage, search)
+    if (cooldownRef.current) return
+    if (!isFetchingNextPage && hasNextPage) {
+      cooldownRef.current = true
+      fetchNextPage().finally(() => {
+        // add 300ms cooldown before allowing next fetch
+        setTimeout(() => {
+          cooldownRef.current = false
+        }, 300)
+      })
     }
-  }, [isLoading, hasMore, page, search, fetchData])
-
-  const loaderRef = useInfiniteScroll(loadMore, isLoading, hasMore)
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
 
   useEffect(() => {
-    fetchData(1, search)
-  }, [search, fetchData])
+    if (inView) {
+      loadMore()
+    }
+  }, [inView, loadMore])
 
-  const filteredList = list.filter(species => !prevSelectedItems.some(item => item.tsn_id === species.tsn_id))
+  const list = useMemo(() => queryData?.pages?.flatMap(page => page?.result) || [], [queryData])
+  const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
+
+  const filteredList = useMemo(
+    () => list.filter(species => !prevSelectedItems.some(item => item.tsn_id === species.tsn_id)),
+    [list, prevSelectedItems]
+  )
+
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setLocalSearch(value)
+    debouncedSearch(value)
+  }
+
+  const handleSearchClear = () => {
+    setLocalSearch('')
+    debouncedSearch('')
+  }
 
   return (
     <Box sx={{ mt: 4 }}>
@@ -87,15 +111,8 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }) =
         }}
         placeholder='Search for species'
         value={localSearch}
-        onChange={e => {
-          const value = e.target.value
-          setLocalSearch(value)
-          debouncedSearch(value)
-        }}
-        onClear={() => {
-          setLocalSearch('')
-          debouncedSearch('')
-        }}
+        onChange={handleSearchChange}
+        onClear={handleSearchClear}
         backgroundColor={theme.palette.common.white}
       />
 
@@ -112,25 +129,25 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }) =
           />
         ))}
 
-        {isLoading && filteredList.length === 0 && (
+        {isFetching && filteredList.length === 0 && (
           <Box display='flex' justifyContent='center' py={2}>
             <CircularProgress />
           </Box>
         )}
 
-        {(isLoading || hasMore) && filteredList.length > 0 && (
+        {(isFetchingNextPage || hasNextPage) && filteredList.length > 0 && (
           <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
             <CircularProgress />
           </Box>
         )}
 
-        {!isLoading && filteredList.length === 0 && (
+        {!isFetching && filteredList.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
             No species found
           </Typography>
         )}
 
-        {!hasMore && filteredList.length > 0 && (
+        {!hasNextPage && filteredList.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
             No more species to load
           </Typography>

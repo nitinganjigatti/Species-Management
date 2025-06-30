@@ -135,7 +135,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
             <ControlledDatePicker
               name='issued_date'
               label='Issued Date*'
-              disabled
+              maxDate={dayjs(new Date())}
               control={control}
               errors={errors}
               required

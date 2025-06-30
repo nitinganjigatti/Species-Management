@@ -63,7 +63,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
 
       if (response?.success) {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })
-        onAddEditSuccess()
+        onAddEditSuccess(response?.data)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }

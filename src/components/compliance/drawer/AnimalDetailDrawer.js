@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Typography, Drawer, IconButton, Grid, Chip } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 
 const AnimalDetailDrawer = ({ open, onClose, specie }) => {
   const theme = useTheme()
@@ -200,11 +201,11 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                       component='span'
                       sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {animal.identifier_type}
+                      {specie.common_name}
                     </Typography>
                   </Box>
                   <Box sx={{ fontSize: '0.875rem' }}>
-                    Microchip ID:{' '}
+                    {Utility.formatIdentifierType(animal.identifier_type)}:{' '}
                     <Typography
                       component='span'
                       sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}

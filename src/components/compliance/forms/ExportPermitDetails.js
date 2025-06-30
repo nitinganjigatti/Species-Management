@@ -88,7 +88,6 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             errors={errors}
             required
             fullWidth
-            disabled={isEdit}
           />
         </Grid>
 
@@ -107,10 +106,10 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           <ControlledDatePicker
             name='issued_date'
             label='Date of Issue*'
+            maxDate={dayjs(new Date())}
             control={control}
             errors={errors}
             required
-            disabled // Always disabled
           />
         </Grid>
 

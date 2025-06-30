@@ -29,6 +29,7 @@ const ExportPermitDetails = () => {
   const [documentList, setDocumentList] = useState([])
   const [totalCount, setTotalCount] = useState(0)
   const [linkedShipments, setLinkedShipments] = useState([])
+  const [linkedShipmentsData, setLinkedShipmentsData] = useState()
   const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
   const [linkedImports, setLinkedImports] = useState([])
   const [totalLinkedImports, setTotalLinkedImports] = useState(0)
@@ -107,8 +108,9 @@ const ExportPermitDetails = () => {
       const res = await getLinkedShipmentDetails(id)
       if (res.success) {
         console.log('getLinkedShipmentDetails res.data', res.data)
-        setTotalLinkedShipments(res.data.total)
+        setTotalLinkedShipments(res.data.total_shipments)
         setLinkedShipments(res.data.records)
+        setLinkedShipmentsData(res.data)
       } else {
         Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
       }
@@ -207,7 +209,11 @@ const ExportPermitDetails = () => {
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <LinkedShipments shipments={linkedShipments} totalShipped={25} totalAllowed={60} />
+        <LinkedShipments
+          shipments={linkedShipments}
+          totalShipped={linkedShipmentsData?.total_shipped_animals || 0}
+          totalAllowed={linkedShipmentsData?.total_export_animals || 0}
+        />
       </CustomAccordion>
     </>
   )
