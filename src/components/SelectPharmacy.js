@@ -15,9 +15,14 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 import { readAsync, write } from 'src/lib/windows/utils'
 import Box from '@mui/material/Box'
+import Tooltip from '@mui/material/Tooltip'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
+function truncateText(str, n) {
+  return str?.length > n ? str.substr(0, n) + '...' : str
+}
 
 function SelectPharmacy() {
   // ** States
@@ -109,8 +114,8 @@ function SelectPharmacy() {
   }
 
   return (
-    <Box sx={{ minWidth: 200 }}>
-      <ButtonGroup sx={{ width: '100%' }} variant='outlined' ref={anchorRef} aria-label='split button'>
+    <Box sx={{ minWidth: 'auto' }}>
+      <ButtonGroup sx={{ width: '100%', minWidth: 250 }} variant='outlined' ref={anchorRef} aria-label='split button'>
         <Button
           sx={{
             width: '100%'
@@ -137,17 +142,23 @@ function SelectPharmacy() {
             {...TransitionProps}
             style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom' }}
           >
-            <Paper>
+            <Paper
+              sx={{
+                minWidth: anchorRef.current ? anchorRef.current.clientWidth : undefined,
+                width: 'auto'
+              }}
+            >
               <ClickAwayListener onClickAway={handleClose}>
                 <MenuList id='split-button-menu' sx={{ maxHeight: 200, overflowY: 'scroll', overflowX: 'hidden' }}>
                   {options?.map((option, index) => (
-                    <MenuItem
-                      key={option.id || index}
-                      selected={selectedStore?.id === option.id}
-                      onClick={() => handleMenuItemClick(option.id)}
-                    >
-                      {option?.name}
-                    </MenuItem>
+                    <Tooltip title={option?.name || ''} placement='right' arrow key={option.id || index}>
+                      <MenuItem
+                        selected={selectedStore?.id === option.id}
+                        onClick={() => handleMenuItemClick(option.id)}
+                      >
+                        {truncateText(option?.name, 25)}
+                      </MenuItem>
+                    </Tooltip>
                   ))}
                 </MenuList>
               </ClickAwayListener>

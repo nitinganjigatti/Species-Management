@@ -12,7 +12,6 @@ import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
-import CustomChip from 'src/@core/components/mui/chip'
 import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
 
 // ** MUI Imports
@@ -28,7 +27,7 @@ import TabContext from '@mui/lab/TabContext'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Avatar, Box, CardContent, CardHeader, Tooltip, Chip } from '@mui/material'
+import { Box, CardHeader, Tooltip, Chip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -351,15 +350,18 @@ const IndividualRequest = () => {
       )
     },
     {
-      width: 400,
-      minWidth: 400,
+      width: 300,
+      minWidth: 300,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <Box sx={{ width: '100%' }}>
           <div>
             <Tooltip title={params?.row?.stock_name} placement='top'>
-              <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              <Typography
+                variant='subtitle2'
+                sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}
+              >
                 {RenderUtility?.renderControlLabel(parseInt(params?.row?.control_substance) === 1, 'CS')}
                 {RenderUtility?.renderControlLabel(parseInt(params?.row?.prescription_required) === 1, 'PR')}
                 {params?.row?.stock_name}
@@ -592,13 +594,16 @@ const IndividualRequest = () => {
 
     {
       flex: 1,
-      minWidth: 200,
+      minWidth: 300,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Tooltip title={params.row.medicin_name} placement='top'>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+            <Typography
+              variant='subtitle2'
+              sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}
+            >
               {params.row.medicin_name}
             </Typography>
           </Tooltip>

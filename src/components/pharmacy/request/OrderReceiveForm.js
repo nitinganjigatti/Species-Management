@@ -1468,7 +1468,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
               </>
             )}
           </>
-        );
+        )
       }
     }
   ]
@@ -1698,9 +1698,12 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
           {isStoreMatch() ? (
             <div>
               <Box sx={{ pb: 6 }}>
-                <Grid container sx={{
-                  justifyContent: 'space-between'
-                }}>
+                <Grid
+                  container
+                  sx={{
+                    justifyContent: 'space-between'
+                  }}
+                >
                   <Grid item size={{ xs: 12, sm: 'auto' }}>
                     <CardHeader
                       sx={{ padding: 0 }}
@@ -1814,7 +1817,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
           </div>
         )}
     </>
-  );
+  )
 }
 
 export default OrderReceiveForm

@@ -179,14 +179,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
           </Tooltip>
           <Tooltip
             title={
-              params?.row?.package &&
-              params?.row?.package_qty &&
-              params?.row?.package_uom_label &&
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'
+              (params?.row?.package ||
+                params?.row?.package_qty ||
+                params?.row?.package_uom_label ||
+                params?.row?.product_form_label) &&
+              `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                params?.row?.package_uom_label
+              } ${params?.row?.product_form_label}`
             }
             placement='top'
           >
@@ -199,14 +198,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 ...RenderUtility?.getEllipsisStyleForText()
               }}
             >
-              {params?.row?.package &&
-              params?.row?.package_qty &&
-              params?.row?.package_uom_label &&
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'}
+              {(params?.row?.package ||
+                params?.row?.package_qty ||
+                params?.row?.package_uom_label ||
+                params?.row?.product_form_label) &&
+                `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                  params?.row?.package_uom_label
+                } ${params?.row?.product_form_label}`}
             </Typography>
           </Tooltip>
         </Box>

@@ -624,7 +624,7 @@ const Overview = props => {
 
       if (result?.success && result?.data) {
         setIsLoading(false)
-        setDrawerDataArray(result.data)
+        setDrawerDataArray(result?.data)
         if (name === 'quantityInStores') {
           const allStores = [...(result?.data?.central || []), ...(result?.data?.local || [])]
 
@@ -655,6 +655,8 @@ const Overview = props => {
             totalValue
           })
         }
+      } else {
+        setIsLoading(false)
       }
     } catch (error) {
       setIsLoading(false)
@@ -1163,15 +1165,15 @@ const Overview = props => {
       </Grid>
       {activeDrawerData && (
         <CommonDrawerBox
-          title={activeDrawerData.title}
-          totalStores={activeDrawerData.totalStores}
-          totalQuantity={activeDrawerData.totalQuantity}
-          totalBatches={activeDrawerData.totalBatches}
-          totalValue={activeDrawerData.totalValue}
+          title={activeDrawerData?.title}
+          totalStores={activeDrawerData?.totalStores}
+          totalQuantity={activeDrawerData?.totalQuantity}
+          totalBatches={activeDrawerData?.totalBatches}
+          totalValue={activeDrawerData?.totalValue}
           drawerStatus={Boolean(activeDrawer)}
           close={closeDrawer}
           contentComponent={renderDrawerContent()}
-          style={activeDrawerData.style}
+          style={activeDrawerData?.style}
           width={700}
         />
       )}

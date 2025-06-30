@@ -601,7 +601,6 @@ const AddPurchaseForm = () => {
 
   const onSubmit = async data => {
     setSubmitLoader(true)
-    // console.log('data', data)
 
     const postData = editParams
     postData.description = data.description
@@ -638,8 +637,6 @@ const AddPurchaseForm = () => {
     //   parseFloat(roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue)
     postData.net_amount = grandTotalAmount
     // added grand total amount
-    console.log('postData', postData)
-    // debugger
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
@@ -675,12 +672,8 @@ const AddPurchaseForm = () => {
               }
             })
 
-            console.log('ml trained triggered')
-            console.log('suggestionData', suggestionData)
-
             try {
               const mlResult = await productMappingForMlTraining(suggestionData)
-              console.log('ML training completed successfully', mlResult)
               toast.success(mlResult?.data)
 
               setEditParams(editParamsInitialState)
@@ -705,7 +698,6 @@ const AddPurchaseForm = () => {
           }
           if (response?.message) {
             toast.error(response.message)
-            console.log('error', response.message)
           }
         }
       }
@@ -823,16 +815,15 @@ const AddPurchaseForm = () => {
         }))
 
         setProductExpiryDate(response.data.expiry_date)
+      } else {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: '',
+          purchase_variant_id: '',
+          purchase_variant_ratio: ''
+        }))
+        setProductExpiryDate('')
       }
-      //  else {
-      //   setNestedRowMedicine(prevState => ({
-      //     ...prevState,
-      //     purchase_expiry_date: '',
-      //     purchase_variant_id: '',
-      //     purchase_variant_ratio: ''
-      //   }))
-      //   setProductExpiryDate('')
-      // }
     } catch (error) {
       console.log('supplier error', error)
     } finally {
@@ -1612,6 +1603,7 @@ const AddPurchaseForm = () => {
                       width={'100%'}
                       onChangeHandler={date => {
                         let formatted = formatDate(date)
+
                         onChange(formatted)
                       }}
                       customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
