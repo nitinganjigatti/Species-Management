@@ -208,6 +208,7 @@ function AssessmentTypeFilter({
             sx={{
               overflowY: 'auto',
               flexGrow: 1,
+              paddingBottom: 4,
               height: '100%',
               backgroundColor: 'background.default'
             }}

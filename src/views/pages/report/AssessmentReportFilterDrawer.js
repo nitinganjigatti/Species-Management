@@ -614,24 +614,62 @@ const AssessmentReportFilterDrawer = ({
                     return (
                       <Box
                         key={option.label}
-                        sx={{ display: 'flex', alignItems: 'center', mb: 3 }}
+                        sx={{ display: 'flex', alignItems: 'center', mb: 3, cursor: 'pointer' }}
+                        // onClick={() => {
+                        //   const { start, end } = option.getRange()
+                        //   setTempSelectedItems(prev => ({
+                        //     ...prev,
+                        //     accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
+                        //     accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
+                        //   }))
+                        // }}
                         onClick={() => {
                           const { start, end } = option.getRange()
+
+                          const isAlreadySelected =
+                            option.label === 'All Time Data'
+                              ? tempSelectedItems.accession_start === '' && tempSelectedItems.accession_end === ''
+                              : dayjs(tempSelectedItems.accession_start).format('YYYY-MM-DD') ===
+                                  dayjs(start).format('YYYY-MM-DD') &&
+                                dayjs(tempSelectedItems.accession_end).format('YYYY-MM-DD') ===
+                                  dayjs(end).format('YYYY-MM-DD')
+
                           setTempSelectedItems(prev => ({
                             ...prev,
-                            accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
-                            accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
+                            accession_start: isAlreadySelected ? null : start ? dayjs(start).format('YYYY-MM-DD') : '',
+                            accession_end: isAlreadySelected ? null : end ? dayjs(end).format('YYYY-MM-DD') : ''
                           }))
                         }}
                       >
                         <Checkbox
                           checked={isSelected}
+                          // onChange={() => {
+                          //   const { start, end } = option.getRange()
+                          //   setTempSelectedItems(prev => ({
+                          //     ...prev,
+                          //     accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
+                          //     accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
+                          //   }))
+                          // }}
                           onChange={() => {
                             const { start, end } = option.getRange()
+
+                            const isAlreadySelected =
+                              option.label === 'All Time Data'
+                                ? tempSelectedItems.accession_start === '' && tempSelectedItems.accession_end === ''
+                                : dayjs(tempSelectedItems.accession_start).format('YYYY-MM-DD') ===
+                                    dayjs(start).format('YYYY-MM-DD') &&
+                                  dayjs(tempSelectedItems.accession_end).format('YYYY-MM-DD') ===
+                                    dayjs(end).format('YYYY-MM-DD')
+
                             setTempSelectedItems(prev => ({
                               ...prev,
-                              accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
-                              accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
+                              accession_start: isAlreadySelected
+                                ? null
+                                : start
+                                ? dayjs(start).format('YYYY-MM-DD')
+                                : '',
+                              accession_end: isAlreadySelected ? null : end ? dayjs(end).format('YYYY-MM-DD') : ''
                             }))
                           }}
                         />
