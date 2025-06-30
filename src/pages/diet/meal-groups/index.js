@@ -296,7 +296,14 @@ const MealGroup = () => {
         })
 
         if (res) {
-          setSelectedItems(res?.data?.result)
+          if (res?.success) {
+            const list = res.data?.result || []
+
+            // Filter the result based on enclosure_id in checkedRows
+            const selected = list.filter(item => checkedRows.includes(item.enclosure_id))
+
+            setSelectedItems(selected)
+          }
           setLoader(false)
         }
       } catch (err) {
@@ -568,7 +575,8 @@ const MealGroup = () => {
       setEnclosureDrawer(true)
       setLoader(true)
       setGroupId(id)
-      setCheckedRows([])
+      // setCheckedRows([])
+      console.log('Checked rows >>', checkedRows)
 
       const params = {
         q: searchValue,
@@ -696,8 +704,42 @@ const MealGroup = () => {
     setopenDeleteEnclosureDialog(true)
   }
 
+  // const addEnclosure = async () => {
+  //   debugger
+  //   console.log('checked Rows >', checkedRows)
+  //   try {
+  //     setEnclosureDrawer(true)
+  //     setLoader(true)
+  //     setGroupId('')
+
+  //     const params = {
+  //       type: 'unmapped',
+  //       site_id: selectedOption
+
+  //       //     // meal_group_ids: JSON.stringify([id]) // Send as array
+  //     }
+
+  //     const response = await getEnclosureListByGroup(params)
+
+  //     if (response.success) {
+  //       setLoader(false)
+  //       console.log('Enclosure list by group:', response.data.result)
+  //       const list = response.data.result
+  //       if (list.includes(checkedRows)) setSelectedItems(list)
+  //     } else {
+  //       setLoader(true)
+  //       console.error('Failed to fetch enclosure list:', response.message || 'Unknown error')
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching enclosure list by group:', error)
+  //   }
+  // }
+
   const addEnclosure = async () => {
     try {
+     
+      console.log('Checked Rows >', checkedRows)
+
       setEnclosureDrawer(true)
       setLoader(true)
       setGroupId('')
@@ -705,8 +747,6 @@ const MealGroup = () => {
       const params = {
         type: 'unmapped',
         site_id: selectedOption
-
-        // meal_group_ids: JSON.stringify([id]) // Send as array
       }
 
       const response = await getEnclosureListByGroup(params)
@@ -714,13 +754,20 @@ const MealGroup = () => {
       if (response.success) {
         setLoader(false)
         console.log('Enclosure list by group:', response.data.result)
-        setSelectedItems(response?.data?.result)
+
+        const list = response.data.result || []
+
+        // Filter the list to only include items whose enclosure_id is in checkedRows
+        const selected = list.filter(item => checkedRows.includes(item.enclosure_id))
+
+        setSelectedItems(selected)
       } else {
         setLoader(true)
         console.error('Failed to fetch enclosure list:', response.message || 'Unknown error')
       }
     } catch (error) {
       console.error('Error fetching enclosure list by group:', error)
+      setLoader(false)
     }
   }
 

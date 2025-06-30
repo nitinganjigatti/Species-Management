@@ -50,6 +50,7 @@ const CreateMealGroup = ({
   const [groupNameError, setGroupNameError] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [removedEnclosures, setRemovedEnclosures] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const handleRemove = index => {
     const itemToRemove = selectedItems[index] // Get the item being removed
@@ -62,15 +63,47 @@ const CreateMealGroup = ({
 
   console.log('Group NMW >', groupName)
 
+  // const handleCreateGroup = async () => {
+  //   if (!groupName.trim()) {
+  //     setGroupNameError(true)
+
+  //     return
+  //   }
+
+  //   setGroupNameError(false)
+
+  //   try {
+  //     const params = {
+  //       site_id: selectedOption,
+  //       enclosure_ids: JSON.stringify(checkedRows.map(Number)),
+  //       group_name: groupName
+  //     }
+
+  //     const response = await createMealGroup(params)
+
+  //     if (response?.success) {
+  //       handleCloseSideBar()
+  //       toast.success('Meal Group created Successfully')
+  //       setStatus('mealgroup')
+  //     } else {
+  //       toast.error(response?.message)
+  //     }
+  //   } catch (error) {
+  //     toast.error('Server error. Please try again.')
+  //     console.error('Create Meal Group Error:', error)
+  //   }
+  // }
+
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       setGroupNameError(true)
-
       return
     }
-
     setGroupNameError(false)
 
+    if (loading) return // Prevent multiple calls
+
+    setLoading(true)
     try {
       const params = {
         site_id: selectedOption,
@@ -90,6 +123,8 @@ const CreateMealGroup = ({
     } catch (error) {
       toast.error('Server error. Please try again.')
       console.error('Create Meal Group Error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -229,6 +264,7 @@ const CreateMealGroup = ({
           onClick={Object.keys(editParam).length > 0 ? handleUpdateGroup : handleCreateGroup}
           sx={{ height: '58px' }}
           fullWidth
+          disabled={loading}
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'
