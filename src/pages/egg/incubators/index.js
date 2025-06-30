@@ -1,17 +1,26 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react'
+import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react'
 import Router from 'next/router'
 
-import { Avatar, Button, Tooltip, Box, Breadcrumbs, Grid, TextField, FormControl, Autocomplete } from '@mui/material'
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import Typography from '@mui/material/Typography'
+import {
+  Avatar,
+  Button,
+  Tooltip,
+  Box,
+  Breadcrumbs,
+  Grid,
+  TextField,
+  FormControl,
+  Autocomplete,
+  Card,
+  CardHeader,
+  Typography
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
-
 import { debounce } from 'lodash'
+
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
-
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CustomChip from 'src/@core/components/mui/chip'
 import Icon from 'src/@core/components/icon'
@@ -22,9 +31,9 @@ import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator
 
 const IncubatorsList = () => {
   const theme = useTheme()
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  const { userData } = useContext(AuthContext)
+  const nurseryPermission = userData?.permission?.user_settings?.add_nursery_permisson
+  const collectionPermission = userData?.roles?.settings?.enable_egg_collection_module
 
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -41,19 +50,6 @@ const IncubatorsList = () => {
   const [defaultStatus, setDefaultStatus] = useState(null)
   const [defaultAvailibility, setDefaultAvailibility] = useState(null)
 
-  // Utility: Load rows from server
-  const loadServerRows = (currentPage, data) => data
-
-  // Utility: Generate serial number for each row
-  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
-
-  // 🟩 Transform rows to include sl_no
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-
-  // 📦 API: Fetch availability list
   const fetchAvailabilityList = async () => {
     try {
       const res = await getAvailibilityList()
@@ -63,13 +59,12 @@ const IncubatorsList = () => {
     }
   }
 
-  // 📦 API: Fetch incubator list for table
   const fetchTableData = useCallback(
-    async (q, siteId, roomId, availability, status) => {
+    async (q = '', siteId, roomId, availability, status) => {
       setLoading(true)
       try {
         const params = {
-          q: q || searchValue,
+          q,
           sort,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
@@ -82,24 +77,22 @@ const IncubatorsList = () => {
 
         const res = await getIncubatorList({ params })
         const rawData = res?.data?.data?.result || []
-
         const listWithId = rawData.map((el, i) => ({
           ...el,
           id: i + 1
         }))
 
         setTotal(parseInt(res?.data?.data?.total_count || 0))
-        setRows(loadServerRows(paginationModel.page, listWithId))
+        setRows(listWithId)
       } catch (error) {
         console.error('Error fetching table data:', error)
       } finally {
         setLoading(false)
       }
     },
-    [paginationModel, sort, searchValue]
+    [paginationModel, sort]
   )
 
-  // 🧠 Debounced Search Function
   const debouncedSearch = useCallback(
     debounce((q, siteId, roomId, availability, status) => {
       setSearchValue(q)
@@ -108,33 +101,29 @@ const IncubatorsList = () => {
     [fetchTableData]
   )
 
-  // 🔍 Search Input Handler
   const handleSearch = (value, siteId, roomId, availability, status) => {
     setSearchValue(value)
     debouncedSearch(value, siteId, roomId, availability, status)
   }
 
-  // ❌ Close sidebar dialog
-  const handleSidebarClose = () => {
-    setDialog(false)
-  }
+  const handleSidebarClose = () => setDialog(false)
 
-  // ➕ Add Button
-  const headerAction = egg_nursery_permission && (
+  const headerAction = nurseryPermission && (
     <Button sx={{ height: '40px', width: '126px' }} size='small' variant='contained' onClick={() => setDialog(true)}>
       <Icon icon='mdi:add' fontSize={20} />
       &nbsp; Add New
     </Button>
   )
 
-  // 🔁 Fetch on mount (availability + initial table data)
+  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
+  const indexedRows = useMemo(() => rows.map((row, i) => ({ ...row, sl_no: getSlNo(i) })), [rows, paginationModel])
+
   useEffect(() => {
     fetchAvailabilityList()
   }, [])
-  // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
 
   useEffect(() => {
-    if (egg_nursery_permission || egg_collection_permission) {
+    if (nurseryPermission || collectionPermission) {
       fetchTableData(
         searchValue,
         defaultSite?.site_id,
@@ -144,7 +133,6 @@ const IncubatorsList = () => {
       )
     }
   }, [paginationModel])
-  // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
 
   const columns = [
     {
@@ -379,193 +367,154 @@ const IncubatorsList = () => {
     }
   ]
 
-  const onCellClick = params => {
-    Router.push({
-      pathname: `/egg/incubators/${params.row?.incubator_id}`
-    })
-  }
+  const handleCellClick = ({ row }) => Router.push(`/egg/incubators/${row.incubator_id}`)
 
+  if (!nurseryPermission && !collectionPermission) return <ErrorScreen />
+  if (loader) return <FallbackSpinner />
   return (
     <>
-      {egg_nursery_permission || egg_collection_permission ? (
-        loader ? (
-          <FallbackSpinner />
-        ) : (
-          <>
-            <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-              <Typography color='inherit'>Egg</Typography>
-              <Typography
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography color='inherit'>Egg</Typography>
+        <Typography
+          sx={{
+            color: 'text.primary',
+            cursor: 'pointer'
+          }}
+        >
+          Incubator List
+        </Typography>
+      </Breadcrumbs>
+      <Card>
+        <CardHeader title='Incubator List' action={headerAction} />
+        <Grid sx={{ ml: 4, mb: 6, mt: -2 }} container columns={15} spacing={6}>
+          <Grid item xs={3}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                borderRadius: '4px',
+                padding: '0 8px',
+                height: '40px'
+              }}
+            >
+              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+              <TextField
+                variant='outlined'
+                placeholder='Search...'
+                onChange={e =>
+                  handleSearch(
+                    e.target.value,
+                    defaultSite?.site_id,
+                    defaultRoom?.room_id,
+                    defaultAvailibility?.key,
+                    defaultStatus?.key
+                  )
+                }
                 sx={{
-                  color: 'text.primary',
-                  cursor: 'pointer'
-                }}
-              >
-                Incubator List
-              </Typography>
-            </Breadcrumbs>
-            <Card>
-              <CardHeader title='Incubator List' action={headerAction} />
-
-              <Grid sx={{ ml: 4, mb: 6, mt: -2 }} container columns={15} spacing={6}>
-                <Grid item xs={3}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '40px'
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e =>
-                        handleSearch(
-                          e.target.value,
-                          defaultSite?.site_id,
-                          defaultRoom?.room_id,
-                          defaultAvailibility?.key,
-                          defaultStatus?.key
-                        )
-                      }
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                      slotProps={{
-                        input: {
-                          // disableUnderline: true
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-
-                <Grid item size={{ xs: 3 }}>
-                  <FormControl fullWidth>
-                    <Autocomplete
-                      name='status'
-                      value={defaultStatus}
-                      disablePortal
-                      id='status'
-                      options={[
-                        { label: 'All', key: 'all' },
-                        { label: 'Active', key: 'only_active' },
-                        { label: 'Inactive', key: 'only_deactive' }
-                      ]}
-                      getOptionLabel={option => option.label}
-                      isOptionEqualToValue={(option, value) => option?.key === value?.key}
-                      onChange={(e, val) => {
-                        if (val === null) {
-                          setDefaultStatus(null)
-                          fetchTableData(
-                            searchValue,
-                            defaultSite?.site_id,
-                            defaultRoom?.room_id,
-                            defaultAvailibility?.key,
-                            ''
-                          )
-                        } else {
-                          setDefaultStatus(val)
-                          fetchTableData(
-                            searchValue,
-                            defaultSite?.site_id,
-                            defaultRoom?.room_id,
-                            defaultAvailibility?.key,
-                            val?.key
-                          )
-                        }
-                      }}
-                      renderInput={params => (
-                        <TextField
-                          sx={{
-                            backgroundColor: theme.palette.primary.contrastText,
-                            borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            width: '100%',
-                            '& .MuiOutlinedInput-root': {
-                              height: 40,
-                              borderRadius: '4px'
-                            },
-                            '& .MuiInputLabel-root': {
-                              top: -7
-                            },
-                            '& .MuiInputLabel-shrink': {
-                              top: 0
-                            },
-                            '& input': {
-                              position: 'relative',
-                              top: -0
-                            }
-                          }}
-                          onChange={e => {
-                            searchNursery(e.target.value)
-                          }}
-                          {...params}
-                          label='Status'
-                          placeholder='Search & Select'
-                        />
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-              </Grid>
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-                  '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #0000000D',
-                    borderRight: '1px solid #0000000D',
-                    marginLeft: '16px',
-                    marginRight: '16px',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(233, 233, 236, 1)'
-                  },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: 'none'
-                  },
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
+                  '& .MuiOutlinedInput-root': {
+                    border: 'none',
+                    padding: '0',
+                    '& fieldset': {
+                      border: 'none'
+                    }
                   }
                 }}
-                columnVisibilityModel={{
-                  sl_no: false
+                slotProps={{
+                  input: {}
                 }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                rowHeight={64}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                onCellClick={onCellClick}
               />
-              <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
-            </Card>
-          </>
-        )
-      ) : (
-        <>
-          {' '}
-          <ErrorScreen></ErrorScreen>
-        </>
-      )}
+            </Box>
+          </Grid>
+          <Grid item size={{ xs: 3 }}>
+            <FormControl fullWidth>
+              <Autocomplete
+                name='status'
+                value={defaultStatus}
+                disablePortal
+                id='status'
+                options={[
+                  { label: 'All', key: 'all' },
+                  { label: 'Active', key: 'only_active' },
+                  { label: 'Inactive', key: 'only_deactive' }
+                ]}
+                getOptionLabel={option => option.label}
+                isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                onChange={(e, val) => {
+                  if (val === null) {
+                    setDefaultStatus(null)
+                    fetchTableData(
+                      searchValue,
+                      defaultSite?.site_id,
+                      defaultRoom?.room_id,
+                      defaultAvailibility?.key,
+                      ''
+                    )
+                  } else {
+                    setDefaultStatus(val)
+                    fetchTableData(
+                      searchValue,
+                      defaultSite?.site_id,
+                      defaultRoom?.room_id,
+                      defaultAvailibility?.key,
+                      val?.key
+                    )
+                  }
+                }}
+                renderInput={params => (
+                  <TextField
+                    sx={{
+                      backgroundColor: theme.palette.primary.contrastText,
+                      borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      width: '100%',
+                      '& .MuiOutlinedInput-root': { height: 40, borderRadius: '4px' },
+                      '& .MuiInputLabel-root': { top: -7 },
+                      '& .MuiInputLabel-shrink': { top: 0 },
+                      '& input': { position: 'relative', top: -0 }
+                    }}
+                    onChange={e => {}}
+                    {...params}
+                    label='Status'
+                    placeholder='Search & Select'
+                  />
+                )}
+              />
+            </FormControl>
+          </Grid>
+        </Grid>
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': { outline: 'none' },
+            '.MuiDataGrid-main': {
+              border: '1px solid rgba(233, 233, 236, 1)',
+              borderLeft: '1px solid #0000000D',
+              borderRight: '1px solid #0000000D',
+              marginLeft: '16px',
+              marginRight: '16px',
+              borderRadius: '8px'
+            },
+            '& .MuiDataGrid-footerContainer': { borderTop: 'none' },
+            '& .MuiDataGrid-row:hover': { cursor: 'pointer' }
+          }}
+          columnVisibilityModel={{ sl_no: false }}
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          autoHeight
+          pagination
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          rowHeight={64}
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          onCellClick={handleCellClick}
+        />
+        <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
+      </Card>
     </>
   )
 }

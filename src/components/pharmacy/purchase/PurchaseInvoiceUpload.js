@@ -497,7 +497,7 @@ const PurchaseInvoiceUpload = ({
           toast.success('Invoice processed successfully')
         }
       })
-      console.log('Upload success:', response.data)
+      console.log('Upload success:', response?.data)
     } catch (error) {
       console.error('Error uploading images:', error)
 
@@ -805,7 +805,8 @@ const PurchaseInvoiceUpload = ({
               gap: 1,
               display: 'flex',
               alignItems: 'center'
-            }}>
+            }}
+          >
             <Grid item size={{ xs: 12, sm: 12, md: 5 }}>
               <FormControl fullWidth sx={{ my: 4 }}>
                 <input
@@ -979,7 +980,7 @@ const PurchaseInvoiceUpload = ({
         </LoadingButton>
       </Grid>
     </Box>
-  );
+  )
 }
 
 export default React.memo(PurchaseInvoiceUpload)
