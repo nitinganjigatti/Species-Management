@@ -924,26 +924,28 @@ const AnimalAssessment = () => {
                       }}
                     >
                       <Icon icon='mage:filter' fontSize={24} />
-                      {/* <Typography
-                        sx={{
-                          position: 'absolute',
-                          top: '-15px',
-                          right: '-10px',
-                          minWidth: '27px',
-                          height: '27px',
-                          paddingX: 2,
-                          borderRadius: '14px',
-                          backgroundColor: theme.palette.primary.light,
-                          color: theme.palette.primary.contrastText,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {filterCount}
-                      </Typography> */}
+                      {filterCount > 0 && (
+                        <Typography
+                          sx={{
+                            position: 'absolute',
+                            top: '-15px',
+                            right: '-10px',
+                            minWidth: '27px',
+                            height: '27px',
+                            paddingX: 2,
+                            borderRadius: '14px',
+                            backgroundColor: theme.palette.primary.light,
+                            color: theme.palette.primary.contrastText,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {filterCount}
+                        </Typography>
+                      )}
                     </Box>
                   )}
 
