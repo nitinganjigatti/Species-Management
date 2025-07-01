@@ -894,7 +894,23 @@ const StickyTable = ({
                 },
                 '& .MuiSelect-select': {
                   minWidth: '0px !important',
-                  width: '40px !important'
+                  width: '40px !important',
+                  paddingY: '8px' // optional: aligns better
+                }
+              }}
+              MenuProps={{
+                anchorOrigin: {
+                  vertical: 'top',
+                  horizontal: 'left'
+                },
+                transformOrigin: {
+                  vertical: 'top',
+                  horizontal: 'left'
+                },
+                PaperProps: {
+                  sx: {
+                    mt: 0.5 // slight vertical adjustment (optional)
+                  }
                 }
               }}
             >
