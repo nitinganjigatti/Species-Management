@@ -65,6 +65,11 @@ const StickyTable = ({
   const [rearrangedColumns, setRearrangedColumns] = useState(columns)
   const [anchorEl, setAnchorEl] = useState(null)
 
+  const hasSubHeader = rearrangedColumns.some(col => Array.isArray(col.subHeader) && col.subHeader.length > 0)
+  const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+
+  // const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + subHeaderHeight
+
   useEffect(() => {
     const leftPinnedColumns = columns.filter(col => col.pinned === 'left')
     const rightPinnedColumns = columns.filter(col => col.pinned === 'right')
@@ -839,15 +844,36 @@ const StickyTable = ({
       >
         <Box sx={{ marginLeft: 4, display: 'flex' }}>
           {rowSelection && (
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary'
+              }}
+            >
               Selected rows: {selectedRows?.length}
             </Typography>
           )}
         </Box>
-        <Box display='flex' gap='10px'>
-          <Box display='flex' alignItems='center' gap={5}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: '10px'
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5
+            }}
+          >
             {/* Label for rows per page */}
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary'
+              }}
+            >
               Rows in view:
             </Typography>
 
@@ -868,7 +894,23 @@ const StickyTable = ({
                 },
                 '& .MuiSelect-select': {
                   minWidth: '0px !important',
-                  width: '40px !important'
+                  width: '40px !important',
+                  paddingY: '8px' // optional: aligns better
+                }
+              }}
+              MenuProps={{
+                anchorOrigin: {
+                  vertical: 'top',
+                  horizontal: 'left'
+                },
+                transformOrigin: {
+                  vertical: 'top',
+                  horizontal: 'left'
+                },
+                PaperProps: {
+                  sx: {
+                    mt: 0.5 // slight vertical adjustment (optional)
+                  }
                 }
               }}
             >
@@ -946,20 +988,21 @@ const StickyTable = ({
           component={Paper}
           sx={{
             borderRadius: 2,
-            height: rowSelection
-              ? Math.max(5 * (rowHeight + 0.88), defaultRowsInView * (rowHeight + 0.88)) +
-                headerHeight +
-                subHeaderHeight +
-                16
-              : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + -0.1)) +
-                headerHeight +
-                subHeaderHeight,
+            // height: rowSelection
+            //   ? Math.max(5 * (rowHeight + 0.88), defaultRowsInView * (rowHeight + 0.88)) +
+            //     headerHeight +
+            //     subHeaderHeight +
+            //     16
+            //   : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + -0.1)) +
+            //     headerHeight +
+            //     subHeaderHeight,
+            height: tableTotalHeight,
+            // maxHeight: tableTotalHeight,
             overflowY: 'auto',
             position: 'relative',
             border: '1px solid #ddd',
-            overflow: loading ? 'hidden' : 'auto',
-            '&::-webkit-scrollbar': { width: '0px', height: '0px' }
-
+            overflow: loading ? 'hidden' : 'auto'
+            // '&::-webkit-scrollbar': { width: '0px', height: '0px' }
             // '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888' },
             // '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' }
           }}
