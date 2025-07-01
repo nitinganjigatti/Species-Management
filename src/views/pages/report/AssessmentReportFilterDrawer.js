@@ -169,6 +169,7 @@ const AssessmentReportFilterDrawer = ({
       })
     }
   }
+
   const selectAllGender = genderArray.every(item => tempSelectedItems.gender.includes(item.key))
 
   const handleSelectAllGender = () => {
@@ -260,7 +261,7 @@ const AssessmentReportFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
             {tabsforfilter.map(menu => {
               let count = 0
 
