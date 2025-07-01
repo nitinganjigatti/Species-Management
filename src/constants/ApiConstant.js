@@ -567,3 +567,11 @@ export const ADD_DOCUMENT = 'v1/trade/support/docs'
 export const EDIT_DOCUMENT = 'v1/trade/support/docs'
 
 export const GET_SHIPMENTS_LIST = 'v1/trade/shipments'
+
+export const ADD_SHIPMENT_BASICDETAILS = 'v1/trade/shipments/create'
+
+export const GET_SHIPMENT_BASICDETAILS = 'v1/trade/shipments'
+
+export const UPDATE_SHIPMENT_BASICDETAILS = 'v1/trade/shipments/update'
+
+export const GET_EXPORT_ANIMAL_LIST = 'v1/trade/exports/species'

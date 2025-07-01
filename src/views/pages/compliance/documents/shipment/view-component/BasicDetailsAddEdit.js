@@ -9,9 +9,10 @@ import {
   Select,
   InputLabel,
   FormControl,
-  InputAdornment
+  InputAdornment,
+  CircularProgress
 } from '@mui/material'
-import * as yup from 'yup'
+import Icon from 'src/@core/components/icon'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import { CalendarMonth } from '@mui/icons-material'
 import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
@@ -23,6 +24,9 @@ const BasicDetailsAddEdit = ({
   setStartDate,
   uploadedFile,
   setUploadedFile,
+  transportType,
+  setTransportType,
+  loader,
   onSave,
   errors,
   setErrors
@@ -49,14 +53,23 @@ const BasicDetailsAddEdit = ({
     setUploadedFile(file)
     setErrors(prev => ({ ...prev, uploadedFile: null }))
   }
+  const handleChange = e => {
+    setTransportType(e.target.value)
+  }
 
   return (
     <>
       <Grid container spacing={3}>
         <Grid item xs={12} md={2}>
           <FormControl fullWidth>
-            <InputLabel>Air Cargo</InputLabel>
-            <Select defaultValue='' disabled sx={{ background: '#0000000D' }}>
+            {/* <InputLabel>Transport Type</InputLabel> */}
+            <Select
+              value={transportType}
+              onChange={handleChange}
+              label=''
+              sx={{ background: '#0000000D', border: 'none' }}
+            >
+              <MenuItem value='airCargo'>Air Cargo</MenuItem>
               <MenuItem value='airCargo1'>Air Cargo 1</MenuItem>
               <MenuItem value='airCargo2'>Air Cargo 2</MenuItem>
             </Select>
@@ -148,8 +161,24 @@ const BasicDetailsAddEdit = ({
         >
           Reset
         </Button>
-        <Button variant='contained' color='primary' onClick={onSave}>
-          Save
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={onSave}
+          endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
+          disabled={loader}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1,
+            minWidth: 120
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            Save
+            {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
+          </span>
         </Button>
       </Box>
     </>

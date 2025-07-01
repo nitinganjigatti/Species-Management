@@ -1,13 +1,54 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, Typography, Grid, Box, Button } from '@mui/material'
 import { ChevronRight } from '@mui/icons-material'
 import AddAnimalsDrawer from '../drawer/AddAnimalsDrawer'
+import { getExportAnimalList } from 'src/lib/api/compliance/shipment'
 
-const ExportCard = ({ exportId, exporter, species, animals }) => {
+const ExportCard = ({
+  exportId,
+  exportNumber,
+  exporter,
+  species,
+  animals,
+  exporterCountry,
+  onExportCardSelect,
+  selectedExportData,
+  setSelectedExportData,
+  draftData,
+  setDraftData
+}) => {
   const [addAnimalsDrawerOpen, setAddAnimalsDrawerOpen] = useState(false)
-  const handleClickAnimals = () => {
+  const [exportID, setexportID] = useState('')
+  const [exportAnimalData, setexportAnimalData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const handleClickAnimals = val => {
     setAddAnimalsDrawerOpen(true)
+    setexportID(val)
+    setDraftData(JSON.parse(JSON.stringify(selectedExportData)))
   }
+
+  const fetchExportAnimalData = async () => {
+    try {
+      setLoading(true)
+      if (exportID) {
+        const response = await getExportAnimalList(exportID)
+        console.log(response, 'response')
+        setLoading(false)
+        setexportAnimalData(response.data)
+      } else {
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Error fetching species data:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (addAnimalsDrawerOpen) {
+      fetchExportAnimalData()
+    }
+  }, [addAnimalsDrawerOpen])
+
   return (
     <>
       <Card
@@ -21,22 +62,23 @@ const ExportCard = ({ exportId, exporter, species, animals }) => {
           backgroundColor: '#fff',
           boxShadow: 'none'
         }}
-        onClick={handleClickAnimals}
+        onClick={() => handleClickAnimals(exportId)}
       >
         {/* Left Section */}
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
           <Typography variant='subtitle2' color='#7A8684' fontWeight='400'>
-            Export ID : <span style={{ color: '#44544A', fontWeight: '500' }}>{exportId}</span>
+            Export ID : <span style={{ color: '#44544A', fontWeight: '500' }}>{exportNumber}</span>
           </Typography>
           <Typography variant='body2' color='#7A8684' fontWeight='400'>
-            Exporter : <span style={{ color: '#44544A', fontWeight: '500' }}>{exporter}</span>
+            Exporter :{' '}
+            <span style={{ color: '#44544A', fontWeight: '500' }}>
+              {exporter},{exporterCountry}
+            </span>
           </Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item>
               <Button
                 size='small'
-                //variant='outlined'
-                //disableElevation
                 sx={{
                   backgroundColor: '#EFF5F2',
                   color: '#44544A',
@@ -55,8 +97,6 @@ const ExportCard = ({ exportId, exporter, species, animals }) => {
             <Grid item>
               <Button
                 size='small'
-                //variant='contained'
-                //disableElevation
                 sx={{
                   backgroundColor: '#EFF5F2',
                   color: '#44544A',
@@ -93,6 +133,15 @@ const ExportCard = ({ exportId, exporter, species, animals }) => {
         open={addAnimalsDrawerOpen}
         onClose={() => setAddAnimalsDrawerOpen(false)}
         title='Add Animals'
+        exportAnimalData={exportAnimalData}
+        exportID={exportID}
+        onExportCardSelect={onExportCardSelect}
+        selectedExportData={selectedExportData}
+        setSelectedExportData={setSelectedExportData}
+        exportNumber={exportNumber}
+        loading={loading}
+        setDraftData={setDraftData}
+        draftData={draftData}
       />
     </>
   )

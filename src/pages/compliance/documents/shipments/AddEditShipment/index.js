@@ -9,33 +9,57 @@ import ShipmentBasicDetails from 'src/views/pages/compliance/documents/shipment/
 
 const AddEditShipment = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, action } = router.query
   const isEdit = Boolean(id && id !== 'new')
   const [expanded, setExpanded] = useState('permit-details') // Accordion open state
-  const [showEdit, setShowEdit] = useState(false)
+  const [showEdit, setShowEdit] = useState(true)
   const [showEditAnimals, setShowEditAnimals] = useState(false)
-  const [status, setStatus] = useState('Draft')
+  const [status, setStatus] = useState('draft')
   const animalsEditRef = useRef() // ref to trigger child
   const basicDetailsEditRef = useRef()
+
+  useEffect(() => {
+    if (isEdit && action === 'edit') {
+      setShowEdit(true)
+    }
+  }, [isEdit, action])
 
   return (
     <>
       <Box sx={{ mb: 2 }}>
+        {console.log(action, 'action')}
         <Breadcrumbs aria-label='breadcrumb'>
           <Typography>Shipment Documents</Typography>
           <Typography onClick={() => router.push('/compliance/documents/shipments')} sx={{ cursor: 'pointer' }}>
             Shipments
           </Typography>
-          <Typography color='text.primary'>{isEdit ? 'Edit Shipment Permit' : 'New Shipment Permit'}</Typography>
+          <Typography color='text.primary'>
+            {action === 'edit'
+              ? 'Edit Shipment Permit'
+              : action === 'details'
+              ? 'Shipment Details'
+              : 'New Shipment Permit'}
+          </Typography>
         </Breadcrumbs>
       </Box>
 
       <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mb: 3, mt: 6 }}>
         {/* Left section: Back icon and title */}
-        <Box display='flex' alignItems='center'>
+        <Box
+          display='flex'
+          alignItems='center'
+          onClick={() => router.push('/compliance/documents/shipments')}
+          sx={{ cursor: 'pointer' }}
+        >
           <Icon style={{ cursor: 'pointer', color: '#44544A' }} icon='material-symbols:arrow-back' />
           <CardHeader
-            title={isEdit ? 'Edit Shipment Permit' : 'Shipment Permit'}
+            title={
+              action === 'edit'
+                ? 'Edit Shipment Permit'
+                : action === 'details'
+                ? 'Shipment Details'
+                : 'New Shipment Permit'
+            }
             titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
             sx={{ paddingLeft: 2, py: 0, pr: 0 }}
           />
@@ -50,12 +74,12 @@ const AddEditShipment = () => {
             size='small'
             sx={{ minWidth: 140, fontWeight: 600, background: '#FFE86E', color: '#000' }}
           >
-            <MenuItem value='Draft'>Draft</MenuItem>
-            <MenuItem value='Completed'>Completed</MenuItem>
+            <MenuItem value='draft'>Draft</MenuItem>
+            <MenuItem value='completed'>Completed</MenuItem>
           </Select>
         </Box>
       </Box>
-
+      {console.log(id, 'id')}
       {/* PERMIT DETAILS SECTION */}
       <CustomAccordion
         id='permit-details'
@@ -71,7 +95,7 @@ const AddEditShipment = () => {
             }}
           >
             <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>
-            {!showEdit && expanded === 'permit-details' ? (
+            {showEdit && expanded === 'permit-details' && id && action === 'details' ? (
               <Box
                 sx={{
                   display: 'flex',
@@ -84,7 +108,10 @@ const AddEditShipment = () => {
                   py: 1,
                   borderRadius: '5px'
                 }}
-                onClick={() => basicDetailsEditRef.current?.()} // trigger SpeciesAddEdit
+                onClick={() => {
+                  basicDetailsEditRef.current?.()
+                  router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
+                }}
               >
                 <Icon
                   style={{ fontSize: '15px', cursor: 'pointer', marginRight: '4px', color: '#006D35' }}
@@ -102,7 +129,13 @@ const AddEditShipment = () => {
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <ShipmentBasicDetails onEditClick={basicDetailsEditRef} setShowEdit={setShowEdit} showEdit={showEdit} />
+        <ShipmentBasicDetails
+          onEditClick={basicDetailsEditRef}
+          setShowEdit={setShowEdit}
+          showEdit={showEdit}
+          status={status}
+          setStatus={setStatus}
+        />
       </CustomAccordion>
 
       <CustomAccordion

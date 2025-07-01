@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useContext } from 'react'
 import { Badge, Box, Breadcrumbs, Button, Card, CardHeader, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
+import Router from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Search from 'src/views/utility/Search'
@@ -10,6 +11,7 @@ import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { getShipmentList } from 'src/lib/api/compliance/shipment'
 import { formatDate } from 'src/@core/utils/format'
+import BasicDetails from 'src/views/pages/compliance/documents/shipment/view-component/BasicDetails'
 
 const ShipmentPage = () => {
   const router = useRouter()
@@ -18,6 +20,7 @@ const ShipmentPage = () => {
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [selectedId, setSelectedId] = useState(null)
   const [sortModel, setSortModel] = useState([])
   const [filterDate, setFilterDate] = useState({})
   const filterCount = 0
@@ -74,24 +77,40 @@ const ShipmentPage = () => {
     debouncedSearch(val)
   }
 
+  const handleRowClick = params => {
+    setSelectedId(params.row.id)
+
+    Router.push(`/compliance/documents/shipments/AddEditShipment/?id=${params.row.id}&action=details`)
+  }
+
   const columns = [
     {
       flex: 0.12,
       minWidth: 100,
       field: 'shipment_number',
       headerName: 'Shipment ID',
-      renderCell: params => (
-        <Typography
-          sx={{
-            cursor: 'pointer',
-            px: 3,
-            width: '100%'
-          }}
-          onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
-        >
-          {params.value}
-        </Typography>
-      )
+      renderCell: params => {
+        const rawValue = params.value || ''
+        const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+        const formattedValue =
+          removeSpaceValue.length > 3
+            ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}`
+            : removeSpaceValue
+
+        console.log(formattedValue)
+        return (
+          <Typography
+            sx={{
+              cursor: 'pointer',
+              px: 3,
+              width: '100%'
+            }}
+            onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
+          >
+            {formattedValue}
+          </Typography>
+        )
+      }
     },
     {
       flex: 0.03,
@@ -116,7 +135,7 @@ const ShipmentPage = () => {
     },
     {
       flex: 0.15,
-      minWidth: 180,
+      minWidth: 150,
       field: 'shipment_date',
       headerName: 'Shipment Date',
       renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{formatDate(params.value)}</Typography>
@@ -224,6 +243,7 @@ const ShipmentPage = () => {
               setPaginationModel={setPaginationModel}
               handleSortModel={newModel => setSortModel(newModel)}
               loading={loading}
+              onRowClick={handleRowClick}
             />
           </Grid>
         </Grid>

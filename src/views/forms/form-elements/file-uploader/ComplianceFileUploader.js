@@ -72,7 +72,7 @@ const FileUpload = ({ name, file, onFileUpload }) => {
             }}
           >
             <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
-            {file.name}
+            {file.name || file.file_original_name}
           </Typography>
           <IconButton onClick={handleRemoveFile} sx={{ ml: 1, background: '#0000000D', p: 0 }}>
             <Icon icon={'ion:close-outline'} style={{ color: '#1F515B', fontSize: '20px' }} />

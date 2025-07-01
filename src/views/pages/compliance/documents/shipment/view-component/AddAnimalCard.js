@@ -1,86 +1,229 @@
-import React, { useState } from 'react'
-import { Box, Typography, TextField, Button, Grid, useMediaQuery, useTheme } from '@mui/material'
+import React, { useState, useEffect } from 'react'
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  useMediaQuery,
+  useTheme,
+  CircularProgress,
+  CardContent
+} from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import SelectAnimalsDrawer from '../drawer/SelectAnimalsDrawer'
+import Toaster from 'src/components/Toaster'
 
-const AnimalCardLayout = () => {
-  // Sample data for multiple cards
-  const cardsData = [
-    {
-      id: 1,
-      title: 'Red fox',
-      subtitle: 'Vulpes vulpes',
-      available: '8/10 animals available for shipment',
-      shipment: '4/8',
-      male: 2,
-      female: 2,
-      unknown: 0,
-      selected: 2
-    },
-    {
-      id: 2,
-      title: 'Grey wolf',
-      subtitle: 'Canis lupus',
-      available: '5/6 animals available for shipment',
-      shipment: '3/5',
-      male: 1,
-      female: 2,
-      unknown: 1,
-      selected: 3
-    },
-    {
-      id: 3,
-      title: 'Arctic hare',
-      subtitle: 'Lepus arcticus',
-      available: '7/10 animals available for shipment',
-      shipment: '6/7',
-      male: 3,
-      female: 3,
-      unknown: 1,
-      selected: 6
-    },
-    {
-      id: 4,
-      title: 'Arctic hare',
-      subtitle: 'Lepus arcticus',
-      available: '7/10 animals available for shipment',
-      shipment: '6/7',
-      male: 3,
-      female: 3,
-      unknown: 1,
-      selected: 6
-    },
-    {
-      id: 5,
-      title: 'Arctic hare',
-      subtitle: 'Lepus arcticus',
-      available: '7/10 animals available for shipment',
-      shipment: '6/7',
-      male: 3,
-      female: 3,
-      unknown: 1,
-      selected: 6
-    },
-    {
-      id: 6,
-      title: 'Arctic hare',
-      subtitle: 'Lepus arcticus',
-      available: '7/10 animals available for shipment',
-      shipment: '6/7',
-      male: 3,
-      female: 3,
-      unknown: 1,
-      selected: 6
-    }
-  ]
-
+const AnimalCardLayout = ({
+  exportAnimalData,
+  onSelect,
+  loading,
+  selectedExportData,
+  setSelectedExportData,
+  exportNumber,
+  exportID,
+  onClose,
+  draftData,
+  setDraftData
+}) => {
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [selectAnimalsDrawerOpen, setselectAnimalsDrawerOpen] = useState(false)
+  const [animalLists, setanimalLists] = useState([])
+  const [allSelectedAnimals, setAllSelectedAnimals] = useState([])
+  const [speciesData, setspeciesData] = useState([])
+  const [speciesId, setspeciesId] = useState('')
+  const [selectedCounts, setSelectedCounts] = useState({})
+  const [currentSpeciesIndex, setCurrentSpeciesIndex] = useState(null)
+  const [commonNameValue, setCommonNameValue] = useState('')
+  // Initialize selectedExportData
+  useEffect(() => {
+    if (exportAnimalData?.species && !draftData) {
+      const initialData = exportAnimalData.species.map(species => ({
+        male_count: '',
+        female_count: '',
+        undeterminate_count: ''
+      }))
+      setDraftData(initialData)
+    }
+  }, [exportAnimalData, draftData])
 
-  const handleSelectAnimalsClick = () => {
+  // useEffect(() => {
+  //   setAllSelectedAnimals([
+  //     {
+  //       id: '17',
+  //       export_species_id: '8'
+  //     }
+  //   ])
+  // }, [])
+
+  const handleSelectAnimalsClick = (val, index, speciesId, name) => {
+    console.log(name, 'name')
     setselectAnimalsDrawerOpen(true)
+    setanimalLists(val)
+    setspeciesId(speciesId)
+    setspeciesData(val)
+    setCurrentSpeciesIndex(index) // Store the current index
+    setCommonNameValue(name)
   }
+
+  // Find the current export object
+  const currentExport = draftData?.export?.find(exp => exp.export_id === exportID) || { species: [] }
+
+  // Find species index for the current card
+  const findSpeciesIndex = speciesId => {
+    return currentExport?.species?.findIndex(s => s.species_id === speciesId)
+  }
+
+  const handleCountChange = (speciesId, field, value, max) => {
+    const val = value === '' ? '' : Number(value)
+    if (val === '' || (!isNaN(val) && val <= max)) {
+      setDraftData(prev => {
+        // Deep clone the state to avoid direct mutations
+        const updated = JSON.parse(JSON.stringify(prev))
+
+        // Find or create the export entry
+        let exportIndex = updated.export.findIndex(e => e.export_id === exportID)
+        if (exportIndex === -1) {
+          updated.export.push({
+            export_id: exportID,
+            export_number: exportNumber,
+            species: []
+          })
+          exportIndex = updated.export.length - 1
+        }
+        console.log(updated, 'updated')
+        console.log(speciesId, 'speciesId')
+        // Find or create the species entry
+        let speciesIndex = updated.export[exportIndex].species.findIndex(s => s.species_id === String(speciesId))
+        console.log(speciesIndex, 'speciesIndex')
+        if (speciesIndex === -1) {
+          // Find matching species data from exportAnimalData
+          const matchingSpecies = exportAnimalData.species.find(s => s.id === String(speciesId))
+          console.log(matchingSpecies, 'matchingSpecies')
+          // Create new species entry with data from exportAnimalData if found
+          const newSpecies = {
+            species_id: speciesId,
+            export_id: exportID,
+            appendix: matchingSpecies?.appendix || '',
+            common_name: matchingSpecies?.common_name || '',
+            scientific_name: matchingSpecies?.scientific_name || '',
+            taxonomy_id: matchingSpecies?.taxonomy_id || '',
+            male_count: '',
+            female_count: '',
+            undeterminate_count: '',
+            animals: []
+          }
+
+          updated.export[exportIndex].species.push(newSpecies)
+          speciesIndex = updated.export[exportIndex].species.length - 1
+        } else {
+          // If species exists, ensure it has all fields from exportAnimalData
+          const matchingSpecies = exportAnimalData.species.find(s => s.id === String(speciesId))
+          if (matchingSpecies) {
+            updated.export[exportIndex].species[speciesIndex] = {
+              ...updated.export[exportIndex].species[speciesIndex],
+              appendix: matchingSpecies.appendix || '',
+              common_name: matchingSpecies.common_name || '',
+              scientific_name: matchingSpecies.scientific_name || '',
+              taxonomy_id: matchingSpecies.taxonomy_id || ''
+            }
+          }
+        }
+
+        // Update the specific field
+        updated.export[exportIndex].species[speciesIndex][field] = val
+
+        return updated
+      })
+    }
+  }
+
+  const handleAnimalsSelected = (speciesId, selectedAnimals) => {
+    setDraftData(prev => {
+      const exportIndex = prev.export.findIndex(e => e.export_id === exportID)
+      const speciesIndex = prev.export[exportIndex].species.findIndex(s => s.species_id === speciesId)
+
+      const updated = JSON.parse(JSON.stringify(prev)) // Deep clone
+      updated.export[exportIndex].species[speciesIndex].animals = selectedAnimals
+      return updated
+    })
+
+    // No need for separate setSelectedCounts here - useEffect will handle it
+  }
+
+  useEffect(() => {
+    // Initialize or update selectedCounts based on selectedExportData
+    const newSelectedCounts = {}
+
+    draftData.export?.forEach(exportItem => {
+      exportItem.species?.forEach(species => {
+        newSelectedCounts[species.species_id] = species.animals?.length || 0
+      })
+    })
+    setSelectedCounts(newSelectedCounts)
+    // setSelectedCounts(prev => ({
+    //   ...prev,
+    //   ...newSelectedCounts
+    // }))
+  }, [draftData]) // Run whenever selectedExportData changes
+
+  const isDoneDisabled = () => {
+    // First check if exportID exists in selectedExportData
+    const exportExists = draftData?.export?.some(exportItem => exportItem.export_id === exportID)
+
+    if (!exportExists) return true // Disable if exportID doesn't exist
+
+    // Then check if any species in this export has counts > 0
+    return !draftData?.export?.some(
+      exportItem =>
+        exportItem.export_id === exportID &&
+        exportItem.species?.some(
+          speciesItem =>
+            Number(speciesItem.male_count || 0) > 0 ||
+            Number(speciesItem.female_count || 0) > 0 ||
+            Number(speciesItem.undeterminate_count || 0) > 0
+        )
+    )
+  }
+
+  const handleDone = () => {
+    // Filter out empty export objects and validate each export
+    const validatedExports = draftData.export
+      .filter(exp => exp.export_id !== '') // Remove empty export objects
+      .map(exp => ({
+        ...exp,
+        species: exp.species
+          .filter(s => s.species_id !== '') // Remove empty species objects
+          .filter(
+            s =>
+              Number(s.male_count || 0) > 0 ||
+              Number(s.female_count || 0) > 0 ||
+              Number(s.undeterminate_count || 0) > 0 ||
+              s.animals.length > 0
+          )
+      }))
+      .filter(exp => exp.species.length > 0) // Remove exports with no valid species
+
+    if (validatedExports.length === 0) {
+      Toaster({
+        type: 'error',
+        message: 'Please complete at least one export entry'
+      })
+      return
+    }
+
+    onSelect({
+      export: validatedExports,
+      others: [] // Add your others data if needed
+    })
+    // setSelectedExportData({
+    //   export: validatedExports,
+    //   others: [] // Add your others data if needed
+    // })
+    onClose()
+  }
+
   return (
     <>
       <Box
@@ -92,160 +235,261 @@ const AnimalCardLayout = () => {
           gridTemplateColumns: isSmallScreen ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))'
         }}
       >
-        {cardsData.map(card => (
-          <Box
-            key={card.id}
-            sx={{
-              border: '1px solid #C3CEC7',
-              borderRadius: '8px',
-              padding: '16px',
-              backgroundColor: '#FFFFFF'
-            }}
-          >
-            {/* Title and Subtitle */}
-            <Typography variant='h6' sx={{ fontWeight: '500', color: '#44544A' }}>
-              {card.title}
-            </Typography>
-            <Typography
-              //variant='subtitle2'
-              sx={{ color: '#44544A', fontStyle: 'italic', fontSize: '400', fontSize: '16px' }}
-            >
-              {card.subtitle}
-            </Typography>
-            <Typography
-              sx={{ color: '#44544A', marginTop: '8px', marginBottom: '16px', fontSize: '400', fontSize: '16px' }}
-            >
-              {card.available}
-            </Typography>
-
-            {/* Animals Part of Shipment */}
-            <Box
-              sx={{
-                border: '1px solid #0000000D',
-                borderRadius: '8px',
-                padding: '16px',
-                backgroundColor: '#E8F4F266'
-              }}
-            >
-              <Grid container justifyContent='space-between' alignItems='center'>
-                <Typography variant='subtitle2' sx={{ fontWeight: '400', color: '#44544A', fontSize: '16px' }}>
-                  Animals part of shipment:
-                </Typography>
-                <Typography variant='subtitle2' sx={{ fontWeight: '500', color: '#1F415B', fontSize: '24px' }}>
-                  {card.shipment}
-                </Typography>
-              </Grid>
-
-              {/* Input Fields */}
-              <Grid container spacing={2} sx={{ marginTop: '8px' }}>
-                <Grid item xs={4}>
-                  <Typography
-                    variant='caption'
-                    sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
-                  >
-                    Male <span style={{ fontWeight: '500' }}>({card.male})</span>
-                  </Typography>
-                  <TextField
-                    size='small'
-                    type='number'
-                    value={card.male}
-                    InputProps={{ inputProps: { min: 0 } }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px'
-                      }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography
-                    variant='caption'
-                    sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
-                  >
-                    Female <span style={{ fontWeight: '500' }}>({card.female})</span>
-                  </Typography>
-                  <TextField
-                    size='small'
-                    type='number'
-                    //value={card.female}
-                    InputProps={{ inputProps: { min: 0 } }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px'
-                      }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant='caption' sx={{ display: 'block', color: '#7A8684', marginBottom: '4px' }}>
-                    Unknown ({card.unknown})
-                  </Typography>
-                  <TextField
-                    size='small'
-                    value={`# Unknown`}
-                    disabled
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',
-                        backgroundColor: '#EDF2F7'
-                      }
-                    }}
-                  />
-                </Grid>
-              </Grid>
-              <Grid container justifyContent='space-between' alignItems='center' sx={{ marginTop: '26px' }}>
-                <Typography
-                  sx={{
-                    textTransform: 'none',
-                    color: '#006D35',
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontWeight: 500,
-                    pl: 0,
-                    fontSize: '16px',
-                    cursor: 'pointer'
-                  }}
-                  onClick={handleSelectAnimalsClick}
-                >
-                  Select from list
-                  <ChevronRightIcon sx={{ fontSize: '22px', marginLeft: '4px' }} />
-                </Typography>
-                <Typography sx={{ color: '#44544A', fontWeight: '500', fontSize: '16px' }}>
-                  {card.selected} Selected
-                </Typography>
-              </Grid>
+        {loading ? (
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+              <CircularProgress />
             </Box>
-          </Box>
-        ))}
+          </CardContent>
+        ) : exportAnimalData?.species?.length > 0 ? (
+          exportAnimalData?.species?.map((card, index) => {
+            const speciesIndex = findSpeciesIndex(card.id)
+            console.log(currentExport, 'currentExport')
+            console.log(speciesIndex, 'speciesIndex')
+            const speciesData = currentExport.species[speciesIndex] || {
+              male_count: '',
+              female_count: '',
+              undeterminate_count: '',
+              animals: []
+            }
+            return (
+              <Box
+                key={card.id}
+                sx={{
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  backgroundColor: '#FFFFFF'
+                }}
+              >
+                {/* Title and Subtitle */}
+                <Typography variant='h6' sx={{ fontWeight: '500', color: '#44544A' }}>
+                  {card.common_name}
+                </Typography>
+                <Typography
+                  //variant='subtitle2'
+                  sx={{ color: '#44544A', fontStyle: 'italic', fontSize: '400', fontSize: '16px' }}
+                >
+                  {card.scientific_name}
+                </Typography>
+                <Typography
+                  sx={{ color: '#44544A', marginTop: '8px', marginBottom: '16px', fontSize: '400', fontSize: '16px' }}
+                >
+                  {`${card.total_balance_animal}/${card.total_count}`} animals available for shipment
+                </Typography>
+
+                {/* Animals Part of Shipment */}
+                <Box
+                  sx={{
+                    border: '1px solid #0000000D',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    backgroundColor: '#E8F4F266'
+                  }}
+                >
+                  <Grid container justifyContent='space-between' alignItems='center'>
+                    <Typography variant='subtitle2' sx={{ fontWeight: '400', color: '#44544A', fontSize: '16px' }}>
+                      Animals part of shipment:
+                    </Typography>
+                    <Typography variant='subtitle2' sx={{ fontWeight: '500', color: '#1F415B', fontSize: '24px' }}>
+                      {`${
+                        (speciesData.male_count || 0) +
+                        (speciesData.female_count || 0) +
+                        (speciesData.undeterminate_count || 0)
+                      }/${card.total_balance_animal || 0}`}
+                    </Typography>
+                  </Grid>
+
+                  {/* Input Fields */}
+                  <Grid container spacing={2} sx={{ marginTop: '8px' }}>
+                    <Grid item xs={4}>
+                      <Typography
+                        variant='caption'
+                        sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
+                      >
+                        Male <span style={{ fontWeight: '500' }}>({card.total_balance_male_animal})</span>
+                      </Typography>
+                      <TextField
+                        size='small'
+                        type='number'
+                        // value={selectedExportData?.[index]?.male_count ?? ''}
+                        // onChange={e =>
+                        //   handleCountChange(index, 'male_count', e.target.value, card.total_balance_male_animal)
+                        // }
+                        value={speciesData.male_count ?? ''}
+                        onChange={e =>
+                          handleCountChange(card.id, 'male_count', e.target.value, card.total_balance_male_animal)
+                        }
+                        InputProps={{
+                          inputProps: {
+                            min: 0,
+                            max: card.total_balance_male_animal
+                          }
+                        }}
+                        disabled={card.total_balance_male_animal === '0'}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            backgroundColor: card.total_balance_male_animal === '0' ? '#0000000D' : '#FFFFFF'
+                          },
+                          width: '95%'
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Typography
+                        variant='caption'
+                        sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
+                      >
+                        Female <span style={{ fontWeight: '500' }}>({card.total_balance_female_animal})</span>
+                      </Typography>
+                      <TextField
+                        size='small'
+                        type='number'
+                        // value={selectedExportData?.[index]?.female_count ?? ''}
+                        // onChange={e =>
+                        //   handleCountChange(index, 'female_count', e.target.value, card.total_balance_female_animal)
+                        // }
+                        value={speciesData.female_count ?? ''}
+                        onChange={e =>
+                          handleCountChange(card.id, 'female_count', e.target.value, card.total_balance_female_animal)
+                        }
+                        InputProps={{
+                          inputProps: {
+                            min: 0,
+                            max: card.total_balance_female_animal
+                          }
+                        }}
+                        disabled={card.total_balance_female_animal === '0'}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            backgroundColor: card.total_balance_female_animal === '0' ? '#0000000D' : '#FFFFFF'
+                          },
+                          width: '95%'
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Typography variant='caption' sx={{ display: 'block', color: '#7A8684', marginBottom: '4px' }}>
+                        Unknown ({card.total_balance_undeterminate_animal})
+                      </Typography>
+                      <TextField
+                        size='small'
+                        type='number'
+                        // value={selectedExportData?.[index]?.undeterminate_count ?? ''}
+                        // onChange={e =>
+                        //   handleCountChange(
+                        //     index,
+                        //     'undeterminate_count',
+                        //     e.target.value,
+                        //     card.total_balance_undeterminate_animal
+                        //   )
+                        // }
+                        value={speciesData.undeterminate_count ?? ''}
+                        onChange={e =>
+                          handleCountChange(
+                            card.id,
+                            'undeterminate_count',
+                            e.target.value,
+                            card.total_balance_undeterminate_animal
+                          )
+                        }
+                        InputProps={{
+                          inputProps: {
+                            min: 0,
+                            max: card.total_balance_undeterminate_animal
+                          }
+                        }}
+                        disabled={card.total_balance_undeterminate_animal === '0'}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            backgroundColor: card.total_balance_undeterminate_animal === '0' ? '#0000000D' : '#FFFFFF'
+                          },
+                          width: '95%'
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                  {draftData.export?.some(exportItem =>
+                    exportItem.species?.some(
+                      species =>
+                        species.species_id === card.id &&
+                        (Number(species.male_count || 0) > 0 ||
+                          Number(species.female_count || 0) > 0 ||
+                          Number(species.undeterminate_count || 0) > 0)
+                    )
+                  ) && (
+                    <Grid container justifyContent='space-between' alignItems='center' sx={{ marginTop: '26px' }}>
+                      <Typography
+                        sx={{
+                          textTransform: 'none',
+                          color: '#006D35',
+                          display: 'flex',
+                          alignItems: 'center',
+                          fontWeight: 500,
+                          pl: 0,
+                          fontSize: '16px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => handleSelectAnimalsClick(card.animals, index, card.id, card.common_name)}
+                      >
+                        Select from list
+                        <ChevronRightIcon sx={{ fontSize: '22px', marginLeft: '4px' }} />
+                      </Typography>
+                      <Typography sx={{ color: '#44544A', fontWeight: '500', fontSize: '16px' }}>
+                        {selectedCounts[card.id] || 0} Selected
+                      </Typography>
+                    </Grid>
+                  )}
+                </Box>
+              </Box>
+            )
+          })
+        ) : (
+          <Typography>No Species to show</Typography>
+        )}
       </Box>
       {/* Sticky footer */}
-      <Box
-        sx={{
-          position: 'sticky',
-          bottom: 0,
-          px: 5,
-          py: 4,
-          mt: 4,
-          backgroundColor: theme.palette.common.white,
-          boxShadow: `0px -4px 21px 0px ${
-            theme.palette.mode === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)'
-          }`,
-          zIndex: 1
-        }}
-      >
-        <Button
-          fullWidth
-          variant='contained'
-          //onClick={handleDone}
-          //disabled={newlySelectedItems.length === 0}
+      {console.log(selectedExportData, 'selectedExportData')}
+      {exportAnimalData?.species?.length > 0 && !loading && (
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            px: 5,
+            py: 4,
+            mt: 4,
+            backgroundColor: theme.palette.common.white,
+            boxShadow: `0px -4px 21px 0px ${
+              theme.palette.mode === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)'
+            }`,
+            zIndex: 1
+          }}
         >
-          Done
-        </Button>
-      </Box>
+          <Button fullWidth variant='contained' onClick={handleDone} disabled={isDoneDisabled()}>
+            Add
+          </Button>
+        </Box>
+      )}
+
       <SelectAnimalsDrawer
         open={selectAnimalsDrawerOpen}
         onClose={() => setselectAnimalsDrawerOpen(false)}
+        animalLists={animalLists}
+        exportNumber={exportNumber}
         title='Select Animals'
+        speciesId={speciesId}
+        // onSelectAnimals={handleAnimalsSelected}
+        // initialSelectedAnimals={getAnimalsForSpecies(speciesId)}
+        speciesData={currentExport.species.find(s => s.species_id === speciesId) || {}}
+        onSelectAnimals={selected => handleAnimalsSelected(speciesId, selected)}
+        initialSelectedAnimals={currentExport.species.find(s => s.species_id === speciesId)?.animals || []}
+        selectedExportData={selectedExportData}
+        exportID={exportID}
+        draftData={draftData}
+        commonNameValue={commonNameValue}
       />
     </>
   )

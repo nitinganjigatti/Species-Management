@@ -1,19 +1,130 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Typography, Box, Drawer, IconButton, Avatar, Checkbox, Button } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
+import Toaster from 'src/components/Toaster'
 
-const animalData = [
-  { id: 1, gender: 'M', species: 'Vulpes vulpes (red fox)', microchipId: '132143124132143124' },
-  { id: 2, gender: 'M', species: 'Vulpes vulpes (red fox)', microchipId: '132143124132143124' },
-  { id: 3, gender: 'F', species: 'Vulpes vulpes (red fox)', microchipId: '132143124132143124' },
-  { id: 4, gender: 'F', species: 'Vulpes vulpes (red fox)', microchipId: '132143124132143124' },
-  { id: 4, gender: 'F', species: 'Vulpes vulpes (red fox)', microchipId: '132143124132143124' },
-  { id: 4, gender: 'F', species: 'Vulpes vulpes (red fox)', microchipId: '132143124132143124' }
-]
-
-const SelectAnimalsDrawer = ({ open, onClose, title }) => {
+const SelectAnimalsDrawer = ({
+  open,
+  onClose,
+  title,
+  animalLists,
+  exportNumber,
+  onSelectAnimals,
+  speciesId,
+  speciesData,
+  exportID,
+  selectedExportData,
+  draftData,
+  commonNameValue,
+  initialSelectedAnimals = []
+}) => {
   const theme = useTheme()
+  const [selectedAnimals, setSelectedAnimals] = useState(initialSelectedAnimals)
+
+  // Update local state when initialSelectedAnimals changes
+  useEffect(() => {
+    setSelectedAnimals(initialSelectedAnimals)
+  }, [initialSelectedAnimals, open])
+
+  const handleCheckboxChange = animal => {
+    setSelectedAnimals(prev => {
+      const isSelected = prev.some(a => a.id === animal.id)
+      if (isSelected) {
+        return prev.filter(a => a.id !== animal.id)
+      } else {
+        return [...prev, animal]
+      }
+    })
+  }
+
+  const validateSelection = () => {
+    // Find the species in selectedExportData
+    const exportItem = draftData.export.find(e => e.export_id === exportID)
+    const speciesData = exportItem?.species?.find(s => s.species_id === speciesId)
+
+    const counts = {
+      male: 0,
+      female: 0,
+      undeterminate: 0
+    }
+
+    selectedAnimals.forEach(animal => {
+      if (animal.gender === 'male') counts.male++
+      else if (animal.gender === 'female') counts.female++
+      else counts.undeterminate++
+    })
+
+    // Check against allowed counts from selectedExportData
+    if (speciesData) {
+      // Check for zero counts first
+      if (counts.male > 0 && Number(speciesData.male_count || 0) === 0) {
+        Toaster({
+          type: 'error',
+          message: 'Cannot select male animals (count is 0)'
+        })
+        return false
+      }
+      if (counts.female > 0 && Number(speciesData.female_count || 0) === 0) {
+        Toaster({
+          type: 'error',
+          message: 'Cannot select female animals (count is 0)'
+        })
+        return false
+      }
+      if (counts.undeterminate > 0 && Number(speciesData.undeterminate_count || 0) === 0) {
+        Toaster({
+          type: 'error',
+          message: 'Cannot select unknown animals (count is 0)'
+        })
+        return false
+      }
+
+      // Then check for exceeding counts
+      if (counts.male > Number(speciesData.male_count || 0)) {
+        Toaster({
+          type: 'error',
+          message: `Cannot select more than ${speciesData.male_count} male animals`
+        })
+        return false
+      }
+      if (counts.female > Number(speciesData.female_count || 0)) {
+        Toaster({
+          type: 'error',
+          message: `Cannot select more than ${speciesData.female_count} female animals`
+        })
+        return false
+      }
+      if (counts.undeterminate > Number(speciesData.undeterminate_count || 0)) {
+        Toaster({
+          type: 'error',
+          message: `Cannot select more than ${speciesData.undeterminate_count} unknown animals`
+        })
+        return false
+      }
+    }
+
+    return true
+  }
+
+  const handleSelect = () => {
+    // if (selectedAnimals.length === 0) {
+    //   Toaster({
+    //     type: 'error',
+    //     message: 'Please select at least one animal'
+    //   })
+    //   return
+    // }
+
+    // Validate gender counts
+    if (!validateSelection()) {
+      return
+    }
+
+    // If validation passes, proceed with selection
+    onSelectAnimals(selectedAnimals)
+    onClose()
+  }
 
   return (
     <Drawer
@@ -42,7 +153,7 @@ const SelectAnimalsDrawer = ({ open, onClose, title }) => {
             </IconButton>
           </Box>
         </Box>
-
+        {console.log(selectedExportData, 'selectedExportData')}
         <Box sx={{ backgroundColor: '#fff', px: 5, pb: 6, pt: 2 }}>
           <Box
             sx={{
@@ -61,7 +172,7 @@ const SelectAnimalsDrawer = ({ open, onClose, title }) => {
                 fontSize: '16px'
               }}
             >
-              Export ID : 8787979
+              Export ID : {exportNumber}
               {/* {data.exportId} */}
             </Typography>
 
@@ -72,7 +183,8 @@ const SelectAnimalsDrawer = ({ open, onClose, title }) => {
                 fontSize: '16px'
               }}
             >
-              <span style={{ fontSize: '14px', fontWeight: 400 }}>Species : </span>Vulpes vulpes (red fox)
+              <span style={{ fontSize: '14px', fontWeight: 400 }}>Species : </span>
+              {commonNameValue}
             </Typography>
           </Box>
         </Box>
@@ -89,8 +201,10 @@ const SelectAnimalsDrawer = ({ open, onClose, title }) => {
               borderRadius: '8px'
             }}
           >
-            <Typography sx={{ pt: 3, fontWeight: 500, fontSize: '18px', color: '#44544A' }}>Animals (4)</Typography>
-            {animalData.map(animal => (
+            <Typography sx={{ pt: 3, fontWeight: 500, fontSize: '18px', color: '#44544A' }}>
+              Animals ({animalLists.length})
+            </Typography>
+            {animalLists.map(animal => (
               <Box
                 key={animal.id}
                 sx={{
@@ -105,8 +219,8 @@ const SelectAnimalsDrawer = ({ open, onClose, title }) => {
                 {/* Gender Avatar */}
                 <Avatar
                   sx={{
-                    backgroundColor: animal.gender === 'M' ? '#AFEFEB80' : '#FA614026',
-                    color: animal.gender === 'M' ? '#00AFD6' : '#FA6140',
+                    backgroundColor: animal.gender === 'male' ? '#AFEFEB80' : '#FA614026',
+                    color: animal.gender === 'male' ? '#00AFD6' : '#FA6140',
                     fontWeight: '500',
                     marginRight: '16px',
                     fontSize: '14px',
@@ -116,19 +230,23 @@ const SelectAnimalsDrawer = ({ open, onClose, title }) => {
                     ml: 4
                   }}
                 >
-                  {animal.gender}
+                  {animal.gender === 'male' ? 'M' : animal.gender === 'female' ? 'F' : 'U'}
                 </Avatar>
 
                 {/* Animal Info */}
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
                     Species :{' '}
-                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>{animal.species}</span>
+                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                      {commonNameValue + ' ' + animal.id}
+                    </span>
                   </Typography>
 
                   <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
-                    Microchip ID :{' '}
-                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>{animal.microchipId}</span>
+                    {animal.identifier_type} :{' '}
+                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                      {animal.identifier_value}
+                    </span>
                   </Typography>
                 </Box>
 
@@ -146,7 +264,10 @@ const SelectAnimalsDrawer = ({ open, onClose, title }) => {
                     borderBottomRightRadius: '8px'
                   }}
                 >
-                  <Checkbox />
+                  <Checkbox
+                    checked={selectedAnimals.some(a => a.id === animal.id)}
+                    onChange={() => handleCheckboxChange(animal)}
+                  />
                 </Box>
               </Box>
             ))}
@@ -170,8 +291,8 @@ const SelectAnimalsDrawer = ({ open, onClose, title }) => {
           <Button
             fullWidth
             variant='contained'
-            //onClick={handleDone}
-            //disabled={newlySelectedItems.length === 0}
+            onClick={handleSelect}
+            disabled={initialSelectedAnimals.length === 0 && selectedAnimals.length === 0}
           >
             Select Animals
           </Button>
