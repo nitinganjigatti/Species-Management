@@ -65,6 +65,11 @@ const StickyTable = ({
   const [rearrangedColumns, setRearrangedColumns] = useState(columns)
   const [anchorEl, setAnchorEl] = useState(null)
 
+  const hasSubHeader = rearrangedColumns.some(col => Array.isArray(col.subHeader) && col.subHeader.length > 0)
+  const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+
+  // const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + subHeaderHeight
+
   useEffect(() => {
     const leftPinnedColumns = columns.filter(col => col.pinned === 'left')
     const rightPinnedColumns = columns.filter(col => col.pinned === 'right')
@@ -967,14 +972,16 @@ const StickyTable = ({
           component={Paper}
           sx={{
             borderRadius: 2,
-            height: rowSelection
-              ? Math.max(5 * (rowHeight + 0.88), defaultRowsInView * (rowHeight + 0.88)) +
-                headerHeight +
-                subHeaderHeight +
-                16
-              : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + -0.1)) +
-                headerHeight +
-                subHeaderHeight,
+            // height: rowSelection
+            //   ? Math.max(5 * (rowHeight + 0.88), defaultRowsInView * (rowHeight + 0.88)) +
+            //     headerHeight +
+            //     subHeaderHeight +
+            //     16
+            //   : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + -0.1)) +
+            //     headerHeight +
+            //     subHeaderHeight,
+            height: tableTotalHeight,
+            // maxHeight: tableTotalHeight,
             overflowY: 'auto',
             position: 'relative',
             border: '1px solid #ddd',
