@@ -2,12 +2,13 @@ import React from 'react'
 import { Box, Typography, Drawer, IconButton, Grid, useMediaQuery, Chip } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 
-const AnimalDetailDrawer = ({ open, onClose, specie }) => {
+const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  if (!specie) return null
+  if (!shipment) return null
 
   return (
     <Drawer open={open} onClose={onClose} anchor='right'>
@@ -23,7 +24,9 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
         {/* Header */}
         <Box sx={{ px: isMobile ? 3 : 4, pt: isMobile ? 2 : 3, pb: isMobile ? 1.5 : 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography sx={{ fontSize: isMobile ? '1.125rem' : '1.5rem', fontWeight: 500 }}>Animal Details</Typography>
+            <Typography sx={{ fontSize: isMobile ? '1.125rem' : '1.5rem', fontWeight: 500 }}>
+              Shipped Animals
+            </Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -32,6 +35,44 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
 
         {/* Content */}
         <Box sx={{ px: isMobile ? 3 : 4, flex: 1, overflowY: 'auto', pb: isMobile ? 3 : 4 }}>
+          {/* Shipment Info */}
+          <Typography
+            sx={{
+              mb: 3,
+              fontWeight: 500,
+              fontSize: isMobile ? '1rem' : '1.25rem',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Shipment
+          </Typography>
+          <Box
+            sx={{
+              p: isMobile ? 2 : 4,
+              mb: 3,
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: '8px',
+              backgroundColor: theme.palette.common.white
+            }}
+          >
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Shipment ID:</Typography>
+                <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1rem' }}>
+                  {shipment?.shipment_id}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
+                  Date of Issue:
+                </Typography>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
+                  {Utility.formatDisplayDate(shipment?.shipment_date)}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
+
           {/* Species Info */}
           <Typography
             sx={{
@@ -56,23 +97,25 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
             <Grid container spacing={4}>
               <Grid item xs={12} sm={6}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Species Name</Typography>
-                <Typography sx={{ fontWeight: 500 }}>{specie.common_name}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>{shipment?.species?.[specieIndex]?.common_name || '-'}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Scientific Name
                 </Typography>
-                <Typography sx={{ fontWeight: 500 }}>{specie.scientific_name}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>
+                  {shipment?.species?.[specieIndex]?.scientific_name || '-'}
+                </Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>CITES</Typography>
-                <Typography sx={{ fontWeight: 500 }}>{specie.appendix}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>{shipment?.species?.[specieIndex]?.appendix || '-'}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Total Animals
                 </Typography>
-                <Typography sx={{ fontWeight: 500 }}>{specie.total_count}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>{shipment?.species?.[specieIndex]?.total_count}</Typography>
               </Grid>
             </Grid>
 
@@ -90,9 +133,9 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                   justifyContent: 'flex-start'
                 }}
               >
-                {specie.male_count ? (
+                {shipment?.species?.[specieIndex]?.male_count ? (
                   <Chip
-                    label={`M - ${specie.male_count}`}
+                    label={`M - ${shipment?.species?.[specieIndex]?.male_count || 0}`}
                     size='small'
                     sx={{
                       bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
@@ -102,9 +145,9 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                   />
                 ) : null}
 
-                {specie.female_count ? (
+                {shipment?.species?.[specieIndex]?.female_count ? (
                   <Chip
-                    label={`F - ${specie.female_count}`}
+                    label={`F - ${shipment?.species?.[specieIndex]?.female_count || 0}`}
                     size='small'
                     sx={{
                       bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
@@ -114,9 +157,9 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                   />
                 ) : null}
 
-                {specie.undeterminate_count ? (
+                {shipment?.species?.[specieIndex]?.undeterminate_count ? (
                   <Chip
-                    label={`UD - ${specie.undeterminate_count}`}
+                    label={`UD - ${shipment?.species?.[specieIndex]?.undeterminate_count || 0}`}
                     size='small'
                     sx={{
                       bgcolor: theme.palette.customColors.displaybgSecondary,
@@ -130,18 +173,21 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
           </Box>
 
           {/* Animals with Identifier */}
-          {specie?.animals?.length && (
-            <Typography
-              sx={{
-                mb: 3,
-                fontWeight: 500,
-                fontSize: isMobile ? '1rem' : '1.25rem',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Animals with identifier ({specie?.animals?.length})
-            </Typography>
-          )}
+          <Typography
+            sx={{
+              mb: 3,
+              fontWeight: 500,
+              fontSize: isMobile ? '1rem' : '1.25rem',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Animals with identifier{' '}
+            {`${
+              shipment?.species?.[specieIndex]?.animals.length
+                ? `(${shipment?.species?.[specieIndex]?.animals.length})`
+                : ''
+            }`}
+          </Typography>
 
           <Box
             sx={{
@@ -156,7 +202,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
               gap: 4
             }}
           >
-            {specie?.animals?.map((animal, index) => (
+            {shipment?.species?.[specieIndex]?.animals?.map((animal, index) => (
               <Box
                 key={index}
                 sx={{
@@ -192,7 +238,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                     fontSize: '1rem'
                   }}
                 >
-                  {animal.gender ? animal.gender[0].toUpperCase() : '-'}
+                  {animal?.gender?.[0]?.toUpperCase() || '-'}
                 </Box>
                 <Box>
                   <Box sx={{ fontSize: '0.875rem' }}>
@@ -201,16 +247,16 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                       component='span'
                       sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {animal.identifier_type}
+                      {shipment?.species?.[specieIndex]?.common_name || '-'}
                     </Typography>
                   </Box>
                   <Box sx={{ fontSize: '0.875rem' }}>
-                    Microchip ID:{' '}
+                    {Utility.formatIdentifierType(animal.identifier_type)}:{' '}
                     <Typography
                       component='span'
                       sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      {animal.identifier_value}
+                      {animal?.identifier_value || '-'}
                     </Typography>
                   </Box>
                 </Box>
@@ -223,4 +269,4 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
   )
 }
 
-export default AnimalDetailDrawer
+export default ShippedAnimalsDrawer

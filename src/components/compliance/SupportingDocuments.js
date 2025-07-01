@@ -3,7 +3,7 @@ import { Box, Typography, List, IconButton, Collapse, alpha, useMediaQuery, Circ
 import { Edit as EditIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { useTheme } from '@mui/material/styles'
-import DocumentUploadDrawer from '../drawer/DocumentUploadDrawer'
+import DocumentUploadDrawer from './drawer/DocumentUploadDrawer'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
@@ -41,29 +41,29 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
   }
 
   const handleDocumentSubmit = async formData => {
-    console.log('formData', formData)
-    console.log('currentDocumentData', currentDocumentData)
     setIsLoading(true)
 
     try {
-      const document = {
-        document: formData.file ? formData.file : currentDocumentData?.file_path,
-
-        // document: formData.file ? URL.createObjectURL(formData.file) : currentDocumentData?.file_path,
-        // issued_date: formData.issued_date || '',
+      const payload = {
         issued_date: formData.issued_date ? dayjs(formData.issued_date).format('YYYY-MM-DD') : null,
-        document_type_id: currentDocumentData?.document_type_id || currentDocumentData.document_id || null,
+        document_type_id: currentDocumentData.id,
         export_id: id,
         type: 1, // Type 1 for export
         reference_number: formData.reference_number || ''
       }
 
-      console.log('newDocument', document)
-      const response = currentDocumentData?.file_path ? await updateDocument(id, document) : await addDocument(document)
+      // Check if a new file was uploaded (not the existing file object)
+      if (formData.file && formData.file instanceof File) {
+        payload.document = formData.file
+      }
+
+      const response = currentDocumentData?.document_id
+        ? await updateDocument(currentDocumentData?.id, payload)
+        : await addDocument(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })
-        onAddEditSuccess()
+        onAddEditSuccess(response?.data)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }

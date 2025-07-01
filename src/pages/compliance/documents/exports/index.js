@@ -166,7 +166,7 @@ const CitesExportPermitIndex = () => {
     {
       flex: 0.15,
       minWidth: 180,
-      field: 'country_of_origin',
+      field: 'origin_country',
       headerName: 'COUNTRY OF ORIGIN',
       renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
     },
@@ -194,14 +194,14 @@ const CitesExportPermitIndex = () => {
     {
       flex: 0.1,
       minWidth: 120,
-      field: 'shipments_count',
+      field: 'shipment_count',
       headerName: 'SHIPMENTS',
       renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 120,
-      field: 'expiry_date',
+      field: 'valid_until',
       headerName: 'EXPIRY',
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>

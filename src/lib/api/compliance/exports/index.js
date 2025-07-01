@@ -1,11 +1,16 @@
 import {
   ADD_DOCUMENT,
   ADD_EXPORT,
+  CREATE_MASTER_SPECIES,
   EDIT_DOCUMENT,
   EDIT_EXPORT,
   GET_DOCUMENT_TYPE,
   GET_EXPORTS_DETAILS,
-  GET_EXPORTS_LIST
+  GET_EXPORTS_LIST,
+  GET_LINKED_SHIPMENT_DETAILS,
+  GET_MASTER_SPECIES_LIST,
+  GET_MASTERS_DATA,
+  GET_SPECIES_LIST
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
 
@@ -31,6 +36,18 @@ export const getSpecies = async () => {
   }
 }
 
+export async function getSpeciesList(params) {
+  const response = await axiosGet({ url: `${GET_SPECIES_LIST}`, params })
+
+  return response.data
+}
+
+export async function getMasterSpeciesList(params) {
+  const response = await axiosGet({ url: `${GET_MASTER_SPECIES_LIST}`, params })
+
+  return response.data
+}
+
 export const getExportList = async params => {
   const response = await axiosGet({
     url: `${GET_EXPORTS_LIST}`,
@@ -43,6 +60,14 @@ export const getExportList = async params => {
 export const getExportDetails = async id => {
   const response = await axiosGet({
     url: `${GET_EXPORTS_DETAILS}/${id}`
+  })
+
+  return response.data
+}
+
+export const getLinkedShipmentDetails = async id => {
+  const response = await axiosGet({
+    url: `${GET_LINKED_SHIPMENT_DETAILS}/${id}`
   })
 
   return response.data
@@ -127,4 +152,30 @@ export async function updateDocument(id, payload) {
 
     return error
   }
+}
+
+export async function createSpecies(payload) {
+  try {
+    const url = `${CREATE_MASTER_SPECIES}`
+    const response = await axiosPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export const getMastersData = async () => {
+  const response = await axiosGet({
+    url: `${GET_MASTERS_DATA}`
+  })
+
+  return response.data
 }

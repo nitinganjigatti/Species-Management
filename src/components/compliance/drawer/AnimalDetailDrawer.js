@@ -1,19 +1,19 @@
 import React from 'react'
-import { Box, Typography, Drawer, IconButton, Grid, useMediaQuery, Chip } from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Grid, Chip } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 
-const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
+const AnimalDetailDrawer = ({ open, onClose, specie }) => {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  if (!shipment) return null
+  if (!specie) return null
 
   return (
     <Drawer open={open} onClose={onClose} anchor='right'>
       <Box
         sx={{
-          width: isMobile ? '100vw' : 570,
+          width: { xs: '100vw', sm: 570 },
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',
@@ -21,11 +21,9 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
         }}
       >
         {/* Header */}
-        <Box sx={{ px: isMobile ? 3 : 4, pt: isMobile ? 2 : 3, pb: isMobile ? 1.5 : 2 }}>
+        <Box sx={{ px: 4, pt: 3, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography sx={{ fontSize: isMobile ? '1.125rem' : '1.5rem', fontWeight: 500 }}>
-              Shipped Animals
-            </Typography>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>Animal Details</Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -33,51 +31,13 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
         </Box>
 
         {/* Content */}
-        <Box sx={{ px: isMobile ? 3 : 4, flex: 1, overflowY: 'auto', pb: isMobile ? 3 : 4 }}>
-          {/* Shipment Info */}
-          <Typography
-            sx={{
-              mb: 3,
-              fontWeight: 500,
-              fontSize: isMobile ? '1rem' : '1.25rem',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Shipment
-          </Typography>
-          <Box
-            sx={{
-              p: isMobile ? 2 : 4,
-              mb: 3,
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              backgroundColor: theme.palette.common.white
-            }}
-          >
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Shipment ID:</Typography>
-                <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1rem' }}>
-                  {shipment.shipmentId}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
-                  Date of Issue:
-                </Typography>
-                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-                  {shipment.shipmentDate}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-
+        <Box sx={{ px: 4, flex: 1, overflowY: 'auto', pb: 4 }}>
           {/* Species Info */}
           <Typography
             sx={{
               mb: 3,
               fontWeight: 500,
-              fontSize: isMobile ? '1rem' : '1.25rem',
+              fontSize: '1.25rem',
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
@@ -88,31 +48,31 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
               mb: 3,
               border: `1px solid ${theme.palette.divider}`,
               borderRadius: '8px',
-              px: isMobile ? 2 : 4,
-              py: isMobile ? 1.5 : 4,
+              px: 4,
+              py: 4,
               backgroundColor: theme.palette.common.white
             }}
           >
             <Grid container spacing={4}>
               <Grid item xs={12} sm={6}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Species Name</Typography>
-                <Typography sx={{ fontWeight: 500 }}>{shipment.speciesName}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>{specie.common_name || '-'}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Scientific Name
                 </Typography>
-                <Typography sx={{ fontWeight: 500 }}>{shipment.scientificName}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>{specie.scientific_name || '-'}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>CITES</Typography>
-                <Typography sx={{ fontWeight: 500 }}>{shipment.cites}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>{specie.appendix || '-'}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Total Animals
                 </Typography>
-                <Typography sx={{ fontWeight: 500 }}>{shipment.totalAnimals}</Typography>
+                <Typography sx={{ fontWeight: 500 }}>{specie.total_count || '-'}</Typography>
               </Grid>
             </Grid>
 
@@ -130,9 +90,9 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
                   justifyContent: 'flex-start'
                 }}
               >
-                {shipment.maleCount ? (
+                {specie.male_count ? (
                   <Chip
-                    label={`M - ${shipment.maleCount}`}
+                    label={`M - ${specie.male_count}`}
                     size='small'
                     sx={{
                       bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
@@ -142,9 +102,9 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
                   />
                 ) : null}
 
-                {shipment.femaleCount ? (
+                {specie.female_count ? (
                   <Chip
-                    label={`F - ${shipment.femaleCount}`}
+                    label={`F - ${specie.female_count}`}
                     size='small'
                     sx={{
                       bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
@@ -154,9 +114,9 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
                   />
                 ) : null}
 
-                {shipment.unknownCount ? (
+                {specie.undeterminate_count ? (
                   <Chip
-                    label={`UD - ${shipment.unknownCount}`}
+                    label={`UD - ${specie.undeterminate_count}`}
                     size='small'
                     sx={{
                       bgcolor: theme.palette.customColors.displaybgSecondary,
@@ -170,31 +130,33 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
           </Box>
 
           {/* Animals with Identifier */}
-          <Typography
-            sx={{
-              mb: 3,
-              fontWeight: 500,
-              fontSize: isMobile ? '1rem' : '1.25rem',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Animals with identifier ({shipment.species.length})
-          </Typography>
+          {specie?.animals?.length && (
+            <Typography
+              sx={{
+                mb: 3,
+                fontWeight: 500,
+                fontSize: '1.25rem',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Animals with identifier ({specie?.animals?.length})
+            </Typography>
+          )}
 
           <Box
             sx={{
               mb: 3,
               border: `1px solid ${theme.palette.divider}`,
               borderRadius: '8px',
-              px: isMobile ? 2 : 4,
-              py: isMobile ? 1.5 : 4,
+              px: 4,
+              py: 4,
               backgroundColor: theme.palette.common.white,
               display: 'flex',
               flexDirection: 'column',
               gap: 4
             }}
           >
-            {shipment.species.map((animal, index) => (
+            {specie?.animals?.map((animal, index) => (
               <Box
                 key={index}
                 sx={{
@@ -203,7 +165,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
                   gap: 4,
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
-                  p: isMobile ? 2 : 3
+                  p: 3
                 }}
               >
                 <Box
@@ -211,15 +173,15 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
                     width: 40,
                     height: 40,
                     backgroundColor:
-                      animal.gender === 'M'
+                      animal.gender === 'male'
                         ? `${theme.palette.customColors.SecondaryContainer}80`
-                        : animal.gender === 'F'
+                        : animal.gender === 'female'
                         ? `${theme.palette.customColors.customDropdownColor}4D`
                         : theme.palette.customColors.displaybgSecondary,
                     color:
-                      animal.gender === 'M'
+                      animal.gender === 'male'
                         ? theme.palette.customColors.addPrimary
-                        : animal.gender === 'F'
+                        : animal.gender === 'female'
                         ? theme.palette.customColors.customDropdownColor
                         : theme.palette.customColors.OnPrimaryContainer,
                     fontWeight: 600,
@@ -230,15 +192,25 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
                     fontSize: '1rem'
                   }}
                 >
-                  {animal.gender?.[0] || 'U'}
+                  {animal.gender ? animal.gender[0].toUpperCase() : '-'}
                 </Box>
                 <Box>
                   <Box sx={{ fontSize: '0.875rem' }}>
-                    Species: {" "} <Typography component='span' sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>{animal.commonName}</Typography>
+                    Species:{' '}
+                    <Typography
+                      component='span'
+                      sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      {specie.common_name}
+                    </Typography>
                   </Box>
                   <Box sx={{ fontSize: '0.875rem' }}>
-                    Microchip ID: {" "} 
-                    <Typography component='span' sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>{animal.microchipId}
+                    {Utility.formatIdentifierType(animal.identifier_type)}:{' '}
+                    <Typography
+                      component='span'
+                      sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      {animal.identifier_value}
                     </Typography>
                   </Box>
                 </Box>
@@ -251,4 +223,4 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment }) => {
   )
 }
 
-export default ShippedAnimalsDrawer
+export default AnimalDetailDrawer

@@ -17,7 +17,7 @@ const MUIDatePicker = ({
   onChange,
   label = 'Select Date',
   minDate,
-  maxDate = dayjs(),
+  maxDate,
   format = 'Do MMM YY',
   views,
   disabled = false,
@@ -46,7 +46,7 @@ const MUIDatePicker = ({
             helperText,
             sx: {
               '& .MuiInputAdornment-root .MuiIconButton-root': {
-                alignSelf: 'center',
+                alignSelf: 'center'
               },
               '& .MuiInputBase-root': {
                 alignItems: 'center'

@@ -3,7 +3,7 @@ import { Box, Typography, IconButton, Divider, Button, Alert, Card, CardContent,
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import SelectableSpeciesCard from '../SelectableSpeciesCard'
+import SelectableSpeciesCard from 'src/views/pages/compliance/documents/exports/SelectableSpeciesCard'
 import { useTheme, alpha } from '@mui/material/styles'
 
 const ExportPermitAnimals = ({
@@ -12,29 +12,14 @@ const ExportPermitAnimals = ({
   speciesList,
   handleSpeciesUpdate,
   handleRemoveSpecies,
-  setSpeciesDrawerOpen
+  setSpeciesDrawerOpen,
+  genderOptions,
+  appendixOptions,
+  identifierOptions,
+  setSpeciesList,
+  setValue
 }) => {
   const theme = useTheme()
-
-  const genderOptions = [
-    { label: 'Male', value: 'male' },
-    { label: 'Female', value: 'female' },
-    { label: 'Unknown', value: 'unknown' }
-  ]
-
-  const identifierOptions = [
-    { label: 'Microchip', value: 'microchip' },
-    { label: 'Tag', value: 'tag' },
-    { label: 'Band', value: 'band' },
-    { label: 'Tattoo', value: 'tattoo' },
-    { label: 'Group Tag', value: 'group_tag' }
-  ]
-
-  const appendixOptions = [
-    { label: 'Appendix 1', value: 'appendix_1' },
-    { label: 'Appendix 2', value: 'appendix_2' },
-    { label: 'Appendix 3', value: 'appendix_3' }
-  ]
 
   // Calculate totals
   const totalSpeciesCount = speciesList.length
@@ -112,12 +97,11 @@ const ExportPermitAnimals = ({
     const species = speciesList[speciesIndex]
 
     const newAnimal = {
-      id: '',
-      animalType: 'single',
-      animal_count: 1,
+      id: `new_${Date.now()}`,
+      animal_type: '',
       gender: { label: '', value: null },
-      identifierType: { label: '', value: null },
-      identifierValue: ''
+      identifier_type: { label: '', value: null },
+      identifier_value: ''
     }
 
     const updatedSpecies = {
@@ -128,9 +112,9 @@ const ExportPermitAnimals = ({
     handleSpeciesUpdate(species.id, updatedSpecies)
   }
 
-  const handleRemoveAnimal = (speciesIndex, animalIndex) => {
+  const handleRemoveAnimal = (speciesIndex, animalId) => {
     const species = speciesList[speciesIndex]
-    const updatedAnimalDetails = species.animalDetails.filter((_, index) => index !== animalIndex)
+    const updatedAnimalDetails = species.animalDetails.filter((animal) => animal.id != animalId)
 
     const updatedSpecies = {
       ...species,
@@ -141,19 +125,22 @@ const ExportPermitAnimals = ({
   }
 
   const handleAnimalDetailChange = (speciesIndex, animalIndex, field, value) => {
-    const species = speciesList[speciesIndex]
-    const updatedAnimalDetails = [...species.animalDetails]
+    const updatedSpeciesList = [...speciesList]
+    const updatedAnimalDetails = [...updatedSpeciesList[speciesIndex].animalDetails]
+
     updatedAnimalDetails[animalIndex] = {
       ...updatedAnimalDetails[animalIndex],
       [field]: value
     }
 
-    const updatedSpecies = {
-      ...species,
+    updatedSpeciesList[speciesIndex] = {
+      ...updatedSpeciesList[speciesIndex],
       animalDetails: updatedAnimalDetails
     }
 
-    handleSpeciesUpdate(species.id, updatedSpecies)
+    // Update both states
+    setSpeciesList(updatedSpeciesList)
+    setValue(`speciesList[${speciesIndex}].animalDetails`, updatedAnimalDetails)
   }
 
   return (
@@ -189,7 +176,6 @@ const ExportPermitAnimals = ({
           const isValidCount = validateAnimalCounts(speciesItem)
           const speciesErrors = errors.speciesList?.[speciesIndex] || {}
           const availableCounts = getAvailableGenderCounts(speciesItem)
-          console.log('speciesItem.species', speciesItem.species)
 
           return (
             <Card
@@ -339,11 +325,11 @@ const ExportPermitAnimals = ({
                     .filter(option => !option.disabled || detail.gender?.value === option.value)
 
                   return (
-                    <Box key={animalIndex} sx={{ mt: 4 }}>
+                    <Box key={detail.id} sx={{ mt: 4 }}>
                       <Grid container spacing={4} alignItems='center'>
                         <Grid item xs={12} md={4}>
                           <ControlledAutocomplete
-                            name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.gender`}
+                            name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].gender`}
                             label='Gender'
                             control={control}
                             errors={errors}
@@ -358,7 +344,7 @@ const ExportPermitAnimals = ({
                         </Grid>
                         <Grid item xs={12} md={4}>
                           <ControlledAutocomplete
-                            name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifier_type`}
+                            name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].identifier_type`}
                             label='Identifier Type'
                             control={control}
                             errors={errors}
@@ -373,7 +359,7 @@ const ExportPermitAnimals = ({
                         </Grid>
                         <Grid item xs={12} md={3}>
                           <ControlledTextField
-                            name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifier_value`}
+                            name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].identifier_value`}
                             label='Identifier Value'
                             control={control}
                             errors={errors}
@@ -390,7 +376,7 @@ const ExportPermitAnimals = ({
                           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           <IconButton
-                            onClick={() => handleRemoveAnimal(speciesIndex, animalIndex)}
+                            onClick={() => handleRemoveAnimal(speciesIndex, detail.id)}
                             sx={{ backgroundColor: theme.palette.customColors.neutral05 }}
                           >
                             <CloseIcon />

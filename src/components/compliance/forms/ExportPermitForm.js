@@ -5,18 +5,17 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import ExportPermitDetails from './ExportPermitDetails'
 import ExportPermitAnimals from './ExportPermitAnimals'
-import SpeciesDrawer from '../drawer/SpeciesDrawer'
+import SpeciesDrawer from 'src/components/compliance/drawer/SpeciesDrawer'
 import { useRouter } from 'next/router'
-import { addExport, updateExport } from 'src/lib/api/compliance/exports'
+import { addExport, getMastersData, updateExport } from 'src/lib/api/compliance/exports'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
+import countryList from 'react-select-country-list'
+import { useMemo } from 'react'
 
 export const exportPermitValidationSchema = yup.object().shape({
-  export_number: yup
-    .string()
-    .required('Export number is required')
-    .min(3, 'Export number must be at least 3 characters'),
+  export_number: yup.string().required('Export number is required'),
 
   issued_date: yup.date().required('Issued date is required'),
 
@@ -57,13 +56,7 @@ export const exportPermitValidationSchema = yup.object().shape({
     })
     .required('Exporter name is required'),
 
-  export_purpose: yup
-    .object()
-    .shape({
-      label: yup.string().required('Export purpose is required'),
-      value: yup.string().required('Export purpose is required')
-    })
-    .required('Export purpose is required'),
+  export_purpose: yup.string().required('Export purpose is required').min(1, 'Export purpose is required'),
 
   certificate_file: yup
     .mixed()
@@ -81,6 +74,13 @@ export const exportPermitValidationSchema = yup.object().shape({
     .of(
       yup.object().shape({
         species: yup.object().required(),
+        appendix: yup
+          .object()
+          .shape({
+            label: yup.string().required('Appendix is required'),
+            value: yup.string().required('Appendix is required')
+          })
+          .required('Appendix is required'),
         male_count: yup
           .number()
           .transform((value, originalValue) => (originalValue === '' ? 0 : value))
@@ -115,10 +115,10 @@ export const exportPermitValidationSchema = yup.object().shape({
                   value: yup.string().required('Identifier type is required')
                 })
                 .required('Identifier type is required'),
-              identifier_value: yup.string().required('Identifier value is required'),
+              identifier_value: yup.string().required('Identifier value is required')
 
               // animal_type: yup.string().required('Animal type is required'),
-              animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
+              // animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
             })
           )
           .test(
@@ -144,6 +144,16 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [disableSaveButton, setDisableSaveButton] = useState(false)
+
+  const [mastersData, setMastersData] = useState({
+    genders: [],
+    appendix: [],
+    identifierTypes: []
+  })
+  const [loading, setLoading] = useState(false)
+
+  const countryOptions = useMemo(() => countryList().getData(), [])
 
   const {
     setValue,
@@ -155,7 +165,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
     defaultValues: {
       export_number: '',
       export_date: null,
-      issued_date: null,
+      issued_date: dayjs(),
       valid_until: null,
       export_purpose: null,
       destination_country: null,
@@ -167,19 +177,80 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
     resolver: yupResolver(exportPermitValidationSchema)
   })
 
+  const fetchMastersData = async () => {
+    try {
+      setLoading(true)
+      const res = await getMastersData()
+      if (res?.success) {
+        const data = res.data
+
+        // Transform genders data
+        const genderOptions =
+          data.genders?.map(gender => ({
+            label: gender[0].charAt(0).toUpperCase() + gender[0].slice(1),
+            value: gender[0]
+          })) || []
+
+        // Transform appendix data
+        const appendixOptions =
+          data.appendix?.map(item => ({
+            label: item[0],
+            value: item[0]
+          })) || []
+
+        // Transform identifier types data
+        const identifierTypeOptions =
+          data.identifier_type?.map(item => ({
+            label: item.label,
+            value: item.id,
+            key: item.key,
+            id: item.id
+          })) || []
+        console.log('Addition', {
+          genders: genderOptions,
+          appendix: appendixOptions,
+          identifierTypes: identifierTypeOptions
+        })
+        setMastersData({
+          genders: genderOptions,
+          appendix: appendixOptions,
+          identifierTypes: identifierTypeOptions
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    if (exportData) {
+    if (exportData && mastersData?.identifierTypes?.length > 0) {
       // Set basic form values
       setValue('export_number', exportData.export_number)
-      setValue('export_date', new Date(exportData.export_date))
       setValue('issued_date', exportData.issued_date !== '0000-00-00' ? dayjs(exportData.issued_date) : null)
       setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
-      setValue('export_purpose', { label: exportData.export_purpose, value: exportData.export_purpose })
-      setValue('origin_country', { label: exportData.origin_country, value: exportData.origin_country })
-      setValue('exporting_country', { label: exportData.exporting_country, value: exportData.exporting_country })
+      setValue('export_purpose', exportData.export_purpose)
+      setValue('origin_country', {
+        label: countryOptions.find(country => country.value === exportData.origin_country).label || '',
+        value: exportData.origin_country || null
+      })
+      setValue('exporting_country', {
+        label: countryOptions.find(country => country.value === exportData.exporting_country).label || '',
+        value: exportData.exporting_country || null
+      })
       setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })
       setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_name })
-      setValue('certificate_file', exportData.attachment)
+      setValue(
+        'certificate_file',
+        exportData?.documents?.[0]?.document_type_id
+          ? {
+              document_type_id: exportData?.documents?.[0]?.document_type_id,
+              file_path: exportData?.documents?.[0]?.file_path,
+              name: exportData?.documents?.[0]?.file_original_name
+            }
+          : null
+      )
 
       // Transform species data
       const transformedSpeciesList = exportData.species.map(species => ({
@@ -199,16 +270,23 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
           id: animal.id,
           animal_type: animal.animal_type,
           animal_count: parseInt(animal.animal_count) || 0,
-          gender: { label: animal.gender, value: animal.gender },
-          identifier_type: { label: animal.identifier_type, value: animal.identifier_type },
+          gender: {
+            label: animal.gender ? animal.gender.charAt(0).toUpperCase() + animal.gender.slice(1) : '',
+            value: animal.gender
+          },
+          identifier_type: {
+            label: mastersData?.identifierTypes.find(item => item.id == animal.identifier_type)?.label || '',
+            value: mastersData?.identifierTypes.find(item => item.value == animal.identifier_type)?.label || null
+          },
           identifier_value: animal.identifier_value
         }))
       }))
 
       setSpeciesList(transformedSpeciesList)
       setValue('speciesList', transformedSpeciesList)
+      console.log('speciesList', transformedSpeciesList)
     }
-  }, [exportData])
+  }, [exportData, mastersData?.identifierTypes])
 
   const handleSpeciesSelect = selectedSpecies => {
     // Create new species items for those not already in the list
@@ -237,7 +315,9 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   }
 
   const handleSpeciesUpdate = (speciesId, updatedSpecies) => {
-    const updatedList = speciesList.map(item => (item.id === speciesId ? updatedSpecies : item))
+    const updatedList = speciesList.map(item => (item.id === speciesId ? { ...updatedSpecies } : { ...item }))
+
+    // Update both local state and form state
     setSpeciesList(updatedList)
     setValue('speciesList', updatedList)
   }
@@ -259,8 +339,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       exporting_country: data.exporting_country?.value || '',
       exporter_name: data.exporter_name?.value || '',
       importer_name: data.importer_name?.value || '',
-      export_purpose: data.export_purpose?.value || '',
-      export_date: dayjs(data.export_date).format('YYYY-MM-DD'),
+      export_purpose: data.export_purpose || '',
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
       attachment: data.certificate_file,
@@ -275,9 +354,9 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
           female_count: parseInt(item.female_count) || 0,
           undeterminate_count: parseInt(item.undeterminate_count) || 0,
           animals: item.animalDetails.map(detail => ({
-            id: detail.id,
+            id: detail.id?.startsWith('new_') ? '' : detail.id || '',
             gender: detail.gender?.value || '',
-            identifier_type: detail.identifier_type?.value || '',
+            identifier_type: detail.identifier_type?.label || '',
             identifier_value: detail.identifier_value || '',
             animal_type: detail.animal_type || '',
             animal_count: parseInt(detail.animal_count) || 0
@@ -294,10 +373,12 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       if (response?.success) {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })
         setSubmitLoader(false)
+        if (!id) setDisableSaveButton(true)
+        onSubmit(response?.data?.id)
 
         // Route to detail page
-        if (id) router.push(`/compliance/documents/exports/${id}`)
-        else router.push(`/compliance/documents/exports/ExportPermitDetails?id=${response?.data?.id}`)
+        // if (id) router.push(`/compliance/documents/exports/${id}`)
+        // else router.push(`/compliance/documents/exports/ExportPermitDetails?id=${response?.data?.id}`)
       } else {
         setSubmitLoader(false)
         Toaster({ type: 'error', message: response?.message })
@@ -307,15 +388,13 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setSubmitLoader(false)
       Toaster({ type: 'error', message: JSON.stringify(e) })
     }
-
-    onSubmit(transformedData)
   }
 
   const handleFormReset = () => {
     reset({
-      export_number: '',
+      export_number: id ? exportData?.export_number : '',
       export_date: null,
-      issued_date: null,
+      issued_date: id ? dayjs(exportData?.issued_date) : dayjs(),
       valid_until: null,
       export_purpose: null,
       destination_country: null,
@@ -326,6 +405,10 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
     })
     setSpeciesList([])
   }
+
+  useEffect(() => {
+    fetchMastersData()
+  }, [])
 
   if (isLoading) {
     return (
@@ -366,6 +449,11 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         handleRemoveSpecies={handleRemoveSpecies}
         setSpeciesDrawerOpen={setSpeciesDrawerOpen}
         isEdit={!!id}
+        appendixOptions={mastersData.appendix}
+        identifierOptions={mastersData.identifierTypes}
+        genderOptions={mastersData.genders}
+        setValue={setValue}
+        setSpeciesList={setSpeciesList}
       />
 
       <SpeciesDrawer
@@ -382,10 +470,17 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       />
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-        <Button variant='outlined' type='reset'>
+        <Button variant='outlined' type='reset' disabled={disableSaveButton}>
           Reset
         </Button>
-        <LoadingButton type='submit' variant='contained' loading={submitLoader} sx={{ py: 3, width: '8rem' }} fullWidth>
+        <LoadingButton
+          type='submit'
+          variant='contained'
+          loading={submitLoader}
+          disabled={disableSaveButton}
+          sx={{ py: 3, width: '8rem' }}
+          fullWidth
+        >
           {id ? 'Update' : 'Save'}
         </LoadingButton>
       </Box>

@@ -1,147 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, alpha } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 
 import CustomAccordion from 'src/views/utility/CustomAccordion'
-import ExportPermitForm from 'src/views/pages/compliance/documents/exports/forms/ExportPermitForm'
-import SupportingDocuments from 'src/views/pages/compliance/documents/exports/forms/SupportingDocuments'
-import LinkedImports from 'src/views/pages/compliance/documents/exports/forms/LinkedImports'
-import LinkedShipments from 'src/views/pages/compliance/documents/exports/forms/LinkedShipments'
+import ExportPermitForm from 'src/components/compliance/forms/ExportPermitForm'
+import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/exports'
 import Toaster from 'src/components/Toaster'
-
-const testDocuments = [
-  {
-    document_type_id: '1',
-    file_path: 'https://example.com/documents/donation-letter.pdf',
-    file_original_name: 'Donation_Letter_2025.pdf'
-  },
-  {
-    document_type_id: '3',
-    file_path: 'https://example.com/documents/agreement.docx',
-    file_original_name: 'Export_Agreement.docx'
-  },
-  {
-    document_type_id: '5',
-    file_path: 'https://example.com/documents/cza-approval.pdf',
-    file_original_name: 'CZA_Approval_Notice.pdf'
-  },
-  {
-    document_type_id: '8',
-    file_path: 'https://example.com/documents/health-certificate.pdf',
-    file_original_name: 'Health_Certificate_Zebra.pdf'
-  },
-  {
-    document_type_id: '12',
-    file_path: 'https://example.com/documents/aqcs-clearance.pdf',
-    file_original_name: 'AQCS_Final_Clearance.pdf'
-  }
-]
-
-// Example usage with sample data:
-const sampleLinkedImports = [
-  { certificateId: '123456789', dateOfIssue: '24/01/24', linkedImportsCount: 3 },
-  { certificateId: '987654321', dateOfIssue: '15/03/24', linkedImportsCount: 1 }
-]
-
-// Example usage:
-export const shipmentsDataNoFile = []
-
-export const shipmentsData = [
-  {
-    shipmentId: '123123412',
-    shipmentDate: '24/01/24',
-    shippedAnimals: 5,
-    totalAllowed: 60,
-    speciesName: 'Red fox',
-    scientificName: 'Vulpes vulpes',
-    cites: 'Appendix I',
-    totalAnimals: 5,
-    maleCount: 3,
-    femaleCount: 2,
-    unknownCount: 0,
-    fileName: 'file.pdf',
-    species: [
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143124',
-        gender: 'M',
-        totalCount: 5,
-        maleCount: 3,
-        femaleCount: 2,
-        unknownCount: 0
-      },
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143125',
-        gender: 'F',
-        totalCount: 5,
-        maleCount: 3,
-        femaleCount: 2,
-        unknownCount: 5
-      },
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143126',
-        gender: 'U',
-        totalCount: 5,
-        maleCount: 0,
-        femaleCount: 0,
-        unknownCount: 0
-      }
-    ]
-  },
-  {
-    shipmentId: '12312341',
-    shipmentDate: '24/01/24',
-    shippedAnimals: 5,
-    totalAllowed: 60,
-    speciesName: 'Red fox',
-    scientificName: 'Vulpes vulpes',
-    cites: 'Appendix I',
-    totalAnimals: 5,
-    maleCount: 3,
-    femaleCount: 2,
-    unknownCount: 0,
-    fileName: 'file.pdf',
-    species: [
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143124',
-        gender: 'M',
-        totalCount: 5,
-        maleCount: 3,
-        femaleCount: 2,
-        unknownCount: 0
-      },
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143125',
-        gender: 'F',
-        totalCount: 5,
-        maleCount: 3,
-        femaleCount: 2,
-        unknownCount: 5
-      },
-      {
-        commonName: 'Rainbow Lorikeet',
-        scientificName: 'Lorikeet',
-        microchipId: '132143124132143126',
-        gender: 'U',
-        totalCount: 5,
-        maleCount: 0,
-        femaleCount: 0,
-        unknownCount: 0
-      }
-    ]
-  }
-]
+import { useTheme } from '@mui/material/styles'
 
 const AddEditExportPermit = () => {
   const router = useRouter()
@@ -154,6 +21,7 @@ const AddEditExportPermit = () => {
   const [isFetching, setIsFetching] = useState(false)
   const [documentList, setDocumentList] = useState([])
   const [totalCount, setTotalCount] = useState(0)
+  const theme = useTheme()
 
   useEffect(() => {
     if (isEdit) {
@@ -174,15 +42,19 @@ const AddEditExportPermit = () => {
     setLoading(false)
   }
 
-  const handleFormSubmit = data => {
-    console.log('Parent form data:', data)
+  const handleFormSubmit = exportId => {
+    console.log('id', exportId)
+    if (!isEdit) {
+      setExpanded('supporting-documents')
+      fetchDocumentTypeList(exportId)
+    }
   }
 
-  const fetchDocumentTypeList = async () => {
+  const fetchDocumentTypeList = async exportId => {
     setIsFetching(true)
     try {
       const params = {
-        export_id: id,
+        export_id: id || exportId,
         type: 'export'
       }
       const res = await getDocumentTypeList(params)
@@ -202,13 +74,14 @@ const AddEditExportPermit = () => {
   }
 
   useEffect(() => {
-    fetchDocumentTypeList()
+    if (id) fetchDocumentTypeList()
   }, [id])
 
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
-  const handleAddEditSuccess = () => {
-    fetchDocumentTypeList()
+  const handleAddEditSuccess = data => {
+    const updatedList = documentList.map(item => (item.id === data.document_type_id ? { ...item, ...data } : item))
+    setDocumentList(updatedList)
   }
 
   return (
@@ -243,34 +116,36 @@ const AddEditExportPermit = () => {
       <CustomAccordion
         id='supporting-documents'
         title='Supporting Documents'
-        docsCount={`${uploadedFileCount}/${totalCount} Documents added`}
+        docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <SupportingDocuments
-          isFetching={isFetching}
-          documentList={documentList}
-          totalCount={totalCount}
-          onAddEditSuccess={handleAddEditSuccess}
-        />
-      </CustomAccordion>
-
-      <CustomAccordion
-        id='linked-imports'
-        title={`Linked Imports - ${sampleLinkedImports.length}`}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
-      >
-        <LinkedImports imports={sampleLinkedImports} />
-      </CustomAccordion>
-
-      <CustomAccordion
-        id='linked-shipments'
-        title={`Linked Shipments - ${shipmentsData.length}`}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
-      >
-        <LinkedShipments shipments={shipmentsData} totalShipped={25} totalAllowed={60} />
+        {!isEdit && !documentList?.length ? (
+          <Box
+            sx={{
+              height: '150px',
+              width: '100%',
+              mx: 'auto',
+              backgroundColor: alpha(theme.palette.common.black, 0.05),
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: '8px',
+              px: 4
+            }}
+          >
+            <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
+              Please save form details to add supporting documents
+            </Typography>
+          </Box>
+        ) : (
+          <SupportingDocuments
+            isFetching={isFetching}
+            documentList={documentList}
+            totalCount={totalCount}
+            onAddEditSuccess={handleAddEditSuccess}
+          />
+        )}
       </CustomAccordion>
     </>
   )

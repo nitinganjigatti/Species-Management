@@ -1,41 +1,77 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Grid, Box, Typography } from '@mui/material'
+import dayjs from 'dayjs'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import { debounce } from 'lodash'
+import { getMasterImports } from 'src/lib/api/compliance/masters'
+import countryList from 'react-select-country-list'
+import { useMemo } from 'react'
 
 const ExportPermitDetails = ({ control, errors, isEdit }) => {
-  // Options data
-  const countryOptions = [
-    { label: 'France', value: 'FR' },
-    { label: 'United States of America', value: 'US' },
-    { label: 'United Kingdom', value: 'UK' },
-    { label: 'Germany', value: 'DE' },
-    { label: 'Japan', value: 'JP' },
-    { label: 'India', value: 'IN' },
-    { label: 'Thailand', value: 'TH' }
-  ]
+  const [exportersOptions, setExportersOptions] = useState([])
+  const [importersOptions, setImportersOptions] = useState([])
 
-  const purposeOptions = [
-    { label: 'Rescue', value: 'rescue' },
-    { label: 'Research', value: 'research' },
-    { label: 'Conservation', value: 'conservation' },
-    { label: 'Education', value: 'education' },
-    { label: 'Breeding', value: 'breeding' }
-  ]
+  const countryOptions = useMemo(() => countryList().getData(), [])
 
-  const exporterOptions = [
-    { label: 'Wildlife Exporters Inc.', value: 'wex001' },
-    { label: 'Global Fauna Trading', value: 'gft002' },
-    { label: 'Nature Partners Co.', value: 'npc003' }
-  ]
+  const getExportersList = async ({ key, page, limit }) => {
+    try {
+      const params = {
+        type: 'exporter',
+        q: key,
+        page,
+        limit
+      }
+      const res = await getMasterImports(params)
+      if (res) {
+        const exportersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
+        setExportersOptions(exportersOptions)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
-  const importerOptions = [
-    { label: 'Zoo Worldwide', value: 'zw001' },
-    { label: 'Research Institute International', value: 'rii002' },
-    { label: 'Wildlife Conservation Org', value: 'wco003' }
-  ]
+  const getImportersList = async ({ key, page, limit }) => {
+    try {
+      const params = {
+        type: 'importer',
+        q: key,
+        page,
+        limit
+      }
+      const res = await getMasterImports(params)
+      if (res) {
+        const importersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
+        setImportersOptions(importersOptions)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const importersSearch = debounce(async value => {
+    try {
+      await getImportersList({ key: value, page: 1, limit: 20 })
+    } catch (error) {
+      console.error(error)
+    }
+  }, 500)
+
+  const exportersSearch = debounce(async value => {
+    try {
+      await getExportersList({ key: value, page: 1, limit: 20 })
+    } catch (error) {
+      console.error(error)
+    }
+  }, 500)
+
+  useEffect(() => {
+    getImportersList({ key: '', page: 1, limit: 20 })
+    getExportersList({ key: '', page: 1, limit: 20 })
+  }, [])
 
   return (
     <Box>
@@ -52,7 +88,6 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             errors={errors}
             required
             fullWidth
-            disabled={isEdit}
           />
         </Grid>
 
@@ -63,11 +98,19 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             control={control}
             errors={errors}
             required
+            minDate={dayjs().startOf('day')} // Only allow future dates
           />
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <ControlledDatePicker name='issued_date' label='Date of Issue*' control={control} errors={errors} required />
+          <ControlledDatePicker
+            name='issued_date'
+            label='Date of Issue*'
+            maxDate={dayjs(new Date())}
+            control={control}
+            errors={errors}
+            required
+          />
         </Grid>
 
         <Grid item xs={12} md={6}>
@@ -104,11 +147,14 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             label='Exporter name*'
             control={control}
             errors={errors}
-            options={exporterOptions}
+            options={exportersOptions}
             required
             fullWidth
             isOptionEqualToValue={(option, value) => option.value === value?.value}
             getOptionLabel={option => option.label || ''}
+            onKeyUp={e => exportersSearch(e.target.value)}
+            onBlur={e => e.target.value && exportersSearch('')}
+            onItemClear={() => exportersSearch('')}
           />
         </Grid>
 
@@ -118,25 +164,25 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             label='Importer*'
             control={control}
             errors={errors}
-            options={importerOptions}
+            options={importersOptions}
             required
             fullWidth
             isOptionEqualToValue={(option, value) => option.value === value?.value}
             getOptionLabel={option => option.label || ''}
+            onKeyUp={e => importersSearch(e.target.value)}
+            onBlur={e => e.target.value && importersSearch('')}
+            onItemClear={() => importersSearch('')}
           />
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <ControlledAutocomplete
+          <ControlledTextField
             name='export_purpose'
             label='Purpose of transfer*'
             control={control}
             errors={errors}
-            options={purposeOptions}
             required
             fullWidth
-            isOptionEqualToValue={(option, value) => option.value === value?.value}
-            getOptionLabel={option => option.label || ''}
           />
         </Grid>
 

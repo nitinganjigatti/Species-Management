@@ -1,15 +1,18 @@
 import React, { useState } from 'react'
 import { Box, Typography, Divider, useTheme, Grid, Chip, alpha } from '@mui/material'
 import { ChevronRight as ChevronRightIcon } from '@mui/icons-material'
-import ShippedAnimalsDrawer from '../drawer/ShippedAnimalsDrawer'
+import ShippedAnimalsDrawer from 'src/components/compliance/drawer/ShippedAnimalsDrawer'
+import Utility from 'src/utility'
 
 const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
   const theme = useTheme()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [selectedShipment, setSelectedShipment] = useState(null)
+  const [selectedSpecieIndex, setSelectedSpecieIndex] = useState(null)
 
-  const handleOpenDrawer = shipment => {
+  const handleOpenDrawer = (shipment, specieIndex) => {
     setSelectedShipment(shipment)
+    setSelectedSpecieIndex(specieIndex)
     setOpenDrawer(true)
   }
 
@@ -74,7 +77,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
                 Shipment ID
               </Typography>
               <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1.25rem' }}>
-                {shipment.shipmentId}
+                {shipment?.shipment_id || ''}
               </Typography>
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -82,7 +85,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
                 Shipment Date
               </Typography>
               <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-                {shipment.shipmentDate}
+                {Utility.formatDisplayDate(shipment?.shipment_date) || ''}
               </Typography>
             </Grid>
           </Grid>
@@ -100,19 +103,21 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
             }}
           >
             <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.Antz_Minor_Medium }}>
-              Shipped Animals: {shipment.shippedAnimals} / {shipment.totalAllowed}
+              Shipped Animals: {shipment.total_shipped_animals} / {shipment.total_export_animals}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
-              <Typography sx={{ fontWeight: 500, fontSize: '1rem' }}>{shipment.fileName}</Typography>
+              {shipment?.file_original_name && (
+                <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
+              )}
+              <Typography sx={{ fontWeight: 500, fontSize: '1rem' }}>{shipment?.file_original_name || ''}</Typography>
             </Box>
           </Box>
           {/* Animals List */}
-          {shipment.species.map((animal, animalIndex) => (
+          {shipment.species.map((specie, specieIndex) => (
             <>
               <Divider sx={{ borderColor: theme.palette.divider }} />
               <Box
-                key={animalIndex}
+                key={specieIndex}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -124,11 +129,13 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
                     backgroundColor: theme.palette.action.hover
                   }
                 }}
-                onClick={() => handleOpenDrawer(shipment)}
+                onClick={() => handleOpenDrawer(shipment, specieIndex)}
               >
                 <Box sx={{ flex: 1.8 }}>
-                  <Typography sx={{ fontWeight: 500 }}>{animal.commonName}</Typography>
-                  <Typography sx={{ fontStyle: 'italic', fontSize: '0.875rem' }}>{animal.scientificName}</Typography>
+                  <Typography sx={{ fontWeight: 500 }}>{specie?.common_name || ''}</Typography>
+                  <Typography sx={{ fontStyle: 'italic', fontSize: '0.875rem' }}>
+                    {specie?.scientific_name || ''}
+                  </Typography>
                 </Box>
                 <Box
                   sx={{
@@ -140,10 +147,10 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
                     justifyContent: 'flex-start'
                   }}
                 >
-                  <span>Count: {animal.totalCount}</span>
-                  {animal.maleCount ? (
+                  <span>Count: {specie?.total_count || 0}</span>
+                  {specie?.male_count ? (
                     <Chip
-                      label={`M - ${animal.maleCount}`}
+                      label={`M - ${specie?.male_count}`}
                       size='small'
                       sx={{
                         bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
@@ -153,9 +160,9 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
                     />
                   ) : null}
 
-                  {animal.femaleCount ? (
+                  {specie?.female_count ? (
                     <Chip
-                      label={`F - ${animal.femaleCount}`}
+                      label={`F - ${specie?.female_count}`}
                       size='small'
                       sx={{
                         bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
@@ -165,9 +172,9 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
                     />
                   ) : null}
 
-                  {animal.unknownCount ? (
+                  {specie?.undeterminate_count ? (
                     <Chip
-                      label={`UD - ${animal.unknownCount}`}
+                      label={`UD - ${specie?.undeterminate_count}`}
                       size='small'
                       sx={{
                         bgcolor: theme.palette.customColors.displaybgSecondary,
@@ -186,7 +193,12 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
         </Box>
       ))}
 
-      <ShippedAnimalsDrawer open={openDrawer} onClose={handleCloseDrawer} shipment={selectedShipment} />
+      <ShippedAnimalsDrawer
+        open={openDrawer}
+        onClose={handleCloseDrawer}
+        specieIndex={selectedSpecieIndex}
+        shipment={selectedShipment}
+      />
     </Box>
   )
 }
