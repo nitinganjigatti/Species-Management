@@ -978,9 +978,8 @@ const StickyTable = ({
             overflowY: 'auto',
             position: 'relative',
             border: '1px solid #ddd',
-            overflow: loading ? 'hidden' : 'auto',
-            '&::-webkit-scrollbar': { width: '0px', height: '0px' }
-
+            overflow: loading ? 'hidden' : 'auto'
+            // '&::-webkit-scrollbar': { width: '0px', height: '0px' }
             // '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888' },
             // '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' }
           }}
