@@ -11,6 +11,8 @@ import { addExport, getMastersData, updateExport } from 'src/lib/api/compliance/
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
+import countryList from 'react-select-country-list'
+import { useMemo } from 'react'
 
 export const exportPermitValidationSchema = yup.object().shape({
   export_number: yup.string().required('Export number is required'),
@@ -72,6 +74,13 @@ export const exportPermitValidationSchema = yup.object().shape({
     .of(
       yup.object().shape({
         species: yup.object().required(),
+        appendix: yup
+          .object()
+          .shape({
+            label: yup.string().required('Appendix is required'),
+            value: yup.string().required('Appendix is required')
+          })
+          .required('Appendix is required'),
         male_count: yup
           .number()
           .transform((value, originalValue) => (originalValue === '' ? 0 : value))
@@ -106,10 +115,10 @@ export const exportPermitValidationSchema = yup.object().shape({
                   value: yup.string().required('Identifier type is required')
                 })
                 .required('Identifier type is required'),
-              identifier_value: yup.string().required('Identifier value is required'),
+              identifier_value: yup.string().required('Identifier value is required')
 
               // animal_type: yup.string().required('Animal type is required'),
-              animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
+              // animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
             })
           )
           .test(
@@ -135,6 +144,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [disableSaveButton, setDisableSaveButton] = useState(false)
 
   const [mastersData, setMastersData] = useState({
     genders: [],
@@ -142,6 +152,8 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
     identifierTypes: []
   })
   const [loading, setLoading] = useState(false)
+
+  const countryOptions = useMemo(() => countryList().getData(), [])
 
   const {
     setValue,
@@ -219,8 +231,14 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('issued_date', exportData.issued_date !== '0000-00-00' ? dayjs(exportData.issued_date) : null)
       setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
       setValue('export_purpose', exportData.export_purpose)
-      setValue('origin_country', { label: exportData.origin_country, value: exportData.origin_country })
-      setValue('exporting_country', { label: exportData.exporting_country, value: exportData.exporting_country })
+      setValue('origin_country', {
+        label: countryOptions.find(country => country.value === exportData.origin_country).label || '',
+        value: exportData.origin_country || null
+      })
+      setValue('exporting_country', {
+        label: countryOptions.find(country => country.value === exportData.exporting_country).label || '',
+        value: exportData.exporting_country || null
+      })
       setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })
       setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_name })
       setValue(
@@ -297,7 +315,9 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   }
 
   const handleSpeciesUpdate = (speciesId, updatedSpecies) => {
-    const updatedList = speciesList.map(item => (item.id === speciesId ? updatedSpecies : item))
+    const updatedList = speciesList.map(item => (item.id === speciesId ? { ...updatedSpecies } : { ...item }))
+
+    // Update both local state and form state
     setSpeciesList(updatedList)
     setValue('speciesList', updatedList)
   }
@@ -334,9 +354,9 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
           female_count: parseInt(item.female_count) || 0,
           undeterminate_count: parseInt(item.undeterminate_count) || 0,
           animals: item.animalDetails.map(detail => ({
-            id: detail.id,
+            id: detail.id?.startsWith('new_') ? '' : detail.id || '',
             gender: detail.gender?.value || '',
-            identifier_type: detail.identifier_type?.value || '',
+            identifier_type: detail.identifier_type?.label || '',
             identifier_value: detail.identifier_value || '',
             animal_type: detail.animal_type || '',
             animal_count: parseInt(detail.animal_count) || 0
@@ -353,6 +373,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       if (response?.success) {
         Toaster({ type: 'success', message: 'Document type ' + response?.message })
         setSubmitLoader(false)
+        if (!id) setDisableSaveButton(true)
         onSubmit(response?.data?.id)
 
         // Route to detail page
@@ -431,6 +452,8 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         appendixOptions={mastersData.appendix}
         identifierOptions={mastersData.identifierTypes}
         genderOptions={mastersData.genders}
+        setValue={setValue}
+        setSpeciesList={setSpeciesList}
       />
 
       <SpeciesDrawer
@@ -447,10 +470,17 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       />
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-        <Button variant='outlined' type='reset'>
+        <Button variant='outlined' type='reset' disabled={disableSaveButton}>
           Reset
         </Button>
-        <LoadingButton type='submit' variant='contained' loading={submitLoader} sx={{ py: 3, width: '8rem' }} fullWidth>
+        <LoadingButton
+          type='submit'
+          variant='contained'
+          loading={submitLoader}
+          disabled={disableSaveButton}
+          sx={{ py: 3, width: '8rem' }}
+          fullWidth
+        >
           {id ? 'Update' : 'Save'}
         </LoadingButton>
       </Box>
