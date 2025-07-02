@@ -82,17 +82,44 @@ const AssessmentReportFilterDrawer = ({
     setOpenFilterDrawer(false)
   }
 
+  // const calculateFilterCount = () => {
+  //   let count = 0
+
+  //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
+  //     if (Array.isArray(value)) {
+  //       count += value.length // For Site, Section, Enclosure, gender
+  //     } else if (typeof value === 'string' && value.trim() !== '') {
+  //       count += 1 // For accession_start and accession_end (non-empty strings)
+  //       // it will increase count by 2 in selection of 1 because on onchange is handling 2 keys
+  //     }
+  //   })
+
+  //   setFilterCount(count)
+  // }
+
   const calculateFilterCount = () => {
     let count = 0
 
     Object.entries(tempSelectedItems).forEach(([key, value]) => {
+      if (key === 'accession_start' || key === 'accession_end') {
+        // skip individual counting here
+        return
+      }
+
       if (Array.isArray(value)) {
-        count += value.length // For Site, Section, Enclosure, gender
+        count += value.length
       } else if (typeof value === 'string' && value.trim() !== '') {
-        count += 1 // For accession_start and accession_end (non-empty strings)
-        // it will increase count by 2 in selection of 1 because on onchange is handling 2 keys
+        count += 1
       }
     })
+
+    // Accession Date: Count only once if either start or end is selected
+    if (
+      (tempSelectedItems.accession_start && tempSelectedItems.accession_start.trim() !== '') ||
+      (tempSelectedItems.accession_end && tempSelectedItems.accession_end.trim() !== '')
+    ) {
+      count += 1
+    }
 
     setFilterCount(count)
   }
@@ -111,6 +138,7 @@ const AssessmentReportFilterDrawer = ({
     }))
 
     setSectionsData(prev => prev.filter(section => section.section_id !== sectionId.toString()))
+
     // Also update selectedSections state
     if (setSelectedSections) {
       setSelectedSections(prev => prev.filter(id => id !== sectionId))
@@ -124,6 +152,7 @@ const AssessmentReportFilterDrawer = ({
     }))
 
     setEnclosuresData(prev => prev.filter(enclosure => enclosure.enclosure_id !== enclosureId.toString()))
+
     // Also update selectedSections state
     if (setSelectedEnclosures) {
       setSelectedEnclosures(prev => prev.filter(id => id !== enclosureId))
@@ -140,6 +169,7 @@ const AssessmentReportFilterDrawer = ({
       })
     }
   }
+
   const selectAllGender = genderArray.every(item => tempSelectedItems.gender.includes(item.key))
 
   const handleSelectAllGender = () => {
@@ -231,28 +261,72 @@ const AssessmentReportFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
-            {tabsforfilter.map(menu => (
-              <Box
-                key={menu}
-                sx={{
-                  width: '190px',
-                  bgcolor: activeTab === menu ? 'white' : 'transparent',
-                  cursor: 'pointer',
-                  p: 4,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px'
-                }}
-                onClick={() => {
-                  setActiveTab(menu)
-                }}
-              >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                  {menu}
-                </Typography>
-              </Box>
-            ))}
+          <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
+            {tabsforfilter.map(menu => {
+              let count = 0
+
+              if (menu === 'Site, Sec or Encl.') {
+                count =
+                  (tempSelectedItems?.Site?.length || 0) +
+                  (tempSelectedItems?.Section?.length || 0) +
+                  (tempSelectedItems?.Enclosure?.length || 0)
+              } else if (menu === 'Gender') {
+                count = tempSelectedItems?.gender?.length || 0
+              } else if (menu === 'Accession Date') {
+                if (
+                  (tempSelectedItems?.accession_start && tempSelectedItems?.accession_start.trim() !== '') ||
+                  (tempSelectedItems?.accession_end && tempSelectedItems?.accession_end.trim() !== '')
+                ) {
+                  count = 1 // Show just "1" if date filter is applied
+                }
+              }
+              return (
+                <Box
+                  key={menu}
+                  sx={{
+                    width: '190px',
+                    bgcolor: activeTab === menu ? 'white' : 'transparent',
+                    cursor: 'pointer',
+                    p: 4,
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                  onClick={() => {
+                    setActiveTab(menu)
+                  }}
+                >
+                  <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                    {menu}
+                  </Typography>
+
+                  {count > 0 && (
+                    <Box
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        borderRadius: '12px',
+                        minWidth: '24px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 2,
+                        px: 2
+                      }}
+                    >
+                      {count}
+                    </Box>
+                  )}
+                </Box>
+              )
+            })}
           </Grid>
+
           <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
@@ -541,24 +615,62 @@ const AssessmentReportFilterDrawer = ({
                     return (
                       <Box
                         key={option.label}
-                        sx={{ display: 'flex', alignItems: 'center', mb: 3 }}
+                        sx={{ display: 'flex', alignItems: 'center', mb: 3, cursor: 'pointer' }}
+                        // onClick={() => {
+                        //   const { start, end } = option.getRange()
+                        //   setTempSelectedItems(prev => ({
+                        //     ...prev,
+                        //     accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
+                        //     accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
+                        //   }))
+                        // }}
                         onClick={() => {
                           const { start, end } = option.getRange()
+
+                          const isAlreadySelected =
+                            option.label === 'All Time Data'
+                              ? tempSelectedItems.accession_start === '' && tempSelectedItems.accession_end === ''
+                              : dayjs(tempSelectedItems.accession_start).format('YYYY-MM-DD') ===
+                                  dayjs(start).format('YYYY-MM-DD') &&
+                                dayjs(tempSelectedItems.accession_end).format('YYYY-MM-DD') ===
+                                  dayjs(end).format('YYYY-MM-DD')
+
                           setTempSelectedItems(prev => ({
                             ...prev,
-                            accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
-                            accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
+                            accession_start: isAlreadySelected ? null : start ? dayjs(start).format('YYYY-MM-DD') : '',
+                            accession_end: isAlreadySelected ? null : end ? dayjs(end).format('YYYY-MM-DD') : ''
                           }))
                         }}
                       >
                         <Checkbox
                           checked={isSelected}
+                          // onChange={() => {
+                          //   const { start, end } = option.getRange()
+                          //   setTempSelectedItems(prev => ({
+                          //     ...prev,
+                          //     accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
+                          //     accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
+                          //   }))
+                          // }}
                           onChange={() => {
                             const { start, end } = option.getRange()
+
+                            const isAlreadySelected =
+                              option.label === 'All Time Data'
+                                ? tempSelectedItems.accession_start === '' && tempSelectedItems.accession_end === ''
+                                : dayjs(tempSelectedItems.accession_start).format('YYYY-MM-DD') ===
+                                    dayjs(start).format('YYYY-MM-DD') &&
+                                  dayjs(tempSelectedItems.accession_end).format('YYYY-MM-DD') ===
+                                    dayjs(end).format('YYYY-MM-DD')
+
                             setTempSelectedItems(prev => ({
                               ...prev,
-                              accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
-                              accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
+                              accession_start: isAlreadySelected
+                                ? null
+                                : start
+                                ? dayjs(start).format('YYYY-MM-DD')
+                                : '',
+                              accession_end: isAlreadySelected ? null : end ? dayjs(end).format('YYYY-MM-DD') : ''
                             }))
                           }}
                         />
@@ -591,9 +703,7 @@ const AssessmentReportFilterDrawer = ({
                     <Checkbox
                       checked={selectAllGender}
                       onChange={handleSelectAllGender}
-                      slotProps={{
-                        'aria-label': 'controlled'
-                      }}
+                      inputProps={{ 'aria-label': 'controlled' }}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
                       Select All
@@ -606,9 +716,7 @@ const AssessmentReportFilterDrawer = ({
                       <Checkbox
                         checked={tempSelectedItems.gender.includes(option.key)}
                         onChange={() => handleGenderCheckboxChange(option.key, option.name)}
-                        slotProps={{
-                          'aria-label': 'controlled'
-                        }}
+                        inputProps={{ 'aria-label': 'controlled' }}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
                         {option.name}

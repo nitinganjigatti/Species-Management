@@ -1,5 +1,7 @@
-/* eslint-disable lines-around-comment */
-import { LoadingButton } from '@mui/lab'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useContext } from 'react'
+import Image from 'next/image'
+
 import {
   Autocomplete,
   Avatar,
@@ -20,25 +22,30 @@ import {
   Switch,
   TextField,
   Typography,
-  debounce,
-  fabClasses
+  debounce
 } from '@mui/material'
-import CustomInput from 'src/components/PickersCustomInput'
-import { useDropzone } from 'react-dropzone'
-import { Controller, useForm } from 'react-hook-form'
-import Icon from 'src/@core/components/icon'
+import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
-import Image from 'next/image'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
-import imageUploader from 'public/images/imageUploader/imageUploader.png'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
-import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { TimePicker } from '@mui/x-date-pickers/TimePicker'
+import { DatePicker } from '@mui/x-date-pickers'
+
+import dayjs from 'dayjs'
+import moment from 'moment'
+
+import { useDropzone } from 'react-dropzone'
+import { Controller, useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+
+import { AuthContext } from 'src/context/AuthContext'
+import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
+import AnimalParentCard from '../../../utility/animalParentCard'
+import imageUploader from 'public/images/imageUploader/imageUploader.png'
+
+import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
 import {
   createAnimal,
   getAccessionType,
@@ -48,14 +55,7 @@ import {
   getMasterInstitutes,
   getMastersOrganization,
   getTaxonomyList
-  // getZoosSectionListing
 } from 'src/lib/api/egg/egg/createAnimal'
-import { DatePicker } from '@mui/x-date-pickers'
-import moment from 'moment'
-import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
-import { useContext } from 'react'
-import { AuthContext } from 'src/context/AuthContext'
-import AnimalParentCard from '../../../utility/animalParentCard'
 
 const ConditionSlider = ({
   getActivityLogsFunc,
@@ -67,9 +67,7 @@ const ConditionSlider = ({
   GetGalleryImgList
 }) => {
   const theme = useTheme()
-  const [selectedOption, setSelectedOption] = useState('')
   const [hatched, setHatched] = useState('normal_hatch')
-  // console.log('hatched :>> ', hatched)
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState([])
 
@@ -128,6 +126,7 @@ const ConditionSlider = ({
     shell_thickness: '',
     assisted_by: '',
     image: [],
+    hatched_date: null,
     ////////////////
     species: '',
     accessionType: '',
@@ -155,13 +154,7 @@ const ConditionSlider = ({
     isAnimal
       ? {
           current_state: yup.string().required('State is required'),
-
           select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
-
-          // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
-          // shell_thickness:
-          //   statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
-
           assisted_by:
             hatched === 'assisted_hatch'
               ? yup.string().trim().required('Assisted by is required')
@@ -184,6 +177,16 @@ const ConditionSlider = ({
               }
             ),
           accessionDate: yup.string().required('Accession date is required'),
+          hatched_date: yup
+            .mixed()
+            // .nullable()
+            .required('Hatched date is required')
+            .test('valid-date', 'Invalid date', value => value && dayjs(value).isValid())
+            .test('not-in-future', 'Hatched date cannot be in the future', value =>
+              value ? dayjs(value).isBefore(dayjs().add(1, 'day'), 'day') : true
+            ),
+
+          // hatched_date: yup.string().required('Hatched date is required'),
           collectionType: yup.string().required('Collection type is required'),
           enclosure_id: yup.string().required('Enclosure is required'),
           sextype: yup.string().required('Sex type is required'),
@@ -199,20 +202,13 @@ const ConditionSlider = ({
                 if (localIdentifierType && localIdentifierType.trim() !== '') {
                   return !!value // Return true if value is not empty
                 }
-
                 return true // Otherwise, always pass validation
               }
             )
         }
       : {
           current_state: yup.string().required('State is required'),
-
           select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
-
-          // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
-          // shell_thickness:
-          //   statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
-
           assisted_by:
             hatched === 'assisted_hatch'
               ? yup.string().trim().required('Assisted by is required')
@@ -231,7 +227,11 @@ const ConditionSlider = ({
     resetField,
     formState: { errors }
   } = useForm({
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      hatched_date: null
+    },
+    // defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
@@ -287,7 +287,6 @@ const ConditionSlider = ({
         reader.onload = () => {
           setImgSrc(prev => [...prev, reader.result])
         }
-
         reader.readAsDataURL(file)
       })
 
@@ -420,7 +419,8 @@ const ConditionSlider = ({
           egg_shell_thickness: getValues('shell_thickness'),
           comment: getValues('comment'),
           egg_assisted_by: getValues('assisted_by'),
-          egg_attachment: imgArr
+          egg_attachment: imgArr,
+          hatched_date: values.hatched_date ? dayjs(values.hatched_date).format('YYYY-MM-DD') : null
         }
       }
 
@@ -823,7 +823,6 @@ const ConditionSlider = ({
                                 gap: 2,
                                 border: `2px solid ${theme.palette.customColors.trackBg}`,
                                 borderRadius: '10px',
-                                // opacity: 0.6,
                                 width: '100%',
                                 justifyContent: 'space-between'
                               }}
@@ -842,11 +841,9 @@ const ConditionSlider = ({
                                 display: 'flex',
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                // gap: 2,
                                 border: `2px solid ${theme.palette.customColors.trackBg}`,
                                 p: 2,
                                 borderRadius: '10px',
-                                // opacity: 0.6,
                                 width: '100%',
                                 justifyContent: 'space-between'
                               }}
@@ -869,22 +866,12 @@ const ConditionSlider = ({
                         )}
                       </FormControl>
 
-                      <FormControl fullWidth>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
                         <Controller
                           name='shell_thickness'
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
-                            // <TextField
-                            //   error={Boolean(errors?.shell_thickness)}
-                            //   value={value}
-                            //   type='number'
-                            //   label='Enter Shell Thickness*'
-                            //   name='shell_thickness'
-                            //   onChange={onChange}
-                            //   placeholder=''
-                            //   sx={{ width: '100%', mr: 12 }} // Adjusted sx prop
-                            // />
                             <TextField
                               error={Boolean(errors?.shell_thickness)}
                               value={value}
@@ -921,6 +908,36 @@ const ConditionSlider = ({
                           <FormHelperText sx={{ color: 'error.main' }}>
                             {errors?.shell_thickness?.message}
                           </FormHelperText>
+                        )}
+                      </FormControl>
+
+                      <FormControl fullWidth sx={{}}>
+                        <Controller
+                          name='hatched_date'
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <DatePicker
+                                label='Hatched Date *'
+                                value={value || null}
+                                onChange={newDate => {
+                                  onChange(newDate)
+                                }}
+                                maxDate={dayjs()}
+                                format='DD/MM/YYYY'
+                                // slotProps={{
+                                //   textField: {
+                                //     fullWidth: true,
+                                //     error: Boolean(errors.hatched_date),
+                                //     helperText: errors?.hatched_date?.message
+                                //   }
+                                // }}
+                              />
+                            </LocalizationProvider>
+                          )}
+                        />
+                        {errors.hatched_date && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.hatched_date?.message}</FormHelperText>
                         )}
                       </FormControl>
 

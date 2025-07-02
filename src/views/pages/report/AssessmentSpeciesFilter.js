@@ -12,6 +12,7 @@ import { getTaxonomyListForReport } from 'src/lib/api/report'
 function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspeciesFilter, setOpenspeciesFilter }) {
   const theme = useTheme()
   const drawerContentRef = useRef(null)
+  const searchInputRef = useRef(null)
   const authData = useContext(AuthContext)
   const zoo_id = authData.userData.user.zoos[0]?.zoo_id
 
@@ -100,6 +101,20 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
     }
   }
 
+  useEffect(() => {
+    if (openspeciesFilter) {
+      const timeout = setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.focus()
+          }
+        })
+      }, 500) // Give time for drawer transition and rendering
+
+      return () => clearTimeout(timeout)
+    }
+  }, [openspeciesFilter])
+
   return (
     <Drawer
       anchor='right'
@@ -131,7 +146,8 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
         </IconButton>
       </Box>
       <Box sx={{ px: 4, backgroundColor: 'background.default' }}>
-        <TextField
+        {/* <TextField
+          inputRef={searchInputRef}
           value={searchValue}
           fullWidth
           slotProps={{
@@ -167,6 +183,35 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
               }
             }
           }}
+        /> */}
+
+        <TextField
+          fullWidth
+          value={searchValue}
+          onChange={handleSearchChange}
+          placeholder='Search by species name or scientific name'
+          inputProps={{
+            ref: searchInputRef,
+            style: {
+              color: theme.palette.text.primary
+            }
+          }}
+          sx={{
+            bgcolor: theme.palette.primary.contrastText,
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            borderRadius: '8px',
+            '& .MuiOutlinedInput-root': {
+              border: 'none',
+              '& fieldset': {
+                border: 'none'
+              },
+              '& .MuiInputBase-input::placeholder': {
+                color: theme.palette.customColors.OutlineVariant,
+                fontSize: '14px',
+                fontWeight: '400'
+              }
+            }
+          }}
         />
 
         <Typography
@@ -191,6 +236,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
         sx={{
           overflowY: 'auto',
           flexGrow: 1,
+          paddingBottom: 4,
           backgroundColor: 'background.default'
         }}
       >
