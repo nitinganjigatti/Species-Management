@@ -641,7 +641,7 @@ const AddReturnRequest = () => {
   }
 
   const totalReturnItemsValue = editParams.request_item_details.reduce((total, item) => {
-    return total + item.request_item_qty * parseFloat(item.unit_price)
+    return total + item?.request_item_qty * parseFloat(item?.unit_price)
   }, 0)
   // const cancelReturnRequest = async id => {
   //
@@ -826,7 +826,7 @@ const AddReturnRequest = () => {
                     {totalQty ? totalQty : '0'}
                   </Typography>
                 </Typography>
-                {/* <Typography
+                <Typography
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
@@ -834,7 +834,7 @@ const AddReturnRequest = () => {
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                     {Utility.formatAmountToReadableDigit(totalReturnItemsValue)}
                   </Typography>
-                </Typography> */}
+                </Typography>
               </Stack>
             </Box>
 

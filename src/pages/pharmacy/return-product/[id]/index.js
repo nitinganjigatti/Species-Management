@@ -45,6 +45,8 @@ import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import EmptyStateBox from 'src/components/EmptyStateBox'
+import { useTheme } from '@emotion/react'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -106,6 +108,7 @@ const IndividualReturnRequest = () => {
   const base_image_url = '/uploads/control_substance/'
 
   const { selectedPharmacy } = usePharmacyContext()
+  const theme = useTheme()
 
   const getRequestItemLists = async id => {
     try {
@@ -334,10 +337,9 @@ const IndividualReturnRequest = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      width: 40,
       field: 'sl_no',
-      headerName: 'Sl',
+      headerName: 'Sl.No',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid}
@@ -345,8 +347,7 @@ const IndividualReturnRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      width: 200,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -394,8 +395,61 @@ const IndividualReturnRequest = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 150,
+      minWidth: 150,
+      field: 'batch_no',
+      headerName: 'Batch No',
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+
+    {
+      width: 120,
+      field: 'expiry_date',
+      headerName: 'Expiry Date',
+      align: 'center',
+      headerAlign: 'center',
+
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params?.row?.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 200,
+      field: 'unit_price',
+      headerName: 'Net Unit price(₹)',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+        </Typography>
+      )
+    },
+    {
+      width: 150,
+      minWidth: 150,
+      field: 'qty',
+      headerName: 'total value(₹)',
+      type: 'number',
+      headerAlign: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.qty)}
+        </Typography>
+      )
+    },
+    {
+      width: 150,
+      minWidth: 150,
       field: 'requested_qty',
       headerName: 'return QTY',
       type: 'number',
@@ -912,7 +966,7 @@ const IndividualReturnRequest = () => {
 
               <Card sx={{ p: 2 }}>
                 <CardHeader
-                  title={`Product Return Request - ${requestItems?.request_number}`}
+                  title='Product Returns '
                   avatar={
                     <Icon
                       style={{ cursor: 'pointer' }}
@@ -923,41 +977,348 @@ const IndividualReturnRequest = () => {
                     />
                   }
                 />
-                <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned From</h5>
-                      <p style={{ marginBottom: '0' }}>{requestItems?.from_store}</p>
-                    </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned To</h5>
-                      <p style={{ marginBottom: '0' }}>{requestItems?.to_store}</p>
-                    </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched Date</h5>
-                      <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
-                    </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Return ID</h5>
-                      <p style={{ marginBottom: '0' }}>{requestItems?.request_number}</p>
-                    </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned By</h5>
+                <CardContent>
+                  <Card
+                    sx={{
+                      backgroundColor: 'customColors.lightBg',
+                      boxShadow: 'none !important',
+                      minHeight: '84px',
+                      display: 'flex',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      alignItems: 'center',
 
-                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
-                        {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
-                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                          <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-                            {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          height: '46px',
+                          gap: '10px',
+                          mb: {
+                            xs: 5,
+                            sm: 5,
+                            md: 5,
+                            lg: 0
+                          }
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            gpa: '4px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Returned From :
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px',
+                              mx: 2,
+                              [theme.breakpoints.up('lg')]: {
+                                ...RenderUtility?.getEllipsisStyleForText('140')
+                              }
+                            }}
+                          >
+                            {RenderUtility?.getToolTipForText(requestItems?.from_store)}
+                          </Box>
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Reference ID:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px',
+                              mx: 2,
+                              [theme.breakpoints.up('lg')]: {
+                                ...RenderUtility?.getEllipsisStyleForText('140')
+                              }
+                            }}
+                          >
+                            {RenderUtility?.getToolTipForText(requestItems?.request_number)}
+                          </Box>
+                        </Typography>
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '46px',
+                          gap: '10px',
+
+                          textAlign: {
+                            xs: 'left',
+                            sm: 'left',
+                            md: 'left',
+                            lg: 'left'
+                          },
+                          mb: {
+                            xs: 5,
+                            sm: 5,
+                            md: 5,
+                            lg: 0
+                          }
+                        }}
+                      >
+                        {requestItems?.product_count && (
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary'
+                            }}
+                          >
+                            Total Items:
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'customColors.OnSurfaceVariant',
+                                lineHeight: '19.36px',
+                                mx: 2
+                              }}
+                            >
+                              {requestItems?.product_count}
+                            </Box>
                           </Typography>
-                          <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                            {Utility.formatDisplayDate(requestItems?.created_at)}
+                        )}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            Total Items Value:
                           </Typography>
+
+                          <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'primary.light',
+                                lineHeight: '19.36px',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                            </Box>
+                          </Tooltip>
                         </Box>
-                      </Box>
+
+                        {/* <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'primary.OnSurface'
+                          }}
+                        >
+                          Shipped Items:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                          >
+                              fontSize: '16px',
+                              color: 'primary.OnSurface',
+                              lineHeight: '19.36px',
+                              mx: 2
+                            }}
+                            {requestItems?.shipped_qty}
+                          </Box>
+                        </Typography> */}
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          height: '46px',
+                          gap: '10px',
+
+                          mb: {
+                            xs: 5,
+                            sm: 0,
+                            md: 0,
+                            lg: 0
+                          }
+                        }}
+                      >
+                        {/* <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Total Requested Value:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.light',
+                              lineHeight: '19.36px',
+                              mx: 2
+                            }}
+                          >
+                            ₹{requestItems?.requested_amount}
+                          </Box>
+                        </Typography> */}
+
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'primary.OnSurface'
+                          }}
+                        >
+                          Shipped Value:
+                          <Tooltip title={`₹${Utility.formatNumberToDisplay(requestItems?.shipped_amount)}`}>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'primary.main',
+                                lineHeight: '19.36px',
+                                mx: 2
+                              }}
+                            >
+                              ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
+                            </Box>
+                          </Tooltip>
+                        </Typography>
+                      </Grid>
+
+                      <Grid item xs={12} sm={6} md={6} lg={3}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            height: '46px',
+
+                            justifyContent: {
+                              xs: 'start',
+                              sm: 'flex-end',
+                              md: 'flex-end',
+                              lg: 'start'
+                            }
+                          }}
+                        >
+                          <Box sx={{ width: '56px' }}>
+                            <CustomAvatar
+                              src={requestItems?.user_created_profile_pic}
+                              sx={{ radius: '64px', width: '40px', height: '40px' }}
+                            />
+                          </Box>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '10px'
+                            }}
+                          >
+                            <Tooltip
+                              title={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              placement='top'
+                              arrow
+                            >
+                              <Typography
+                                sx={{
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  lineHeight: '16.94px',
+                                  color: 'customColors.OnSurfaceVariant',
+
+                                  ...RenderUtility?.getEllipsisStyleForText(200)
+                                }}
+                              >
+                                {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              </Typography>
+                            </Tooltip>
+
+                            <Typography
+                              sx={{
+                                fontSize: '12px',
+                                fontWeight: '400',
+                                lineHeight: '14.52px',
+                                color: 'customColors.OnSurfaceVariant'
+                              }}
+                            >
+                              {Utility.formatDisplayDate(requestItems?.created_at)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </Box>
+                  </Card>
+                  {/* Medicine Listing */}
+                </CardContent>
 
                 <TabContext value={value}>
                   <TabList

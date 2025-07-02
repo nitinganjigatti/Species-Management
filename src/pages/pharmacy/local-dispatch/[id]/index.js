@@ -405,8 +405,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'qty',
       headerName: 'total value',
       type: 'number',
@@ -414,20 +413,6 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.qty)}
-        </Typography>
-      )
-    },
-
-    {
-      width: 100,
-      minWidth: 100,
-      field: 'batch_no',
-      headerName: 'Batch No',
-
-      // align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_no}
         </Typography>
       )
     },

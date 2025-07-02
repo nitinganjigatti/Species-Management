@@ -137,7 +137,8 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     p: 1
                   }}
                 >
-                  <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
+                  <Typography variant='h6'>{`Items Shipped  - ${disputeItemDetails?.item_details?.length}`}</Typography>
+
                   {/* {disputeItemDetails?.delivery_status !== 'Delivered' &&
                   selectedPharmacy?.type === 'local' &&
                   selectedPharmacy?.id == orderData?.to_store_id ? (
@@ -386,7 +387,8 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
             dispute_id: el?.dispute_id,
             shipment_id: el?.shipment_id,
             total_deny_comments: el?.total_deny_comments,
-            expiry_date: el?.expiry
+            expiry_date: el?.expiry,
+            request_number: response?.data?.request_number
           }
 
           return data
@@ -891,7 +893,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       }
     },
     {
-      width: 400,
+      width: 300,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -942,6 +944,16 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.count}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 150,
+      field: 'request_number',
+      headerName: 'Request ID',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.request_number}
         </Typography>
       )
     },

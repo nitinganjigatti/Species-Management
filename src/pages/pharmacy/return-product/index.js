@@ -533,7 +533,7 @@ const ReturnRequestList = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
@@ -565,7 +565,7 @@ const ReturnRequestList = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-          </div>
+          </Box>
           {params?.row?.status === 'Cancelled' ? params?.row?.status : null}
         </Typography>
       )
