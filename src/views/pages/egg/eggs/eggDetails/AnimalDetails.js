@@ -32,6 +32,7 @@ const AnimalDetails = ({ eggDetails }) => {
       <CardHeader
         sx={{ pb: 0 }}
         title={'Animal Details'}
+
         // action={headerAction}
       />
       <CardContent sx={{ pt: 2 }}>
@@ -65,6 +66,7 @@ const AnimalDetails = ({ eggDetails }) => {
                       lineHeight: '19.36px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
+
                       // whiteSpace: 'nowrap',
                       // whiteSpace: 'normal', // Change this to allow wrapping
                       wordWrap: 'break-word',
@@ -72,7 +74,7 @@ const AnimalDetails = ({ eggDetails }) => {
                       width: '100%'
                     }}
                   >
-                    {eggDetails?.animal_data?.common_name || '-'} sb sdsdnja dha s
+                    {eggDetails?.animal_data?.common_name || '-'}
                   </Typography>
                   <Typography
                     sx={{

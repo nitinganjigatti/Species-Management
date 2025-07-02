@@ -203,7 +203,8 @@ const MealGroup = () => {
     if (status === 'mealgroup') {
       const groupparams = {
         site_id: selectedOption,
-        page_no: paginationModel.page + 1
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize
       }
 
       try {
