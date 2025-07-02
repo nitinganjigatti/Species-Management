@@ -223,6 +223,7 @@ const ConditionSlider = ({
     getValues,
     clearErrors,
     watch,
+    setError,
     reset,
     resetField,
     formState: { errors }
@@ -383,6 +384,13 @@ const ConditionSlider = ({
   }
 
   const onSubmit = values => {
+    if (values.hatched_date === null) {
+      setError('hatched_date', {
+        type: 'manual',
+        message: 'Hatched date is required'
+      })
+      return
+    }
     try {
       setLoader(true)
       let payload
@@ -821,7 +829,7 @@ const ConditionSlider = ({
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 gap: 2,
-                                border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                border: `1px solid ${theme.palette.customColors.MuiFieldBorder}`,
                                 borderRadius: '10px',
                                 width: '100%',
                                 justifyContent: 'space-between'
@@ -829,7 +837,7 @@ const ConditionSlider = ({
                             >
                               <Typography
                                 sx={{
-                                  ml: 2
+                                  ml: 3
                                 }}
                               >
                                 Normal Hatch
@@ -841,8 +849,8 @@ const ConditionSlider = ({
                                 display: 'flex',
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                p: 2,
+                                border: `1px solid ${theme.palette.customColors.MuiFieldBorder}`,
+                                gap: 2,
                                 borderRadius: '10px',
                                 width: '100%',
                                 justifyContent: 'space-between'
@@ -850,7 +858,7 @@ const ConditionSlider = ({
                             >
                               <Typography
                                 sx={{
-                                  ml: 2
+                                  ml: 3
                                 }}
                               >
                                 Assisted Hatch
@@ -920,25 +928,20 @@ const ConditionSlider = ({
                               <DatePicker
                                 label='Hatched Date *'
                                 value={value || null}
-                                onChange={newDate => {
-                                  onChange(newDate)
-                                }}
+                                onChange={onChange}
                                 maxDate={dayjs()}
                                 format='DD/MM/YYYY'
-                                // slotProps={{
-                                //   textField: {
-                                //     fullWidth: true,
-                                //     error: Boolean(errors.hatched_date),
-                                //     helperText: errors?.hatched_date?.message
-                                //   }
-                                // }}
+                                slotProps={{
+                                  textField: {
+                                    fullWidth: true,
+                                    error: Boolean(errors?.hatched_date),
+                                    helperText: errors?.hatched_date?.message || ''
+                                  }
+                                }}
                               />
                             </LocalizationProvider>
                           )}
                         />
-                        {errors.hatched_date && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.hatched_date?.message}</FormHelperText>
-                        )}
                       </FormControl>
 
                       {hatched === 'assisted_hatch' && (
@@ -1806,7 +1809,6 @@ const ConditionSlider = ({
                   </Box>
                 )}
               </Box>
-
               <Box
                 sx={{
                   height: '122px',
@@ -1830,7 +1832,7 @@ const ConditionSlider = ({
                   disabled={loader}
                   fullWidth
                   variant='contained'
-                  loader={loader}
+                  loading={loader}
                   type='submit'
                   size='large'
                 >
@@ -1854,7 +1856,6 @@ const ConditionSlider = ({
 
 const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
   const theme = useTheme()
-
   return (
     <Box
       sx={{
@@ -1917,7 +1918,7 @@ const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure
           Site: {site_name ? site_name : '-'}
         </Typography>
       </Box>
-      <Box sx={{}}>
+      <Box>
         <IconButton size='small' onClick={closeEnclosureCard} sx={{ color: 'text.primary' }}>
           <Icon icon='mdi:close-circle-outline' fontSize={36} style={{ color: 'red' }} />
         </IconButton>
