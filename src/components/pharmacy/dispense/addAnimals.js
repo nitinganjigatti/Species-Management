@@ -90,27 +90,27 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
     )
   }
 
-  useEffect(() => {
-    const filteredAnimals_s = animals_s.filter(
-      existingAnimal => !collectedAnimals.some(newAnimal => newAnimal.animal_id === existingAnimal.animal_id)
-    )
+  // useEffect(() => {
+  //   const filteredAnimals_s = animals_s.filter(
+  //     existingAnimal => !collectedAnimals.some(newAnimal => newAnimal.animal_id === existingAnimal.animal_id)
+  //   )
 
-    // filtering out old elements which is not matched
-    const filteredCollectedAnimals = collectedAnimals.filter(
-      newAnimal => !animals_s.some(existingAnimal => existingAnimal.animal_id === newAnimal.animal_id)
-    )
+  //   // filtering out old elements which is not matched
+  //   const filteredCollectedAnimals = collectedAnimals.filter(
+  //     newAnimal => !animals_s.some(existingAnimal => existingAnimal.animal_id === newAnimal.animal_id)
+  //   )
 
-    // Concatenate the both filtered arrays
-    const updatedAnimals_s = [...filteredAnimals_s, ...filteredCollectedAnimals]
+  //   // Concatenate the both filtered arrays
+  //   const updatedAnimals_s = [...filteredAnimals_s, ...filteredCollectedAnimals]
 
-    setAnimals_s_after_update(updatedAnimals_s)
-  }, [])
+  //   setAnimals_s_after_update(updatedAnimals_s)
+  // }, [])
 
   const handleScroll = async e => {
     const container = e.target
 
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight && searchValue != '') {
+    if (container?.scrollHeight - Math?.round(container.scrollTop) === container.clientHeight && searchValue != '') {
       // User has reached the bottom, perform your action here
       setAnimalPage(++animalPage)
       setReachedEnd(true)
@@ -242,6 +242,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
     setAnimalPage(1)
     setCollectedAnimals([])
     setCollectedAnimalsCount(0)
+    setAnimals_s_after_update([])
   }
 
   return (
@@ -251,7 +252,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] }, height: '100vh' }}
     >
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message='All animals Found' action={action} />
+      {/* <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message='All animals Found' action={action} /> */}
       <Dialog
         open={showFilterDialog}
         maxWidth='md'
@@ -493,7 +494,13 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
               </Box>
             </Card>
           ))}
+        {!reachedEnd && open && animalList?.length > 0 && (
+          <Typography sx={{ textAlign: 'center', my: 3, color: 'customColors.neutralSecondary' }}>
+            No more data to load
+          </Typography>
+        )}
       </Box>
+
       {reachedEnd ? <LinearProgress /> : null}
       <Box
         sx={{
@@ -511,7 +518,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
         <RenderSidebarFooter />
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default AddAnimals
