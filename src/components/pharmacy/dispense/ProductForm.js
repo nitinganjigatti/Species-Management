@@ -904,7 +904,7 @@ function ProductForm({
             }}
           >
             {fields.map((field, index) => (
-              <Grid container spacing={2} key={field?.id} sx={{ mb: 2, mt: 2 }}>
+              <Grid container spacing={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
                 <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
                   <FormControl fullWidth sx={{ width: 'full', minWidth: 230 }}>
                     <Controller
