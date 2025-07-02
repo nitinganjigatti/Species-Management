@@ -258,13 +258,23 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
         maxWidth='md'
         height='auto'
         scroll='body'
-        onClose={() => setShowFilterDialog(false)}
+        onClose={() => {
+          setShowFilterDialog(false)
+          setAnimals_s_after_update([])
+        }}
       >
         <Card>
           <CardHeader
             title={'Filter By'}
             action={
-              <IconButton size='small' onClick={() => setShowFilterDialog(false)} sx={{ ml: 20 }}>
+              <IconButton
+                size='small'
+                onClick={() => {
+                  setShowFilterDialog(false)
+                  setAnimals_s_after_update([])
+                }}
+                sx={{ ml: 20 }}
+              >
                 <Icon icon='mdi:close' />
               </IconButton>
             }
@@ -318,6 +328,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                 handleSidebarClose()
                 setSearchValue('')
                 setAnimalPage(1)
+                setAnimals_s_after_update([])
               }}
               sx={{ color: 'text.primary' }}
             >
