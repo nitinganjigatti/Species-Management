@@ -5,7 +5,8 @@ const ComposeReportNavigation = ({
   reports_module,
   enable_animal_report,
   enable_daily_report,
-  enable_specie_report
+  enable_specie_report,
+  enable_animal_assessment_report
 }) => {
   const reportTitle = {
     sectionTitle: 'Report'
@@ -49,18 +50,28 @@ const ComposeReportNavigation = ({
 
   if (enable_animal_report) {
     reportNavigationArray.push(animalList)
+  }
+
+  if (enable_animal_assessment_report) {
     reportNavigationArray.push(animalAssessment)
   }
 
   return reportNavigationArray
 }
 
-const reportNavigation = ({ reports_module, enable_animal_report, enable_daily_report, enable_specie_report }) =>
+const reportNavigation = ({
+  reports_module,
+  enable_animal_report,
+  enable_daily_report,
+  enable_specie_report,
+  enable_animal_assessment_report
+}) =>
   ComposeReportNavigation({
     reports_module,
     enable_animal_report,
     enable_daily_report,
-    enable_specie_report
+    enable_specie_report,
+    enable_animal_assessment_report
   })
 
 export default reportNavigation
