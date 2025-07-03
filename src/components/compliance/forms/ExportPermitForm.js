@@ -13,6 +13,7 @@ import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
 import countryList from 'react-select-country-list'
 import { useMemo } from 'react'
+import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
 
 export const exportPermitValidationSchema = yup.object().shape({
   export_number: yup.string().required('Export number is required'),
@@ -338,7 +339,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       export_purpose: data.export_purpose || '',
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
-      document_type_id: 5,
+      document_type_id: DOCUMENT_TYPE_ID,
       species: JSON.stringify(
         data.speciesList.map(item => ({
           taxonomy_id: item.species?.tsn_id || item.species?.id || '',

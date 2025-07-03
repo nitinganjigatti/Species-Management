@@ -9,6 +9,7 @@ import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/exports'
 import Toaster from 'src/components/Toaster'
 import { useTheme } from '@mui/material/styles'
+import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
 
 const AddEditExportPermit = () => {
   const router = useRouter()
@@ -32,7 +33,10 @@ const AddEditExportPermit = () => {
   const fetchExportDetails = async () => {
     setLoading(true)
     try {
-      const res = await getExportDetails(id)
+      const params = {
+        document_type_id: DOCUMENT_TYPE_ID
+      }
+      const res = await getExportDetails(id, params)
       if (res.success) {
         setExportData(res.data)
       }

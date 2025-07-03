@@ -11,6 +11,7 @@ import ExportPermitDetailsContent from 'src/views/pages/compliance/documents/exp
 import LinkedImports from 'src/components/compliance/LinkedImports'
 import LinkedShipments from 'src/components/compliance/LinkedShipments'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
+import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
 
 // Example usage with sample data:
 const sampleLinkedImports = [
@@ -57,7 +58,7 @@ const ExportPermitDetails = () => {
     setIsFetching(true)
     try {
       const params = {
-        export_id: id || exportId,
+        id: id || exportId,
         type: 'export'
       }
       const res = await getDocumentTypeList(params)
@@ -79,7 +80,10 @@ const ExportPermitDetails = () => {
   const fetchExportDetails = async () => {
     setLoading(true)
     try {
-      const res = await getExportDetails(id)
+      const params = {
+        document_type_id: DOCUMENT_TYPE_ID
+      }
+      const res = await getExportDetails(id, params)
       if (res.success) {
         console.log('res.data', res.data)
         setExportData({
