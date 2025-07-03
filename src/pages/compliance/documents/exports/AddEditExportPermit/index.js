@@ -54,7 +54,7 @@ const AddEditExportPermit = () => {
     setIsFetching(true)
     try {
       const params = {
-        export_id: id || exportId,
+        id: id || exportId,
         type: 'export'
       }
       const res = await getDocumentTypeList(params)
@@ -80,7 +80,7 @@ const AddEditExportPermit = () => {
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
   const handleAddEditSuccess = data => {
-    const updatedList = documentList.map(item => (item.id === data.document_type_id ? { ...item, ...data } : item))
+    const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
     setDocumentList(updatedList)
   }
 

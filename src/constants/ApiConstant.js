@@ -560,7 +560,7 @@ export const GET_LINKED_SHIPMENT_DETAILS = 'v1/trade/exports/linked-shipments'
 
 export const ADD_EXPORT = 'v1/trade/exports'
 
-export const EDIT_EXPORT = 'v1/trade/exports'
+export const EDIT_EXPORT = 'v1/trade/exports/update'
 
 export const GET_DOCUMENT_TYPE = 'v1/trade/support/docs'
 

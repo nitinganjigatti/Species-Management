@@ -58,14 +58,14 @@ export const exportPermitValidationSchema = yup.object().shape({
 
   export_purpose: yup.string().required('Export purpose is required').min(1, 'Export purpose is required'),
 
-  certificate_file: yup
-    .mixed()
-    .required('File is required')
-    .test('fileType', 'Unsupported file format', value => {
-      if (!value) return true
+  // certificate_file: yup
+  //   .mixed()
+  //   .required('File is required')
+  //   .test('fileType', 'Unsupported file format', value => {
+  //     if (!value) return true
 
-      return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
-    }),
+  //     return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
+  //   }),
 
   speciesList: yup
     .array()
@@ -115,8 +115,8 @@ export const exportPermitValidationSchema = yup.object().shape({
                   value: yup.string().required('Identifier type is required')
                 })
                 .required('Identifier type is required'),
-              identifier_value: yup.string().required('Identifier value is required')
 
+              // identifier_value: yup.string().required('Identifier value is required')
               // animal_type: yup.string().required('Animal type is required'),
               // animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
             })
@@ -206,11 +206,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
             key: item.key,
             id: item.id
           })) || []
-        console.log('Addition', {
-          genders: genderOptions,
-          appendix: appendixOptions,
-          identifierTypes: identifierTypeOptions
-        })
+
         setMastersData({
           genders: genderOptions,
           appendix: appendixOptions,
@@ -275,8 +271,8 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
             value: animal.gender
           },
           identifier_type: {
-            label: mastersData?.identifierTypes.find(item => item.id == animal.identifier_type)?.label || '',
-            value: mastersData?.identifierTypes.find(item => item.value == animal.identifier_type)?.label || null
+            label: mastersData?.identifierTypes.find(item => item.label == animal.identifier_type)?.label || '',
+            value: mastersData?.identifierTypes.find(item => item.label == animal.identifier_type)?.label || null
           },
           identifier_value: animal.identifier_value
         }))
@@ -342,7 +338,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       export_purpose: data.export_purpose || '',
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
-      attachment: data.certificate_file,
+      document_type_id: 5,
       species: JSON.stringify(
         data.speciesList.map(item => ({
           taxonomy_id: item.species?.tsn_id || item.species?.id || '',
@@ -364,6 +360,15 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         }))
       )
     }
+
+    // Only include attachment if it's a new file upload
+    if (data.certificate_file && data.certificate_file instanceof File) {
+      transformedData.attachment = data.certificate_file
+    } else if (data.certificate_file?.document_type_id) {
+      // TODO: Backend flow is yet to update
+      // transformedData.document_type_id = data?.documents?.[0]?.document_type_id
+    }
+
     console.log('transformedData', transformedData)
     try {
       setSubmitLoader(true)
