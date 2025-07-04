@@ -9,6 +9,7 @@ import AnimalIdentifier from 'src/components/housing/animals/AnimalIdentifier'
 import AnimalIncidents from 'src/components/housing/animals/AnimalIncidents'
 import AnimalJournals from 'src/components/housing/animals/AnimalJournals'
 import AnimalOverview from 'src/components/housing/animals/AnimalOverview'
+import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 
 const tabConfig = [
   { label: 'Overview', value: 'overview', component: AnimalOverview },
@@ -18,6 +19,12 @@ const tabConfig = [
   { label: 'History', value: 'history', component: AnimalHistory },
   { label: 'Identifier', value: 'identifier', component: AnimalIdentifier }
 ]
+
+const animalHeaderDetails = {
+  commonName: 'Macaw',
+  scientificName: 'Somatogyrus somatogyrus',
+  qrCodeUrl: 'abcd'
+}
 
 const AnimalDetais = () => {
   const theme = useTheme()
@@ -45,6 +52,7 @@ const AnimalDetais = () => {
           </Typography>
           <Typography color='text.primary'>Animal Details</Typography>
         </Breadcrumbs>
+        <AnimalInsightsCard isAnimalDetailsPage={true} headerDetails={animalHeaderDetails} showQr={true} />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
