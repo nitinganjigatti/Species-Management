@@ -13,6 +13,7 @@ const Sites = () => {
 
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
+  const [siteDrawer, setSiteDrawer] = useState(false)
 
   const handleEnclosureInsightClick = () => {
     setDrawerType('enclosures')
@@ -46,6 +47,10 @@ const Sites = () => {
     // router.push('/housing')
   }
 
+  const handleButtonClick = () => {
+    setSiteDrawer(true)
+  }
+
   const statsData = [
     {
       label: 'Species',
@@ -73,11 +78,13 @@ const Sites = () => {
   return (
     <Box>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleHousingClick}>
+        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
           Housing
         </Typography>
 
-        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Site List</Typography>
+        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+          Site List
+        </Typography>
       </Breadcrumbs>
       <Box>
         {/* For testing with all the data */}
@@ -113,6 +120,11 @@ const Sites = () => {
           error={error}
           isAllSites
           statsData={statsData}
+          actions={{
+            onAddNew: handleButtonClick
+          }}
+
+          // onAddNewClick={handleButtonClick}
         />
         <Box sx={{ mt: 6 }}>
           <Card sx={{ p: { xs: 3, md: 5 } }}>
@@ -121,6 +133,8 @@ const Sites = () => {
               setDrawerType={setDrawerType}
               drawerData={drawerData}
               setDrawerData={setDrawerData}
+              siteDrawer={siteDrawer}
+              setSiteDrawer={setSiteDrawer}
             />
           </Card>
         </Box>

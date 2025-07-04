@@ -17,6 +17,7 @@ import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
+import AddCluster from 'src/views/pages/housing/AddCluster/AddCluster'
 
 const Clusters = () => {
   const theme = useTheme()
@@ -40,6 +41,7 @@ const Clusters = () => {
 
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
+  const [showDrawer, setShowDrawer] = useState(false)
 
   const handleClusterInsightClick = () => {
     setDrawerType('enclosures')
@@ -74,7 +76,7 @@ const Clusters = () => {
     setSearchValue(search)
   }, [query])
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, refetch } = useQuery({
     queryKey: ['clusters', filters],
     queryFn: () =>
       getClusterList({
@@ -407,9 +409,9 @@ const Clusters = () => {
         return isSmallScreen ? (
           phoneNumber ? (
             <Box
+              display='flex'
+              gap={4}
               sx={{
-                display: 'flex',
-                gap: 4,
                 width: '100%',
                 height: '100%',
                 display: 'flex',
@@ -453,16 +455,11 @@ const Clusters = () => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleHousingClick}>
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
             Housing
           </Typography>
 
-          <Typography
-            sx={{
-              color: 'text.primary',
-              cursor: 'pointer'
-            }}
-          >
+          <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
             Cluster List
           </Typography>
         </Breadcrumbs>
@@ -474,6 +471,9 @@ const Clusters = () => {
             error={statsError}
             isListingPage
             statsData={clusterStats}
+            actions={{
+              onAddNew: () => setShowDrawer(true)
+            }}
           />
           <Box sx={{ mt: 6 }}>
             <Card sx={{ p: { xs: 3, md: 5 } }}>
@@ -526,6 +526,7 @@ const Clusters = () => {
       {drawerType === 'enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
+      {showDrawer && <AddCluster open={showDrawer} setShowDrawer={setShowDrawer} refetchCluster={refetch} />}
     </>
   )
 }

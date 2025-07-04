@@ -228,6 +228,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             display: 'flex',
             alignItems: 'center',
             cursor: 'pointer',
+            pl: 2,
             justifyContent: 'left'
           }}
           onClick={e => {

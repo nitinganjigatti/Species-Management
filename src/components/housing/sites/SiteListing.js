@@ -17,8 +17,9 @@ import AnimalsDrawer from 'src/components/housing/utils/AnimalDrawer'
 import { getAllSites } from 'src/lib/api/housing'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
+import AddSiteDrawer from 'src/views/pages/housing/sites/AddSiteDrawer'
 
-const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDrawer, setSiteDrawer }) => {
   const theme = useTheme()
   const router = useRouter()
   const auth = useAuth()
@@ -55,7 +56,7 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
     setInputValue(search)
   }, [query])
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, refetch } = useQuery({
     queryKey: ['sites', filters],
     queryFn: () =>
       getAllSites({
@@ -457,9 +458,9 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
         return isSmallScreen ? (
           phoneNumber ? (
             <Box
+              display='flex'
+              gap={4}
               sx={{
-                display: 'flex',
-                gap: 4,
                 width: '100%',
                 height: '100%',
                 display: 'flex',
@@ -555,6 +556,7 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
       {drawerType === 'enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
+      {siteDrawer && <AddSiteDrawer open={siteDrawer} setSiteDrawer={setSiteDrawer} refetch={refetch} />}
     </>
   )
 }
