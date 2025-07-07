@@ -252,6 +252,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       // Transform species data
       const transformedSpeciesList = exportData.species.map(species => ({
         id: species.id,
+        tsn_id: species.id,
         species: {
           id: species.taxonomy_id,
           tsn_id: species.taxonomy_id,
