@@ -41,7 +41,7 @@ const SelectAnimalsDrawer = ({
   const validateSelection = () => {
     // Find the species in selectedExportData
     const exportItem = draftData.export.find(e => e.export_id === exportID)
-    const speciesData = exportItem?.species?.find(s => s.species_id === speciesId)
+    const speciesData = exportItem?.species?.find(s => s.master_species_id === speciesId)
 
     const counts = {
       male: 0,
@@ -219,8 +219,22 @@ const SelectAnimalsDrawer = ({
                 {/* Gender Avatar */}
                 <Avatar
                   sx={{
-                    backgroundColor: animal.gender === 'male' ? '#AFEFEB80' : '#FA614026',
-                    color: animal.gender === 'male' ? '#00AFD6' : '#FA6140',
+                    backgroundColor:
+                      animal.gender === 'male'
+                        ? '#AFEFEB80'
+                        : animal.gender === 'female'
+                        ? '#FA614026'
+                        : animal.gender === 'unknown'
+                        ? '#DDEBE9'
+                        : '',
+                    color:
+                      animal.gender === 'male'
+                        ? '#00AFD6'
+                        : animal.gender === 'female'
+                        ? '#FA6140'
+                        : animal.gender === 'unknown'
+                        ? '#1F515B'
+                        : '',
                     fontWeight: '500',
                     marginRight: '16px',
                     fontSize: '14px',
@@ -230,16 +244,20 @@ const SelectAnimalsDrawer = ({
                     ml: 4
                   }}
                 >
-                  {animal.gender === 'male' ? 'M' : animal.gender === 'female' ? 'F' : 'U'}
+                  {animal.gender === 'male'
+                    ? 'M'
+                    : animal.gender === 'female'
+                    ? 'F'
+                    : animal.gender === 'unknown'
+                    ? 'U'
+                    : ''}
                 </Avatar>
 
                 {/* Animal Info */}
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
                     Species :{' '}
-                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
-                      {commonNameValue + ' ' + animal.id}
-                    </span>
+                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>{commonNameValue}</span>
                   </Typography>
 
                   <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>

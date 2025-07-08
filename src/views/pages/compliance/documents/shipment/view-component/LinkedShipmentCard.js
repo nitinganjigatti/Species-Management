@@ -30,12 +30,14 @@ const ShipmentCard = ({ shipment }) => {
           <Grid item xs={7}>
             <Box mb={4}>
               <Typography sx={{ fontSize: '16px', color: '#7A8684', fontWeight: 400 }}>Shipment Date</Typography>
-              <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>{shipment.date}</Typography>
+              <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+                {shipment.shipment_date}
+              </Typography>
             </Box>
             <Box>
               <Typography sx={{ fontSize: '16px', color: '#7A8684', fontWeight: 400 }}>Total Species</Typography>
               <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                {shipment.totalSpecies}
+                {shipment.species_count}
               </Typography>
             </Box>
           </Grid>
@@ -44,13 +46,12 @@ const ShipmentCard = ({ shipment }) => {
           <Grid item xs={5} display='flex' flexDirection='column' justifyContent='flex-end'>
             <Box mt='28px'>
               {' '}
-              {/* This pushes it down to align with Total Species */}
               <Typography sx={{ fontSize: '14px', color: '#7A7A7A', fontWeight: 400 }}>
                 Animals Part of Shipment
               </Typography>
               <Box display='flex' gap={1} mt={0.5}>
                 <Chip
-                  label={`M - ${shipment.animals.male}`}
+                  label={`M - ${shipment.male_count}`}
                   size='small'
                   sx={{
                     background: '#AFEFEB80',
@@ -62,7 +63,7 @@ const ShipmentCard = ({ shipment }) => {
                   }}
                 />
                 <Chip
-                  label={`F - ${shipment.animals.female}`}
+                  label={`F - ${shipment.female_count}`}
                   size='small'
                   sx={{
                     background: '#FA614026',
@@ -74,7 +75,7 @@ const ShipmentCard = ({ shipment }) => {
                   }}
                 />
                 <Chip
-                  label={`U - ${shipment.animals.unknown}`}
+                  label={`U - ${shipment.undeterminate_count}`}
                   size='small'
                   sx={{
                     background: '#DDEBE9',

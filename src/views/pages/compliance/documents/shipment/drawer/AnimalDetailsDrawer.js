@@ -5,6 +5,8 @@ import debounce from 'lodash/debounce'
 import Search from 'src/views/utility/Search'
 import { getAllSpeciesList } from 'src/lib/api/housing'
 import CloseIcon from '@mui/icons-material/Close'
+import Icon from 'src/@core/components/icon'
+import { useRouter } from 'next/router'
 import { CellInfo } from 'src/utility/render'
 import ExportCard from '../view-component/AddExportPermitCard'
 import AnimalCardLayout from '../view-component/AddAnimalCard'
@@ -38,8 +40,24 @@ const identifiers = [
   }
 ]
 
-const AnimalDetailsDrawer = ({ open, onClose, title }) => {
+const AnimalDetailsDrawer = ({
+  open,
+  onClose,
+  title,
+  animalDetails,
+  detailtype,
+  setanimalCountDrawerOpen,
+  setCurrentSpeciesId,
+  setSelectedSpeciesData
+}) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { action } = router.query
+  const handleClick = () => {
+    setanimalCountDrawerOpen(true)
+    setCurrentSpeciesId(animalDetails.tsn_id)
+    setSelectedSpeciesData(animalDetails)
+  }
 
   return (
     <Drawer
@@ -58,12 +76,40 @@ const AnimalDetailsDrawer = ({ open, onClose, title }) => {
         }}
       >
         {/* Header */}
-        <Box sx={{ px: 5, pt: 4, pb: 2 }}>
+        <Box sx={{ px: 5, pt: 4, pb: 4 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
               {/* <Box component='img' src='/images/housing/Enclosure icon.png' alt='icon' sx={{ width: 32, height: 32 }} /> */}
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{title}</Typography>
             </Box>
+            {detailtype === 'others' ? (
+              <Typography
+                sx={{
+                  color: '#006D35',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  ml: '30%'
+                }}
+                onClick={handleClick}
+              >
+                <Icon
+                  style={{
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    marginRight: '8px',
+                    color: '#006D35'
+                  }}
+                  icon='bx:pencil'
+                />
+                Edit Selection
+              </Typography>
+            ) : (
+              ''
+            )}
+
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -95,25 +141,27 @@ const AnimalDetailsDrawer = ({ open, onClose, title }) => {
               <Grid item xs={6}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Species Name</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
-                  {species.name}
+                  {animalDetails?.common_name || '-'}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Scientific Name</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
-                  {species.scientificName}
+                  {animalDetails?.scientific_name || '-'}
                 </Typography>
               </Grid>
               <Grid item xs={6} sx={{ mt: 3 }}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>CITES</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
-                  {species.cites}
+                  {animalDetails?.cites || '-'}
                 </Typography>
               </Grid>
               <Grid item xs={6} sx={{ mt: 3 }}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Animal count</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
-                  {species.count}
+                  {animalDetails?.total_count ||
+                    animalDetails?.male_count + animalDetails?.female_count + animalDetails?.undeterminate_count ||
+                    '-'}
                 </Typography>
               </Grid>
 
@@ -121,7 +169,7 @@ const AnimalDetailsDrawer = ({ open, onClose, title }) => {
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Gender & Count</Typography>
                 <Box display='flex' gap={1} sx={{ mt: 1 }}>
                   <Chip
-                    label={`M - ${species.male}`}
+                    label={`M - ${animalDetails?.male_count || 0}`}
                     size='small'
                     sx={{
                       background: '#AFEFEB80',
@@ -134,7 +182,7 @@ const AnimalDetailsDrawer = ({ open, onClose, title }) => {
                     }}
                   />
                   <Chip
-                    label={`F - ${species.female}`}
+                    label={`F - ${animalDetails?.female_count || 0}`}
                     size='small'
                     sx={{
                       background: '#FA614026',
@@ -147,7 +195,7 @@ const AnimalDetailsDrawer = ({ open, onClose, title }) => {
                     }}
                   />
                   <Chip
-                    label={`U - ${species.unknown}`}
+                    label={`U - ${animalDetails?.undeterminate_count || 0}`}
                     size='small'
                     sx={{
                       background: '#DDEBE9',
@@ -174,56 +222,80 @@ const AnimalDetailsDrawer = ({ open, onClose, title }) => {
               mt: 4
             }}
           >
-            Animals with identifier ( 1 )
+            Animals with identifier ( {animalDetails?.animals?.length || 0} )
           </Typography>
           <Box sx={{ backgroundColor: '#FFFFFF', p: 4, borderRadius: '8px', border: '1px solid #C3CEC7' }}>
-            {identifiers.map((animal, index) => (
-              <Box
-                key={animal.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '12px',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #C3CEC7',
-                  borderRadius: '8px',
-                  mb: 3
-                }}
-              >
-                {/* Gender Avatar */}
-                <Avatar
+            {animalDetails?.animals?.length > 0 ? (
+              animalDetails?.animals?.map((animal, index) => (
+                <Box
+                  key={animal.id}
                   sx={{
-                    backgroundColor: animal.gender === 'M' ? '#AFEFEB80' : '#FA614026',
-                    color: animal.gender === 'M' ? '#00AFD6' : '#FA6140',
-                    fontWeight: '500',
-                    marginRight: '16px',
-                    fontSize: '14px',
-                    width: 40,
-                    height: 40,
-                    borderRadius: '4px'
-                    //ml: 4
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '12px',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    mb: 3
                   }}
                 >
-                  {animal.gender}
-                </Avatar>
+                  {/* Gender Avatar */}
+                  <Avatar
+                    sx={{
+                      backgroundColor:
+                        animal.gender === 'male'
+                          ? '#AFEFEB80'
+                          : animal.gender === 'female'
+                          ? '#FA614026'
+                          : animal.gender === 'unknown'
+                          ? '#DDEBE9'
+                          : '',
+                      color:
+                        animal.gender === 'male'
+                          ? '#00AFD6'
+                          : animal.gender === 'female'
+                          ? '#FA6140'
+                          : animal.gender === 'unknown'
+                          ? '#1F515B'
+                          : '',
+                      fontWeight: '500',
+                      marginRight: '16px',
+                      fontSize: '14px',
+                      width: 40,
+                      height: 40,
+                      borderRadius: '4px'
+                      //ml: 4
+                    }}
+                  >
+                    {animal.gender === 'male' ? 'M' : animal.gender === 'female' ? 'F' : 'U'}
+                  </Avatar>
 
-                {/* Animal Info */}
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px', mb: 0.5 }}>
-                    Species :{' '}
-                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>{animal.species}</span>
-                  </Typography>
+                  {/* Animal Info */}
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px', mb: 0.5 }}>
+                      Species :{' '}
+                      <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                        {animalDetails.common_name}
+                      </span>
+                    </Typography>
 
-                  <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
-                    Microchip ID :
-                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
-                      {' '}
-                      11222{animal.microchip}
-                    </span>
-                  </Typography>
+                    <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
+                      {animal.identifier_type} :
+                      <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                        {' '}
+                        {animal.identifier_value}
+                      </span>
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-            ))}
+              ))
+            ) : (
+              <Typography
+                sx={{ background: '#0000000D', p: 12, textAlign: 'center', borderRadius: '8px', fontWeight: '500' }}
+              >
+                No Animals to show
+              </Typography>
+            )}
           </Box>
         </Box>
       </Box>

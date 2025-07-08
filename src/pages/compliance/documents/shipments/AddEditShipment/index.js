@@ -9,11 +9,11 @@ import ShipmentBasicDetails from 'src/views/pages/compliance/documents/shipment/
 
 const AddEditShipment = () => {
   const router = useRouter()
-  const { id, action } = router.query
+  const { id, action, export: exportCount } = router.query
   const isEdit = Boolean(id && id !== 'new')
   const [expanded, setExpanded] = useState('permit-details') // Accordion open state
   const [showEdit, setShowEdit] = useState(true)
-  const [showEditAnimals, setShowEditAnimals] = useState(false)
+  const [showEditAnimals, setShowEditAnimals] = useState(true)
   const [status, setStatus] = useState('draft')
   const animalsEditRef = useRef() // ref to trigger child
   const basicDetailsEditRef = useRef()
@@ -21,6 +21,7 @@ const AddEditShipment = () => {
   useEffect(() => {
     if (isEdit && action === 'edit') {
       setShowEdit(true)
+      setShowEditAnimals(true)
     }
   }, [isEdit, action])
 
@@ -138,57 +139,66 @@ const AddEditShipment = () => {
         />
       </CustomAccordion>
 
-      <CustomAccordion
-        id='animals-details'
-        title={
-          <Box
-            className='editanimals_contxt'
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              gap: '860px'
-            }}
-          >
-            <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>
-            {!showEditAnimals && expanded === 'animals-details' ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  cursor: 'pointer',
-                  background: '#E1F9ED',
-                  pr: 4,
-                  pl: 2,
-                  py: 1,
-                  borderRadius: '5px'
-                }}
-                onClick={() => animalsEditRef.current?.()} // trigger SpeciesAddEdit
-              >
-                <Icon
-                  style={{ fontSize: '15px', cursor: 'pointer', marginRight: '4px', color: '#006D35' }}
-                  icon='bx:pencil'
-                />
-                <Typography variant='body2' sx={{ color: '#006D35', fontWeight: 500 }}>
-                  Edit
-                </Typography>
-              </Box>
-            ) : (
-              ''
-            )}
-          </Box>
-        }
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
-      >
-        <AnimalsData
-          onEditClick={animalsEditRef}
-          showEditAnimals={showEditAnimals}
-          setShowEditAnimals={setShowEditAnimals}
-        />
-      </CustomAccordion>
+      {id ? (
+        <CustomAccordion
+          id='animals-details'
+          title={
+            <Box
+              className='editanimals_contxt'
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                gap: '860px'
+              }}
+            >
+              <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>
+              {console.log(exportCount, 'exportCount')}
+              {showEditAnimals && expanded === 'animals-details' && id && action === 'details' && exportCount > 0 ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    background: '#E1F9ED',
+                    pr: 4,
+                    pl: 2,
+                    py: 1,
+                    borderRadius: '5px'
+                  }}
+                  onClick={() => {
+                    animalsEditRef.current?.()
+                    router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
+                  }} // trigger SpeciesAddEdit
+                >
+                  <Icon
+                    style={{ fontSize: '15px', cursor: 'pointer', marginRight: '4px', color: '#006D35' }}
+                    icon='bx:pencil'
+                  />
+                  <Typography variant='body2' sx={{ color: '#006D35', fontWeight: 500 }}>
+                    Edit
+                  </Typography>
+                </Box>
+              ) : (
+                ''
+              )}
+            </Box>
+          }
+          expanded={expanded}
+          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        >
+          <AnimalsData
+            onEditClick={animalsEditRef}
+            showEditAnimals={showEditAnimals}
+            setShowEditAnimals={setShowEditAnimals}
+            shipmentId={id}
+          />
+        </CustomAccordion>
+      ) : (
+        ''
+      )}
 
       {/* <CustomAccordion
         id='linked-imports'

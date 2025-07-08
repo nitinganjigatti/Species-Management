@@ -585,3 +585,9 @@ export const GET_MASTER_SPECIES_LIST = 'v1/trade/master-species'
 export const CREATE_MASTER_SPECIES = 'v1/trade/master-species'
 
 export const GET_MASTERS_DATA = 'v1/trade/exports/masters'
+
+export const CREATE_SHIPMENT_SPECIES = 'v1/trade/shipments-species/create'
+
+export const GET_SHIPMENT_SPECIES_DATA = 'v1/trade/shipments-species'
+
+export const UPDATE_SHIPMENT_SPECIES = 'v1/trade/shipments-species/update'

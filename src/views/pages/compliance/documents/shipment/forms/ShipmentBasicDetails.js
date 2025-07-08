@@ -17,7 +17,7 @@ const validationSchema = yup.object({
     .required('Airway bill number is required')
     .test('valid-awb', 'Enter a valid 11-digit airway bill number', value => {
       const strippedValue = value.replace(/\s/g, '') // Remove spaces
-      return /^\d{11}$/.test(strippedValue) // Ensure 11 digits
+      return /^\d{11}$/.test(strippedValue)
     }),
   startDate: yup.date().nullable().required('Shipment date is required'),
   uploadedFile: yup

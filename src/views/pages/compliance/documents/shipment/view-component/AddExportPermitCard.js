@@ -12,8 +12,11 @@ const ExportCard = ({
   animals,
   exporterCountry,
   onExportCardSelect,
+  shipment_count,
+  shipments,
   selectedExportData,
   setSelectedExportData,
+  setexportPermitDrawerOpen,
   draftData,
   setDraftData
 }) => {
@@ -119,11 +122,11 @@ const ExportCard = ({
         <Box
           sx={{
             background: '#F2FFF8',
-            height: '117px', // Matches the height of the card
+            height: '117px',
             width: '45px',
             display: 'flex',
-            alignItems: 'center', // Centers vertically
-            justifyContent: 'center' // Centers horizontally
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
           <ChevronRight sx={{ color: '#44544A', fontSize: '24px' }} />
@@ -140,8 +143,11 @@ const ExportCard = ({
         setSelectedExportData={setSelectedExportData}
         exportNumber={exportNumber}
         loading={loading}
+        shipment_count={shipment_count}
+        shipments={shipments}
         setDraftData={setDraftData}
         draftData={draftData}
+        setexportPermitDrawerOpen={setexportPermitDrawerOpen}
       />
     </>
   )

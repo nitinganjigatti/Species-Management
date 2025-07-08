@@ -21,6 +21,7 @@ const ExportPermitDrawer = ({
   onExportCardSelect,
   selectedExportData,
   setSelectedExportData,
+  setexportPermitDrawerOpen,
   isLoading,
   draftData,
   setDraftData
@@ -104,10 +105,13 @@ const ExportPermitDrawer = ({
                   animals={item.animal_count}
                   exporterCountry={item.exporting_country}
                   onExportCardSelect={onExportCardSelect}
+                  shipment_count={item.shipment_count}
+                  shipments={item.shipments}
                   selectedExportData={selectedExportData}
                   setSelectedExportData={setSelectedExportData}
                   setDraftData={setDraftData}
                   draftData={draftData}
+                  setexportPermitDrawerOpen={setexportPermitDrawerOpen}
                 />
               ))}
               {isLoading && (

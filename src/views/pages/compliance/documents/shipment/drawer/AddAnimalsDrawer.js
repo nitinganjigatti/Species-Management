@@ -20,6 +20,9 @@ const AddAnimalsDrawer = ({
   setSelectedExportData,
   exportNumber,
   exportID,
+  shipment_count,
+  shipments,
+  setexportPermitDrawerOpen,
   setDraftData,
   draftData
 }) => {
@@ -116,6 +119,9 @@ const AddAnimalsDrawer = ({
             onClose={onClose}
             draftData={draftData}
             setDraftData={setDraftData}
+            shipment_count={shipment_count}
+            shipments={shipments}
+            setexportPermitDrawerOpen={setexportPermitDrawerOpen}
           />
         </Box>
       </Box>

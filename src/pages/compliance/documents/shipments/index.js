@@ -80,7 +80,9 @@ const ShipmentPage = () => {
   const handleRowClick = params => {
     setSelectedId(params.row.id)
 
-    Router.push(`/compliance/documents/shipments/AddEditShipment/?id=${params.row.id}&action=details`)
+    Router.push(
+      `/compliance/documents/shipments/AddEditShipment/?id=${params.row.id}&action=details&export=${params.row.export_count}`
+    )
   }
 
   const columns = [
@@ -105,7 +107,7 @@ const ShipmentPage = () => {
               px: 3,
               width: '100%'
             }}
-            onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
+            //onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
           >
             {formattedValue}
           </Typography>

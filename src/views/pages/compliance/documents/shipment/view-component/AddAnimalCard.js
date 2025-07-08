@@ -23,8 +23,11 @@ const AnimalCardLayout = ({
   exportNumber,
   exportID,
   onClose,
+  shipment_count,
+  shipments,
   draftData,
-  setDraftData
+  setDraftData,
+  setexportPermitDrawerOpen
 }) => {
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
@@ -58,12 +61,13 @@ const AnimalCardLayout = ({
   // }, [])
 
   const handleSelectAnimalsClick = (val, index, speciesId, name) => {
+    console.log(speciesId, 'speciesId')
     console.log(name, 'name')
     setselectAnimalsDrawerOpen(true)
     setanimalLists(val)
     setspeciesId(speciesId)
     setspeciesData(val)
-    setCurrentSpeciesIndex(index) // Store the current index
+    setCurrentSpeciesIndex(index)
     setCommonNameValue(name)
   }
 
@@ -72,7 +76,7 @@ const AnimalCardLayout = ({
 
   // Find species index for the current card
   const findSpeciesIndex = speciesId => {
-    return currentExport?.species?.findIndex(s => s.species_id === speciesId)
+    return currentExport?.species?.findIndex(s => s.master_species_id === speciesId)
   }
 
   const handleCountChange = (speciesId, field, value, max) => {
@@ -88,6 +92,8 @@ const AnimalCardLayout = ({
           updated.export.push({
             export_id: exportID,
             export_number: exportNumber,
+            shipment_count: shipment_count,
+            shipments: shipments,
             species: []
           })
           exportIndex = updated.export.length - 1
@@ -95,15 +101,15 @@ const AnimalCardLayout = ({
         console.log(updated, 'updated')
         console.log(speciesId, 'speciesId')
         // Find or create the species entry
-        let speciesIndex = updated.export[exportIndex].species.findIndex(s => s.species_id === String(speciesId))
+        let speciesIndex = updated.export[exportIndex].species.findIndex(s => s.master_species_id === String(speciesId))
         console.log(speciesIndex, 'speciesIndex')
         if (speciesIndex === -1) {
           // Find matching species data from exportAnimalData
-          const matchingSpecies = exportAnimalData.species.find(s => s.id === String(speciesId))
+          const matchingSpecies = exportAnimalData.species.find(s => s.master_species_id === String(speciesId))
           console.log(matchingSpecies, 'matchingSpecies')
           // Create new species entry with data from exportAnimalData if found
           const newSpecies = {
-            species_id: speciesId,
+            master_species_id: speciesId,
             export_id: exportID,
             appendix: matchingSpecies?.appendix || '',
             common_name: matchingSpecies?.common_name || '',
@@ -142,23 +148,23 @@ const AnimalCardLayout = ({
   const handleAnimalsSelected = (speciesId, selectedAnimals) => {
     setDraftData(prev => {
       const exportIndex = prev.export.findIndex(e => e.export_id === exportID)
-      const speciesIndex = prev.export[exportIndex].species.findIndex(s => s.species_id === speciesId)
+      const speciesIndex = prev.export[exportIndex].species.findIndex(s => s.master_species_id === speciesId)
 
       const updated = JSON.parse(JSON.stringify(prev)) // Deep clone
       updated.export[exportIndex].species[speciesIndex].animals = selectedAnimals
       return updated
     })
-
-    // No need for separate setSelectedCounts here - useEffect will handle it
   }
 
   useEffect(() => {
     // Initialize or update selectedCounts based on selectedExportData
     const newSelectedCounts = {}
-
     draftData.export?.forEach(exportItem => {
       exportItem.species?.forEach(species => {
-        newSelectedCounts[species.species_id] = species.animals?.length || 0
+        {
+          console.log(species.animals?.length, 'ppp')
+        }
+        newSelectedCounts[species.master_species_id] = species.animals?.length || 0
       })
     })
     setSelectedCounts(newSelectedCounts)
@@ -166,14 +172,13 @@ const AnimalCardLayout = ({
     //   ...prev,
     //   ...newSelectedCounts
     // }))
-  }, [draftData]) // Run whenever selectedExportData changes
+  }, [draftData])
 
   const isDoneDisabled = () => {
     // First check if exportID exists in selectedExportData
     const exportExists = draftData?.export?.some(exportItem => exportItem.export_id === exportID)
 
-    if (!exportExists) return true // Disable if exportID doesn't exist
-
+    if (!exportExists) return true
     // Then check if any species in this export has counts > 0
     return !draftData?.export?.some(
       exportItem =>
@@ -190,20 +195,20 @@ const AnimalCardLayout = ({
   const handleDone = () => {
     // Filter out empty export objects and validate each export
     const validatedExports = draftData.export
-      .filter(exp => exp.export_id !== '') // Remove empty export objects
+      .filter(exp => exp.export_id !== '')
       .map(exp => ({
         ...exp,
         species: exp.species
-          .filter(s => s.species_id !== '') // Remove empty species objects
+          .filter(s => s.master_species_id !== '')
           .filter(
             s =>
               Number(s.male_count || 0) > 0 ||
               Number(s.female_count || 0) > 0 ||
               Number(s.undeterminate_count || 0) > 0 ||
-              s.animals.length > 0
+              s.animals?.length > 0
           )
       }))
-      .filter(exp => exp.species.length > 0) // Remove exports with no valid species
+      .filter(exp => exp.species.length > 0)
 
     if (validatedExports.length === 0) {
       Toaster({
@@ -215,13 +220,14 @@ const AnimalCardLayout = ({
 
     onSelect({
       export: validatedExports,
-      others: [] // Add your others data if needed
+      others: []
     })
     // setSelectedExportData({
     //   export: validatedExports,
     //   others: [] // Add your others data if needed
     // })
     onClose()
+    setexportPermitDrawerOpen(false)
   }
 
   return (
@@ -243,7 +249,7 @@ const AnimalCardLayout = ({
           </CardContent>
         ) : exportAnimalData?.species?.length > 0 ? (
           exportAnimalData?.species?.map((card, index) => {
-            const speciesIndex = findSpeciesIndex(card.id)
+            const speciesIndex = findSpeciesIndex(card.master_species_id)
             console.log(currentExport, 'currentExport')
             console.log(speciesIndex, 'speciesIndex')
             const speciesData = currentExport.species[speciesIndex] || {
@@ -318,7 +324,12 @@ const AnimalCardLayout = ({
                         // }
                         value={speciesData.male_count ?? ''}
                         onChange={e =>
-                          handleCountChange(card.id, 'male_count', e.target.value, card.total_balance_male_animal)
+                          handleCountChange(
+                            card.master_species_id,
+                            'male_count',
+                            e.target.value,
+                            card.total_balance_male_animal
+                          )
                         }
                         InputProps={{
                           inputProps: {
@@ -346,13 +357,14 @@ const AnimalCardLayout = ({
                       <TextField
                         size='small'
                         type='number'
-                        // value={selectedExportData?.[index]?.female_count ?? ''}
-                        // onChange={e =>
-                        //   handleCountChange(index, 'female_count', e.target.value, card.total_balance_female_animal)
-                        // }
                         value={speciesData.female_count ?? ''}
                         onChange={e =>
-                          handleCountChange(card.id, 'female_count', e.target.value, card.total_balance_female_animal)
+                          handleCountChange(
+                            card.master_species_id,
+                            'female_count',
+                            e.target.value,
+                            card.total_balance_female_animal
+                          )
                         }
                         InputProps={{
                           inputProps: {
@@ -377,19 +389,10 @@ const AnimalCardLayout = ({
                       <TextField
                         size='small'
                         type='number'
-                        // value={selectedExportData?.[index]?.undeterminate_count ?? ''}
-                        // onChange={e =>
-                        //   handleCountChange(
-                        //     index,
-                        //     'undeterminate_count',
-                        //     e.target.value,
-                        //     card.total_balance_undeterminate_animal
-                        //   )
-                        // }
                         value={speciesData.undeterminate_count ?? ''}
                         onChange={e =>
                           handleCountChange(
-                            card.id,
+                            card.master_species_id,
                             'undeterminate_count',
                             e.target.value,
                             card.total_balance_undeterminate_animal
@@ -415,13 +418,14 @@ const AnimalCardLayout = ({
                   {draftData.export?.some(exportItem =>
                     exportItem.species?.some(
                       species =>
-                        species.species_id === card.id &&
+                        species.master_species_id === card.master_species_id &&
                         (Number(species.male_count || 0) > 0 ||
                           Number(species.female_count || 0) > 0 ||
                           Number(species.undeterminate_count || 0) > 0)
                     )
                   ) && (
                     <Grid container justifyContent='space-between' alignItems='center' sx={{ marginTop: '26px' }}>
+                      {console.log(card, 'card')}
                       <Typography
                         sx={{
                           textTransform: 'none',
@@ -433,13 +437,15 @@ const AnimalCardLayout = ({
                           fontSize: '16px',
                           cursor: 'pointer'
                         }}
-                        onClick={() => handleSelectAnimalsClick(card.animals, index, card.id, card.common_name)}
+                        onClick={() =>
+                          handleSelectAnimalsClick(card.animals, index, card.master_species_id, card.common_name)
+                        }
                       >
                         Select from list
                         <ChevronRightIcon sx={{ fontSize: '22px', marginLeft: '4px' }} />
                       </Typography>
                       <Typography sx={{ color: '#44544A', fontWeight: '500', fontSize: '16px' }}>
-                        {selectedCounts[card.id] || 0} Selected
+                        {selectedCounts[card.master_species_id] || 0} Selected
                       </Typography>
                     </Grid>
                   )}
@@ -448,11 +454,15 @@ const AnimalCardLayout = ({
             )
           })
         ) : (
-          <Typography>No Species to show</Typography>
+          <Typography
+            sx={{ background: '#0000000D', p: 15, textAlign: 'center', borderRadius: '8px', mt: 7, fontWeight: '500' }}
+          >
+            No Species to show
+          </Typography>
         )}
       </Box>
       {/* Sticky footer */}
-      {console.log(selectedExportData, 'selectedExportData')}
+
       {exportAnimalData?.species?.length > 0 && !loading && (
         <Box
           sx={{
@@ -473,7 +483,7 @@ const AnimalCardLayout = ({
           </Button>
         </Box>
       )}
-
+      {console.log(currentExport, 'currentExport')}
       <SelectAnimalsDrawer
         open={selectAnimalsDrawerOpen}
         onClose={() => setselectAnimalsDrawerOpen(false)}
@@ -483,9 +493,9 @@ const AnimalCardLayout = ({
         speciesId={speciesId}
         // onSelectAnimals={handleAnimalsSelected}
         // initialSelectedAnimals={getAnimalsForSpecies(speciesId)}
-        speciesData={currentExport.species.find(s => s.species_id === speciesId) || {}}
+        speciesData={currentExport.species.find(s => s.master_species_id === speciesId) || {}}
         onSelectAnimals={selected => handleAnimalsSelected(speciesId, selected)}
-        initialSelectedAnimals={currentExport.species.find(s => s.species_id === speciesId)?.animals || []}
+        initialSelectedAnimals={currentExport.species.find(s => s.master_species_id === speciesId)?.animals || []}
         selectedExportData={selectedExportData}
         exportID={exportID}
         draftData={draftData}
