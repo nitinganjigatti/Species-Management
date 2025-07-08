@@ -68,6 +68,35 @@ export const exportPermitValidationSchema = yup.object().shape({
   //     return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
   //   }),
 
+  certificate_file: yup
+    .mixed()
+    .nullable()
+    .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
+      if (!value) return true // File is optional
+
+      // If it's a File object (new upload)
+      if (value instanceof File) {
+        const allowedTypes = [
+          // 'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ]
+
+        return allowedTypes.includes(value.type)
+      }
+
+      // If it's an existing file object (from edit)
+      if (value.name) {
+        const extension = value.name.split('.').pop().toLowerCase()
+        const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
+
+        return allowedExtensions.includes(extension)
+      }
+
+      return true
+    }),
   speciesList: yup
     .array()
     .min(1, 'At least one species must be selected')
@@ -115,7 +144,7 @@ export const exportPermitValidationSchema = yup.object().shape({
                   label: yup.string().required('Identifier type is required'),
                   value: yup.string().required('Identifier type is required')
                 })
-                .required('Identifier type is required'),
+                .required('Identifier type is required')
 
               // identifier_value: yup.string().required('Identifier value is required')
               // animal_type: yup.string().required('Animal type is required'),
