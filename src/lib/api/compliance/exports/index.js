@@ -57,9 +57,10 @@ export const getExportList = async params => {
   return response.data
 }
 
-export const getExportDetails = async id => {
+export const getExportDetails = async (id, params) => {
   const response = await axiosGet({
-    url: `${GET_EXPORTS_DETAILS}/${id}`
+    url: `${GET_EXPORTS_DETAILS}/${id}`,
+    params
   })
 
   return response.data

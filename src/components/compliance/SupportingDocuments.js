@@ -47,7 +47,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
       const payload = {
         issued_date: formData.issued_date ? dayjs(formData.issued_date).format('YYYY-MM-DD') : null,
         document_type_id: currentDocumentData.id,
-        export_id: id,
+        id: id,
         type: 1, // Type 1 for export
         reference_number: formData.reference_number || ''
       }

@@ -226,7 +226,7 @@ const ExportPermitAnimals = ({
                   <Grid item xs={12} md={4.5}>
                     <ControlledAutocomplete
                       name={`speciesList.${speciesIndex}.appendix`}
-                      label='Select Appendix'
+                      label='Select Appendix*'
                       control={control}
                       errors={errors}
                       options={appendixOptions}
@@ -345,7 +345,7 @@ const ExportPermitAnimals = ({
                         <Grid item xs={12} md={4}>
                           <ControlledAutocomplete
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].identifier_type`}
-                            label='Identifier Type'
+                            label='Identifier Type*'
                             control={control}
                             errors={errors}
                             options={identifierOptions}
