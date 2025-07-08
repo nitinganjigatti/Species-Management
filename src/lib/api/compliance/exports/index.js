@@ -7,6 +7,7 @@ import {
   GET_DOCUMENT_TYPE,
   GET_EXPORTS_DETAILS,
   GET_EXPORTS_LIST,
+  GET_LINKED_IMPORTS_DETAILS,
   GET_LINKED_SHIPMENT_DETAILS,
   GET_MASTER_SPECIES_LIST,
   GET_MASTERS_DATA,
@@ -69,6 +70,14 @@ export const getExportDetails = async (id, params) => {
 export const getLinkedShipmentDetails = async id => {
   const response = await axiosGet({
     url: `${GET_LINKED_SHIPMENT_DETAILS}/${id}`
+  })
+
+  return response.data
+}
+
+export const getLinkedImportsDetails = async id => {
+  const response = await axiosGet({
+    url: `${GET_LINKED_IMPORTS_DETAILS}/${id}`
   })
 
   return response.data

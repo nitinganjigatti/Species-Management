@@ -240,11 +240,11 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_name })
       setValue(
         'certificate_file',
-        exportData?.documents?.[0]?.document_type_id
+        exportData?.documents?.document_type_id
           ? {
-              document_type_id: exportData?.documents?.[0]?.document_type_id,
-              file_path: exportData?.documents?.[0]?.file_path,
-              name: exportData?.documents?.[0]?.file_original_name
+              document_type_id: exportData?.documents?.document_type_id,
+              file_path: exportData?.documents?.file_path,
+              name: exportData?.documents?.file_original_name
             }
           : null
       )
@@ -378,14 +378,20 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       const response = id ? await updateExport(id, transformedData) : await addExport(transformedData)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Document type ' + response?.message })
+        Toaster({ type: 'success', message: response?.message })
         setSubmitLoader(false)
-        if (!id) setDisableSaveButton(true)
         onSubmit(response?.data?.id)
 
         // Route to detail page
-        // if (id) router.push(`/compliance/documents/exports/${id}`)
-        // else router.push(`/compliance/documents/exports/ExportPermitDetails?id=${response?.data?.id}`)
+        if (!id) {
+          router.push({
+            pathname: '/compliance/documents/exports/AddEditExportPermit',
+            query: {
+              id: response?.data?.id,
+              type: 'add'
+            }
+          })
+        }
       } else {
         setSubmitLoader(false)
         Toaster({ type: 'error', message: response?.message })

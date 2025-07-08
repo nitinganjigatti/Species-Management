@@ -143,7 +143,7 @@ const CitesExportPermitIndex = () => {
             px: 2,
             width: '100%'
           }}
-          onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
+          onClick={() => router.push(`/compliance/documents/exports/${params.row.id}?id=${params.row.id}`)}
         >
           {params.value}
         </Typography>

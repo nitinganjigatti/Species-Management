@@ -3,7 +3,12 @@ import { useRouter } from 'next/router'
 import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
-import { getDocumentTypeList, getExportDetails, getLinkedShipmentDetails } from 'src/lib/api/compliance/exports'
+import {
+  getDocumentTypeList,
+  getExportDetails,
+  getLinkedImportsDetails,
+  getLinkedShipmentDetails
+} from 'src/lib/api/compliance/exports'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { useTheme } from '@mui/material/styles'
 import SpeciesDetail from 'src/components/compliance/SpeciesDetail'
@@ -126,6 +131,24 @@ const ExportPermitDetails = () => {
     }
   }
 
+  const fetchLinkedImportsDetails = async () => {
+    setLoading(true)
+    try {
+      const res = await getLinkedImportsDetails(id)
+      if (res.success) {
+        setTotalLinkedImports(res.data.total_imports)
+        setLinkedImports(res.data.records)
+      } else {
+        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+      }
+    } catch (error) {
+      console.error('Error fetching export details:', error)
+      Toaster({ type: 'error', message: 'Error fetching Linked Import' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
   const handleAddEditSuccess = () => {
@@ -137,6 +160,7 @@ const ExportPermitDetails = () => {
       fetchExportDetails()
       fetchDocumentTypeList()
       fetchLinkedShipmentsDetails()
+      fetchLinkedImportsDetails()
     }
   }, [id])
 
@@ -149,7 +173,7 @@ const ExportPermitDetails = () => {
           </Typography>
           <Typography
             sx={{ cursor: 'pointer', color: 'inherit' }}
-            onClick={() => router.push('/compliance/cites-export-permit')}
+            onClick={() => router.push('/compliance/documents/exports')}
           >
             CITES Export Permit
           </Typography>
@@ -165,6 +189,7 @@ const ExportPermitDetails = () => {
         id='permit-details'
         title='Details'
         expanded={expanded}
+        shouldScrollToTop={false}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
         editable
         handleEditClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${id}`)}
@@ -200,11 +225,11 @@ const ExportPermitDetails = () => {
       </CustomAccordion>
       <CustomAccordion
         id='linked-imports'
-        title={`Linked Imports - ${sampleLinkedImports.length}`}
+        title={`Linked Imports - ${totalLinkedImports}`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <LinkedImports imports={sampleLinkedImports} />
+        <LinkedImports imports={linkedImports} />
       </CustomAccordion>
 
       <CustomAccordion

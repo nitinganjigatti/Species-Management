@@ -1,13 +1,36 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { Box, Typography, IconButton, useTheme, Collapse, Button, alpha } from '@mui/material'
 import { Add, Remove, EditOutlined } from '@mui/icons-material'
 
-const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = null, editable, handleEditClick }) => {
+const CustomAccordion = ({
+  id,
+  title,
+  children,
+  expanded,
+  onChange,
+  docsCount = null,
+  editable,
+  handleEditClick,
+  shouldScrollToTop = true
+}) => {
   const theme = useTheme()
   const isExpanded = expanded === id
+  const accordionRef = useRef(null)
+
+  useEffect(() => {
+    if (isExpanded && accordionRef.current && shouldScrollToTop) {
+      const topOffset = 0 // Increase if your header is taller
+      const elementTop = accordionRef.current.getBoundingClientRect().top + window.pageYOffset
+      window.scrollTo({
+        top: elementTop - topOffset,
+        behavior: 'smooth'
+      })
+    }
+  }, [isExpanded, shouldScrollToTop])
 
   return (
     <Box
+      ref={accordionRef}
       sx={{
         mb: 3,
         borderRadius: 1,
@@ -84,7 +107,7 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
           </IconButton>
         </Box>
 
-        {/* Mobile-only expand button (no other controls) */}
+        {/* Mobile-only expand button */}
         <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}>
           <IconButton
             size='small'
@@ -96,7 +119,7 @@ const CustomAccordion = ({ id, title, children, expanded, onChange, docsCount = 
         </Box>
       </Box>
 
-      {/* Mobile-only controls row */}
+      {/* Mobile-only controls */}
       <Box
         sx={{
           display: { xs: 'flex', sm: 'none' },
