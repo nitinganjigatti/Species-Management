@@ -1,9 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
-import { getDocumentTypeList, getExportDetails, getLinkedShipmentDetails } from 'src/lib/api/compliance/exports'
+import {
+  getDocumentTypeList,
+  getExportDetails,
+  getLinkedImportsDetails,
+  getLinkedShipmentDetails
+} from 'src/lib/api/compliance/exports'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { useTheme } from '@mui/material/styles'
 import SpeciesDetail from 'src/components/compliance/SpeciesDetail'
@@ -12,12 +17,7 @@ import LinkedImports from 'src/components/compliance/LinkedImports'
 import LinkedShipments from 'src/components/compliance/LinkedShipments'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
-
-// Example usage with sample data:
-const sampleLinkedImports = [
-  { certificateId: '123456789', dateOfIssue: '24/01/24', linkedImportsCount: 3 },
-  { certificateId: '987654321', dateOfIssue: '15/03/24', linkedImportsCount: 1 }
-]
+import countryList from 'react-select-country-list'
 
 const ExportPermitDetails = () => {
   const router = useRouter()
@@ -53,6 +53,7 @@ const ExportPermitDetails = () => {
     linked_imports: [], // Added default value
     linked_shipments: [] // Added default value
   })
+  const countryListOptions = useMemo(() => countryList().getData(), [])
 
   const fetchDocumentTypeList = async exportId => {
     setIsFetching(true)
@@ -85,15 +86,14 @@ const ExportPermitDetails = () => {
       }
       const res = await getExportDetails(id, params)
       if (res.success) {
-        console.log('res.data', res.data)
         setExportData({
           ...res.data,
-
-          // Ensure all required fields have default values if not provided by API
-          species: res.data.species || [],
-          documents: res.data.documents || [],
-          linked_imports: res.data.linked_imports || [],
-          linked_shipments: res.data.linked_shipments || []
+          origin_country: res?.data?.origin_country
+            ? countryListOptions.find(country => country.value === res?.data?.origin_country)?.label
+            : '-',
+          exporting_country: res?.data?.exporting_country
+            ? countryListOptions.find(country => country.value === res?.data?.exporting_country)?.label
+            : '-'
         })
       } else {
         Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
@@ -126,6 +126,24 @@ const ExportPermitDetails = () => {
     }
   }
 
+  const fetchLinkedImportsDetails = async () => {
+    setLoading(true)
+    try {
+      const res = await getLinkedImportsDetails(id)
+      if (res.success) {
+        setTotalLinkedImports(res.data.total_imports)
+        setLinkedImports(res.data.records)
+      } else {
+        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+      }
+    } catch (error) {
+      console.error('Error fetching export details:', error)
+      Toaster({ type: 'error', message: 'Error fetching Linked Import' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
   const handleAddEditSuccess = () => {
@@ -137,6 +155,7 @@ const ExportPermitDetails = () => {
       fetchExportDetails()
       fetchDocumentTypeList()
       fetchLinkedShipmentsDetails()
+      fetchLinkedImportsDetails()
     }
   }, [id])
 
@@ -149,7 +168,7 @@ const ExportPermitDetails = () => {
           </Typography>
           <Typography
             sx={{ cursor: 'pointer', color: 'inherit' }}
-            onClick={() => router.push('/compliance/cites-export-permit')}
+            onClick={() => router.push('/compliance/documents/exports')}
           >
             CITES Export Permit
           </Typography>
@@ -165,6 +184,7 @@ const ExportPermitDetails = () => {
         id='permit-details'
         title='Details'
         expanded={expanded}
+        shouldScrollToTop={false}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
         editable
         handleEditClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${id}`)}
@@ -200,11 +220,11 @@ const ExportPermitDetails = () => {
       </CustomAccordion>
       <CustomAccordion
         id='linked-imports'
-        title={`Linked Imports - ${sampleLinkedImports.length}`}
+        title={`Linked Imports - ${totalLinkedImports}`}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <LinkedImports imports={sampleLinkedImports} />
+        <LinkedImports imports={linkedImports} />
       </CustomAccordion>
 
       <CustomAccordion

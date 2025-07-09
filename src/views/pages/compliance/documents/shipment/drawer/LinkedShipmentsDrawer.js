@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React from 'react'
 import { Typography, Box, Drawer, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
-import ShipmentCard from '../view-component/LinkedShipmentCard'
+import ShipmentCard from '../shipment-view/LinkedShipmentCard'
 
 const LinkedShipmentsDrawer = ({ open, onClose, title, linkedShipmentsData }) => {
   const theme = useTheme()
@@ -38,11 +38,24 @@ const LinkedShipmentsDrawer = ({ open, onClose, title, linkedShipmentsData }) =>
           </Box>
         </Box>
 
-        <Box sx={{ px: 0, flex: 1, overflowY: 'auto' }}>
+        <Box sx={{ px: 0, flex: 1, overflowY: 'auto', mt: 3 }}>
           <Box px={5}>
-            {linkedShipmentsData?.map((shipment, index) => (
-              <ShipmentCard shipment={shipment} key={index} />
-            ))}
+            {linkedShipmentsData?.length > 0 ? (
+              linkedShipmentsData?.map((shipment, index) => <ShipmentCard shipment={shipment} key={index} />)
+            ) : (
+              <Typography
+                sx={{
+                  background: '#0000000D',
+                  p: 12,
+                  textAlign: 'center',
+                  borderRadius: '8px',
+                  fontWeight: '500',
+                  mt: 7
+                }}
+              >
+                No Linked shipments to show
+              </Typography>
+            )}
           </Box>
         </Box>
       </Box>

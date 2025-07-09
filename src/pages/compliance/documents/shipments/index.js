@@ -11,7 +11,6 @@ import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { getShipmentList } from 'src/lib/api/compliance/shipment'
 import { formatDate } from 'src/@core/utils/format'
-import BasicDetails from 'src/views/pages/compliance/documents/shipment/view-component/BasicDetails'
 
 const ShipmentPage = () => {
   const router = useRouter()
@@ -88,7 +87,7 @@ const ShipmentPage = () => {
   const columns = [
     {
       flex: 0.12,
-      minWidth: 100,
+      minWidth: 300,
       field: 'shipment_number',
       headerName: 'Shipment ID',
       renderCell: params => {
@@ -116,7 +115,7 @@ const ShipmentPage = () => {
     },
     {
       flex: 0.03,
-      minWidth: 10,
+      minWidth: 60,
       field: 'shipment_state',
       headerName: '',
       renderCell: params => (
@@ -169,7 +168,7 @@ const ShipmentPage = () => {
       minWidth: 120,
       field: 'documents_count',
       headerName: 'DOCUMENTS',
-      renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
+      renderCell: params => <Typography sx={{ px: 3, width: '100%', pl: 3 }}>{params.value}</Typography>
     }
   ]
 

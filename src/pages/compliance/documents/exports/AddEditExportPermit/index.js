@@ -13,7 +13,7 @@ import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
 
 const AddEditExportPermit = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, type } = router.query
   const isEdit = Boolean(id && id !== 'new')
   const { userData } = useContext(AuthContext)
   const [expanded, setExpanded] = useState('permit-details') // Accordion open state
@@ -29,6 +29,12 @@ const AddEditExportPermit = () => {
       fetchExportDetails()
     }
   }, [id])
+
+  useEffect(() => {
+    if (id && type) {
+      setExpanded('supporting-documents')
+    }
+  }, [id, type])
 
   const fetchExportDetails = async () => {
     setLoading(true)
@@ -95,7 +101,7 @@ const AddEditExportPermit = () => {
           <Typography onClick={() => router.push('/compliance')} sx={{ cursor: 'pointer' }}>
             Compliance
           </Typography>
-          <Typography onClick={() => router.push('/compliance/cites-export-permit')} sx={{ cursor: 'pointer' }}>
+          <Typography onClick={() => router.push('/compliance/documents/exports')} sx={{ cursor: 'pointer' }}>
             CITES Export Permit
           </Typography>
           <Typography color='text.primary'>{isEdit ? 'Edit Export Permit' : 'New Export Permit'}</Typography>

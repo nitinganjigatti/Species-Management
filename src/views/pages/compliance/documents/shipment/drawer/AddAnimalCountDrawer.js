@@ -13,14 +13,8 @@ import {
   Avatar
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import debounce from 'lodash/debounce'
-import Search from 'src/views/utility/Search'
-import { getAllSpeciesList } from 'src/lib/api/housing'
 import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
-import { CellInfo } from 'src/utility/render'
-import ExportCard from '../view-component/AddExportPermitCard'
-import AnimalCardLayout from '../view-component/AddAnimalCard'
 import Toaster from 'src/components/Toaster'
 
 const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesList, mastersData, counts, animals }) => {
@@ -370,7 +364,6 @@ const AddanimalCountDrawer = ({
                   value={counts.male}
                   onChange={e => {
                     const value = e.target.value
-                    // Allow only numeric values and fallback to 0 if empty
                     if (value === '') {
                       setCounts(prev => ({ ...prev, male: 0 }))
                     } else {
@@ -394,7 +387,6 @@ const AddanimalCountDrawer = ({
                   // onChange={e => setCounts(prev => ({ ...prev, female: e.target.value }))}
                   onChange={e => {
                     const value = e.target.value
-                    // Allow only numeric values and fallback to 0 if empty
                     if (value === '') {
                       setCounts(prev => ({ ...prev, female: 0 }))
                     } else {
@@ -418,7 +410,6 @@ const AddanimalCountDrawer = ({
                   //onChange={e => setCounts(prev => ({ ...prev, unknown: e.target.value }))}
                   onChange={e => {
                     const value = e.target.value
-                    // Allow only numeric values and fallback to 0 if empty
                     if (value === '') {
                       setCounts(prev => ({ ...prev, unknown: 0 }))
                     } else {

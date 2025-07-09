@@ -132,26 +132,28 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
         </Box>
 
         {/* File Card - spans two rows */}
-        <Box
-          sx={{
-            flex: '0 1 180px',
-            height: '100%',
-            minWidth: 0,
-            display: 'flex',
-            justifyContent: { xs: 'flex-start', lg: 'flex-end' }
-          }}
-        >
-          <Box sx={{ width: '150px' }}>
-            <PdfFileCard
-              media={{
-                file: exportData.documents?.[0]?.file_path,
-                file_original_name: exportData.documents?.[0]?.file_original_name || 'Export_document.pdf',
-                created_at: exportData.documents?.[0]?.uploaded_at
-              }}
-              isBorderedCard
-            />
+        {exportData.documents?.file_path && (
+          <Box
+            sx={{
+              flex: '0 1 180px',
+              height: '100%',
+              minWidth: 0,
+              display: 'flex',
+              justifyContent: { xs: 'flex-start', lg: 'flex-end' }
+            }}
+          >
+            <Box sx={{ width: '150px' }}>
+              <PdfFileCard
+                media={{
+                  file: exportData.documents?.file_path,
+                  file_original_name: exportData.documents?.file_original_name || 'Export_document.pdf',
+                  created_at: exportData.documents?.uploaded_at
+                }}
+                isBorderedCard
+              />
+            </Box>
           </Box>
-        </Box>
+        )}
       </Box>
     </Box>
   )

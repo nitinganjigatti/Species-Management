@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -10,7 +10,8 @@ import {
   Button,
   alpha,
   useMediaQuery,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ExportPermitDrawer from '../drawer/ExportPermitDrawer'
@@ -20,9 +21,7 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import LinkedShipmentsDrawer from '../drawer/LinkedShipmentsDrawer'
 import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
-import SelectSpeciesDrawer from '../drawer/SelectSpeciesDrawer'
 import SpeciesDrawer from 'src/components/compliance/drawer/SpeciesDrawer'
-import SelectSpeciesCard from './SelectSpeciesCard'
 import AddAnimalsDrawer from '../drawer/AddAnimalsDrawer'
 import { getExportAnimalList } from 'src/lib/api/compliance/shipment'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
@@ -73,7 +72,8 @@ const SpeciesAddEdit = ({
   setSelectedSpeciesData,
   setSearchValue,
   setLoading,
-  loading
+  loading,
+  loader
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -90,7 +90,6 @@ const SpeciesAddEdit = ({
       const exportIndex = updated.export.findIndex(e => String(e.export_id) === String(exportId))
 
       if (exportIndex === -1) {
-        console.error('Export not found:', exportId)
         return prev
       }
 
@@ -100,7 +99,6 @@ const SpeciesAddEdit = ({
         attachment: file
       }
 
-      console.log('Updated state:', updated)
       return updated
     })
   }
@@ -109,13 +107,11 @@ const SpeciesAddEdit = ({
     (count, exportItem) => count + (exportItem.species?.length || 0),
     0
   )
-  //const totalUniqueSpecies = new Set(speciesIds).size
 
   const handleRemoveOtherSpecies = index => {
     // Get the species ID before removing
     const speciesIdToRemove = selectedExportData.others[index]?.id
 
-    // Update all three states
     setSelectedExportData(prev => ({
       ...prev,
       others: prev.others.filter((_, i) => i !== index)
@@ -141,7 +137,7 @@ const SpeciesAddEdit = ({
       setLoading(true)
       if (exportID) {
         const response = await getExportAnimalList(exportID)
-        console.log(response, 'response')
+
         setLoading(false)
         setexportAnimalData(response.data)
       } else {
@@ -159,16 +155,10 @@ const SpeciesAddEdit = ({
   }, [addAnimalsDrawerOpen])
 
   const handleAnimalClick = (speciesdata, type) => {
-    console.log(speciesdata, 'val')
     setanimalDetailsDrawerOpen(true)
     setAnimalDetails(speciesdata)
     setDetailType(type)
   }
-
-  // const attachment={
-  //   file_original_name:"herkhk",
-  //   file_path:"https://api.dev.antzsystems.com/api/image/download/uploaded/file?path=uploads/11/trade/shipment_export_permit/23/pigieon_(1)_1751878250.jpg"
-  // }
 
   return (
     <Box component='form' sx={{ pt: 0 }}>
@@ -181,7 +171,6 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            {console.log(totalSpeciesCount, 'totalUniqueSpecies')}
             Species count: <strong>{totalSpeciesCount > 0 ? totalSpeciesCount : '0'}</strong>
           </Typography>
           <Typography
@@ -247,7 +236,6 @@ const SpeciesAddEdit = ({
                           </Typography>
                         </Box>
                         <Box display='flex' alignItems='center' gap={1} key={`export-${all.export_id}`}>
-                          {/* <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} /> */}
                           <FileUpload
                             key={`uploader-${all.export_id}`}
                             name='(AWB) Airway Bill'
@@ -284,7 +272,7 @@ const SpeciesAddEdit = ({
                           <Typography sx={{ color: '#44544A', fontSize: '16px', fontWeight: 500 }}>
                             {all?.species?.length} Species • {totalAnimals} Animals
                           </Typography>
-                          {console.log(all, 'all')}
+
                           <Typography
                             sx={{
                               color: '#006D35',
@@ -315,8 +303,7 @@ const SpeciesAddEdit = ({
                         <Box
                           sx={{
                             background: '#fff',
-                            // px: 4,
-                            // py: 4,
+                            pt: 1,
                             borderBottomLeftRadius: '10px',
                             borderBottomRightRadius: '10px'
                           }}
@@ -330,18 +317,18 @@ const SpeciesAddEdit = ({
                               sx={{ borderBottom: '1px solid #0000000D', px: 4, py: 2 }}
                               onClick={() => handleAnimalClick(speciesdata, 'export')}
                             >
-                              <Box sx={{ minWidth: '420px' }}>
+                              <Box className='export_dtl_list'>
                                 <Typography
                                   fontWeight='medium'
                                   sx={{ color: '#44544A', fontWeight: 500, fontSize: '16px' }}
                                 >
-                                  {speciesdata.common_name}
+                                  {speciesdata.common_name || 'N/A'}
                                 </Typography>
                                 <Typography
                                   fontStyle='italic'
                                   sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}
                                 >
-                                  {speciesdata.scientific_name}
+                                  {speciesdata.scientific_name || 'N/A'}
                                 </Typography>
                               </Box>
                               <Box display='flex' alignItems='center' gap={2} flex={1}>
@@ -450,9 +437,9 @@ const SpeciesAddEdit = ({
                         <Box
                           sx={{
                             background: '#fff',
-                            px: 4,
-                            pt: 3,
-                            pb: 4,
+                            pl: 4,
+                            // pt: 3,
+                            // pb: 4,
                             borderRadius: '8px',
                             border: '1px solid #C3CEC7',
                             mb: 3
@@ -460,18 +447,18 @@ const SpeciesAddEdit = ({
                           onClick={() => handleAnimalClick(species, 'others')}
                         >
                           <Box display='flex' justifyContent='space-between'>
-                            <Box sx={{ minWidth: '400px' }}>
+                            <Box className='other_dtl_list'>
                               <Typography
                                 fontWeight='medium'
                                 sx={{ color: '#44544A', fontWeight: 500, fontSize: '16px' }}
                               >
-                                {species?.common_name || '-'}
+                                {species?.common_name || 'N/A'}
                               </Typography>
                               <Typography
                                 fontStyle='italic'
                                 sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}
                               >
-                                {species?.scientific_name || '-'}
+                                {species?.scientific_name || 'N/A'}
                               </Typography>
                             </Box>
                             <Box display='flex' alignItems='center' gap={2} flex={1}>
@@ -517,13 +504,27 @@ const SpeciesAddEdit = ({
                             </Box>
 
                             <ChevronRightIcon sx={{ fontSize: '30px', mt: 2, mr: 5 }} />
-                            <Box display='flex' alignItems='center'>
+                            <Box
+                              display='flex'
+                              alignItems='center'
+                              sx={{
+                                background: '#0000000D',
+                                borderTopRightRadius: '8px',
+                                borderBottomRightRadius: '8px'
+                              }}
+                            >
                               <IconButton
                                 onClick={e => {
                                   e.stopPropagation()
                                   handleRemoveOtherSpecies(index)
                                 }}
-                                sx={{ color: '#1F515B', mr: 1 }}
+                                sx={{
+                                  color: '#1F515B',
+                                  mr: 0,
+                                  '&:hover': {
+                                    backgroundColor: 'transparent'
+                                  }
+                                }}
                               >
                                 <CloseIcon />
                               </IconButton>
@@ -614,6 +615,7 @@ const SpeciesAddEdit = ({
           title='Add Export Permit'
           setDraftData={setDraftData}
           draftData={draftData}
+          loader={loader}
           setexportPermitDrawerOpen={setexportPermitDrawerOpen}
         />
 
@@ -649,11 +651,6 @@ const SpeciesAddEdit = ({
           setSelectedSpeciesData={setSelectedSpeciesData}
           title='Animal Details'
         />
-        {/* <SelectSpeciesDrawer
-          open={speciesDrawerOpen}
-          onClose={() => setSpeciesDrawerOpen(false)}
-          title='Select Species'
-        /> */}
         <SpeciesDrawer
           open={speciesDrawerOpen}
           onClose={() => setSpeciesDrawerOpen(false)}
@@ -677,11 +674,22 @@ const SpeciesAddEdit = ({
           variant='contained'
           onClick={onSave}
           disabled={
-            (!selectedExportData?.export || selectedExportData.export.length === 0) &&
-            (!selectedExportData?.others || selectedExportData.others.length === 0)
+            loader ||
+            ((!selectedExportData?.export || selectedExportData.export.length === 0) &&
+              (!selectedExportData?.others || selectedExportData.others.length === 0))
           }
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1,
+            minWidth: 120
+          }}
         >
-          Save Details
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            Save Details
+            {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
+          </span>
         </Button>
       </Box>
     </Box>

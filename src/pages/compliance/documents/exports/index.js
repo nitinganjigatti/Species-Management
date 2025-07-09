@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react'
+import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react'
 import { Card, CardHeader, Grid, Box, Breadcrumbs, Typography, IconButton } from '@mui/material'
 
 // import { AddButton } from 'src/components/Buttons'
@@ -16,6 +16,7 @@ import { useRouter } from 'next/router'
 import { getExportCountries, getSpecies, getExportList } from 'src/lib/api/compliance/exports'
 import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
+import countryList from 'react-select-country-list'
 
 const CitesExportPermitIndex = () => {
   const { userData } = useContext(AuthContext)
@@ -43,6 +44,8 @@ const CitesExportPermitIndex = () => {
   const selectedExportingCountry = watch('exportingCountry')
   const selectedCountryOfOrigin = watch('countryOfOrigin')
   const selectedStatus = watch('status')
+
+  const countryListOptions = useMemo(() => countryList().getData(), [])
 
   const fetchCountries = async () => {
     try {
@@ -143,7 +146,7 @@ const CitesExportPermitIndex = () => {
             px: 2,
             width: '100%'
           }}
-          onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
+          onClick={() => router.push(`/compliance/documents/exports/${params.row.id}?id=${params.row.id}`)}
         >
           {params.value}
         </Typography>
@@ -161,14 +164,22 @@ const CitesExportPermitIndex = () => {
       minWidth: 180,
       field: 'exporting_country',
       headerName: 'EXPORTING COUNTRY',
-      renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%' }}>
+          {countryListOptions.find(country => country.value === params.value)?.label}
+        </Typography>
+      )
     },
     {
       flex: 0.15,
       minWidth: 180,
       field: 'origin_country',
       headerName: 'COUNTRY OF ORIGIN',
-      renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%' }}>
+          {countryListOptions.find(country => country.value === params.value)?.label}
+        </Typography>
+      )
     },
     {
       flex: 0.08,

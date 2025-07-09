@@ -68,6 +68,35 @@ export const exportPermitValidationSchema = yup.object().shape({
   //     return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
   //   }),
 
+  certificate_file: yup
+    .mixed()
+    .nullable()
+    .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
+      if (!value) return true // File is optional
+
+      // If it's a File object (new upload)
+      if (value instanceof File) {
+        const allowedTypes = [
+          // 'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ]
+
+        return allowedTypes.includes(value.type)
+      }
+
+      // If it's an existing file object (from edit)
+      if (value.name) {
+        const extension = value.name.split('.').pop().toLowerCase()
+        const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
+
+        return allowedExtensions.includes(extension)
+      }
+
+      return true
+    }),
   speciesList: yup
     .array()
     .min(1, 'At least one species must be selected')
@@ -115,7 +144,7 @@ export const exportPermitValidationSchema = yup.object().shape({
                   label: yup.string().required('Identifier type is required'),
                   value: yup.string().required('Identifier type is required')
                 })
-                .required('Identifier type is required'),
+                .required('Identifier type is required')
 
               // identifier_value: yup.string().required('Identifier value is required')
               // animal_type: yup.string().required('Animal type is required'),
@@ -240,11 +269,11 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_name })
       setValue(
         'certificate_file',
-        exportData?.documents?.[0]?.document_type_id
+        exportData?.documents?.document_type_id
           ? {
-              document_type_id: exportData?.documents?.[0]?.document_type_id,
-              file_path: exportData?.documents?.[0]?.file_path,
-              name: exportData?.documents?.[0]?.file_original_name
+              document_type_id: exportData?.documents?.document_type_id,
+              file_path: exportData?.documents?.file_path,
+              name: exportData?.documents?.file_original_name
             }
           : null
       )
@@ -378,14 +407,20 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       const response = id ? await updateExport(id, transformedData) : await addExport(transformedData)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Document type ' + response?.message })
+        Toaster({ type: 'success', message: response?.message })
         setSubmitLoader(false)
-        if (!id) setDisableSaveButton(true)
         onSubmit(response?.data?.id)
 
         // Route to detail page
-        // if (id) router.push(`/compliance/documents/exports/${id}`)
-        // else router.push(`/compliance/documents/exports/ExportPermitDetails?id=${response?.data?.id}`)
+        if (!id) {
+          router.push({
+            pathname: '/compliance/documents/exports/AddEditExportPermit',
+            query: {
+              id: response?.data?.id,
+              type: 'add'
+            }
+          })
+        }
       } else {
         setSubmitLoader(false)
         Toaster({ type: 'error', message: response?.message })

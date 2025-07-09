@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
-import SpeciesDetailsContainer from '../view-component/SpeciesDetails'
-import SpeciesAddEdit from '../view-component/SpeciesAddEdit'
+import SpeciesDetailsContainer from '../shipment-view/SpeciesDetails'
+import SpeciesAddEdit from '../shipment-view/SpeciesAddEdit'
 import { getExportList } from 'src/lib/api/compliance/exports'
 import { getMastersData } from 'src/lib/api/compliance/exports'
 import { createShipmentSpecies, getShipmentSpeciesData, updateShipmentSpecies } from 'src/lib/api/compliance/shipment'
@@ -9,7 +9,7 @@ import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 import AddAnimalCountDrawer from '../drawer/AddAnimalCountDrawer'
 
-const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
+const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId, selectedExportData, setSelectedExportData }) => {
   const router = useRouter()
   const { id, action, export: exportCount } = router.query
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState(false)
@@ -21,6 +21,7 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
   const [exportsList, setexportsList] = useState([])
   const [exportsTotalCount, setexportsTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [loader, setLoader] = useState(false)
   const [totalAnimals, setTotalAnimals] = useState(0)
   const [totalSpecies, setTotalSpecies] = useState(0)
   const scrollContainerRef = useRef(null)
@@ -30,10 +31,10 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
   const [animalCountDrawerOpen, setanimalCountDrawerOpen] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
   const [draftData, setDraftData] = useState({ export: [], others: [] })
-  const [selectedExportData, setSelectedExportData] = useState({
-    export: [],
-    others: []
-  })
+  // const [selectedExportData, setSelectedExportData] = useState({
+  //   export: [],
+  //   others: []
+  // })
   const [addAnimalsDrawerOpen, setAddAnimalsDrawerOpen] = useState(false)
   const [exportID, setexportID] = useState('')
   const [exportNumber, setExportNumber] = useState('')
@@ -89,10 +90,6 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
   }, [onEditClick, shipmentId])
 
   useEffect(() => {
-    // setSelectedExportData(prev => ({
-    //   ...prev,
-    //   others: speciesList
-    // }))
     setDraftData(prev => ({
       ...prev,
       others: speciesList
@@ -139,6 +136,7 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
   const fetchExportList = useCallback(
     async (reset = false) => {
       setIsLoading(true)
+      setLoader(true)
       try {
         const params = {
           q: searchValue,
@@ -157,8 +155,10 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
           }))
         }
       } catch (e) {
+        setLoader(false)
         console.error(e)
       } finally {
+        setLoader(false)
         setIsLoading(false)
       }
     },
@@ -200,8 +200,6 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
   }
 
   const handleSpeciesSelect = selectedSpecies => {
-    console.log(selectedSpecies, 'selectedSpecies')
-    console.log(speciesList, 'speciesList')
     // Create new species items for those not already in the list
     const newSpeciesItems = selectedSpecies
       .filter(species => !speciesList.some(existing => existing.species.tsn_id === species.tsn_id))
@@ -227,9 +225,9 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
       })
     console.log(speciesList, 'speciesList')
     const updatedSpeciesList = [...speciesList, ...newSpeciesItems]
-    console.log(updatedSpeciesList)
+
     setSpeciesList(updatedSpeciesList)
-    //setValue('speciesList', updatedSpeciesList)
+
     setSpeciesDrawerOpen(false)
     setanimalCountDrawerOpen(true)
   }
@@ -296,15 +294,11 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
     setanimalCountDrawerOpen(false)
   }
 
-  // const handleSave = () => {
-  //   setShowEditAnimals(false) // on save, hide edit
-  // }
-
   const handleSave = async () => {
     if (!shipmentId) return
 
     const payload = {}
-
+    setLoader(true)
     // Handle export data
     selectedExportData.export.forEach((exp, index) => {
       // species as JSON string
@@ -363,23 +357,25 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
         exportCount > 0
           ? await updateShipmentSpecies(shipmentId, payload)
           : await createShipmentSpecies(shipmentId, payload)
-      //const response = await createShipmentSpecies(shipmentId, payload)
       if (response?.success) {
         setShowEditAnimals(true)
+        setLoader(false)
         router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=details&export=1`)
         Toaster({ type: 'success', message: response?.message })
+        fetchShipmentspeciesDetails()
       } else {
+        setLoader(false)
         Toaster({ type: 'error', message: response?.message })
         console.error('API Error:', response?.message)
       }
     } catch (error) {
+      setLoader(false)
       console.error('Exception:', error)
     }
   }
 
   const fetchShipmentspeciesDetails = async () => {
     try {
-      //setLoader(true)
       const response = await getShipmentSpeciesData(shipmentId)
       if (response?.success) {
         const exports = response?.data?.exports || []
@@ -389,9 +385,7 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
 
         setTotalSpecies(response?.data?.total_species)
         setTotalAnimals(response?.data?.total_animals)
-        // Prepare speciesList from others
 
-        // Sanitize export data to ensure numeric fields are numbers
         const rawExports = exports.map(exp => ({
           ...exp,
           species: (exp.species || []).map(spec => ({
@@ -414,9 +408,6 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
               tsn_id: spec.taxonomy_id || '',
               common_name: spec.common_name || '',
               scientific_name: spec.scientific_name || '',
-              //default_icon: spec.default_icon || '',
-
-              // appendix: spec.appendix || '',
               male_count: parseInt(spec.male_count) || 0,
               female_count: parseInt(spec.female_count) || 0,
               undeterminate_count: parseInt(spec.undeterminate_count) || 0,
@@ -437,10 +428,10 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
         setDraftData({ export: rawExports, others: speciesList }) // <-- added
         // setlinkedShipmentsData()
       } else {
-        // Toaster({ type: 'error', message: response?.message })
+        // setLoader(false)
+        Toaster({ type: 'error', message: response?.message })
       }
     } catch (e) {
-      // setLoader(false)
       // Toaster({ type: 'error', message: 'Error fetching shipment basic details' })
     }
   }
@@ -471,6 +462,7 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
           scrollContainerRef={scrollContainerRef}
           handleScroll={handleScroll}
           isLoading={isLoading}
+          loader={loader}
           onExportCardSelect={handleExportCardSelect}
           handleRemoveExportDataAtIndex={handleRemoveExportDataAtIndex}
           selectedExportData={selectedExportData}
@@ -513,9 +505,7 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
           animalDetailsDrawerOpen={animalDetailsDrawerOpen}
           setDetailType={setDetailType}
           detailtype={detailtype}
-          // setanimalCountDrawerOpen={setanimalCountDrawerOpen}
-          // setSelectedSpeciesData={setSelectedSpeciesData}
-          // setCurrentSpeciesId={setCurrentSpeciesId}
+          setanimalCountDrawerOpen={setanimalCountDrawerOpen}
         />
       ) : (
         <SpeciesAddEdit
@@ -564,6 +554,7 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
           setCurrentSpeciesId={setCurrentSpeciesId}
           setSelectedSpeciesData={setSelectedSpeciesData}
           setSearchValue={setSearchValue}
+          loader={loader}
         />
       )}
       <AddAnimalCountDrawer
@@ -578,7 +569,6 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId }) => {
         selectedExportData={selectedExportData}
         selectedSpeciesData={selectedSpeciesData}
         setanimalDetailsDrawerOpen={setanimalDetailsDrawerOpen}
-        //setAnimalDetails={setAnimalDetails}
       />
     </>
   )

@@ -25,9 +25,11 @@ const PdfFileCard = ({ media, isBorderedCard = false }) => {
         height: '100%',
         bgcolor: theme.palette.common.white,
         position: 'relative',
+        cursor: 'pointer',
         border: isBorderedCard && `1px solid ${theme.palette.grey[300]}`, // For bordered card
         boxShadow: isBorderedCard && 'none' // default shadow
       })}
+      onClick={() => window.open(media?.file, '_blank')}
     >
       {['jpeg', 'jpg', 'gif', 'png', 'svg'].includes(fileExt) ? (
         <CardMedia
@@ -69,7 +71,7 @@ const PdfFileCard = ({ media, isBorderedCard = false }) => {
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              maxWidth: 180,
+              maxWidth: 180
             }}
           >
             {media?.file_original_name}
