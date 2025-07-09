@@ -216,6 +216,7 @@ const ExportPermitDetails = () => {
           documentList={documentList}
           totalCount={totalCount}
           onAddEditSuccess={handleAddEditSuccess}
+          type='1'
         />
       </CustomAccordion>
       <CustomAccordion
