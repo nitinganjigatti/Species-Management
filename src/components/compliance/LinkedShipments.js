@@ -72,7 +72,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
               backgroundColor: theme.palette.customColors.displaybgPrimary
             }}
           >
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1, fontSize: '0.875rem' }}>
                 Shipment ID
               </Typography>
@@ -80,7 +80,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
                 {shipment?.shipment_id || ''}
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1, fontSize: '0.875rem' }}>
                 Shipment Date
               </Typography>

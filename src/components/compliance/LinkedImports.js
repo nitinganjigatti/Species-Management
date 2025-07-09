@@ -40,7 +40,7 @@ const LinkedImports = ({ imports = [] }) => {
           }}
         >
           <Grid container spacing={2} alignItems='center'>
-            <Grid item xs={12} sm={5} md={4}>
+            <Grid size={{ xs: 12, sm: 5, md: 4 }}>
               <Typography variant='subtitle2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
                 Certificate ID
               </Typography>
@@ -53,7 +53,7 @@ const LinkedImports = ({ imports = [] }) => {
               </Typography>
             </Grid>
 
-            <Grid item xs={12} sm={4} md={4}>
+            <Grid size={{ xs: 12, sm: 4, md: 4 }}>
               <Box sx={{ width: '100%' }}>
                 <Typography variant='subtitle2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
                   Date Of Issue
@@ -67,7 +67,7 @@ const LinkedImports = ({ imports = [] }) => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={3} md={4}>
+            <Grid size={{ xs: 12, sm: 3, md: 4 }}>
               <Box>
                 <Typography variant='subtitle2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
                   Linked Exports

@@ -68,35 +68,35 @@ export const exportPermitValidationSchema = yup.object().shape({
   //     return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
   //   }),
 
-  certificate_file: yup
-    .mixed()
-    .nullable()
-    .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
-      if (!value) return true // File is optional
+  // certificate_file: yup
+  //   .mixed()
+  //   .nullable()
+  //   .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
+  //     if (!value) return true // File is optional
 
-      // If it's a File object (new upload)
-      if (value instanceof File) {
-        const allowedTypes = [
-          // 'application/pdf',
-          'image/jpeg',
-          'image/png',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ]
+  //     // If it's a File object (new upload)
+  //     if (value instanceof File) {
+  //       const allowedTypes = [
+  //         // 'application/pdf',
+  //         'image/jpeg',
+  //         'image/png',
+  //         'application/msword',
+  //         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  //       ]
 
-        return allowedTypes.includes(value.type)
-      }
+  //       return allowedTypes.includes(value.type)
+  //     }
 
-      // If it's an existing file object (from edit)
-      if (value.name) {
-        const extension = value.name.split('.').pop().toLowerCase()
-        const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
+  //     // If it's an existing file object (from edit)
+  //     if (value.name) {
+  //       const extension = value.name.split('.').pop().toLowerCase()
+  //       const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
 
-        return allowedExtensions.includes(extension)
-      }
+  //       return allowedExtensions.includes(extension)
+  //     }
 
-      return true
-    }),
+  //     return true
+  //   }),
   speciesList: yup
     .array()
     .min(1, 'At least one species must be selected')
@@ -258,11 +258,11 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
       setValue('export_purpose', exportData.export_purpose)
       setValue('origin_country', {
-        label: countryOptions.find(country => country.value === exportData.origin_country).label || '',
+        label: countryOptions.find(country => country.value === exportData.origin_country)?.label || '',
         value: exportData.origin_country || null
       })
       setValue('exporting_country', {
-        label: countryOptions.find(country => country.value === exportData.exporting_country).label || '',
+        label: countryOptions.find(country => country.value === exportData.exporting_country)?.label || '',
         value: exportData.exporting_country || null
       })
       setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })

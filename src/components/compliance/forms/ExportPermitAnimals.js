@@ -191,7 +191,7 @@ const ExportPermitAnimals = ({
               <CardContent>
                 {/* Species Card */}
                 <Grid container spacing={4} sx={{ mb: 2 }}>
-                  <Grid item xs={12} md={5} lg={5}>
+                  <Grid size={{ xs: 12, md: 5, lg: 5 }}>
                     <SelectableSpeciesCard
                       species={{
                         common_name: speciesItem.species.common_name,
@@ -223,7 +223,7 @@ const ExportPermitAnimals = ({
                 </Typography>
 
                 <Grid container spacing={4} sx={{ mb: 2 }}>
-                  <Grid item xs={12} md={4.5}>
+                  <Grid size={{ xs: 12, md: 4.5 }}>
                     <ControlledAutocomplete
                       name={`speciesList.${speciesIndex}.appendix`}
                       label='Select Appendix*'
@@ -236,7 +236,7 @@ const ExportPermitAnimals = ({
                       sx={{ backgroundColor: theme.palette.common.white }}
                     />
                   </Grid>
-                  <Grid item xs={12} md={2.5}>
+                  <Grid size={{ xs: 12, md: 2.5 }}>
                     <ControlledTextField
                       name={`speciesList.${speciesIndex}.male_count`}
                       label='# Male'
@@ -248,7 +248,7 @@ const ExportPermitAnimals = ({
                       sx={{ backgroundColor: theme.palette.common.white }}
                     />
                   </Grid>
-                  <Grid item xs={12} md={2.5}>
+                  <Grid size={{ xs: 12, md: 2.5 }}>
                     <ControlledTextField
                       name={`speciesList.${speciesIndex}.female_count`}
                       label='# Female'
@@ -260,7 +260,7 @@ const ExportPermitAnimals = ({
                       sx={{ backgroundColor: theme.palette.common.white }}
                     />
                   </Grid>
-                  <Grid item xs={12} md={2.5}>
+                  <Grid size={{ xs: 12, md: 2.5 }}>
                     <ControlledTextField
                       name={`speciesList.${speciesIndex}.undeterminate_count`}
                       label='# Undetermined'
@@ -327,7 +327,7 @@ const ExportPermitAnimals = ({
                   return (
                     <Box key={detail.id} sx={{ mt: 4 }}>
                       <Grid container spacing={4} alignItems='center'>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <ControlledAutocomplete
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].gender`}
                             label='Gender'
@@ -342,7 +342,7 @@ const ExportPermitAnimals = ({
                             sx={{ backgroundColor: theme.palette.common.white }}
                           />
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <ControlledAutocomplete
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].identifier_type`}
                             label='Identifier Type*'
@@ -357,7 +357,7 @@ const ExportPermitAnimals = ({
                             sx={{ backgroundColor: theme.palette.common.white }}
                           />
                         </Grid>
-                        <Grid item xs={12} md={3}>
+                        <Grid size={{ xs: 12, md: 3 }}>
                           <ControlledTextField
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].identifier_value`}
                             label='Identifier Value'
@@ -370,9 +370,7 @@ const ExportPermitAnimals = ({
                           />
                         </Grid>
                         <Grid
-                          item
-                          xs={12}
-                          md={1}
+                          size={{ xs: 12, md: 1 }}
                           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           <IconButton

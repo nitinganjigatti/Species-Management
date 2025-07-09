@@ -56,13 +56,13 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }) => {
             }}
           >
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Shipment ID:</Typography>
                 <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1rem' }}>
                   {shipment?.shipment_id}
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Date of Issue:
                 </Typography>
@@ -95,11 +95,11 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }) => {
             }}
           >
             <Grid container spacing={4}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Species Name</Typography>
                 <Typography sx={{ fontWeight: 500 }}>{shipment?.species?.[specieIndex]?.common_name || '-'}</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Scientific Name
                 </Typography>
@@ -107,11 +107,11 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }) => {
                   {shipment?.species?.[specieIndex]?.scientific_name || '-'}
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>CITES</Typography>
                 <Typography sx={{ fontWeight: 500 }}>{shipment?.species?.[specieIndex]?.appendix || '-'}</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Total Animals
                 </Typography>
