@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
@@ -17,12 +17,7 @@ import LinkedImports from 'src/components/compliance/LinkedImports'
 import LinkedShipments from 'src/components/compliance/LinkedShipments'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
-
-// Example usage with sample data:
-const sampleLinkedImports = [
-  { certificateId: '123456789', dateOfIssue: '24/01/24', linkedImportsCount: 3 },
-  { certificateId: '987654321', dateOfIssue: '15/03/24', linkedImportsCount: 1 }
-]
+import countryList from 'react-select-country-list'
 
 const ExportPermitDetails = () => {
   const router = useRouter()
@@ -58,6 +53,7 @@ const ExportPermitDetails = () => {
     linked_imports: [], // Added default value
     linked_shipments: [] // Added default value
   })
+  const countryListOptions = useMemo(() => countryList().getData(), [])
 
   const fetchDocumentTypeList = async exportId => {
     setIsFetching(true)
@@ -90,15 +86,14 @@ const ExportPermitDetails = () => {
       }
       const res = await getExportDetails(id, params)
       if (res.success) {
-        console.log('res.data', res.data)
         setExportData({
           ...res.data,
-
-          // Ensure all required fields have default values if not provided by API
-          species: res.data.species || [],
-          documents: res.data.documents || [],
-          linked_imports: res.data.linked_imports || [],
-          linked_shipments: res.data.linked_shipments || []
+          origin_country: res?.data?.origin_country
+            ? countryListOptions.find(country => country.value === res?.data?.origin_country)?.label
+            : '-',
+          exporting_country: res?.data?.exporting_country
+            ? countryListOptions.find(country => country.value === res?.data?.exporting_country)?.label
+            : '-'
         })
       } else {
         Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
