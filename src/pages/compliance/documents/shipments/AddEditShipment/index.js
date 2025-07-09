@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem, Button } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
-import BasicDetails from 'src/views/pages/compliance/documents/shipment/view-component/BasicDetails'
+import BasicDetails from 'src/views/pages/compliance/documents/shipment/shipment-view/BasicDetails'
 import AnimalsData from 'src/views/pages/compliance/documents/shipment/forms/AnimalsData'
 import ShipmentBasicDetails from 'src/views/pages/compliance/documents/shipment/forms/ShipmentBasicDetails'
 
@@ -15,6 +15,11 @@ const AddEditShipment = () => {
   const [showEdit, setShowEdit] = useState(true)
   const [showEditAnimals, setShowEditAnimals] = useState(true)
   const [status, setStatus] = useState('draft')
+
+  const [selectedExportData, setSelectedExportData] = useState({
+    export: [],
+    others: []
+  })
   const animalsEditRef = useRef() // ref to trigger child
   const basicDetailsEditRef = useRef()
 
@@ -24,6 +29,13 @@ const AddEditShipment = () => {
       setShowEditAnimals(true)
     }
   }, [isEdit, action])
+
+  useEffect(() => {
+    if (selectedExportData) {
+      console.log('Export data updated in parent:', selectedExportData)
+      // You can do further processing here
+    }
+  }, [selectedExportData])
 
   return (
     <>
@@ -80,55 +92,19 @@ const AddEditShipment = () => {
           </Select>
         </Box>
       </Box>
-      {console.log(id, 'id')}
+
       {/* PERMIT DETAILS SECTION */}
+
       <CustomAccordion
         id='permit-details'
-        title={
-          <Box
-            className='edit_contxt'
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              gap: '800px'
-            }}
-          >
-            <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>
-            {showEdit && expanded === 'permit-details' && id && action === 'details' ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  cursor: 'pointer',
-                  background: '#E1F9ED',
-                  pr: 4,
-                  pl: 2,
-                  py: 1,
-                  borderRadius: '5px'
-                }}
-                onClick={() => {
-                  basicDetailsEditRef.current?.()
-                  router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
-                }}
-              >
-                <Icon
-                  style={{ fontSize: '15px', cursor: 'pointer', marginRight: '4px', color: '#006D35' }}
-                  icon='bx:pencil'
-                />
-                <Typography variant='body2' sx={{ color: '#006D35', fontWeight: 500 }}>
-                  Edit
-                </Typography>
-              </Box>
-            ) : (
-              ''
-            )}
-          </Box>
-        }
+        title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        editable={showEdit && expanded === 'permit-details' && id && action === 'details'}
+        handleEditClick={() => {
+          basicDetailsEditRef.current?.()
+          router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
+        }}
       >
         <ShipmentBasicDetails
           onEditClick={basicDetailsEditRef}
@@ -141,6 +117,17 @@ const AddEditShipment = () => {
 
       {id ? (
         <CustomAccordion
+          id='animals-details'
+          title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>}
+          expanded={expanded}
+          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+          editable={showEditAnimals && expanded === 'animals-details' && id && action === 'details' && exportCount > 0}
+          handleEditClick={() => {
+            animalsEditRef.current?.()
+            router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=${exportCount}`)
+          }}
+        >
+          {/* <CustomAccordion
           id='animals-details'
           title={
             <Box
@@ -170,7 +157,9 @@ const AddEditShipment = () => {
                   }}
                   onClick={() => {
                     animalsEditRef.current?.()
-                    router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
+                    router.push(
+                      `/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=${exportCount}`
+                    )
                   }} // trigger SpeciesAddEdit
                 >
                   <Icon
@@ -188,12 +177,14 @@ const AddEditShipment = () => {
           }
           expanded={expanded}
           onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
-        >
+        > */}
           <AnimalsData
             onEditClick={animalsEditRef}
             showEditAnimals={showEditAnimals}
             setShowEditAnimals={setShowEditAnimals}
             shipmentId={id}
+            selectedExportData={selectedExportData}
+            setSelectedExportData={setSelectedExportData}
           />
         </CustomAccordion>
       ) : (

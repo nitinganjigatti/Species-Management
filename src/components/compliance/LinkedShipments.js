@@ -4,7 +4,7 @@ import { ChevronRight as ChevronRightIcon } from '@mui/icons-material'
 import ShippedAnimalsDrawer from 'src/components/compliance/drawer/ShippedAnimalsDrawer'
 import Utility from 'src/utility'
 
-const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
+const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedExportData }) => {
   const theme = useTheme()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [selectedShipment, setSelectedShipment] = useState(null)
@@ -198,6 +198,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed }) => {
         onClose={handleCloseDrawer}
         specieIndex={selectedSpecieIndex}
         shipment={selectedShipment}
+        selectedExportData={selectedExportData}
       />
     </Box>
   )

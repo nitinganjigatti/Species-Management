@@ -1,44 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React from 'react'
 import { Typography, Box, Drawer, IconButton, Paper, Grid, Chip, Avatar } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import debounce from 'lodash/debounce'
-import Search from 'src/views/utility/Search'
-import { getAllSpeciesList } from 'src/lib/api/housing'
 import CloseIcon from '@mui/icons-material/Close'
 import Icon from 'src/@core/components/icon'
 import { useRouter } from 'next/router'
-import { CellInfo } from 'src/utility/render'
-import ExportCard from '../view-component/AddExportPermitCard'
-import AnimalCardLayout from '../view-component/AddAnimalCard'
-import AnimalIdentifiers from '../view-component/AnimalsIdentifier'
-
-const species = {
-  name: 'Red fox',
-  scientificName: 'Vulpes vulpes',
-  cites: 'Appendix 1',
-  count: 5,
-  male: 3,
-  female: 2,
-  unknown: 2
-}
-
-const identifiers = [
-  {
-    gender: 'M',
-    species: 'Rainbow Lorikeet',
-    microchip: '132143124132143124'
-  },
-  {
-    gender: 'F',
-    species: 'Rainbow Lorikeet',
-    microchip: '132143124132143124'
-  },
-  {
-    gender: 'U',
-    species: 'Rainbow Lorikeet',
-    microchip: '132143124132143124'
-  }
-]
 
 const AnimalDetailsDrawer = ({
   open,
@@ -141,19 +106,19 @@ const AnimalDetailsDrawer = ({
               <Grid item xs={6}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Species Name</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
-                  {animalDetails?.common_name || '-'}
+                  {animalDetails?.common_name || 'N/A'}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Scientific Name</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
-                  {animalDetails?.scientific_name || '-'}
+                  {animalDetails?.scientific_name || 'N/A'}
                 </Typography>
               </Grid>
               <Grid item xs={6} sx={{ mt: 3 }}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>CITES</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
-                  {animalDetails?.cites || '-'}
+                  {animalDetails?.cites || 'N/A'}
                 </Typography>
               </Grid>
               <Grid item xs={6} sx={{ mt: 3 }}>
@@ -212,7 +177,7 @@ const AnimalDetailsDrawer = ({
           </Paper>
         </Box>
 
-        <Box sx={{ px: '20px' }}>
+        <Box sx={{ px: '20px', pb: 2 }}>
           <Typography
             sx={{
               fontWeight: 500,
@@ -275,7 +240,7 @@ const AnimalDetailsDrawer = ({
                     <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px', mb: 0.5 }}>
                       Species :{' '}
                       <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
-                        {animalDetails.common_name}
+                        {animalDetails?.common_name || 'N/A'}
                       </span>
                     </Typography>
 

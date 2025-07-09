@@ -1,13 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React from 'react'
 import { Typography, Box, Drawer, IconButton, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import debounce from 'lodash/debounce'
 import Search from 'src/views/utility/Search'
-import { getAllSpeciesList } from 'src/lib/api/housing'
 import CloseIcon from '@mui/icons-material/Close'
-import { CellInfo } from 'src/utility/render'
-import ExportCard from '../view-component/AddExportPermitCard'
-import AddAnimalsDrawer from './AddAnimalsDrawer'
+import ExportCard from '../shipment-view/AddExportPermitCard'
 
 const ExportPermitDrawer = ({
   open,
@@ -23,6 +19,7 @@ const ExportPermitDrawer = ({
   setSelectedExportData,
   setexportPermitDrawerOpen,
   isLoading,
+  loader,
   draftData,
   setDraftData
 }) => {
@@ -82,46 +79,64 @@ const ExportPermitDrawer = ({
 
           <Box
             sx={{
-              //overflowY: 'auto',
-              // Fixed height for scroll container
-              padding: 2, // Container padding
-              gap: 2, // Gap between items (requires display: 'flex')
+              padding: 2,
+              gap: 2,
               display: 'flex',
               flexDirection: 'column'
             }}
           >
             <Box>
-              {exportsList.map((item, index) => (
-                <ExportCard
-                  key={index}
-                  sx={{
-                    marginBottom: 2, // Space after each card
-                    '&:last-child': { marginBottom: 0 } // Remove margin from last item
-                  }}
-                  exportId={item.id}
-                  exportNumber={item.export_number}
-                  exporter={item.exporter_name}
-                  species={item.species_count}
-                  animals={item.animal_count}
-                  exporterCountry={item.exporting_country}
-                  onExportCardSelect={onExportCardSelect}
-                  shipment_count={item.shipment_count}
-                  shipments={item.shipments}
-                  selectedExportData={selectedExportData}
-                  setSelectedExportData={setSelectedExportData}
-                  setDraftData={setDraftData}
-                  draftData={draftData}
-                  setexportPermitDrawerOpen={setexportPermitDrawerOpen}
-                />
-              ))}
-              {isLoading && (
-                <Box sx={{ padding: 2, textAlign: 'center' }}>
-                  <CircularProgress size={24} />
+              {/* Initial loader */}
+              {loader ? (
+                <Box sx={{ padding: 6, textAlign: 'center' }}>
+                  <CircularProgress size={28} />
                 </Box>
+              ) : exportsList.length > 0 ? (
+                <>
+                  {exportsList.map((item, index) => (
+                    <ExportCard
+                      key={index}
+                      sx={{
+                        marginBottom: 2,
+                        '&:last-child': { marginBottom: 0 }
+                      }}
+                      exportId={item.id}
+                      exportNumber={item.export_number}
+                      exporter={item.exporter_name}
+                      species={item.species_count}
+                      animals={item.animal_count}
+                      exporterCountry={item.exporting_country}
+                      onExportCardSelect={onExportCardSelect}
+                      shipment_count={item.shipment_count}
+                      shipments={item.shipments}
+                      selectedExportData={selectedExportData}
+                      setSelectedExportData={setSelectedExportData}
+                      setDraftData={setDraftData}
+                      draftData={draftData}
+                      setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+                    />
+                  ))}
+
+                  {/* Infinite scroll loader */}
+                  {isLoading && (
+                    <Box sx={{ padding: 2, textAlign: 'center' }}>
+                      <CircularProgress size={20} />
+                    </Box>
+                  )}
+                </>
+              ) : (
+                <Typography
+                  sx={{
+                    background: '#0000000D',
+                    p: 12,
+                    textAlign: 'center',
+                    borderRadius: '8px',
+                    fontWeight: '500'
+                  }}
+                >
+                  No Exports to show
+                </Typography>
               )}
-              {/* {exportsList.length === exportsTotalCount && (
-                <Box sx={{ padding: 2, textAlign: 'center' }}>No more items to load</Box>
-              )} */}
             </Box>
           </Box>
         </Box>

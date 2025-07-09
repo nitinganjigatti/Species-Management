@@ -80,7 +80,6 @@ const SelectAnimalsDrawer = ({
         return false
       }
 
-      // Then check for exceeding counts
       if (counts.male > Number(speciesData.male_count || 0)) {
         Toaster({
           type: 'error',
@@ -108,20 +107,10 @@ const SelectAnimalsDrawer = ({
   }
 
   const handleSelect = () => {
-    // if (selectedAnimals.length === 0) {
-    //   Toaster({
-    //     type: 'error',
-    //     message: 'Please select at least one animal'
-    //   })
-    //   return
-    // }
-
-    // Validate gender counts
     if (!validateSelection()) {
       return
     }
 
-    // If validation passes, proceed with selection
     onSelectAnimals(selectedAnimals)
     onClose()
   }
@@ -184,7 +173,7 @@ const SelectAnimalsDrawer = ({
               }}
             >
               <span style={{ fontSize: '14px', fontWeight: 400 }}>Species : </span>
-              {commonNameValue}
+              {commonNameValue ? commonNameValue : 'N/A'}
             </Typography>
           </Box>
         </Box>
@@ -257,7 +246,9 @@ const SelectAnimalsDrawer = ({
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
                     Species :{' '}
-                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>{commonNameValue}</span>
+                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                      {commonNameValue ? commonNameValue : 'N/A'}
+                    </span>
                   </Typography>
 
                   <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>

@@ -1,60 +1,8 @@
 import React, { useState } from 'react'
-import { Box, Typography, Paper, Chip, IconButton, Collapse, Divider, Icon } from '@mui/material'
+import { Box, Typography, Paper, Chip, Collapse, Divider, Icon } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ShippedAnimalsDrawer from '../drawer/ShippedAnimals'
-import { useRouter } from 'next/router'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
-
-const exportData = [
-  {
-    id: '55555555',
-    totalAnimals: 12,
-    species: [
-      {
-        name: 'Red fox',
-        scientificName: 'Vulpes vulpes',
-        appendix: 'CITES Appendix 1',
-        count: 4,
-        male: 2,
-        female: 2,
-        unknown: 0
-      },
-      {
-        name: 'Cheetah',
-        scientificName: 'Acinonyx jubatus',
-        appendix: 'CITES Appendix 1',
-        count: 2,
-        male: 2,
-        female: 0,
-        unknown: 0
-      },
-      {
-        name: 'Giant Panda',
-        scientificName: 'Ailuropoda melanoleuca',
-        appendix: 'CITES Appendix 1',
-        count: 2,
-        male: 0,
-        female: 0,
-        unknown: 2
-      }
-    ]
-  },
-  {
-    id: '1534233',
-    totalAnimals: 20,
-    species: [
-      {
-        name: 'Giant Panda',
-        scientificName: 'Ailuropoda melanoleuca',
-        appendix: 'CITES Appendix 1',
-        count: 20,
-        male: 10,
-        female: 10,
-        unknown: 0
-      }
-    ]
-  }
-]
 
 const SpeciesDetailsContainer = ({
   totalSpecies,
@@ -64,9 +12,7 @@ const SpeciesDetailsContainer = ({
   animalDetails,
   animalDetailsDrawerOpen,
   setanimalDetailsDrawerOpen,
-  // setanimalCountDrawerOpen,
-  // setCurrentSpeciesId,
-  // setSelectedSpeciesData,
+  setanimalCountDrawerOpen,
   detailtype,
   setDetailType
 }) => {
@@ -78,8 +24,6 @@ const SpeciesDetailsContainer = ({
   }
 
   const handleAnimalClick = (speciesdata, type) => {
-    console.log(speciesdata, 'val')
-    console.log(type, 'type')
     setanimalDetailsDrawerOpen(true)
     setAnimalDetails(speciesdata)
     setDetailType(type)
@@ -106,11 +50,10 @@ const SpeciesDetailsContainer = ({
       display='flex'
       justifyContent='space-between'
       // py={2}
-      sx={{ borderBottom: '1px solid #0000000D', px: 4, py: 2 }}
+      sx={{ borderBottom: '1px solid #0000000D', px: 4, pb: 4, pt: 3 }}
       onClick={() => handleAnimalClick(species, type)}
     >
-      {console.log(type, 'type')}
-      <Box sx={{ minWidth: '420px' }}>
+      <Box className='export_dtl_list'>
         <Typography fontWeight='medium' sx={{ color: '#44544A', fontWeight: 500, fontSize: '16px' }}>
           {species?.common_name || '-'}
         </Typography>
@@ -164,8 +107,6 @@ const SpeciesDetailsContainer = ({
   )
 
   const OthersSection = ({ data, isCollapsed }) => {
-    // data is already the array of species objects
-    console.log(data, 'lll')
     const totalAnimals = data?.reduce((sum, item) => {
       const species = item.species
       return (
@@ -198,7 +139,6 @@ const SpeciesDetailsContainer = ({
 
           <Collapse in={!isCollapsed}>
             <Paper elevation={0} sx={{ borderRadius: 0 }}>
-              {console.log(data, 'data')}
               {data?.map((item, index) => {
                 const species = item.species
                 return (
@@ -229,64 +169,74 @@ const SpeciesDetailsContainer = ({
     )
   }
 
-  const ExportSection = ({ data, isCollapsed }) => (
-    <>
-      <Box>
-        {/* Export Header */}
-        <Box
-          display='flex'
-          justifyContent='space-between'
-          alignItems='center'
-          bgcolor={isCollapsed ? '#fff' : '#EFF5F2'}
-          sx={{ px: 4, py: 4 }}
-        >
-          <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '14px' }}>
-            <Box component='span' fontWeight={600} sx={{ color: '#006D35', fontWeight: 500, fontSize: '14px' }}>
-              Export ID : <span>{data.export_number}</span>
-            </Box>{' '}
-            ({data.total_species} Species) ({data.total_animals} Animals)
-          </Typography>
+  const ExportSection = ({ data, isCollapsed }) => {
+    const totalAnimals = data?.species?.reduce((sum, species) => {
+      const totalCount = parseInt(species?.total_count)
+      const male = parseInt(species?.male_count) || 0
+      const female = parseInt(species?.female_count) || 0
+      const undetermined = parseInt(species?.undeterminate_count) || 0
 
-          {data?.file_original_name ? (
-            <Box display='flex' alignItems='center' gap={1}>
-              <Typography
-                sx={{
-                  //mr: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '200px'
-                }}
-              >
-                <img src='/icons/pdf_icon2.svg' width='18px' />
-              </Typography>
-              <Typography
-                variant='body2'
-                sx={{ color: '#006D35', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
-                onClick={() => handleDownload(data)}
-              >
-                {data?.file_original_name}
-              </Typography>
-            </Box>
-          ) : (
-            ''
-          )}
+      return sum + (isNaN(totalCount) ? male + female + undetermined : totalCount)
+    }, 0)
+    return (
+      <>
+        <Box>
+          {/* Export Header */}
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            alignItems='center'
+            bgcolor={isCollapsed ? '#fff' : '#EFF5F2'}
+            sx={{ px: 4, py: 4 }}
+          >
+            <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '14px' }}>
+              <Box component='span' fontWeight={600} sx={{ color: '#006D35', fontWeight: 500, fontSize: '14px' }}>
+                Export ID : <span>{data.export_number}</span>
+              </Box>{' '}
+              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
+            </Typography>
+
+            {data?.file_original_name ? (
+              <Box display='flex' alignItems='center' gap={1}>
+                <Typography
+                  sx={{
+                    //mr: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '200px'
+                  }}
+                >
+                  <img src='/icons/pdf_icon2.svg' width='18px' />
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: '#006D35', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
+                  onClick={() => handleDownload(data)}
+                >
+                  {data?.file_original_name}
+                </Typography>
+              </Box>
+            ) : (
+              ''
+            )}
+          </Box>
+
+          {/* Collapsible Species */}
+          <Collapse in={!isCollapsed}>
+            <Paper elevation={0} sx={{ borderRadius: 0 }}>
+              {data.species.map((s, i) => (
+                <SpeciesRow key={i} species={s} type={'export'} />
+              ))}
+            </Paper>
+          </Collapse>
         </Box>
-        {console.log(data, 'data')}
-        {/* Collapsible Species */}
-        <Collapse in={!isCollapsed}>
-          <Paper elevation={0} sx={{ borderRadius: 0 }}>
-            {data.species.map((s, i) => (
-              <SpeciesRow key={i} species={s} type={'export'} />
-            ))}
-          </Paper>
-        </Collapse>
-      </Box>
-      <Divider />
-    </>
-  )
+        <Divider />
+      </>
+    )
+  }
 
   return (
     <>
@@ -335,18 +285,11 @@ const SpeciesDetailsContainer = ({
         {selectedExportData?.others?.length > 0 && (
           <OthersSection data={selectedExportData.others} isCollapsed={collapsed} />
         )}
-
-        {/* {selectedExportData?.others?.map((exp, idx) => (
-          <OthersSection key={idx} data={exp} isCollapsed={collapsed} />
-        ))} */}
-
-        {/* {selectedExportData?.others?.length > 0 && (
-          <OthersSection others={selectedExportData.others} isCollapsed={collapsed} />
-        )} */}
       </Box>
       <ShippedAnimalsDrawer
         open={shippedAnimalsDrawerOpen}
         onClose={() => setshippedAnimalsDrawerOpen(false)}
+        selectedExportData={selectedExportData}
         title='Shipped Animals'
       />
       <AnimalDetailsDrawer
@@ -354,9 +297,7 @@ const SpeciesDetailsContainer = ({
         onClose={() => setanimalDetailsDrawerOpen(false)}
         animalDetails={animalDetails}
         detailtype={detailtype}
-        //setanimalCountDrawerOpen={setanimalCountDrawerOpen}
-        // setCurrentSpeciesId={setCurrentSpeciesId}
-        // setSelectedSpeciesData={setSelectedSpeciesData}
+        setanimalCountDrawerOpen={setanimalCountDrawerOpen}
         title='Animal Details'
       />
     </>
