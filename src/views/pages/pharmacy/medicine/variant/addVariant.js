@@ -67,7 +67,10 @@ const AddVariant = props => {
       description: description ? description : null,
       active
     }
-    await handleSubmitData(payload)
+    const result = await handleSubmitData(payload)
+    if (result?.success) {
+      reset(defaultValues)
+    }
   }
 
   const getSpecificVariant = useCallback(
@@ -118,7 +121,14 @@ const AddVariant = props => {
       >
         <Typography variant='h6'>{editParams?.id !== null ? 'Edit Variant' : 'Add Variant'}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+          <IconButton
+            size='small'
+            onClick={() => {
+              handleSidebarClose()
+              reset(defaultValues)
+            }}
+            sx={{ color: 'text.primary' }}
+          >
             <Icon icon='mdi:close' fontSize={20} />
           </IconButton>
         </Box>
@@ -223,7 +233,7 @@ const AddVariant = props => {
         </form>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default AddVariant

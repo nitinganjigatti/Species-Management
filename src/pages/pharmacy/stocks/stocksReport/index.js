@@ -1175,15 +1175,14 @@ const ListOfStocks = () => {
                               size='small'
                             >
                               <MenuItem value='all'>All</MenuItem>
-                              {stores.length > 0
-                                ? stores.map(el => {
-                                    return (
-                                      <MenuItem key={el.id} value={el.id}>
-                                        {el.name}
-                                      </MenuItem>
-                                    )
-                                  })
-                                : null}
+                              {stores.length > 0 &&
+                                stores.map(el => {
+                                  return (
+                                    <MenuItem key={el.id} value={el.id}>
+                                      {el.name}
+                                    </MenuItem>
+                                  )
+                                })}
                             </Select>
                             <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
                           </FormControl>
@@ -1471,7 +1470,7 @@ const ListOfStocks = () => {
         />
       )}
     </>
-  );
+  )
 }
 
 export default ListOfStocks
