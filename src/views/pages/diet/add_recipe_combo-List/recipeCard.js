@@ -576,7 +576,7 @@ const RecipeCard = ({
                           {' '}
                           {item?.by_quantity?.length} nos
                         </Typography>
-                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by qty</Typography>
+                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Items by qty</Typography>
                       </Box>
                       {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
@@ -596,7 +596,7 @@ const RecipeCard = ({
                       <Typography
                         sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
                       >
-                        Ingredients
+                        Items
                       </Typography>
                       <Typography
                         sx={{

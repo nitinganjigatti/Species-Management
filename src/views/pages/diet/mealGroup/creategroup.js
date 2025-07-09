@@ -71,18 +71,18 @@ const CreateMealGroup = ({
     try {
       const params = {
         site_id: selectedOption,
-        enclosure_ids: JSON.stringify(checkedRows.map(Number)), 
+        enclosure_ids: JSON.stringify(checkedRows.map(Number)),
         group_name: groupName
       }
 
       const response = await createMealGroup(params)
 
-      if (response) {
+      if (response?.success) {
         handleCloseSideBar()
         toast.success('Meal Group created Successfully')
         setStatus('mealgroup')
       } else {
-        toast.error('Something went wrong')
+        toast.error(response?.message)
       }
     } catch (error) {
       toast.error('Server error. Please try again.')

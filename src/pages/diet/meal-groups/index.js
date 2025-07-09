@@ -86,7 +86,7 @@ const MealGroup = () => {
   const [editeditems, setEditItems] = useState([])
 
   const [siteStats, setSiteStats] = useState({
-    meal_groups_count: '',
+    meal_groups_count: '0',
     unmapped_enclosures: '',
     mapped_enclosures: '',
     total_enclosures: '',
@@ -201,6 +201,7 @@ const MealGroup = () => {
     setLoading(true)
 
     if (status === 'mealgroup') {
+      debugger
       const groupparams = {
         site_id: selectedOption,
         page_no: paginationModel.page + 1,
@@ -1140,7 +1141,7 @@ const MealGroup = () => {
     },
     {
       field: 'group_name',
-      headerName: 'Meal Group Name',
+      headerName: 'Meal Group Name ',
       sortable: false,
       headerAlign: 'center',
       align: 'center',
@@ -1397,7 +1398,14 @@ const MealGroup = () => {
                   value='mapped'
                   label={<TabBadge label={`Enclosures mapped - ${siteStats?.mapped_enclosures}`} />}
                 />
-                <Tab value='mealgroup' label={<TabBadge label={`Meal group - ${siteStats?.meal_groups_count}`} />} />
+                <Tab
+                  value='mealgroup'
+                  label={
+                    <TabBadge
+                      label={`Meal group - ${siteStats?.meal_groups_count ? siteStats.meal_groups_count : 0}`}
+                    />
+                  }
+                />
               </TabList>
 
               {/* Divider only below TabList, responsive width */}

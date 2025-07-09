@@ -147,7 +147,7 @@ const StepBasicDetails = ({
   const recipes = [
     // { label: 'No' },
     { label: 'Recipe' },
-    { label: 'Ingredients' },
+    { label: 'Items' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
@@ -155,14 +155,14 @@ const StepBasicDetails = ({
   const combos = [
     // { label: 'No' },
     { label: 'Combo' },
-    { label: 'Ingredients' },
+    { label: 'Items' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
 
   const ingredients = [
     // { label: 'No' },
-    { label: 'Ingredient' },
+    { label: 'Item' },
     { label: 'Prep types' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
@@ -670,9 +670,7 @@ const StepBasicDetails = ({
 
       if (invalidIndexes.length > 0) {
         invalidIndexes.forEach(index => {
-          toast.error(
-            `Meal ${index + 1} must contain at least one of ingredient, recipe, combo or ingredients with choice.`
-          )
+          toast.error(`Meal ${index + 1} must contain at least one of item, recipe, combo or items with choice.`)
         })
 
         return
@@ -925,14 +923,13 @@ const StepBasicDetails = ({
     })
   }
 
-  const removeingClickingwithChoice = (ingredientIdToRemove, val, index) => {
+  const removeingClickingwithChoice = (ingredientIdToRemove, val, index, value) => {
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
         ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
       )
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
-        console.log(prevAllSelectedValues, 'prevAllSelectedValues')
         const updatedAllSelectedValues = prevAllSelectedValues
           .map((ingredient, i) => {
             // Check both index and checkid === mealid
@@ -950,22 +947,31 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      // Update fieldsIngredients with both index and checkid comparison
-      console.log(fieldsIngredients, 'fieldsIngredients')
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.ingredientwithchoice = field.ingredientwithchoice
-          ?.map((ing, i) => {
-            if (i === index && ing?.mealid === val) {
+        if (field?.mealid === val) {
+          const updatedIngredientWithChoice = field.ingredientwithchoice
+            ?.map(ingWithChoice => {
+              // Filter out only the exact matching ingredient from ingredientList
+              const updatedIngredientList = ingWithChoice.ingredientList?.filter(ing => {
+                return !(
+                  String(value.preparation_type_id) === String(ing.preparation_type_id) &&
+                  String(value.mealid) === String(ing.mealid) &&
+                  String(value.ingredient_id) === String(ing.ingredient_id)
+                )
+              })
+
               return {
-                ...ing,
-                ingredientList: ing?.ingredientList?.filter(item => String(item.ingredient_id) !== ingredientIdToRemove)
+                ...ingWithChoice,
+                ingredientList: updatedIngredientList?.length > 0 ? updatedIngredientList : undefined
               }
-            }
+            })
+            .filter(ingWithChoice => ingWithChoice.ingredientList) // Remove entries with empty ingredientList
 
-            return ing
-          })
-          .filter(ing => ing?.ingredientList && ing?.ingredientList.length > 0)
-
+          return {
+            ...field,
+            ingredientwithchoice: updatedIngredientWithChoice?.length > 0 ? updatedIngredientWithChoice : undefined
+          }
+        }
         return field
       })
 
@@ -1305,7 +1311,7 @@ const StepBasicDetails = ({
                                 ? 0.5
                                 : recipe.label === 'Recipe'
                                 ? 2.2
-                                : recipe.label === 'Ingredients'
+                                : recipe.label === 'Items'
                                 ? 1.9
                                 : 3.7
                             }
@@ -1313,10 +1319,10 @@ const StepBasicDetails = ({
                               recipe.label === 'No'
                                 ? 0.5
                                 : recipe.label === 'Recipe'
-                                ? 2.2
-                                : recipe.label === 'Ingredients'
+                                ? 2.3
+                                : recipe.label === 'Items'
                                 ? 1.5
-                                : 3.7
+                                : 3.5
                             }
                             key={index}
                             sx={{ py: 4, px: 2, textAlign: 'center' }}
@@ -1360,7 +1366,7 @@ const StepBasicDetails = ({
                                     src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
                                   ></Avatar>
                                 </Grid>
-                                <Grid item xs={12} sm={2.2} md={2.2}>
+                                <Grid item xs={12} sm={2.2} md={2.1}>
                                   <Tooltip title={all.recipe_name}>
                                     <Typography
                                       className='recipe_name'
@@ -1380,7 +1386,7 @@ const StepBasicDetails = ({
                                   </Typography>
                                 </Grid>
 
-                                <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
+                                <Grid item xs={12} sm={1.4} md={1.0}>
                                   <Typography>{all?.ingredients_count}</Typography>
                                   {/* {all?.ingredients ? (
                                   <Typography>{all?.ingredients?.length}</Typography>
@@ -1490,7 +1496,7 @@ const StepBasicDetails = ({
                                 ? 0.5
                                 : recipe.label === 'Combo'
                                 ? 2.2
-                                : recipe.label === 'Ingredients'
+                                : recipe.label === 'Items'
                                 ? 1.9
                                 : 3.7
                             }
@@ -1498,10 +1504,10 @@ const StepBasicDetails = ({
                               recipe.label === 'No'
                                 ? 0.5
                                 : recipe.label === 'Combo'
-                                ? 2.2
-                                : recipe.label === 'Ingredients'
+                                ? 2.3
+                                : recipe.label === 'Items'
                                 ? 1.5
-                                : 3.7
+                                : 3.5
                             }
                             key={index}
                             sx={{ py: 4, px: 2, textAlign: 'center' }}
@@ -1565,7 +1571,7 @@ const StepBasicDetails = ({
                                   </Typography>
                                 </Grid>
 
-                                <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
+                                <Grid item xs={12} sm={1.4} md={1.0}>
                                   <Typography>{all?.ingredients_count}</Typography>
                                   {/* {all?.ingredients ? (
                                   <Typography>{all?.ingredients?.length}</Typography>
@@ -1639,7 +1645,7 @@ const StepBasicDetails = ({
                 {allSelectedValues?.length > 0 && allSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
                     <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Ingredients</Typography>
+                      <Typography variant='h6'>Items</Typography>
                     </Box>
 
                     <Grid
@@ -1665,7 +1671,7 @@ const StepBasicDetails = ({
                             sm={
                               ingredient.label === 'No'
                                 ? 0.5
-                                : ingredient.label === 'Ingredient'
+                                : ingredient.label === 'Item'
                                 ? 2.4
                                 : ingredient.label === 'Prep types'
                                 ? 2.0
@@ -1674,7 +1680,7 @@ const StepBasicDetails = ({
                             md={
                               ingredient.label === 'No'
                                 ? 0.5
-                                : ingredient.label === 'Ingredient'
+                                : ingredient.label === 'Item'
                                 ? 2.2
                                 : ingredient.label === 'Prep types'
                                 ? 1.5
@@ -1783,7 +1789,7 @@ const StepBasicDetails = ({
                                 />
                                 <Icon
                                   onClick={() => removeingClick(all.ingredient_id, all.mealid)}
-                                  style={{ position: 'relative', left: '1%' }}
+                                  style={{ position: 'relative', left: '1%', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
                                 />
                               </Grid>
@@ -1805,7 +1811,7 @@ const StepBasicDetails = ({
                 allIngredientchoiceSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
                     <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Ingredients with choice</Typography>
+                      <Typography variant='h6'>Items with choice</Typography>
                     </Box>
 
                     <Grid
@@ -1829,7 +1835,7 @@ const StepBasicDetails = ({
                             item
                             xs={12}
                             sm={
-                              ingredient.label === 'Ingredient'
+                              ingredient.label === 'Item'
                                 ? 2.2
                                 : ingredient.label === 'Prep types'
                                 ? 2.3
@@ -1939,7 +1945,7 @@ const StepBasicDetails = ({
                                 />
                                 <Icon
                                   onClick={() => removeingClicking(index, all.mealid, all)}
-                                  style={{ position: 'relative', left: '1%' }}
+                                  style={{ position: 'relative', left: '1%', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
                                 />
 
@@ -2017,9 +2023,9 @@ const StepBasicDetails = ({
 
                                             <Icon
                                               onClick={() =>
-                                                removeingClickingwithChoice(all.ingredient_id, all.mealid, index)
+                                                removeingClickingwithChoice(all.ingredient_id, all.mealid, index, all)
                                               }
-                                              style={{ position: 'relative', left: '0%' }}
+                                              style={{ position: 'relative', left: '0%', cursor: 'pointer' }}
                                               icon='iconoir:cancel'
                                             />
                                           </CardContent>
@@ -2137,7 +2143,7 @@ const StepBasicDetails = ({
                     onClick={() => handleAddIngerdient(field, index)}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD INGREDIENT
+                    ADD ITEM
                   </Typography>
 
                   <Typography
@@ -2156,7 +2162,7 @@ const StepBasicDetails = ({
                     onClick={() => handleAddIngerdientChoice(field, index, 'addingd')}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD INGREDIENT WITH CHOICE
+                    ADD ITEM WITH CHOICE
                   </Typography>
                 </Grid>
 

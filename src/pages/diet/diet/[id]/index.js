@@ -1813,7 +1813,7 @@ const DietDetail = () => {
                                                                           mb: 1
                                                                         }}
                                                                       >
-                                                                        Ingredients used
+                                                                        Items used
                                                                       </Typography>
                                                                       {item?.ingredients?.length > 0 && (
                                                                         <Box
@@ -2363,7 +2363,7 @@ const DietDetail = () => {
                                                                           mb: 1
                                                                         }}
                                                                       >
-                                                                        Ingredients used
+                                                                        Items used
                                                                       </Typography>
                                                                       {item?.ingredients?.length > 0 && (
                                                                         <Box
@@ -3285,7 +3285,7 @@ const DietDetail = () => {
                                                                     mb: 0
                                                                   }}
                                                                 >
-                                                                  Ingredients using
+                                                                  Items using
                                                                 </Typography>
                                                                 {item?.ingredientList?.length > 0 && (
                                                                   <Box

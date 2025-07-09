@@ -116,7 +116,7 @@ function PurchaseDetails() {
     {
       width: 180,
       field: 'purchase_unit_price',
-      headerName: 'UNIT PRICE (₹)',
+      headerName: 'NET UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
           variant='body2'

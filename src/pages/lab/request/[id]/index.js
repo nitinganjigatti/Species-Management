@@ -570,57 +570,100 @@ const RequestDetails = () => {
       sortable: false,
       headerName: 'STATUS',
       align: 'center',
-      renderCell: params => (
-        <>
-          <Box sx={{ minWidth: 260 }}>
-            {shouldShowDropdown && handleRowPermission({ params }) ? (
-              <FormControl fullWidth variant='outlined'>
-                <Select
-                  size='small'
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  defaultValue={status === 'transferred' ? 'awaiting_sample' : params.row.status}
-                  value={params.row.status}
-                  onChange={event => handleChangeStatus(event, params?.row)}
-                  sx={{
-                    width: 237,
-                    fontSize: '14px',
-                    backgroundColor:
-                      params.row.status === 'pending' ||
-                      params.row.status === 'transferred' ||
-                      params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_clotted' ||
-                      params.row.status === 'completed_insufficient_samples' ||
-                      params.row.status === 'sample_haemolysed' ||
-                      params.row.status === 'sample_rejected'
-                        ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
-                        : params.row.status === 'completed'
-                        ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
-                        : params.row.status === 'inprogress'
-                        ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
-                        : params.row.status === 'sample_received'
-                        ? 'rgba(0, 128, 0, 0.1)'
-                        : 'rgba(0, 128, 0, 0.1)',
+      renderCell: params => {
+        const isSelected = selectedRowData?.some(item => item?.id === params?.id)
 
-                    color:
-                      params.row.status === 'pending' ||
-                      params.row.status === 'transferred' ||
-                      params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_clotted' ||
-                      params.row.status === 'completed_insufficient_samples' ||
-                      params.row.status === 'sample_haemolysed' ||
-                      params.row.status === 'sample_rejected'
-                        ? theme.palette.customColors.customDropdownColor
-                        : params.row.status === 'completed'
-                        ? theme.palette.primary.main
-                        : params.row.status === 'inprogress'
-                        ? theme.palette.customColors.moderateSecondary
-                        : params.row.status === 'sample_received'
-                        ? theme.palette.primary.main
-                        : theme.palette.primary.main,
+        return (
+          <>
+            <Box sx={{ minWidth: 260 }}>
+              {shouldShowDropdown && handleRowPermission({ params }) ? (
+                <FormControl fullWidth variant='outlined'>
+                  <Select
+                    disabled={isSelected}
+                    size='small'
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    defaultValue={status === 'transferred' ? 'awaiting_sample' : params.row.status}
+                    value={params.row.status}
+                    onChange={event => handleChangeStatus(event, params?.row)}
+                    sx={{
+                      width: 237,
+                      fontSize: '14px',
+                      backgroundColor:
+                        params.row.status === 'pending' ||
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
+                        params.row.status === 'sample_rejected'
+                          ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                          : params.row.status === 'completed'
+                          ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                          : params.row.status === 'inprogress'
+                          ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                          : params.row.status === 'sample_received'
+                          ? 'rgba(0, 128, 0, 0.1)'
+                          : 'rgba(0, 128, 0, 0.1)',
 
-                    borderRadius: '8px',
-                    '& .MuiSelect-icon': {
+                      color:
+                        params.row.status === 'pending' ||
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
+                        params.row.status === 'sample_rejected'
+                          ? theme.palette.customColors.customDropdownColor
+                          : params.row.status === 'completed'
+                          ? theme.palette.primary.main
+                          : params.row.status === 'inprogress'
+                          ? theme.palette.customColors.moderateSecondary
+                          : params.row.status === 'sample_received'
+                          ? theme.palette.primary.main
+                          : theme.palette.primary.main,
+
+                      borderRadius: '8px',
+                      '& .MuiSelect-icon': {
+                        color:
+                          params.row.status === 'pending' ||
+                          params.row.status === 'transferred' ||
+                          params.row.status === 'awaiting_sample' ||
+                          params.row.status === 'sample_clotted' ||
+                          params.row.status === 'completed_insufficient_samples' ||
+                          params.row.status === 'sample_haemolysed' ||
+                          params.row.status === 'sample_rejected'
+                            ? theme.palette.customColors.customDropdownColor
+                            : params.row.status === 'completed'
+                            ? theme.palette.primary.main
+                            : params.row.status === 'inprogress'
+                            ? theme.palette.customColors.moderateSecondary
+                            : params.row.status === 'sample_received'
+                            ? theme.palette.primary.main
+                            : theme.palette.primary.main
+                      },
+
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        border: '0'
+                      },
+
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: '0'
+                      }
+                    }}
+                  >
+                    {filteredStatusData?.map((item, index) => (
+                      <MenuItem key={index} value={item?.key}>
+                        {item?.value}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ) : (
+                <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+                  <span
+                    alt={params.row.status}
+                    style={{
                       color:
                         params.row.status === 'pending' ||
                         params.row.status === 'transferred' ||
@@ -637,54 +680,16 @@ const RequestDetails = () => {
                           : params.row.status === 'sample_received'
                           ? theme.palette.primary.main
                           : theme.palette.primary.main
-                    },
-
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      border: '0'
-                    },
-
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: '0'
-                    }
-                  }}
-                >
-                  {filteredStatusData?.map((item, index) => (
-                    <MenuItem key={index} value={item?.key}>
-                      {item?.value}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ) : (
-              <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-                <span
-                  alt={params.row.status}
-                  style={{
-                    color:
-                      params.row.status === 'pending' ||
-                      params.row.status === 'transferred' ||
-                      params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_clotted' ||
-                      params.row.status === 'completed_insufficient_samples' ||
-                      params.row.status === 'sample_haemolysed' ||
-                      params.row.status === 'sample_rejected'
-                        ? theme.palette.customColors.customDropdownColor
-                        : params.row.status === 'completed'
-                        ? theme.palette.primary.main
-                        : params.row.status === 'inprogress'
-                        ? theme.palette.customColors.moderateSecondary
-                        : params.row.status === 'sample_received'
-                        ? theme.palette.primary.main
-                        : theme.palette.primary.main
-                  }}
-                >
-                  {params.row.status_label}
-                </span>
-              </Typography>
-            )}
-          </Box>
-        </>
-      )
+                    }}
+                  >
+                    {params.row.status_label}
+                  </span>
+                </Typography>
+              )}
+            </Box>
+          </>
+        )
+      }
     },
     ...(permissions?.allow_full_access ||
     permissions?.transfer_tests ||
@@ -1394,7 +1399,12 @@ const RequestDetails = () => {
                   </Box>
 
                   {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
-                    <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => handleOpenTransfer()}>
+                    <Button
+                      disabled={selectedRowData?.some(item => item?.status === 'completed')}
+                      variant='contained'
+                      sx={{ display: 'flex', gap: 2 }}
+                      onClick={() => handleOpenTransfer()}
+                    >
                       <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
                     </Button>
                   )}
@@ -1403,6 +1413,7 @@ const RequestDetails = () => {
                     {(permissions?.allow_full_access || permissions?.perform_tests) && shouldShowBulkStatus && (
                       <FormControl fullWidth variant='outlined'>
                         <Select
+                          disabled={selectedRowData?.some(item => item?.status === 'completed')}
                           size='small'
                           labelId='demo-simple-select-label'
                           id='demo-simple-select'

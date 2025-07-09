@@ -678,7 +678,7 @@ const AddIngredients = props => {
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
               <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                Add Ingredients
+                Add Items
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -712,7 +712,7 @@ const AddIngredients = props => {
                       </IconButton>
                     )
                   }}
-                  placeholder='Search ingredient'
+                  placeholder='Search item'
                   onChange={handleSearchChange}
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -1159,11 +1159,11 @@ const AddIngredients = props => {
         >
           {fromrow === 'rowedit_ingredient' ? (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD INGREDIENT
+              ADD ITEM
             </Button>
           ) : (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD INGREDIENT - {selectedCard?.length} SELECTED
+              ADD ITEM - {selectedCard?.length} SELECTED
             </Button>
           )}
         </Box>

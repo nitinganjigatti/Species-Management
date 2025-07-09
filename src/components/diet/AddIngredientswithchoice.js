@@ -786,7 +786,7 @@ const AddIngredientswithChoice = props => {
                     </IconButton>
                   )
                 }}
-                placeholder='Search ingredient'
+                placeholder='Search item'
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {

@@ -1601,7 +1601,7 @@ const StepPreviewDiet = ({
                                                     mb: 1
                                                   }}
                                                 >
-                                                  Ingredients used
+                                                  Items used
                                                 </Typography>
                                                 {item?.ingredients?.length > 0 && (
                                                   <Box
@@ -2283,7 +2283,7 @@ const StepPreviewDiet = ({
                                                     mb: 1
                                                   }}
                                                 >
-                                                  Ingredients used
+                                                  Items used
                                                 </Typography>
                                                 {item?.ingredients?.length > 0 && (
                                                   <Box
@@ -2870,7 +2870,7 @@ const StepPreviewDiet = ({
                                                       width: '100%'
                                                     }}
                                                   >
-                                                    Ingredient
+                                                    Item
                                                   </Typography>
                                                 )}
                                                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -3456,7 +3456,7 @@ const StepPreviewDiet = ({
                                                 mb: 0
                                               }}
                                             >
-                                              Ingredients using
+                                              Items using
                                             </Typography>
                                             {item?.ingredientList?.length > 0 && (
                                               <Box

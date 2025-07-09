@@ -828,7 +828,7 @@ const AddReturnRequest = () => {
                     {totalQty ? totalQty : '0'}
                   </Typography>
                 </Typography>
-                <Typography
+                {/* <Typography
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
@@ -836,7 +836,7 @@ const AddReturnRequest = () => {
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                     {Utility.formatAmountToReadableDigit(totalReturnItemsValue)}
                   </Typography>
-                </Typography>
+                </Typography> */}
               </Stack>
             </Box>
 

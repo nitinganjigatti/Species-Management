@@ -149,7 +149,7 @@ const AddReOrderDialog = ({
             icon={stockDetails?.image}
           />
           <Typography sx={{ fontSize: '14px' }}>
-            Reorder Level: <strong>{stockDetails?.min_qty ? stockDetails?.min_qty : 0}</strong>
+            Reorder-Level: <strong>{stockDetails?.min_qty ? stockDetails?.min_qty : 0}</strong>
           </Typography>
         </Box>
 

@@ -261,15 +261,28 @@ const encryptData = data => {
 
 const decryptData = cipherText => {
   const bytes = CryptoJS.AES.decrypt(cipherText, SECRET_KEY)
+
   return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+}
+
+function formatIdentifierType(type) {
+  if (!type) return '' // handle empty/undefined cases
+
+  return type
+    .replace(/_/g, ' ') // Replace underscores with spaces
+    .split(' ') // Split into words
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
+    .join(' ') // Join back with spaces
 }
 
 function hexToHex8(hex, opacity) {
   debugger
   hex = hex.replace('#', '')
+
   let alpha = Math.round(opacity * 255)
     .toString(16)
     .padStart(2, '0')
+
   return `#${hex}${alpha}`
 }
 
@@ -297,6 +310,7 @@ const Utility = {
   formatAmountCompactDisplay,
   encryptData,
   decryptData,
+  formatIdentifierType,
   hexToHex8
 }
 

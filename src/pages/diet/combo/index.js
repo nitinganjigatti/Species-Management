@@ -311,7 +311,7 @@ const RecipeList = () => {
       //flex: 0.3,
       width: 200,
       field: 'ingredient_name',
-      headerName: 'NO OF INGREDIENTS',
+      headerName: 'NO OF ITEMS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip

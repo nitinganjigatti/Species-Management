@@ -100,7 +100,7 @@ const IndividualReturnRequest = () => {
 
   // const { id, request_number } = router.query
   const { id, request_number } = router.query
-
+ 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
 

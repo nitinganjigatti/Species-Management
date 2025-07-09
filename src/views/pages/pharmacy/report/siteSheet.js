@@ -2,7 +2,7 @@ import { Button, Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextFi
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LoadingButton } from '@mui/lab'
 
 const SiteSheet = ({
@@ -12,10 +12,25 @@ const SiteSheet = ({
   setSites,
   selectedSites,
   setSelectedSites,
+  apiFilterParams,
   handleSelectedSite
 }) => {
   const [searchValue, setSearchValue] = useState('')
-  const [tempSelectedSites, setTempSelectedSites] = useState([...selectedSites])
+  const [tempSelectedSites, setTempSelectedSites] = useState([])
+
+  console.log('selected Sites >', selectedSites)
+
+  useEffect(() => {
+    if (openSiteDrawer) {
+      debugger
+      // Use context's selectedSites directly instead of apiFilterParams
+      const storedSiteIds = selectedSites.includes('All Sites')
+        ? ['All Sites'] // Keep 'All Sites' if selected
+        : selectedSites // Otherwise, use selectedSites
+
+      setTempSelectedSites(storedSiteIds) // Set correct site IDs from context
+    }
+  }, [openSiteDrawer, selectedSites]) // Add selectedSites as a dependency
 
   const handleSelectAll = event => {
     if (event.target.checked) {
@@ -27,6 +42,7 @@ const SiteSheet = ({
 
   const handleToggleSite = siteId => {
     if (tempSelectedSites.includes(siteId)) {
+      debugger
       setTempSelectedSites(tempSelectedSites.filter(id => id !== siteId))
     } else {
       setTempSelectedSites([...tempSelectedSites, siteId])
