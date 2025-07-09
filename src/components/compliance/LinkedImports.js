@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, Typography, Grid, useTheme, alpha } from '@mui/material'
+import Utility from 'src/utility'
 
 const LinkedImports = ({ imports = [] }) => {
   const theme = useTheme()
@@ -27,7 +28,7 @@ const LinkedImports = ({ imports = [] }) => {
 
   return (
     <Box>
-      {imports.map((item, index) => (
+      {imports?.map((item, index) => (
         <Box
           key={index}
           sx={{
@@ -48,7 +49,7 @@ const LinkedImports = ({ imports = [] }) => {
                 fontWeight='medium'
                 sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
               >
-                {item.certificateId}
+                {item?.import_number || '-'}
               </Typography>
             </Grid>
 
@@ -61,7 +62,7 @@ const LinkedImports = ({ imports = [] }) => {
                   variant='body1'
                   sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
                 >
-                  {item.dateOfIssue}
+                  {Utility.formatDisplayDate(item.import_date) || '-'}
                 </Typography>
               </Box>
             </Grid>
@@ -69,13 +70,13 @@ const LinkedImports = ({ imports = [] }) => {
             <Grid item xs={12} sm={3} md={4}>
               <Box>
                 <Typography variant='subtitle2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                  Linked Imports
+                  Linked Exports
                 </Typography>
                 <Typography
                   variant='body1'
                   sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
                 >
-                  {item.linkedImportsCount}
+                  {item?.export_count || '-'}
                 </Typography>
               </Box>
             </Grid>

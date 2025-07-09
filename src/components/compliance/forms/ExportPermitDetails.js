@@ -187,7 +187,13 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
         </Grid>
 
         <Grid item xs={12} md={3}>
-          <ControlledFileUpload name='certificate_file' label='Upload Permit' control={control} errors={errors} />
+          <ControlledFileUpload
+            name='certificate_file'
+            label='Upload Permit'
+            control={control}
+            errors={errors}
+            acceptFileTypes='.pdf,.doc,.docx,.jpg,.jpeg,.png'
+          />
         </Grid>
       </Grid>
     </Box>

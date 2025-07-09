@@ -62,7 +62,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
         : await addDocument(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Document type ' + response?.message })
+        Toaster({ type: 'success', message: response?.message })
         onAddEditSuccess(response?.data)
       } else {
         Toaster({ type: 'error', message: response?.message })

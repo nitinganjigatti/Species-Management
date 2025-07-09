@@ -1,9 +1,17 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Box, Typography, IconButton } from '@mui/material'
 import { useController } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
+import { useAuth } from 'src/hooks/useAuth'
 
-const ControlledFileUpload = ({ name, control, label, errors, color }) => {
+const ControlledFileUpload = ({
+  name,
+  control,
+  label,
+  errors,
+  color,
+  acceptFileTypes = '.pdf,.doc,.docx,.jpg,.jpeg,.png'
+}) => {
   const {
     field: { value, onChange },
     fieldState: { error }
@@ -12,6 +20,23 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
     control,
     defaultValue: null
   })
+
+  const auth = useAuth()
+
+  const imgPath = useMemo(() => auth?.userData?.settings?.DEFAULT_IMAGE_MASTER, [auth])
+
+  const getFileIcon = () => {
+    const fileName = getFileName().toLowerCase()
+    console.log('fileName', fileName)
+    const ext = fileName?.split('.')?.pop()?.toLowerCase()
+    if (['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'].includes(ext)) return imgPath.image
+    if (['pdf'].includes(ext)) return imgPath.pdf
+    if (['xls', 'xlsx'].includes(ext)) return imgPath.xls
+    if (['doc', 'docx'].includes(ext)) return imgPath.document
+    if (['mp3', 'wav', 'ogg'].includes(ext)) return imgPath.audio
+
+    return imgPath.default
+  }
 
   const handleFileChange = event => {
     const selectedFile = event.target.files[0]
@@ -52,19 +77,6 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
     return value.name || value.file_original_name || ''
   }
 
-  // Get appropriate icon based on file extension
-  const getFileIcon = () => {
-    const fileName = getFileName().toLowerCase()
-    if (fileName.endsWith('.pdf')) return '/icons/pdf_icon2.svg'
-
-    // if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) return '/icons/doc_icon.svg'
-    // if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png')) {
-    //   return '/icons/image_icon.svg'
-    // }
-
-    return '/icons/pdf_icon2.svg' // default icon
-  }
-
   return (
     <Box>
       <Box
@@ -96,7 +108,7 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
               type='file'
               id={`file-upload-${name}`}
               onChange={handleFileChange}
-              accept='.pdf,.doc,.docx,.jpg,.jpeg,.png'
+              accept={acceptFileTypes}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -126,7 +138,12 @@ const ControlledFileUpload = ({ name, control, label, errors, color }) => {
                 flex: 1
               }}
             >
-              <Box component='img' src={getFileIcon()} width='18px' sx={{ mr: 2 }} />
+              <Box
+                component='img'
+                src={getFileIcon()?.image_path}
+                width='18px'
+                sx={{ mr: 2, backgroundColor: getFileIcon()?.bg_color }}
+              />
               <Typography
                 sx={{
                   whiteSpace: 'nowrap',

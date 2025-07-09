@@ -143,7 +143,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
 
             <ControlledTextField
               name='reference_number'
-              label='Reference Number'
+              label='Reference Number*'
               control={control}
               errors={errors}
               fullWidth
@@ -156,7 +156,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
             </Typography>
             <ControlledFileUpload
               name='document_file'
-              label={fileValue?.name || 'Select File'}
+              label={fileValue?.name || 'Select File*'}
               control={control}
               errors={errors}
               color={theme.palette.primary.OnSurface}

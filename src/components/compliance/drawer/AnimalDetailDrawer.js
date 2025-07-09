@@ -130,7 +130,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
           </Box>
 
           {/* Animals with Identifier */}
-          {specie?.animals?.length && (
+          {specie?.animals?.length ? (
             <Typography
               sx={{
                 mb: 3,
@@ -141,82 +141,92 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
             >
               Animals with identifier ({specie?.animals?.length})
             </Typography>
-          )}
+          ) : null}
 
-          <Box
-            sx={{
-              mb: 3,
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: '8px',
-              px: 4,
-              py: 4,
-              backgroundColor: theme.palette.common.white,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4
-            }}
-          >
-            {specie?.animals?.map((animal, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  p: 3
-                }}
-              >
+          {specie?.animals?.length ? (
+            <Box
+              sx={{
+                mb: 3,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: '8px',
+                px: 4,
+                py: 4,
+                backgroundColor: theme.palette.common.white,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4
+              }}
+            >
+              {specie?.animals?.map((animal, index) => (
                 <Box
+                  key={index}
                   sx={{
-                    width: 40,
-                    height: 40,
-                    backgroundColor:
-                      animal.gender === 'male'
-                        ? `${theme.palette.customColors.SecondaryContainer}80`
-                        : animal.gender === 'female'
-                        ? `${theme.palette.customColors.customDropdownColor}4D`
-                        : theme.palette.customColors.displaybgSecondary,
-                    color:
-                      animal.gender === 'male'
-                        ? theme.palette.customColors.addPrimary
-                        : animal.gender === 'female'
-                        ? theme.palette.customColors.customDropdownColor
-                        : theme.palette.customColors.OnPrimaryContainer,
-                    fontWeight: 600,
                     display: 'flex',
-                    justifyContent: 'center',
                     alignItems: 'center',
-                    borderRadius: '4px',
-                    fontSize: '1rem'
+                    gap: 4,
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '8px',
+                    p: 3
                   }}
                 >
-                  {animal.gender ? animal.gender[0].toUpperCase() : '-'}
-                </Box>
-                <Box>
-                  <Box sx={{ fontSize: '0.875rem' }}>
-                    Species:{' '}
-                    <Typography
-                      component='span'
-                      sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      {specie.common_name}
-                    </Typography>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      backgroundColor:
+                        animal.gender === 'male'
+                          ? `${theme.palette.customColors.SecondaryContainer}80`
+                          : animal.gender === 'female'
+                          ? `${theme.palette.customColors.customDropdownColor}4D`
+                          : theme.palette.customColors.displaybgSecondary,
+                      color:
+                        animal.gender === 'male'
+                          ? theme.palette.customColors.addPrimary
+                          : animal.gender === 'female'
+                          ? theme.palette.customColors.customDropdownColor
+                          : theme.palette.customColors.OnPrimaryContainer,
+                      fontWeight: 600,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderRadius: '4px',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {animal.gender ? animal.gender[0].toUpperCase() : '-'}
                   </Box>
-                  <Box sx={{ fontSize: '0.875rem' }}>
-                    {Utility.formatIdentifierType(animal.identifier_type)}:{' '}
-                    <Typography
-                      component='span'
-                      sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      {animal.identifier_value}
-                    </Typography>
+                  <Box>
+                    <Box sx={{ fontSize: '0.875rem' }}>
+                      Species:{' '}
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {specie.common_name}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ fontSize: '0.875rem' }}>
+                      {Utility.formatIdentifierType(animal.identifier_type)}:{' '}
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {animal.identifier_value}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-            ))}
-          </Box>
+              ))}
+            </Box>
+          ) : null}
         </Box>
       </Box>
     </Drawer>
