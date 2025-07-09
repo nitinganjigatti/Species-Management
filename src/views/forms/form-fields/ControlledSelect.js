@@ -21,7 +21,8 @@ const ControlledSelect = ({
   getOptionValue = option => option,
   isOptionDisabled = () => false,
   onChangeExtra = () => {},
-  disabled = false
+  disabled = false,
+  sx = {}
 }) => {
   const fieldError = get(errors, name)
 
@@ -49,6 +50,7 @@ const ControlledSelect = ({
             label={label}
             disabled={disabled}
             error={Boolean(fieldError)}
+            sx={sx}
             onChange={e => {
               field.onChange(e)
               onChangeExtra(e)

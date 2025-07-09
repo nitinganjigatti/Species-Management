@@ -35,7 +35,6 @@ const schema = yup.object().shape({
   name: yup.string().required('Rack name is required'),
   position: yup.string().required('Position is required'),
 
-  // store_id: yup.string().required('Store is required'),
   shelf: yup.string().required('Shelf is required'),
   status: yup.string().nullable()
 })
@@ -60,6 +59,7 @@ const AddRack = props => {
     editParams,
     selectedPharmacy
   } = props
+
   console.log('props', props)
 
   // ** States
@@ -82,7 +82,7 @@ const AddRack = props => {
   })
 
   const onSubmit = async params => {
-    const { name, position, store_id, shelf, status } = { ...params }
+    const { name, position, shelf, status } = { ...params }
 
     const payload = {
       name,
@@ -184,6 +184,7 @@ const AddRack = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
+          {/* <form> */}
           {/* <FormControl fullWidth sx={{ mb: 6 }}>
             <InputLabel error={Boolean(errors?.state_id)} id='store_id'>
               Store
@@ -324,6 +325,7 @@ const AddRack = props => {
               )}
             </FormControl>
           ) : null}
+
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

@@ -1,21 +1,10 @@
-import { Avatar, CircularProgress, Skeleton, Tooltip, Typography } from '@mui/material'
+import React from 'react'
+import { Avatar, Typography, Tooltip } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 
 function SpeciesCard({ species }) {
   const theme = useTheme()
-  const [loading, setLoading] = useState(true)
-  const [imgSrc, setImgSrc] = useState(species?.default_icon)
-
-  const handleImageLoad = () => {
-    setLoading(false)
-  }
-
-  const handleImageError = () => {
-    setLoading(false)
-    setImgSrc('/images/housing/species-icon-colored.svg')
-  }
 
   return (
     // <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -94,6 +83,26 @@ function SpeciesCard({ species }) {
         </Box>
       )}
       <Box>
+        {/* <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: 600
+          }}
+        >
+          {species.common_name ? species.common_name : '-'}
+        </Typography>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: 400,
+            fontStyle: 'italic'
+          }}
+        >
+          {species.scientific_name ? species.scientific_name : '-'}
+        </Typography> */}
+
         <Tooltip title={species.common_name}>
           <Typography
             sx={{

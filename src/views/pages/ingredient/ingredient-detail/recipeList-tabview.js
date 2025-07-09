@@ -32,7 +32,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
   const [status, setStatus] = useState('1')
@@ -302,7 +302,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                 paginationMode='server'
                 sortingMode='server'
                 onSortModelChange={handleSortModel}
-                pageSizeOptions={[7, 10, 25, 50]}
+                pageSizeOptions={[7, 10, 25, 50, 100]}
                 paginationModel={paginationModel}
                 slots={{ toolbar: ServerSideToolbar }}
                 onPaginationModelChange={setPaginationModel}

@@ -70,6 +70,12 @@
   .recipe_name {
     width: 100px;
   }
+  .edit_contxt {
+    gap: 400px !important;
+  }
+  .editanimals_contxt {
+    gap: 450px !important;
+  }
   .pencil_diet {
     position: absolute !important;
     right: 11% !important;

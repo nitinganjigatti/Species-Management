@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useContext, useEffect, useCallback, useMemo } from 'react'
+import { useState, useContext, useMemo } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -254,16 +254,26 @@ const DietReportPage = () => {
       width: 200,
       field: 'download',
       headerName: 'Download',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
-        <Button
-          variant='contained'
-          size='small'
-          startIcon={<Icon icon='mdi:download' />}
-          onClick={() => handleDownload(params.row.id, params.row.reportAlias, filteredData)}
-          disabled={params.row.downloadStatus}
-        >
-          {params.row.downloadStatus ? 'Downloading...' : 'Download'}
-        </Button>
+        <>
+          {!params?.row.downloadStatus ? (
+            <Button
+              variant='contained'
+              size='small'
+              startIcon={<Icon icon='mdi:download' />}
+              onClick={() => handleDownload(params.row.id, params.row.reportAlias, filteredData)}
+              disabled={params.row.downloadStatus}
+            >
+              Download
+            </Button>
+          ) : (
+            <>
+              <CircularProgress size={30} />
+            </>
+          )}
+        </>
       )
     }
   ]

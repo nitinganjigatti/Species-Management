@@ -1,0 +1,167 @@
+import React from 'react'
+import { Box, Typography, IconButton } from '@mui/material'
+import { useController } from 'react-hook-form'
+import Icon from 'src/@core/components/icon'
+
+const ControlledFileUpload = ({ name, control, label, errors, color }) => {
+  const {
+    field: { value, onChange },
+    fieldState: { error }
+  } = useController({
+    name,
+    control,
+    defaultValue: null
+  })
+
+  const handleFileChange = event => {
+    const selectedFile = event.target.files[0]
+    onChange(selectedFile || null)
+  }
+
+  const handleRemoveFile = e => {
+    e.stopPropagation() // Prevent triggering the file open when removing
+    onChange(null)
+    const input = document.getElementById(`file-upload-${name}`)
+    if (input) input.value = ''
+  }
+
+  const handleFileClick = () => {
+    if (!value) return
+
+    // If it's a File object (new upload)
+    if (value instanceof File) {
+      const fileURL = URL.createObjectURL(value)
+      window.open(fileURL, '_blank')
+
+      // Clean up the object URL when done
+      setTimeout(() => URL.revokeObjectURL(fileURL), 100)
+    }
+
+    // If it's an existing file with path (from API)
+    else if (value.file_path) {
+      window.open(value.file_path, '_blank')
+    }
+  }
+
+  const hasError = Boolean(errors?.[name] || error)
+
+  // Get file name whether it's a File object or API response object
+  const getFileName = () => {
+    if (!value) return ''
+
+    return value.name || value.file_original_name || ''
+  }
+
+  // Get appropriate icon based on file extension
+  const getFileIcon = () => {
+    const fileName = getFileName().toLowerCase()
+    if (fileName.endsWith('.pdf')) return '/icons/pdf_icon2.svg'
+
+    // if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) return '/icons/doc_icon.svg'
+    // if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png')) {
+    //   return '/icons/image_icon.svg'
+    // }
+
+    return '/icons/pdf_icon2.svg' // default icon
+  }
+
+  return (
+    <Box>
+      <Box
+        sx={{
+          border: `1px dashed ${hasError ? '#FF4C51' : '#C3CEC7'}`,
+          padding: '13px',
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer',
+          mt: 1,
+          borderRadius: '10px',
+          position: 'relative',
+          width: '100%',
+          height: '50px',
+          backgroundColor: value ? '#F4F6F5' : 'transparent'
+        }}
+        onClick={handleFileClick}
+      >
+        {!value ? (
+          <>
+            <img
+              src={color ? '/images/compliance/attach_file_add_colored.svg' : '/icons/attach_file_add.svg'}
+              alt='Attach File'
+              width='20px'
+              style={{ marginRight: '15px', marginLeft: '10px' }}
+            />
+            <Typography sx={{ color: color ?? '#839D8D', fontWeight: 400 }}>{label || 'Upload File'}</Typography>
+            <input
+              type='file'
+              id={`file-upload-${name}`}
+              onChange={handleFileChange}
+              accept='.pdf,.doc,.docx,.jpg,.jpeg,.png'
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer'
+              }}
+            />
+          </>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%'
+            }}
+          >
+            <Box
+              sx={{
+                mr: 2,
+                display: 'flex',
+                alignItems: 'center',
+                overflow: 'hidden',
+                flex: 1
+              }}
+            >
+              <Box component='img' src={getFileIcon()} width='18px' sx={{ mr: 2 }} />
+              <Typography
+                sx={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {getFileName()}
+              </Typography>
+            </Box>
+
+            <IconButton
+              onClick={handleRemoveFile}
+              sx={{
+                ml: 1,
+                background: '#0000000D',
+                p: 0,
+                '&:hover': {
+                  background: '#0000001A'
+                }
+              }}
+            >
+              <Icon icon='ion:close-outline' style={{ color: '#1F515B', fontSize: '20px' }} />
+            </IconButton>
+          </Box>
+        )}
+      </Box>
+
+      {hasError && (
+        <Typography variant='caption' sx={{ color: '#FF4C51', mt: 0.5, ml: '14px' }}>
+          {errors?.[name]?.message || error?.message}
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
+export default ControlledFileUpload

@@ -61,7 +61,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     handleSubmit,
     formState: { errors, isValid, isDirty },
     watch,
-    trigger
+    trigger,
+    setValue
   } = useForm({
     defaultValues: defaultValues,
     resolver: yupResolver(schema),
@@ -183,9 +184,10 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        console.log(response, 'response')
+        if (response?.data?.racks.length > 0) {
           setRacks(
-            response?.data?.map(item => ({
+            response?.data?.racks.map(item => ({
               ...item,
               rack_id: item?.id,
               rack_name: item?.name
@@ -218,6 +220,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     },
     [selectedPharmacy?.id]
   )
+
+  console.log(shelves, 'shelves')
 
   const onSubmit = async data => {
     // Trigger validation before submitting
@@ -485,12 +489,51 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                                 isOptionEqualToValue={(option, value) =>
                                   parseInt(option?.rack_id) === parseInt(value?.rack_id)
                                 }
+                                // onChange={(e, val) => {
+                                //   if (val === null) {
+                                //     var rack = defaultRack
+                                //     rack[index] = null
+                                //     setDefaultRack(rack)
+
+                                //     setConfigErrors(prev => {
+                                //       const newErrors = { ...prev }
+                                //       delete newErrors[index]
+
+                                //       return newErrors
+                                //     })
+                                //     setValue(`locations[${index}].shelf_id`, '')
+
+                                //     return onChange('')
+                                //   } else {
+                                //     var rack = defaultRack
+                                //     rack[index] = { rack_id: val?.rack_id, rack_name: val?.rack_name }
+                                //     setDefaultRack(prev => {
+                                //       const newArr = [...prev]
+                                //       newArr[index] = val ? { rack_id: val.rack_id, rack_name: val.rack_name } : null
+
+                                //       return newArr
+                                //     })
+                                //     getShelves({ rackId: val?.rack_id })
+                                //     setValue(`locations[${index}].shelf_id`, '')
+
+                                //     return onChange(val.rack_id)
+                                //   }
+                                // }}
                                 onChange={(e, val) => {
                                   if (val === null) {
-                                    var rack = defaultRack
-                                    rack[index] = null
-                                    setDefaultRack(rack)
+                                    setDefaultRack(prev => {
+                                      const newArr = [...prev]
+                                      newArr[index] = null
 
+                                      return newArr
+                                    })
+                                    setDefaultShelf(prev => {
+                                      const newArr = [...prev]
+                                      newArr[index] = null
+
+                                      return newArr
+                                    })
+                                    setValue(`locations[${index}].shelf_id`, '')
                                     setConfigErrors(prev => {
                                       const newErrors = { ...prev }
                                       delete newErrors[index]
@@ -500,15 +543,26 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
 
                                     return onChange('')
                                   } else {
-                                    var rack = defaultRack
-                                    rack[index] = { rack_id: val?.rack_id, rack_name: val?.rack_name }
                                     setDefaultRack(prev => {
                                       const newArr = [...prev]
-                                      newArr[index] = val ? { rack_id: val.rack_id, rack_name: val.rack_name } : null
+                                      newArr[index] = { rack_id: val.rack_id, rack_name: val.rack_name }
 
                                       return newArr
                                     })
+                                    setDefaultShelf(prev => {
+                                      const newArr = [...prev]
+                                      newArr[index] = null
+
+                                      return newArr
+                                    })
+                                    setValue(`locations[${index}].shelf_id`, '')
                                     getShelves({ rackId: val?.rack_id })
+                                    setConfigErrors(prev => {
+                                      const newErrors = { ...prev }
+                                      delete newErrors[index]
+
+                                      return newErrors
+                                    })
 
                                     return onChange(val.rack_id)
                                   }
