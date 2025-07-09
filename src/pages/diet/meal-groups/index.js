@@ -49,6 +49,7 @@ import select from 'src/@core/theme/overrides/select'
 import FixedFooterWrapper from 'src/components/diet/FixedFooterWrapper'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Error404 from 'src/pages/404'
+import AddEnclosureToGroup from 'src/views/pages/diet/mealGroup/addEnclosureToGroup'
 
 const MealGroup = () => {
   const router = useRouter()
@@ -107,12 +108,11 @@ const MealGroup = () => {
   const [editSearchValue, setEditSearchValue] = useState('')
   const [selectedForDrawer, setSelectedForDrawer] = useState([])
   const [mealId, setMealId] = useState(null)
+  const [addEnclosureDrawer, setAddEnclosureDrawer] = useState(false)
 
   const [mealType, setmealType] = useState({
     type: 'view'
   })
-
-  console.log('Group >>', groupList)
 
   useEffect(() => {
     const siteIdFromQuery = router.query.site_id
@@ -204,11 +204,10 @@ const MealGroup = () => {
     setLoading(true)
 
     if (status === 'mealgroup') {
-      debugger
-
       const groupparams = {
         site_id: selectedOption,
-        page_no: paginationModel.page + 1
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize
       }
 
       try {
@@ -300,9 +299,9 @@ const MealGroup = () => {
             const list = res.data?.result || []
 
             // Filter the result based on enclosure_id in checkedRows
-            const selected = list.filter(item => checkedRows.includes(item.enclosure_id))
+            // const selected = list.filter(item => checkedRows.includes(item.enclosure_id))
 
-            setSelectedItems(selected)
+            setSelectedItems(list)
           }
           setLoader(false)
         }
@@ -737,10 +736,9 @@ const MealGroup = () => {
 
   const addEnclosure = async () => {
     try {
-     
-      console.log('Checked Rows >', checkedRows)
 
-      setEnclosureDrawer(true)
+      // setEnclosureDrawer(true)
+      setAddEnclosureDrawer(true)
       setLoader(true)
       setGroupId('')
 
@@ -1905,6 +1903,28 @@ const MealGroup = () => {
           selectedOption={selectedOption}
           groupId={groupId}
           setGroupId={setGroupId}
+          loader={Loader}
+          selectedForDrawer={selectedForDrawer}
+          fetchEnclosure={fetchEnclosure}
+          checkedRows={checkedRows}
+          setStatus={setStatus}
+          setCheckedRows={setCheckedRows}
+          fetchSiteStats={fetchSiteStats}
+          setEditItems={setEditItems}
+          editSearchValue={editSearchValue}
+          handleEnclosureSearch={handleEnclosureSearch}
+        />
+      )}
+      {addEnclosureDrawer && ( 
+        <AddEnclosureToGroup
+          addEnclosureDrawer={addEnclosureDrawer}
+          setSelectedItems={setSelectedItems}
+          selectedItems={selectedItems}
+          setAddEnclosureDrawer={setAddEnclosureDrawer}
+          selectedOption={selectedOption}
+          groupId={groupId}
+          setGroupId={setGroupId}
+          siteStats={siteStats}
           loader={Loader}
           selectedForDrawer={selectedForDrawer}
           fetchEnclosure={fetchEnclosure}
