@@ -23,6 +23,7 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline from '@mui/lab/Timeline'
 import { styled } from '@mui/material/styles'
+import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 // import {  TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from '@mui/lab'
 
 const AnimalIncidents = () => {
@@ -244,7 +245,8 @@ const AnimalIncidents = () => {
               px: 4,
               position: 'sticky',
               top: 0,
-              backgroundColor: theme.palette.primary.contrastText,
+              // backgroundColor: theme.palette.primary.contrastText,
+              backgroundColor: theme.palette.customColors.Background,
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
               zIndex: 100
             }}
@@ -264,14 +266,14 @@ const AnimalIncidents = () => {
                   padding: '4px',
                   borderRadius: '4px',
                   height: '32px',
-                  width: '32px',
-                  backgroundColor: theme.palette.customColors.mdAntzNeutral
+                  width: '32px'
+                  // backgroundColor: theme.palette.customColors.mdAntzNeutral
                 }}
               >
                 <Icon icon={'ion:time-outline'} />
               </Box>
               <Box>
-                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Incident Timeline</Typography>
+                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Incident Details</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton size='small' onClick={() => setActivtyLogSideBar(false)} sx={{ color: 'text.primary' }}>
@@ -280,98 +282,246 @@ const AnimalIncidents = () => {
               </Box>
             </Box>
           </Box>
-          <Box onScroll={handleScroll} sx={{ px: 4, pt: 8, overflowY: 'auto' }}>
-            {activtyLogData?.length > 0 ? (
-              <Timeline>
-                {activtyLogData?.map((item, index) => (
-                  <TimelineItem key={index}>
-                    <TimelineSeparator
-                      sx={{
-                        '& span': {
-                          borderLeft: `2px dashed ${theme.palette.primary.light}`
-                          // backgroundColor:
-                          //   item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                          //     ? theme.palette.formContent.tertiary
-                          //     : theme.palette.primary.light
-                        }
-                      }}
-                    >
-                      <Box
+
+          <Box
+            onScroll={handleScroll}
+            sx={{ px: 4, py: 6, overflowY: 'auto', backgroundColor: theme.palette.customColors.Background }}
+          >
+            <Box
+              sx={{
+                backgroundColor: theme.palette.primary.contrastText,
+                borderRadius: '8px',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant},`,
+                p: '24px'
+              }}
+            >
+              <Box
+                sx={{
+                  backgroundColor: theme.palette.customColors.OnBackground,
+                  padding: '12px',
+                  display: 'flex',
+                  borderRadius: '8px',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <Typography
+                    sx={{
+                      fontSize: 16,
+                      letterSpacing: 0,
+                      fontWeight: 500,
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    INC00410
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 20,
+                      letterSpacing: 0,
+                      fontWeight: 600,
+                      color: theme.palette.customColors.Tertiary
+                    }}
+                  >
+                    Animal Missing
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <Typography
+                    sx={{
+                      fontSize: 14,
+                      letterSpacing: 0,
+                      fontWeight: 400,
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
+                    Missing since
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 16,
+                      letterSpacing: 0,
+                      fontWeight: 500,
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    10 Apr 2024 • 12:28 PM
+                  </Typography>
+                </Box>
+                {/* <AnimalInsightsCard
+                  animalDetails={{
+                    aid: '0027334',
+                    breed: 'Rainbow Lorikeet',
+                    morph: 'Trichoglossus moluccanus',
+                    sex: 'NA', // Not shown in image
+                    lifeStage: 'NA', // Not shown in image
+                    enclosure: 'Enclosure23',
+                    section: 'Section 23',
+                    site: 'Gagva',
+                    image:
+                      'https://upload.wikimedia.org/wikipedia/commons/7/7a/Rainbow_Lorikeet_Trichoglossus_moluccanus_-Australia-8a.jpg' // optional
+                  }}
+                /> */}
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                backgroundColor: theme.palette.primary.contrastText,
+                padding: '12px',
+                mt: '24px',
+                borderRadius: '8px'
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  letterSpacing: 0,
+                  fontSize: 20,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Incident Timeline
+              </Typography>
+              {activtyLogData?.length > 0 ? (
+                <Timeline>
+                  {activtyLogData?.map((item, index) => (
+                    <TimelineItem key={index}>
+                      <TimelineSeparator
                         sx={{
-                          // border: '2px solid ',
-                          backgroundColor:
-                            item.color === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                              ? theme.palette.formContent.tertiary
-                              : theme.palette.primary.light,
-                          boxSizing: 'border-box',
-                          width: '16px',
-                          height: '16px',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
+                          '& span': {
+                            ml: '1px',
+                            background: 'transparent',
+                            borderLeft: `1px dashed ${theme.palette.customColors.OutlineVariant}`
+                          }
                         }}
-                      ></Box>
-                      {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
-                    </TimelineSeparator>
-                    <TimelineContent
-                      sx={{
-                        ml: 4,
-                        borderRadius: '8px',
-                        position: 'relative',
-                        top: 14,
-                        p: 0
-                      }}
-                    >
-                      <Box
+                      >
+                        <Box
+                          sx={{
+                            // border: '2px solid ',
+                            backgroundColor:
+                              item.color === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
+                                ? theme.palette.formContent.tertiary
+                                : theme.palette.primary.light,
+                            boxSizing: 'border-box',
+                            width: '16px',
+                            height: '16px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        ></Box>
+                        {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
+                      </TimelineSeparator>
+                      <TimelineContent
                         sx={{
-                          flexGrow: 1,
-                          backgroundColor: item.type === 'Animal Found' ? '#E7F7ED' : '#FFF1EF',
-                          borderRadius: 2,
-                          p: 2
+                          ml: 4,
+                          borderRadius: '8px',
+                          position: 'relative',
+                          top: -5,
+                          p: 0
                         }}
                       >
                         <Typography
                           sx={{
                             color: item.color,
-                            fontWeight: 600,
+                            fontWeight: 400,
                             fontSize: 14,
-                            mb: 1
+                            mb: '12px'
                           }}
                         >
                           {item.type}
                         </Typography>
-
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <Typography sx={{ fontWeight: 500 }}>
-                            {item.type === 'Animal Found' ? 'Found On' : 'Missing Since'}
-                          </Typography>
-                          <Typography>
-                            {item.date} • {item.time}
-                          </Typography>
-
+                        <Box
+                          sx={{
+                            flexGrow: 1,
+                            backgroundColor: item.type === 'Animal Found' ? '#E1F9ED' : '#FFBDA833',
+                            borderRadius: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '16px',
+                            p: '16px'
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <Typography
+                              sx={{
+                                fontWeight: 400,
+                                fontSize: '14px',
+                                letterSpacing: 0,
+                                color: theme.palette.customColors.OnSurfaceVariant
+                              }}
+                            >
+                              {item.type === 'Animal Found' ? 'Found On' : 'Missing Since'}
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontWeight: 500,
+                                fontSize: '16px',
+                                letterSpacing: 0,
+                                color: theme.palette.customColors.neutralPrimary
+                              }}
+                            >
+                              {item.date} • {item.time}
+                            </Typography>
+                          </Box>
                           {Object.entries(item.details).map(([key, value]) => (
-                            <React.Fragment key={key}>
-                              <Typography sx={{ fontWeight: 500 }}>{key}</Typography>
-                              <Typography>{value}</Typography>
-                            </React.Fragment>
+                            <Box key={key}>
+                              <Typography
+                                sx={{
+                                  fontWeight: 400,
+                                  fontSize: '14px',
+                                  letterSpacing: 0,
+                                  color: theme.palette.customColors.OnSurfaceVariant
+                                }}
+                              >
+                                {key}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontWeight: 500,
+                                  fontSize: '16px',
+                                  letterSpacing: 0,
+                                  color: theme.palette.customColors.neutralPrimary
+                                }}
+                              >
+                                {value}
+                              </Typography>
+                            </Box>
                           ))}
-                        </Box>
 
-                        <Divider sx={{ my: 2 }} />
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box>
-                            <Typography sx={{ fontSize: 12, fontWeight: 500 }}>{item.name}</Typography>
-                            <Typography sx={{ fontSize: 10, color: 'gray' }}>{item.timestamp}</Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Avatar sx={{ width: 34, height: 34 }} />
+                            <Box>
+                              <Typography
+                                sx={{
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  letterSpacing: 0,
+                                  color: theme.palette.customColors.OnSurfaceVariant
+                                }}
+                              >
+                                Sourav tambe
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontSize: 12,
+                                  fontWeight: 400,
+                                  letterSpacing: 0,
+                                  color: theme.palette.customColors.OnSurfaceVariant
+                                }}
+                              >
+                                14 Apr 2024 | 12 : 35 PM
+                              </Typography>
+                            </Box>
                           </Box>
                         </Box>
-                      </Box>
-                    </TimelineContent>
-                  </TimelineItem>
-                ))}
-              </Timeline>
-            ) : null}
+                      </TimelineContent>
+                    </TimelineItem>
+                  ))}
+                </Timeline>
+              ) : null}
+            </Box>
           </Box>
           {/* {reachedEnd ? <LinearProgress /> : null} */}
         </Drawer>{' '}
@@ -381,7 +531,7 @@ const AnimalIncidents = () => {
 
   return (
     <>
-      <Card sx={{ p: 2 }}>
+      <Box sx={{ mt: 4, p: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography
@@ -484,72 +634,6 @@ const AnimalIncidents = () => {
             </Box>
           </Box>
         </Box>
-      </Card>
-
-      <Box
-        sx={{
-          backgroundColor: theme.palette.primary.contrastText,
-          borderRadius: '8px',
-          border: `1px solid ${theme.palette.customColors.OutlineVariant},`,
-          p: '24px'
-        }}
-      >
-        <Box
-          sx={{
-            backgroundColor: theme.palette.customColors.OnBackground,
-            padding: '12px',
-            display: 'flex',
-            justifyContent: 'space-between'
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <Typography
-              sx={{
-                fontSize: 16,
-                letterSpacing: 0,
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              INC00410
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 20,
-                letterSpacing: 0,
-                fontWeight: 600,
-                color: theme.palette.customColors.Tertiary
-              }}
-            >
-              Animal Missing
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <Typography
-              sx={{
-                fontSize: 14,
-                letterSpacing: 0,
-                fontWeight: 400,
-                color: theme.palette.customColors.neutralSecondary
-              }}
-            >
-              Missing since
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: 16,
-                letterSpacing: 0,
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              10 Apr 2024 • 12:28 PM
-            </Typography>
-          </Box>
-        </Box>
-        {/* <SpeciesCard
-            species={{ default_icon: 'ghj', complete_name: 'Trichoglossus moluccanus', common_name: 'Rainbow Lorikeet' }}
-          /> */}
       </Box>
 
       <IncidentTimeline />

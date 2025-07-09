@@ -242,7 +242,7 @@ const AnimalIdentifier = () => {
               display: 'flex',
               alignItems: 'center',
               border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '4px',
+              borderRadius: '8px',
               padding: '0 8px',
               height: '40px'
             }}
