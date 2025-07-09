@@ -17,11 +17,16 @@ import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import StickyTable from 'src/views/table/sticky-table'
-import { Timeline, TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from '@mui/lab'
+import TimelineItem from '@mui/lab/TimelineItem'
+import TimelineContent from '@mui/lab/TimelineContent'
+import TimelineSeparator from '@mui/lab/TimelineSeparator'
+import TimelineConnector from '@mui/lab/TimelineConnector'
+import MuiTimeline from '@mui/lab/Timeline'
+import { styled } from '@mui/material/styles'
+// import {  TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from '@mui/lab'
 
 const AnimalIncidents = () => {
   const theme = useTheme()
-
 
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
 
@@ -207,6 +212,17 @@ const AnimalIncidents = () => {
   }
 
   const IncidentTimeline = () => {
+    // Styled Timeline component
+    const Timeline = styled(MuiTimeline)({
+      paddingLeft: 0,
+      paddingRight: 0,
+      '& .MuiTimelineItem-root': {
+        width: '100%',
+        '&:before': {
+          display: 'none'
+        }
+      }
+    })
     return (
       <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
         <Drawer
@@ -255,7 +271,7 @@ const AnimalIncidents = () => {
                 <Icon icon={'ion:time-outline'} />
               </Box>
               <Box>
-                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Activity Log</Typography>
+                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Incident Timeline</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton size='small' onClick={() => setActivtyLogSideBar(false)} sx={{ color: 'text.primary' }}>
@@ -272,50 +288,38 @@ const AnimalIncidents = () => {
                     <TimelineSeparator
                       sx={{
                         '& span': {
-                          backgroundColor:
-                            item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                              ? theme.palette.formContent.tertiary
-                              : theme.palette.primary.light
+                          borderLeft: `2px dashed ${theme.palette.primary.light}`
+                          // backgroundColor:
+                          //   item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
+                          //     ? theme.palette.formContent.tertiary
+                          //     : theme.palette.primary.light
                         }
                       }}
                     >
                       <Box
                         sx={{
-                          border: '2px solid ',
-                          borderColor:
-                            item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
+                          // border: '2px solid ',
+                          backgroundColor:
+                            item.color === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
                               ? theme.palette.formContent.tertiary
                               : theme.palette.primary.light,
                           boxSizing: 'border-box',
-                          width: '22px',
-                          height: '22px',
+                          width: '16px',
+                          height: '16px',
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}
-                      >
-                        <Icon
-                          height={'16px'}
-                          width={'16px'}
-                          style={{
-                            color:
-                              item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                                ? theme.palette.formContent.tertiary
-                                : theme.palette.primary.light
-                          }}
-                          icon={item.status === 'Fresh' ? 'ic:sharp-check-circle' : 'ic:sharp-check-circle'}
-                        />
-                      </Box>
+                      ></Box>
                       {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
                     </TimelineSeparator>
                     <TimelineContent
-                      onClick={() => handleToggleComment(index)}
                       sx={{
                         ml: 4,
                         borderRadius: '8px',
                         position: 'relative',
-                        top: -28,
+                        top: 14,
                         p: 0
                       }}
                     >
@@ -357,7 +361,6 @@ const AnimalIncidents = () => {
                         <Divider sx={{ my: 2 }} />
 
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {/* <Avatar sx={{ width: 24, height: 24 }}>{item.name.charAt(0)}</Avatar> */}
                           <Box>
                             <Typography sx={{ fontSize: 12, fontWeight: 500 }}>{item.name}</Typography>
                             <Typography sx={{ fontSize: 10, color: 'gray' }}>{item.timestamp}</Typography>
