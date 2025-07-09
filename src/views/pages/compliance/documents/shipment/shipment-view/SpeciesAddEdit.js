@@ -447,7 +447,7 @@ const SpeciesAddEdit = ({
                           onClick={() => handleAnimalClick(species, 'others')}
                         >
                           <Box display='flex' justifyContent='space-between'>
-                            <Box className='other_dtl_list'>
+                            <Box className='other_dtl_list' sx={{ pt: 3, pb: 4 }}>
                               <Typography
                                 fontWeight='medium'
                                 sx={{ color: '#44544A', fontWeight: 500, fontSize: '16px' }}
@@ -461,7 +461,7 @@ const SpeciesAddEdit = ({
                                 {species?.scientific_name || 'N/A'}
                               </Typography>
                             </Box>
-                            <Box display='flex' alignItems='center' gap={2} flex={1}>
+                            <Box display='flex' alignItems='center' gap={2} flex={1} sx={{ pt: 3, pb: 4 }}>
                               <Typography sx={{ color: '#44544A', fontSize: '14px', fontWeight: 500, mr: 2 }}>
                                 Count : {totalAnimals}
                               </Typography>
@@ -503,7 +503,7 @@ const SpeciesAddEdit = ({
                               />
                             </Box>
 
-                            <ChevronRightIcon sx={{ fontSize: '30px', mt: 2, mr: 5 }} />
+                            <ChevronRightIcon sx={{ fontSize: '30px', mt: 5, mr: 5 }} />
                             <Box
                               display='flex'
                               alignItems='center'

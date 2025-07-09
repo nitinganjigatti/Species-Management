@@ -11,7 +11,8 @@ const CustomAccordion = ({
   docsCount = null,
   editable,
   handleEditClick,
-  shouldScrollToTop = true
+  shouldScrollToTop = true,
+  type
 }) => {
   const theme = useTheme()
   const isExpanded = expanded === id
@@ -65,7 +66,7 @@ const CustomAccordion = ({
                 mr: 2,
                 px: 3,
                 py: 1,
-                borderRadius: 10,
+                borderRadius: '4px',
                 backgroundColor: theme.palette.grey[200],
                 display: 'flex',
                 alignItems: 'center',
@@ -75,7 +76,11 @@ const CustomAccordion = ({
               <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
                 {docsCount}
               </Typography>
-              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Documents added</Typography>
+              {type !== 'shipment' ? (
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Documents added</Typography>
+              ) : (
+                ''
+              )}
             </Box>
           )}
           {editable && (

@@ -55,10 +55,10 @@ const SpeciesDetailsContainer = ({
     >
       <Box className='export_dtl_list'>
         <Typography fontWeight='medium' sx={{ color: '#44544A', fontWeight: 500, fontSize: '16px' }}>
-          {species?.common_name || '-'}
+          {species?.common_name || 'N/A'}
         </Typography>
         <Typography fontStyle='italic' sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}>
-          {species?.scientific_name || '-'}
+          {species?.scientific_name || 'N/A'}
         </Typography>
       </Box>
       <Box display='flex' alignItems='center' gap={2} flex={1}>
@@ -146,8 +146,8 @@ const SpeciesDetailsContainer = ({
                     key={index}
                     type={'others'}
                     species={{
-                      common_name: species?.common_name || '-',
-                      scientific_name: species?.scientific_name || '-',
+                      common_name: species?.common_name || 'N/A',
+                      scientific_name: species?.scientific_name || 'N/A',
                       male_count: species?.male_count || 0,
                       female_count: species?.female_count || 0,
                       undeterminate_count: species?.undeterminate_count || 0,

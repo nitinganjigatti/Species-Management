@@ -3,7 +3,8 @@ import { useRouter } from 'next/router'
 import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem, Button } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
-import BasicDetails from 'src/views/pages/compliance/documents/shipment/shipment-view/BasicDetails'
+import { getDocumentTypeList } from 'src/lib/api/compliance/exports'
+import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import AnimalsData from 'src/views/pages/compliance/documents/shipment/forms/AnimalsData'
 import ShipmentBasicDetails from 'src/views/pages/compliance/documents/shipment/forms/ShipmentBasicDetails'
 
@@ -15,11 +16,12 @@ const AddEditShipment = () => {
   const [showEdit, setShowEdit] = useState(true)
   const [showEditAnimals, setShowEditAnimals] = useState(true)
   const [status, setStatus] = useState('draft')
-
-  const [selectedExportData, setSelectedExportData] = useState({
-    export: [],
-    others: []
-  })
+  const [totalCount, setTotalCount] = useState(0)
+  const [isFetching, setIsFetching] = useState(false)
+  const [documentList, setDocumentList] = useState([])
+  const [totalAnimals, setTotalAnimals] = useState(0)
+  const [totalSpecies, setTotalSpecies] = useState(0)
+  const [airwaybillvalue, setAirwaybillvalue] = useState('')
   const animalsEditRef = useRef() // ref to trigger child
   const basicDetailsEditRef = useRef()
 
@@ -30,12 +32,50 @@ const AddEditShipment = () => {
     }
   }, [isEdit, action])
 
-  useEffect(() => {
-    if (selectedExportData) {
-      console.log('Export data updated in parent:', selectedExportData)
-      // You can do further processing here
+  const rawValue = airwaybillvalue || ''
+  const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+  const formattedValue =
+    removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
+
+  const fetchDocumentTypeList = async exportId => {
+    setIsFetching(true)
+    try {
+      const params = {
+        id: id || exportId,
+        type: 'shipment'
+      }
+      const res = await getDocumentTypeList(params)
+      if (res.success) {
+        console.log('res.data', res.data)
+        setDocumentList(res.data.items)
+        setTotalCount(res.data.total)
+      } else {
+        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+      }
+    } catch (error) {
+      console.error('Error fetching export details:', error)
+      Toaster({ type: 'error', message: 'Error fetching export details' })
+    } finally {
+      setIsFetching(false)
     }
-  }, [selectedExportData])
+  }
+
+  const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
+
+  const handleAddEditSuccess = data => {
+    const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
+    setDocumentList(updatedList)
+  }
+
+  useEffect(() => {
+    if (id) {
+      fetchDocumentTypeList()
+    }
+  }, [id])
+
+  const isBasicEditable = showEdit && expanded === 'permit-details' && id && action === 'details'
+  const isAnimalsEditable =
+    showEditAnimals && expanded === 'animals-details' && id && action === 'details' && exportCount > 0
 
   return (
     <>
@@ -97,6 +137,7 @@ const AddEditShipment = () => {
 
       <CustomAccordion
         id='permit-details'
+        docsCount={!isBasicEditable && expanded !== 'permit-details' ? `ID: ${formattedValue}` : null}
         title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
@@ -105,6 +146,7 @@ const AddEditShipment = () => {
           basicDetailsEditRef.current?.()
           router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
         }}
+        type='shipment'
       >
         <ShipmentBasicDetails
           onEditClick={basicDetailsEditRef}
@@ -112,12 +154,19 @@ const AddEditShipment = () => {
           showEdit={showEdit}
           status={status}
           setStatus={setStatus}
+          airwaybillvalue={airwaybillvalue}
+          setAirwaybillvalue={setAirwaybillvalue}
         />
       </CustomAccordion>
 
-      {id ? (
+      {id && (
         <CustomAccordion
           id='animals-details'
+          docsCount={
+            !isAnimalsEditable && expanded !== 'animals-details' && (totalAnimals || totalSpecies)
+              ? `${totalSpecies} Species  | ${totalAnimals} Animals`
+              : null
+          }
           title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>}
           expanded={expanded}
           onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
@@ -126,70 +175,56 @@ const AddEditShipment = () => {
             animalsEditRef.current?.()
             router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=${exportCount}`)
           }}
+          type='shipment'
         >
-          {/* <CustomAccordion
-          id='animals-details'
-          title={
-            <Box
-              className='editanimals_contxt'
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                width: '100%',
-                gap: '860px'
-              }}
-            >
-              <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>
-              {console.log(exportCount, 'exportCount')}
-              {showEditAnimals && expanded === 'animals-details' && id && action === 'details' && exportCount > 0 ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    background: '#E1F9ED',
-                    pr: 4,
-                    pl: 2,
-                    py: 1,
-                    borderRadius: '5px'
-                  }}
-                  onClick={() => {
-                    animalsEditRef.current?.()
-                    router.push(
-                      `/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=${exportCount}`
-                    )
-                  }} // trigger SpeciesAddEdit
-                >
-                  <Icon
-                    style={{ fontSize: '15px', cursor: 'pointer', marginRight: '4px', color: '#006D35' }}
-                    icon='bx:pencil'
-                  />
-                  <Typography variant='body2' sx={{ color: '#006D35', fontWeight: 500 }}>
-                    Edit
-                  </Typography>
-                </Box>
-              ) : (
-                ''
-              )}
-            </Box>
-          }
-          expanded={expanded}
-          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
-        > */}
           <AnimalsData
             onEditClick={animalsEditRef}
             showEditAnimals={showEditAnimals}
             setShowEditAnimals={setShowEditAnimals}
             shipmentId={id}
-            selectedExportData={selectedExportData}
-            setSelectedExportData={setSelectedExportData}
+            setTotalAnimals={setTotalAnimals}
+            setTotalSpecies={setTotalSpecies}
+            totalAnimals={totalAnimals}
+            totalSpecies={totalSpecies}
           />
         </CustomAccordion>
-      ) : (
-        ''
       )}
+
+      <CustomAccordion
+        id='supporting-documents'
+        title='Travel & customs Documents'
+        docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
+        expanded={expanded}
+        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+      >
+        {!isEdit && !documentList?.length ? (
+          <Box
+            sx={{
+              height: '150px',
+              width: '100%',
+              mx: 'auto',
+              backgroundColor: alpha(theme.palette.common.black, 0.05),
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: '8px',
+              px: 4
+            }}
+          >
+            <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
+              Please save form details to add supporting documents
+            </Typography>
+          </Box>
+        ) : (
+          <SupportingDocuments
+            isFetching={isFetching}
+            documentList={documentList}
+            totalCount={totalCount}
+            onAddEditSuccess={handleAddEditSuccess}
+            type='3'
+          />
+        )}
+      </CustomAccordion>
 
       {/* <CustomAccordion
         id='linked-imports'

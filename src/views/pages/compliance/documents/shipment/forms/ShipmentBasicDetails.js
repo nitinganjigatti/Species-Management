@@ -43,8 +43,15 @@ const validationSchema = yup.object({
     })
 })
 
-const ShipmentBasicDetails = ({ onEditClick, showEdit, setShowEdit, status, setStatus }) => {
-  const [airwaybillvalue, setAirwaybillvalue] = useState('')
+const ShipmentBasicDetails = ({
+  onEditClick,
+  showEdit,
+  setShowEdit,
+  status,
+  setStatus,
+  setAirwaybillvalue,
+  airwaybillvalue
+}) => {
   const [startDate, setStartDate] = useState(null)
   const [uploadedFile, setUploadedFile] = useState(null)
   const [transportType, setTransportType] = useState('airCargo')

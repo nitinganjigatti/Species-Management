@@ -9,7 +9,15 @@ import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 import AddAnimalCountDrawer from '../drawer/AddAnimalCountDrawer'
 
-const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId, selectedExportData, setSelectedExportData }) => {
+const AnimalsData = ({
+  onEditClick,
+  setShowEditAnimals,
+  shipmentId,
+  totalSpecies,
+  totalAnimals,
+  setTotalAnimals,
+  setTotalSpecies
+}) => {
   const router = useRouter()
   const { id, action, export: exportCount } = router.query
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState(false)
@@ -22,8 +30,7 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId, selectedExpo
   const [exportsTotalCount, setexportsTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [loader, setLoader] = useState(false)
-  const [totalAnimals, setTotalAnimals] = useState(0)
-  const [totalSpecies, setTotalSpecies] = useState(0)
+
   const scrollContainerRef = useRef(null)
   const [mastersData, setMastersData] = useState([])
   const [currentSpeciesId, setCurrentSpeciesId] = useState(null)
@@ -31,10 +38,10 @@ const AnimalsData = ({ onEditClick, setShowEditAnimals, shipmentId, selectedExpo
   const [animalCountDrawerOpen, setanimalCountDrawerOpen] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
   const [draftData, setDraftData] = useState({ export: [], others: [] })
-  // const [selectedExportData, setSelectedExportData] = useState({
-  //   export: [],
-  //   others: []
-  // })
+  const [selectedExportData, setSelectedExportData] = useState({
+    export: [],
+    others: []
+  })
   const [addAnimalsDrawerOpen, setAddAnimalsDrawerOpen] = useState(false)
   const [exportID, setexportID] = useState('')
   const [exportNumber, setExportNumber] = useState('')

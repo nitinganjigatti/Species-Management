@@ -10,7 +10,7 @@ import Toaster from 'src/components/Toaster'
 import { addDocument, updateDocument } from 'src/lib/api/compliance/exports'
 import Utility from 'src/utility'
 
-const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSuccess }) => {
+const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSuccess, type }) => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [currentDocumentType, setCurrentDocumentType] = useState(null)
   const [currentDocumentData, setCurrentDocumentData] = useState(null)
@@ -25,7 +25,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
 
   const handleOpenDrawer = document => {
     setCurrentDocumentType(document.file_path)
-    
+
     // Ensure dates are properly formatted when setting current document data
     setCurrentDocumentData({
       ...document,
@@ -48,7 +48,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
         issued_date: formData.issued_date ? dayjs(formData.issued_date).format('YYYY-MM-DD') : null,
         document_type_id: currentDocumentData.id,
         id: id,
-        type: 1, // Type 1 for export
+        type: type, // Type 1 for export
         reference_number: formData.reference_number || ''
       }
 

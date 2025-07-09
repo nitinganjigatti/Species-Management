@@ -258,11 +258,11 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
       setValue('export_purpose', exportData.export_purpose)
       setValue('origin_country', {
-        label: countryOptions.find(country => country.value === exportData.origin_country).label || '',
+        label: countryOptions.find(country => country.value === exportData.origin_country)?.label || '',
         value: exportData.origin_country || null
       })
       setValue('exporting_country', {
-        label: countryOptions.find(country => country.value === exportData.exporting_country).label || '',
+        label: countryOptions.find(country => country.value === exportData.exporting_country)?.label || '',
         value: exportData.exporting_country || null
       })
       setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })
