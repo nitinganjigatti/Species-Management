@@ -50,11 +50,11 @@ export async function getReportFilterList(params) {
 
 export async function getAllAnimalReport(params) {
   const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
+
   return response.data
 }
 
 export async function getAnimalReportById(params) {
- 
   const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
 
   return response.data
@@ -63,28 +63,6 @@ export async function getAnimalReportById(params) {
 export async function getSpeciesListing() {
   const response = await axiosGet({ url: `${SPECIES_FILTER}` })
 
-  return response.data
-}
-
-export async function getAnimalReportById(params) {
-  debugger
-  const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
-  return response.data
-}
-
-export async function getSpeciesListing() {
-  const response = await axiosGet({ url: `${SPECIES_FILTER}` })
-  return response.data
-}
-
-export async function getAnimalReportById(params) {
-  debugger
-  const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
-  return response.data
-}
-
-export async function getSpeciesListing() {
-  const response = await axiosGet({ url: `${SPECIES_FILTER}` })
   return response.data
 }
 
@@ -102,23 +80,6 @@ export async function getUserReport(params) {
 
 export async function getMedicalReport(params) {
   const response = await axiosGet({ url: `${MEDICAL_REPORT}`, params })
-  return response.data
-}
-
-export async function getAnimalAssessmentReport(params, payload) {
-  const response = await axiosPost({
-    url: `${ASSESSMENT_REPORT}?page=${params.page}&limit=${params.limit}`,
-    body: payload
-  })
-
-  return response.data
-}
-
-export async function getAnimalAssessmentReport(params, payload) {
-  const response = await axiosPost({
-    url: `${ASSESSMENT_REPORT}?page=${params.page}&limit=${params.limit}`,
-    body: payload
-  })
 
   return response.data
 }
