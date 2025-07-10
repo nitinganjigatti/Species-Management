@@ -90,10 +90,10 @@ const StockLocation = () => {
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        if (response?.data?.racks?.length > 0) {
           setItems(prev => ({
             ...prev,
-            Racks: response?.data
+            Racks: response?.data?.racks
           }))
         }
       } catch (error) {
@@ -450,7 +450,8 @@ const StockLocation = () => {
               sx={{
                 justifyContent: 'flex-end',
                 alignItems: 'center'
-              }}>
+              }}
+            >
               <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <TextField
                   variant='outlined'
@@ -599,7 +600,7 @@ const StockLocation = () => {
         />
       )}
     </>
-  );
+  )
 }
 
 export default StockLocation
