@@ -276,6 +276,7 @@ const ConditionSlider = ({
   // if (watch('accessionType') != '2') {
   //   clearErrors('institution')
   // }
+
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true, // changed to true for multiple files
     accept: {
@@ -384,7 +385,7 @@ const ConditionSlider = ({
   }
 
   const onSubmit = values => {
-    if (values.hatched_date === null) {
+    if (Number(getValues('current_state')) === 4 && values.hatched_date === null) {
       setError('hatched_date', {
         type: 'manual',
         message: 'Hatched date is required'
@@ -418,7 +419,6 @@ const ConditionSlider = ({
           egg_attachment: imgArr,
           is_necropsy_needed: values?.necropsy_Btn
         }
-        // console.log('payload 3 :>> ', payload)
       } else if (Number(getValues('current_state')) === 4) {
         payload = {
           egg_id: eggId,
@@ -462,7 +462,6 @@ const ConditionSlider = ({
       if (isAnimal && statusID === '4') {
         AddEggStatusAndCondition(payload).then(ress => {
           if (ress?.success) {
-            // setLoader(false)
             Toaster({ type: 'success', message: ress.message })
             createAnimal(animalPayload).then(res => {
               if (res.success) {
@@ -687,6 +686,16 @@ const ConditionSlider = ({
     }
     // eggDetails?.enclosure_data
   }, [eggDetails])
+
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'hatched_date' && value?.hatched_date) {
+        setValue('birthDate', value.hatched_date)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [watch])
 
   useEffect(() => {
     getAccessionTypeFunc()
@@ -1039,55 +1048,55 @@ const ConditionSlider = ({
                       </Box>
                     </Grid>
                     {/* )} */}
-                    <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                      <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                        {imgSrc?.length > 0 &&
-                          imgSrc?.map((img, index) => (
-                            <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                  </Grid>
+                  <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                      {imgSrc?.length > 0 &&
+                        imgSrc?.map((img, index) => (
+                          <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                            <Box
+                              sx={{
+                                position: 'relative',
+                                backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                borderRadius: '10px',
+                                height: 121,
+                                padding: '10.5px',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <img
+                                style={{
+                                  aspectRatio: 2 / 2,
+                                  height: '100%',
+                                  borderRadius: '5%'
+                                }}
+                                alt='Uploaded image'
+                                src={typeof img === 'string' ? img : img}
+                              />
                               <Box
                                 sx={{
-                                  position: 'relative',
-                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                  borderRadius: '10px',
-                                  height: 121,
-                                  padding: '10.5px',
-                                  boxSizing: 'border-box'
+                                  cursor: 'pointer',
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10,
+                                  height: '24px',
+                                  borderRadius: 0.4,
+                                  backgroundColor: theme.palette.customColors.secondaryBg
                                 }}
                               >
-                                <img
-                                  style={{
-                                    aspectRatio: 2 / 2,
-                                    height: '100%',
-                                    borderRadius: '5%'
-                                  }}
-                                  alt='Uploaded image'
-                                  src={typeof img === 'string' ? img : img}
-                                />
-                                <Box
-                                  sx={{
-                                    cursor: 'pointer',
-                                    position: 'absolute',
-                                    top: 0,
-                                    right: 0,
-                                    zIndex: 10,
-                                    height: '24px',
-                                    borderRadius: 0.4,
-                                    backgroundColor: theme.palette.customColors.secondaryBg
-                                  }}
+                                <Icon
+                                  icon='material-symbols-light:close'
+                                  color={theme.palette.primary.contrastText}
+                                  onClick={() => removeSelectedImage(index)}
                                 >
-                                  <Icon
-                                    icon='material-symbols-light:close'
-                                    color={theme.palette.primary.contrastText}
-                                    onClick={() => removeSelectedImage(index)}
-                                  >
-                                    {' '}
-                                  </Icon>
-                                </Box>
+                                  {' '}
+                                </Icon>
                               </Box>
                             </Box>
-                          ))}
-                      </Stack>
-                    </Grid>
+                          </Box>
+                        ))}
+                    </Stack>
                   </Grid>
                   {/* {console.log('permission check', checkAddPermission())} */}
                   {statusID === '4' && checkAddPermission() && (
@@ -1538,6 +1547,7 @@ const ConditionSlider = ({
                                 onChange={onChange}
                                 label={'Birth Date *'}
                                 maxDate={dayjs()}
+                                format='DD/MM/YYYY'
                               />
                             </LocalizationProvider>
                           )}

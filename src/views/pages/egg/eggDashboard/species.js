@@ -1436,16 +1436,17 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               width: 35,
               height: 35,
               mr: 4,
+              p: 1,
+              objectFit: 'contain',
               borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
+              background: '#E8F4F2'
             }}
           >
-            {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
+            <img
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
+              alt='Profile'
+            />
           </Avatar>
 
           <Tooltip title={params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>

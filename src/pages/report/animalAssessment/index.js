@@ -193,8 +193,9 @@ const AnimalAssessment = () => {
       const recordMap = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
-          value: `${assessment.assessment_value} ${assessment?.uom ? assessment.uom : ''}${
-            Number(assessment?.assessment_value) > 1 && assessment?.uom ? 's' : ''
+          value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${
+            // Number(assessment?.assessment_value) > 1 && assessment?.uom_abbr ? 's' : ''
+            ''
           }`,
           date: moment(Utility.convertUTCToLocalDate(assessment.assessment_recorded_date)).format('DD MMMM YYYY'),
           time: Utility.convertUTCToLocaltime(assessment.assessment_recorded_date, 'HH:mm:ss'),
@@ -204,7 +205,7 @@ const AnimalAssessment = () => {
 
       return {
         ...recordMap,
-        default_icon: '/branding/antz/Antz_logomark_h_color.svg',
+        default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
         primary_identifier_type: animal.identifier_type,
         primary_identifier_value: animal.identifier_value,
         primary_animal_id: animal.animal_id,
@@ -237,142 +238,150 @@ const AnimalAssessment = () => {
     setHeaderList(headers)
   }
 
-  const AnimalCard = ({ animalData }) => (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px'
-      }}
-    >
+  const AnimalCard = ({ animalData }) => {
+    return (
       <Box
         sx={{
           display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-          alignItems: 'center'
+          alignItems: 'center',
+          gap: '12px'
         }}
       >
-        <Avatar
+        <Box
           sx={{
-            '& > img': {
-              objectFit:
-                animalData?.default_icon?.includes('class_images') && animalData?.default_icon?.endsWith('.svg')
-                  ? 'contain'
-                  : 'contain',
-              padding:
-                animalData?.default_icon?.includes('class_images') && animalData?.default_icon.endsWith('.svg')
-                  ? '3px'
-                  : 0.5
-            },
-            width: 32,
-            height: 32
-          }}
-          alt={animalData?.default_icon}
-          src={animalData?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-        />
-        <Avatar
-          sx={{
-            width: 22.22,
-            height: 20.15,
-            bgcolor:
-              animalData?.type === 'group'
-                ? theme.palette.customColors.addPrimary
-                : animalData?.sex === 'male'
-                ? theme.palette.customColors.SecondaryContainer
-                : animalData?.sex === 'female'
-                ? theme.palette.customColors.AntzTertiary
-                : animalData?.sex === 'undetermined' || animalData?.sex === 'indeterminate'
-                ? theme.palette.customColors.displaybgSecondary
-                : theme.palette.customColors.SecondaryContainer,
-            objectFit: 'contain',
-            pt: 0.2,
-            height: 24,
             display: 'flex',
-            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: '10px',
             alignItems: 'center'
           }}
-          variant='rounded'
         >
-          {/* {animalData?.type === 'group' ? ( */}
-          {animalData?.animal_type === 'group' ? (
-            <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>G</Typography>
-          ) : animalData?.sex === 'male' ? (
-            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}>
-              M
-            </Typography>
-          ) : animalData?.sex === 'female' ? (
-            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Tertiary }}>
-              F
-            </Typography>
-          ) : animalData?.sex === 'undetermined' ? (
-            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>UD</Typography>
-          ) : animalData?.sex === 'indeterminate' ? (
-            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-              ID
-            </Typography>
-          ) : (
-            <Typography sx={{ fontSize: 14 }}>-</Typography>
-          )}
-        </Avatar>
+          <Avatar
+            sx={{
+              '& > img': {
+                objectFit:
+                  animalData?.default_icon?.includes('class_images') && animalData?.default_icon?.endsWith('.svg')
+                    ? 'contain'
+                    : 'cover',
+                padding:
+                  animalData?.default_icon?.includes('class_images') && animalData?.default_icon.endsWith('.svg')
+                    ? '3px'
+                    : 0
+              },
+              width: 32,
+              height: 32
+            }}
+            alt={animalData?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
+            src={animalData?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
+          />
+          <Avatar
+            sx={{
+              width: 22.22,
+              height: 20.15,
+              bgcolor:
+                animalData?.type === 'group'
+                  ? theme.palette.customColors.addPrimary
+                  : animalData?.sex === 'male'
+                  ? theme.palette.customColors.SecondaryContainer
+                  : animalData?.sex === 'female'
+                  ? theme.palette.customColors.AntzTertiary
+                  : animalData?.sex === 'undetermined' || animalData?.sex === 'indeterminate'
+                  ? theme.palette.customColors.displaybgSecondary
+                  : theme.palette.customColors.SecondaryContainer,
+              objectFit: 'contain',
+              pt: 0.2,
+              height: 24,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+            variant='rounded'
+          >
+            {/* {animalData?.type === 'group' ? ( */}
+            {animalData?.animal_type === 'group' ? (
+              <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>
+                G
+              </Typography>
+            ) : animalData?.sex === 'male' ? (
+              <Typography
+                sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}
+              >
+                M
+              </Typography>
+            ) : animalData?.sex === 'female' ? (
+              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Tertiary }}>
+                F
+              </Typography>
+            ) : animalData?.sex === 'undetermined' ? (
+              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>
+                UD
+              </Typography>
+            ) : animalData?.sex === 'indeterminate' ? (
+              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+                ID
+              </Typography>
+            ) : (
+              <Typography sx={{ fontSize: 14 }}>-</Typography>
+            )}
+          </Avatar>
+        </Box>
+        <Box>
+          <Typography
+            sx={{
+              fontSize: '12px',
+              fontWeight: 600,
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            {animalData?.primary_identifier_type && animalData?.primary_identifier_value
+              ? `${animalData?.primary_identifier_type}: ${animalData?.primary_identifier_value}`
+              : `AID: ${animalData?.primary_animal_id}`}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 500,
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            {animalData?.common_name}
+          </Typography>
+          <Typography
+            sx={{
+              fontStyle: 'italic',
+              fontSize: '14px',
+              fontWeight: 400,
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            {animalData?.scientific_name}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 400,
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Age : {animalData?.age}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 400,
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Site : {animalData?.site}
+          </Typography>
+        </Box>
       </Box>
-      <Box>
-        <Typography
-          sx={{
-            fontSize: '12px',
-            fontWeight: 600,
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          {animalData?.primary_identifier_type && animalData?.primary_identifier_value
-            ? `${animalData?.primary_identifier_type}: ${animalData?.primary_identifier_value}`
-            : `AID: ${animalData?.primary_animal_id}`}
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontWeight: 500,
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          {animalData?.common_name}
-        </Typography>
-        <Typography
-          sx={{
-            fontStyle: 'italic',
-            fontSize: '14px',
-            fontWeight: 400,
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          {animalData?.scientific_name}
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontWeight: 400,
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Age : {animalData?.age}
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontWeight: 400,
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Site : {animalData?.site}
-        </Typography>
-      </Box>
-    </Box>
-  )
+    )
+  }
 
   const columns = headerList.map((header, i) => {
     if (header.key === 'default_icon') {
@@ -423,7 +432,6 @@ const AnimalAssessment = () => {
         m: 0
       },
       renderCell: params => {
-        // console.log('params', params)
         const record = params?.row[header.key]
 
         return record ? (
@@ -433,6 +441,8 @@ const AnimalAssessment = () => {
                 ...record,
                 default_icon: '',
                 primary_animal_id: params?.row.primary_animal_id,
+                primary_identifier_type: params.row.primary_identifier_type,
+                primary_identifier_value: params.row.primary_identifier_value,
                 common_name: params?.row.common_name,
                 scientific_name: params?.row.scientific_name,
                 age: params.row.age,

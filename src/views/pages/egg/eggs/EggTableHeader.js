@@ -369,7 +369,8 @@ const EggTableHeader = ({
                   cursor: 'pointer'
                 }}
               >
-                <CircularProgress color='success' size={30} />
+                {/* <CircularProgress color='success' size={30} /> */}
+                <Icon icon='ic:round-download' fontSize={20} />
               </Box>
             ) : (
               <Box

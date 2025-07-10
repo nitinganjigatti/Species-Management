@@ -890,7 +890,10 @@ const StickyTable = ({
                 minWidth: '0px !important',
                 width: '40px !important',
                 '& .MuiSelect-icon': {
-                  color: 'text.secondary'
+                  color: 'text.secondary',
+                  boxShadow: 'none !important', // ✅ forcefully remove any shadow
+                  overflow: 'hidden',
+                  maxHeight: 200 // optional: keeps menu compact
                 },
                 '& .MuiSelect-select': {
                   minWidth: '0px !important',
@@ -900,7 +903,7 @@ const StickyTable = ({
               }}
               MenuProps={{
                 anchorOrigin: {
-                  vertical: 'top',
+                  vertical: 'bottom',
                   horizontal: 'left'
                 },
                 transformOrigin: {
@@ -908,9 +911,7 @@ const StickyTable = ({
                   horizontal: 'left'
                 },
                 PaperProps: {
-                  sx: {
-                    mt: 0.5 // slight vertical adjustment (optional)
-                  }
+                  elevation: 0 // ✅ fully disables the default shadow
                 }
               }}
             >
