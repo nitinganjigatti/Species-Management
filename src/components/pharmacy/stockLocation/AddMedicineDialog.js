@@ -183,13 +183,16 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        console.log(response, 'response')
+        if (response?.data?.racks.length > 0) {
           setRacks(
-            response?.data?.map(item => ({
-              ...item,
-              rack_id: item?.id,
-              rack_name: item?.name
-            }))
+            response?.data?.racks
+              .filter(item => item.status === 'active')
+              .map(item => ({
+                ...item,
+                rack_id: item?.id,
+                rack_name: item?.name
+              }))
           )
         }
       } catch (error) {
@@ -345,9 +348,13 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
 
   return (
     <>
-      <Grid container spacing={2} sx={{
-        justifyContent: 'center'
-      }}>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          justifyContent: 'center'
+        }}
+      >
         <Grid item size={{ xs: 12, md: 12, sm: 12 }}>
           {isConfigLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
@@ -464,7 +471,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                     sx={{
                       alignItems: 'flex-start',
                       mb: 0
-                    }}>
+                    }}
+                  >
                     {/* Rack Field */}
                     <Grid item size={{ xs: 12, sm: 5 }}>
                       <FormControl fullWidth sx={{ mb: 6 }}>
@@ -684,7 +692,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                 sx={{
                   justifyContent: 'flex-end',
                   mt: 2
-                }}>
+                }}
+              >
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box>
                     <Button
@@ -718,7 +727,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
         </Grid>
       </Grid>
     </>
-  );
+  )
 }
 
 export default AddMedicineDialog
