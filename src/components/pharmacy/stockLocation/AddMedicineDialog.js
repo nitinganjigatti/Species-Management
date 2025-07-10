@@ -187,11 +187,13 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
         console.log(response, 'response')
         if (response?.data?.racks.length > 0) {
           setRacks(
-            response?.data?.racks.map(item => ({
-              ...item,
-              rack_id: item?.id,
-              rack_name: item?.name
-            }))
+            response?.data?.racks
+              .filter(item => item.status === 'active')
+              .map(item => ({
+                ...item,
+                rack_id: item?.id,
+                rack_name: item?.name
+              }))
           )
         }
       } catch (error) {

@@ -90,10 +90,10 @@ const StockLocation = () => {
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        if (response?.data?.racks?.length > 0) {
           setItems(prev => ({
             ...prev,
-            Racks: response?.data
+            Racks: response?.data?.racks
           }))
         }
       } catch (error) {
