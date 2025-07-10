@@ -60,7 +60,7 @@ const BasicDetailsAddEdit = ({
   return (
     <>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={2}>
+        <Grid size={{ xs: 12, md: 2 }}>
           <FormControl fullWidth>
             {/* <InputLabel>Transport Type</InputLabel> */}
             <Select
@@ -76,7 +76,7 @@ const BasicDetailsAddEdit = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <TextField
             fullWidth
             label='Enter 11 digit (AWB) airway bill no.*'
@@ -85,16 +85,16 @@ const BasicDetailsAddEdit = ({
             onChange={handleAirwaybillChange}
             error={Boolean(errors.airwaybillvalue)}
             helperText={errors.airwaybillvalue}
-            inputProps={{
-              maxLength: 31
-            }}
-            InputProps={{
-              style: { borderRadius: 4 }
+            slotProps={{
+              input: {
+                maxLength: 31,
+                style: { borderRadius: 6 }
+              }
             }}
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SingleDatePicker
             selected={startDate}
             onChange={handleDateChange}
@@ -108,20 +108,22 @@ const BasicDetailsAddEdit = ({
                 value={startDate ? startDate.toLocaleDateString() : ''}
                 error={Boolean(errors.startDate)}
                 helperText={errors.startDate}
-                InputLabelProps={{
-                  shrink: true
-                }}
-                InputProps={{
-                  sx: {
-                    height: '55px',
-                    padding: '0 14px',
-                    alignItems: 'center'
+                slotProps={{
+                  inputLabel: {
+                    shrink: true
                   },
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <CalendarMonth style={{ cursor: 'pointer' }} />
-                    </InputAdornment>
-                  )
+                  input: {
+                    sx: {
+                      height: '55px',
+                      padding: '0 14px',
+                      alignItems: 'center'
+                    },
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <CalendarMonth style={{ cursor: 'pointer' }} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
                 sx={{
                   '& .MuiInputBase-input': {
@@ -141,7 +143,7 @@ const BasicDetailsAddEdit = ({
       </Grid>
 
       <Grid container spacing={2} sx={{ mt: 2 }}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
           {errors.uploadedFile && <Typography color='error'>{errors.uploadedFile}</Typography>}
         </Grid>

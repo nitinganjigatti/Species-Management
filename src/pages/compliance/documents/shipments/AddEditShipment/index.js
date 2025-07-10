@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem, Button } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { getDocumentTypeList } from 'src/lib/api/compliance/exports'
@@ -127,7 +127,11 @@ const AddEditShipment = () => {
                 ? 'Shipment Details'
                 : 'New Shipment Permit'
             }
-            titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+            slotProps={{
+              title: {
+                sx: { fontSize: '1.5rem !important', fontWeight: 'bold' }
+              }
+            }}
             sx={{ paddingLeft: 2, py: 0, pr: 0 }}
           />
         </Box>

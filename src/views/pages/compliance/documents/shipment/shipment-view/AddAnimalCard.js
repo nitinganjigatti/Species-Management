@@ -292,7 +292,7 @@ const AnimalCardLayout = ({
 
                     {/* Input Fields */}
                     <Grid container spacing={2} sx={{ marginTop: '8px' }}>
-                      <Grid item xs={4}>
+                      <Grid size={{ xs: 4 }}>
                         <Typography
                           variant='caption'
                           sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
@@ -311,10 +311,12 @@ const AnimalCardLayout = ({
                               card.total_balance_male_animal
                             )
                           }
-                          InputProps={{
-                            inputProps: {
-                              min: 0,
-                              max: card.total_balance_male_animal
+                          slotProps={{
+                            input: {
+                              inputProps: {
+                                min: 0,
+                                max: card.total_balance_male_animal
+                              }
                             }
                           }}
                           disabled={card.total_balance_male_animal === '0'}
@@ -327,7 +329,7 @@ const AnimalCardLayout = ({
                           }}
                         />
                       </Grid>
-                      <Grid item xs={4}>
+                      <Grid size={{ xs: 4 }}>
                         <Typography
                           variant='caption'
                           sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
@@ -346,10 +348,12 @@ const AnimalCardLayout = ({
                               card.total_balance_female_animal
                             )
                           }
-                          InputProps={{
-                            inputProps: {
-                              min: 0,
-                              max: card.total_balance_female_animal
+                          slotProps={{
+                            input: {
+                              inputProps: {
+                                min: 0,
+                                max: card.total_balance_female_animal
+                              }
                             }
                           }}
                           disabled={card.total_balance_female_animal === '0'}
@@ -362,7 +366,7 @@ const AnimalCardLayout = ({
                           }}
                         />
                       </Grid>
-                      <Grid item xs={4}>
+                      <Grid size={{ xs: 4 }}>
                         <Typography variant='caption' sx={{ display: 'block', color: '#7A8684', marginBottom: '4px' }}>
                           Unknown ({card.total_balance_undeterminate_animal})
                         </Typography>
@@ -378,10 +382,12 @@ const AnimalCardLayout = ({
                               card.total_balance_undeterminate_animal
                             )
                           }
-                          InputProps={{
-                            inputProps: {
-                              min: 0,
-                              max: card.total_balance_undeterminate_animal
+                          slotProps={{
+                            input: {
+                              inputProps: {
+                                min: 0,
+                                max: card.total_balance_undeterminate_animal
+                              }
                             }
                           }}
                           disabled={card.total_balance_undeterminate_animal === '0'}
