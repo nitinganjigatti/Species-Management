@@ -221,7 +221,7 @@ const downloadFileFromURL = async (fileUrl, title = '') => {
 }
 
 const formatText = text => {
-  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }
 
 function toPascalSentenceCase(str) {
@@ -231,7 +231,7 @@ function toPascalSentenceCase(str) {
     .trim()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
-    .join(' ');
+    .join(' ')
 }
 
 function formatAmountCompactDisplay(value) {
@@ -276,6 +276,21 @@ function hexToHex8(hex, opacity) {
   return `#${hex}${alpha}`
 }
 
+const getUpcomingHours = (count = 6) => {
+  const now = new Date()
+  const hours = []
+  const currentHour = now.getHours()
+
+  for (let i = 0; i < count; i++) {
+    const hour = (currentHour + i) % 24
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const formattedHour = ((hour + 11) % 12) + 1 // Convert to 12-hour format
+    hours.push(`${formattedHour} ${ampm}`)
+  }
+
+  return hours
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -300,7 +315,8 @@ const Utility = {
   formatAmountCompactDisplay,
   encryptData,
   decryptData,
-  hexToHex8
+  hexToHex8,
+  getUpcomingHours
 }
 
 export default Utility

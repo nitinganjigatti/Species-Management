@@ -6,6 +6,7 @@ import React, { useState } from 'react'
 import InpatientMedicalSummary from 'src/views/pages/hospital/inpatient/InpatientMedicalSummary'
 import InpatientOverview from 'src/views/pages/hospital/inpatient/InpatientOverview'
 import InpatinetTreatmentMonitoring from 'src/views/pages/hospital/inpatient/InpatinetTreatmentMonitoring'
+import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 
 const InpatientDetails = () => {
   const router = useRouter()
@@ -41,6 +42,7 @@ const InpatientDetails = () => {
           </Typography>
           <Typography sx={{ color: 'text.primary' }}>Details</Typography>
         </Breadcrumbs>
+        <PatientCard />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
@@ -49,8 +51,6 @@ const InpatientDetails = () => {
               ))}
             </Tabs>
           </Box>
-
-          {/* Selected Tab Content */}
           <Box>
             <SelectedComponent
               selectedTab={selectedTab}
