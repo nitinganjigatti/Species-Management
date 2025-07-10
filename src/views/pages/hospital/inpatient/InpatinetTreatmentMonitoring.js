@@ -25,6 +25,7 @@ const InpatinetTreatmentMonitoring = () => {
         </Grid>
         <Box sx={{ mt: 8 }}>
           <PatientMontoring />
+          <PatientMontoring timeSlots={Utility.getUpcomingHours(4)} />
         </Box>
       </Box>
     </>
