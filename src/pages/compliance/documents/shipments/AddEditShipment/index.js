@@ -7,12 +7,14 @@ import { getDocumentTypeList } from 'src/lib/api/compliance/exports'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import AnimalsData from 'src/views/pages/compliance/documents/shipment/forms/AnimalsData'
 import ShipmentBasicDetails from 'src/views/pages/compliance/documents/shipment/forms/ShipmentBasicDetails'
+import { getLinkedDocumentsShipments } from 'src/lib/api/compliance/shipment'
+import LinkedDocuments from 'src/views/pages/compliance/documents/shipment/forms/LinkedDocuments'
 
 const AddEditShipment = () => {
   const router = useRouter()
   const { id, action, export: exportCount } = router.query
   const isEdit = Boolean(id && id !== 'new')
-  const [expanded, setExpanded] = useState('permit-details') // Accordion open state
+  const [expanded, setExpanded] = useState('permit-details')
   const [showEdit, setShowEdit] = useState(true)
   const [showEditAnimals, setShowEditAnimals] = useState(true)
   const [status, setStatus] = useState('draft')
@@ -22,7 +24,8 @@ const AddEditShipment = () => {
   const [totalAnimals, setTotalAnimals] = useState(0)
   const [totalSpecies, setTotalSpecies] = useState(0)
   const [airwaybillvalue, setAirwaybillvalue] = useState('')
-  const animalsEditRef = useRef() // ref to trigger child
+  const [linkedDocumentsData, setlinkedDocumentsData] = useState({})
+  const animalsEditRef = useRef()
   const basicDetailsEditRef = useRef()
 
   useEffect(() => {
@@ -46,14 +49,12 @@ const AddEditShipment = () => {
       }
       const res = await getDocumentTypeList(params)
       if (res.success) {
-        console.log('res.data', res.data)
         setDocumentList(res.data.items)
         setTotalCount(res.data.total)
       } else {
         Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
       }
     } catch (error) {
-      console.error('Error fetching export details:', error)
       Toaster({ type: 'error', message: 'Error fetching export details' })
     } finally {
       setIsFetching(false)
@@ -70,8 +71,22 @@ const AddEditShipment = () => {
   useEffect(() => {
     if (id) {
       fetchDocumentTypeList()
+      fetchLinkedDocuments()
     }
   }, [id])
+
+  const fetchLinkedDocuments = async () => {
+    try {
+      const response = await getLinkedDocumentsShipments(id)
+      if (response?.success) {
+        setlinkedDocumentsData(response.data)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (e) {
+      Toaster({ type: 'error', message: 'Error fetching shipment basic details' })
+    }
+  }
 
   const isBasicEditable = showEdit && expanded === 'permit-details' && id && action === 'details'
   const isAnimalsEditable =
@@ -80,7 +95,6 @@ const AddEditShipment = () => {
   return (
     <>
       <Box sx={{ mb: 2 }}>
-        {console.log(action, 'action')}
         <Breadcrumbs aria-label='breadcrumb'>
           <Typography>Shipment Documents</Typography>
           <Typography onClick={() => router.push('/compliance/documents/shipments')} sx={{ cursor: 'pointer' }}>
@@ -121,15 +135,36 @@ const AddEditShipment = () => {
         {/* Right section: Status and dropdown */}
         <Box display='flex' alignItems='center' gap={2}>
           <Typography sx={{ fontWeight: 500, color: '#44544A' }}>Status:</Typography>
-          <Select
-            value={status}
-            onChange={e => setStatus(e.target.value)}
-            size='small'
-            sx={{ minWidth: 140, fontWeight: 600, background: '#FFE86E', color: '#000' }}
-          >
-            <MenuItem value='draft'>Draft</MenuItem>
-            <MenuItem value='completed'>Completed</MenuItem>
-          </Select>
+          {action === 'details' ? (
+            <Typography
+              sx={{
+                fontWeight: 600,
+                color: status === 'draft' ? '#000' : '#000',
+                backgroundColor: status === 'draft' ? '#FFE86E' : '#52F990',
+                padding: '4px 12px',
+                borderRadius: '6px',
+                fontSize: '14px',
+                display: 'inline-block'
+              }}
+            >
+              {status === 'draft' ? 'Draft' : 'Completed'}
+            </Typography>
+          ) : (
+            <Select
+              value={status}
+              onChange={e => setStatus(e.target.value)}
+              size='small'
+              sx={{
+                minWidth: 140,
+                fontWeight: 600,
+                background: status === 'draft' ? '#FFE86E' : '#52F990',
+                color: '#000'
+              }}
+            >
+              <MenuItem value='draft'>Draft</MenuItem>
+              <MenuItem value='completed'>Completed</MenuItem>
+            </Select>
+          )}
         </Box>
       </Box>
 
@@ -163,9 +198,12 @@ const AddEditShipment = () => {
         <CustomAccordion
           id='animals-details'
           docsCount={
-            !isAnimalsEditable && expanded !== 'animals-details' && (totalAnimals || totalSpecies)
-              ? `${totalSpecies} Species  | ${totalAnimals} Animals`
-              : null
+            !isAnimalsEditable && expanded !== 'animals-details' && (totalAnimals || totalSpecies) ? (
+              <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
+                <strong>{totalSpecies}</strong> Species&nbsp;|&nbsp;
+                <strong>{totalAnimals}</strong> Animals
+              </Typography>
+            ) : null
           }
           title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>}
           expanded={expanded}
@@ -192,7 +230,11 @@ const AddEditShipment = () => {
 
       <CustomAccordion
         id='supporting-documents'
-        title='Travel & customs Documents'
+        title={
+          <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>
+            Travel & customs Documents
+          </Typography>
+        }
         docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
@@ -226,23 +268,23 @@ const AddEditShipment = () => {
         )}
       </CustomAccordion>
 
-      {/* <CustomAccordion
-        id='linked-imports'
-        title='Linked Imports'
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
-      >
-        <LinkedImportForm />
-      </CustomAccordion>
-
       <CustomAccordion
-        id='linked-shipments'
-        title='Linked Shipments'
+        id='linked-documents'
+        title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Linked Documents</Typography>}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        docsCount={
+          linkedDocumentsData?.exports_count || linkedDocumentsData?.imports_count ? (
+            <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
+              <strong>{linkedDocumentsData?.exports_count}</strong> Exports&nbsp;|&nbsp;
+              <strong>{linkedDocumentsData?.imports_count}</strong> Imports
+            </Typography>
+          ) : null
+        }
+        type='shipment'
       >
-        <LinkedShipmentsForm />
-      </CustomAccordion> */}
+        <LinkedDocuments linkedDocumentsData={linkedDocumentsData} />
+      </CustomAccordion>
     </>
   )
 }

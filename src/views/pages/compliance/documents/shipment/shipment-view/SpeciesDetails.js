@@ -29,20 +29,20 @@ const SpeciesDetailsContainer = ({
     setDetailType(type)
   }
 
-  const handleDownload = async data => {
-    const response = await fetch(data.file_path)
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
+  // const handleDownload = async data => {
+  //   const response = await fetch(data.file_path)
+  //   const blob = await response.blob()
+  //   const url = window.URL.createObjectURL(blob)
 
-    const link = document.createElement('a')
-    link.href = url
-    link.download = data.file_original_name || 'file'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  //   const link = document.createElement('a')
+  //   link.href = url
+  //   link.download = data.file_original_name || 'file'
+  //   document.body.appendChild(link)
+  //   link.click()
+  //   document.body.removeChild(link)
 
-    window.URL.revokeObjectURL(url)
-  }
+  //   window.URL.revokeObjectURL(url)
+  // }
 
   const SpeciesRow = ({ species, type }) => (
     <Box
@@ -195,8 +195,8 @@ const SpeciesDetailsContainer = ({
               </Box>{' '}
               ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
             </Typography>
-
-            {data?.file_original_name ? (
+            {console.log(data, 'data')}
+            {data?.attachment?.file_original_name ? (
               <Box display='flex' alignItems='center' gap={1}>
                 <Typography
                   sx={{
@@ -211,13 +211,27 @@ const SpeciesDetailsContainer = ({
                 >
                   <img src='/icons/pdf_icon2.svg' width='18px' />
                 </Typography>
-                <Typography
+                {/* <Typography
                   variant='body2'
                   sx={{ color: '#006D35', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
                   onClick={() => handleDownload(data)}
                 >
-                  {data?.file_original_name}
-                </Typography>
+                  {data?.attachment?.file_original_name}
+                </Typography> */}
+                <a
+                  href={data?.attachment?.file_path}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  style={{
+                    color: '#006D35',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textDecoration: 'none'
+                  }}
+                >
+                  {data?.attachment?.file_original_name}
+                </a>
               </Box>
             ) : (
               ''

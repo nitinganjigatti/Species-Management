@@ -593,3 +593,5 @@ export const CREATE_SHIPMENT_SPECIES = 'v1/trade/shipments-species/create'
 export const GET_SHIPMENT_SPECIES_DATA = 'v1/trade/shipments-species'
 
 export const UPDATE_SHIPMENT_SPECIES = 'v1/trade/shipments-species/update'
+
+export const GET_LINKED_DOCUMENTS_SHIPMENT = 'v1/trade/shipments/documents'
