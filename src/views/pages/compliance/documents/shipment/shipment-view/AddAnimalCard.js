@@ -212,228 +212,243 @@ const AnimalCardLayout = ({
     <>
       <Box
         sx={{
-          px: 5,
-          pt: '16px',
-          display: 'grid',
-          gap: '16px',
-          gridTemplateColumns: isSmallScreen ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))'
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh'
         }}
       >
-        {loading ? (
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-              <CircularProgress />
-            </Box>
-          </CardContent>
-        ) : exportAnimalData?.species?.length > 0 ? (
-          exportAnimalData?.species?.map((card, index) => {
-            const speciesIndex = findSpeciesIndex(card.master_species_id)
+        <Box
+          sx={{
+            px: 5,
+            pt: '16px',
+            display: 'grid',
+            gap: '16px',
+            gridTemplateColumns: isSmallScreen ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))'
+          }}
+        >
+          {loading ? (
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                <CircularProgress />
+              </Box>
+            </CardContent>
+          ) : exportAnimalData?.species?.length > 0 ? (
+            exportAnimalData?.species?.map((card, index) => {
+              const speciesIndex = findSpeciesIndex(card.master_species_id)
 
-            const speciesData = currentExport.species[speciesIndex] || {
-              male_count: '',
-              female_count: '',
-              undeterminate_count: '',
-              animals: []
-            }
-            return (
-              <Box
-                key={card.id}
-                sx={{
-                  border: '1px solid #C3CEC7',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  backgroundColor: '#FFFFFF'
-                }}
-              >
-                {/* Title and Subtitle */}
-                <Typography variant='h6' sx={{ fontWeight: '500', color: '#44544A' }}>
-                  {card.common_name}
-                </Typography>
-                <Typography
-                  //variant='subtitle2'
-                  sx={{ color: '#44544A', fontStyle: 'italic', fontSize: '400', fontSize: '16px' }}
-                >
-                  {card.scientific_name}
-                </Typography>
-                <Typography
-                  sx={{ color: '#44544A', marginTop: '8px', marginBottom: '16px', fontSize: '400', fontSize: '16px' }}
-                >
-                  {`${card.total_balance_animal}/${card.total_count}`} animals available for shipment
-                </Typography>
-
-                {/* Animals Part of Shipment */}
+              const speciesData = currentExport.species[speciesIndex] || {
+                male_count: '',
+                female_count: '',
+                undeterminate_count: '',
+                animals: []
+              }
+              return (
                 <Box
+                  key={card.id}
                   sx={{
-                    border: '1px solid #0000000D',
+                    border: '1px solid #C3CEC7',
                     borderRadius: '8px',
                     padding: '16px',
-                    backgroundColor: '#E8F4F266'
+                    backgroundColor: '#FFFFFF'
                   }}
                 >
-                  <Grid container justifyContent='space-between' alignItems='center'>
-                    <Typography variant='subtitle2' sx={{ fontWeight: '400', color: '#44544A', fontSize: '16px' }}>
-                      Animals part of shipment:
-                    </Typography>
-                    <Typography variant='subtitle2' sx={{ fontWeight: '500', color: '#1F415B', fontSize: '24px' }}>
-                      {`${
-                        (speciesData.male_count || 0) +
-                        (speciesData.female_count || 0) +
-                        (speciesData.undeterminate_count || 0)
-                      }/${card.total_balance_animal || 0}`}
-                    </Typography>
-                  </Grid>
+                  {/* Title and Subtitle */}
+                  <Typography variant='h6' sx={{ fontWeight: '500', color: '#44544A' }}>
+                    {card.common_name}
+                  </Typography>
+                  <Typography
+                    //variant='subtitle2'
+                    sx={{ color: '#44544A', fontStyle: 'italic', fontSize: '400', fontSize: '16px' }}
+                  >
+                    {card.scientific_name}
+                  </Typography>
+                  <Typography
+                    sx={{ color: '#44544A', marginTop: '8px', marginBottom: '16px', fontSize: '400', fontSize: '16px' }}
+                  >
+                    {`${card.total_balance_animal}/${card.total_count}`} animals available for shipment
+                  </Typography>
 
-                  {/* Input Fields */}
-                  <Grid container spacing={2} sx={{ marginTop: '8px' }}>
-                    <Grid item xs={4}>
-                      <Typography
-                        variant='caption'
-                        sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
-                      >
-                        Male <span style={{ fontWeight: '500' }}>({card.total_balance_male_animal})</span>
+                  {/* Animals Part of Shipment */}
+                  <Box
+                    sx={{
+                      border: '1px solid #0000000D',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      backgroundColor: '#E8F4F266'
+                    }}
+                  >
+                    <Grid container justifyContent='space-between' alignItems='center'>
+                      <Typography variant='subtitle2' sx={{ fontWeight: '400', color: '#44544A', fontSize: '16px' }}>
+                        Animals part of shipment:
                       </Typography>
-                      <TextField
-                        size='small'
-                        type='number'
-                        value={speciesData.male_count ?? ''}
-                        onChange={e =>
-                          handleCountChange(
-                            card.master_species_id,
-                            'male_count',
-                            e.target.value,
-                            card.total_balance_male_animal
-                          )
-                        }
-                        InputProps={{
-                          inputProps: {
-                            min: 0,
-                            max: card.total_balance_male_animal
+                      <Typography variant='subtitle2' sx={{ fontWeight: '500', color: '#1F415B', fontSize: '24px' }}>
+                        {`${
+                          (speciesData.male_count || 0) +
+                          (speciesData.female_count || 0) +
+                          (speciesData.undeterminate_count || 0)
+                        }/${card.total_balance_animal || 0}`}
+                      </Typography>
+                    </Grid>
+
+                    {/* Input Fields */}
+                    <Grid container spacing={2} sx={{ marginTop: '8px' }}>
+                      <Grid item xs={4}>
+                        <Typography
+                          variant='caption'
+                          sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
+                        >
+                          Male <span style={{ fontWeight: '500' }}>({card.total_balance_male_animal})</span>
+                        </Typography>
+                        <TextField
+                          size='small'
+                          type='number'
+                          value={speciesData.male_count ?? ''}
+                          onChange={e =>
+                            handleCountChange(
+                              card.master_species_id,
+                              'male_count',
+                              e.target.value,
+                              card.total_balance_male_animal
+                            )
                           }
-                        }}
-                        disabled={card.total_balance_male_animal === '0'}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: '8px',
-                            backgroundColor: card.total_balance_male_animal === '0' ? '#0000000D' : '#FFFFFF'
-                          },
-                          width: '95%'
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography
-                        variant='caption'
-                        sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
-                      >
-                        Female <span style={{ fontWeight: '500' }}>({card.total_balance_female_animal})</span>
-                      </Typography>
-                      <TextField
-                        size='small'
-                        type='number'
-                        value={speciesData.female_count ?? ''}
-                        onChange={e =>
-                          handleCountChange(
-                            card.master_species_id,
-                            'female_count',
-                            e.target.value,
-                            card.total_balance_female_animal
-                          )
-                        }
-                        InputProps={{
-                          inputProps: {
-                            min: 0,
-                            max: card.total_balance_female_animal
+                          InputProps={{
+                            inputProps: {
+                              min: 0,
+                              max: card.total_balance_male_animal
+                            }
+                          }}
+                          disabled={card.total_balance_male_animal === '0'}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '8px',
+                              backgroundColor: card.total_balance_male_animal === '0' ? '#0000000D' : '#FFFFFF'
+                            },
+                            width: '95%'
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={4}>
+                        <Typography
+                          variant='caption'
+                          sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
+                        >
+                          Female <span style={{ fontWeight: '500' }}>({card.total_balance_female_animal})</span>
+                        </Typography>
+                        <TextField
+                          size='small'
+                          type='number'
+                          value={speciesData.female_count ?? ''}
+                          onChange={e =>
+                            handleCountChange(
+                              card.master_species_id,
+                              'female_count',
+                              e.target.value,
+                              card.total_balance_female_animal
+                            )
                           }
-                        }}
-                        disabled={card.total_balance_female_animal === '0'}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: '8px',
-                            backgroundColor: card.total_balance_female_animal === '0' ? '#0000000D' : '#FFFFFF'
-                          },
-                          width: '95%'
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={4}>
-                      <Typography variant='caption' sx={{ display: 'block', color: '#7A8684', marginBottom: '4px' }}>
-                        Unknown ({card.total_balance_undeterminate_animal})
-                      </Typography>
-                      <TextField
-                        size='small'
-                        type='number'
-                        value={speciesData.undeterminate_count ?? ''}
-                        onChange={e =>
-                          handleCountChange(
-                            card.master_species_id,
-                            'undeterminate_count',
-                            e.target.value,
-                            card.total_balance_undeterminate_animal
-                          )
-                        }
-                        InputProps={{
-                          inputProps: {
-                            min: 0,
-                            max: card.total_balance_undeterminate_animal
+                          InputProps={{
+                            inputProps: {
+                              min: 0,
+                              max: card.total_balance_female_animal
+                            }
+                          }}
+                          disabled={card.total_balance_female_animal === '0'}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '8px',
+                              backgroundColor: card.total_balance_female_animal === '0' ? '#0000000D' : '#FFFFFF'
+                            },
+                            width: '95%'
+                          }}
+                        />
+                      </Grid>
+                      <Grid item xs={4}>
+                        <Typography variant='caption' sx={{ display: 'block', color: '#7A8684', marginBottom: '4px' }}>
+                          Unknown ({card.total_balance_undeterminate_animal})
+                        </Typography>
+                        <TextField
+                          size='small'
+                          type='number'
+                          value={speciesData.undeterminate_count ?? ''}
+                          onChange={e =>
+                            handleCountChange(
+                              card.master_species_id,
+                              'undeterminate_count',
+                              e.target.value,
+                              card.total_balance_undeterminate_animal
+                            )
                           }
-                        }}
-                        disabled={card.total_balance_undeterminate_animal === '0'}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: '8px',
-                            backgroundColor: card.total_balance_undeterminate_animal === '0' ? '#0000000D' : '#FFFFFF'
-                          },
-                          width: '95%'
-                        }}
-                      />
+                          InputProps={{
+                            inputProps: {
+                              min: 0,
+                              max: card.total_balance_undeterminate_animal
+                            }
+                          }}
+                          disabled={card.total_balance_undeterminate_animal === '0'}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '8px',
+                              backgroundColor: card.total_balance_undeterminate_animal === '0' ? '#0000000D' : '#FFFFFF'
+                            },
+                            width: '95%'
+                          }}
+                        />
+                      </Grid>
                     </Grid>
-                  </Grid>
-                  {draftData.export?.some(
-                    exportItem =>
-                      String(exportItem.export_id) === String(exportID) &&
-                      exportItem.species?.some(
-                        species =>
-                          species.master_species_id === card.master_species_id &&
-                          (Number(species.male_count || 0) > 0 ||
-                            Number(species.female_count || 0) > 0 ||
-                            Number(species.undeterminate_count || 0) > 0)
-                      )
-                  ) && (
-                    <Grid container justifyContent='space-between' alignItems='center' sx={{ marginTop: '26px' }}>
-                      <Typography
-                        sx={{
-                          textTransform: 'none',
-                          color: '#006D35',
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontWeight: 500,
-                          pl: 0,
-                          fontSize: '16px',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() =>
-                          handleSelectAnimalsClick(card.animals, index, card.master_species_id, card.common_name)
-                        }
-                      >
-                        Select from list
-                        <ChevronRightIcon sx={{ fontSize: '22px', marginLeft: '4px' }} />
-                      </Typography>
-                      <Typography sx={{ color: '#44544A', fontWeight: '500', fontSize: '16px' }}>
-                        {selectedCounts[card.master_species_id] || 0} Selected
-                      </Typography>
-                    </Grid>
-                  )}
+                    {draftData.export?.some(
+                      exportItem =>
+                        String(exportItem.export_id) === String(exportID) &&
+                        exportItem.species?.some(
+                          species =>
+                            species.master_species_id === card.master_species_id &&
+                            (Number(species.male_count || 0) > 0 ||
+                              Number(species.female_count || 0) > 0 ||
+                              Number(species.undeterminate_count || 0) > 0)
+                        )
+                    ) && (
+                      <Grid container justifyContent='space-between' alignItems='center' sx={{ marginTop: '26px' }}>
+                        <Typography
+                          sx={{
+                            textTransform: 'none',
+                            color: '#006D35',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontWeight: 500,
+                            pl: 0,
+                            fontSize: '16px',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() =>
+                            handleSelectAnimalsClick(card.animals, index, card.master_species_id, card.common_name)
+                          }
+                        >
+                          Select from list
+                          <ChevronRightIcon sx={{ fontSize: '22px', marginLeft: '4px' }} />
+                        </Typography>
+                        <Typography sx={{ color: '#44544A', fontWeight: '500', fontSize: '16px' }}>
+                          {selectedCounts[card.master_species_id] || 0} Selected
+                        </Typography>
+                      </Grid>
+                    )}
+                  </Box>
                 </Box>
-              </Box>
-            )
-          })
-        ) : (
-          <Typography
-            sx={{ background: '#0000000D', p: 15, textAlign: 'center', borderRadius: '8px', mt: 7, fontWeight: '500' }}
-          >
-            No Species to show
-          </Typography>
-        )}
+              )
+            })
+          ) : (
+            <Typography
+              sx={{
+                background: '#0000000D',
+                p: 15,
+                textAlign: 'center',
+                borderRadius: '8px',
+                mt: 7,
+                fontWeight: '500'
+              }}
+            >
+              No Species to show
+            </Typography>
+          )}
+        </Box>
       </Box>
       {/* Sticky footer */}
 
@@ -449,7 +464,8 @@ const AnimalCardLayout = ({
             boxShadow: `0px -4px 21px 0px ${
               theme.palette.mode === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)'
             }`,
-            zIndex: 1
+            zIndex: 1,
+            marginTop: 'auto'
           }}
         >
           <Button fullWidth variant='contained' onClick={handleDone} disabled={isDoneDisabled()}>

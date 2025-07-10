@@ -51,16 +51,6 @@ const AnimalsData = ({
   const [animalDetailsDrawerOpen, setanimalDetailsDrawerOpen] = useState(false)
   const [detailtype, setDetailType] = useState('')
 
-  // Handler to receive data from child
-  // const handleExportCardSelect = useCallback(exportData => {
-  //   setSelectedExportData(exportData)
-  //   // setSelectedExportData(prev => ({
-  //   //   ...prev,
-  //   //   export: exportData // keep others as is
-  //   // }))
-  //   // You can do additional processing here
-  // }, [])
-
   const handleExportCardSelect = useCallback(
     exportData => {
       setSelectedExportData(prev => ({
@@ -432,8 +422,7 @@ const AnimalsData = ({
 
         setSpeciesList(speciesList)
         setSelectedExportData({ export: rawExports, others: speciesList })
-        setDraftData({ export: rawExports, others: speciesList }) // <-- added
-        // setlinkedShipmentsData()
+        setDraftData({ export: rawExports, others: speciesList })
       } else {
         // setLoader(false)
         Toaster({ type: 'error', message: response?.message })

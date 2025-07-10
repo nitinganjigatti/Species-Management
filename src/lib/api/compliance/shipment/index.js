@@ -6,7 +6,8 @@ import {
   GET_EXPORT_ANIMAL_LIST,
   CREATE_SHIPMENT_SPECIES,
   UPDATE_SHIPMENT_SPECIES,
-  GET_SHIPMENT_SPECIES_DATA
+  GET_SHIPMENT_SPECIES_DATA,
+  GET_LINKED_DOCUMENTS_SHIPMENT
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
 
@@ -115,4 +116,12 @@ export async function updateShipmentSpecies(id, payload) {
 
     return error
   }
+}
+
+export const getLinkedDocumentsShipments = async id => {
+  const response = await axiosGet({
+    url: `${GET_LINKED_DOCUMENTS_SHIPMENT}/${id}`
+  })
+
+  return response.data
 }
