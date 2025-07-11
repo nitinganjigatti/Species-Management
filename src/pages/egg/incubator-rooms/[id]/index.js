@@ -128,7 +128,6 @@ const RoomDetails = () => {
         console.error(error)
       }
     }, 1000),
-
     // []
     [fetchTableData]
   )
@@ -226,17 +225,21 @@ const RoomDetails = () => {
       field: 'incubator_code',
       headerName: 'INCUBATOR ID',
       renderCell: params => (
-        <Typography
-          noWrap
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.incubator_code ? params.row.incubator_code : '-'}
-        </Typography>
+        <Tooltip title={params.row.incubator_code ? params.row.incubator_code : '-'}>
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.incubator_code ? params.row.incubator_code : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -270,16 +273,20 @@ const RoomDetails = () => {
       field: 'availability',
       headerName: 'AVAILABILITY',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.primary.dark,
-            fontSize: '14px',
-            fontWeight: '500',
-            lineHeight: '16.94px'
-          }}
-        >
-          {params.row.availability ? params.row.availability : '-'}
-        </Typography>
+        <Tooltip title={params.row.availability ? params.row.availability : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.primary.dark,
+              fontSize: '14px',
+              fontWeight: '500',
+              lineHeight: '16.94px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.availability ? params.row.availability : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -336,16 +343,20 @@ const RoomDetails = () => {
       field: 'max_no_eggs',
       headerName: 'Max EGG',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.max_eggs ? params.row.max_eggs : '-'}
-        </Typography>
+        <Tooltip title={params.row.max_eggs ? params.row.max_eggs : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.max_eggs ? params.row.max_eggs : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -356,16 +367,20 @@ const RoomDetails = () => {
       field: 'no_of_eggs',
       headerName: 'EGGS',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
-        </Typography>
+        <Tooltip title={params.row.no_of_eggs ? params.row.no_of_eggs : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -495,6 +510,7 @@ const RoomDetails = () => {
     setEditParams({ site_id, room_name, nursery_id, room_id, nursery_name })
     setIsOpen(true)
   }
+
   const handleSidebarClose = () => setDialog(false)
 
   const onCellClick = params => {
@@ -574,6 +590,7 @@ const RoomDetails = () => {
                         labelPlacement='start'
                         label='Active'
                       />
+
                       <IconButton
                         onClick={event =>
                           handleEdit(
@@ -592,6 +609,7 @@ const RoomDetails = () => {
                           color={theme.palette.customColors.OnSurfaceVariant}
                         />
                       </IconButton>
+
                       <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
                         <Icon icon='mdi:add' fontSize={20} />
                         &nbsp; ADD INCUBATOR
@@ -617,6 +635,9 @@ const RoomDetails = () => {
                       <TextField
                         variant='outlined'
                         placeholder='Search...'
+                        InputProps={{
+                          disableUnderline: true
+                        }}
                         onChange={e => handleSearch(e.target.value, defaultAvailibility?.key)}
                         sx={{
                           '& .MuiOutlinedInput-root': {
@@ -625,11 +646,6 @@ const RoomDetails = () => {
                             '& fieldset': {
                               border: 'none'
                             }
-                          }
-                        }}
-                        slotProps={{
-                          input: {
-                            disableunderline: true
                           }
                         }}
                       />
@@ -668,12 +684,9 @@ const RoomDetails = () => {
                               '& .MuiInputLabel-root': {
                                 top: -7
                               },
-                              '& .MuiInputLabel-shrink': {
-                                top: 0
-                              },
                               '& input': {
                                 position: 'relative',
-                                top: -0
+                                top: -7
                               }
                             }}
                             onChange={e => {
@@ -697,17 +710,7 @@ const RoomDetails = () => {
                       '.MuiDataGrid-cell:focus': {
                         outline: 'none'
                       },
-                      '.MuiDataGrid-main': {
-                        borderLeft: '1px solid #0000000D',
-                        borderRight: '1px solid #0000000D',
-                        marginLeft: '16px',
-                        marginRight: '16px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(233, 233, 236, 1)'
-                      },
-                      '& .MuiDataGrid-footerContainer': {
-                        borderTop: 'none'
-                      },
+
                       '& .MuiDataGrid-row:hover': {
                         cursor: 'pointer'
                       }
