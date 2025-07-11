@@ -198,7 +198,9 @@ const AnimalAssessment = () => {
             ''
           }`,
           date: moment(Utility.convertUTCToLocalDate(assessment.assessment_recorded_date)).format('DD MMMM YYYY'),
-          time: Utility.convertUTCToLocaltime(assessment.assessment_recorded_date, 'HH:mm:ss'),
+          time: Utility.extractHoursAndMinutes(
+            Utility?.convertUTCToLocal(assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time)
+          ),
           user: assessment.user_details
         }
       })
