@@ -90,7 +90,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               gap: '2px'
             }}
           >
-            {data?.local_identifier_name && data?.local_identifier_value && (
+            {data?.local_identifier_name && data?.local_identifier_value ? (
               <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
@@ -102,19 +102,19 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 <span> {data?.local_identifier_name}: </span>
                 <span> {data?.local_identifier_value}</span>
               </Typography>
-            )}
-
-            {data?.animal_id && (
-              <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  lineHeight: '19.36px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                AID : {data?.animal_id}
-              </Typography>
+            ) : (
+              data?.animal_id && (
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    lineHeight: '19.36px',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  AID : {data?.animal_id}
+                </Typography>
+              )
             )}
 
             {data?.common_name ||
@@ -143,10 +143,11 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 {data?.scientific_name}
               </Typography>
             )}
+
             {data?.type === 'group' && (
               <Typography
                 sx={{
-                  width: '250px',
+                  // width: '250px', // we can adjust it if it will create any issue
                   paddingY: '4px',
                   borderRadius: '5px',
                   backgroundColor: theme.palette.customColors.mdAntzNeutral,
@@ -211,6 +212,21 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               >
                 <span style={{ fontWeight: 400 }}> Variant: </span>
                 {data?.morph_name}
+              </Typography>
+            )}
+
+            {data?.age && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '16.94px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400 }}> Age: </span>
+                {data?.age}
               </Typography>
             )}
 
