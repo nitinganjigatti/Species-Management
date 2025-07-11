@@ -265,6 +265,7 @@ const AddDiet = () => {
           diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
           dietitian_id: data?.dietitian_id,
+          dietitian_name: data?.dietitian?.user_name,
           child: data.child,
           diet_image: data.diet_image,
           desc: data.desc,

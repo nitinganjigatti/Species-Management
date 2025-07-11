@@ -214,7 +214,7 @@ const RecipeDetail = () => {
                               onClick={handleRecipeClick}
                             /> */}
                             <Avatar
-                              sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                              sx={{ width: 'auto', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
                               src={'/icons/icon_copy.svg'}
                               variant='square'
                               onClick={handleRecipeClick}
@@ -235,7 +235,7 @@ const RecipeDetail = () => {
                                 }
                               /> */}
                               <Avatar
-                                sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                                sx={{ width: 'auto', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
                                 src={'/icons/pencil_outlined.svg'}
                                 variant='square'
                                 onClick={() =>
@@ -269,7 +269,7 @@ const RecipeDetail = () => {
                               /> */}
                               <Avatar
                                 sx={{
-                                  width: '100%',
+                                  width: 'auto',
                                   height: '100%',
                                   borderRadius: '8px',
                                   cursor: 'pointer',
