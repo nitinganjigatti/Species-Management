@@ -102,6 +102,23 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
   }
 
   useEffect(() => {
+    const checkAndFetchMore = () => {
+      if (drawerContentRef.current && hasMore && !loading) {
+        const { scrollHeight, clientHeight } = drawerContentRef.current
+
+        if (scrollHeight <= clientHeight + 10) {
+          const nextPage = page + 1
+          setPage(nextPage)
+          fetchSpecies(searchValue, nextPage)
+        }
+      }
+    }
+
+    // call once on mount or species list update
+    checkAndFetchMore()
+  }, [speciesList, page, hasMore, loading])
+
+  useEffect(() => {
     if (openspeciesFilter) {
       const timeout = setTimeout(() => {
         requestAnimationFrame(() => {
@@ -225,7 +242,8 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
             lineHeight: '100%'
           }}
         >
-          Species{totalCount > 0 && ` (${totalCount})`}
+          Species
+          {/* {totalCount > 0 && ` (${totalCount})`} */}
         </Typography>
       </Box>
 

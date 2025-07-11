@@ -12,7 +12,8 @@ import {
   Grid,
   TextField,
   Autocomplete,
-  FormControl
+  FormControl,
+  Tooltip
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
@@ -64,6 +65,7 @@ const RoomsList = () => {
   )
 
   // 📌 Serial Number Calculation
+  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
   const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -79,7 +81,6 @@ const RoomsList = () => {
   const fetchTableData = useCallback(
     async (q = '', nurseryId, status) => {
       setLoading(true)
-
       const params = {
         sort,
         search: q ?? '',
@@ -99,7 +100,6 @@ const RoomsList = () => {
         setLoading(false)
       }
     },
-    //   [paginationModel]
     [paginationModel, sort]
   )
 
@@ -112,7 +112,6 @@ const RoomsList = () => {
         console.error(error)
       }
     }, 1000),
-
     // []  // it can be removeed if there is no issue after long time
     [fetchTableData]
   )
@@ -130,16 +129,16 @@ const RoomsList = () => {
     }
   }
 
-  // const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
-  //   event.stopPropagation()
-  //   setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
-  //   setIsOpen(true)
-  // }
+  const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
+    event.stopPropagation()
+    setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
+    setIsOpen(true)
+  }
 
   // 📌 Fetch Nursery List
   const NurseryList = async (q = '') => {
     try {
-      // console.log('q', q)
+      console.log('q', q)
       const params = { search: q, page: 1, limit: 50 }
       const res = await GetNurseryList({ params })
       setNurseryList(res?.data?.result ?? [])
@@ -150,7 +149,6 @@ const RoomsList = () => {
 
   // 📌 Debounced Nursery Search
   const searchNursery = useCallback(debounce(NurseryList, 1000), [])
-  // const searchNursery = useCallback(debounce(q => NurseryList(q), 1000),[])
 
   useEffect(() => {
     NurseryList()
@@ -183,16 +181,20 @@ const RoomsList = () => {
       headerName: 'room',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.room_name}
-        </Typography>
+        <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.room_name ? params.row.room_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -202,16 +204,20 @@ const RoomsList = () => {
       headerName: 'nursery name',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.nursery_name}
-        </Typography>
+        <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.nursery_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -220,18 +226,21 @@ const RoomsList = () => {
       field: 'site',
       headerName: 'site',
       sortable: false,
-
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.site_name}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.site_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -242,16 +251,20 @@ const RoomsList = () => {
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.no_of_incubators}
-        </Typography>
+        <Tooltip title={params.row.no_of_incubators ? params.row.no_of_incubators : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.no_of_incubators}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -409,21 +422,17 @@ const RoomsList = () => {
                   Egg
                 </Typography>
 
-                <Typography
-                  sx={{
-                    color: 'text.primary',
-                    cursor: 'pointer'
-                  }}
-                >
+                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
                   Incubator Room
                 </Typography>
               </Breadcrumbs>
               <Grid container spacing={6}>
-                <Grid item size={{ xs: 12 }}>
+                <Grid item xs={12}>
                   <Card>
                     <CardHeader title='Incubator Rooms' action={headerAction} />
-                    <Grid sx={{ ml: 4, mb: 6 }} container columns={15} spacing={6}>
-                      <Grid item size={{ xs: 3 }}>
+
+                    <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
+                      <Grid item xs={3}>
                         <Box
                           sx={{
                             display: 'flex',
@@ -438,6 +447,11 @@ const RoomsList = () => {
                           <TextField
                             variant='outlined'
                             placeholder='Search...'
+                            InputProps={
+                              {
+                                // disableUnderline: true
+                              }
+                            }
                             onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
                             sx={{
                               '& .MuiOutlinedInput-root': {
@@ -448,16 +462,11 @@ const RoomsList = () => {
                                 }
                               }
                             }}
-                            slotProps={{
-                              input: {
-                                // disableUnderline: true
-                              }
-                            }}
                           />
                         </Box>
                       </Grid>
 
-                      <Grid item size={{ xs: 3 }}>
+                      <Grid item xs={3}>
                         <FormControl fullWidth>
                           <Autocomplete
                             name='nursery'
@@ -489,12 +498,9 @@ const RoomsList = () => {
                                   '& .MuiInputLabel-root': {
                                     top: -7
                                   },
-                                  '& .MuiInputLabel-shrink': {
-                                    top: 0
-                                  },
                                   '& input': {
                                     position: 'relative',
-                                    top: -0
+                                    top: -7
                                   }
                                 }}
                                 onChange={e => {
@@ -508,7 +514,7 @@ const RoomsList = () => {
                           />
                         </FormControl>
                       </Grid>
-                      <Grid item size={{ xs: 3 }}>
+                      <Grid item xs={3}>
                         <FormControl fullWidth>
                           <Autocomplete
                             name='status'
@@ -543,12 +549,9 @@ const RoomsList = () => {
                                   '& .MuiInputLabel-root': {
                                     top: -7
                                   },
-                                  '& .MuiInputLabel-shrink': {
-                                    top: 0
-                                  },
                                   '& input': {
                                     position: 'relative',
-                                    top: -0
+                                    top: -7
                                   }
                                 }}
                                 onChange={e => {
@@ -606,17 +609,7 @@ const RoomsList = () => {
                           '.MuiDataGrid-cell:focus': {
                             outline: 'none'
                           },
-                          '.MuiDataGrid-main': {
-                            borderLeft: '1px solid #0000000D',
-                            borderRight: '1px solid #0000000D',
-                            marginLeft: '16px',
-                            marginRight: '16px',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(233, 233, 236, 1)'
-                          },
-                          '& .MuiDataGrid-footerContainer': {
-                            borderTop: 'none'
-                          },
+
                           '& .MuiDataGrid-row:hover': {
                             cursor: 'pointer'
                           }

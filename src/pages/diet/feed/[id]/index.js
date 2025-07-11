@@ -152,11 +152,11 @@ const FeedDetails = () => {
   const columns = [
     {
       flex: 0.1,
-      minWidth: 30,
+      minWidth: 40,
       field: 'id',
       headerName: 'SL',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id}
         </Typography>
       )
@@ -194,18 +194,18 @@ const FeedDetails = () => {
           </Box>
         </Box>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 10,
-      field: 'status',
-      headerName: '',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', gap: 2, cursor: 'pointer' }}>
-          <Icon color='#a7a7a7' icon='mdi:eye-outline' />
-        </Box>
-      )
     }
+    // {
+    //   flex: 0.2,
+    //   minWidth: 10,
+    //   field: 'status',
+    //   headerName: '',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', gap: 2, cursor: 'pointer' }}>
+    //       <Icon color='#a7a7a7' icon='mdi:eye-outline' />
+    //     </Box>
+    //   )
+    // }
   ]
 
   const convertToTitleCase = str => {
@@ -360,7 +360,7 @@ const FeedDetails = () => {
                                   }
                                 /> */}
                                 <Avatar
-                                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                                  sx={{ width: 'auto', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
                                   src={'/icons/pencil_outlined.svg'}
                                   variant='square'
                                   onClick={() =>
@@ -389,11 +389,11 @@ const FeedDetails = () => {
                                 /> */}
                                 <Avatar
                                   sx={{
-                                    width: '100%',
+                                    width: 'auto',
                                     height: '100%',
                                     borderRadius: '8px',
                                     cursor: 'pointer',
-                                    marginLeft: '15px'
+                                    marginLeft: '0px'
                                   }}
                                   src={'/icons/delete_outlined.svg'}
                                   variant='square'
