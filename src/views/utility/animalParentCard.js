@@ -162,7 +162,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               </Typography>
             )}
 
-            {data?.breed_name && (
+            {/* {data?.breed_name && (
               <Typography
                 sx={{
                   fontSize: '16px',
@@ -172,7 +172,6 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 }}
               >
                 Breed : {data?.breed_name}
-                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
               </Typography>
             )}
             {data?.morph_name && (
@@ -185,9 +184,8 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 }}
               >
                 Variant : {data?.morph_name}
-                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
               </Typography>
-            )}
+            )} */}
 
             {data?.breed_name && (
               <Typography
