@@ -7,7 +7,8 @@ import {
   SPECIES_REPORT,
   USER_REPORT,
   MEDICAL_REPORT,
-  SPECIES_FILTER,
+
+  // SPECIES_FILTER,
   ASSESSMENT_REPORT
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
@@ -61,11 +62,11 @@ export async function getAnimalReportById(params) {
   return response.data
 }
 
-export async function getSpeciesListing() {
-  const response = await axiosGet({ url: `${SPECIES_FILTER}` })
+// export async function getSpeciesListing() {
+//   const response = await axiosGet({ url: `${SPECIES_FILTER}` })
 
-  return response.data
-}
+//   return response.data
+// }
 
 export async function getAnimalReport(params) {
   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
