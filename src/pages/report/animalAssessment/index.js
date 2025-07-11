@@ -192,7 +192,11 @@ const AnimalAssessment = () => {
             // Number(assessment?.assessment_value) > 1 && assessment?.uom_abbr ? 's' : ''
             ''
           }`,
-          date: moment(Utility.convertUTCToLocalDate(assessment.assessment_recorded_date)).format('DD MMMM YYYY'),
+          date: moment(
+            Utility.convertUTCToLocalDate(
+              assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time
+            )
+          ).format('DD MMMM YYYY'),
           time: Utility.extractHoursAndMinutes(
             Utility?.convertUTCToLocal(assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time)
           ),
@@ -305,6 +309,7 @@ const AnimalAssessment = () => {
                 common_name: params?.row?.common_name,
                 scientific_name: params?.row?.scientific_name,
                 age: params.row.age,
+
                 // age,
                 total_animal: params?.row?.total_animal,
                 type: params?.row?.type,
