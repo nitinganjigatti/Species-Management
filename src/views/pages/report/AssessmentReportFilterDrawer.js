@@ -33,6 +33,7 @@ const accessionDateOptions = [
     label: 'Yesterday',
     getRange: () => {
       const yesterday = dayjs().subtract(1, 'day')
+
       return { start: yesterday, end: yesterday }
     }
   },
@@ -45,6 +46,7 @@ const accessionDateOptions = [
 const AssessmentReportFilterDrawer = ({
   searchTerm,
   setSearchTerm,
+
   ///////////////
   openFilterDrawer,
   setOpenFilterDrawer,
@@ -84,7 +86,6 @@ const AssessmentReportFilterDrawer = ({
 
   // const calculateFilterCount = () => {
   //   let count = 0
-
   //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
   //     if (Array.isArray(value)) {
   //       count += value.length // For Site, Section, Enclosure, gender
@@ -97,6 +98,20 @@ const AssessmentReportFilterDrawer = ({
   //   setFilterCount(count)
   // }
 
+  // const calculateFilterCount = () => {
+  //   let count = 0
+
+  //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
+  //     if (Array.isArray(value)) {
+  //       count += value.length // For Site, Section, Enclosure, gender
+  //     } else if (typeof value === 'string' && value.trim() !== '') {
+  //       count += 1 // For accession_start and accession_end (non-empty strings)
+  //       // it will increase count by 2 in selection of 1 because on onchange is handling 2 keys
+  //     }
+  //   })
+
+  //   setFilterCount(count)
+  // }
   const calculateFilterCount = () => {
     let count = 0
 

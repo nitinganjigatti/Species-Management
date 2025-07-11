@@ -680,6 +680,7 @@ const AddReturnRequest = () => {
         searchMedicineData={searchMedicineData}
         productList={optionsMedicineList}
         productLoading={productLoading}
+        setBatchList={setOptionsBatchList}
         batchLoading={batchLoading}
         onSubmitData={submitItems}
         batchList={optionsBatchList}

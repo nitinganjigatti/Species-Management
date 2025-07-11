@@ -84,7 +84,7 @@ const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
             icon={configMed?.image}
           />
           <Typography sx={{ fontSize: '14px' }}>
-            Reorder-Level: <strong>{configMed?.min_qty ? configMed?.min_qty : 0}</strong>
+            Reorder Level: <strong>{configMed?.min_qty ? configMed?.min_qty : 0}</strong>
           </Typography>
         </Box>
         <Card
@@ -98,7 +98,7 @@ const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
             boxShadow: 'none'
           }}
         >
-          <Typography
+          {/* <Typography
             variant='subtitle1'
             sx={{
               marginBottom: 2,
@@ -107,21 +107,36 @@ const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
               fontSize: '14px'
             }}>
             Rack and Shelves Details
-          </Typography>
+          </Typography> */}
           <Card
             sx={{
-              // m: 6,
-              border: '1px solid',
-              borderColor: 'customColors.customTableBorderBg',
-              boxShadow: 'none',
-              p: 2
+              boxShadow: 'none'
             }}
           >
             {configMed?.stock_config?.length > 0 ? (
               <TableContainer component={'paper'}>
-                <Table aria-label='rack and shelves table'>
+                <Table
+                  aria-label='rack and shelves table'
+                  sx={{
+                    border: '1px solid #e0e0e0',
+                    '& .MuiTableCell-root': {
+                      border: '1px solid #e0e0e0'
+                    },
+                    '& .MuiTableBody-root .MuiTableRow-root:last-child .MuiTableCell-root': {
+                      borderBottom: '1px solid #e0e0e0'
+                    }
+                  }}
+                >
                   <TableHead>
-                    <TableRow>
+                    <TableRow
+                      sx={{
+                        backgroundColor: '#c8d0d0',
+                        '& .MuiTableCell-root': {
+                          backgroundColor: '#c8d0d0',
+                          fontWeight: 'bold'
+                        }
+                      }}
+                    >
                       <TableCell>
                         <strong>Rack</strong>
                       </TableCell>
@@ -159,40 +174,6 @@ const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
                 <NoDataFound variant='Meerkat' height={250} width={250} />
               </Box>
             )}
-            {/* <TableContainer component={'paper'}>
-              <Table aria-label='rack and shelves table'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>
-                      <strong>Rack</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Shelves</strong>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {configMed?.stock_config?.length > 0 ? (
-                    configMed.stock_config.map(config =>
-                      config.racks.map(rack =>
-                        rack.shelf_configs.map(shelf => (
-                          <TableRow key={`${rack.id}-${shelf.id}`}>
-                            <TableCell>{rack.rack}</TableCell>
-                            <TableCell>{shelf.name}</TableCell>
-                          </TableRow>
-                        ))
-                      )
-                    )
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={2} align='center'>
-                        No rack and shelf configuration available
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer> */}
           </Card>
         </Card>
       </Box>

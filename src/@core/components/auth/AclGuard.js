@@ -31,12 +31,22 @@ const AclGuard = props => {
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
 
+  // const getPath = () => {
+  //   if (selectedPharmacy) {
+  //     if (selectedPharmacy?.type === 'local') {
+  //       return '/pharmacy/request/request-list/'
+  //     } else {
+  //       return '/pharmacy/medicine/product-list'
+  //     }
+  //   }
+  // }
+
   const getPath = () => {
     if (selectedPharmacy) {
       if (selectedPharmacy?.type === 'local') {
         return '/pharmacy/request/request-list/'
       } else {
-        return '/pharmacy/medicine/product-list'
+        return '/pharmacy/request/request-list/'
       }
     }
   }
@@ -45,18 +55,31 @@ const AclGuard = props => {
   let ability
   useEffect(() => {
     if (auth.user && auth.user.role && !guestGuard && router.asPath === '/') {
-      // const homeRoute = getHomeRoute(auth.user.role)
+      //   // const homeRoute = getHomeRoute(auth.user.role)
       const homeRoute = getPath()
       router?.replace(
         '/dashboard'
 
-        // !homeRoute
-        //   ? auth?.userData?.roles?.settings?.add_pharmacy
-        //     ? '/pharmacy/settings/store-list/'
-        //     : '/Error'
-        //   : homeRoute
+        //     // !homeRoute
+        //     //   ? auth?.userData?.roles?.settings?.add_pharmacy
+        //     //     ? '/pharmacy/settings/store-list/'
+        //     //     : '/Error'
+        //     //   : homeRoute
       )
     }
+
+    // if (auth.user && auth.user.role && !guestGuard && router.asPath === '/') {
+    //   // const homeRoute = getHomeRoute(auth.user.role)
+    //   const homeRoute = getPath()
+    //   // console.log('auth', auth?.userData?.roles?.settings)
+    //   router?.replace(
+    //     !homeRoute
+    //       ? auth?.userData?.roles?.settings?.add_pharmacy
+    //         ? '/pharmacy/masters/store-list/'
+    //         : '/Error'
+    //       : homeRoute
+    //   )
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user, guestGuard, router])
 

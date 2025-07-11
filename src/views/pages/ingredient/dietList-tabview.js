@@ -30,7 +30,7 @@ const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange }) => {
   const [rows, setRows] = useState([])
   const [sort, setSort] = useState('desc')
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
   const [status, setStatus] = useState('1')
@@ -249,7 +249,7 @@ const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange }) => {
                 sortingMode='server'
                 onSortModelChange={handleSortModel}
                 paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
+                pageSizeOptions={[7, 10, 25, 50, 100]}
                 paginationModel={paginationModel}
                 slots={{ toolbar: ServerSideToolbar }}
                 onPaginationModelChange={setPaginationModel}

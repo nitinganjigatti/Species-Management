@@ -275,7 +275,7 @@ const StockLocation = () => {
       minWidth: 20,
       width: 220,
       field: 'min_qty',
-      headerName: 'RE-ORDER LEVEL',
+      headerName: 'REORDER LEVEL',
       sortable: true,
       align: 'center',
       headerAlign: 'center',
