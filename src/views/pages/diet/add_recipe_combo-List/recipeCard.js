@@ -158,12 +158,12 @@ const RecipeCard = ({
 
       // Merge updatedSelectedDays with the existing selectedDays state
       const finalSelectedDays = rows.map(row => {
-        const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
+        const updatedDay = updatedSelectedDays?.find(updated => updated.cardId === row.id)
 
         if (updatedDay) {
           return updatedDay // Use the updated selection if available
         } else {
-          const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+          const existingDay = selectedDays?.find(existing => existing.cardId === row.id)
           return existingDay || { cardId: row.id, days: Day }
         }
       })
@@ -185,7 +185,7 @@ const RecipeCard = ({
       searchValue
     ) {
       const finalSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         // If no match with checkid, enable all days
         const enabledAllDays = Day.map(day => ({
@@ -218,7 +218,7 @@ const RecipeCard = ({
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -242,7 +242,7 @@ const RecipeCard = ({
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -362,14 +362,14 @@ const RecipeCard = ({
     const filteredItems = selectedCardRecipe.map(item => {
       // Find the selected days for the current item
 
-      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
+      const selectedDaysForItem = selectedDays?.find(selectedDay => selectedDay.cardId === item.id)
 
       // Extract the selected day names and ids
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
       // Find the remarks for the current item
-      const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
+      const cardRemarks = selectedCardRecipe?.find(card => card.id === item.id)?.remarks || ''
 
       // Extract ingredient details
       const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
@@ -377,7 +377,7 @@ const RecipeCard = ({
       const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
 
       // Find the existing card in selectedCardRecipe to preserve previous data
-      const existingCard = selectedCardRecipe.find(card => card.id === item.id)
+      const existingCard = selectedCardRecipe?.find(card => card.id === item.id)
 
       // Preserve the previous days_of_week if new ones are not selected
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
@@ -731,10 +731,10 @@ const RecipeCard = ({
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            bgcolor: selectedDays.find(
+                            bgcolor: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? '#203e56'
                               : '#dedede',
@@ -744,10 +744,10 @@ const RecipeCard = ({
                             alignItems: 'center',
                             cursor: 'pointer',
 
-                            color: selectedDays.find(
+                            color: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? 'white'
                               : 'black'

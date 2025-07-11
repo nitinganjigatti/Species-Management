@@ -29,6 +29,7 @@ const ComposeNavigation = () => {
   const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
   const enable_daily_report = authData?.userData?.permission?.user_settings?.enable_daily_report
   const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
+  const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
@@ -44,7 +45,8 @@ const ComposeNavigation = () => {
       reports_module,
       enable_specie_report,
       enable_daily_report,
-      enable_animal_report
+      enable_animal_report,
+      enable_animal_assessment_report
     })
     navigationArray.push(...reportNav)
   }

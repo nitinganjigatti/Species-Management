@@ -57,6 +57,9 @@ import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetail
 import RenderUtility from 'src/utility/render'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import MenuWithDots from 'src/components/MenuWithDots'
+import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
+import StockConfigDetails from 'src/views/pages/pharmacy/stock/StockConfigDetails'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -108,6 +111,9 @@ const ListOfStocks = () => {
   const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
   const [purchaseLoading, setPurchaseLoading] = useState(false)
   const [searchPurchase, setSearchPurchase] = useState('')
+  const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
+  const [configReOrderMed, setConfigReOrderMed] = useState(null)
+  const [dialogCheck, setDialogCheck] = useState(false)
   const textFieldRef = useRef(null)
 
   const handleChange = (event, newValue) => {
@@ -118,7 +124,7 @@ const ListOfStocks = () => {
   }
 
   const closeDialog = () => {
-    setConfigureMedId('')
+    setConfigureMedId(null)
     setShow(false)
   }
 
@@ -449,6 +455,16 @@ const ListOfStocks = () => {
     }
   }
 
+  const getMenuOptions = row => [
+    {
+      label: 'Add Re-Order Level',
+      action: () => {
+        setOpenReOrderLevelDialog(true)
+        setConfigReOrderMed(row)
+      }
+    }
+  ]
+
   const columns = [
     {
       Width: 40,
@@ -501,7 +517,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
@@ -523,7 +538,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
       headerName: 'Value(₹)',
@@ -537,7 +551,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_item_id',
       headerName: 'Average Price(₹)',
@@ -555,7 +568,6 @@ const ListOfStocks = () => {
       )
     },
     {
-      // flex: 0.4,
       width: 260,
       field: 'package',
       headerName: 'PACKAGE',
@@ -565,7 +577,21 @@ const ListOfStocks = () => {
         ${params.row.package_uom_label} ${params.row.product_form_label}`)}
         </Typography>
       )
-    }
+    },
+    ...(!changeSwitch && value === '1'
+      ? [
+          {
+            width: 150,
+            field: 'action', // replace with your field name
+            headerName: 'Actions',
+            renderCell: params => (
+              <Tooltip title='More Options' placement='top'>
+                <MenuWithDots options={getMenuOptions(params?.row)} />
+              </Tooltip>
+            )
+          }
+        ]
+      : [])
   ]
 
   const batchWiseColumn = [
@@ -621,7 +647,6 @@ const ListOfStocks = () => {
       })
     },
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
@@ -635,10 +660,9 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
-      minWidth: 160,
+      minWidth: 200,
       field: 'unit_price',
-      headerName: 'Unit Price(₹)',
+      headerName: 'Net Unit Price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -649,7 +673,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
       headerName: 'Value(₹)',
@@ -663,7 +686,6 @@ const ListOfStocks = () => {
       )
     },
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'batch_no',
       type: 'text',
@@ -677,7 +699,6 @@ const ListOfStocks = () => {
       )
     },
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
@@ -748,8 +769,19 @@ const ListOfStocks = () => {
   }
 
   const handleStockRowClick = params => {
-    if (selectedPharmacy?.id === stockId) {
-      setConfigureMedId(params?.row?.stock_item_id)
+    if (
+      selectedPharmacy?.id === stockId &&
+      (params?.field === 'stock_items_name' ||
+        params?.field === 'stock_qty' ||
+        params?.field === 'total_cost' ||
+        params?.field === 'unit_price' ||
+        params?.field === 'package' ||
+        params?.field === 'store_name' ||
+        params?.field === 'stock_item_id' ||
+        params?.field === 'batch_no' ||
+        params?.field === 'expiry_date')
+    ) {
+      setConfigureMedId(params?.row)
       showDialog()
     }
   }
@@ -1009,7 +1041,15 @@ const ListOfStocks = () => {
               <FallbackSpinner />
             ) : (
               <>
-                <CommonDialogBox
+                {show && (
+                  <StockConfigDetails
+                    open={showDialog}
+                    configMed={configureMedId}
+                    setConfigMed={setConfigureMedId}
+                    close={closeDialog}
+                  />
+                )}
+                {/* <CommonDialogBox
                   title={'Configure Medicine'}
                   dialogBoxStatus={show}
                   formComponent={
@@ -1017,7 +1057,7 @@ const ListOfStocks = () => {
                   }
                   close={closeDialog}
                   show={showDialog}
-                />
+                /> */}
                 {/* <TableWithFilter
                   TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
                   columns={columns}
@@ -1424,6 +1464,16 @@ const ListOfStocks = () => {
         setSearchPurchase={setSearchPurchase}
         handleClearSearch={handleClearSearch}
       />
+      {openReOrderLevelDialog && (
+        <AddReOrderDialog
+          openDrawer={openReOrderLevelDialog}
+          setOpenDrawer={setOpenReOrderLevelDialog}
+          stockDetails={configReOrderMed}
+          setStockDetails={setConfigReOrderMed}
+          dialogCheck={dialogCheck}
+          setDialogCheck={setDialogCheck}
+        />
+      )}
     </>
   )
 }

@@ -187,7 +187,7 @@ const AllStoresRequestList = () => {
   const [loading, setLoading] = useState(false)
   const [excelLoader, setExcelLoader] = useState(false)
   const [uniquePendingItems, setUniquePendingItems] = useState(0)
-  const [activeTab, setActiveTab] = useState('1')
+  const [activeTab, setActiveTab] = useState('Available')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const [page, setPage] = useState(1)
@@ -294,7 +294,7 @@ const AllStoresRequestList = () => {
 
   const handleDrawerClose = () => {
     setIsDrawerOpen(false)
-    setActiveTab('1')
+    setActiveTab('Available')
     setDrawerSearchValue('')
 
     // Resetting page and data when drawer is closed
@@ -325,7 +325,8 @@ const AllStoresRequestList = () => {
       setIsLoadingMore(true)
       try {
         const params = {
-          stock_status,
+          stock_status: stock_status === 'All' ? '' : stock_status,
+
           sort: 'asc',
           column: 'stock_name',
           page,
@@ -333,7 +334,6 @@ const AllStoresRequestList = () => {
           q
         }
         const res = await getAllUniquePendingList({ params })
-        console.log(res, 'res')
 
         if (res?.success && res?.data?.list_items?.length > 0) {
           const transformedData = res?.data?.list_items.map(item => ({
@@ -410,20 +410,8 @@ const AllStoresRequestList = () => {
       setActiveTab(newValue)
       setDrawerSearchValue('')
 
-      let stockStatus = ''
-      switch (newValue) {
-        case '2':
-          stockStatus = 'NotAvailable'
-          break
-        case '3':
-          stockStatus = ''
-          break
-        default:
-          stockStatus = 'Available'
-      }
-
       fetchUniquePendingData({
-        stock_status: stockStatus,
+        stock_status: newValue,
         page: 1,
         limit: 10
       })
@@ -442,22 +430,12 @@ const AllStoresRequestList = () => {
 
       if (isNearBottom) {
         const nextPage = currentPageRef.current + 1
-        let stockStatus = ''
-
-        switch (activeTab) {
-          case '1':
-            stockStatus = 'Available'
-            break
-          case '2':
-            stockStatus = 'NotAvailable'
-            break
-        }
 
         currentPageRef.current = nextPage
         setPage(nextPage)
 
         fetchUniquePendingData({
-          stock_status: stockStatus,
+          stock_status: activeTab,
           page: nextPage,
           limit: 10
         })
@@ -468,22 +446,11 @@ const AllStoresRequestList = () => {
 
   const handleButtonClick = useCallback(() => {
     setIsDrawerOpen(true)
-    setActiveTab('1')
-    let stockStatus = ''
-    switch (activeTab) {
-      case '2':
-        stockStatus = 'NotAvailable'
-        break
-      case '3':
-        stockStatus = ''
-        break
-      default:
-        stockStatus = 'Available'
-    }
+    setActiveTab('Available')
 
     resetStates()
     fetchUniquePendingData({
-      stock_status: stockStatus,
+      stock_status: activeTab,
       page: 1,
       limit: 10
     })
@@ -499,21 +466,8 @@ const AllStoresRequestList = () => {
   const handleExcelExport = async title => {
     setExcelLoader(true)
     try {
-      let stockStatus = ''
-      switch (title) {
-        case 'Available items':
-          stockStatus = 'Available'
-          break
-        case 'Not available items':
-          stockStatus = 'NotAvailable'
-          break
-        case 'All items':
-        default:
-          stockStatus = ''
-      }
-
       const params = {
-        stock_status: stockStatus,
+        stock_status: activeTab === 'All' ? '' : activeTab,
         response_type: 'csv'
       }
 
@@ -581,22 +535,9 @@ const AllStoresRequestList = () => {
               const value = e.target.value
               setDrawerSearchValue(value)
 
-              // Get stock status based on active tab
-              let stockStatus = ''
-              switch (activeTab) {
-                case '2':
-                  stockStatus = 'NotAvailable'
-                  break
-                case '3':
-                  stockStatus = ''
-                  break
-                default:
-                  stockStatus = 'Available'
-              }
-
               // Use the debounced search function
               searchDrawerData({
-                stock_status: stockStatus,
+                stock_status: activeTab,
                 q: value
               })
             }}
@@ -810,9 +751,9 @@ const AllStoresRequestList = () => {
                     }
                   }}
                 >
-                  <Tab value='1' label='Available items' />
-                  <Tab value='2' label='Not Available items' />
-                  <Tab value='3' label='All items' sx={{ width: '30%' }} />
+                  <Tab value='Available' label='Available items' />
+                  <Tab value='NotAvailable' label='Not Available items' />
+                  <Tab value='All' label='All items' sx={{ width: '30%' }} />
                 </TabList>
               </TabContext>
             </Box>
@@ -829,13 +770,13 @@ const AllStoresRequestList = () => {
               onScroll={handleScroll}
             >
               <TabContext value={activeTab}>
-                <TabPanel value='1' sx={{ px: '24px' }}>
+                <TabPanel value='Available' sx={{ px: '24px' }}>
                   {renderContent('Available items')}
                 </TabPanel>
-                <TabPanel value='2' sx={{ px: '24px' }}>
+                <TabPanel value='NotAvailable' sx={{ px: '24px' }}>
                   {renderContent('Not available items')}
                 </TabPanel>
-                <TabPanel value='3' sx={{ px: '24px' }}>
+                <TabPanel value='All' sx={{ px: '24px' }}>
                   {renderContent('All items')}
                 </TabPanel>
               </TabContext>

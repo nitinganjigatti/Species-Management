@@ -184,13 +184,16 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        console.log(response, 'response')
+        if (response?.data?.racks.length > 0) {
           setRacks(
-            response?.data?.map(item => ({
-              ...item,
-              rack_id: item?.id,
-              rack_name: item?.name
-            }))
+            response?.data?.racks
+              .filter(item => item.status === 'active')
+              .map(item => ({
+                ...item,
+                rack_id: item?.id,
+                rack_name: item?.name
+              }))
           )
         }
       } catch (error) {
@@ -219,6 +222,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     },
     [selectedPharmacy?.id]
   )
+
+  console.log(shelves, 'shelves')
 
   const onSubmit = async data => {
     // Trigger validation before submitting

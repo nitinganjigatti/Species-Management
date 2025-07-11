@@ -12,7 +12,8 @@ import {
   Grid,
   TextField,
   Autocomplete,
-  FormControl
+  FormControl,
+  Tooltip
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
@@ -210,16 +211,20 @@ const RoomsList = () => {
       headerName: 'room',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.room_name}
-        </Typography>
+        <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.room_name ? params.row.room_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -229,16 +234,20 @@ const RoomsList = () => {
       headerName: 'nursery name',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.nursery_name}
-        </Typography>
+        <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.nursery_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -247,18 +256,21 @@ const RoomsList = () => {
       field: 'site',
       headerName: 'site',
       sortable: false,
-
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.site_name}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.site_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {

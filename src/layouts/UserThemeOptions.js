@@ -144,6 +144,7 @@ const UserThemeOptions = () => {
         OnPrimaryContainer: '#1F515B',
         TertiaryContainer: '#FFBDA8',
         OutlineVariant: '#C3CEC7',
+        MuiFieldBorder: '#4c4e6438',
         OutlineSecondary: '#D8D8DD',
         OnPrimarycontainer10: '#1F515B0D',
         Notes: '#FCF4AE',

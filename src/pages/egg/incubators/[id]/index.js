@@ -1253,7 +1253,7 @@ const IncubatorDetails = () => {
                     setOpenStatusDialog={setOpenStatusDialog}
                     elements={total}
                     statusLoading={statusLoading}
-                    hatcheryStatusFunc={hatcheryStatusFunc}
+                    toggleHatcheryStatus={hatcheryStatusFunc}
                   />
                   {transferIncubatorSideBar && (
                     <TransferIncubator

@@ -1,10 +1,11 @@
-import { Avatar, Typography } from '@mui/material'
-import { Box } from '@mui/system'
 import React from 'react'
+import { Avatar, Typography, Tooltip } from '@mui/material'
+import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 
 function SpeciesCard({ species }) {
   const theme = useTheme()
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       {species?.default_icon && (
@@ -25,12 +26,11 @@ function SpeciesCard({ species }) {
         />
       )}
       <Box>
-        <Typography
+        {/* <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
-            fontWeight: 400,
-            fontStyle: 'italic'
+            fontWeight: 600
           }}
         >
           {species.common_name ? species.common_name : '-'}
@@ -39,11 +39,50 @@ function SpeciesCard({ species }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
-            fontWeight: 600
+            fontWeight: 400,
+            fontStyle: 'italic'
           }}
         >
           {species.scientific_name ? species.scientific_name : '-'}
-        </Typography>
+        </Typography> */}
+
+        <Tooltip title={species.common_name}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 600,
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {species.common_name ? species.common_name : '-'}
+          </Typography>
+        </Tooltip>
+        <Tooltip
+          title={
+            species.scientific_name ? species.scientific_name : species.complete_name ? species.complete_name : '-'
+          }
+        >
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 400,
+              fontStyle: 'italic',
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {species.scientific_name ? species.scientific_name : species.complete_name ? species.complete_name : '-'}
+          </Typography>
+        </Tooltip>
       </Box>
     </Box>
   )

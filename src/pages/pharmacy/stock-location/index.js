@@ -30,6 +30,8 @@ import StockLocationFilter from 'src/components/pharmacy/stockLocation/StockLoca
 import { getNewRackList } from 'src/lib/api/pharmacy/getRackList'
 import StockDetailDrawer from 'src/components/pharmacy/stockLocation/StockDetailDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import MenuWithDots from 'src/components/MenuWithDots'
+import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
 
 const StockLocation = () => {
   const theme = useTheme()
@@ -67,6 +69,8 @@ const StockLocation = () => {
   const [openStockDetailDrawer, setOpenStockDetailDrawer] = useState(false)
   const [configMed, setConfigMed] = useState(null)
   const [editProduct, setEditProduct] = useState(null)
+  const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
+  const [configReOrderMed, setConfigReOrderMed] = useState(null)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -86,10 +90,10 @@ const StockLocation = () => {
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        if (response?.data?.racks?.length > 0) {
           setItems(prev => ({
             ...prev,
-            Racks: response?.data
+            Racks: response?.data?.racks
           }))
         }
       } catch (error) {
@@ -155,6 +159,18 @@ const StockLocation = () => {
     ...row,
     id: getSlNo(index)
   }))
+
+  const getMenuOptions = row => [
+    {
+      label: 'Add Re-Order Level',
+      action: () => {
+        setOpenReOrderLevelDialog(true)
+        setConfigReOrderMed(row)
+      }
+    }
+  ]
+
+  console.log('Config Meds', configMed)
 
   const columns = [
     {
@@ -259,7 +275,7 @@ const StockLocation = () => {
       minWidth: 20,
       width: 220,
       field: 'min_qty',
-      headerName: 'RE-ORDER LEVEL',
+      headerName: 'REORDER LEVEL',
       sortable: true,
       align: 'center',
       headerAlign: 'center',
@@ -286,7 +302,7 @@ const StockLocation = () => {
       align: 'right',
       sortable: false,
       renderCell: params => (
-        <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
           <Tooltip title='Edit' placement='top'>
             <IconButton
               size='small'
@@ -300,9 +316,7 @@ const StockLocation = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title='More Options' placement='top'>
-            <IconButton size='small' onClick={() => console.log(params?.rows?.stock_item_id)} aria-label='options'>
-              <Icon icon='mdi-dots-vertical' />
-            </IconButton>
+            <MenuWithDots options={getMenuOptions(params?.row)} />
           </Tooltip>
         </Box>
       )
@@ -402,6 +416,11 @@ const StockLocation = () => {
       setConfigMed(params?.row)
       setOpenStockDetailDrawer(true)
     }
+  }
+
+  const handleStockRowClose = () => {
+    setOpenStockDetailDrawer(false)
+    setConfigMed(null)
   }
 
   return (
@@ -557,8 +576,18 @@ const StockLocation = () => {
       {openStockDetailDrawer && (
         <StockDetailDrawer
           openDrawer={openStockDetailDrawer}
-          setOpenDrawer={setOpenStockDetailDrawer}
+          setDrawerClose={handleStockRowClose}
           stockDetail={configMed}
+        />
+      )}
+      {openReOrderLevelDialog && (
+        <AddReOrderDialog
+          openDrawer={openReOrderLevelDialog}
+          setOpenDrawer={setOpenReOrderLevelDialog}
+          stockDetails={configReOrderMed}
+          setStockDetails={setConfigReOrderMed}
+          dialogCheck={dialogCheck}
+          setDialogCheck={setDialogCheck}
         />
       )}
     </>

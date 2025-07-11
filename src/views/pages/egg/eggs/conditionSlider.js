@@ -1,5 +1,7 @@
-/* eslint-disable lines-around-comment */
-import { LoadingButton } from '@mui/lab'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useContext } from 'react'
+import Image from 'next/image'
+
 import {
   Autocomplete,
   Avatar,
@@ -20,25 +22,30 @@ import {
   Switch,
   TextField,
   Typography,
-  debounce,
-  fabClasses
+  debounce
 } from '@mui/material'
-import CustomInput from 'src/components/PickersCustomInput'
-import { useDropzone } from 'react-dropzone'
-import { Controller, useForm } from 'react-hook-form'
-import Icon from 'src/@core/components/icon'
+import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
-import Image from 'next/image'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
-import imageUploader from 'public/images/imageUploader/imageUploader.png'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
-import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { TimePicker } from '@mui/x-date-pickers/TimePicker'
+import { DatePicker } from '@mui/x-date-pickers'
+
+import dayjs from 'dayjs'
+import moment from 'moment'
+
+import { useDropzone } from 'react-dropzone'
+import { Controller, useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+
+import { AuthContext } from 'src/context/AuthContext'
+import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
+import AnimalParentCard from '../../../utility/animalParentCard'
+import imageUploader from 'public/images/imageUploader/imageUploader.png'
+
+import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
 import {
   createAnimal,
   getAccessionType,
@@ -48,14 +55,7 @@ import {
   getMasterInstitutes,
   getMastersOrganization,
   getTaxonomyList
-  // getZoosSectionListing
 } from 'src/lib/api/egg/egg/createAnimal'
-import { DatePicker } from '@mui/x-date-pickers'
-import moment from 'moment'
-import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
-import { useContext } from 'react'
-import { AuthContext } from 'src/context/AuthContext'
-import AnimalParentCard from '../../../utility/animalParentCard'
 
 const ConditionSlider = ({
   getActivityLogsFunc,
@@ -67,9 +67,7 @@ const ConditionSlider = ({
   GetGalleryImgList
 }) => {
   const theme = useTheme()
-  const [selectedOption, setSelectedOption] = useState('')
   const [hatched, setHatched] = useState('normal_hatch')
-  // console.log('hatched :>> ', hatched)
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState([])
 
@@ -108,7 +106,7 @@ const ConditionSlider = ({
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -116,7 +114,7 @@ const ConditionSlider = ({
     try {
       getEggMasterData()
     } catch (error) {
-      console.log('error :>> ', error)
+      console.error('error :>> ', error)
     }
   }, [])
 
@@ -128,6 +126,7 @@ const ConditionSlider = ({
     shell_thickness: '',
     assisted_by: '',
     image: [],
+    hatched_date: null,
     ////////////////
     species: '',
     accessionType: '',
@@ -155,13 +154,7 @@ const ConditionSlider = ({
     isAnimal
       ? {
           current_state: yup.string().required('State is required'),
-
           select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
-
-          // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
-          // shell_thickness:
-          //   statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
-
           assisted_by:
             hatched === 'assisted_hatch'
               ? yup.string().trim().required('Assisted by is required')
@@ -184,11 +177,21 @@ const ConditionSlider = ({
               }
             ),
           accessionDate: yup.string().required('Accession date is required'),
+          hatched_date: yup
+            .mixed()
+            // .nullable()
+            .required('Hatched date is required')
+            .test('valid-date', 'Invalid date', value => value && dayjs(value).isValid())
+            .test('not-in-future', 'Hatched date cannot be in the future', value =>
+              value ? dayjs(value).isBefore(dayjs().add(1, 'day'), 'day') : true
+            ),
+
+          // hatched_date: yup.string().required('Hatched date is required'),
           collectionType: yup.string().required('Collection type is required'),
           enclosure_id: yup.string().required('Enclosure is required'),
           sextype: yup.string().required('Sex type is required'),
           birthDate: yup.string().required('Birth date is required'),
-          enclosure_id: yup.string().required('Enclosure is required'),
+          localIdentifierType: yup.string().required('Local identifier type is required'),
           localIdentifier: yup
             .string()
             .test(
@@ -199,20 +202,13 @@ const ConditionSlider = ({
                 if (localIdentifierType && localIdentifierType.trim() !== '') {
                   return !!value // Return true if value is not empty
                 }
-
                 return true // Otherwise, always pass validation
               }
             )
         }
       : {
           current_state: yup.string().required('State is required'),
-
           select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
-
-          // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
-          // shell_thickness:
-          //   statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
-
           assisted_by:
             hatched === 'assisted_hatch'
               ? yup.string().trim().required('Assisted by is required')
@@ -227,11 +223,16 @@ const ConditionSlider = ({
     getValues,
     clearErrors,
     watch,
+    setError,
     reset,
     resetField,
     formState: { errors }
   } = useForm({
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      hatched_date: null
+    },
+    // defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
@@ -275,6 +276,7 @@ const ConditionSlider = ({
   // if (watch('accessionType') != '2') {
   //   clearErrors('institution')
   // }
+
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true, // changed to true for multiple files
     accept: {
@@ -287,7 +289,6 @@ const ConditionSlider = ({
         reader.onload = () => {
           setImgSrc(prev => [...prev, reader.result])
         }
-
         reader.readAsDataURL(file)
       })
 
@@ -304,7 +305,7 @@ const ConditionSlider = ({
   })
 
   const onError = errors => {
-    console.log('Form errros', errors)
+    console.error('Form errors', errors)
   }
 
   const handleAddImageClick = () => {
@@ -377,12 +378,20 @@ const ConditionSlider = ({
     } else {
       setDisplayFile(prev => {
         const updatedFiles = prev.split(', ').filter((_, i) => i !== index)
+
         return updatedFiles.join(', ')
       })
     }
   }
 
   const onSubmit = values => {
+    if (Number(getValues('current_state')) === 4 && values.hatched_date === null) {
+      setError('hatched_date', {
+        type: 'manual',
+        message: 'Hatched date is required'
+      })
+      return
+    }
     try {
       setLoader(true)
       let payload
@@ -410,7 +419,6 @@ const ConditionSlider = ({
           egg_attachment: imgArr,
           is_necropsy_needed: values?.necropsy_Btn
         }
-        // console.log('payload 3 :>> ', payload)
       } else if (Number(getValues('current_state')) === 4) {
         payload = {
           egg_id: eggId,
@@ -419,7 +427,8 @@ const ConditionSlider = ({
           egg_shell_thickness: getValues('shell_thickness'),
           comment: getValues('comment'),
           egg_assisted_by: getValues('assisted_by'),
-          egg_attachment: imgArr
+          egg_attachment: imgArr,
+          hatched_date: values.hatched_date ? dayjs(values.hatched_date).format('YYYY-MM-DD') : null
         }
       }
 
@@ -453,7 +462,6 @@ const ConditionSlider = ({
       if (isAnimal && statusID === '4') {
         AddEggStatusAndCondition(payload).then(ress => {
           if (ress?.success) {
-            // setLoader(false)
             Toaster({ type: 'success', message: ress.message })
             createAnimal(animalPayload).then(res => {
               if (res.success) {
@@ -484,7 +492,7 @@ const ConditionSlider = ({
           } else {
             setLoader(false)
             // setDefaultSpecies(null)
-            Toaster({ type: 'error', message: res.message })
+            Toaster({ type: 'error', message: res?.message })
           }
         })
       } else {
@@ -680,6 +688,16 @@ const ConditionSlider = ({
   }, [eggDetails])
 
   useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'hatched_date' && value?.hatched_date) {
+        setValue('birthDate', value.hatched_date)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [watch])
+
+  useEffect(() => {
     getAccessionTypeFunc()
     getMasterInstitutesFunc()
     getMastersOrganizationFunc()
@@ -820,14 +838,19 @@ const ConditionSlider = ({
                                 flexDirection: 'row',
                                 alignItems: 'center',
                                 gap: 2,
-                                border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                border: `1px solid ${theme.palette.customColors.MuiFieldBorder}`,
                                 borderRadius: '10px',
-                                // opacity: 0.6,
                                 width: '100%',
                                 justifyContent: 'space-between'
                               }}
                             >
-                              <Typography ml={2}>Normal Hatch</Typography>
+                              <Typography
+                                sx={{
+                                  ml: 3
+                                }}
+                              >
+                                Normal Hatch
+                              </Typography>
                               <FormControlLabel value='normal_hatch' control={<Radio />} />
                             </Box>
                             <Box
@@ -835,16 +858,20 @@ const ConditionSlider = ({
                                 display: 'flex',
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                // gap: 2,
-                                border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                p: 2,
+                                border: `1px solid ${theme.palette.customColors.MuiFieldBorder}`,
+                                gap: 2,
                                 borderRadius: '10px',
-                                // opacity: 0.6,
                                 width: '100%',
                                 justifyContent: 'space-between'
                               }}
                             >
-                              <Typography ml={2}>Assisted Hatch</Typography>
+                              <Typography
+                                sx={{
+                                  ml: 3
+                                }}
+                              >
+                                Assisted Hatch
+                              </Typography>
                               <FormControlLabel value='assisted_hatch' control={<Radio />} />
                             </Box>
                           </Box>
@@ -856,22 +883,12 @@ const ConditionSlider = ({
                         )}
                       </FormControl>
 
-                      <FormControl fullWidth>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
                         <Controller
                           name='shell_thickness'
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
-                            // <TextField
-                            //   error={Boolean(errors?.shell_thickness)}
-                            //   value={value}
-                            //   type='number'
-                            //   label='Enter Shell Thickness*'
-                            //   name='shell_thickness'
-                            //   onChange={onChange}
-                            //   placeholder=''
-                            //   sx={{ width: '100%', mr: 12 }} // Adjusted sx prop
-                            // />
                             <TextField
                               error={Boolean(errors?.shell_thickness)}
                               value={value}
@@ -896,10 +913,11 @@ const ConditionSlider = ({
                                   margin: 0
                                 }
                               }}
-                              InputProps={{
-                                endAdornment: <InputAdornment position='end'>mm</InputAdornment>
+                              slotProps={{
+                                input: {
+                                  endAdornment: <InputAdornment position='end'>mm</InputAdornment>
+                                }
                               }}
-                              // inputProps={{ min: 1 }}
                             />
                           )}
                         />
@@ -908,6 +926,31 @@ const ConditionSlider = ({
                             {errors?.shell_thickness?.message}
                           </FormHelperText>
                         )}
+                      </FormControl>
+
+                      <FormControl fullWidth sx={{}}>
+                        <Controller
+                          name='hatched_date'
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              <DatePicker
+                                label='Hatched Date *'
+                                value={value || null}
+                                onChange={onChange}
+                                maxDate={dayjs()}
+                                format='DD/MM/YYYY'
+                                slotProps={{
+                                  textField: {
+                                    fullWidth: true,
+                                    error: Boolean(errors?.hatched_date),
+                                    helperText: errors?.hatched_date?.message || ''
+                                  }
+                                }}
+                              />
+                            </LocalizationProvider>
+                          )}
+                        />
                       </FormControl>
 
                       {hatched === 'assisted_hatch' && (
@@ -975,7 +1018,7 @@ const ConditionSlider = ({
                   </FormControl>
                   <Grid container>
                     {/* {imgSrc !== '' ? null : ( */}
-                    <Grid item md={12} sm={12} xs={12}>
+                    <Grid item size={{ md: 12, sm: 12, xs: 12 }}>
                       <input
                         type='file'
                         multiple
@@ -1005,55 +1048,55 @@ const ConditionSlider = ({
                       </Box>
                     </Grid>
                     {/* )} */}
-                    <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                      <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                        {imgSrc?.length > 0 &&
-                          imgSrc?.map((img, index) => (
-                            <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                  </Grid>
+                  <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                      {imgSrc?.length > 0 &&
+                        imgSrc?.map((img, index) => (
+                          <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                            <Box
+                              sx={{
+                                position: 'relative',
+                                backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                borderRadius: '10px',
+                                height: 121,
+                                padding: '10.5px',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <img
+                                style={{
+                                  aspectRatio: 2 / 2,
+                                  height: '100%',
+                                  borderRadius: '5%'
+                                }}
+                                alt='Uploaded image'
+                                src={typeof img === 'string' ? img : img}
+                              />
                               <Box
                                 sx={{
-                                  position: 'relative',
-                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                  borderRadius: '10px',
-                                  height: 121,
-                                  padding: '10.5px',
-                                  boxSizing: 'border-box'
+                                  cursor: 'pointer',
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10,
+                                  height: '24px',
+                                  borderRadius: 0.4,
+                                  backgroundColor: theme.palette.customColors.secondaryBg
                                 }}
                               >
-                                <img
-                                  style={{
-                                    aspectRatio: 2 / 2,
-                                    height: '100%',
-                                    borderRadius: '5%'
-                                  }}
-                                  alt='Uploaded image'
-                                  src={typeof img === 'string' ? img : img}
-                                />
-                                <Box
-                                  sx={{
-                                    cursor: 'pointer',
-                                    position: 'absolute',
-                                    top: 0,
-                                    right: 0,
-                                    zIndex: 10,
-                                    height: '24px',
-                                    borderRadius: 0.4,
-                                    backgroundColor: theme.palette.customColors.secondaryBg
-                                  }}
+                                <Icon
+                                  icon='material-symbols-light:close'
+                                  color={theme.palette.primary.contrastText}
+                                  onClick={() => removeSelectedImage(index)}
                                 >
-                                  <Icon
-                                    icon='material-symbols-light:close'
-                                    color={theme.palette.primary.contrastText}
-                                    onClick={() => removeSelectedImage(index)}
-                                  >
-                                    {' '}
-                                  </Icon>
-                                </Box>
+                                  {' '}
+                                </Icon>
                               </Box>
                             </Box>
-                          ))}
-                      </Stack>
-                    </Grid>
+                          </Box>
+                        ))}
+                    </Stack>
                   </Grid>
                   {/* {console.log('permission check', checkAddPermission())} */}
                   {statusID === '4' && checkAddPermission() && (
@@ -1145,7 +1188,11 @@ const ConditionSlider = ({
                 )}
 
                 {isAnimal && statusID === '4' && checkAddPermission() && (
-                  <Box mb={35}>
+                  <Box
+                    sx={{
+                      mb: 35
+                    }}
+                  >
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
                     <Box
                       fullWidth
@@ -1354,22 +1401,24 @@ const ConditionSlider = ({
                                   placeholder=''
                                   onClick={() => setOpen(true)}
                                   disabled
-                                  InputProps={{
-                                    endAdornment: (
-                                      <InputAdornment position='end'>
-                                        <Icon
-                                          icon={'material-symbols:add-circle-outline'}
-                                          style={{ color: theme.palette.primary.main }}
-                                        ></Icon>
-                                      </InputAdornment>
-                                    )
-                                  }}
                                   sx={{
                                     '& .MuiInputLabel-root': {
                                       color: 'rgba(76, 78, 100, 0.6)'
                                     },
                                     '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
                                       borderColor: errors.enclosure_id ? 'red' : undefined
+                                    }
+                                  }}
+                                  slotProps={{
+                                    input: {
+                                      endAdornment: (
+                                        <InputAdornment position='end'>
+                                          <Icon
+                                            icon={'material-symbols:add-circle-outline'}
+                                            style={{ color: theme.palette.primary.main }}
+                                          ></Icon>
+                                        </InputAdornment>
+                                      )
                                     }
                                   }}
                                 />
@@ -1498,6 +1547,7 @@ const ConditionSlider = ({
                                 onChange={onChange}
                                 label={'Birth Date *'}
                                 maxDate={dayjs()}
+                                format='DD/MM/YYYY'
                               />
                             </LocalizationProvider>
                           )}
@@ -1522,9 +1572,11 @@ const ConditionSlider = ({
                                 label='Enter Age'
                                 name='age'
                                 type='number'
-                                inputProps={{ min: 1 }}
                                 onChange={onChange}
                                 placeholder=''
+                                slotProps={{
+                                  htmlInput: { min: 1 }
+                                }}
                               />
                             )}
                           />
@@ -1767,7 +1819,6 @@ const ConditionSlider = ({
                   </Box>
                 )}
               </Box>
-
               <Box
                 sx={{
                   height: '122px',
@@ -1791,7 +1842,7 @@ const ConditionSlider = ({
                   disabled={loader}
                   fullWidth
                   variant='contained'
-                  loader={loader}
+                  loading={loader}
                   type='submit'
                   size='large'
                 >
@@ -1815,7 +1866,6 @@ const ConditionSlider = ({
 
 const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
   const theme = useTheme()
-
   return (
     <Box
       sx={{
@@ -1878,7 +1928,7 @@ const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure
           Site: {site_name ? site_name : '-'}
         </Typography>
       </Box>
-      <Box sx={{}}>
+      <Box>
         <IconButton size='small' onClick={closeEnclosureCard} sx={{ color: 'text.primary' }}>
           <Icon icon='mdi:close-circle-outline' fontSize={36} style={{ color: 'red' }} />
         </IconButton>
