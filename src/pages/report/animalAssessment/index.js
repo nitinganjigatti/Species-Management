@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useCallback } from 'react'
+import { useState, useRef, useEffect, useContext, useCallback } from 'react'
 import {
   Avatar,
   Box,
@@ -30,6 +30,7 @@ import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
 import Error404 from 'src/pages/401'
+import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
@@ -89,6 +90,15 @@ const AnimalAssessment = () => {
   //////////////////////////////////////////////////////////////
   const [searchTerm, setSearchTerm] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Inside your component
+  const searchRef = useRef(null)
+
+  useEffect(() => {
+    if (searchRef.current && document.activeElement !== searchRef.current) {
+      searchRef.current.focus()
+    }
+  }, [assessmentData]) // Or use isLoading, total, or whatever changes after search
 
   // api call for table data
   const animalAssessmentReport = async (searchValue = search || '') => {
@@ -163,12 +173,6 @@ const AnimalAssessment = () => {
     const animals = assessmentData || []
 
     const transformed = animals?.map(animal => {
-      // const age =
-      //   animal.birth_date && moment(animal.birth_date).isValid()
-      //     ? `${moment().diff(moment(animal.birth_date), 'years')}y ${
-      //         moment().diff(moment(animal.birth_date), 'months') % 12
-      //       }m`
-      //     : '-'
       const age = (() => {
         if (animal.animal_type === 'group') return 'NA'
         if (!animal.birth_date || !moment(animal.birth_date).isValid()) return 'NA'
@@ -197,8 +201,14 @@ const AnimalAssessment = () => {
             // Number(assessment?.assessment_value) > 1 && assessment?.uom_abbr ? 's' : ''
             ''
           }`,
-          date: moment(Utility.convertUTCToLocalDate(assessment.assessment_recorded_date)).format('DD MMMM YYYY'),
-          time: Utility.convertUTCToLocaltime(assessment.assessment_recorded_date, 'HH:mm:ss'),
+          date: moment(
+            Utility.convertUTCToLocalDate(
+              assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time
+            )
+          ).format('DD MMMM YYYY'),
+          time: Utility.extractHoursAndMinutes(
+            Utility?.convertUTCToLocal(assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time)
+          ),
           user: assessment.user_details
         }
       })
@@ -206,14 +216,18 @@ const AnimalAssessment = () => {
       return {
         ...recordMap,
         default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
-        primary_identifier_type: animal.identifier_type,
-        primary_identifier_value: animal.identifier_value,
-        primary_animal_id: animal.animal_id,
+        local_identifier_name: animal.identifier_type,
+        local_identifier_value: animal.identifier_value,
+        animal_id: animal.animal_id,
         primary_taxonomy_id: animal.taxonomy_id,
         common_name: animal.common_name,
         scientific_name: animal.scientific_name,
         age,
-        site: animal.site,
+        total_animal: animal.total_animal,
+        type: animal.animal_type,
+        breed_name: animal.breed_name,
+        morph_name: animal.morph_name,
+        site_name: animal.site,
         sex: animal.sex
       }
     })
@@ -238,151 +252,6 @@ const AnimalAssessment = () => {
     setHeaderList(headers)
   }
 
-  const AnimalCard = ({ animalData }) => {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            alignItems: 'center'
-          }}
-        >
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit:
-                  animalData?.default_icon?.includes('class_images') && animalData?.default_icon?.endsWith('.svg')
-                    ? 'contain'
-                    : 'cover',
-                padding:
-                  animalData?.default_icon?.includes('class_images') && animalData?.default_icon.endsWith('.svg')
-                    ? '3px'
-                    : 0
-              },
-              width: 32,
-              height: 32
-            }}
-            alt={animalData?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-            src={animalData?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-          />
-          <Avatar
-            sx={{
-              width: 22.22,
-              height: 20.15,
-              bgcolor:
-                animalData?.type === 'group'
-                  ? theme.palette.customColors.addPrimary
-                  : animalData?.sex === 'male'
-                  ? theme.palette.customColors.SecondaryContainer
-                  : animalData?.sex === 'female'
-                  ? theme.palette.customColors.AntzTertiary
-                  : animalData?.sex === 'undetermined' || animalData?.sex === 'indeterminate'
-                  ? theme.palette.customColors.displaybgSecondary
-                  : theme.palette.customColors.SecondaryContainer,
-              objectFit: 'contain',
-              pt: 0.2,
-              height: 24,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
-            variant='rounded'
-          >
-            {/* {animalData?.type === 'group' ? ( */}
-            {animalData?.animal_type === 'group' ? (
-              <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>
-                G
-              </Typography>
-            ) : animalData?.sex === 'male' ? (
-              <Typography
-                sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}
-              >
-                M
-              </Typography>
-            ) : animalData?.sex === 'female' ? (
-              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Tertiary }}>
-                F
-              </Typography>
-            ) : animalData?.sex === 'undetermined' ? (
-              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>
-                UD
-              </Typography>
-            ) : animalData?.sex === 'indeterminate' ? (
-              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-                ID
-              </Typography>
-            ) : (
-              <Typography sx={{ fontSize: 14 }}>-</Typography>
-            )}
-          </Avatar>
-        </Box>
-        <Box>
-          <Typography
-            sx={{
-              fontSize: '12px',
-              fontWeight: 600,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {animalData?.primary_identifier_type && animalData?.primary_identifier_value
-              ? `${animalData?.primary_identifier_type}: ${animalData?.primary_identifier_value}`
-              : `AID: ${animalData?.primary_animal_id}`}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 500,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {animalData?.common_name}
-          </Typography>
-          <Typography
-            sx={{
-              fontStyle: 'italic',
-              fontSize: '14px',
-              fontWeight: 400,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {animalData?.scientific_name}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 400,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Age : {animalData?.age}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 400,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Site : {animalData?.site}
-          </Typography>
-        </Box>
-      </Box>
-    )
-  }
-
   const columns = headerList.map((header, i) => {
     if (header.key === 'default_icon') {
       return {
@@ -398,7 +267,9 @@ const AnimalAssessment = () => {
         columnStyle: {
           border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
           borderRight: 'none',
+          boxSizing: 'border-box',
           p: 0,
+          pr: 2,
           m: 0
         },
         disableColumnMenu: true,
@@ -410,7 +281,8 @@ const AnimalAssessment = () => {
                 paddingLeft: '20px'
               }}
             >
-              <AnimalCard animalData={params?.row} />
+              {/* <AnimalCard animalData={params?.row} /> */}
+              <AnimalParentCard data={params?.row} />
             </Box>
           )
         }
@@ -420,8 +292,8 @@ const AnimalAssessment = () => {
     return {
       field: header.key,
       headerName: header.label,
-      width: 240,
       sortable: false,
+      width: 240,
       disableColumnMenu: true,
       headerStyle: i === 1 && { position: 'sticky', left: 300, zIndex: 1000, p: 0, m: 0 },
       columnStyle: {
@@ -439,15 +311,23 @@ const AnimalAssessment = () => {
             onClick={() => {
               setAnimalDetailsData({
                 ...record,
-                default_icon: '',
-                primary_animal_id: params?.row.primary_animal_id,
-                primary_identifier_type: params.row.primary_identifier_type,
-                primary_identifier_value: params.row.primary_identifier_value,
-                common_name: params?.row.common_name,
-                scientific_name: params?.row.scientific_name,
+
+                default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
+                local_identifier_name: params?.row?.identifier_type,
+                local_identifier_value: params?.row?.identifier_value,
+                animal_id: params?.row?.animal_id,
+                primary_taxonomy_id: params?.row?.taxonomy_id,
+                common_name: params?.row?.common_name,
+                scientific_name: params?.row?.scientific_name,
                 age: params.row.age,
-                site: params?.row.site,
-                sex: params.row.sex
+
+                // age,
+                total_animal: params?.row?.total_animal,
+                type: params?.row?.type,
+                breed_name: params?.row?.breed_name,
+                morph_name: params?.row?.morph_name,
+                site_name: params?.row?.site_name,
+                sex: params?.row?.sex
               })
               setShowDetailsPopUp(true)
             }}
@@ -485,11 +365,7 @@ const AnimalAssessment = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-
-              // backgroundColor: theme.palette.customColors.cardHeaderBg,
               height: '100%'
-
-              // mr: headerList.length === i + 1 ? '-20px' : 0
             }}
           >
             <Typography>N/A</Typography>
@@ -632,14 +508,15 @@ const AnimalAssessment = () => {
           >
             <Box
               sx={{
-                minHeight: '121px',
+                // minHeight: '121px',
+                // maxHeight: '600px',
                 bgcolor: theme.palette.customColors.lightBg,
-                borderRadius: '8px',
-                padding: '10px',
-                paddingLeft: '20px'
+                borderRadius: '8px'
+                // padding: '10px',
+                // paddingLeft: '20px'
               }}
             >
-              <AnimalCard animalData={animalDetailsData} />
+              <AnimalParentCard backgroundColor={theme.palette.customColors.lightBg} data={animalDetailsData} />
             </Box>
 
             <Box sx={{ gap: '8px', display: 'flex', flexDirection: 'column' }}>
@@ -907,6 +784,8 @@ const AnimalAssessment = () => {
                   <Box sx={{ display: 'flex', gap: 4, justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                       <TextField
+                        inputRef={searchRef}
+                        autoFocus
                         value={search}
                         onChange={e => handleSearchChange(e)}
                         variant='outlined'
