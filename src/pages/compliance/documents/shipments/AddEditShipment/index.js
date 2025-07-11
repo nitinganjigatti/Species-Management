@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem, Button } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem, Button, alpha } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { getDocumentTypeList } from 'src/lib/api/compliance/exports'
+import Toaster from 'src/components/Toaster'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import AnimalsData from 'src/views/pages/compliance/documents/shipment/forms/AnimalsData'
 import ShipmentBasicDetails from 'src/views/pages/compliance/documents/shipment/forms/ShipmentBasicDetails'
 import { getLinkedDocumentsShipments } from 'src/lib/api/compliance/shipment'
+import { useTheme } from '@mui/material/styles'
 import LinkedDocuments from 'src/views/pages/compliance/documents/shipment/forms/LinkedDocuments'
 
 const AddEditShipment = () => {
   const router = useRouter()
   const { id, action, export: exportCount } = router.query
+  const theme = useTheme()
   const isEdit = Boolean(id && id !== 'new')
   const [expanded, setExpanded] = useState('permit-details')
   const [showEdit, setShowEdit] = useState(true)
@@ -172,7 +175,7 @@ const AddEditShipment = () => {
 
       <CustomAccordion
         id='permit-details'
-        docsCount={!isBasicEditable && expanded !== 'permit-details' ? `ID: ${formattedValue}` : null}
+        docsCount={!isBasicEditable && expanded !== 'permit-details' && id ? `ID: ${formattedValue}` : null}
         title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>}
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
@@ -228,63 +231,71 @@ const AddEditShipment = () => {
         </CustomAccordion>
       )}
 
-      <CustomAccordion
-        id='supporting-documents'
-        title={
-          <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>
-            Travel & customs Documents
-          </Typography>
-        }
-        docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
-      >
-        {!isEdit && !documentList?.length ? (
-          <Box
-            sx={{
-              height: '150px',
-              width: '100%',
-              mx: 'auto',
-              backgroundColor: alpha(theme.palette.common.black, 0.05),
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderRadius: '8px',
-              px: 4
-            }}
-          >
-            <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
-              Please save form details to add supporting documents
+      {id && (
+        <CustomAccordion
+          id='supporting-documents'
+          title={
+            <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>
+              Travel & customs Documents
             </Typography>
-          </Box>
-        ) : (
-          <SupportingDocuments
-            isFetching={isFetching}
-            documentList={documentList}
-            totalCount={totalCount}
-            onAddEditSuccess={handleAddEditSuccess}
-            type='3'
-          />
-        )}
-      </CustomAccordion>
+          }
+          docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
+          expanded={expanded}
+          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        >
+          {!isEdit && !documentList?.length ? (
+            <Box
+              sx={{
+                height: '150px',
+                width: '100%',
+                mx: 'auto',
+                backgroundColor: alpha(theme.palette.common.black, 0.05),
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: '8px',
+                px: 4
+              }}
+            >
+              <Typography
+                sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}
+              >
+                Please save form details to add supporting documents
+              </Typography>
+            </Box>
+          ) : (
+            <SupportingDocuments
+              isFetching={isFetching}
+              documentList={documentList}
+              totalCount={totalCount}
+              onAddEditSuccess={handleAddEditSuccess}
+              type='3'
+            />
+          )}
+        </CustomAccordion>
+      )}
 
-      <CustomAccordion
-        id='linked-documents'
-        title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Linked Documents</Typography>}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
-        docsCount={
-          linkedDocumentsData?.exports_count || linkedDocumentsData?.imports_count ? (
-            <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
-              <strong>{linkedDocumentsData?.exports_count}</strong> Exports&nbsp;|&nbsp;
-              <strong>{linkedDocumentsData?.imports_count}</strong> Imports
-            </Typography>
-          ) : null
-        }
-        type='shipment'
-      >
-        <LinkedDocuments linkedDocumentsData={linkedDocumentsData} />
-      </CustomAccordion>
+      {id && (linkedDocumentsData?.exports?.length || linkedDocumentsData?.imports?.length) ? (
+        <CustomAccordion
+          id='linked-documents'
+          title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Linked Documents</Typography>}
+          expanded={expanded}
+          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+          docsCount={
+            linkedDocumentsData?.exports_count || linkedDocumentsData?.imports_count ? (
+              <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
+                <strong>{linkedDocumentsData?.exports_count}</strong> Exports&nbsp;|&nbsp;
+                <strong>{linkedDocumentsData?.imports_count}</strong> Imports
+              </Typography>
+            ) : null
+          }
+          type='shipment'
+        >
+          <LinkedDocuments linkedDocumentsData={linkedDocumentsData} />
+        </CustomAccordion>
+      ) : (
+        ''
+      )}
     </>
   )
 }

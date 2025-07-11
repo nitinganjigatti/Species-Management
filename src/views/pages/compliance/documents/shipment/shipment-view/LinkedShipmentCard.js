@@ -1,5 +1,6 @@
 import React from 'react'
 import { Typography, Grid, Box, Paper, Chip } from '@mui/material'
+import moment from 'moment'
 
 const ShipmentCard = ({ shipment }) => {
   return (
@@ -31,7 +32,7 @@ const ShipmentCard = ({ shipment }) => {
             <Box mb={4}>
               <Typography sx={{ fontSize: '16px', color: '#7A8684', fontWeight: 400 }}>Shipment Date</Typography>
               <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                {shipment.shipment_date}
+                {moment(shipment.shipment_date).format('DD/MM/YYYY')}
               </Typography>
             </Box>
             <Box>

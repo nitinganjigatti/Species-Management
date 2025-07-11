@@ -47,7 +47,7 @@ const AnimalDetailsDrawer = ({
               {/* <Box component='img' src='/images/housing/Enclosure icon.png' alt='icon' sx={{ width: 32, height: 32 }} /> */}
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{title}</Typography>
             </Box>
-            {detailtype === 'others' ? (
+            {detailtype === 'others' && action !== 'details' ? (
               <Typography
                 sx={{
                   color: '#006D35',

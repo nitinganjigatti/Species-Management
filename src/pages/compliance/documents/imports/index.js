@@ -28,7 +28,7 @@ const getSpecies = async () => ({
   ]
 })
 
-const getImportList = async (params) => ({
+const getImportList = async params => ({
   success: true,
   data: {
     total: 3,
@@ -149,11 +149,11 @@ const ImportsPage = () => {
 
   const handleSubmit = async (data, editId) => {
     const apiFn = editId ? updateImport : addImport
-  
+
     try {
       const res = await apiFn(editId, data)
       Toaster({ type: res.success ? 'success' : 'error', message: res.message || 'Something went wrong' })
-  
+
       if (res.success) {
         setOpenDrawer(false)
         fetchImports()
@@ -163,19 +163,14 @@ const ImportsPage = () => {
       Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
     }
   }
-  
 
   return (
     <>
-    <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>
-              Documents
-            </Typography>
-    
-            <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>
-              Import
-            </Typography>
-          </Breadcrumbs>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Documents</Typography>
+
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Import</Typography>
+      </Breadcrumbs>
       <Card>
         <CardHeader
           title='Import Documents'
@@ -191,7 +186,7 @@ const ImportsPage = () => {
           }
           sx={{ px: 5 }}
         />
-        <Grid container spacing={4} sx={{ px: 5, py: 2 }} alignItems="center">
+        <Grid container spacing={4} sx={{ px: 5, py: 2 }} alignItems='center'>
           <Grid item xs={12} md={3}>
             <Search
               placeholder='Search imports...'
