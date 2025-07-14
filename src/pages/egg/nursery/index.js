@@ -384,85 +384,82 @@ const NurseryList = () => {
           <Card>
             <CardHeader title='Nursery' action={headerAction} />
 
-            <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
-              <Grid item xs={3}>
-                <Box
+            <Box sx={{ display: 'flex', px: 4, gap: 4, flexWrap: 'wrap', mb: 6 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  height: '40px'
+                }}
+              >
+                <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value, defaultSite?.site_id)}
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '4px',
-                    padding: '0 8px',
-                    height: '40px'
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
                   }}
-                >
-                  <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    onChange={e => handleSearch(e.target.value, defaultSite?.site_id)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              </Grid>
+                />
+              </Box>
 
-              <Grid item xs={3}>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    name='site'
-                    value={defaultSite}
-                    disablePortal
-                    id='site'
-                    options={authData?.userData?.user?.zoos[0].sites}
-                    getOptionLabel={option => option.site_name}
-                    isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultSite(null)
-                        fetchTableData(searchValue, '')
-                      } else {
-                        setDefaultSite(val)
-                        fetchTableData(searchValue, val?.site_id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        sx={{
-                          backgroundColor: theme.palette.primary.contrastText,
-                          borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                          width: '100%',
-                          '& .MuiOutlinedInput-root': {
-                            height: 40,
-                            borderRadius: '4px'
-                          },
-                          '& .MuiInputLabel-root': {
-                            top: -7
-                          },
-                          '& input': {
-                            position: 'relative',
-                            top: -7
-                          }
-                        }}
-                        onChange={e => {
-                          // searchNursery(e.target.value)
-                        }}
-                        {...params}
-                        label='Site'
-                        placeholder='Search & Select'
-                      />
-                    )}
-                  />
-                </FormControl>
-              </Grid>
-            </Grid>
+              <FormControl>
+                <Autocomplete
+                  name='site'
+                  value={defaultSite}
+                  disablePortal
+                  id='site'
+                  sx={{ width: 220 }}
+                  options={authData?.userData?.user?.zoos[0].sites}
+                  getOptionLabel={option => option.site_name}
+                  isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                  onChange={(e, val) => {
+                    if (val === null) {
+                      setDefaultSite(null)
+                      fetchTableData(searchValue, '')
+                    } else {
+                      setDefaultSite(val)
+                      fetchTableData(searchValue, val?.site_id)
+                    }
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      sx={{
+                        backgroundColor: theme.palette.primary.contrastText,
+                        borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        width: '100%',
+                        '& .MuiOutlinedInput-root': {
+                          height: 40,
+                          borderRadius: '4px'
+                        },
+                        '& .MuiInputLabel-root': {
+                          top: -7
+                        },
+                        '& input': {
+                          position: 'relative',
+                          top: -7
+                        }
+                      }}
+                      onChange={e => {
+                        // searchNursery(e.target.value)
+                      }}
+                      {...params}
+                      label='Site'
+                      placeholder='Search & Select'
+                    />
+                  )}
+                />
+              </FormControl>
+            </Box>
 
             <DataGrid
               sx={{
