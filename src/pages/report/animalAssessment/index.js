@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useCallback } from 'react'
+import { useState, useEffect, useRef, useContext, useCallback } from 'react'
 import {
   Avatar,
   Box,
@@ -89,6 +89,15 @@ const AnimalAssessment = () => {
   //////////////////////////////////////////////////////////////
   const [searchTerm, setSearchTerm] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Inside your component
+  const searchRef = useRef(null)
+
+  useEffect(() => {
+    if (searchRef.current && document.activeElement !== searchRef.current) {
+      searchRef.current.focus()
+    }
+  }, [assessmentData]) // Or use isLoading, total, or whatever changes after search
 
   // api call for table data
   const animalAssessmentReport = async (searchValue = search || '') => {
@@ -253,7 +262,9 @@ const AnimalAssessment = () => {
         columnStyle: {
           border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
           borderRight: 'none',
-          p: 2,
+          boxSizing: 'border-box',
+          p: 0,
+          pr: 2,
           m: 0
         },
         disableColumnMenu: true,
@@ -490,9 +501,9 @@ const AnimalAssessment = () => {
               sx={{
                 // minHeight: '121px',
                 bgcolor: theme.palette.customColors.lightBg,
-                borderRadius: '8px',
-                padding: '10px',
-                paddingLeft: '20px'
+                borderRadius: '8px'
+                // padding: '10px',
+                // paddingLeft: '20px'
               }}
             >
               {/* <AnimalCard animalData={animalDetailsData} /> */}
@@ -764,6 +775,8 @@ const AnimalAssessment = () => {
                   <Box sx={{ display: 'flex', gap: 4, justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                       <TextField
+                        inputRef={searchRef}
+                        autoFocus
                         value={search}
                         onChange={e => handleSearchChange(e)}
                         variant='outlined'
