@@ -173,8 +173,7 @@ const ImportsPage = () => {
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Import Documents'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Import Documents</Typography>}
           action={
             <AddButtonContained
               title='ADD NEW'

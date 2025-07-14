@@ -27,7 +27,6 @@ const DashboardLabRequests = ({ labRequests }) => {
     <>
       {/* <CardHeader
         title='General Statistics'
-        titleTypographyProps={{ sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }}
         action={
           <OptionsMenu
             options={['Last 28 Days', 'Last Month', 'Last Year']}

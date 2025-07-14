@@ -177,8 +177,11 @@ const ExportPermitDetails = () => {
       </Box>
 
       <CardHeader
-        title={`CITES Export Permit - ${exportData.export_number || 'No ID'}`}
-        titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+        title={
+          <Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>{`CITES Export Permit - ${
+            exportData.export_number || 'No ID'
+          }`}</Typography>
+        }
       />
       <CustomAccordion
         id='permit-details'
