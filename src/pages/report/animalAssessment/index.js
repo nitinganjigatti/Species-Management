@@ -181,14 +181,14 @@ const AnimalAssessment = () => {
         const months = now.diff(birth, 'months') % 12
         const days = now.diff(birth.clone().add({ years, months }), 'days')
 
-        if (years >= 1) {
-          return `${years}y ${months}m`
-        } else if (months >= 1) {
-          return `${months}m ${days}d`
-        } else {
-          return `${days}d`
-        }
+        let parts = []
+        if (years > 0) parts.push(`${years}y`)
+        if (months > 0) parts.push(`${months}m`)
+        if (days > 0 || parts.length === 0) parts.push(`${days}d`) // always show days if nothing else
+
+        return parts.join(' ')
       })()
+
       // need to check here time is right or wrong according to ISO
       const recordMap = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
