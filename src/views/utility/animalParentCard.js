@@ -1,4 +1,4 @@
-import { Avatar, Skeleton, Typography } from '@mui/material'
+import { Avatar, Skeleton, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
@@ -140,162 +140,211 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
             }}
           >
             {data?.local_identifier_name && data?.local_identifier_value ? (
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  lineHeight: '19.36px'
-                }}
+              <Tooltip
+                title={
+                  data?.local_identifier_name && data?.local_identifier_value
+                    ? `${data?.local_identifier_name} : ${data?.local_identifier_value}`
+                    : '-'
+                }
               >
-                <span> {data?.local_identifier_name}: </span>
-                <span> {data?.local_identifier_value}</span>
-              </Typography>
-            ) : (
-              data?.animal_id && (
                 <Typography
                   sx={{
-                    fontSize: size ?? '16px',
-                    fontWeight: 600,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '16px',
+                    fontWeight: '600',
                     lineHeight: '19.36px',
-                    color: theme.palette.customColors.OnSurfaceVariant
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}
                 >
-                  AID : {data?.animal_id}
+                  <span> {data?.local_identifier_name} : </span>
+                  <span> {data?.local_identifier_value}</span>
                 </Typography>
+              </Tooltip>
+            ) : (
+              data?.animal_id && (
+                <Tooltip title={data?.animal_id ? `AID: ${data?.animal_id}` : '-'}>
+                  <Typography
+                    sx={{
+                      fontSize: size ?? '16px',
+                      fontWeight: 600,
+                      lineHeight: '19.36px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    AID: {data?.animal_id}
+                  </Typography>
+                </Tooltip>
               )
             )}
 
-            {data?.common_name ||
-              (data?.default_common_name && (
+            {(data?.common_name || data?.default_common_name) && (
+              <Tooltip title={data?.common_name || data?.default_common_name}>
                 <Typography
                   sx={{
                     fontSize: '16px',
-                    fontWeight: 600,
+                    fontWeight: 400,
                     lineHeight: '19.36px',
-                    color: theme.palette.customColors.OnSurfaceVariant
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}
                 >
                   {data?.common_name || data?.default_common_name}
                 </Typography>
-              ))}
+              </Tooltip>
+            )}
 
             {data?.scientific_name && (
-              <Typography
-                sx={{
-                  fontSize: animal ? '16px' : '13px',
-                  fontWeight: animal ? 400 : 500,
-                  fontStyle: 'italic',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                {data?.scientific_name}
-              </Typography>
+              <Tooltip title={data?.scientific_name ? data?.scientific_name : '-'}>
+                <Typography
+                  sx={{
+                    fontSize: animal ? '16px' : '13px',
+                    fontWeight: animal ? 400 : 500,
+                    fontStyle: 'italic',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {data?.scientific_name}
+                </Typography>
+              </Tooltip>
             )}
 
             {data?.type === 'group' && (
-              <Typography
-                variant='caption'
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                  fontSize: '14px',
-                  textAlign: 'center',
-                  bgcolor: '#DDEBE9',
-                  fontWeight: 600,
-                  paddingY: '4px',
-                  borderRadius: '5px'
-                  // width: 'fit-content'
-                }}
-              >
-                Count <strong>{data?.total_animal}</strong>
-              </Typography>
+              <Tooltip title={data?.total_animal ? `Count: ${data?.total_animal}` : '-'}>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                    fontSize: '14px',
+                    textAlign: 'center',
+                    bgcolor: '#DDEBE9',
+                    fontWeight: 600,
+                    paddingY: '4px',
+                    borderRadius: '5px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                    // width: 'fit-content'
+                  }}
+                >
+                  Count <strong>{data?.total_animal}</strong>
+                </Typography>
+              </Tooltip>
             )}
 
             <>
               {data?.breed_name && (
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    lineHeight: '16.94px',
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  <span style={{ fontWeight: 400 }}>Breed : </span>
-                  {data?.breed_name}
-                </Typography>
+                <Tooltip title={data?.breed_name ? `Breed: ${data?.breed_name}` : '-'}>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      lineHeight: '16.94px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    <span style={{ fontWeight: 400 }}>Breed : </span>
+                    {data?.breed_name}
+                  </Typography>
+                </Tooltip>
               )}
 
               {data?.morph_name && (
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    lineHeight: '16.94px',
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  <span style={{ fontWeight: 400 }}>Variant: </span>
-                  {data?.morph_name}
-                </Typography>
+                <Tooltip title={data?.morph_name ? `Variant: ${data?.morph_name}` : '-'}>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      lineHeight: '16.94px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    <span style={{ fontWeight: 400 }}>Variant: </span>
+                    {data?.morph_name}
+                  </Typography>
+                </Tooltip>
               )}
             </>
 
             {data?.age && (
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  lineHeight: '16.94px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                <span style={{ fontWeight: 400 }}> Age: </span>
-                {data?.age}
-              </Typography>
+              <Tooltip title={data?.age ? `Age: ${data?.age}` : '-'}>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    lineHeight: '16.94px',
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  <span style={{ fontWeight: 400 }}> Age: </span>
+                  {data?.age}
+                </Typography>
+              </Tooltip>
             )}
 
             {data?.user_enclosure_name && (
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: animal ? 400 : 600,
-                  lineHeight: '16.94px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                <span style={{ fontWeight: 400 }}> Encl: </span>
-                {data?.user_enclosure_name}
-              </Typography>
+              <Tooltip title={data?.user_enclosure_name ? `Encl: ${data?.user_enclosure_name}` : '-'}>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: animal ? 400 : 600,
+                    lineHeight: '16.94px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  <span style={{ fontWeight: 400 }}> Encl: </span>
+                  {data?.user_enclosure_name}
+                </Typography>
+              </Tooltip>
             )}
 
             {data?.section_name && (
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: animal ? 400 : 600,
-                  lineHeight: '16.94px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                <span style={{ fontWeight: 400, fontSize: animal && '14px' }}>Sec: </span> {data?.section_name}
-              </Typography>
+              <Tooltip title={data?.section_name ? `Sec: ${data?.section_name}` : '-'}>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: animal ? 400 : 600,
+                    lineHeight: '16.94px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  <span style={{ fontWeight: 400, fontSize: animal && '14px' }}>Sec: </span> {data?.section_name}
+                </Typography>
+              </Tooltip>
             )}
 
             {data?.site_name && (
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  lineHeight: '16.94px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                <span style={{ fontWeight: 400 }}>Site: </span>
-                {data?.site_name}
-              </Typography>
+              <Tooltip title={data?.site_name ? `Site: ${data?.site_name}` : '-'}>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    lineHeight: '16.94px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  <span style={{ fontWeight: 400 }}>Site: </span>
+                  {data?.site_name}
+                </Typography>
+              </Tooltip>
             )}
           </Box>
         </Box>

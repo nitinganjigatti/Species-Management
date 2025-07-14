@@ -269,17 +269,7 @@ const AnimalAssessment = () => {
         },
         disableColumnMenu: true,
         renderCell: params => {
-          // console.log('params.row', params.row)
-          return (
-            <Box
-              sx={{
-                paddingLeft: '20px'
-              }}
-            >
-              {/* <AnimalCard animalData={params?.row} /> */}
-              <AnimalParentCard data={params?.row} />
-            </Box>
-          )
+          return <AnimalParentCard data={params?.row} />
         }
       }
     }
