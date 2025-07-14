@@ -476,7 +476,16 @@ const NurseryDetails = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box
+              sx={{
+                m: '16px',
+                display: 'flex',
+                gap: 4,
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap'
+              }}
+            >
               <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <Icon
                   style={{ cursor: 'pointer', fontSize: '24px' }}
@@ -496,42 +505,46 @@ const NurseryDetails = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {' '}
-                {egg_nursery_permission && (
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={active}
-                          onChange={e => {
-                            setOpenStatusDialog(true)
-                          }}
-                        />
-                      }
-                      labelPlacement='start'
-                      label='Active'
-                    />
-                    <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-                      <Icon
-                        icon='mdi:pencil-outline'
-                        fontSize={28}
-                        color={theme.palette.customColors.OnSurfaceVariant}
-                        onClick={() => setOpenDrawer(true)}
+              {egg_nursery_permission && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '16px'
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={active}
+                        onChange={e => {
+                          setOpenStatusDialog(true)
+                        }}
                       />
-                    </IconButton>
-                    <Button
-                      size='medium'
-                      variant='contained'
-                      disabled={disabledAddRoomBtn}
-                      onClick={() => setIsOpen(true)}
-                    >
-                      <Icon icon='mdi:add' fontSize={20} />
-                      &nbsp; ADD ROOM
-                    </Button>
-                  </Box>
-                )}
-              </Box>
+                    }
+                    labelPlacement='start'
+                    label='Active'
+                  />
+                  <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+                    <Icon
+                      icon='mdi:pencil-outline'
+                      fontSize={28}
+                      color={theme.palette.customColors.OnSurfaceVariant}
+                      onClick={() => setOpenDrawer(true)}
+                    />
+                  </IconButton>
+                  <Button
+                    size='medium'
+                    variant='contained'
+                    disabled={disabledAddRoomBtn}
+                    onClick={() => setIsOpen(true)}
+                  >
+                    <Icon icon='mdi:add' fontSize={20} />
+                    &nbsp; ADD ROOM
+                  </Button>
+                </Box>
+              )}
             </Box>
             <Box sx={{ px: '16px', my: '12px' }}>
               <DetailCard
@@ -540,96 +553,93 @@ const NurseryDetails = () => {
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
               />{' '}
-              <Grid sx={{ mb: 6, mt: 6 }} container columns={15} spacing={6}>
-                <Grid item size={{ xs: 3 }}>
-                  <Box
+              <Box sx={{ display: 'flex', gap: 4, mb: 6, mt: 6, flexWrap: 'wrap' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '4px',
+                    padding: '0 8px',
+                    height: '40px'
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '40px'
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
                     }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                      slotProps={{
-                        input: {
-                          disableunderline: true
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
+                    slotProps={{
+                      input: {
+                        disableunderline: true
+                      }
+                    }}
+                  />
+                </Box>
 
-                <Grid item size={{ xs: 3 }}>
-                  <FormControl fullWidth>
-                    <Autocomplete
-                      name='status'
-                      value={defaultStatus}
-                      disablePortal
-                      id='status'
-                      options={[
-                        { label: 'Active', key: 'active' },
-                        { label: 'Inactive', key: 'inactive' }
-                      ]}
-                      getOptionLabel={option => option.label}
-                      isOptionEqualToValue={(option, value) => option?.key === value?.key}
-                      onChange={(e, val) => {
-                        if (val === null) {
-                          setDefaultStatus(null)
-                          fetchTableData(searchValue, sortColumn, '')
-                        } else {
-                          setDefaultStatus(val)
-                          fetchTableData(searchValue, sortColumn, val?.key)
-                        }
-                      }}
-                      renderInput={params => (
-                        <TextField
-                          sx={{
-                            backgroundColor: theme.palette.primary.contrastText,
-                            borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            width: '100%',
-                            '& .MuiOutlinedInput-root': {
-                              height: 40,
-                              borderRadius: '4px'
-                            },
-                            '& .MuiInputLabel-root': {
-                              top: -7
-                            },
-                            '& .MuiInputLabel-shrink': {
-                              top: 0
-                            },
-                            '& input': {
-                              position: 'relative',
-                              top: -0
-                            }
-                          }}
-                          onChange={e => {
-                            // searchNursery(e.target.value)
-                          }}
-                          {...params}
-                          label='Status'
-                          placeholder='Search & Select'
-                        />
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-              </Grid>
+                <FormControl>
+                  <Autocomplete
+                    name='status'
+                    value={defaultStatus}
+                    disablePortal
+                    sx={{ width: 220 }}
+                    id='status'
+                    options={[
+                      { label: 'Active', key: 'active' },
+                      { label: 'Inactive', key: 'inactive' }
+                    ]}
+                    getOptionLabel={option => option.label}
+                    isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultStatus(null)
+                        fetchTableData(searchValue, sortColumn, '')
+                      } else {
+                        setDefaultStatus(val)
+                        fetchTableData(searchValue, sortColumn, val?.key)
+                      }
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        sx={{
+                          backgroundColor: theme.palette.primary.contrastText,
+                          borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          width: '100%',
+                          '& .MuiOutlinedInput-root': {
+                            height: 40,
+                            borderRadius: '4px'
+                          },
+                          '& .MuiInputLabel-root': {
+                            top: -7
+                          },
+                          '& .MuiInputLabel-shrink': {
+                            top: 0
+                          },
+                          '& input': {
+                            position: 'relative',
+                            top: -0
+                          }
+                        }}
+                        onChange={e => {
+                          // searchNursery(e.target.value)
+                        }}
+                        {...params}
+                        label='Status'
+                        placeholder='Search & Select'
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Box>
             </Box>
             <DataGrid
               sx={{
