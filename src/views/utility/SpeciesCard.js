@@ -1,4 +1,4 @@
-import { Avatar, CircularProgress, Skeleton, Tooltip, Typography } from '@mui/material'
+import { Avatar, CircularProgress, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -6,7 +6,6 @@ import { useTheme } from '@mui/material/styles'
 function SpeciesCard({ species }) {
   const theme = useTheme()
   const [loading, setLoading] = useState(true)
-  const [imgSrc, setImgSrc] = useState(species?.default_icon)
 
   const handleImageLoad = () => {
     setLoading(false)
@@ -14,7 +13,6 @@ function SpeciesCard({ species }) {
 
   const handleImageError = () => {
     setLoading(false)
-    setImgSrc('/images/housing/species-icon-colored.svg')
   }
 
   return (
@@ -66,8 +64,18 @@ function SpeciesCard({ species }) {
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       {species?.default_icon && (
         <Box sx={{ position: 'relative', width: 40, height: 40 }}>
-          {loading && <Skeleton variant='circular' width={40} height={40} animation='wave' />}
-
+          {loading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            >
+              <CircularProgress size={20} />
+            </Box>
+          )}
           <Avatar
             sx={{
               width: 40,
@@ -82,7 +90,7 @@ function SpeciesCard({ species }) {
                   ? '50%'
                   : 'unset'
             }}
-            src={imgSrc}
+            src={species.default_icon || '/icons/species.svg'}
             alt={species.scientific_name}
             imgProps={{
               onLoad: handleImageLoad,

@@ -21,6 +21,14 @@ const SingleDatePicker = ({
   size,
   ...rest
 }) => {
+  const handleDateChange = selectedDate => {
+    if (selectedDate === null) {
+      onChangeHandler(new Date())
+    } else {
+      onChangeHandler(selectedDate)
+    }
+  }
+
   return (
     <DatePickerWrapper>
       <DatePicker
@@ -29,8 +37,11 @@ const SingleDatePicker = ({
         selected={date}
         id='form-layouts-separator-date'
         popperPlacement={popperPlacement}
-        onChange={onChangeHandler}
+        onChange={handleDateChange}
         maxDate={maxDate ? maxDate : null}
+        popperProps={{
+          strategy: 'fixed'
+        }}
         placeholderText='select a date'
         customInput={
           <CustomInput

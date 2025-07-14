@@ -60,9 +60,7 @@ const Analytics = () => {
         {videoData.map((video, index) => (
           <Grid
             item
-            xs={12}
-            sm={6}
-            md={4}
+            size={{ xs: 12, sm: 6, md: 4 }}
             key={index}
             sx={{
               display: 'flex',

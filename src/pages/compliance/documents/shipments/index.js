@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Badge, Box, Breadcrumbs, Button, Card, CardHeader, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import Router from 'next/router'
@@ -181,7 +181,11 @@ const ShipmentPage = () => {
       <Card>
         <CardHeader
           title='Shipment Documents'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          slotProps={{
+            title: {
+              sx: { fontSize: '1.5rem !important', fontWeight: 'bold' }
+            }
+          }}
           action={
             <AddButtonContained
               title='Add New'
@@ -191,15 +195,15 @@ const ShipmentPage = () => {
           sx={{ px: 5, pb: 0 }}
         />
         <Grid container spacing={4} sx={{ px: 5, py: 2, mt: 2 }} alignItems='center'>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Search
               placeholder='Search'
               onChange={e => handleSearch(e.target.value)}
               onClear={() => handleSearch('')}
             />
           </Grid>
-          <Grid item xs={12} md={2} />
-          <Grid item xs={12} md={4.5}>
+          <Grid size={{ xs: 12, md: 2 }} />
+          <Grid size={{ xs: 12, md: 4.5 }}>
             {/* <CommonDateRangePickers
               filterDates={filterDate}
               onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
@@ -235,7 +239,7 @@ const ShipmentPage = () => {
             </Grid>
           </Grid> */}
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <CommonTable
               columns={columns}
               indexedRows={rows}

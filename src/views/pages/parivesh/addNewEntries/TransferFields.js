@@ -24,6 +24,7 @@ const TransferFields = ({
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
   })
   const possessionType = watch('possession_type')
+
   // Watch maleCount, femaleCount, and othersCount
   const male_count = watch('male_count') || 0
   const female_count = watch('female_count') || 0
@@ -31,10 +32,11 @@ const TransferFields = ({
 
   // Calculate total count
   const totalCount = Number(male_count) + Number(female_count) + Number(other_count)
+
   return (
     <>
       <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <FormControl fullWidth>
             <Controller
               name='possession_type'
@@ -86,9 +88,8 @@ const TransferFields = ({
           </FormControl>
         </Grid>
       </Grid>
-
       <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='where_to_transfer'
@@ -112,7 +113,7 @@ const TransferFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='transaction_date'
@@ -139,11 +140,13 @@ const TransferFields = ({
           </FormControl>
         </Grid>
       </Grid>
-
       <Divider />
-
-      <Grid item xs={12}>
-        <Box mt={6}>
+      <Grid item size={{ xs: 12 }}>
+        <Box
+          sx={{
+            mt: 6
+          }}
+        >
           <Typography variant='h5' gutterBottom>
             Gender
           </Typography>
@@ -153,7 +156,7 @@ const TransferFields = ({
         </Box>
       </Grid>
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='male_count'
@@ -180,13 +183,13 @@ const TransferFields = ({
               <FormHelperText sx={{ color: 'error.main' }}>{errors.male_count?.message}</FormHelperText>
             )}
             {errors.counts && (
-              <Grid item xs={12} sx={{ mb: 6 }}>
+              <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
                 <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
               </Grid>
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='female_count'
@@ -213,13 +216,13 @@ const TransferFields = ({
               <FormHelperText sx={{ color: 'error.main' }}>{errors.female_count?.message}</FormHelperText>
             )}
             {errors.counts && (
-              <Grid item xs={12} sx={{ mb: 6 }}>
+              <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
                 <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
               </Grid>
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='other_count'
@@ -246,7 +249,7 @@ const TransferFields = ({
               <FormHelperText sx={{ color: 'error.main' }}>{errors.other_count?.message}</FormHelperText>
             )}
             {errors.counts && (
-              <Grid item xs={12} sx={{ mb: 6 }}>
+              <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
                 <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
               </Grid>
             )}

@@ -105,7 +105,12 @@ const SelectRacksListDrawer = ({
         >
           <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box>
-              <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: '500',
+                  color: '#1F515B'
+                }}>
                 Choose Rack
               </Typography>
               <Typography variant='body2' sx={{ color: '#44544A' }}>
@@ -124,25 +129,27 @@ const SelectRacksListDrawer = ({
               size='small'
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon sx={{ color: '#1F515B' }} />
-                  </InputAdornment>
-                ),
-                endAdornment: searchTerm && (
-                  <InputAdornment position='end'>
-                    <IconButton
-                      size='small'
-                      onClick={() => {
-                        setSearchTerm('')
-                      }}
-                    >
-                      <Icon icon='mdi:close' fontSize={20} />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-                style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon sx={{ color: '#1F515B' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: searchTerm && (
+                    <InputAdornment position='end'>
+                      <IconButton
+                        size='small'
+                        onClick={() => {
+                          setSearchTerm('')
+                        }}
+                      >
+                        <Icon icon='mdi:close' fontSize={20} />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                  style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+                }
               }}
             />
           </Box>
@@ -226,9 +233,10 @@ const SelectRacksListDrawer = ({
                 >
                   <ListItemText
                     primary={rack.name}
-                    primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
-                    secondaryTypographyProps={{ color: '#44544A' }}
-                  />
+                    slotProps={{
+                      primary: { fontWeight: 'bold', color: '#1F515B' },
+                      secondary: { color: '#44544A' }
+                    }} />
                   <Checkbox
                     checked={pendingSelections?.Racks.includes(rack.id)}
                     onChange={() => handleRackCheckboxChange(rack)}
@@ -262,7 +270,7 @@ const SelectRacksListDrawer = ({
         </Box>
       </Drawer>
     </>
-  )
+  );
 }
 
 export default SelectRacksListDrawer

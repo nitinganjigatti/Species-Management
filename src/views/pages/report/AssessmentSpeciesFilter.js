@@ -1,17 +1,18 @@
-import { LoadingButton } from '@mui/lab'
-import { Drawer, IconButton, TextField, Typography, CircularProgress } from '@mui/material'
-import Icon from 'src/@core/components/icon'
 import React, { useState, useEffect, useCallback, useRef, useContext } from 'react'
+import { Drawer, IconButton, TextField, Typography, CircularProgress } from '@mui/material'
 import { Box } from '@mui/system'
+import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
-import SpeciesCard from 'src/views/utility/SpeciesCard'
 import debounce from 'lodash/debounce'
-import { getTaxonomyListForReport } from 'src/lib/api/report'
 import { AuthContext } from 'src/context/AuthContext'
+import Icon from 'src/@core/components/icon'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { getTaxonomyListForReport } from 'src/lib/api/report'
 
 function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspeciesFilter, setOpenspeciesFilter }) {
   const theme = useTheme()
   const drawerContentRef = useRef(null)
+  const searchInputRef = useRef(null)
   const authData = useContext(AuthContext)
   const zoo_id = authData.userData.user.zoos[0]?.zoo_id
 
@@ -41,11 +42,11 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
       //   const total = res?.data?.data?.total_count || 23
       const total = 23
 
-      setTotalCount(total)
-
       setSpeciesList(prev => (isNewSearch ? newSpecies : [...prev, ...newSpecies]))
+      // setTotalCount(speciesList?.length)
 
-      if ((isNewSearch ? newSpecies.length : speciesList.length + newSpecies.length) >= total) {
+      // if ((isNewSearch ? newSpecies.length : speciesList.length + newSpecies.length) >= total) {
+      if (Number(newSpecies?.length) === 0) {
         setHasMore(false)
       } else {
         setHasMore(true)
@@ -56,6 +57,10 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    setTotalCount(speciesList?.length)
+  }, [speciesList])
 
   useEffect(() => {
     fetchSpecies('', 1, true)
@@ -96,6 +101,37 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
     }
   }
 
+  useEffect(() => {
+    const checkAndFetchMore = () => {
+      if (drawerContentRef.current && hasMore && !loading) {
+        const { scrollHeight, clientHeight } = drawerContentRef.current
+
+        if (scrollHeight <= clientHeight + 10) {
+          const nextPage = page + 1
+          setPage(nextPage)
+          fetchSpecies(searchValue, nextPage)
+        }
+      }
+    }
+
+    // call once on mount or species list update
+    checkAndFetchMore()
+  }, [speciesList, page, hasMore, loading])
+
+  useEffect(() => {
+    if (openspeciesFilter) {
+      const timeout = setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.focus()
+          }
+        })
+      }, 500) // Give time for drawer transition and rendering
+
+      return () => clearTimeout(timeout)
+    }
+  }, [openspeciesFilter])
+
   return (
     <Drawer
       anchor='right'
@@ -114,20 +150,101 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
         className='sidebar-header'
         sx={{
           display: 'flex',
+          gap: '24px',
           alignItems: 'center',
           justifyContent: 'space-between',
           backgroundColor: 'background.default',
-          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          p: '24px'
         }}
       >
-        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Select Species</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
-            <Icon icon='mdi:close' fontSize={24} />
-          </IconButton>
-        </Box>
+        <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Select Species</Typography>
+        <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
+          <Icon icon='mdi:close' fontSize={24} />
+        </IconButton>
+      </Box>
+      <Box sx={{ px: 4, backgroundColor: 'background.default' }}>
+        {/* <TextField
+          inputRef={searchInputRef}
+          value={searchValue}
+          fullWidth
+          slotProps={{
+            startAdornment: (
+              <Icon
+                style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                icon={'ion:search-outline'}
+              />
+            ),
+            endAdornment: searchValue && (
+              <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+              </IconButton>
+            )
+          }}
+          placeholder='Search by species name or scientific name'
+          onChange={handleSearchChange}
+          sx={{
+            bgcolor: theme.palette.primary.contrastText,
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            borderRadius: '8px',
+            '& .MuiOutlinedInput-root': {
+              border: 'none',
+              borderColor: theme.palette.customColors.Outline,
+              '& fieldset': {
+                border: 'none',
+                borderColor: theme.palette.customColors.Outline
+              },
+              '& .MuiInputBase-input::placeholder': {
+                color: theme.palette.customColors.OutlineVariant,
+                fontSize: '14px',
+                fontWeight: '400'
+              }
+            }
+          }}
+        /> */}
+
+        <TextField
+          fullWidth
+          value={searchValue}
+          onChange={handleSearchChange}
+          placeholder='Search by species name or scientific name'
+          inputProps={{
+            ref: searchInputRef,
+            style: {
+              color: theme.palette.text.primary
+            }
+          }}
+          sx={{
+            bgcolor: theme.palette.primary.contrastText,
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            borderRadius: '8px',
+            '& .MuiOutlinedInput-root': {
+              border: 'none',
+              '& fieldset': {
+                border: 'none'
+              },
+              '& .MuiInputBase-input::placeholder': {
+                color: theme.palette.customColors.OutlineVariant,
+                fontSize: '14px',
+                fontWeight: '400'
+              }
+            }
+          }}
+        />
+
+        <Typography
+          sx={{
+            mt: 6,
+            mb: 4,
+            fontSize: '16px',
+            fontWeight: 600,
+            color: theme.palette.customColors.OnSurfaceVariant,
+            letterSpacing: 0,
+            lineHeight: '100%'
+          }}
+        >
+          Species
+          {/* {totalCount > 0 && ` (${totalCount})`} */}
+        </Typography>
       </Box>
 
       {/* Content */}
@@ -137,61 +254,12 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
         sx={{
           overflowY: 'auto',
           flexGrow: 1,
+          paddingBottom: 4,
           backgroundColor: 'background.default'
         }}
       >
-        <Box sx={{ bgcolor: 'background.default', p: theme => theme.spacing(3, 3.255, 3, 5.255) }}>
-          <TextField
-            value={searchValue}
-            fullWidth
-            InputProps={{
-              startAdornment: (
-                <Icon
-                  style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                  icon={'ion:search-outline'}
-                />
-              ),
-              endAdornment: searchValue && (
-                <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                  <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                </IconButton>
-              )
-            }}
-            placeholder='Search by species name or scientific name'
-            onChange={handleSearchChange}
-            sx={{
-              bgcolor: theme.palette.primary.contrastText,
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              '& .MuiOutlinedInput-root': {
-                border: 'none',
-                borderColor: theme.palette.customColors.Outline,
-                '& fieldset': {
-                  border: 'none',
-                  borderColor: theme.palette.customColors.Outline
-                },
-                '& .MuiInputBase-input::placeholder': {
-                  color: theme.palette.customColors.OutlineVariant,
-                  fontSize: '14px',
-                  fontWeight: '400'
-                }
-              }
-            }}
-          />
-
-          <Box sx={{ pb: 25, mt: 4, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                letterSpacing: 0,
-                lineHeight: '100%'
-              }}
-            >
-              Species{totalCount > 0 && ` (${totalCount})`}
-            </Typography>
-
+        <Box sx={{ bgcolor: 'background.default', p: theme => theme.spacing(1, 3.255, 3, 5.255) }}>
+          <Box sx={{ pb: 25, display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {speciesList.length > 0 &&
               speciesList.map((item, index) => {
                 const isSelected = tempSelectedSpecie?.tsn_id === item.tsn_id // assuming `item.id` is the unique ID
@@ -215,7 +283,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
                     <Box
                       sx={{
                         bgcolor: theme.palette.customColors.Surface,
-                        width: '56px',
+                        minWidth: '56px',
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
@@ -292,7 +360,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
           onClick={() => {
             setSelectedSpecie(tempSelectedSpecie)
             setOpenspeciesFilter(false)
-            setTempSelectedSpecie(null)
+            // setTempSelectedSpecie(null)
           }}
         >
           DONE

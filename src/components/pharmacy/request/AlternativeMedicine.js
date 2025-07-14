@@ -302,7 +302,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           <Grid container spacing={2}>
             <Grid
               item
-              xs={12}
+              size={{ xs: 12 }}
               sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.Surface' }}
             >
               <Typography sx={{ color: 'customColors.SecondaryDark' }}>
@@ -316,9 +316,12 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         </CardContent>
       </Card>
       <Divider />
-
-      <Grid sx={{ my: 6 }} xs={12}>
-        <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
+      <Grid sx={{ my: 6 }} size={{ xs: 12 }}>
+        <Grid
+          item
+          sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }}
+          size={{ xs: 12, sm: 12 }}
+        >
           <Typography
             variant='button'
             onClick={() => setTabStatus('By product')}
@@ -349,31 +352,37 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           </Typography>
         </Grid>
       </Grid>
-      <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} item xs={12}>
+      <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} item size={{ xs: 12 }}>
         {tabStatus === 'By product' ? (
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <FormControl fullWidth>
               <Autocomplete
                 id='autocomplete-controlled'
                 options={optionsMedicineList}
-                renderOption={(props, option) => (
-                  <li
-                    {...props}
-                    style={{
-                      opacity: getOptionStyle(option) === false ? 1 : 0.5,
+                renderOption={(props, option) => {
+                  const { key, ...otherProps } = props
 
-                      pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
-                    }}
-                  >
-                    <Box>
-                      <Typography>{option?.name}</Typography>
-                      <Typography variant='body2'>{option?.package}</Typography>
-                      <Typography variant='body2'>{option?.manufacture}</Typography>
-                      {RenderUtility?.renderControlLabel(option?.control_substance === true, 'CS')}
-                      {RenderUtility?.renderPrescriptionLabel(option?.prescription_required === true, 'PR')}
-                    </Box>
-                  </li>
-                )}
+                  return (
+                    <li
+                      key={`${option.value || ''}-${option.name || ''}-${option.package || ''}-${
+                        option.manufacture || ''
+                      }`}
+                      {...otherProps}
+                      style={{
+                        opacity: getOptionStyle(option) === false ? 1 : 0.5,
+                        pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
+                      }}
+                    >
+                      <Box>
+                        <Typography>{option?.name}</Typography>
+                        <Typography variant='body2'>{option?.package}</Typography>
+                        <Typography variant='body2'>{option?.manufacture}</Typography>
+                        {RenderUtility?.renderControlLabel(option?.control_substance === true, 'CS')}
+                        {RenderUtility?.renderPrescriptionLabel(option?.prescription_required === true, 'PR')}
+                      </Box>
+                    </li>
+                  )
+                }}
                 value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
                 onChange={(event, newValue) => {
                   setNestedRowMedicine({
@@ -443,49 +452,38 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             </FormControl>
           </Grid>
         ) : (
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <FormControl fullWidth>
               <Autocomplete
                 id='autocomplete-controlled'
                 options={optionsGenericMedicineList}
-                renderOption={(props, option) => (
-                  <li
-                    {...props}
-                    style={{
-                      opacity: getOptionStyle(option) === false ? 1 : 0.5,
+                renderOption={(props, option) => {
+                  const { key, ...otherProps } = props
 
-                      pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
-                    }}
-                  >
-                    <Box>
-                      <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
-                      <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
-                      <Typography variant='body2'>{option.package}</Typography>
-                      <Typography variant='body2'>{option.manufacture}</Typography>
-                      {/* {option.control_substance === true && (
-                        <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )} */}
-                      {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                      {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
-                      {/* {option.prescription_required === true && (
-                        <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )} */}
-                      {/* <Typography
-                        sx={{
-                          color: 'customColors.OnSecondaryContainer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontSize: '16px',
-                          fontWeight: 400
-                        }}
-                      >
+                  return (
+                    <li
+                      key={`${option.value || ''}-${option.genericName || ''}-${option.package || ''}-${
+                        option.manufacture || ''
+                      }`}
+                      {...otherProps}
+                      style={{
+                        opacity: getOptionStyle(option) === false ? 1 : 0.5,
+                        pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
+                      }}
+                    >
+                      <Box>
+                        <Typography>
+                          {option.genericName ? option.genericName : 'Generic name not available'}
+                        </Typography>
+                        <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
+                        <Typography variant='body2'>{option.package}</Typography>
+                        <Typography variant='body2'>{option.manufacture}</Typography>
                         {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                        {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                        {option.name}({option.package})
-                      </Typography> */}
-                    </Box>
-                  </li>
-                )}
+                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                      </Box>
+                    </li>
+                  )
+                }}
                 value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
                 onChange={(event, newValue) => {
                   setNestedRowMedicine({
@@ -594,7 +592,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           </Box>
         )}
 
-        <Grid item xs={12} sm={12} sx={{ mt: 3 }}>
+        <Grid item size={{ xs: 12, sm: 12 }} sx={{ mt: 3 }}>
           <FormControl fullWidth>
             <TextField
               type='number'
@@ -655,8 +653,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={1}></Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 1 }}></Grid>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormControl fullWidth>
             <TextField
               type='text'
@@ -887,7 +885,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         ) : null} */}
         {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
           nestedRowMedicine.prescription_required_file ? (
-            <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
+            <Grid item size={{ xs: 12, sm: 12 }} sx={{ mr: 'auto' }}>
               <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
                 Add prescription*
               </Typography>
@@ -1067,7 +1065,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               )}
             </Grid>
           ) : (
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <Typography sx={{ mb: 2 }}>Add prescription*</Typography>
               {/* <FormControl fullWidth>
                   <TextField
@@ -1136,17 +1134,19 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                 <TextField
                   onClick={handleClick}
                   placeholder='Add Prescription *'
-                  InputProps={{
-                    readOnly: true,
-
-                    startAdornment: (
-                      <IconButton component='label' htmlFor='file-upload'>
-                        <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
-                      </IconButton>
-                    )
-                  }}
                   error={Boolean(itemErrors.prescription_required_file)}
                   readOnly
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+
+                      startAdornment: (
+                        <IconButton component='label' htmlFor='file-upload'>
+                          <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
+                        </IconButton>
+                      )
+                    }
+                  }}
                 />
 
                 {itemErrors?.prescription_required_file && (

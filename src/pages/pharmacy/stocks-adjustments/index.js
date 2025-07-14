@@ -212,12 +212,15 @@ const ListOfStockAdjusted = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      minWidth: 70,
-
-      // field: 'sl',
-      headerName: 'S.NO',
-      renderCell: params => <Typography variant='body2'>{params.row.sl + '.'}</Typography>
+      width: 80,
+      headerName: 'SL.NO',
+      renderCell: params => (
+        <Box sx={{ display: 'flex' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {parseInt(params.row.sl) + '.'}
+          </Typography>
+        </Box>
+      )
     },
     {
       flex: 0.2,

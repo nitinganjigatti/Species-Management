@@ -1,35 +1,22 @@
+import React, { useState, useEffect, useContext, useCallback } from 'react'
+
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
-import {
-  Box,
-  Checkbox,
-  debounce,
-  Divider,
-  Drawer,
-  FormControl,
-  Grid,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography
-} from '@mui/material'
-import React, { useState, useEffect, useContext, useCallback } from 'react'
-import Icon from 'src/@core/components/icon'
-import { GetEggMaster } from 'src/lib/api/egg/egg'
-import { GetNurseryList } from 'src/lib/api/egg/nursery'
+import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
 
-import { getSpecieList, getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
-import { getFilterBatchList } from 'src/lib/api/egg/dashboard'
+import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
+
+import { getSpecieList } from 'src/lib/api/egg/egg/createAnimal'
+import { getFilterBatchList } from 'src/lib/api/egg/dashboard'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
+import { GetEggMaster } from 'src/lib/api/egg/egg'
 
 const leftMenu = [
   { id: 1, name: 'Species' },
   { id: 2, name: 'Batch' },
   { id: 3, name: 'Nursery' },
   { id: 4, name: 'Security status' },
-
   // { id: 5, name: 'Condition' },
   { id: 6, name: 'Reason' },
   { id: 7, name: 'Site' }
@@ -51,7 +38,7 @@ const DashboardFilter = ({
 }) => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
-  const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
+  const [selectedMenu, setSelectedMenu] = useState(selectedOptions?.selecteMenu || leftMenu[0])
   const [nurseryList, setNurseryList] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [eggMaster, setEggMaster] = useState(null)
@@ -61,8 +48,6 @@ const DashboardFilter = ({
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
   const [siteList, setSiteList] = useState([])
-
-  // console.log('siteList :>> ', siteList)
 
   const handleCloseDrawer = () => {
     setIsFilterOpen(false)
@@ -79,13 +64,24 @@ const DashboardFilter = ({
   }
 
   const handleMenuClick = menu => {
+    // console.log('menu', menu)
     setSelectedMenu(menu)
+    setTimeout(() => {
+      setSelectedOptions({
+        ...selectedOptions,
+        selecteMenu: menu
+      })
+    }, 100)
     setSearchQuery('')
     searchData('')
 
     const allOptions = getOptionsForMenu(menu)
+    // console.log('selectedOptions', selectedOptions)
+
     // Always update selectAll based on the new selection state
-    setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions.length)
+    if (allOptions?.length > 0) {
+      setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions?.length)
+    }
   }
 
   const NurseryList = async q => {
@@ -93,7 +89,6 @@ const DashboardFilter = ({
       const params = {
         // type: ['length', 'weight'],
         search: q ? q : ''
-
         // page: 1,
         // limit: 50
       }
@@ -101,7 +96,7 @@ const DashboardFilter = ({
         setNurseryList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -115,7 +110,7 @@ const DashboardFilter = ({
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -130,7 +125,7 @@ const DashboardFilter = ({
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -145,7 +140,7 @@ const DashboardFilter = ({
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -340,7 +335,7 @@ const DashboardFilter = ({
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
+          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setIsFilterOpen(false)}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
@@ -353,13 +348,12 @@ const DashboardFilter = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu.map(menu => (
               <Box
                 key={menu.id}
                 sx={{
                   width: '190px',
-
                   bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
                   cursor: 'pointer',
                   p: 4,
@@ -374,7 +368,7 @@ const DashboardFilter = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: theme.palette.primary.contrastText,
@@ -413,9 +407,6 @@ const DashboardFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -425,13 +416,18 @@ const DashboardFilter = ({
                           }
                         }
                       }}
+                      slotProps={{
+                        input: {
+                          disableunderline: false
+                        }
+                      }}
                     />
                   </Box>
                 )}
 
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    disabled={getOptionsForMenu(selectedMenu).length === 0}
+                    disabled={getOptionsForMenu(selectedMenu)?.length === 0}
                     checked={selectAll}
                     onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
@@ -470,7 +466,6 @@ const DashboardFilter = ({
           </Grid>
         </Grid>
       </Box>
-
       {/* bottom buttons */}
       <Box
         sx={{

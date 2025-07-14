@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Box, Typography, TextField, Button, Grid, CircularProgress, CardContent } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import { formatDate } from 'src/@core/utils/format'
 import moment from 'moment'
 
 const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, loader }) => {
@@ -26,7 +25,7 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
         >
           <Grid container spacing={2}>
             {/* Shipment ID */}
-            <Grid item xs={6} md={4}>
+            <Grid size={{ xs: 6, md: 4 }}>
               <Typography fontWeight='400' color='#7A8684' fontSize='16px'>
                 Shipment ID
               </Typography>
@@ -36,7 +35,7 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
             </Grid>
 
             {/* Date Of Issue */}
-            <Grid item xs={6} md={4}>
+            <Grid size={{ xs: 6, md: 4 }}>
               <Typography fontWeight='400' color='#7A8684' fontSize='16px'>
                 Date Of Issue
               </Typography>

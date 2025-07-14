@@ -12,8 +12,10 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
   const male_count = watch('male_count') || 0
   const female_count = watch('female_count') || 0
   const other_count = watch('other_count') || 0
+
   // Calculate total count
   const totalCount = Number(male_count) + Number(female_count) + Number(other_count)
+
   return (
     <>
       <FormControl fullWidth sx={{ mb: 6 }}>
@@ -38,7 +40,6 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
           <FormHelperText sx={{ color: 'error.main' }}>{errors.organization_transfer?.message}</FormHelperText>
         )}
       </FormControl>
-
       {/* <FormControl fullWidth sx={{ mb: 6 }}>
         <Controller
           name='gender'
@@ -53,7 +54,6 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
         />
         {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
       </FormControl> */}
-
       {/* <FormControl fullWidth sx={{ mb: 6 }}>
         <Controller
           name='animal_count'
@@ -74,7 +74,6 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
           <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
         )}
       </FormControl> */}
-
       <FormControl fullWidth sx={{ mb: 6 }}>
         <Controller
           name='transaction_date'
@@ -97,10 +96,8 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
           </FormHelperText>
         )}
       </FormControl>
-
       <Divider />
-
-      <Grid item xs={12} sx={{ mb: 6, mt: 6 }}>
+      <Grid item size={{ xs: 12 }} sx={{ mb: 6, mt: 6 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant='h6' gutterBottom>
             Gender *
@@ -110,8 +107,7 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
           </Typography>
         </Box>
       </Grid>
-
-      <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+      <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
         <FormControl fullWidth>
           <Controller
             name='male_count'
@@ -138,13 +134,13 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
             <FormHelperText sx={{ color: 'error.main' }}>{errors.male_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
-      <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+      <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
         <FormControl fullWidth>
           <Controller
             name='female_count'
@@ -163,6 +159,7 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
                 }}
                 error={Boolean(errors.female_count)}
                 name='female_count'
+
                 // onBlur={() => {
                 //   if (
                 //     !Boolean(errors.maleCount) &&
@@ -180,13 +177,13 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
             <FormHelperText sx={{ color: 'error.main' }}>{errors.female_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
-      <Grid item xs={12} sm={4}>
+      <Grid item size={{ xs: 12, sm: 4 }}>
         <FormControl fullWidth>
           <Controller
             name='other_count'
@@ -213,14 +210,14 @@ const TransferForm = ({ control, errors, watch, clearErrors }) => {
             <FormHelperText sx={{ color: 'error.main' }}>{errors.other_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
     </>
-  )
+  );
 }
 
 export default TransferForm

@@ -85,36 +85,6 @@ const NurseryDetails = () => {
     setOpenRedirectionDialog(false)
   }
 
-  // const toggleHatcheryStatus = () => {
-  //   setStatusLoading(true)
-  //   try {
-  //     hatcheryStatus({
-  //       ref_type: 'nursery',
-  //       ref_id: id,
-  //       status: active ? 'deactivate' : 'activate'
-  //     }).then(response => {
-  //       if (response.success) {
-  //         Toaster({ type: 'success', message: response.message })
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //         setActive(!active)
-  //         fetchNurseryDetails()
-  //       } else {
-  //         Toaster({ type: 'error', message: response.message })
-  //         setEditMessage(response?.message)
-  //         setOpenRedirectionDialog(true)
-  //         fetchNurseryDetails()
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //       }
-  //     })
-  //   } catch (error) {
-  //     setOpenStatusDialog(false)
-  //     setStatusLoading(false)
-  //     Toaster({ type: 'error', message: response.message })
-  //   }
-  // }
-
   // API Call: Toggle Active Status
   const toggleHatcheryStatus = async () => {
     setStatusLoading(true)
@@ -251,32 +221,6 @@ const NurseryDetails = () => {
     [paginationModel, sort]
   )
 
-  // const fetchTableData = useCallback(
-  //   async (q, column, status) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         search: q || '',
-  //         column,
-  //         status,
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-
-  //       await GetRoomByNursery(id, params).then(res => {
-  //         setTotal(parseInt(res?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
-
   const searchTableData = useCallback(
     debounce(async (value, column, status) => {
       setSearchValue(value)
@@ -308,38 +252,7 @@ const NurseryDetails = () => {
       fetchTableData(searchValue, sortColumn, defaultStatus?.key)
     }
   }, [])
-
-  // useEffect(() => {
-  //   if (egg_nursery_permission || egg_collection_permission) {
-  //     fetchTableData(searchValue, sortColumn, defaultStatus?.key)
-  //   }
   // }, [fetchTableData])
-
-  // const searchTableData = useCallback(
-  //   debounce(async (q, column, status) => {
-  //     setSearchValue(q)
-  //     try {
-  //       await fetchTableData(q, column, status)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   []
-  // )
-
-  // const handleSearch = (value, status) => {
-  //   setSearchValue(value)
-  //   searchTableData(value, sortColumn, status)
-  // }
-
-  // const handleSortModel = newModel => {
-  //   if (newModel.length) {
-  //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
-  //   } else {
-  //   }
-  // }
 
   const columns = [
     {
@@ -553,12 +466,16 @@ const NurseryDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
               Nursery List
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Nursery Details
             </Typography>
           </Breadcrumbs>
           <Card>
-            {/* <CardHeader title={'Nursery Details'} action={headerAction} /> */}
             <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <Icon
@@ -623,8 +540,8 @@ const NurseryDetails = () => {
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
               />{' '}
-              <Grid sx={{ ml: -6, mb: 6, mt: 0 }} container columns={15} spacing={6}>
-                <Grid item xs={3}>
+              <Grid sx={{ mb: 6, mt: 6 }} container columns={15} spacing={6}>
+                <Grid item size={{ xs: 3 }}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -639,9 +556,6 @@ const NurseryDetails = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
-                      InputProps={{
-                        disableUnderline: true
-                      }}
                       onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -652,11 +566,16 @@ const NurseryDetails = () => {
                           }
                         }
                       }}
+                      slotProps={{
+                        input: {
+                          disableunderline: true
+                        }
+                      }}
                     />
                   </Box>
                 </Grid>
 
-                <Grid item xs={3}>
+                <Grid item size={{ xs: 3 }}>
                   <FormControl fullWidth>
                     <Autocomplete
                       name='status'
@@ -691,9 +610,12 @@ const NurseryDetails = () => {
                             '& .MuiInputLabel-root': {
                               top: -7
                             },
+                            '& .MuiInputLabel-shrink': {
+                              top: 0
+                            },
                             '& input': {
                               position: 'relative',
-                              top: -7
+                              top: -0
                             }
                           }}
                           onChange={e => {
@@ -714,7 +636,17 @@ const NurseryDetails = () => {
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
-
+                '.MuiDataGrid-main': {
+                  borderLeft: '1px solid #0000000D',
+                  borderRight: '1px solid #0000000D',
+                  marginLeft: '16px',
+                  marginRight: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(233, 233, 236, 1)'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  borderTop: 'none'
+                },
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }

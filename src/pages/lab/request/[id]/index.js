@@ -58,6 +58,7 @@ import UploadReports from 'src/components/lab/request/UploadReports'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
+import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
 
 // APIs
 import {
@@ -69,14 +70,17 @@ import {
   postBulkTransfer,
   getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
-import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
-import { borderRadius, height, width } from '@mui/system'
 
 const RequestDetails = () => {
   const theme = useTheme()
-
   const router = useRouter()
   const authData = useContext(AuthContext)
+  const localLabData = authData?.userData?.modules?.lab_data?.lab
+
+  const { id, lab_id, page, q, pageSize } = Router.query
+  const searchParams = useSearchParams()
+  const Selectedlab_id = searchParams.get('lab_id')
+
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
@@ -93,11 +97,6 @@ const RequestDetails = () => {
 
   const [transferStatus, setTransferStatus] = useState('')
 
-  const { id, lab_id, page, q, pageSize } = Router.query
-
-  const searchParams = useSearchParams()
-  const Selectedlab_id = searchParams.get('lab_id')
-
   const [medicineId, setMedicineId] = useState()
 
   const [LabRequestId, setLabRequestId] = useState()
@@ -113,8 +112,6 @@ const RequestDetails = () => {
   const [permissions, setPermissions] = useState(null)
 
   const [status, setStatus] = React.useState('awaiting_sample')
-
-  const localLabData = authData?.userData?.modules?.lab_data?.lab
 
   const PrvLabId = request[0]?.lab_id
 
@@ -167,7 +164,6 @@ const RequestDetails = () => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
 
     // console.log('labObject', labObject)
-
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
@@ -535,9 +531,7 @@ const RequestDetails = () => {
         </Box>
       )
     },
-
     {
-      // flex: 0.4,
       width: 300,
       field: 'sample_name',
       sortable: false,
@@ -572,7 +566,6 @@ const RequestDetails = () => {
       align: 'center',
       renderCell: params => {
         const isSelected = selectedRowData?.some(item => item?.id === params?.id)
-
         return (
           <>
             <Box sx={{ minWidth: 260 }}>
@@ -841,7 +834,6 @@ const RequestDetails = () => {
           }
         ]
       : []),
-
     ,
   ]
 
@@ -925,7 +917,6 @@ const RequestDetails = () => {
       Toaster({ type: 'error', message: "A test with status 'completed' was found!" })
       setOpenTransfer(false)
     } else {
-      // if (selectedRow?.length > 1) {
       const payloadMulti = {
         test_ids: selectedRow,
         replaced_lab_id,
@@ -938,7 +929,6 @@ const RequestDetails = () => {
         transfer_reason
       }
 
-      // console.log('params1', params)
       const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
         handleCloseTransfer()
@@ -1215,7 +1205,11 @@ const RequestDetails = () => {
               </Typography>
             </Box> */}
 
-              <Box mt={2}>
+              <Box
+                sx={{
+                  mt: 2
+                }}
+              >
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>
@@ -1311,7 +1305,12 @@ const RequestDetails = () => {
             >
               Requests list
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab request details
             </Typography>
           </Breadcrumbs>
@@ -1319,52 +1318,50 @@ const RequestDetails = () => {
           <Card sx={{ p: 5 }}>
             <CardHeader sx={{ py: 0, ml: -4 }} title='Request Details Page' />
             {request?.map((item, index) => (
-              <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <HeaderCard key={index} item={item} handleClickOpen={handleClickOpen} />
+              <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <HeaderCard key={index} item={item} handleClickOpen={handleClickOpen} />
 
-                  <Box
-                    sx={{
-                      minWidth: '400px',
-                      display: 'flex',
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      backgroundColor: theme.palette.customColors.cardHeaderBg,
-                      borderRadius: '8px',
-                      alignItems: ''
-                    }}
-                  >
-                    <AnimalParentCard
-                      data={item?.animal_details[0]}
-                      backgroundColor={theme.palette.customColors.cardHeaderBg}
-                    />
-                    {item?.animal_details?.length > 1 && (
-                      <Box
-                        onClick={() => setOpenAnimalSheet(true)}
-                        sx={{
-                          display: 'flex',
-                          gap: 2,
-                          bgcolor: 'rgba(0, 128, 0, 0.1)',
-                          cursor: 'pointer',
-                          borderRadius: '50%',
-                          fontSize: '20px',
-                          fontWeight: 500,
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          color: theme.palette.primary.main,
-                          m: 3,
-                          p: 3,
-                          width: '50px',
-                          height: '50px'
-                        }}
-                      >
-                        +{item?.animal_details?.length - 1}
-                      </Box>
-                    )}
-                  </Box>
+                <Box
+                  sx={{
+                    minWidth: '400px',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    backgroundColor: theme.palette.customColors.cardHeaderBg,
+                    borderRadius: '8px',
+                    alignItems: ''
+                  }}
+                >
+                  <AnimalParentCard
+                    data={item?.animal_details[0]}
+                    backgroundColor={theme.palette.customColors.cardHeaderBg}
+                  />
+                  {item?.animal_details?.length > 1 && (
+                    <Box
+                      onClick={() => setOpenAnimalSheet(true)}
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        bgcolor: 'rgba(0, 128, 0, 0.1)',
+                        cursor: 'pointer',
+                        borderRadius: '50%',
+                        fontSize: '20px',
+                        fontWeight: 500,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: theme.palette.primary.main,
+                        m: 3,
+                        p: 3,
+                        width: '50px',
+                        height: '50px'
+                      }}
+                    >
+                      +{item?.animal_details?.length - 1}
+                    </Box>
+                  )}
                 </Box>
-              </>
+              </Box>
             ))}
           </Card>
 
@@ -1574,7 +1571,6 @@ const RequestDetails = () => {
                 baseButton: {
                   variant: 'outlined'
                 }
-
                 // toolbar: {
                 //   value: searchValue,
                 //   clearSearch: () => handleSearch(''),
@@ -1689,7 +1685,6 @@ const RequestDetails = () => {
           )}
         </>
       )}
-
       <Card sx={{ mt: 5 }}>
         <Box sx={{ py: 5, px: 5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
@@ -1701,14 +1696,12 @@ const RequestDetails = () => {
           <MedicalRecordNotes notes={medicalRecordNotes} />
         </Box>
       </Card>
-
       <TestListPopup
         open={open}
         handleClose={handleClose}
         requestById={requestById}
         selectedSample={selectedSample}
       ></TestListPopup>
-
       <>
         <Dialog
           open={openTransfer}
@@ -1890,7 +1883,7 @@ const RequestDetails = () => {
             <Box sx={{ mt: 6 }}>
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid container spacing={4}>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <Controller
                         name='lab_name'
@@ -1904,8 +1897,10 @@ const RequestDetails = () => {
                             name='lab_name'
                             error={Boolean(errors.lab_name)}
                             onChange={onChange}
-                            InputProps={{ readOnly: true }}
                             placeholder=''
+                            slotProps={{
+                              input: { readOnly: true }
+                            }}
                           />
                         )}
                       />
@@ -1919,7 +1914,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
                         Transfer To
@@ -1960,7 +1955,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={12} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 12 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth mt={2}>
                       <Controller
                         name='transfer_reason'

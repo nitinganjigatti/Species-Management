@@ -1,9 +1,7 @@
 import React from 'react'
-import { Typography, Box, Drawer, IconButton, CircularProgress } from '@mui/material'
+import { Typography, Box, Drawer, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
-import { CellInfo } from 'src/utility/render'
-import ExportCard from '../shipment-view/AddExportPermitCard'
 import AnimalCardLayout from '../shipment-view/AddAnimalCard'
 
 const AddAnimalsDrawer = ({

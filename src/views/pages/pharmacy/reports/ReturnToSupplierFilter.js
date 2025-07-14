@@ -184,7 +184,7 @@ const ReturnToSupplierFilter = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu?.map(menu => (
               <Box
                 key={menu.id}
@@ -214,7 +214,7 @@ const ReturnToSupplierFilter = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',
@@ -250,9 +250,6 @@ const ReturnToSupplierFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -260,6 +257,11 @@ const ReturnToSupplierFilter = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -306,9 +308,6 @@ const ReturnToSupplierFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -316,6 +315,11 @@ const ReturnToSupplierFilter = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -401,7 +405,7 @@ const ReturnToSupplierFilter = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default ReturnToSupplierFilter

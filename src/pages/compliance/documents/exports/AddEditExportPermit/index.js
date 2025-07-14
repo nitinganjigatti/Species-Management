@@ -108,10 +108,7 @@ const AddEditExportPermit = () => {
         </Breadcrumbs>
       </Box>
 
-      <CardHeader
-        title={isEdit ? 'Edit CITES Export Permit' : 'CITES Export Permit'}
-        titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
-      />
+      <CardHeader title={isEdit ? 'Edit CITES Export Permit' : 'CITES Export Permit'} />
 
       {/* PERMIT DETAILS SECTION */}
       <CustomAccordion

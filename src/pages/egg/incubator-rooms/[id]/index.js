@@ -80,7 +80,6 @@ const RoomDetails = () => {
   const [editMessage, setEditMessage] = useState('')
 
   // ✅ Extracted helper functions and cleaned structure for clarity
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
   const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -90,44 +89,11 @@ const RoomDetails = () => {
 
   const loadServerRows = (currentPage, data) => data
 
-  // const fetchTableData = useCallback(
-  //   async (q, availability) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         q,
-  //         room_id: id,
-  //         availability,
-  //         til_date: cuurent_date,
-  //         page_no: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-
-  //       await getIncubatorList({ params }).then(res => {
-  //         // Generate uid field based on the index
-  //         let listWithId = res?.data?.data?.result?.map((el, i) => {
-  //           return { ...el, id: i + 1 }
-  //         })
-  //         setTotal(parseInt(res?.data?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, listWithId))
-
-  //         // setstatusCheckval(res?.data?.result.map(all => all.active))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       console.log(e)
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
-
   // ✅ Fetch incubator list
   const fetchTableData = useCallback(
     async (q = '', availability) => {
       setLoading(true)
+
       const params = {
         sort,
         q,
@@ -259,17 +225,21 @@ const RoomDetails = () => {
       field: 'incubator_code',
       headerName: 'INCUBATOR ID',
       renderCell: params => (
-        <Typography
-          noWrap
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.incubator_code ? params.row.incubator_code : '-'}
-        </Typography>
+        <Tooltip title={params.row.incubator_code ? params.row.incubator_code : '-'}>
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.incubator_code ? params.row.incubator_code : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -303,16 +273,20 @@ const RoomDetails = () => {
       field: 'availability',
       headerName: 'AVAILABILITY',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.primary.dark,
-            fontSize: '14px',
-            fontWeight: '500',
-            lineHeight: '16.94px'
-          }}
-        >
-          {params.row.availability ? params.row.availability : '-'}
-        </Typography>
+        <Tooltip title={params.row.availability ? params.row.availability : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.primary.dark,
+              fontSize: '14px',
+              fontWeight: '500',
+              lineHeight: '16.94px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.availability ? params.row.availability : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -369,16 +343,20 @@ const RoomDetails = () => {
       field: 'max_no_eggs',
       headerName: 'Max EGG',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.max_eggs ? params.row.max_eggs : '-'}
-        </Typography>
+        <Tooltip title={params.row.max_eggs ? params.row.max_eggs : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.max_eggs ? params.row.max_eggs : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -389,16 +367,20 @@ const RoomDetails = () => {
       field: 'no_of_eggs',
       headerName: 'EGGS',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
-        </Typography>
+        <Tooltip title={params.row.no_of_eggs ? params.row.no_of_eggs : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -528,6 +510,7 @@ const RoomDetails = () => {
     setEditParams({ site_id, room_name, nursery_id, room_id, nursery_name })
     setIsOpen(true)
   }
+
   const handleSidebarClose = () => setDialog(false)
 
   const onCellClick = params => {
@@ -547,7 +530,7 @@ const RoomDetails = () => {
           </CardContent>
         ) : (
           <Grid container spacing={6}>
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit'>
                   Egg
@@ -560,7 +543,12 @@ const RoomDetails = () => {
                 >
                   Incubator Room
                 </Typography>
-                <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
+                <Typography
+                  sx={{
+                    color: 'text.primary',
+                    cursor: 'pointer'
+                  }}
+                >
                   Room Details
                 </Typography>
               </Breadcrumbs>
@@ -631,8 +619,8 @@ const RoomDetails = () => {
                     // </Box>
                   )}
                 </Box>
-                <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
-                  <Grid item xs={3}>
+                <Grid sx={{ ml: 4, mb: 6 }} container columns={15} spacing={6}>
+                  <Grid item size={{ xs: 3 }}>
                     <Box
                       sx={{
                         display: 'flex',
@@ -664,7 +652,7 @@ const RoomDetails = () => {
                     </Box>
                   </Grid>
 
-                  <Grid item xs={3}>
+                  <Grid item size={{ xs: 3 }}>
                     <FormControl fullWidth>
                       <Autocomplete
                         name='availibility'
@@ -774,7 +762,7 @@ const RoomDetails = () => {
               setOpenStatusDialog={setOpenStatusDialog}
               elements={total}
               statusLoading={statusLoading}
-              hatcheryStatusFunc={hatcheryStatusFunc}
+              toggleHatcheryStatus={hatcheryStatusFunc}
             />
             <EditRedirectionDialog
               refType={'incubator room'}

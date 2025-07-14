@@ -19,7 +19,7 @@ const AnimalLabelCard = ({
     return (
       <Tooltip
         title={title}
-        componentsProps={{
+        slotProps={{
           tooltip: {
             sx: {
               backgroundColor: '#ededed',
@@ -75,7 +75,12 @@ const AnimalLabelCard = ({
           alt='Animal'
         />
       </Box>
-      <Box flex='1' ml={marginLeft}>
+      <Box
+        sx={{
+          flex: '1',
+          ml: marginLeft
+        }}
+      >
         {title && (
           <ToolTip title={title}>
             <Typography

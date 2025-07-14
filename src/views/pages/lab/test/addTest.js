@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
@@ -40,23 +40,23 @@ const AddTest = props => {
   const { addEventSidebarOpen, setOpenDrawer, handleSubmitData, resetForm, submitLoader, editParams } = props
   const [subTests, setSubTests] = useState([])
 
-  console.log('subTests', subTests)
+  // console.log('subTests', subTests)
   const [sampleTypes, setSampleTypes] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
   const [existingSubTests, setExistingSubTests] = useState([])
-  console.log('existingSubTests', existingSubTests)
+  // console.log('existingSubTests', existingSubTests)
 
-  console.log('existingSubTests', existingSubTests)
+  // console.log('existingSubTests', existingSubTests)
   const [newSubTests, setNewSubTests] = useState([])
 
-  console.log('newSubTests', newSubTests)
+  // console.log('newSubTests', newSubTests)
   const [deletedSubTests, setDeletedSubTests] = useState([])
-  console.log('deletedSubTests', deletedSubTests)
+  // console.log('deletedSubTests', deletedSubTests)
   const [deletedIds, setDeletedIds] = useState([])
-  console.log('deletedIds', deletedIds)
+  // console.log('deletedIds', deletedIds)
 
-  console.log('deletedSubTests', deletedSubTests)
+  // console.log('deletedSubTests', deletedSubTests)
 
   // console.log('editParams', editParams)
 
@@ -125,7 +125,7 @@ const AddTest = props => {
   }, [resetForm, editParams, reset, getLabTestById])
 
   const onSubmit = async params => {
-    console.log(params, 'log')
+    // console.log(params, 'log')
     const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
 
     if (editParams?.id !== null) {
@@ -159,7 +159,7 @@ const AddTest = props => {
         sample_ids: sampleIdsOnly,
         sub_tests: newSubTests
       }
-      console.log(payload, 'Submission Data')
+      // console.log(payload, 'Submission Data')
 
       await handleSubmitData(payload)
     }
@@ -258,13 +258,21 @@ const AddTest = props => {
         setSampleTypes(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }, [])
 
   useEffect(() => {
     fetchSampleTypesData()
   }, [fetchSampleTypesData, searchValue])
+
+  const inputRef = useRef()
+
+  useEffect(() => {
+    if (inputRef.current && control._formValues.test_name) {
+      inputRef.current.focus()
+    }
+  }, [control._formValues.test_name])
 
   return (
     <>
@@ -339,6 +347,7 @@ const AddTest = props => {
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       label='Test Name*'
+                      inputRef={inputRef}
                       value={value}
                       onChange={onChange}
                       placeholder='Test Name'
@@ -358,7 +367,7 @@ const AddTest = props => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {selectedSampleIds?.map(sample => (
-                    <>
+                    <Box key={sample.id}>
                       {editParams?.id ? (
                         <Chip
                           key={sample.id}
@@ -385,7 +394,7 @@ const AddTest = props => {
                           }}
                         />
                       )}
-                    </>
+                    </Box>
                   ))}
                 </Box>
               </Box>
@@ -407,14 +416,16 @@ const AddTest = props => {
                           variant='outlined'
                           placeholder='Search Add Sample Type'
                           error={Boolean(errors.sample_ids)}
-                          InputProps={{
-                            ...params.InputProps,
-                            startAdornment: (
-                              <>
-                                <Icon icon='mdi:magnify' sx={{ color: 'action.active', mr: 1 }} />
-                                {params.InputProps.startAdornment}
-                              </>
-                            )
+                          slotProps={{
+                            input: {
+                              ...params.InputProps,
+                              startAdornment: (
+                                <>
+                                  <Icon icon='mdi:magnify' sx={{ color: 'action.active', mr: 1 }} />
+                                  {params.InputProps.startAdornment}
+                                </>
+                              )
+                            }
                           }}
                         />
                       )}
@@ -464,43 +475,46 @@ const AddTest = props => {
                       {...field}
                       variant='outlined'
                       placeholder='Enter Sub Test Type'
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position='end'>
-                            <IconButton
-                              onClick={() => addSubTest(field.value)}
-                              edge='end'
-                              sx={{
-                                backgroundColor: '#4CAF50',
-                                borderRadius: '0 8px 8px 0',
-                                '&:hover': { backgroundColor: '#45a049' },
-                                height: '52px',
-                                width: '52px'
-                              }}
-                            >
-                              <Box
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position='end'>
+                              <IconButton
+                                onClick={() => addSubTest(field.value)}
+                                edge='end'
+                                disabled={submitLoader}
                                 sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: 'white'
+                                  backgroundColor: '#4CAF50',
+                                  borderRadius: '0 8px 8px 0',
+                                  '&:hover': { backgroundColor: '#45a049' },
+                                  height: '52px',
+                                  width: '52px'
                                 }}
                               >
-                                <Icon icon='formkit:submit' />
-                              </Box>
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                        sx: {
-                          borderRadius: '8px',
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#e0e0e0'
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#e0e0e0'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#e0e0e0'
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white'
+                                  }}
+                                >
+                                  <Icon icon='formkit:submit' />
+                                </Box>
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                          sx: {
+                            borderRadius: '8px',
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#e0e0e0'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#e0e0e0'
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#e0e0e0'
+                            }
                           }
                         }
                       }}
@@ -562,6 +576,7 @@ const AddTest = props => {
                       size='large'
                       type='reset'
                       color='error'
+                      disabled={submitLoader}
                       variant='outlined'
                     >
                       Cancel

@@ -197,7 +197,6 @@ const RequestedItemFilterDrawer = ({
           </IconButton>
         </Box>
       </Box>
-
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -206,7 +205,7 @@ const RequestedItemFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu?.map(menu => (
               <Box
                 key={menu.id}
@@ -236,7 +235,7 @@ const RequestedItemFilterDrawer = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',
@@ -272,9 +271,6 @@ const RequestedItemFilterDrawer = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -282,6 +278,11 @@ const RequestedItemFilterDrawer = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -328,9 +329,6 @@ const RequestedItemFilterDrawer = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -338,6 +336,11 @@ const RequestedItemFilterDrawer = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -453,7 +456,7 @@ const RequestedItemFilterDrawer = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default RequestedItemFilterDrawer

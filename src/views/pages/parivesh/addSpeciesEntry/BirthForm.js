@@ -12,6 +12,7 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
   const male_count = watch('male_count') || 0
   const female_count = watch('female_count') || 0
   const other_count = watch('other_count') || 0
+
   // Calculate total count
   const totalCount = Number(male_count) + Number(female_count) + Number(other_count)
 
@@ -77,7 +78,6 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
           )}
         </FormControl>
       )}
-
       <FormControl fullWidth sx={{ mb: 6 }}>
         <Controller
           name='transaction_date'
@@ -101,8 +101,7 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
         )}
       </FormControl>
       <Divider />
-
-      <Grid item xs={12} sx={{ mb: 6, mt: 6 }}>
+      <Grid item size={{ xs: 12 }} sx={{ mb: 6, mt: 6 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant='h6' gutterBottom>
             Gender *
@@ -112,8 +111,7 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
           </Typography>
         </Box>
       </Grid>
-
-      <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+      <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
         <FormControl fullWidth>
           <Controller
             name='male_count'
@@ -140,13 +138,13 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
             <FormHelperText sx={{ color: 'error.main' }}>{errors.male_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
-      <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+      <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
         <FormControl fullWidth>
           <Controller
             name='female_count'
@@ -165,6 +163,7 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
                 }}
                 error={Boolean(errors.female_count)}
                 name='female_count'
+
                 // onBlur={() => {
                 //   if (
                 //     !Boolean(errors.maleCount) &&
@@ -182,13 +181,13 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
             <FormHelperText sx={{ color: 'error.main' }}>{errors.female_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
-      <Grid item xs={12} sm={4}>
+      <Grid item size={{ xs: 12, sm: 4 }}>
         <FormControl fullWidth>
           <Controller
             name='other_count'
@@ -215,14 +214,14 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
             <FormHelperText sx={{ color: 'error.main' }}>{errors.other_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
     </>
-  )
+  );
 }
 
 export default BirthFrom

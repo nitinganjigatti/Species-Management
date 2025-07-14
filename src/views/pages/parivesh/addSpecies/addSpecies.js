@@ -37,6 +37,7 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
+
   // species: yup.object().nullable().required('Species is Required')
   species: yup
     .mixed() // Allow any type
@@ -244,6 +245,7 @@ const AddSpecies = props => {
           const params = { q }
           const res = await getSearchLMasterListSpecies({ params: params })
           console.log('responseSearch', res?.data?.data)
+
           const speciesData = res?.data?.data?.map(item => ({
             label: item.scientific_name,
             value: item.scientific_name,
@@ -261,6 +263,7 @@ const AddSpecies = props => {
   useEffect(() => {
     if (addEventSidebarOpen) {
       setIsOpen(true)
+
       // Only fetch initial list if searchValue is empty
       if (searchValue === '') {
         fetchSpeciesMasterList('')
@@ -273,9 +276,11 @@ const AddSpecies = props => {
   const handleScientificNameChange = async (event, newValue) => {
     // console.log('Selected Scientific Name:', newValue)
     clearErrors('species')
+
     // setValue('scientificName', newValue ? newValue.value || newValue : '')
 
     setValue('scientificName', newValue ? newValue.value || newValue : '')
+
     // Enable or disable the scientificName field based on the selected value
     if (newValue && newValue.value === 'Others') {
       setIsScientificNameDisabled(false)
@@ -415,7 +420,7 @@ const AddSpecies = props => {
 
           <Grid container spacing={2} sx={{ justifyContent: 'space-between', mb: 6 }}>
             {imgSrc !== '' ? null : (
-              <Grid item xs={12} sm={6} md={5.9}>
+              <Grid item size={{ xs: 12, sm: 6, md: 5.9 }}>
                 <input
                   type='file'
                   accept='image/*'
@@ -446,7 +451,7 @@ const AddSpecies = props => {
                 </Box>
               </Grid>
             )}
-            <Grid item xs={12} sm={6} md={5.9}>
+            <Grid item size={{ xs: 12, sm: 6, md: 5.9 }}>
               {imgSrc !== '' && (
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <Box
@@ -495,7 +500,7 @@ const AddSpecies = props => {
 
           <Grid container spacing={2} sx={{ justifyContent: 'space-between', mb: 6 }}>
             {coverImgSrc !== '' ? null : (
-              <Grid item xs={12} sm={6} md={5.9}>
+              <Grid item size={{ xs: 12, sm: 6, md: 5.9 }}>
                 <input
                   type='file'
                   accept='image/*'
@@ -526,7 +531,7 @@ const AddSpecies = props => {
                 </Box>
               </Grid>
             )}
-            <Grid item xs={12} sm={6} md={5.9}>
+            <Grid item size={{ xs: 12, sm: 6, md: 5.9 }}>
               {coverImgSrc !== '' && (
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <Box

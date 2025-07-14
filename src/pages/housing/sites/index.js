@@ -73,13 +73,11 @@ const Sites = () => {
   return (
     <Box>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleHousingClick}>
           Housing
         </Typography>
 
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Site List
-        </Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Site List</Typography>
       </Breadcrumbs>
       <Box>
         {/* For testing with all the data */}

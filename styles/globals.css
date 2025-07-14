@@ -25,14 +25,18 @@ code[class*='language-'] {
   padding: 0;
 }
 
-.MuiBox-root>div.react-hot-toast-container {
+.MuiBox-root > div.react-hot-toast-container {
   z-index: 9999 !important;
   /* High zIndex for visibility */
 }
 
+.MuiGrid-container {
+  width: 100% !important;
+}
+
 /* Adjust for tablet screens */
 @media (max-width: 768px) {
-  .MuiBox-root>div.react-hot-toast-container {
+  .MuiBox-root > div.react-hot-toast-container {
     z-index: 1500 !important;
     /* Adjusted for tablet screens */
   }

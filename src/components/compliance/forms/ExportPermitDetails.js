@@ -80,7 +80,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
       </Typography>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <ControlledTextField
             name='export_number'
             label='Enter Certificate ID*'
@@ -91,7 +91,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <ControlledDatePicker
             name='valid_until'
             label='Last day of validity*'
@@ -102,7 +102,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <ControlledDatePicker
             name='issued_date'
             label='Date of Issue*'
@@ -113,7 +113,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='origin_country'
             label='Country of origin*'
@@ -127,7 +127,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='exporting_country'
             label='Exporting Country*'
@@ -141,7 +141,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='exporter_name'
             label='Exporter name*'
@@ -158,7 +158,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='importer_name'
             label='Importer*'
@@ -175,7 +175,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <ControlledTextField
             name='export_purpose'
             label='Purpose of transfer*'
@@ -186,7 +186,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
           />
         </Grid>
 
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <ControlledFileUpload
             name='certificate_file'
             label='Upload Permit'

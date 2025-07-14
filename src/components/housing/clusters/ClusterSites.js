@@ -172,16 +172,28 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
+        <Box
           sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: 'default'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'default',
+            justifyContent: 'left',
+            pl: 2
           }}
         >
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'default'
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -377,7 +389,12 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
 
         return isSmallScreen ? (
           phoneNumber ? (
-            <Box display='flex' gap={4}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 4
+              }}
+            >
               {/* Call Icon */}
               <Box
                 component='img'

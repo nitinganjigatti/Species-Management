@@ -508,7 +508,7 @@ const ReturnRequestList = () => {
     {
       minWidth: 140,
       field: 'total_qty',
-      headerName: 'Total Quantity',
+      headerName: 'Total items',
       type: 'number',
       headerAlign: 'left',
       align: 'left',
@@ -533,7 +533,7 @@ const ReturnRequestList = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
@@ -565,7 +565,7 @@ const ReturnRequestList = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-          </div>
+          </Box>
           {params?.row?.status === 'Cancelled' ? params?.row?.status : null}
         </Typography>
       )
@@ -685,16 +685,18 @@ const ReturnRequestList = () => {
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  )
-                }}
                 sx={{
                   borderRadius: '8px',
                   width: { xs: '100%', md: '290px' }
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
               />
 
@@ -713,7 +715,7 @@ const ReturnRequestList = () => {
                 {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
-                    xs={12}
+                    size={{ xs: 12 }}
                     sx={{
                       maxWidth: { xs: '100%', md: '250px' },
                       width: '100%',
@@ -747,8 +749,7 @@ const ReturnRequestList = () => {
                 {/* Filter by Days */}
                 <Grid
                   item
-                  xs={12}
-                  md='auto'
+                  size={{ xs: 12, md: 'auto' }}
                   sx={{
                     maxWidth: { xs: '100%', md: '250px' },
                     mt: { xs: 2, md: 0 },
@@ -779,8 +780,7 @@ const ReturnRequestList = () => {
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
-                    xs={12}
-                    md='auto'
+                    size={{ xs: 12, md: 'auto' }}
                     sx={{
                       height: '48px',
                       display: 'flex',

@@ -67,7 +67,6 @@ const ListOfDiscardProducts = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, page, limit, filterDates }) => {
-      console.log(page, 'page')
 
       try {
         setLoading(true)
@@ -87,7 +86,6 @@ const ListOfDiscardProducts = () => {
         }
 
         await getDiscardList({ params: params }).then(res => {
-          console.log('getDiscardList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -325,13 +323,13 @@ const ListOfDiscardProducts = () => {
       field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
-        <>
+        (<>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_profile_pic,
             params?.row?.created_by_user_name,
             params?.row?.created_at
           )}
-        </>
+        </>)
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
@@ -368,7 +366,6 @@ const ListOfDiscardProducts = () => {
       }
 
       const response = await getDiscardList({ params })
-      console.log('Response inventory>', response)
       setExcelLoader(false)
       if (response?.success === true && response?.data?.list_items?.length > 0) {
         const data = response?.data?.list_items?.map(el => ({
@@ -483,7 +480,6 @@ const ListOfDiscardProducts = () => {
         from_date: formattedStartDate,
         to_date: formattedEndDate
       })
-      console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
         startDate: '',
@@ -493,7 +489,6 @@ const ListOfDiscardProducts = () => {
         from_date: '',
         to_date: ''
       })
-      console.log('Empty date range selected,', { startDate, endDate })
     }
   }
 
@@ -597,13 +592,15 @@ const ListOfDiscardProducts = () => {
                   spacing={4}
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Grid item xs={12} sm={6} md={5}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 5 }}>
                     <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
-                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                  <Grid item size={{ xs: 12, sm: 6 }}>
+                    <Grid container spacing={2} sx={{
+                      justifyContent: { xs: 'flex-end' }
+                    }}>
+                      <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
                           size='small'
@@ -611,19 +608,21 @@ const ListOfDiscardProducts = () => {
                           value={searchValue}
                           onChange={e => handleSearch(e.target.value)}
                           fullWidth
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position='start'>
-                                <Icon
-                                  icon='mi:search'
-                                  fontSize={24}
-                                  color={theme.palette.customColors.neutralSecondary}
-                                />
-                              </InputAdornment>
-                            )
-                          }}
                           sx={{
                             borderRadius: '8px'
+                          }}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position='start'>
+                                  <Icon
+                                    icon='mi:search'
+                                    fontSize={24}
+                                    color={theme.palette.customColors.neutralSecondary}
+                                  />
+                                </InputAdornment>
+                              )
+                            }
                           }}
                         />
                       </Grid>
@@ -719,7 +718,7 @@ const ListOfDiscardProducts = () => {
         <Error404 />
       )}
     </>
-  )
+  );
 }
 
 export default ListOfDiscardProducts

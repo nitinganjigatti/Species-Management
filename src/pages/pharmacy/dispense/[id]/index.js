@@ -160,7 +160,6 @@ const IndividualDispense = () => {
     sl_no: index + 1
   }))
 
-  console.log(dispenseRows, 'dispenseRows')
 
   const totalDispenseQuantity = dispenseRows?.reduce((sum, item) => {
     return sum + Number(item.qty) * Number(item.unit_price)
@@ -171,8 +170,14 @@ const IndividualDispense = () => {
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Grid container gap={3} justifyContent={'space-between'} alignItems={'stretch'}>
-            <Grid item xs={12} md={6.4}>
+          <Grid
+            container
+            sx={{
+              gap: 3,
+              justifyContent: 'space-between',
+              alignItems: 'stretch'
+            }}>
+            <Grid item size={{ xs: 12, md: 6.4 }}>
               <Card>
                 <CardHeader
                   title='Dispense Detail'
@@ -235,7 +240,7 @@ const IndividualDispense = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={5.4}>
+            <Grid item size={{ xs: 12, md: 5.4 }}>
               <Card>
                 <CardHeader title='Dispense To' avatar={<Icon style={{ cursor: 'pointer' }} icon='ep:user' />} />
                 <CardContent>
@@ -275,7 +280,11 @@ const IndividualDispense = () => {
             {dispenseData?.dispense_item_details?.length > 0 ? (
               <>
                 {/* <CardHeader title='Dispense List' /> */}
-                <Box px={4} pt={4}>
+                <Box
+                  sx={{
+                    px: 4,
+                    pt: 4
+                  }}>
                   <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                     Dispense List
                   </Typography>
@@ -292,7 +301,9 @@ const IndividualDispense = () => {
                     </Typography>
                   </Stack>
                 </Box>
-                <Box p={4}>
+                <Box sx={{
+                  p: 4
+                }}>
                   <TableBasic rows={dispenseRows} columns={dispenseColumns} />
                 </Box>
 
@@ -307,7 +318,9 @@ const IndividualDispense = () => {
             {dispenseData?.animal_details?.length > 0 ? (
               <>
                 <CardHeader title='Animal List' />
-                <Box px={4}>
+                <Box sx={{
+                  px: 4
+                }}>
                   <TableBasic rows={animalDispenseRows} columns={animalsColumns} />
                 </Box>
                 {/* <DataGrid
@@ -326,7 +339,7 @@ const IndividualDispense = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default IndividualDispense

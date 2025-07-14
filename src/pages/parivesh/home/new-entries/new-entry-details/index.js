@@ -20,15 +20,15 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
 
   const renderDetailRow = (label, value) => (
     <Grid container spacing={2} sx={{ mb: 2 }}>
-      <Grid item xs={4}>
+      <Grid item size={{ xs: 4 }}>
         <Typography variant='body1' color={labelColor}>
           {label}
         </Typography>
       </Grid>
-      <Grid item xs={0.3}>
+      <Grid item size={{ xs: 0.3 }}>
         :
       </Grid>
-      <Grid item xs={7}>
+      <Grid item size={{ xs: 7 }}>
         <Typography variant='body1' color={valueColor}>
           {value || 'NA'}
         </Typography>
@@ -53,6 +53,7 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
 
   const capitalizeFirstLetter = str => {
     if (!str) return ''
+
     return str.charAt(0).toUpperCase() + str.slice(1)
   }
 
@@ -75,10 +76,12 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
         return { icon: imgPath?.default?.image_path, bgColor: imgPath?.default?.bg_color }
     }
   }
+
   const truncateFilename = (filename, maxLength = 16) => {
     if (filename.length <= maxLength) return filename
     const start = filename.slice(0, Math.floor(maxLength / 2))
     const end = filename.slice(-Math.floor(maxLength / 2))
+
     return `${start}...${end}`
   }
 
@@ -218,10 +221,7 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
                 return (
                   <Grid
                     item
-                    xs={12}
-                    sm='auto'
-                    md='auto'
-                    lg='auto'
+                    size={{ xs: 12, sm: 'auto', md: 'auto', lg: 'auto' }}
                     key={index}
                     sx={{
                       display: 'flex',
@@ -289,7 +289,7 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 export default NewEntryDetailsDialog

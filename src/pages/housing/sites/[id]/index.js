@@ -134,10 +134,10 @@ const SiteDetails = () => {
     <Box>
       {/* Breadcrumb */}
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleHousingClick}>
           Site
         </Typography>
-        <Typography color='text.primary'>Site Details</Typography>
+        <Typography sx={{ color: 'text.primary' }}>Site Details</Typography>
       </Breadcrumbs>
 
       {/* Insights */}

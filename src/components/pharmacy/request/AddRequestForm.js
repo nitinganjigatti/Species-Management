@@ -24,22 +24,16 @@ import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
-// import FormControlLabel from '@mui/material/FormControlLabel'
-import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
-import { Checkbox, FormControlLabel } from '@mui/material'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
-import { Tooltip } from '@mui/material'
 import Image from 'next/image'
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback, useRef } from 'react'
-import CustomChip from 'src/@core/components/mui/chip'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -187,8 +181,6 @@ const AddRequestForm = () => {
     0
   )
 
-  console.log('Edit Params >>', editParams)
-
   const addItemsToTable = () => {
     const newData = {
       medicine_name: nestedRowMedicine.medicine_name,
@@ -235,7 +227,6 @@ const AddRequestForm = () => {
   }
 
   const validate = values => {
-    // console.log('validate', values.request_item_qty)
     const itemErrors = {}
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
@@ -440,7 +431,6 @@ const AddRequestForm = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
-      console.log('searchResults', searchResults)
       if (searchResults?.data?.list_items.length > 0) {
         let optionMedListFromApi = searchResults?.data?.list_items?.map(item => ({
           value: item.id,
@@ -489,7 +479,6 @@ const AddRequestForm = () => {
       const searchResults = await getGenericMedicineList({ params: params })
       if (searchResults?.data?.list_items?.length > 0) {
         const medicalProducts = searchResults?.data?.list_items?.filter(el => el.stock_type != 'Non Medical')
-        console.log('medicalProducts', medicalProducts)
         setOptionsGenericMedicineList(
           medicalProducts?.map(item => ({
             value: item.id,
@@ -611,7 +600,6 @@ const AddRequestForm = () => {
       var result
       if (operation === 'update') {
         result = await getUpdatedMedicineData(getItems[0]?.medicine_name)
-        console.log('result: ', result)
       }
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -690,8 +678,6 @@ const AddRequestForm = () => {
       total_qty: totalQty
     }
 
-    console.log('Payload to be sent >', postData)
-
     if (id) {
       try {
         const response = await updateRequestItems(id, postData)
@@ -718,11 +704,9 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          console.log(JSON.stringify(response))
           toast.error(JSON.stringify(response), { position: 'top-left' })
         }
       } catch (error) {
-        console.log('Error:', JSON.stringify(error))
         toast.error(JSON.stringify(error), { position: 'top-left' })
       }
     }
@@ -779,8 +763,9 @@ const AddRequestForm = () => {
     try {
       const result = await getRequestPendingProductsList(id)
 
-      console.log(result, 'result')
-      setShowWarning(result.data)
+      if (result?.success === true) {
+        setShowWarning(result.data)
+      }
     } catch (error) {
       // toast.error(error.data)
       console.error('error', error)
@@ -799,10 +784,15 @@ const AddRequestForm = () => {
     return (
       // <CardContent>
 
+      // </CardContent>
       <form style={{ width: '650px' }}>
         <Divider sx={{ mt: -6 }} />
-        <Grid sx={{ my: 6 }} xs={12}>
-          <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
+        <Grid sx={{ my: 6 }} size={{ xs: 12 }}>
+          <Grid
+            item
+            sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }}
+            size={{ xs: 12, sm: 12 }}
+          >
             <Typography
               variant='button'
               onClick={() => setTabStatus('By product')}
@@ -829,9 +819,9 @@ const AddRequestForm = () => {
             </Typography>
           </Grid>
         </Grid>
-        <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }} item xs={12}>
+        <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }} item size={{ xs: 12 }}>
           {tabStatus === 'By product' ? (
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <FormControl fullWidth>
                 <Autocomplete
                   // sx={{ zIndex: 1 }}
@@ -840,39 +830,25 @@ const AddRequestForm = () => {
                   // disablePortal
                   id='autocomplete-controlled'
                   options={optionsMedicineList}
-                  renderOption={(props, option) => (
-                    <li
-                      {...props}
-                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                    >
-                      <Box>
-                        <Typography>{option.name}</Typography>
-                        <Typography variant='body2'>{option.package}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography>
-                        {/* {option.control_substance === true && (
-                          <CustomChip label='CS' skin='light' color='success' size='small' />
-                        )}{' '} */}
-                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
-                        {/* {option.prescription_required === true && (
-                          <CustomChip label='PR' skin='light' color='success' size='small' />
-                        )} */}
-                        {/* <Typography
-                          sx={{
-                            color: 'customColors.OnSecondaryContainer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontSize: '16px',
-                            fontWeight: 400
-                          }}
-                        >
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
+
+                    return (
+                      <li
+                        key={`${option.id || ''}-${option.name}-${option.package}-${option.manufacture}`}
+                        {...otherProps}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option.name}</Typography>
+                          <Typography variant='body2'>{option.package}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
                           {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                          {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                          {option.name}({option.package})
-                        </Typography> */}
-                      </Box>
-                    </li>
-                  )}
+                          {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        </Box>
+                      </li>
+                    )
+                  }}
                   value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
                   onChange={(event, newValue) => {
                     if (newValue?.value) {
@@ -970,7 +946,7 @@ const AddRequestForm = () => {
               </FormControl>
             </Grid>
           ) : (
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <FormControl fullWidth>
                 <Autocomplete
                   // sx={{ zIndex: 1 }}
@@ -979,35 +955,25 @@ const AddRequestForm = () => {
                   // disablePortal
                   id='autocomplete-controlled'
                   options={optionsGenericMedicineList}
-                  renderOption={(props, option) => (
-                    <li
-                      {...props}
-                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                    >
-                      <Box>
-                        <Typography>
-                          {option.genericName ? option.genericName : 'Generic name not available'}
-                        </Typography>
-                        <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
 
-                        <Typography variant='body2'>{option.package}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography>
-                        {/* <Typography
-                          sx={{
-                            color: 'customColors.OnSecondaryContainer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontSize: '16px',
-                            fontWeight: 400
-                          }}
-                        >
+                    return (
+                      <li
+                        key={`${option.id || ''}-${option.genericName}-${option.package}-${option.manufacture}`}
+                        {...otherProps}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option.genericName}</Typography>
+                          <Typography variant='body2'>{option.package}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
                           {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                          {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                          {option.genericName}({option.package})
-                        </Typography> */}
-                      </Box>
-                    </li>
-                  )}
+                          {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        </Box>
+                      </li>
+                    )
+                  }}
                   value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
                   onChange={(event, newValue) => {
                     if (newValue?.value) {
@@ -1104,7 +1070,7 @@ const AddRequestForm = () => {
               )}
             </Box>
           )}
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             {showWarning.count && (
               <Typography
                 sx={{
@@ -1138,7 +1104,7 @@ const AddRequestForm = () => {
             )}
           </Grid>
 
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
               Quantity *
             </Typography>
@@ -1613,7 +1579,7 @@ const AddRequestForm = () => {
           ) : null} */}
           {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
             nestedRowMedicine.prescription_required_file ? (
-              <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
+              <Grid item size={{ xs: 12, sm: 12 }} sx={{ mr: 'auto' }}>
                 <Typography
                   sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
                 >
@@ -1810,7 +1776,7 @@ const AddRequestForm = () => {
                 )}
               </Grid>
             ) : (
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <Typography sx={{ mb: 2 }}>Add prescription*</Typography>
                 {/* <FormControl fullWidth>
                   <TextField
@@ -1853,13 +1819,9 @@ const AddRequestForm = () => {
                 <FormControl fullWidth>
                   <input
                     type='file'
-                    // aria-hidden
-                    // id='file-upload'
                     ref={fileInputRef}
                     style={{ display: 'none' }}
                     accept='.pdf, .jpeg, .jpg, .png'
-                    // onClick={handleClick}
-                    error={Boolean(itemErrors.prescription_required_file)}
                     onChange={e => {
                       const file = e.target.files[0]
                       if (!file) return
@@ -1880,21 +1842,21 @@ const AddRequestForm = () => {
                   />
 
                   <TextField
-                    // htmlFor='file-upload'
-                    // id='file-upload'
                     onClick={handleClick}
                     placeholder='Add Prescription *'
-                    InputProps={{
-                      readOnly: true,
-
-                      startAdornment: (
-                        <IconButton component='label' htmlFor='file-upload'>
-                          <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
-                        </IconButton>
-                      )
-                    }}
                     error={Boolean(itemErrors.prescription_required_file)}
                     readOnly
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+
+                        startAdornment: (
+                          <IconButton component='label' htmlFor='file-upload'>
+                            <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
+                          </IconButton>
+                        )
+                      }
+                    }}
                   />
 
                   {itemErrors?.prescription_required_file && (
@@ -1906,7 +1868,7 @@ const AddRequestForm = () => {
               </Grid>
             )
           ) : null}
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Typography
               sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
             >
@@ -1932,7 +1894,7 @@ const AddRequestForm = () => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ float: 'right' }}>
               {medicineItemId ? (
                 <>
@@ -1984,7 +1946,6 @@ const AddRequestForm = () => {
           </Grid>
         </Grid>
       </form>
-      // </CardContent>
     )
   }
 
@@ -1993,8 +1954,7 @@ const AddRequestForm = () => {
       <Grid
         item
         container
-        sm={12}
-        xs={12}
+        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -2029,9 +1989,9 @@ const AddRequestForm = () => {
       <CardContent>
         <form>
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Requested to :
                   </Typography>
@@ -2072,8 +2032,8 @@ const AddRequestForm = () => {
                 </FormControl>
               </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                   &nbsp;
                 </Typography>
@@ -2177,7 +2137,7 @@ const AddRequestForm = () => {
           }}
         >
           {/* Left side content */}
-          <Grid item xs={12} sm={8}>
+          <Grid item size={{ xs: 12, sm: 8 }}>
             <Typography
               variant='body1'
               sx={{
@@ -2240,8 +2200,7 @@ const AddRequestForm = () => {
           {/* Right side button */}
           <Grid
             item
-            xs={12}
-            sm={4}
+            size={{ xs: 12, sm: 4 }}
             sx={{
               display: 'flex',
               justifyContent: { xs: 'flex-start', sm: 'flex-end' }
@@ -2555,7 +2514,7 @@ const AddRequestForm = () => {
           </Grid>
         ) : null}
       </CardContent> */}
-      <Grid item xs={12}>
+      <Grid item size={{ xs: 12 }}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
           {id && editParams?.request_item_details?.length > 0 ? (
             <>

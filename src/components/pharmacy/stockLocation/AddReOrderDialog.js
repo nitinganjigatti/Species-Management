@@ -93,17 +93,19 @@ const AddReOrderDialog = ({
         setOpenDrawer(false)
         setStockDetails(null)
       }}
-      PaperProps={{
-        sx: {
-          width: {
-            xs: '100%',
-            sm: '80%',
-            md: 560
-          },
-          backgroundColor: 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%'
+      slotProps={{
+        paper: {
+          sx: {
+            width: {
+              xs: '100%',
+              sm: '80%',
+              md: 560
+            },
+            backgroundColor: 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }
         }
       }}
     >
@@ -117,8 +119,15 @@ const AddReOrderDialog = ({
           borderBottom: '1px solid #e0e0e0'
         }}
       >
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          <Typography variant='h6' fontWeight='bold'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+          <Typography variant='h6' sx={{
+            fontWeight: 'bold'
+          }}>
             Add Reorder Level
           </Typography>
           <IconButton
@@ -190,7 +199,7 @@ const AddReOrderDialog = ({
         </Card>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default AddReOrderDialog

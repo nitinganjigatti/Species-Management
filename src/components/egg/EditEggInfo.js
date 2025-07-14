@@ -25,11 +25,9 @@ const EditEggInfo = ({ eggDetails, openEditDrawer, closeEditDrawer, getDetails }
   }
 
   useEffect(() => {
-    debugger
+    // debugger
     if (eggDetails?.egg_number !== null) {
-      reset({
-        egg_number: eggDetails?.egg_number
-      })
+      reset({ egg_number: eggDetails?.egg_number })
     }
   }, [])
 
@@ -49,29 +47,27 @@ const EditEggInfo = ({ eggDetails, openEditDrawer, closeEditDrawer, getDetails }
   })
 
   const onSubmit = async values => {
+    setLoader(true)
     const payload = {
       egg_id: eggDetails?.egg_id,
       egg_no: values?.egg_number?.trim()
     }
 
     try {
-      setLoader(true)
       const response = await EditEgg(payload)
-      if (response.success) {
-        debugger
-        getDetails(eggDetails?.egg_id)
-        setLoader(false)
-        reset()
 
+      if (response.success) {
+        getDetails(eggDetails?.egg_id)
+        reset()
         closeEditDrawer()
         Toaster({ type: 'success', message: response.message })
       } else {
-        setLoader(false)
         Toaster({ type: 'error', message: response.message })
       }
     } catch (e) {
+      Toaster({ type: 'error', message: 'Something went wrong while updating egg details' })
+    } finally {
       setLoader(false)
-      console.log(e)
     }
   }
 

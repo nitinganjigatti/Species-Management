@@ -28,7 +28,7 @@ const ShipmentCard = ({ shipment }) => {
       >
         <Grid container spacing={2}>
           {/* Left Column */}
-          <Grid item xs={7}>
+          <Grid size={{ xs: 7 }}>
             <Box mb={4}>
               <Typography sx={{ fontSize: '16px', color: '#7A8684', fontWeight: 400 }}>Shipment Date</Typography>
               <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
@@ -44,7 +44,7 @@ const ShipmentCard = ({ shipment }) => {
           </Grid>
 
           {/* Right Column aligned with "Total Species" */}
-          <Grid item xs={5} display='flex' flexDirection='column' justifyContent='flex-end'>
+          <Grid size={{ xs: 5 }} display='flex' flexDirection='column' justifyContent='flex-end'>
             <Box mt='28px'>
               {' '}
               <Typography sx={{ fontSize: '14px', color: '#7A7A7A', fontWeight: 400 }}>

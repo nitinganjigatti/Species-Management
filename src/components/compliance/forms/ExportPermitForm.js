@@ -68,35 +68,35 @@ export const exportPermitValidationSchema = yup.object().shape({
   //     return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
   //   }),
 
-  certificate_file: yup
-    .mixed()
-    .nullable()
-    .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
-      if (!value) return true // File is optional
+  // certificate_file: yup
+  //   .mixed()
+  //   .nullable()
+  //   .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
+  //     if (!value) return true // File is optional
 
-      // If it's a File object (new upload)
-      if (value instanceof File) {
-        const allowedTypes = [
-          // 'application/pdf',
-          'image/jpeg',
-          'image/png',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ]
+  //     // If it's a File object (new upload)
+  //     if (value instanceof File) {
+  //       const allowedTypes = [
+  //         // 'application/pdf',
+  //         'image/jpeg',
+  //         'image/png',
+  //         'application/msword',
+  //         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  //       ]
 
-        return allowedTypes.includes(value.type)
-      }
+  //       return allowedTypes.includes(value.type)
+  //     }
 
-      // If it's an existing file object (from edit)
-      if (value.name) {
-        const extension = value.name.split('.').pop().toLowerCase()
-        const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
+  //     // If it's an existing file object (from edit)
+  //     if (value.name) {
+  //       const extension = value.name.split('.').pop().toLowerCase()
+  //       const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
 
-        return allowedExtensions.includes(extension)
-      }
+  //       return allowedExtensions.includes(extension)
+  //     }
 
-      return true
-    }),
+  //     return true
+  //   }),
   speciesList: yup
     .array()
     .min(1, 'At least one species must be selected')

@@ -130,7 +130,11 @@ const AddEditShipment = () => {
                 ? 'Shipment Details'
                 : 'New Shipment Permit'
             }
-            titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+            slotProps={{
+              title: {
+                sx: { fontSize: '1.5rem !important', fontWeight: 'bold' }
+              }
+            }}
             sx={{ paddingLeft: 2, py: 0, pr: 0 }}
           />
         </Box>

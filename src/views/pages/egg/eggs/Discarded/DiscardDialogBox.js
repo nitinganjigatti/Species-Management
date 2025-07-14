@@ -42,7 +42,7 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
         setLoading(false)
       }
     } catch (error) {
-      console.log('error :>> ', error)
+      console.error('error :>> ', error)
       setComments('')
       handleClose()
       Toaster({ type: 'error', message: 'An error occurred while discard' })

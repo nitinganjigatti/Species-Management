@@ -23,6 +23,7 @@ export const getEllipsisStyleForText = width => {
 export const renderControlLabel = (condition, label) =>
   condition ? (
     <Typography
+      component='span'
       sx={{
         height: '16px',
         width: '18px',
@@ -44,9 +45,16 @@ export const renderControlLabel = (condition, label) =>
   ) : null
 
 export const pageTitle = title => (
-  <Typography sx={{ fontSize: { xs: '20px', md: '24px' }, fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+  <Box
+    sx={{
+      fontSize: { xs: '20px', md: '24px' },
+      fontFamily: 'Inter',
+      fontWeight: 500,
+      ml: 1
+    }}
+  >
     {title}
-  </Typography>
+  </Box>
 )
 
 export function renderUserAvatarDetails(image, userName, date, textColor, fontSize, description) {
@@ -108,9 +116,17 @@ export function renderUserAvatarDetails(image, userName, date, textColor, fontSi
 
 export function getPriorityIcons(priority) {
   if (priority === 'high') {
-    return <Avatar src={'/images/High_Priority.png'} style={{ width: '24px', height: '24px' }} />
+    return (
+      <Box>
+        <Avatar src={'/images/High_Priority.png'} style={{ width: '24px', height: '24px' }} />
+      </Box>
+    )
   } else if (priority === 'emergency') {
-    return <Avatar src={'/images/Emergency.png'} style={{ width: '24px', height: '24px' }} />
+    return (
+      <Box>
+        <Avatar src={'/images/Emergency.png'} style={{ width: '24px', height: '24px' }} />
+      </Box>
+    )
   } else return null
 }
 
@@ -273,7 +289,14 @@ export const CellInfo = ({
   const hasExtraInfo = subtitle || inchagename
 
   return (
-    <Box display='flex' alignItems='center' gap={2} width='100%'>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        width: '100%'
+      }}
+    >
       {/* Thumbnail Image */}
       {imgUrl && !imgError ? (
         <>
@@ -310,14 +333,15 @@ export const CellInfo = ({
           }}
         />
       )}
-
       {/* Text Info */}
       <Box
-        display='flex'
-        flexDirection='column'
-        overflow='hidden'
-        alignSelf={hasExtraInfo ? 'flex-start' : 'center'}
-        mt={hasExtraInfo ? 0.25 : 0}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          alignSelf: hasExtraInfo ? 'flex-start' : 'center',
+          mt: hasExtraInfo ? 0.25 : 0
+        }}
       >
         {value && (
           <Tooltip title={value}>
@@ -361,7 +385,14 @@ export const CellInfo = ({
         )}
 
         {inchagename && (
-          <Box display='flex' alignItems='center' gap={0.5} mt={0.5}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              mt: 0.5
+            }}
+          >
             <Avatar
               src={avatarUrl}
               sx={{
@@ -426,7 +457,13 @@ export const DateInfoDisplay = ({ date }) => {
   )
 
   return (
-    <Box display='flex' flexDirection='column' sx={{ cursor: 'default' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        cursor: 'default'
+      }}
+    >
       <Typography
         sx={{
           fontSize: '14px',
@@ -552,6 +589,7 @@ export const GenderInfoCard = ({ value, bgcolor, color }) => {
 export const renderPrescriptionLabel = (condition, label) =>
   condition ? (
     <Typography
+      component='span'
       sx={{
         height: '16px',
         width: '18px',

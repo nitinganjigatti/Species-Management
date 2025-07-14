@@ -166,7 +166,7 @@ const CitesExportPermitIndex = () => {
       headerName: 'EXPORTING COUNTRY',
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>
-          {countryListOptions.find(country => country.value === params.value)?.label}
+          {countryListOptions.find(country => country.value === params.value)?.label || '-'}
         </Typography>
       )
     },
@@ -177,7 +177,7 @@ const CitesExportPermitIndex = () => {
       headerName: 'COUNTRY OF ORIGIN',
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>
-          {countryListOptions.find(country => country.value === params.value)?.label}
+          {countryListOptions.find(country => country.value === params.value)?.label || '-'}
         </Typography>
       )
     },
@@ -274,11 +274,10 @@ const CitesExportPermitIndex = () => {
               action={() => router.push('/compliance/documents/exports/AddEditExportPermit')}
             />
           }
-          l
         />
 
         <Grid container spacing={4} sx={{ px: 5, pt: 2 }} alignItems='center'>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Search
               placeholder='Search exports...'
               onChange={e => handleSearch(e.target.value)}
@@ -286,14 +285,14 @@ const CitesExportPermitIndex = () => {
             />
           </Grid>
 
-          {/* <Grid item xs={12} md={4}>
+          {/* <Grid size={{ xs: 12, md: 4 }}>
             <CommonDateRangePickers
               filterDates={filterDate}
               onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
             />
           </Grid>
           
-          <Grid item xs={12} md={2.5}>
+          <Grid size={{ xs: 12, md: 2.5 }}>
             <ControlledAutocomplete
               name='exportingCountry'
               label='Exporting Country'
@@ -314,7 +313,7 @@ const CitesExportPermitIndex = () => {
             />
           </Grid>
           
-          <Grid item xs={12} md={2.5}>
+          <Grid size={{ xs: 12, md: 2.5 }}>
             <ControlledAutocomplete
               name='countryOfOrigin'
               label='Country of Origin'
@@ -335,7 +334,7 @@ const CitesExportPermitIndex = () => {
             />
           </Grid> */}
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <CommonTable
               columns={columns}
               indexedRows={rows}

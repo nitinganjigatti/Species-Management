@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
-
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
@@ -75,8 +74,8 @@ const NotesListng = () => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
-      align:"left",
-      headerAlign:"left",
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -91,7 +90,14 @@ const NotesListng = () => {
       headerName: 'Observation Name',
       renderCell: params => {
         return (
-          <Box display='flex' alignItems='center' width='100%' gap={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '100%',
+              gap: 2
+            }}
+          >
             <Typography
               sx={{
                 overflow: 'hidden',
@@ -153,7 +159,14 @@ const NotesListng = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 3
+          }}
+        >
           <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
           <Box
             component='img'

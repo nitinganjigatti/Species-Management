@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider, CircularProgress } from '@mui/material'
+import {
+  Box,
+  Drawer,
+  Checkbox,
+  Typography,
+  TextField,
+  IconButton,
+  Grid,
+  Divider,
+  CircularProgress
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
@@ -22,14 +32,6 @@ const FilterSheet = ({
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
 
-  // useEffect(() => {
-  //   if (open) {
-  //     setSelectedOptions(prev => ({
-  //       ...prev,
-  //       Site: selectedSites
-  //     }))
-  //   }
-  // }, [open, selectedSites])
   useEffect(() => {
     if (open && animalId) {
       setSelectedOptions(prev => ({
@@ -39,10 +41,27 @@ const FilterSheet = ({
     }
   }, [open])
 
+  // const handleSelectAll = event => {
+  //   if (event.target.checked) {
+  //     const currentOptions = options[activeCategory]?.map(option =>
+  //       activeCategory === 'Site' ? option.site_id : option.taxonomy_id
+  //     )
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       [activeCategory]: currentOptions
+  //     }))
+  //   } else {
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       [activeCategory]: []
+  //     }))
+  //   }
+  // }
+
   const handleSelectAll = event => {
     if (event.target.checked) {
-      const currentOptions = options[activeCategory]?.map(option =>
-        activeCategory === 'Site' ? option.site_id : option.taxonomy_id
+      const currentOptions = filteredOptions.map(option =>
+        activeCategory === 'Site' ? option.site_id : option.id
       )
       setSelectedOptions(prev => ({
         ...prev,
@@ -57,6 +76,7 @@ const FilterSheet = ({
   }
 
   const handleToggleOption = (optionId, category) => {
+    
     setSelectedOptions(prevSelectedOptions => {
       const updatedOptions = { ...prevSelectedOptions }
 
@@ -75,14 +95,13 @@ const FilterSheet = ({
   }
 
   const handleConfirmSelection = () => {
-    debugger
     // Handle Sites
     const selectedSiteIDs = selectedOptions.Site || []
     handleSelection(selectedSiteIDs, 'Site')
 
     // Handle Organizations
-    const selectedOrganizationIDs = selectedOptions.Species || []
-    handleSelection(selectedOrganizationIDs, 'Species')
+    const selectedOrganizationIDs = selectedOptions.Organization || []
+    handleSelection(selectedOrganizationIDs, 'Organization')
 
     // Close the drawer
     setOpenFilterDrawer(false)
@@ -98,17 +117,16 @@ const FilterSheet = ({
         return option?.site_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
 
-      if (activeCategory === 'Species') {
-        return option?.default_common_name?.toLowerCase().includes(searchValue.toLowerCase())
+      if (activeCategory === 'Organization') {
+        return option?.organization_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
     }) || []
+  console.log('Selected options >', filteredOptions)
 
   const handleCategoryClick = category => {
     setActiveCategory(category)
     setSearchValue('')
   }
-
-  // console.log('Filter oPTIONS >', filteredOptions)
 
   return (
     <Drawer
@@ -153,141 +171,158 @@ const FilterSheet = ({
           </IconButton>
         </Box>
       </Box>
-
       {/* Drawer Content */}
-
-      <Box sx={{ height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
-        <Box sx={{ width: '180px', height: '900px', backgroundColor: 'background.default' }}>
-          <Grid container>
-            <Grid item md={4} sm={4} xs={4}>
+      <Box
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          backgroundColor: 'background.default',
+          height: '100%'
+        }}
+      >
+        <Grid container sx={{ px: 5 }}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
+            {categories.map(menu => (
               <Box
+                key={menu}
                 sx={{
-                  ml: 3,
+                  width: '190px',
+                  bgcolor: activeCategory === menu ? 'white' : 'transparent',
                   cursor: 'pointer',
-                  width: '300%',
-                  padding: 2,
-                  borderRadius: 1
+                  p: 4,
+                  borderTopLeftRadius: '8px',
+                  borderBottomLeftRadius: '8px',
+                  '&:hover': {
+                    backgroundColor: activeCategory === menu ? 'white' : '#f5f5f5'
+                  }
+                }}
+                onClick={() => {
+                  handleCategoryClick(menu)
                 }}
               >
-                {categories?.map((item, index) => (
-                  <Box
-                    onClick={() => handleCategoryClick(item)}
+                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                  {menu}
+                </Typography>
+              </Box>
+            ))}
+          </Grid>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
+            <Box
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: '8px',
+                width: '345px',
+                height: 'calc(100vh - 190px)',
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: 0,
+                  height: 0
+                },
+                '-ms-overflow-style': 'none',
+                scrollbarWidth: 'none',
+                bgColor: '#fff'
+              }}
+            >
+              <Box
+                sx={{
+                  p: '16px',
+                  bgColor: '#fff',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  bgcolor: theme.palette.primary.contrastText
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '4px',
+                    padding: '0 8px',
+                    height: '40px'
+                  }}
+                >
+                  <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search'
+                    value={searchValue}
+                    onChange={e => setSearchValue(e.target.value)}
                     sx={{
-                      mb: 4,
-                      mt: -2,
-                      height: '50px',
-                      textAlign: 'center',
-                      borderTopLeftRadius: '8px',
-                      borderBottomLeftRadius: '8px',
-                      cursor: 'pointer',
-                      backgroundColor: activeCategory === item ? 'white' : 'transparent',
-                      borderRadius: '4px',
-                      padding: '8px',
-                      '&:hover': {
-                        backgroundColor: activeCategory === item ? 'white' : '#f5f5f5'
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      },
+                      '& .MuiInputBase-input': {
+                        '&::before': {
+                          borderBottom: 'none !important'
+                        },
+                        '&:hover::before': {
+                          borderBottom: 'none !important'
+                        }
                       }
                     }}
-                  >
-                    <Typography
-                      sx={{
-                        mt: 2,
-                        color: theme.palette.primary.dark,
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        fontFamily: 'Inter',
-                        fontWeight: 400
-                      }}
-                      key={index}
-                      variant='body2'
-                      onClick={() => handleCategoryClick(item)}
-                    >
-                      {item}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-        <Box sx={{ width: '360px', height: '753px', backgroundColor: '#FFF', borderRadius: '4px' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              width: '330px',
-              alignItems: 'center',
-              border: '1px solid #C3CEC7',
-              borderRadius: '4px',
-              padding: '0 8px',
-              height: '40px',
-              mt: 3,
-              ml: 3
-            }}
-          >
-            <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-            <TextField
-              variant='outlined'
-              placeholder='Search'
-              value={searchValue}
-              onChange={e => setSearchValue(e.target.value)}
-              InputProps={{
-                disableUnderline: false
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 3, ml: 3.5 }}>
-            <Checkbox
-              checked={selectedOptions[activeCategory]?.length === options[activeCategory]?.length}
-              onChange={handleSelectAll}
-              inputProps={{ 'aria-label': 'controlled' }}
-            />
-            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-          </Box>
-          <Divider sx={{ m: 3 }} />
-          <Box sx={{ ml: 2, height: '750px', overflowY: 'auto' }}>
-            <Box sx={{ ml: 2, overflowX: 'hidden' }}>
-              {activeCategory === 'Site' ? (
-                filteredOptions.map((option, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Checkbox
-                      checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
-                      onChange={() => handleToggleOption(option.site_id, activeCategory)}
-                    />
-                    <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                      {option.site_name}
-                    </Typography>
-                  </Box>
-                ))
-              ) : isLoader ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
-                  <CircularProgress />
+                  />
                 </Box>
-              ) : (
-                filteredOptions.map((option, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Checkbox
-                      checked={(selectedOptions[activeCategory] || []).includes(option.taxonomy_id)}
-                      onChange={() => handleToggleOption(option.taxonomy_id, activeCategory)}
-                    />
-                    <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                      {option.default_common_name}
-                    </Typography>
-                  </Box>
-                ))
-              )}
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <Checkbox
+                    // checked={selectedOptions[activeCategory]?.length === options[activeCategory]?.length}
+                    checked={
+                      filteredOptions.length > 0 && selectedOptions[activeCategory]?.length === filteredOptions.length
+                    }
+                    onChange={handleSelectAll}
+                    slotProps={{
+                      input: {
+                        'aria-label': 'controlled'
+                      }
+                    }}
+                  />
+                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
+                    Select All
+                  </Typography>
+                </Box>
+                <Divider sx={{ mt: 1.4 }} />
+              </Box>
+              <Box sx={{ ml: 2, overflowY: 'auto' }}>
+                <Box sx={{ ml: 2 }}>
+                  {activeCategory === 'Site' ? (
+                    filteredOptions.map((option, index) => (
+                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <Checkbox
+                          checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                          onChange={() => handleToggleOption(option.site_id, activeCategory)}
+                        />
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                          {option.site_name}
+                        </Typography>
+                      </Box>
+                    ))
+                  ) : isLoader ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    filteredOptions.map((option, index) => (
+                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <Checkbox
+                          checked={(selectedOptions[activeCategory] || []).includes(option.id)}
+                          onChange={() => handleToggleOption(option.id, activeCategory)}
+                        />
+                        <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                          {option.organization_name}
+                        </Typography>
+                      </Box>
+                    ))
+                  )}
+                </Box>
+              </Box>
             </Box>
-          </Box>
-        </Box>
+          </Grid>
+        </Grid>
       </Box>
-
       {/* bottom buttons */}
       <Box
         sx={{

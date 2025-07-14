@@ -6,9 +6,22 @@ const SpeciesInnerCard = ({ species, completeName, commonName, animalCount, imgU
   const theme = useTheme()
 
   return (
-    <Box display='flex' flexDirection='column' sx={{ width: '100%' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%'
+      }}
+    >
       {/* Top Section: Avatar + Species Info */}
-      <Box display='flex' flexDirection='column' gap={1} sx={{ ml: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          ml: 2
+        }}
+      >
         <SpeciesCard
           species={{
             scientific_name: completeName || species?.complete_name,
@@ -17,11 +30,25 @@ const SpeciesInnerCard = ({ species, completeName, commonName, animalCount, imgU
           }}
         />
       </Box>
-
       {/* Bottom Row: Chips on left, Count on right */}
-      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mt: 1, px: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mt: 1,
+          px: 2
+        }}
+      >
         {/* Left: Chips */}
-        <Box display='flex' flexWrap='wrap' gap={2} sx={{ ml: 12 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 2,
+            ml: 12
+          }}
+        >
           {(sex?.male || species?.sex_data?.male) && (
             <Chip
               label={`M - ${sex?.male ?? species?.sex_data?.male}`}
@@ -74,8 +101,8 @@ const SpeciesInnerCard = ({ species, completeName, commonName, animalCount, imgU
         {/* Right: Animal Count */}
         {(animalCount ?? species?.animal_count) !== undefined && (
           <Typography
-            fontWeight={600}
             sx={{
+              fontWeight: 600,
               color: theme.palette.customColors.onSurfaceVariant,
               fontSize: '24px',
               fontFamily: 'Inter',

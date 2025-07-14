@@ -252,7 +252,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
           value={params.row.section_name}
           subtitle={''}
           imgUrl={params.row.images?.[0]?.file}
-          defaultImage={'/images/housing/section-icon-colored.png'}
+          defaultImage={'/images/housing/sections.svg'}
           defaultImageAlt={'Section'}
           avatarUrl={''}
           inchagename={''}
@@ -274,8 +274,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             display: 'flex',
             alignItems: 'center',
             cursor: 'pointer',
-            justifyContent: 'left',
-            pl: 2
+            justifyContent: 'left'
           }}
           onClick={e => {
             e.stopPropagation()
@@ -319,8 +318,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             display: 'flex',
             alignItems: 'center',
             cursor: 'pointer',
-            justifyContent: 'left',
-            pl: 2
+            justifyContent: 'left'
           }}
           onClick={e => {
             e.stopPropagation()
@@ -363,8 +361,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             display: 'flex',
             alignItems: 'center',
             cursor: 'default',
-            justifyContent: 'left',
-            pl: 2
+            justifyContent: 'left'
           }}
           onClick={e => {
             e.stopPropagation()
@@ -439,9 +436,9 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
         return isSmallScreen ? (
           phoneNumber ? (
             <Box
-              display='flex'
-              gap={4}
               sx={{
+                display: 'flex',
+                gap: 4,
                 width: '100%',
                 height: '100%',
                 display: 'flex',
