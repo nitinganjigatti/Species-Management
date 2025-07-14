@@ -206,7 +206,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {specie.common_name}
+                        {specie.common_name || '-'}
                       </Typography>
                     </Box>
                     <Box sx={{ fontSize: '0.875rem' }}>
@@ -219,7 +219,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {animal.identifier_value}
+                        {animal.identifier_value || '-'}
                       </Typography>
                     </Box>
                   </Box>

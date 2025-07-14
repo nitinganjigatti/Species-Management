@@ -25,7 +25,7 @@ const ExportPermitDetails = () => {
   const { id } = router.query
   const { userData } = useContext(AuthContext)
   const canEdit = userData?.roles?.settings?.cites_export_permit_module === 'EDIT'
-  const [expanded, setExpanded] = useState('permit-details') // Accordion open state
+  const [expanded, setExpanded] = useState(['permit-details']) // Accordion open state
   const [isFetching, setIsFetching] = useState(false)
   const [documentList, setDocumentList] = useState([])
   const [totalCount, setTotalCount] = useState(0)
@@ -54,6 +54,16 @@ const ExportPermitDetails = () => {
     linked_shipments: [] // Added default value
   })
   const countryListOptions = useMemo(() => countryList().getData(), [])
+
+  // Accordion toggle handler
+  const handleAccordionChange = panelId => {
+    setExpanded(
+      prev =>
+        prev.includes(panelId)
+          ? prev.filter(id => id !== panelId) // Close if open
+          : [...prev, panelId] // Open if closed
+    )
+  }
 
   const fetchDocumentTypeList = async exportId => {
     setIsFetching(true)
@@ -186,9 +196,9 @@ const ExportPermitDetails = () => {
       <CustomAccordion
         id='permit-details'
         title='Details'
-        expanded={expanded}
+        expanded={expanded.includes('permit-details')}
         shouldScrollToTop={false}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        onChange={handleAccordionChange}
         editable
         handleEditClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${id}`)}
       >
@@ -211,8 +221,8 @@ const ExportPermitDetails = () => {
         id='supporting-documents'
         title='Supporting Documents'
         docsCount={`${uploadedFileCount}/${totalCount}`}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        expanded={expanded.includes('supporting-documents')}
+        onChange={handleAccordionChange}
       >
         <SupportingDocuments
           isFetching={isFetching}
@@ -225,8 +235,8 @@ const ExportPermitDetails = () => {
       <CustomAccordion
         id='linked-imports'
         title={`Linked Imports - ${totalLinkedImports}`}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        expanded={expanded.includes('linked-imports')}
+        onChange={handleAccordionChange}
       >
         <LinkedImports imports={linkedImports} />
       </CustomAccordion>
@@ -234,8 +244,8 @@ const ExportPermitDetails = () => {
       <CustomAccordion
         id='linked-shipments'
         title={`Linked Shipments - ${totalLinkedShipments}`}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        expanded={expanded.includes('linked-shipments')}
+        onChange={handleAccordionChange}
       >
         <LinkedShipments
           shipments={linkedShipments}
