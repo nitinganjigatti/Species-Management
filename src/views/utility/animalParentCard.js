@@ -200,11 +200,12 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
                   color: theme.palette.customColors.OnSurfaceVariant,
                   backgroundColor: theme.palette.customColors.mdAntzNeutral,
                   fontSize: '14px',
+                  textAlign: 'center',
                   bgcolor: '#DDEBE9',
                   fontWeight: 600,
                   paddingY: '4px',
-                  borderRadius: '5px',
-                  width: 'fit-content'
+                  borderRadius: '5px'
+                  // width: 'fit-content'
                 }}
               >
                 Count <strong>{data?.total_animal}</strong>
@@ -256,31 +257,34 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               </Typography>
             )}
 
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: animal ? 400 : 600,
-                lineHeight: '16.94px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              <span style={{ fontWeight: 400 }}> Encl: </span>
-              {data?.user_enclosure_name}
-              {/* {Utility?.toPascalSentenceCase(data?.user_enclosure_name)} */}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: animal ? 400 : 600,
-                lineHeight: '16.94px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              <span style={{ fontWeight: 400, fontSize: animal && '14px' }}>Sec: </span> {data?.section_name}
-              {/* {Utility?.toPascalSentenceCase(data?.section_name)} */}
-            </Typography>
+            {data?.user_enclosure_name && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: animal ? 400 : 600,
+                  lineHeight: '16.94px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400 }}> Encl: </span>
+                {data?.user_enclosure_name}
+              </Typography>
+            )}
 
-            {!animal && (
+            {data?.section_name && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: animal ? 400 : 600,
+                  lineHeight: '16.94px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400, fontSize: animal && '14px' }}>Sec: </span> {data?.section_name}
+              </Typography>
+            )}
+
+            {data?.site_name && (
               <Typography
                 sx={{
                   fontSize: '14px',
@@ -291,7 +295,6 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               >
                 <span style={{ fontWeight: 400 }}>Site: </span>
                 {data?.site_name}
-                {/* {Utility?.toPascalSentenceCase(data?.site_name)} */}
               </Typography>
             )}
           </Box>
