@@ -820,7 +820,7 @@ const StickyTable = ({
               })
             ) : (
               <TableCell
-                style={{ paddingTop: 0, paddingBottom: 0 }}
+                style={{ paddingLeft: 0, paddingTop: 0, paddingBottom: 0 }}
                 onClick={e => {
                   if (onCellClick) {
                     onCellClick({ cell: row[col.field], row })
