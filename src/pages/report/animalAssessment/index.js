@@ -23,16 +23,19 @@ import { AuthContext } from 'src/context/AuthContext'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
+import Error404 from 'src/pages/401'
 import StickyTable from 'src/views/table/sticky-table'
 import AssessmentReportFilterDrawer from 'src/views/pages/report/AssessmentReportFilterDrawer'
 import AssessmentSpeciesFilter from 'src/views/pages/report/AssessmentSpeciesFilter'
 import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
+import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
+  const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const [initialLoad, setInitialLoad] = useState(true)
   const [selectedSpecie, setSelectedSpecie] = useState('')
@@ -158,12 +161,6 @@ const AnimalAssessment = () => {
     const animals = assessmentData || []
 
     const transformed = animals?.map(animal => {
-      // const age =
-      //   animal.birth_date && moment(animal.birth_date).isValid()
-      //     ? `${moment().diff(moment(animal.birth_date), 'years')}y ${
-      //         moment().diff(moment(animal.birth_date), 'months') % 12
-      //       }m`
-      //     : '-'
       const age = (() => {
         if (animal.animal_type === 'group') return 'NA'
         if (!animal.birth_date || !moment(animal.birth_date).isValid()) return 'NA'
@@ -192,7 +189,9 @@ const AnimalAssessment = () => {
             ''
           }`,
           date: moment(Utility.convertUTCToLocalDate(assessment.assessment_recorded_date)).format('DD MMMM YYYY'),
-          time: Utility.convertUTCToLocaltime(assessment.assessment_recorded_date, 'HH:mm:ss'),
+          time: Utility.extractHoursAndMinutes(
+            Utility?.convertUTCToLocal(assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time)
+          ),
           user: assessment.user_details
         }
       })
@@ -200,14 +199,18 @@ const AnimalAssessment = () => {
       return {
         ...recordMap,
         default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
-        primary_identifier_type: animal.identifier_type,
-        primary_identifier_value: animal.identifier_value,
-        primary_animal_id: animal.animal_id,
+        local_identifier_name: animal.identifier_type,
+        local_identifier_value: animal.identifier_value,
+        animal_id: animal.animal_id,
         primary_taxonomy_id: animal.taxonomy_id,
         common_name: animal.common_name,
         scientific_name: animal.scientific_name,
         age,
-        site: animal.site,
+        total_animal: animal.total_animal,
+        type: animal.animal_type,
+        breed_name: animal.breed_name,
+        morph_name: animal.morph_name,
+        site_name: animal.site,
         sex: animal.sex
       }
     })
@@ -231,158 +234,13 @@ const AnimalAssessment = () => {
     setHeaderList(headers)
   }
 
-  const AnimalCard = ({ animalData }) => {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            alignItems: 'center'
-          }}
-        >
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit:
-                  animalData?.default_icon?.includes('class_images') && animalData?.default_icon?.endsWith('.svg')
-                    ? 'contain'
-                    : 'cover',
-                padding:
-                  animalData?.default_icon?.includes('class_images') && animalData?.default_icon.endsWith('.svg')
-                    ? '3px'
-                    : 0
-              },
-              width: 32,
-              height: 32
-            }}
-            alt={animalData?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-            src={animalData?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-          />
-          <Avatar
-            sx={{
-              width: 22.22,
-              height: 20.15,
-              bgcolor:
-                animalData?.type === 'group'
-                  ? theme.palette.customColors.addPrimary
-                  : animalData?.sex === 'male'
-                  ? theme.palette.customColors.SecondaryContainer
-                  : animalData?.sex === 'female'
-                  ? theme.palette.customColors.AntzTertiary
-                  : animalData?.sex === 'undetermined' || animalData?.sex === 'indeterminate'
-                  ? theme.palette.customColors.displaybgSecondary
-                  : theme.palette.customColors.SecondaryContainer,
-              objectFit: 'contain',
-              pt: 0.2,
-              height: 24,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
-            variant='rounded'
-          >
-            {/* {animalData?.type === 'group' ? ( */}
-            {animalData?.animal_type === 'group' ? (
-              <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>
-                G
-              </Typography>
-            ) : animalData?.sex === 'male' ? (
-              <Typography
-                sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}
-              >
-                M
-              </Typography>
-            ) : animalData?.sex === 'female' ? (
-              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Tertiary }}>
-                F
-              </Typography>
-            ) : animalData?.sex === 'undetermined' ? (
-              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>
-                UD
-              </Typography>
-            ) : animalData?.sex === 'indeterminate' ? (
-              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-                ID
-              </Typography>
-            ) : (
-              <Typography sx={{ fontSize: 14 }}>-</Typography>
-            )}
-          </Avatar>
-        </Box>
-        <Box>
-          <Typography
-            sx={{
-              fontSize: '12px',
-              fontWeight: 600,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {animalData?.primary_identifier_type && animalData?.primary_identifier_value
-              ? `${animalData?.primary_identifier_type}: ${animalData?.primary_identifier_value}`
-              : `AID: ${animalData?.primary_animal_id}`}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 500,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {animalData?.common_name}
-          </Typography>
-          <Typography
-            sx={{
-              fontStyle: 'italic',
-              fontSize: '14px',
-              fontWeight: 400,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {animalData?.scientific_name}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 400,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Age : {animalData?.age}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 400,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Site : {animalData?.site}
-          </Typography>
-        </Box>
-      </Box>
-    )
-  }
-
   const columns = headerList.map((header, i) => {
     if (header.key === 'default_icon') {
       return {
         field: 'Animals',
         headerName: header.label,
         pinned: 'left',
-        width: 300,
+        width: 340,
         height: 131,
         sortable: false,
         headerStyle: {
@@ -391,7 +249,7 @@ const AnimalAssessment = () => {
         columnStyle: {
           border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
           borderRight: 'none',
-          p: 0,
+          p: 4,
           m: 0
         },
         disableColumnMenu: true,
@@ -403,7 +261,8 @@ const AnimalAssessment = () => {
                 paddingLeft: '20px'
               }}
             >
-              <AnimalCard animalData={params?.row} />
+              {/* <AnimalCard animalData={params?.row} /> */}
+              <AnimalParentCard data={params?.row} />
             </Box>
           )
         }
@@ -431,15 +290,20 @@ const AnimalAssessment = () => {
             onClick={() => {
               setAnimalDetailsData({
                 ...record,
-                default_icon: '',
-                primary_animal_id: params?.row.primary_animal_id,
-                primary_identifier_type: params.row.primary_identifier_type,
-                primary_identifier_value: params.row.primary_identifier_value,
-                common_name: params?.row.common_name,
-                scientific_name: params?.row.scientific_name,
+                default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
+                local_identifier_name: params?.row?.identifier_type,
+                local_identifier_value: params?.row?.identifier_value,
+                animal_id: params?.row?.animal_id,
+                primary_taxonomy_id: params?.row?.taxonomy_id,
+                common_name: params?.row?.common_name,
+                scientific_name: params?.row?.scientific_name,
                 age: params.row.age,
-                site: params?.row.site,
-                sex: params.row.sex
+                total_animal: params?.row?.total_animal,
+                type: params?.row?.type,
+                breed_name: params?.row?.breed_name,
+                morph_name: params?.row?.morph_name,
+                site_name: params?.row?.site_name,
+                sex: params?.row?.sex
               })
               setShowDetailsPopUp(true)
             }}
@@ -477,9 +341,7 @@ const AnimalAssessment = () => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              // backgroundColor: theme.palette.customColors.cardHeaderBg,
               height: '100%'
-              // mr: headerList.length === i + 1 ? '-20px' : 0
             }}
           >
             <Typography>N/A</Typography>
@@ -622,14 +484,15 @@ const AnimalAssessment = () => {
           >
             <Box
               sx={{
-                minHeight: '121px',
+                // minHeight: '121px',
                 bgcolor: theme.palette.customColors.lightBg,
                 borderRadius: '8px',
                 padding: '10px',
                 paddingLeft: '20px'
               }}
             >
-              <AnimalCard animalData={animalDetailsData} />
+              {/* <AnimalCard animalData={animalDetailsData} /> */}
+              <AnimalParentCard backgroundColor={theme.palette.customColors.lightBg} data={animalDetailsData} />
             </Box>
 
             <Box sx={{ gap: '8px', display: 'flex', flexDirection: 'column' }}>
@@ -709,385 +572,415 @@ const AnimalAssessment = () => {
 
   return (
     <>
-      <Card>
-        <Box sx={{ display: 'flex', flexDirection: 'column', px: '24px', gap: 4, my: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }} variant='h5'>
-              Animal Assessment Report
-            </Typography>
-          </Box>
+      {!enable_animal_assessment_report ? (
+        <>
+          <Error404 />
+        </>
+      ) : (
+        <>
+          <Card>
+            <Box sx={{ display: 'flex', flexDirection: 'column', px: '24px', gap: 4, my: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }} variant='h5'>
+                  Animal Assessment Report
+                </Typography>
+              </Box>
 
-          <Box
-            sx={{
-              backgroundColor: theme.palette.customColors.tableHeaderBg,
-              borderRadius: '8px',
-              padding: '24px',
-              display: 'flex',
-              alignItems: 'end',
-              gap: '24px',
-              flexWrap: 'wrap'
-            }}
-          >
-            {/* Species Side Sheet */}
-            <Box
-              onClick={() => setOpenspeciesFilter(true)}
-              sx={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 200 }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  lineHeight: '100%',
-                  letterSpacing: '0%',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Species
-              </Typography>
               <Box
                 sx={{
-                  bgcolor: theme.palette.primary.contrastText,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px',
-                  height: '56px',
+                  backgroundColor: theme.palette.customColors.tableHeaderBg,
                   borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  padding: '24px',
+                  display: 'flex',
+                  alignItems: 'end',
+                  gap: '24px',
+                  flexWrap: 'wrap'
                 }}
               >
-                {selectedSpecie?.tsn_id ? (
+                {/* Species Side Sheet */}
+                <Box
+                  onClick={() => setOpenspeciesFilter(true)}
+                  sx={{
+                    cursor: 'pointer',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    minWidth: 200
+                  }}
+                >
                   <Typography
                     sx={{
-                      fontWeight: 500,
-                      fontSize: '16px',
+                      fontWeight: 600,
+                      fontSize: '14px',
                       lineHeight: '100%',
                       letterSpacing: '0%',
-                      color: theme.palette.primary.light,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {`${selectedSpecie?.common_name} `}
-                    <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecie?.complete_name})`}</span>
+                    Species
                   </Typography>
-                ) : (
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      lineHeight: '100%',
-                      letterSpacing: '0%',
-                      color: theme.palette.customColors.neutralSecondary,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Select Species
-                  </Typography>
-                )}
-                <IconButton sx={{ mr: -4, width: '37px' }}>
-                  <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
-                </IconButton>
-              </Box>
-            </Box>
-
-            {/* Assessment Side Sheet */}
-            <Box
-              onClick={() => setOpenAssessmentFilter(true)}
-              sx={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 200 }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  lineHeight: '100%',
-                  letterSpacing: '0%',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Assessment Type
-              </Typography>
-              <Box
-                sx={{
-                  bgcolor: theme.palette.primary.contrastText,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px',
-                  height: '56px',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                }}
-              >
-                {selectedAssessmentType?.assessments_type_label ? (
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      letterSpacing: '0%',
-                      color: theme.palette.primary.light,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {`${selectedAssessmentType?.assessments_type_label} `}
-                  </Typography>
-                ) : (
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: '0%',
-                      color: theme.palette.customColors.neutralSecondary,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Select Assessment Type
-                  </Typography>
-                )}
-
-                <IconButton sx={{ mr: -4, width: '37px' }}>
-                  <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
-                </IconButton>
-              </Box>
-            </Box>
-
-            {/* Generate Button */}
-            <Box sx={{ minWidth: 120 }}>
-              <Button
-                variant='contained'
-                disabled={!selectedSpecie || !selectedAssessmentType || isLoading}
-                sx={{ width: '127px', height: '56px', borderRadius: '8px' }}
-                fullWidth
-                onClick={() => animalAssessmentReport()}
-              >
-                Generate
-              </Button>
-            </Box>
-          </Box>
-
-          {!initialLoad && (
-            <>
-              <Box sx={{ display: 'flex', gap: 4, justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                  <TextField
-                    value={search}
-                    onChange={e => handleSearchChange(e)}
-                    variant='outlined'
-                    disabled={isLoading}
-                    size='small'
-                    placeholder='Search'
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: search && (
-                        <InputAdornment position='end'>
-                          <IconButton
-                            size='small'
-                            onClick={() => handleSearchChange({ target: { value: '' } })}
-                            edge='end'
-                          >
-                            <Icon icon='ic:round-close' fontSize={20} />
-                          </IconButton>
-                        </InputAdornment>
-                      )
-                    }}
-                    sx={{
-                      backgroundColor: theme.palette.primary.contrastText,
-                      // borderRadius: '40px', // Applies to the container
-                      '& .MuiOutlinedInput-root': {
-                        width: '240px',
-                        borderRadius: '4px' // Applies to the input field
-                      }
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', gap: 4, justifyContent: 'end', alignItems: 'center' }}>
-                  <CommonDateRangePickers disabled={true} onChange={handleDateRangeChange} filterDates={filterDates} />
-
-                  {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        width: '60px',
-                        height: '40px',
-                        borderRadius: '4px',
-                        bgcolor: theme?.palette.customColors?.lightBg,
-                        alignItems: 'center',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => {
-                        if (!isLoading) {
-                          setOpenFilterDrawer(true)
-                        }
-                      }}
-                    >
-                      <Icon icon='mage:filter' fontSize={24} />
-                      {filterCount > 0 && (
-                        <Typography
-                          sx={{
-                            position: 'absolute',
-                            top: '-15px',
-                            right: '-10px',
-                            minWidth: '27px',
-                            height: '27px',
-                            paddingX: 2,
-                            borderRadius: '14px',
-                            backgroundColor: theme.palette.primary.light,
-                            color: theme.palette.primary.contrastText,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '12px',
-                            fontWeight: 500
-                          }}
-                        >
-                          {filterCount}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-
                   <Box
                     sx={{
+                      bgcolor: theme.palette.primary.contrastText,
                       display: 'flex',
-                      justifyContent: 'center',
-                      width: '60px',
-                      height: '40px',
-                      borderRadius: '4px',
-                      bgcolor: theme?.palette.customColors?.lightBg,
+                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      cursor: 'pointer'
+                      padding: '16px',
+                      height: '56px',
+                      borderRadius: '8px',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                     }}
-                    onClick={() => getDataToExport()}
                   >
-                    {isLoading ? (
-                      <CircularProgress color='success' size={30} />
+                    {selectedSpecie?.tsn_id ? (
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '100%',
+                          letterSpacing: '0%',
+                          color: theme.palette.primary.light,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {`${selectedSpecie?.common_name} `}
+                        <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecie?.complete_name})`}</span>
+                      </Typography>
                     ) : (
-                      <Icon icon='ic:round-download' fontSize={20} />
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          lineHeight: '100%',
+                          letterSpacing: '0%',
+                          color: theme.palette.customColors.neutralSecondary,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Select Species
+                      </Typography>
                     )}
+                    <IconButton sx={{ mr: -4, width: '37px' }}>
+                      <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
+                    </IconButton>
                   </Box>
                 </Box>
-              </Box>
-              {columns?.length > 0 ? (
-                <StickyTable
-                  rows={dataList}
-                  rowCount={total}
-                  rowHeight={127.5}
-                  headerHeight={50}
-                  pagination={true}
-                  columns={columns}
-                  pageSizeOptions={[5, 10, 25, 50]}
-                  rowsInView={10}
-                  rowsInViewOptions={[5, 10, 25]}
-                  paginationModel={paginationModel}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={isLoading}
-                  downloadExcel
-                  searchMode='server'
-                  disableColumnSorting={true}
-                />
-              ) : (
-                <Box sx={{ py: 4, textAlign: 'center' }}>
-                  <CircularProgress />
-                </Box>
-              )}
-            </>
-          )}
-        </Box>
-      </Card>
 
-      {!dataList?.length > 0 && (
-        <Box
-          sx={{
-            mt: 4,
-            bgcolor: theme.palette.customColors.Surface,
-            height: '216px',
-            borderRadius: '8px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          {isLoading ? (
-            <CircularProgress color='success' size={30} />
-          ) : (
-            <Typography
+                {/* Assessment Side Sheet */}
+                <Box
+                  onClick={() => setOpenAssessmentFilter(true)}
+                  sx={{
+                    cursor: 'pointer',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    minWidth: 200
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      lineHeight: '100%',
+                      letterSpacing: '0%',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Assessment Type
+                  </Typography>
+                  <Box
+                    sx={{
+                      bgcolor: theme.palette.primary.contrastText,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '16px',
+                      height: '56px',
+                      borderRadius: '8px',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                    }}
+                  >
+                    {selectedAssessmentType?.assessments_type_label ? (
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          letterSpacing: '0%',
+                          color: theme.palette.primary.light,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {`${selectedAssessmentType?.assessments_type_label} `}
+                      </Typography>
+                    ) : (
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          letterSpacing: '0%',
+                          color: theme.palette.customColors.neutralSecondary,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Select Assessment Type
+                      </Typography>
+                    )}
+
+                    <IconButton sx={{ mr: -4, width: '37px' }}>
+                      <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                {/* Generate Button */}
+                <Box sx={{ minWidth: 120 }}>
+                  <Button
+                    variant='contained'
+                    disabled={!selectedSpecie || !selectedAssessmentType || isLoading}
+                    sx={{ width: '127px', height: '56px', borderRadius: '8px' }}
+                    fullWidth
+                    onClick={() => animalAssessmentReport()}
+                  >
+                    Generate
+                  </Button>
+                </Box>
+              </Box>
+
+              {!initialLoad && (
+                <>
+                  <Box sx={{ display: 'flex', gap: 4, justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                      <TextField
+                        value={search}
+                        onChange={e => handleSearchChange(e)}
+                        variant='outlined'
+                        disabled={isLoading}
+                        size='small'
+                        placeholder='Search'
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon
+                                icon='mi:search'
+                                fontSize={24}
+                                color={theme.palette.customColors.neutralSecondary}
+                              />
+                            </InputAdornment>
+                          ),
+                          endAdornment: search && (
+                            <InputAdornment position='end'>
+                              <IconButton
+                                size='small'
+                                onClick={() => handleSearchChange({ target: { value: '' } })}
+                                edge='end'
+                              >
+                                <Icon icon='ic:round-close' fontSize={20} />
+                              </IconButton>
+                            </InputAdornment>
+                          )
+                        }}
+                        sx={{
+                          backgroundColor: theme.palette.primary.contrastText,
+                          // borderRadius: '40px', // Applies to the container
+                          '& .MuiOutlinedInput-root': {
+                            width: '240px',
+                            borderRadius: '4px' // Applies to the input field
+                          }
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 4, justifyContent: 'end', alignItems: 'center' }}>
+                      <CommonDateRangePickers
+                        disabled={true}
+                        onChange={handleDateRangeChange}
+                        filterDates={filterDates}
+                      />
+
+                      {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            width: '60px',
+                            height: '40px',
+                            borderRadius: '4px',
+                            bgcolor: theme?.palette.customColors?.lightBg,
+                            alignItems: 'center',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => {
+                            if (!isLoading) {
+                              setOpenFilterDrawer(true)
+                            }
+                          }}
+                        >
+                          <Icon icon='mage:filter' fontSize={24} />
+                          {filterCount > 0 && (
+                            <Typography
+                              sx={{
+                                position: 'absolute',
+                                top: '-15px',
+                                right: '-10px',
+                                minWidth: '27px',
+                                height: '27px',
+                                paddingX: 2,
+                                borderRadius: '14px',
+                                backgroundColor: theme.palette.primary.light,
+                                color: theme.palette.primary.contrastText,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '12px',
+                                fontWeight: 500
+                              }}
+                            >
+                              {filterCount}
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          width: '60px',
+                          height: '40px',
+                          borderRadius: '4px',
+                          bgcolor: theme?.palette.customColors?.lightBg,
+                          alignItems: 'center',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => getDataToExport()}
+                      >
+                        {isLoading ? (
+                          <CircularProgress color='success' size={30} />
+                        ) : (
+                          <Icon icon='ic:round-download' fontSize={20} />
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
+                  {columns?.length > 0 ? (
+                    <StickyTable
+                      rows={dataList}
+                      rowCount={total}
+                      rowHeight={127.5}
+                      headerHeight={50}
+                      pagination={true}
+                      columns={columns}
+                      pageSizeOptions={[5, 10, 25, 50]}
+                      rowsInView={10}
+                      rowsInViewOptions={[5, 10, 25]}
+                      paginationModel={paginationModel}
+                      onPaginationModelChange={setPaginationModel}
+                      loading={isLoading}
+                      downloadExcel
+                      searchMode='server'
+                      disableColumnSorting={true}
+                    />
+                  ) : (
+                    <Box sx={{ py: 4, textAlign: 'center' }}>
+                      <CircularProgress />
+                    </Box>
+                  )}
+                </>
+              )}
+            </Box>
+          </Card>
+
+          {!dataList?.length > 0 && (
+            <Box
               sx={{
-                fontSize: '20px',
-                fontWeight: 500,
-                lineHeight: '100%',
-                letterSpacing: 0,
-                color: theme.palette.primary.light
+                mt: 4,
+                bgcolor: theme.palette.customColors.Surface,
+                height: '216px',
+                borderRadius: '8px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
               }}
             >
-              {initialLoad
-                ? 'Select Species and Assessment Type to Generate Report'
-                : 'Reports not available for this search'}
-            </Typography>
+              {isLoading ? (
+                <CircularProgress color='success' size={30} />
+              ) : (
+                <Typography
+                  sx={{
+                    fontSize: '20px',
+                    fontWeight: 500,
+                    lineHeight: '100%',
+                    letterSpacing: 0,
+                    color: theme.palette.primary.light
+                  }}
+                >
+                  {initialLoad
+                    ? 'Select Species and Assessment Type to Generate Report'
+                    : 'Reports not available for this search'}
+                </Typography>
+              )}
+            </Box>
           )}
-        </Box>
-      )}
 
-      {openFilterDrawer && (
-        <AssessmentReportFilterDrawer
-          setOpenFilterDrawer={setOpenFilterDrawer}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          openFilterDrawer={openFilterDrawer}
-          setFilterCount={setFilterCount}
-          tabsforfilter={tabsforfilter}
-          openSiteListDrawer={openSiteListDrawer}
-          setSiteListDrawer={setSiteListDrawer}
-          sectionsData={sectionsData}
-          setSectionsData={setSectionsData}
-          enclosuresData={enclosuresData}
-          setEnclosuresData={setEnclosuresData}
-          selectedSections={selectedSections}
-          setSelectedSections={setSelectedSections}
-          selectedEnclosures={selectedEnclosures}
-          setSelectedEnclosures={setSelectedEnclosures}
-          siteData={siteData}
-          setActiveTab={setActiveTab}
-          activeTab={activeTab}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedItems={selectedItems}
-          setSelectedItems={setSelectedItems}
-          tempSelectedItems={tempSelectedItems}
-          setTempSelectedItems={setTempSelectedItems}
-        />
+          {openFilterDrawer && (
+            <AssessmentReportFilterDrawer
+              setOpenFilterDrawer={setOpenFilterDrawer}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              openFilterDrawer={openFilterDrawer}
+              setFilterCount={setFilterCount}
+              tabsforfilter={tabsforfilter}
+              openSiteListDrawer={openSiteListDrawer}
+              setSiteListDrawer={setSiteListDrawer}
+              sectionsData={sectionsData}
+              setSectionsData={setSectionsData}
+              enclosuresData={enclosuresData}
+              setEnclosuresData={setEnclosuresData}
+              selectedSections={selectedSections}
+              setSelectedSections={setSelectedSections}
+              selectedEnclosures={selectedEnclosures}
+              setSelectedEnclosures={setSelectedEnclosures}
+              siteData={siteData}
+              setActiveTab={setActiveTab}
+              activeTab={activeTab}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedItems={selectedItems}
+              setSelectedItems={setSelectedItems}
+              tempSelectedItems={tempSelectedItems}
+              setTempSelectedItems={setTempSelectedItems}
+            />
+          )}
+          {openspeciesFilter && (
+            <AssessmentSpeciesFilter
+              selectedSpecie={selectedSpecie}
+              setSelectedSpecie={setSelectedSpecie}
+              openspeciesFilter={openspeciesFilter}
+              setOpenspeciesFilter={setOpenspeciesFilter}
+            />
+          )}
+          {openassessmentFilter && (
+            <AssessmentTypeFilter
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedAssessmentType={selectedAssessmentType}
+              setSelectedAssessmentType={setSelectedAssessmentType}
+              openassessmentFilter={openassessmentFilter}
+              setOpenAssessmentFilter={setOpenAssessmentFilter}
+            />
+          )}
+          {showDetailsPopUp && <DetailsDialog animalDetailsData={animalDetailsData} />}
+        </>
       )}
-      {openspeciesFilter && (
-        <AssessmentSpeciesFilter
-          selectedSpecie={selectedSpecie}
-          setSelectedSpecie={setSelectedSpecie}
-          openspeciesFilter={openspeciesFilter}
-          setOpenspeciesFilter={setOpenspeciesFilter}
-        />
-      )}
-      {openassessmentFilter && (
-        <AssessmentTypeFilter
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedAssessmentType={selectedAssessmentType}
-          setSelectedAssessmentType={setSelectedAssessmentType}
-          openassessmentFilter={openassessmentFilter}
-          setOpenAssessmentFilter={setOpenAssessmentFilter}
-        />
-      )}
-      {showDetailsPopUp && <DetailsDialog animalDetailsData={animalDetailsData} />}
     </>
   )
 }
