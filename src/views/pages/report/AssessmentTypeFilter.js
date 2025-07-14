@@ -188,7 +188,7 @@ function AssessmentTypeFilter({
       </Box>
 
       {/* Content */}
-      {assessmentcategoryLoading && assessmenttypeLoading ? (
+      {assessmentcategoryLoading || assessmenttypeLoading ? (
         <Box
           sx={{
             backgroundColor: 'background.default',

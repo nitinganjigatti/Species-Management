@@ -23,14 +23,14 @@ import { AuthContext } from 'src/context/AuthContext'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
+import Error404 from 'src/pages/401'
 import StickyTable from 'src/views/table/sticky-table'
 import AssessmentReportFilterDrawer from 'src/views/pages/report/AssessmentReportFilterDrawer'
 import AssessmentSpeciesFilter from 'src/views/pages/report/AssessmentSpeciesFilter'
 import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
+import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
-import Error404 from 'src/pages/401'
-import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
