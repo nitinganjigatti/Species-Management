@@ -379,21 +379,47 @@ const StickyTable = ({
               {isGrouped ? (
                 transformText(col?.headerName, col?.textTransform)
               ) : (
-                <TableSortLabel
-                  onClick={() => {
-                    setSortStates(prevState => {
-                      const newStates = { ...prevState, [col.field]: prevState[col.field] === 'asc' ? 'desc' : 'asc' }
-                      onSortChange({
-                        field: col.field,
-                        direction: newStates[col.field]
-                      })
+                // <TableSortLabel
+                //   onClick={() => {
+                //     setSortStates(prevState => {
+                //       const newStates = { ...prevState, [col.field]: prevState[col.field] === 'asc' ? 'desc' : 'asc' }
+                //       onSortChange({
+                //         field: col.field,
+                //         direction: newStates[col.field]
+                //       })
 
-                      return newStates
-                    })
-                  }}
-                >
-                  {transformText(col?.headerName, col?.textTransform)}
-                </TableSortLabel>
+                //       return newStates
+                //     })
+                //   }}
+                // >
+                //   {transformText(col?.headerName, col?.textTransform)}
+                // </TableSortLabel>
+                <>
+                  {col.sortable === false ? (
+                    transformText(col?.headerName, col?.textTransform)
+                  ) : (
+                    <TableSortLabel
+                      active={!!sortStates[col.field]}
+                      direction={sortStates[col.field] || 'asc'}
+                      onClick={() => {
+                        setSortStates(prevState => {
+                          const newStates = {
+                            ...prevState,
+                            [col.field]: prevState[col.field] === 'asc' ? 'desc' : 'asc'
+                          }
+                          onSortChange({
+                            field: col.field,
+                            direction: newStates[col.field]
+                          })
+
+                          return newStates
+                        })
+                      }}
+                    >
+                      {transformText(col?.headerName, col?.textTransform)}
+                    </TableSortLabel>
+                  )}
+                </>
               )}
               {/* Three-dot menu */}
               {modifyColumnPinning && (
