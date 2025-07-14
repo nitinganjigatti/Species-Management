@@ -240,7 +240,7 @@ const AnimalAssessment = () => {
         field: 'Animals',
         headerName: header.label,
         pinned: 'left',
-        width: 340,
+        width: 300,
         height: 131,
         sortable: false,
         headerStyle: {
@@ -249,7 +249,7 @@ const AnimalAssessment = () => {
         columnStyle: {
           border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
           borderRight: 'none',
-          p: 4,
+          p: 2,
           m: 0
         },
         disableColumnMenu: true,
