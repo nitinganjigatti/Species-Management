@@ -159,12 +159,12 @@ const RecipeCard = ({
 
       // Merge updatedSelectedDays with the existing selectedDays state
       const finalSelectedDays = rows.map(row => {
-        const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
+        const updatedDay = updatedSelectedDays?.find(updated => updated.cardId === row.id)
 
         if (updatedDay) {
           return updatedDay // Use the updated selection if available
         } else {
-          const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+          const existingDay = selectedDays?.find(existing => existing.cardId === row.id)
 
           return existingDay || { cardId: row.id, days: Day }
         }
@@ -187,7 +187,7 @@ const RecipeCard = ({
       searchValue
     ) {
       const finalSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         // If no match with checkid, enable all days
         const enabledAllDays = Day.map(day => ({
@@ -221,7 +221,7 @@ const RecipeCard = ({
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -246,7 +246,7 @@ const RecipeCard = ({
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them

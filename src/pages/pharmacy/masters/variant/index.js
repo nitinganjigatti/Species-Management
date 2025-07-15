@@ -1,5 +1,5 @@
 import { Box, Card, CardHeader, debounce, Grid, TextField, Typography } from '@mui/material'
-import { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import IconButton from '@mui/material/IconButton'
 
@@ -366,4 +366,4 @@ const VariantList = () => {
   )
 }
 
-export default VariantList
+export default React.memo(VariantList)

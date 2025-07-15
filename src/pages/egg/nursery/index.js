@@ -319,8 +319,8 @@ const NurseryList = () => {
       <Card>
         <CardHeader title='Nursery' action={headerAction} />
 
-        <Grid sx={{ ml: 4, mb: 6 }} container columns={15} spacing={6}>
-          <Grid item size={{ xs: 3 }}>
+        <Box sx={{ mb: 6 }}>
+          <Box sx={{ px: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <Box
               sx={{
                 display: 'flex',
@@ -350,15 +350,14 @@ const NurseryList = () => {
                 }}
               />
             </Box>
-          </Grid>
 
-          <Grid item size={{ xs: 3 }}>
-            <FormControl fullWidth>
+            <FormControl>
               <Autocomplete
                 name='site'
                 value={defaultSite}
                 disablePortal
                 id='site'
+                sx={{ width: 220 }}
                 options={userData?.user?.zoos[0].sites}
                 getOptionLabel={option => option?.site_name || ''}
                 isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
@@ -407,8 +406,8 @@ const NurseryList = () => {
                 )}
               />
             </FormControl>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         <DataGrid
           autoHeight
