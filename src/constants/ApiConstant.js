@@ -595,3 +595,13 @@ export const GET_SHIPMENT_SPECIES_DATA = 'v1/trade/shipments-species'
 export const UPDATE_SHIPMENT_SPECIES = 'v1/trade/shipments-species/update'
 
 export const GET_LINKED_DOCUMENTS_SHIPMENT = 'v1/trade/shipments/documents'
+
+export const GET_IMPORTS_LIST = 'v1/trade/imports'
+
+export const GET_EXPORTS_LIST_FOR_IMPORTS = 'v1/trade/exports/list'
+
+export const CREATE_IMPORTS_SPECIES = 'v1/trade/imports'
+
+export const UPDATE_IMPORTS_SPECIES = 'v1/trade/imports/update'
+
+export const GET_LINKED_DOCUMENTS_IMPORTS = 'v1/trade/imports/linked-shipments'
