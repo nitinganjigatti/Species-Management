@@ -8,14 +8,44 @@ const DashboardContainer = styled(Box)(({ theme }) => ({
   overflow: 'hidden'
 }))
 
-const TimeSlotContainer = styled(Box)(({ theme }) => ({
+const MainContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  width: '100%',
+  height: '100%'
+}))
+
+const FixedColumn = styled(Box)(({ theme }) => ({
+  width: '180px',
+  flexShrink: 0,
+  borderRight: '1px solid #e9ecef',
+  marginRight: theme.spacing(2),
+  [theme.breakpoints.down('md')]: {
+    width: '160px'
+  }
+}))
+
+const ScrollableContainer = styled(Box)(({ theme }) => ({
+  flex: 1,
+  overflowX: 'auto',
+  overflowY: 'hidden',
+  height: '100%',
+  '&::-webkit-scrollbar': {
+    height: 0
+  },
+  scrollbarWidth: 'none',
+  msOverflowStyle: 'none'
+}))
+
+const TimeSlotGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: '180px repeat(auto-fit, minmax(80px, 1fr))',
+  gridTemplateColumns: 'repeat(24, minmax(80px, 1fr))', // Fixed 24 columns for 24 hours
   gap: theme.spacing(2),
   alignItems: 'center',
+  width: 'max-content',
+  minWidth: '100%',
   marginBottom: theme.spacing(3),
   [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: '160px repeat(auto-fit, minmax(60px, 1fr))',
+    gridTemplateColumns: 'repeat(24, minmax(60px, 1fr))',
     gap: theme.spacing(1.5)
   }
 }))
@@ -27,7 +57,9 @@ const MetricLabel = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3, 2.5),
   backgroundColor: '#EFF5F2',
   borderRadius: 1,
-  minHeight: '48px'
+  minHeight: '48px',
+  marginBottom: theme.spacing(3),
+  width: '100%'
 }))
 
 const MetricName = styled(Typography)(({ theme }) => ({
@@ -56,13 +88,30 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   cursor: 'pointer',
   transition: 'all 0.2s ease',
   position: 'relative',
+  minWidth: '80px',
   '&:hover': {
     backgroundColor: '#f8f9fa',
     borderColor: '#dee2e6'
   },
   [theme.breakpoints.down('md')]: {
     fontSize: '11px',
-    padding: theme.spacing(2, 1.5)
+    padding: theme.spacing(2, 1.5),
+    minWidth: '60px'
+  }
+}))
+
+const TimeHeader = styled(Box)(({ theme }) => ({
+  textAlign: 'center',
+  fontSize: '16px',
+  fontWeight: 500,
+  color: '#495057',
+  padding: theme.spacing(4),
+  background: '#EFF5F2',
+  borderRadius: 0.5,
+  position: 'relative',
+  minWidth: '80px',
+  [theme.breakpoints.down('md')]: {
+    minWidth: '60px'
   }
 }))
 
@@ -95,7 +144,32 @@ const TimeTooltip = styled(Box)(({ theme }) => ({
 }))
 
 const PatientMontoring = ({
-  timeSlots = ['12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM'],
+  timeSlots = [
+    '12 AM',
+    '1 AM',
+    '2 AM',
+    '3 AM',
+    '4 AM',
+    '5 AM',
+    '6 AM',
+    '7 AM',
+    '8 AM',
+    '9 AM',
+    '10 AM',
+    '11 AM',
+    '12 PM',
+    '1 PM',
+    '2 PM',
+    '3 PM',
+    '4 PM',
+    '5 PM',
+    '6 PM',
+    '7 PM',
+    '8 PM',
+    '9 PM',
+    '10 PM',
+    '11 PM'
+  ],
   metrics = [],
   onTimeSlotClick = () => {},
   onRemoveMetric = () => {}
@@ -187,104 +261,104 @@ const PatientMontoring = ({
 
   return (
     <DashboardContainer>
-      <TimeSlotContainer sx={{ position: 'relative' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 4,
-            background: '#EFF5F2',
-            borderRadius: 0.5
-          }}
-        >
-          <Typography>Monitoring</Typography>
-          <Icon icon={'mdi-plus'} fontSize={20} />
-        </Box>
-
-        {/* Time Headers */}
-        {timeSlots.map((time, index) => (
+      <MainContainer>
+        {/* Fixed Column for Labels */}
+        <FixedColumn>
+          {/* Header for the fixed column */}
           <Box
-            key={time}
             sx={{
-              textAlign: 'center',
-              fontSize: '16px',
-              fontWeight: 500,
-              color: '#495057',
-              padding: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 4,
               background: '#EFF5F2',
               borderRadius: 0.5,
-              position: 'relative' // for tooltip positioning
+              marginBottom: 3
             }}
           >
-            {/* Render time */}
-            {time}
+            <Typography>Monitoring</Typography>
+            <Icon icon={'mdi-plus'} fontSize={20} />
+          </Box>
 
-            {/* Tooltip only if this is the current hour slot */}
-            {(() => {
-              const currentHour = currentTime.getHours()
-              const hour = parseInt(time)
-              const isPM = time.includes('PM')
-              const normalizedHour = isPM && hour !== 12 ? hour + 12 : time.includes('AM') && hour === 12 ? 0 : hour
+          {/* Metric Labels */}
+          {displayMetrics.map(metric => (
+            <MetricLabel key={metric.id}>
+              <Box>
+                <MetricName>{metric.name}</MetricName>
+                <MetricSubtext>{metric.subtext}</MetricSubtext>
+              </Box>
+              {metric.canEdit && (
+                <IconButton size='small' onClick={() => onRemoveMetric(metric.id)} sx={{ color: '#6c757d', ml: 1 }}>
+                  <Icon icon={'mdi-close'} fontSize={20} />
+                </IconButton>
+              )}
+            </MetricLabel>
+          ))}
+        </FixedColumn>
 
-              if (normalizedHour === currentHour) {
-                const minutes = currentTime.getMinutes()
-                const leftPercentage = (minutes / 60) * 100
+        {/* Scrollable Container for Time Slots */}
+        <ScrollableContainer>
+          {/* Time Headers */}
+          <TimeSlotGrid>
+            {timeSlots.map((time, index) => (
+              <TimeHeader key={time}>
+                {time}
+                {/* Tooltip only if this is the current hour slot */}
+                {(() => {
+                  const currentHour = currentTime.getHours()
+                  const hour = parseInt(time)
+                  const isPM = time.includes('PM')
+                  const normalizedHour = isPM && hour !== 12 ? hour + 12 : time.includes('AM') && hour === 12 ? 0 : hour
+
+                  if (normalizedHour === currentHour) {
+                    const minutes = currentTime.getMinutes()
+                    const leftPercentage = (minutes / 60) * 100
+
+                    return (
+                      <TimeTooltip
+                        sx={{
+                          left: `${leftPercentage}%`
+                        }}
+                      >
+                        {currentTime.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </TimeTooltip>
+                    )
+                  }
+
+                  return null
+                })()}
+              </TimeHeader>
+            ))}
+          </TimeSlotGrid>
+
+          {/* Metric Time Slots */}
+          {displayMetrics.map(metric => (
+            <TimeSlotGrid key={metric.id}>
+              {metric.timeSlots.map((timeSlot, index) => {
+                const slotKey = `${metric.id}-${index}`
 
                 return (
-                  <TimeTooltip
+                  <TimeSlot
+                    key={slotKey}
+                    onClick={() => handleTimeSlotClick(metric.id, timeSlot)}
+                    onMouseEnter={() => setHoveredSlot(slotKey)}
+                    onMouseLeave={() => setHoveredSlot(null)}
                     sx={{
-                      left: `${leftPercentage}%`
+                      transform: hoveredSlot === slotKey ? 'translateY(-1px)' : 'none'
                     }}
                   >
-                    {currentTime.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true
-                    })}
-                  </TimeTooltip>
+                    <Icon icon={'mdi-plus'} fontSize={20} />
+                  </TimeSlot>
                 )
-              }
-
-              return null
-            })()}
-          </Box>
-        ))}
-      </TimeSlotContainer>
-
-      {displayMetrics.map(metric => (
-        <TimeSlotContainer key={metric.id}>
-          <MetricLabel>
-            <Box>
-              <MetricName>{metric.name}</MetricName>
-              <MetricSubtext>{metric.subtext}</MetricSubtext>
-            </Box>
-            {metric.canEdit && (
-              <IconButton size='small' onClick={() => onRemoveMetric(metric.id)} sx={{ color: '#6c757d', ml: 1 }}>
-                <Icon icon={'mdi-close'} fontSize={20} />
-              </IconButton>
-            )}
-          </MetricLabel>
-
-          {metric.timeSlots.map((timeSlot, index) => {
-            const slotKey = `${metric.id}-${index}`
-
-            return (
-              <TimeSlot
-                key={slotKey}
-                onClick={() => handleTimeSlotClick(metric.id, timeSlot)}
-                onMouseEnter={() => setHoveredSlot(slotKey)}
-                onMouseLeave={() => setHoveredSlot(null)}
-                sx={{
-                  transform: hoveredSlot === slotKey ? 'translateY(-1px)' : 'none'
-                }}
-              >
-                <Icon icon={'mdi-plus'} fontSize={20} />
-              </TimeSlot>
-            )
-          })}
-        </TimeSlotContainer>
-      ))}
+              })}
+            </TimeSlotGrid>
+          ))}
+        </ScrollableContainer>
+      </MainContainer>
     </DashboardContainer>
   )
 }

@@ -13,6 +13,7 @@ import {
   Home as HomeIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material'
+import { VisitType } from 'src/views/utility/render-snippets'
 
 const PatientCard = ({ patientData }) => {
   const theme = useTheme()
@@ -53,42 +54,8 @@ const PatientCard = ({ patientData }) => {
             >
               Case ID: 12345/25
             </Typography>
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#E1F9ED',
-                color: '#37BD69',
-                fontWeight: 600,
-                fontSize: '0.75rem',
-                height: 24,
-                px: 2,
-                py: 1,
-                borderRadius: 0.5,
-                lineHeight: 1
-              }}
-            >
-              INPATIENT
-            </Box>
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#AFEFEB4D',
-                color: '#00AFD6',
-                fontWeight: 600,
-                fontSize: '0.75rem',
-                height: 24,
-                px: 2,
-                py: 1,
-                borderRadius: 0.5,
-                lineHeight: 1
-              }}
-            >
-              Check up
-            </Box>
+            <VisitType title={'Emergency'} />
+            <VisitType title={'Check up'} />
           </Box>
           <Typography
             variant='body2'

@@ -1,4 +1,4 @@
-import { Badge, Box, CircularProgress, Tooltip } from '@mui/material'
+import { Badge, Box, CircularProgress, Tooltip, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { bgcolor } from '@mui/system'
@@ -98,5 +98,53 @@ export const FilterButton = ({
         </Badge>
       </Box>
     </Tooltip>
+  )
+}
+
+export const VisitType = ({ title }) => {
+  const theme = useTheme()
+
+  const typeStyles = {
+    'Check up': { background: theme.palette.customColors.antzInfoLight, color: theme.palette.customColors.addPrimary },
+    INPATIENT: { background: theme.palette.customColors.OnBackground, color: theme.palette.primary.main },
+    'Follow-up': { background: theme.palette.customColors.OnBackground, color: theme.palette.primary.OnSurface },
+    Emergency: { background: theme.palette.customColors.Tertiary30, color: theme.palette.customColors.Tertiary },
+    Planned: { background: '#FFD3D366', color: theme.palette.customColors.Error }
+  }
+
+  const allowedTitles = Object.keys(typeStyles)
+  if (!allowedTitles.includes(title)) return null
+  const { background, color } = typeStyles[title]
+  const isAllUpperCase = title === title.toUpperCase()
+  const textTransform = isAllUpperCase ? 'uppercase' : 'none'
+
+  return (
+    <>
+      <Box
+        sx={{
+          px: 2,
+          py: 1,
+          borderRadius: 0.5,
+          background,
+          display: 'inline-block',
+          height: 24,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <Typography
+          sx={{
+            color,
+            fontWeight: 500,
+            fontSize: '0.88rem',
+            letterSpacing: 1,
+            textTransform
+          }}
+        >
+          {title}
+        </Typography>
+      </Box>
+    </>
   )
 }
