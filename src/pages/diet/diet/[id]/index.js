@@ -658,7 +658,7 @@ const DietDetail = () => {
                         sx={{
                           '& button': {
                             borderBottom: theme.components.MuiDataGrid.styleOverrides.cell.borderBottom,
-                            color: '#839D8D'
+                            color: theme.palette.customColors.Outline
                           }
                         }}
                         onChange={handleChange}

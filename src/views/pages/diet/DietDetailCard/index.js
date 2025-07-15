@@ -460,13 +460,7 @@ const DietDetailCard = ({
                   {/* Animals Section */}
                   <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_animals !== '0' ? (
-                      <Box
-                        display='flex'
-                        justifyContent='space-between'
-                        alignItems='center'
-                        sx={{ pb: 3, cursor: 'pointer' }}
-                        onClick={() => handleSpeciesClicknew('details', 'animals')}
-                      >
+                      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 3 }}>
                         {/* Label */}
                         <Typography
                           variant='body2'
@@ -476,7 +470,12 @@ const DietDetailCard = ({
                           Animals
                         </Typography>
                         {/* Value and Primary */}
-                        <Box display='flex' alignItems='center'>
+                        <Box
+                          display='flex'
+                          alignItems='center'
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => handleSpeciesClicknew('details', 'animals')}
+                        >
                           <Typography variant='h6' color={theme.palette.primary.main}>
                             {dietDetails.total_animals}
                           </Typography>
