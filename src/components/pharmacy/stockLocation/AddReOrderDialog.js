@@ -11,7 +11,7 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
@@ -24,7 +24,10 @@ const defaultValues = {
 }
 
 const schema = Yup.object().shape({
-  reorder_level: Yup.string().required('Reorder level is required')
+  reorder_level: Yup.number()
+    .typeError('Reorder Level is required')
+    .min(0, 'Reorder Level cannot be negative')
+    .required('Reorder Level is required')
 })
 
 const AddReOrderDialog = ({
@@ -35,8 +38,6 @@ const AddReOrderDialog = ({
   dialogCheck,
   setDialogCheck
 }) => {
-  console.log(stockDetails)
-
   const {
     reset,
     control,
@@ -51,6 +52,16 @@ const AddReOrderDialog = ({
   })
 
   const [submitLoader, setSubmitLoader] = useState(false)
+
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (openDrawer) {
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+    }
+  }, [openDrawer])
 
   const handleSave = async minQty => {
     setSubmitLoader(true)
@@ -93,17 +104,19 @@ const AddReOrderDialog = ({
         setOpenDrawer(false)
         setStockDetails(null)
       }}
-      PaperProps={{
-        sx: {
-          width: {
-            xs: '100%',
-            sm: '80%',
-            md: 560
-          },
-          backgroundColor: 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%'
+      slotProps={{
+        paper: {
+          sx: {
+            width: {
+              xs: '100%',
+              sm: '80%',
+              md: 560
+            },
+            backgroundColor: 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }
         }
       }}
     >
@@ -117,8 +130,19 @@ const AddReOrderDialog = ({
           borderBottom: '1px solid #e0e0e0'
         }}
       >
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          <Typography variant='h6' fontWeight='bold'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Typography
+            variant='h6'
+            sx={{
+              fontWeight: 'bold'
+            }}
+          >
             Add Reorder Level
           </Typography>
           <IconButton
@@ -149,7 +173,7 @@ const AddReOrderDialog = ({
             icon={stockDetails?.image}
           />
           <Typography sx={{ fontSize: '14px' }}>
-            Reorder Level: <strong>{stockDetails?.min_qty ? stockDetails?.min_qty : 0}</strong>
+            Reorder-Level: <strong>{stockDetails?.min_qty ? stockDetails?.min_qty : 0}</strong>
           </Typography>
         </Box>
 
@@ -170,8 +194,23 @@ const AddReOrderDialog = ({
                 name='reorder_level'
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label='Reorder Level *' error={Boolean(errors.reorder_level)} fullWidth />
+                  <TextField
+                    {...field}
+                    label='Reorder Level *'
+                    error={Boolean(errors.reorder_level)}
+                    fullWidth
+                    type='number'
+                    inputRef={inputRef}
+                    inputProps={{ min: 0 }}
+                  />
                 )}
+                rules={{
+                  required: 'Reorder Level is required',
+                  min: {
+                    value: 0,
+                    message: 'Reorder Level cannot be negative'
+                  }
+                }}
               />
 
               {errors.reorder_level && (

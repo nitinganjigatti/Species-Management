@@ -385,7 +385,7 @@ const ListOfStocks = () => {
       // setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, value])
+  }, [selectedPharmacy.id, value, dialogCheck])
 
   const getBatchWiseDataToExport = async () => {
     try {
@@ -457,7 +457,7 @@ const ListOfStocks = () => {
 
   const getMenuOptions = row => [
     {
-      label: 'Add Re-Order Level',
+      label: 'Add Reorder Level',
       action: () => {
         setOpenReOrderLevelDialog(true)
         setConfigReOrderMed(row)
