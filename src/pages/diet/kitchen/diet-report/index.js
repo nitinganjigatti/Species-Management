@@ -28,6 +28,7 @@ import { getTaxonomyList } from 'src/lib/api/diet/dietList'
 import Utility from 'src/utility'
 import CustomOptionDateRangePickers from 'src/components/custom-date-picker/CustomOptionDateRangePickers'
 import { minWidth, width } from '@mui/system'
+import Toaster from 'src/components/Toaster'
 
 const DietReportPage = () => {
   const initialRows = [
@@ -211,6 +212,11 @@ const DietReportPage = () => {
 
       if (data?.success) {
         Utility.downloadFileFromURL(data.data)
+      } else {
+        Toaster({
+          type: 'error',
+          message: data?.message
+        })
       }
     } catch (error) {
       console.error('Download failed:', error)
