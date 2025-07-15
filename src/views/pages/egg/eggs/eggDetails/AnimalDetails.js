@@ -32,6 +32,7 @@ const AnimalDetails = ({ eggDetails }) => {
       <CardHeader
         sx={{ pb: 0, pl: 5 }}
         title={'Animal Details'}
+
         // action={headerAction}
       />
       <CardContent sx={{ pt: 2 }}>

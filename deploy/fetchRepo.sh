@@ -49,7 +49,7 @@ git clone --depth 1 -b $BRANCH $REPO $NEW_RELEASE_DIR
 # mkdir -p $NEW_RELEASE_DIR/uploads/user-qr
 # sudo chown -R www-data:www-data $NEW_RELEASE_DIR
 cd $NEW_RELEASE_DIR
-# sudo apt-get install -y curl jq
+sudo apt-get install -y curl jq
 
 rm -f .env;
 # vantara-prod

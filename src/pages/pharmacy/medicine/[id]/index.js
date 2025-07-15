@@ -40,11 +40,14 @@ import Overview from 'src/views/pages/pharmacy/product/product-details-list/over
 import Purchase from 'src/views/pages/pharmacy/product/product-details-list/purchase'
 import Dispatch from 'src/views/pages/pharmacy/product/product-details-list/dispatch'
 import Ledger from 'src/views/pages/pharmacy/product/product-details-list/ledger'
-import { getVariantFOrProduct, getVariants, mapVariantForProduct } from 'src/lib/api/pharmacy/variant'
+import { getVariantFOrProduct, getVariants, mapVariantForProduct, addVariant } from 'src/lib/api/pharmacy/variant'
 import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTheme } from '@emotion/react'
 import Error404 from 'src/pages/404'
+import AddVariant from 'src/views/pages/pharmacy/medicine/variant/addVariant'
+import toast from 'react-hot-toast'
+import Utility from 'src/utility'
 
 const ProductDetailsList = () => {
   const theme = useTheme()
@@ -62,6 +65,20 @@ const ProductDetailsList = () => {
 
   const defaultTab = 'overview'
   const [value, setValue] = React.useState(tab || defaultTab)
+  const [variantDrawer, setVariantDrawer] = useState(false)
+  const editParamsInitialState = { id: null, unit_multiplier: null, description: null, active: null }
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+  const [submitLoader, setSubmitLoader] = useState(false)
+
+  const addEventSidebarOpen = () => {
+    setEditParams(editParamsInitialState)
+    setVariantDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    setEditParams(editParamsInitialState)
+    setVariantDrawer(false)
+  }
 
   const updateUrlParams = useCallback(
     params => {
@@ -282,6 +299,44 @@ const ProductDetailsList = () => {
     }
   }
 
+  const handleSubmitData = async payload => {
+    try {
+      setSubmitLoader(true)
+      var response
+
+      response = await addVariant(payload)
+
+      if (response?.success) {
+        toast.success(response?.message)
+
+        setSubmitLoader(false)
+        setVariantDrawer(false)
+        setEditParams(editParamsInitialState)
+        getAllVariantList()
+
+        return { success: true }
+      } else {
+        setSubmitLoader(false)
+
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+
+          return { success: false }
+        } else {
+          toast.error(response.message)
+
+          return { success: false }
+        }
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+
+      toast.error(JSON.stringify(e))
+
+      return { success: false }
+    }
+  }
   useEffect(() => {
     if (id != undefined) {
       productDashboardList(id)
@@ -323,13 +378,27 @@ const ProductDetailsList = () => {
                           {selectedPharmacy.type === 'central' &&
                             (selectedPharmacy.permission.key === 'allow_full_access' ||
                               selectedPharmacy.permission.key === 'ADD') && (
-                              <Button
-                                variant='contained'
-                                startIcon={<Icon icon='material-symbols:edit-outline' />}
-                                onClick={handleEdit}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: { md: 'row', xs: 'column', gap: 2 }
+                                }}
                               >
-                                Edit
-                              </Button>
+                                <Button
+                                  variant='contained'
+                                  startIcon={<Icon icon='material-symbols-light:add' />}
+                                  onClick={() => addEventSidebarOpen()}
+                                >
+                                  Add Variant To Master
+                                </Button>
+                                <Button
+                                  variant='contained'
+                                  startIcon={<Icon icon='material-symbols:edit-outline' />}
+                                  onClick={handleEdit}
+                                >
+                                  Edit
+                                </Button>
+                              </Box>
                             )}
                         </>
                       }
@@ -729,6 +798,15 @@ const ProductDetailsList = () => {
               </Button>
             </Box>
           </Drawer>
+          <AddVariant
+            drawerWidth={400}
+            addEventSidebarOpen={variantDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            // resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
         </>
       ) : (
         <Error404></Error404>

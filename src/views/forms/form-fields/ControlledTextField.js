@@ -50,10 +50,11 @@ const ControlledTextField = ({
           slotProps={{
             input: { readOnly },
             htmlInput: inputProps
-          }} />
+          }}
+        />
       )}
     />
-  );
+  )
 }
 
 export default React.memo(ControlledTextField)

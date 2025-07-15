@@ -384,7 +384,7 @@ const ConditionSlider = ({
   }
 
   const onSubmit = values => {
-    if (values.hatched_date === null) {
+    if (Number(getValues('current_state')) === 4 && values.hatched_date === null) {
       setError('hatched_date', {
         type: 'manual',
         message: 'Hatched date is required'
@@ -555,6 +555,16 @@ const ConditionSlider = ({
     setValue('current_state', eggDetails?.egg_status_id)
     setValue('select_stage', eggDetails?.egg_state_id)
   }, [eggDetails])
+
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'hatched_date' && value?.hatched_date) {
+        setValue('birthDate', value.hatched_date)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [watch])
 
   const getAccessionTypeFunc = () => {
     try {
@@ -1538,6 +1548,7 @@ const ConditionSlider = ({
                                 onChange={onChange}
                                 label={'Birth Date *'}
                                 maxDate={dayjs()}
+                                format='DD/MM/YYYY'
                               />
                             </LocalizationProvider>
                           )}

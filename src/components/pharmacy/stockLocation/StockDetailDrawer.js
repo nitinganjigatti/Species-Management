@@ -103,7 +103,7 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
             icon={stockDetail?.image}
           />
           <Typography sx={{ fontSize: '14px' }}>
-            Reorder-Level: <strong>{stockDetail?.min_qty ? stockDetail?.min_qty : 0}</strong>
+            Reorder Level: <strong>{stockDetail?.min_qty ? stockDetail?.min_qty : 0}</strong>
           </Typography>
         </Box>
 
@@ -118,7 +118,7 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
             boxShadow: 'none'
           }}
         >
-          <Typography
+          {/* <Typography
             variant='subtitle1'
             sx={{
               marginBottom: 2,
@@ -127,19 +127,35 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
               fontSize: '14px'
             }}>
             Rack and Shelves Details
-          </Typography>
+          </Typography> */}
           <Card
             sx={{
-              // m: 6,
-              border: '1px solid',
-              borderColor: 'customColors.customTableBorderBg',
               boxShadow: 'none'
             }}
           >
             <TableContainer component={Paper}>
-              <Table aria-label='rack and shelves table'>
+              <Table
+                aria-label='rack and shelves table'
+                sx={{
+                  border: '1px solid #e0e0e0',
+                  '& .MuiTableCell-root': {
+                    border: '1px solid #e0e0e0'
+                  },
+                  '& .MuiTableBody-root .MuiTableRow-root:last-child .MuiTableCell-root': {
+                    borderBottom: '1px solid #e0e0e0'
+                  }
+                }}
+              >
                 <TableHead>
-                  <TableRow>
+                  <TableRow
+                    sx={{
+                      backgroundColor: '#c8d0d0',
+                      '& .MuiTableCell-root': {
+                        backgroundColor: '#c8d0d0',
+                        fontWeight: 'bold'
+                      }
+                    }}
+                  >
                     <TableCell>
                       <strong>Rack</strong>
                     </TableCell>

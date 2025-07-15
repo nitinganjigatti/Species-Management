@@ -90,7 +90,7 @@ const MealGroup = () => {
   const [editeditems, setEditItems] = useState([])
 
   const [siteStats, setSiteStats] = useState({
-    meal_groups_count: '',
+    meal_groups_count: '0',
     unmapped_enclosures: '',
     mapped_enclosures: '',
     total_enclosures: '',
@@ -264,7 +264,7 @@ const MealGroup = () => {
     debounce(async q => {
       setSearchValue(q)
 
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
 
       try {
         await fetchEnclosure({
@@ -285,7 +285,7 @@ const MealGroup = () => {
     debounce(async q => {
       setSearchValue(q)
       setLoader(true)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
 
       try {
         const res = await getEnclosureListByGroup({
@@ -317,7 +317,7 @@ const MealGroup = () => {
       console.log('Edit >', editeditems)
 
       setEditSearchValue(q)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
 
       try {
         const res = await getEnclosureListByGroup({
@@ -564,7 +564,7 @@ const MealGroup = () => {
     setSearchValue('')
     setEditItems([])
     setSelectedItems([])
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setEditParam({})
   }
 
@@ -736,7 +736,6 @@ const MealGroup = () => {
 
   const addEnclosure = async () => {
     try {
-
       // setEnclosureDrawer(true)
       setAddEnclosureDrawer(true)
       setLoader(true)
@@ -1271,7 +1270,7 @@ const MealGroup = () => {
     },
     {
       field: 'group_name',
-      headerName: 'Meal Group Name',
+      headerName: 'Meal Group Name ',
       sortable: false,
       headerAlign: 'center',
       align: 'center',
@@ -1538,7 +1537,14 @@ const MealGroup = () => {
                   value='mapped'
                   label={<TabBadge label={`Enclosures mapped - ${siteStats?.mapped_enclosures}`} />}
                 />
-                <Tab value='mealgroup' label={<TabBadge label={`Meal group - ${siteStats?.meal_groups_count}`} />} />
+                <Tab
+                  value='mealgroup'
+                  label={
+                    <TabBadge
+                      label={`Meal group - ${siteStats?.meal_groups_count ? siteStats.meal_groups_count : 0}`}
+                    />
+                  }
+                />
               </TabList>
 
               {/* Divider only below TabList, responsive width */}
@@ -1915,7 +1921,7 @@ const MealGroup = () => {
           handleEnclosureSearch={handleEnclosureSearch}
         />
       )}
-      {addEnclosureDrawer && ( 
+      {addEnclosureDrawer && (
         <AddEnclosureToGroup
           addEnclosureDrawer={addEnclosureDrawer}
           setSelectedItems={setSelectedItems}

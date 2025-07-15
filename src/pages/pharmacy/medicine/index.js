@@ -130,7 +130,7 @@ const ListOfMedicine = () => {
       minWidth: 20,
       width: 250,
       field: 'package',
-      headerName: 'PACKAGE',
+      headerName: 'PRESENTATION',
       renderCell: params => (
         <Tooltip
           title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
