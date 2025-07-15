@@ -27,7 +27,7 @@ import {
 import { getTaxonomyList } from 'src/lib/api/diet/dietList'
 import Utility from 'src/utility'
 import CustomOptionDateRangePickers from 'src/components/custom-date-picker/CustomOptionDateRangePickers'
-import { minWidth, width } from '@mui/system'
+import { alignItems, minWidth, width } from '@mui/system'
 import Toaster from 'src/components/Toaster'
 
 const DietReportPage = () => {
@@ -231,6 +231,9 @@ const DietReportPage = () => {
       width: 40,
       field: 'id',
       headerName: 'ID',
+      headerAlign: 'center',
+      alignItems: 'center',
+      align: 'center',
       renderCell: params => params.value
     },
     {
@@ -321,7 +324,6 @@ const DietReportPage = () => {
   const debouncedSearch = useMemo(
     search =>
       debounce(async (search, page_no) => {
-        debugger
         await getTaxonomyListFunc(search, page_no)
       }, 1000),
     []
@@ -351,14 +353,15 @@ const DietReportPage = () => {
         <Card>
           <CardHeader
             title={RenderUtility.pageTitle('Diet Reports')}
-            sx={{
-              '& .MuiCardHeader-title': {
-                color: theme => theme.palette.primary.main
-              }
-            }}
-            slotProps={{
-              title: { variant: 'h5' }
-            }}
+
+            // sx={{
+            //   '& .MuiCardHeader-title': {
+            //     color: theme => theme.palette.primary.main
+            //   }
+            // }}
+            // slotProps={{
+            //   title: { variant: 'h5' }
+            // }}
           />
           <CardContent>
             <Box
