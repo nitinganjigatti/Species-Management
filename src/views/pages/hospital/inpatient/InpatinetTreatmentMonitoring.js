@@ -24,8 +24,10 @@ const InpatinetTreatmentMonitoring = () => {
           </Grid>
         </Grid>
         <Box sx={{ mt: 8 }}>
-          <PatientMontoring />
-          <PatientMontoring timeSlots={Utility.getUpcomingHours(4)} />
+          <PatientMontoring
+            onTimeSlotClick={(id, value) => console.log(id, value)}
+            onRemoveMetric={id => console.log(id)}
+          />
         </Box>
       </Box>
     </>
