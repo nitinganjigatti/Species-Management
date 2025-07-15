@@ -26,6 +26,7 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 // ** Icon Imports
 
@@ -91,7 +92,14 @@ const RequestedProductDetails = props => {
       <Box>
         {requestedProducts?.alt_parent?.length > 0 &&
           requestedProducts?.alt_parent?.map((nestedChildElm, index) => (
-            <Grid key={index} item xs={12} sm={12} mb={2}>
+            <Grid
+              key={index}
+              item
+              size={{ xs: 12, sm: 12 }}
+              sx={{
+                mb: 2
+              }}
+            >
               <Card
                 sx={{
                   border: `0.5px solid${theme.palette.customColors.Notes}`,
@@ -152,6 +160,7 @@ const RequestedProductDetails = props => {
                       </Box>
                       <Box>
                         <Typography
+                          component='div'
                           sx={{
                             color: theme.palette.customColors.OnPrimaryContainer,
                             fontSize: '16px',
@@ -213,7 +222,7 @@ const RequestedProductDetails = props => {
                                 color: theme.palette.customColors.OnSurfaceVariant,
                                 fontSize: '12px',
                                 fontWeight: 400,
-                                maxWidth: '50%'
+                                maxWidth: '70%'
                               }}
                               limit='150'
                               iconColor={theme.palette.customColors.moderateSecondary}
@@ -223,7 +232,6 @@ const RequestedProductDetails = props => {
                       </Box>
                     </Box>
                   }
-                  titleTypographyProps={{ variant: 'h6' }}
                   action={
                     parseInt(nestedChildElm?.requested_qty) - parseInt(nestedChildElm?.dispatch_qty) >= 1 &&
                     nestedChildElm?.request_status !== 'Alternate' &&
@@ -238,6 +246,9 @@ const RequestedProductDetails = props => {
                       />
                     )
                   }
+                  slotProps={{
+                    title: { variant: 'h6' }
+                  }}
                 />
 
                 <Box>
@@ -257,8 +268,7 @@ const RequestedProductDetails = props => {
                     {nestedChildElm?.alternativeQuantityStatus?.map((item, index) => (
                       <Grid
                         key={index}
-                        md={2}
-                        xs={2}
+                        size={{ xs: 2, md: 2 }}
                         sx={{
                           display: 'flex',
                           justifyContent: 'space-between'
@@ -311,8 +321,7 @@ const RequestedProductDetails = props => {
                     ))}
 
                     <Grid
-                      md={3}
-                      xs={3}
+                      size={{ xs: 3, md: 3 }}
                       sx={{
                         display: 'flex',
                         justifyContent: 'right'
@@ -417,8 +426,52 @@ const RequestedProductDetails = props => {
               }}
             >
               <Grid container>
-                <Grid item xs={11} sm={11} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <Box
+                <Grid item size={{ xs: 11, sm: 11 }} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <PharmacyProductCard
+                    title={requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
+                    subTitle={
+                      requestedProducts?.package ||
+                      requestedProducts?.package_qty ||
+                      requestedProducts?.package_uom_label ||
+                      requestedProducts?.product_form_label
+                        ? `${requestedProducts?.package} of ${Utility?.formatNumber(requestedProducts?.package_qty)} ${
+                            requestedProducts?.package_uom_label
+                          } ${requestedProducts?.product_form_label}`
+                        : 'NA'
+                    }
+                    secondSubTitle={
+                      selectedPharmacy.type === 'central' && (
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            fontFamily: 'Inter'
+                          }}
+                        >
+                          Available Quantity:
+                          <Typography
+                            component='span'
+                            sx={{
+                              color: theme.palette.customColors.neutralPrimary,
+                              fontSize: '14px',
+                              fontWeight: 400,
+                              fontFamily: 'Inter'
+                            }}
+                          >
+                            {requestedProducts?.total_available_quantity
+                              ? requestedProducts?.total_available_quantity
+                              : '0'}
+                          </Typography>
+                        </Typography>
+                      )
+                    }
+                    icon={requestedProducts?.image}
+                    heoImageDimension='66'
+                    controlSubstance={requestedProducts?.controlled_substance === '1' && true}
+                    prescriptionRequired={requestedProducts?.prescription_required === '1' && true}
+                  />
+                  {/* <Box
                     sx={{
                       backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05),
                       width: '66px',
@@ -438,7 +491,7 @@ const RequestedProductDetails = props => {
                     />
                   </Box>
                   <Box>
-                    <Typography
+                  <Typography
                       sx={{
                         color: theme.palette.customColors.OnSurfaceVariant,
                         fontSize: '20px',
@@ -448,7 +501,8 @@ const RequestedProductDetails = props => {
                     >
                       {requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
                     </Typography>
-                    <Typography
+
+                  <Typography
                       sx={{
                         color: theme.palette.customColors.neutralSecondary,
                         fontSize: '14px',
@@ -465,7 +519,7 @@ const RequestedProductDetails = props => {
                           } `
                         : 'NA'}
                     </Typography>
-                    {selectedPharmacy.type === 'central' && (
+                  {selectedPharmacy.type === 'central' && (
                       <Typography
                         sx={{
                           color: theme.palette.customColors.OnSurfaceVariant,
@@ -490,16 +544,16 @@ const RequestedProductDetails = props => {
                         </Typography>
                       </Typography>
                     )}
-                  </Box>
+                  </Box> */}
                 </Grid>
-                <Grid item xs={1} sm={1} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
+                <Grid item size={{ xs: 1, sm: 1 }} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
                   <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
                     <Icon icon='mdi:close' fontSize={20} />
                   </IconButton>
                 </Grid>
                 <Grid
                   item
-                  sm={12}
+                  size={{ sm: 12 }}
                   sx={{
                     backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.2),
                     height: '41px',
@@ -557,7 +611,7 @@ const RequestedProductDetails = props => {
                 maxWidth: '642px'
               }}
             >
-              <Grid item xs={12} sm={12} md={12}>
+              <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                 <Typography
                   sx={{
                     color: theme.palette.customColors.OnSurfaceVariant,
@@ -575,7 +629,14 @@ const RequestedProductDetails = props => {
 
               {requestedProducts?.list_items?.length > 0 &&
                 requestedProducts?.list_items?.map((parentItems, index) => (
-                  <Grid key={index} item xs={12} sm={12} mb={2}>
+                  <Grid
+                    key={index}
+                    item
+                    size={{ xs: 12, sm: 12 }}
+                    sx={{
+                      mb: 2
+                    }}
+                  >
                     <Card
                       sx={{
                         padding: '16px',
@@ -592,6 +653,7 @@ const RequestedProductDetails = props => {
                         title={
                           <>
                             <Typography
+                              component='div'
                               sx={{
                                 color: theme.palette.customColors.OnPrimaryContainer,
                                 fontSize: '16px',
@@ -663,7 +725,6 @@ const RequestedProductDetails = props => {
                             </>
                           </>
                         }
-                        titleTypographyProps={{ variant: 'h6' }}
                         action={
                           parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
                           parentItems?.request_status !== 'Alternate' &&
@@ -681,6 +742,9 @@ const RequestedProductDetails = props => {
                             />
                           )
                         }
+                        slotProps={{
+                          title: { variant: 'h6' }
+                        }}
                       />
                       <Divider
                         orientation='horizontal'
@@ -705,8 +769,7 @@ const RequestedProductDetails = props => {
                           {parentItems?.parentQuantityStatus?.map((item, index) => (
                             <Grid
                               key={index}
-                              md={2}
-                              xs={2}
+                              size={{ xs: 2, md: 2 }}
                               sx={{
                                 display: 'flex',
                                 justifyContent: 'space-between'
@@ -759,8 +822,7 @@ const RequestedProductDetails = props => {
                           ))}
 
                           <Grid
-                            md={3}
-                            xs={3}
+                            size={{ xs: 3, md: 3 }}
                             sx={{
                               display: 'flex',
                               justifyContent: 'flex-end'

@@ -74,6 +74,7 @@ const StepPreviewDiet = ({
   const [uomLabel, setuomLabel] = useState('')
   const [errorpop, setErrorpop] = useState('')
   const [expanded, setExpanded] = useState(false)
+
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -685,6 +686,7 @@ const StepPreviewDiet = ({
   useEffect(() => {
     const updatedFormData = { ...formData }
     console.log(updatedFormData, 'updatedFormData')
+
     // Iterate over meal_data
     updatedFormData.meal_data.forEach(meal => {
       // Check if the meal_data has an ingredient array
@@ -693,6 +695,7 @@ const StepPreviewDiet = ({
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
             ingredient.meal_type = ingredient.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -707,6 +710,7 @@ const StepPreviewDiet = ({
           if (recipe.meal_type && recipe.meal_type.length > 0) {
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -721,6 +725,7 @@ const StepPreviewDiet = ({
           if (recipe.meal_type && recipe.meal_type.length > 0) {
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -735,6 +740,7 @@ const StepPreviewDiet = ({
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -783,6 +789,7 @@ const StepPreviewDiet = ({
 
   const getModal = (index, item) => {
     console.log(getValues())
+
     return (
       <Dialog
         className=''
@@ -821,7 +828,7 @@ const StepPreviewDiet = ({
         <DialogContent>
           {/* <Typography variant='h6'>Add Value</Typography> */}
           <Grid container spacing={5} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='quantity'
@@ -840,7 +847,7 @@ const StepPreviewDiet = ({
                 />
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='feed_uom_name'
@@ -864,7 +871,7 @@ const StepPreviewDiet = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sx={{ pt: 5 }}>
+            <Grid item size={{ xs: 12 }} sx={{ pt: 5 }}>
               <Controller
                 name='notes'
                 control={control}
@@ -883,7 +890,12 @@ const StepPreviewDiet = ({
                 )}
               />
             </Grid>
-            <Grid item xs={12} sx={{ textAlign: 'center', mb: 3 }} onClick={() => SelectQuantityclick(index, item)}>
+            <Grid
+              item
+              size={{ xs: 12 }}
+              sx={{ textAlign: 'center', mb: 3 }}
+              onClick={() => SelectQuantityclick(index, item)}
+            >
               <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
                 ADD Quantity
               </Button>{' '}
@@ -901,17 +913,16 @@ const StepPreviewDiet = ({
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Card sx={{ boxShadow: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-          <Box sx={{ px: 5, mt: 2, float: 'left' }}>
+          <Box sx={{ px: 5, mt: 2, pb: 3, float: 'left' }}>
             <Typography variant='h6'>Preview</Typography>
           </Box>
 
-          <Grid container spacing={5} sx={{ mx: 1 }}>
+          <Grid container spacing={5} sx={{ px: 5 }}>
             {/* First Grid item */}
-            <Grid item xs={12} sm={4}>
+            <Grid item size={{ xs: 12, sm: 4 }}>
               <div
                 item
-                md={3}
-                xs={12}
+                size={{ xs: 12, md: 3 }}
                 style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
               >
                 <CardContent
@@ -958,7 +969,7 @@ const StepPreviewDiet = ({
               </div>
             </Grid>
             {/* Second Grid item */}
-            <Grid item xs={10} sm={7.5}>
+            <Grid item size={{ xs: 10, sm: 7.5 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography>
                   <span>Diet Name : </span>
@@ -967,6 +978,12 @@ const StepPreviewDiet = ({
                 <Typography>
                   <span>Diet Type : </span>
                   <span style={{ fontWeight: 600 }}>{formData.diet_type_name ? formData.diet_type_name : '-'}</span>
+                </Typography>
+              </div>
+              <div>
+                <Typography sx={{ mt: 2 }}>
+                  <span>Prepared by : </span>
+                  <span style={{ fontWeight: 600 }}>{formData.dietitian_name}</span>
                 </Typography>
               </div>
               <Grid sx={{ mt: 5 }}>
@@ -1021,7 +1038,17 @@ const StepPreviewDiet = ({
                 Enter Values for Meals
               </Typography>
               {formData.diet_type_name === 'By Weight' ? (
-                <Grid container justifyContent='flex-end' sx={{ overflowX: 'auto', pt: 2, pr: 3, width: '50%', mb: 8 }}>
+                <Grid
+                  container
+                  sx={{
+                    justifyContent: 'flex-end',
+                    overflowX: 'auto',
+                    pt: 2,
+                    pr: 3,
+                    width: '50%',
+                    mb: 8
+                  }}
+                >
                   <Button onClick={() => setActivitySidebarOpen(true)} variant='contained'>
                     Add Diet Type
                   </Button>
@@ -1036,8 +1063,22 @@ const StepPreviewDiet = ({
                   }}
                 >
                   <Table aria-label='simple table' style={{ tableLayout: 'fixed' }}>
-                    <TableHead>
-                      <TableRow>
+                    <TableHead
+                      sx={{
+                        backgroundColor: theme.palette.secondary.contrastText,
+                        '&:hover': {
+                          backgroundColor: theme.palette.secondary.contrastText
+                        }
+                      }}
+                    >
+                      <TableRow
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: theme.palette.secondary.contrastText,
+                            boxShadow: 'none'
+                          }
+                        }}
+                      >
                         <TableCell
                           sx={{
                             border: 'none',
@@ -1048,7 +1089,10 @@ const StepPreviewDiet = ({
                             width: '180px',
                             position: isSmallDevice ? '' : 'sticky ',
                             left: 0,
-                            paddingRight: '0px'
+                            paddingRight: '0px',
+                            '&:hover': {
+                              backgroundColor: theme.palette.secondary.contrastText
+                            }
                           }}
                           className={classes.sticky}
                         >
@@ -1321,17 +1365,27 @@ const StepPreviewDiet = ({
 
                         return (
                           <>
-                            <TableRow key={index} className=''>
+                            <TableRow
+                              key={index}
+                              className=''
+                              sx={{
+                                '&:hover': {
+                                  backgroundColor: theme.palette.secondary.contrastText,
+                                  boxShadow: 'none'
+                                }
+                              }}
+                            >
                               <TableCell
                                 sx={{
                                   position: isSmallDevice ? 'relative' : 'sticky ',
                                   left: 0,
                                   width: '180px',
                                   border: 'none',
-                                  pl: 0,
+                                  pl: '1.25rem !important',
                                   pr: '36px',
                                   background: theme.palette.secondary.contrastText,
                                   height: '185px',
+
                                   //display: 'flex',
                                   //flexDirection: 'column',
                                   justifyContent: 'center',
@@ -1346,6 +1400,7 @@ const StepPreviewDiet = ({
                                     position: 'absolute',
                                     top: '80px',
                                     transform: 'translateY(-50%)',
+
                                     //display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
@@ -1422,42 +1477,28 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
-                                    <TableRow key={index} className='tablerowi'>
+                                    <TableRow
+                                      key={index}
+                                      className='tablerowi'
+                                      sx={{
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          boxShadow: 'none'
+                                        }
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: theme.palette.secondary.contrastText
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          pl: '1.25rem !important'
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
-                                        // className={
-                                        //   formData?.diet_type_name === 'By Weight'
-                                        //     ? formData?.child?.length === 1
-                                        //       ? 'cellmodule9'
-                                        //       : formData?.child?.length === 0
-                                        //       ? 'cellmodule1'
-                                        //       : formData?.child?.length === 2
-                                        //       ? 'cellmodule2'
-                                        //       : formData?.child?.length === 3
-                                        //       ? 'cellmodule22'
-                                        //       : formData?.child?.length > 3
-                                        //       ? 'cellmodule3'
-                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
-                                        //     : formData?.diet_type_name === 'By Gender'
-                                        //     ? formData?.child?.length === 2
-                                        //       ? 'cellmodule5'
-                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
-                                        //     : formData?.diet_type_name === 'Generic'
-                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                        //     : formData?.diet_type_name === 'By Lifestage'
-                                        //     ? formData?.child?.length > 2
-                                        //       ? 'cellmodule7'
-                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                        //     : 'cellmodule4' // Default for all other cases
-                                        // }
                                       >
                                         <Box
                                           key={index}
@@ -1584,7 +1625,7 @@ const StepPreviewDiet = ({
                                                     mb: 1
                                                   }}
                                                 >
-                                                  Ingredients used
+                                                  Items used
                                                 </Typography>
                                                 {item?.ingredients?.length > 0 && (
                                                   <Box
@@ -1742,35 +1783,63 @@ const StepPreviewDiet = ({
                                           {item?.days_of_week?.length > 0 && (
                                             <>
                                               <Divider />
-                                              <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week
-                                                  ?.sort((a, b) => a - b)
-                                                  .map((dayId, index) => (
-                                                    <Box
-                                                      key={index}
+                                              {item?.days_of_week?.length === 8 || item?.days_of_week?.length === 7 ? (
+                                                <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                  <Box
+                                                    sx={{
+                                                      width: '80px',
+                                                      height: '32px',
+                                                      borderRadius: '16px',
+                                                      backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                      display: 'flex',
+                                                      justifyContent: 'center',
+                                                      alignItems: 'center'
+                                                    }}
+                                                  >
+                                                    <Typography
                                                       sx={{
-                                                        width: '48px',
-                                                        height: '32px',
-                                                        borderRadius: '16px',
-                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                                                        display: 'center',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center'
+                                                        fontWeight: 400,
+                                                        fontSize: '13px',
+                                                        lineHeight: '18px',
+                                                        color: theme.palette.customColors.OnSurfaceVariant
                                                       }}
                                                     >
-                                                      <Typography
+                                                      All Days
+                                                    </Typography>
+                                                  </Box>
+                                                </Box>
+                                              ) : (
+                                                <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                  {console.log(item?.days_of_week.length, 'kkk')}
+                                                  {item?.days_of_week
+                                                    ?.sort((a, b) => a - b)
+                                                    .map((dayId, index) => (
+                                                      <Box
+                                                        key={index}
                                                         sx={{
-                                                          fontWeight: 400,
-                                                          fontSize: '13px',
-                                                          lineHeight: '18px',
-                                                          color: theme.palette.customColors.OnSurfaceVariant
+                                                          width: '48px',
+                                                          height: '32px',
+                                                          borderRadius: '16px',
+                                                          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                          display: 'center',
+                                                          justifyContent: 'center',
+                                                          alignItems: 'center'
                                                         }}
                                                       >
-                                                        {getDayName(dayId)}
-                                                      </Typography>
-                                                    </Box>
-                                                  ))}
-                                              </Box>
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '13px',
+                                                            lineHeight: '18px',
+                                                            color: theme.palette.customColors.OnSurfaceVariant
+                                                          }}
+                                                        >
+                                                          {getDayName(dayId)}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
+                                                </Box>
+                                              )}
                                             </>
                                           )}
                                         </Box>
@@ -2075,42 +2144,28 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.combo?.map((item, index) => {
                                   return (
-                                    <TableRow key={index} className='tablerowi'>
+                                    <TableRow
+                                      key={index}
+                                      className='tablerowi'
+                                      sx={{
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          boxShadow: 'none'
+                                        }
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: theme.palette.secondary.contrastText
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          pl: '1.25rem !important'
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
-                                        // className={
-                                        //   formData?.diet_type_name === 'By Weight'
-                                        //     ? formData?.child?.length === 1
-                                        //       ? 'cellmodule9'
-                                        //       : formData?.child?.length === 0
-                                        //       ? 'cellmodule1'
-                                        //       : formData?.child?.length === 2
-                                        //       ? 'cellmodule2'
-                                        //       : formData?.child?.length === 3
-                                        //       ? 'cellmodule22'
-                                        //       : formData?.child?.length > 3
-                                        //       ? 'cellmodule3'
-                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
-                                        //     : formData?.diet_type_name === 'By Gender'
-                                        //     ? formData?.child?.length === 2
-                                        //       ? 'cellmodule5'
-                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
-                                        //     : formData?.diet_type_name === 'Generic'
-                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                        //     : formData?.diet_type_name === 'By Lifestage'
-                                        //     ? formData?.child?.length > 2
-                                        //       ? 'cellmodule7'
-                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                        //     : 'cellmodule4' // Default for all other cases
-                                        // }
                                       >
                                         <Box
                                           key={index}
@@ -2264,7 +2319,7 @@ const StepPreviewDiet = ({
                                                     mb: 1
                                                   }}
                                                 >
-                                                  Ingredients used
+                                                  Items used
                                                 </Typography>
                                                 {item?.ingredients?.length > 0 && (
                                                   <Box
@@ -2423,35 +2478,62 @@ const StepPreviewDiet = ({
                                           {item?.days_of_week?.length > 0 && (
                                             <>
                                               <Divider />
-                                              <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week
-                                                  ?.sort((a, b) => a - b)
-                                                  .map((dayId, index) => (
-                                                    <Box
-                                                      key={index}
+                                              {item?.days_of_week?.length === 8 || item?.days_of_week?.length === 7 ? (
+                                                <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                  <Box
+                                                    sx={{
+                                                      width: '80px',
+                                                      height: '32px',
+                                                      borderRadius: '16px',
+                                                      backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                      display: 'flex',
+                                                      justifyContent: 'center',
+                                                      alignItems: 'center'
+                                                    }}
+                                                  >
+                                                    <Typography
                                                       sx={{
-                                                        width: '48px',
-                                                        height: '32px',
-                                                        borderRadius: '16px',
-                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                                                        display: 'center',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center'
+                                                        fontWeight: 400,
+                                                        fontSize: '13px',
+                                                        lineHeight: '18px',
+                                                        color: theme.palette.customColors.OnSurfaceVariant
                                                       }}
                                                     >
-                                                      <Typography
+                                                      All Days
+                                                    </Typography>
+                                                  </Box>
+                                                </Box>
+                                              ) : (
+                                                <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                  {item?.days_of_week
+                                                    ?.sort((a, b) => a - b)
+                                                    .map((dayId, index) => (
+                                                      <Box
+                                                        key={index}
                                                         sx={{
-                                                          fontWeight: 400,
-                                                          fontSize: '13px',
-                                                          lineHeight: '18px',
-                                                          color: theme.palette.customColors.OnSurfaceVariant
+                                                          width: '48px',
+                                                          height: '32px',
+                                                          borderRadius: '16px',
+                                                          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                          display: 'center',
+                                                          justifyContent: 'center',
+                                                          alignItems: 'center'
                                                         }}
                                                       >
-                                                        {getDayName(dayId)}
-                                                      </Typography>
-                                                    </Box>
-                                                  ))}
-                                              </Box>
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '13px',
+                                                            lineHeight: '18px',
+                                                            color: theme.palette.customColors.OnSurfaceVariant
+                                                          }}
+                                                        >
+                                                          {getDayName(dayId)}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
+                                                </Box>
+                                              )}
                                             </>
                                           )}
                                         </Box>
@@ -2502,14 +2584,6 @@ const StepPreviewDiet = ({
                                                 textAlign: 'center'
                                               }}
                                             >
-                                              {/* {item.meal_type
-                                                ? item.meal_type.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : ''
-                                                  })
-                                                : 'Add'} */}
                                               {item.meal_type
                                                 ? item.meal_type
                                                     .map((meal, i) => {
@@ -2755,42 +2829,28 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   return (
-                                    <TableRow key={index} className='tablerowi'>
+                                    <TableRow
+                                      key={index}
+                                      className='tablerowi'
+                                      sx={{
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          boxShadow: 'none'
+                                        }
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: theme.palette.secondary.contrastText
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          pl: '1.25rem !important'
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
-                                        // className={
-                                        //   formData?.diet_type_name === 'By Weight'
-                                        //     ? formData?.child?.length === 1
-                                        //       ? 'cellmodule9'
-                                        //       : formData?.child?.length === 0
-                                        //       ? 'cellmodule1'
-                                        //       : formData?.child?.length === 2
-                                        //       ? 'cellmodule2'
-                                        //       : formData?.child?.length === 3
-                                        //       ? 'cellmodule22'
-                                        //       : formData?.child?.length > 3
-                                        //       ? 'cellmodule3'
-                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
-                                        //     : formData?.diet_type_name === 'By Gender'
-                                        //     ? formData?.child?.length === 2
-                                        //       ? 'cellmodule5'
-                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
-                                        //     : formData?.diet_type_name === 'Generic'
-                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                        //     : formData?.diet_type_name === 'By Lifestage'
-                                        //     ? formData?.child?.length > 2
-                                        //       ? 'cellmodule7'
-                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                        //     : 'cellmodule4' // Default for all other cases
-                                        // }
                                       >
                                         <Box
                                           key={index}
@@ -2849,7 +2909,7 @@ const StepPreviewDiet = ({
                                                       width: '100%'
                                                     }}
                                                   >
-                                                    Ingredient
+                                                    Item
                                                   </Typography>
                                                 )}
                                                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -2997,35 +3057,62 @@ const StepPreviewDiet = ({
                                           {item?.days_of_week?.length > 0 && (
                                             <>
                                               <Divider />
-                                              <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week
-                                                  ?.sort((a, b) => a - b)
-                                                  .map((dayId, index) => (
-                                                    <Box
-                                                      key={index}
+                                              {item?.days_of_week?.length === 8 || item?.days_of_week?.length === 7 ? (
+                                                <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                  <Box
+                                                    sx={{
+                                                      width: '80px',
+                                                      height: '32px',
+                                                      borderRadius: '16px',
+                                                      backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                      display: 'flex',
+                                                      justifyContent: 'center',
+                                                      alignItems: 'center'
+                                                    }}
+                                                  >
+                                                    <Typography
                                                       sx={{
-                                                        width: '48px',
-                                                        height: '32px',
-                                                        borderRadius: '16px',
-                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                                                        display: 'center',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center'
+                                                        fontWeight: 400,
+                                                        fontSize: '13px',
+                                                        lineHeight: '18px',
+                                                        color: theme.palette.customColors.OnSurfaceVariant
                                                       }}
                                                     >
-                                                      <Typography
+                                                      All Days
+                                                    </Typography>
+                                                  </Box>
+                                                </Box>
+                                              ) : (
+                                                <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                  {item?.days_of_week
+                                                    ?.sort((a, b) => a - b)
+                                                    .map((dayId, index) => (
+                                                      <Box
+                                                        key={index}
                                                         sx={{
-                                                          fontWeight: 400,
-                                                          fontSize: '13px',
-                                                          lineHeight: '18px',
-                                                          color: theme.palette.customColors.OnSurfaceVariant
+                                                          width: '48px',
+                                                          height: '32px',
+                                                          borderRadius: '16px',
+                                                          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                          display: 'center',
+                                                          justifyContent: 'center',
+                                                          alignItems: 'center'
                                                         }}
                                                       >
-                                                        {getDayName(dayId)}
-                                                      </Typography>
-                                                    </Box>
-                                                  ))}
-                                              </Box>
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '13px',
+                                                            lineHeight: '18px',
+                                                            color: theme.palette.customColors.OnSurfaceVariant
+                                                          }}
+                                                        >
+                                                          {getDayName(dayId)}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
+                                                </Box>
+                                              )}
                                             </>
                                           )}
                                         </Box>
@@ -3329,42 +3416,28 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
                                   return (
-                                    <TableRow key={index} className='tablerowi'>
+                                    <TableRow
+                                      key={index}
+                                      className='tablerowi'
+                                      sx={{
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          boxShadow: 'none'
+                                        }
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: theme.palette.secondary.contrastText
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          pl: '1.25rem !important'
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
-                                        // className={
-                                        //   formData?.diet_type_name === 'By Weight'
-                                        //     ? formData?.child?.length === 1
-                                        //       ? 'cellmodule9'
-                                        //       : formData?.child?.length === 0
-                                        //       ? 'cellmodule1'
-                                        //       : formData?.child?.length === 2
-                                        //       ? 'cellmodule2'
-                                        //       : formData?.child?.length === 3
-                                        //       ? 'cellmodule22'
-                                        //       : formData?.child?.length > 3
-                                        //       ? 'cellmodule3'
-                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
-                                        //     : formData?.diet_type_name === 'By Gender'
-                                        //     ? formData?.child?.length === 2
-                                        //       ? 'cellmodule5'
-                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
-                                        //     : formData?.diet_type_name === 'Generic'
-                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                        //     : formData?.diet_type_name === 'By Lifestage'
-                                        //     ? formData?.child?.length > 2
-                                        //       ? 'cellmodule7'
-                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                        //     : 'cellmodule4' // Default for all other cases
-                                        // }
                                       >
                                         <Box
                                           key={index}
@@ -3433,7 +3506,7 @@ const StepPreviewDiet = ({
                                                 mb: 0
                                               }}
                                             >
-                                              Ingredients using
+                                              Items using
                                             </Typography>
                                             {item?.ingredientList?.length > 0 && (
                                               <Box
@@ -3536,35 +3609,62 @@ const StepPreviewDiet = ({
                                           {item?.days_of_week?.length > 0 && (
                                             <>
                                               <Divider />
-                                              <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week
-                                                  ?.sort((a, b) => a - b)
-                                                  .map((dayId, index) => (
-                                                    <Box
-                                                      key={index}
+                                              {item?.days_of_week?.length === 8 || item?.days_of_week?.length === 7 ? (
+                                                <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                  <Box
+                                                    sx={{
+                                                      width: '80px',
+                                                      height: '32px',
+                                                      borderRadius: '16px',
+                                                      backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                      display: 'flex',
+                                                      justifyContent: 'center',
+                                                      alignItems: 'center'
+                                                    }}
+                                                  >
+                                                    <Typography
                                                       sx={{
-                                                        width: '48px',
-                                                        height: '32px',
-                                                        borderRadius: '16px',
-                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                                                        display: 'center',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center'
+                                                        fontWeight: 400,
+                                                        fontSize: '13px',
+                                                        lineHeight: '18px',
+                                                        color: theme.palette.customColors.OnSurfaceVariant
                                                       }}
                                                     >
-                                                      <Typography
+                                                      All Days
+                                                    </Typography>
+                                                  </Box>
+                                                </Box>
+                                              ) : (
+                                                <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                  {item?.days_of_week
+                                                    ?.sort((a, b) => a - b)
+                                                    .map((dayId, index) => (
+                                                      <Box
+                                                        key={index}
                                                         sx={{
-                                                          fontWeight: 400,
-                                                          fontSize: '13px',
-                                                          lineHeight: '18px',
-                                                          color: theme.palette.customColors.OnSurfaceVariant
+                                                          width: '48px',
+                                                          height: '32px',
+                                                          borderRadius: '16px',
+                                                          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                          display: 'center',
+                                                          justifyContent: 'center',
+                                                          alignItems: 'center'
                                                         }}
                                                       >
-                                                        {getDayName(dayId)}
-                                                      </Typography>
-                                                    </Box>
-                                                  ))}
-                                              </Box>
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '13px',
+                                                            lineHeight: '18px',
+                                                            color: theme.palette.customColors.OnSurfaceVariant
+                                                          }}
+                                                        >
+                                                          {getDayName(dayId)}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
+                                                </Box>
+                                              )}
                                             </>
                                           )}
                                         </Box>
@@ -3865,13 +3965,16 @@ const StepPreviewDiet = ({
                                 })}
                               </>
                             </TableRow>
-
                             <TableRow
                               sx={{
                                 width: '100%', // Ensure the row spans the full width of the table
                                 borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, // Add border directly to the row
                                 minHeight: '48px', // Optional: set a minimum height for the row
-                                display: 'table-row' // Default behavior for TableRow
+                                display: 'table-row', // Default behavior for TableRow
+                                '&:hover': {
+                                  backgroundColor: theme.palette.secondary.contrastText,
+                                  boxShadow: 'none'
+                                }
                               }}
                             >
                               <TableCell colSpan={12} sx={{ borderBottom: 'none', padding: '8px 16px' }}>
@@ -3891,7 +3994,7 @@ const StepPreviewDiet = ({
                     </TableBody>
                   </Table>
                 </CustomScrollbar>
-                <Grid item xs={12} sx={{ pt: 10, pb: 8 }}>
+                <Grid item size={{ xs: 12 }} sx={{ pt: 10, pb: 8 }}>
                   <Controller
                     name='remarks'
                     control={control}
@@ -3917,7 +4020,7 @@ const StepPreviewDiet = ({
             </Grid>
           </Card>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12, mx: 6 }}>
               <Button
                 color='secondary'

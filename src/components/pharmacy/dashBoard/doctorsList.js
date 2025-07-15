@@ -83,7 +83,7 @@ const MedicineNamedoctorsList = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 //bgcolor: '#FFFFFF',
@@ -116,7 +116,9 @@ const MedicineNamedoctorsList = ({
                   height: '70px'
                 }}
               >
-                <Grid container alignItems='center'>
+                <Grid container sx={{
+                  alignItems: 'center'
+                }}>
                   <Grid item>
                     <CalendarTodayIcon
                       sx={{ marginRight: 1, color: '#5F6D55', fontSize: '18px', position: 'relative', top: '-8px' }}
@@ -165,17 +167,6 @@ const MedicineNamedoctorsList = ({
                     placeholder='Search by doctors'
                     value={searchbyDoctorname} // controlled input for search value
                     onChange={e => handleSearchDoctors(e.target.value)} // handle search change
-                    InputProps={{
-                      disableUnderline: false,
-                      endAdornment: searchbyDoctorname && (
-                        <IconButton
-                          onClick={() => handleSearchDoctors('')} // Clear search value on cancel
-                          sx={{ position: 'absolute', right: '-145%' }}
-                        >
-                          <Icon icon='mdi:close' />
-                        </IconButton>
-                      )
-                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
@@ -183,6 +174,19 @@ const MedicineNamedoctorsList = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false,
+                        endAdornment: searchbyDoctorname && (
+                          <IconButton
+                            onClick={() => handleSearchDoctors('')} // Clear search value on cancel
+                            sx={{ position: 'absolute', right: '-145%' }}
+                          >
+                            <Icon icon='mdi:close' />
+                          </IconButton>
+                        )
                       }
                     }}
                   />
@@ -272,7 +276,7 @@ const MedicineNamedoctorsList = ({
         </Grid>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default MedicineNamedoctorsList

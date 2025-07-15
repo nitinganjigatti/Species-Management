@@ -37,18 +37,6 @@ const ServerSideToolbarWithFilterAndToggle = props => {
         value={props.value}
         onChange={props.onChange}
         placeholder='Search…'
-        InputProps={{
-          startAdornment: (
-            <Box sx={{ mr: 2, display: 'flex' }}>
-              <Icon icon='mdi:magnify' fontSize={20} />
-            </Box>
-          ),
-          endAdornment: (
-            <IconButton size='small' title='Clear' aria-label='Clear' onClick={props.clearSearch}>
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          )
-        }}
         sx={{
           width: {
             xs: 1,
@@ -59,9 +47,23 @@ const ServerSideToolbarWithFilterAndToggle = props => {
           },
           float: 'right'
         }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <Box sx={{ mr: 2, display: 'flex' }}>
+                <Icon icon='mdi:magnify' fontSize={20} />
+              </Box>
+            ),
+            endAdornment: (
+              <IconButton size='small' title='Clear' aria-label='Clear' onClick={props.clearSearch}>
+                <Icon icon='mdi:close' fontSize={20} />
+              </IconButton>
+            )
+          }
+        }}
       />
     </Box>
-  )
+  );
 }
 
 export default ServerSideToolbarWithFilterAndToggle

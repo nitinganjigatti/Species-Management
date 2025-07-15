@@ -189,7 +189,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
   })
 
   const onSubmit = params => {
-    console.log(params)
+    // console.log(params)
     getEnclosureDetails(params?.enclosure)
     handleClose(true)
   }
@@ -209,7 +209,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
           <div>
             <form>
               <Grid container spacing={2}>
-                <Grid item xs={6}>
+                <Grid item size={{ xs: 6 }}>
                   <FormControl fullWidth sx={{ mb: 4, mt: 4 }}>
                     <InputLabel id='site_id'>Select Site</InputLabel>
                     <Controller
@@ -255,7 +255,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item size={{ xs: 6 }}>
                   <FormControl fullWidth sx={{ mb: 4, mt: 4 }}>
                     <Controller
                       name='section'
@@ -320,7 +320,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item size={{ xs: 6 }}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller
                       name='enclosure'

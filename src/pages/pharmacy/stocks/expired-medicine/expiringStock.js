@@ -19,13 +19,15 @@ import {
   Select,
   InputLabel,
   FormHelperText,
-  InputAdornment
+  InputAdornment,
+  Box
 } from '@mui/material'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -146,7 +148,8 @@ const ExpiringMedicine = () => {
           limit: paginationModel.pageSize,
           pending_days_start: startDate || filterDates?.startDate,
           pending_days_end: endDate || filterDates?.endDate,
-          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
+          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
+          is_medical_only: 1
         }
 
         const res = await aboutExpiringProduct({ params })
@@ -200,8 +203,6 @@ const ExpiringMedicine = () => {
   // }
 
   const handleSortModel = newModel => {
-    // console.log(newModel, 'newModel')
-
     if (newModel.length) {
       setSort(prev => (prev === 'asc' ? 'desc' : 'asc'))
 
@@ -272,19 +273,15 @@ const ExpiringMedicine = () => {
       field: 'label',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_items_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_items_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
     {
@@ -437,9 +434,7 @@ const ExpiringMedicine = () => {
     // }
   }
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
+  const handleHeaderAction = () => {}
   if (loading) {
     return <FallbackSpinner />
   }
@@ -503,7 +498,7 @@ const ExpiringMedicine = () => {
                 mx: { xs: 2, sm: 6, md: 6, lg: 6 }
               }}
             >
-              <Grid item xs={12} md={8} lg={8}>
+              <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
                 <TextField
                   variant='outlined'
                   size='small'
@@ -511,22 +506,24 @@ const ExpiringMedicine = () => {
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{
                     borderRadius: '8px'
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Grid>
 
               <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
                 {selectedPharmacy.type === 'central' && (
-                  <Grid item xs={12} md={4} lg={4}>
+                  <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
                     <FormControl
                       sx={{
                         width: { xs: '100%', md: 200, lg: 200 },
@@ -688,7 +685,7 @@ const ExpiringMedicine = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ExpiringMedicine

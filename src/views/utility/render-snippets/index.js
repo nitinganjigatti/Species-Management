@@ -1,6 +1,7 @@
 import { Badge, Box, CircularProgress, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
+import { bgcolor } from '@mui/system'
 
 export const ExportButton = ({
   loading = false,
@@ -8,7 +9,8 @@ export const ExportButton = ({
   tooltip = 'Download',
   icon = 'ic:round-download',
   iconSize = 20,
-  disabled = false
+  disabled = false,
+  bgcolor
 }) => {
   const theme = useTheme()
 
@@ -21,7 +23,7 @@ export const ExportButton = ({
           width: '40px',
           height: '40px',
           borderRadius: '4px',
-          bgcolor: theme?.palette.customColors?.lightBg,
+          bgcolor: bgcolor ? bgcolor : theme?.palette.customColors?.lightBg,
           alignItems: 'center',
           cursor: disabled ? '' : 'pointer',
           opacity: disabled ? 0.5 : 1

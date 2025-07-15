@@ -147,7 +147,12 @@ const SampleDetails = props => {
                   <Box>
                     <CardContent>
                       <Box sx={{ bgcolor: '#E1F9ED', p: 3, mb: 6, borderRadius: 1 }}>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary'
+                          }}
+                        >
                           Test Name
                         </Typography>
                         <Typography variant='h5' component='div'>
@@ -174,7 +179,14 @@ const SampleDetails = props => {
                         ))}
                       </Box> */}
 
-                      <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{
+                          color: 'text.secondary',
+                          mt: 2,
+                          mb: 2
+                        }}
+                      >
                         No Lab Tests
                       </Typography>
                       {sampleDetails?.lab_test_count}

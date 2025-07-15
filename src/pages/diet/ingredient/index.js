@@ -55,7 +55,7 @@ const IngredientsList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(query.page || 0, 10),
-    pageSize: parseInt(query.pageSize || 10, 10)
+    pageSize: parseInt(query.pageSize || 50, 10)
   })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(query.status || '')
@@ -94,7 +94,7 @@ const IngredientsList = () => {
 
   useEffect(() => {
     const page = parseInt(query.page || 0, 10)
-    const pageSize = parseInt(query.pageSize || 10, 10)
+    const pageSize = parseInt(query.pageSize || 50, 10)
     const status = query.status || ''
 
     setPaginationModel({ page: page, pageSize: pageSize })
@@ -104,8 +104,8 @@ const IngredientsList = () => {
   const handleChange = (event, newValue) => {
     setStatus(newValue)
     setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
-    updateQueryParams({ page: 0, status: newValue, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
+    updateQueryParams({ page: 0, status: newValue, pageSize: 50 })
   }
 
   const onClose = () => {
@@ -258,7 +258,7 @@ const IngredientsList = () => {
       //flex: 1.1,
       width: 250,
       field: 'ingredient_name',
-      headerName: 'INGREDIENTS',
+      headerName: 'ITEMS',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -295,7 +295,7 @@ const IngredientsList = () => {
       //flex: 0.85,
       width: 200,
       field: 'ingredient_alias',
-      headerName: 'Ingredient alias',
+      headerName: 'ITEM alias',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -314,7 +314,7 @@ const IngredientsList = () => {
       //flex: 0.6,
       width: 140,
       field: 'id',
-      headerName: 'INGREDIENT ID',
+      headerName: 'ITEM ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'ING' + params.row.id : '-'}
@@ -470,7 +470,7 @@ const IngredientsList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title='Ingredients' action={headerAction} sx={{ px: 5 }} />
+            <CardHeader title='Items' action={headerAction} sx={{ px: 5 }} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
@@ -540,7 +540,7 @@ const IngredientsList = () => {
                 columns={columns}
                 sortingMode='server'
                 paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
+                pageSizeOptions={[7, 10, 25, 50, 100]}
                 paginationModel={paginationModel}
                 onSortModelChange={handleSortModel}
                 slots={{ toolbar: ServerSideToolbarWithFilter }}

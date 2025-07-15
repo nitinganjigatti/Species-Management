@@ -56,7 +56,10 @@ const SpeciesAnimalsMapped = ({
   setSelectedItems,
   setapplyfilterCheck,
   setSelectedSections,
-  setSelectedEnclosures
+  setSelectedEnclosures,
+  setspeciesData,
+  authData,
+  dietDetails
 }) => {
   const theme = useTheme()
 
@@ -69,6 +72,7 @@ const SpeciesAnimalsMapped = ({
     setapplyfilterCheck(false)
     setSelectedItems([])
     setPageNo(1)
+    setspeciesData([])
   }
 
   useEffect(() => {
@@ -96,6 +100,7 @@ const SpeciesAnimalsMapped = ({
   const handleEditclick = () => {
     setIsOpenTabsEdit(true)
     setPrimaryStatus({})
+
     //setspeciesview('')
   }
 
@@ -117,6 +122,7 @@ const SpeciesAnimalsMapped = ({
       })
       setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     }
+
     //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     if (val === 'animals') {
       setFilterState('species')
@@ -165,33 +171,41 @@ const SpeciesAnimalsMapped = ({
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}>
-          <IconButton size='small' sx={{ color: theme.palette.primary.light, mr: 5 }}>
-            <Icon icon='mdi:pencil-outline' fontSize={24} onClick={handleEditclick} />
-          </IconButton>
+          {authData?.userData?.roles?.settings?.assign_diet === true ? (
+            <IconButton size='small' sx={{ color: theme.palette.primary.light, mr: 5 }}>
+              <Icon icon='mdi:pencil-outline' fontSize={24} onClick={handleEditclick} />
+            </IconButton>
+          ) : (
+            ''
+          )}
           <IconButton size='small' sx={{ color: theme.palette.primary.light }} onClick={handelClose}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
       </Box>
-
-      <Grid item md={8} xs={12}>
+      <Grid item size={{ md: 8, xs: 12 }}>
         <TabContext value={selectionType}>
-          <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
-            <Tab
-              style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '50%', fontWeight: '600' }}
-              value='species'
-              label={`SPECIES  ${selectionType === 'species' && !loading ? ' - ' + speciestotalcount || ' ' : ' '}`}
-            />
-            <Tab
-              style={{ borderRadius: 0, width: '50%', fontWeight: '600' }}
-              value='animals'
-              label={`ANIMALS  ${selectionType === 'animals' && !loading ? ' - ' + speciestotalcount || ' ' : ' '}`}
-            />
-          </TabList>
+          {dietDetails?.total_animals !== '0' && dietDetails?.total_species !== '0' ? (
+            <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
+              <Tab
+                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '50%', fontWeight: '600' }}
+                value='species'
+                label={`SPECIES  ${selectionType === 'species' && !loading ? ' - ' + speciestotalcount || ' ' : ' '}`}
+              />
+
+              <Tab
+                style={{ borderRadius: 0, width: '50%', fontWeight: '600' }}
+                value='animals'
+                label={`ANIMALS  ${selectionType === 'animals' && !loading ? ' - ' + speciestotalcount || ' ' : ' '}`}
+              />
+            </TabList>
+          ) : (
+            ''
+          )}
 
           <TabPanel value='species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
-              <Grid item md={8} sm={8} xs={8} sx={{ background: 'background.default' }}>
+              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
                 <Box
                   sx={{
                     bgcolor: 'background.default',
@@ -230,9 +244,6 @@ const SpeciesAnimalsMapped = ({
                         placeholder='Search'
                         value={searchQuery}
                         onChange={handleSearch}
-                        InputProps={{
-                          disableUnderline: false
-                        }}
                         sx={{
                           flex: 1,
                           mx: 1,
@@ -242,6 +253,11 @@ const SpeciesAnimalsMapped = ({
                             '& fieldset': {
                               border: 'none'
                             }
+                          }
+                        }}
+                        slotProps={{
+                          input: {
+                            disableUnderline: false
                           }
                         }}
                       />
@@ -269,6 +285,7 @@ const SpeciesAnimalsMapped = ({
                         height: '45px',
                         pr: '6px',
                         mt: '10px',
+
                         // lineHeight: '2.2',
                         border:
                           selectedItems && Object.values(selectedItems).some(array => array.length > 0)
@@ -284,7 +301,7 @@ const SpeciesAnimalsMapped = ({
                             position: 'absolute',
                             top: '-7px',
                             right: '-5px',
-                            backgroundColor: '#FA6140',
+                            backgroundColor: theme.palette.customColors.customDropdownColor,
                             color: 'white',
                             borderRadius: '50%',
                             width: '20px',
@@ -317,26 +334,37 @@ const SpeciesAnimalsMapped = ({
               sx={{
                 backgroundColor: theme.palette.background.default,
                 overflowY: 'auto',
-                height: 'calc(100vh - 195px)',
+                height: 'calc(100vh - 162px)',
                 px: 4,
                 py: 3,
                 mt: 4
               }}
               onScroll={handleScroll}
             >
-              {!loading && speciesData?.length === 0 ? (
-                <Typography
-                  variant='body2'
+              {!loading && speciesData?.length === 0 && searchQuery !== '' ? (
+                <Box
                   sx={{
-                    color: theme.palette.secondary.dark,
-                    fontSize: '16px',
-                    fontWeight: 400,
-                    textAlign: 'center',
-                    mt: 4
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '70%',
+                    textAlign: 'center'
                   }}
                 >
-                  No Species assigned
-                </Typography>
+                  <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: theme.palette.secondary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      textAlign: 'center'
+                    }}
+                  >
+                    No Species assigned
+                  </Typography>
+                </Box>
               ) : (
                 <>
                   {!loading ? (
@@ -411,7 +439,7 @@ const SpeciesAnimalsMapped = ({
 
           <TabPanel value='animals' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
-              <Grid item md={8} sm={8} xs={8} sx={{ background: 'background.default' }}>
+              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
                 <Box
                   sx={{
                     bgcolor: 'background.default',
@@ -450,9 +478,6 @@ const SpeciesAnimalsMapped = ({
                         placeholder='Search'
                         value={searchQuery}
                         onChange={handleSearch}
-                        InputProps={{
-                          disableUnderline: false
-                        }}
                         sx={{
                           flex: 1,
                           mx: 1,
@@ -462,6 +487,11 @@ const SpeciesAnimalsMapped = ({
                             '& fieldset': {
                               border: 'none'
                             }
+                          }
+                        }}
+                        slotProps={{
+                          input: {
+                            disableUnderline: false
                           }
                         }}
                       />
@@ -502,7 +532,7 @@ const SpeciesAnimalsMapped = ({
                             position: 'absolute',
                             top: '-7px',
                             right: '-5px',
-                            backgroundColor: '#FA6140',
+                            backgroundColor: theme.palette.customColors.customDropdownColor,
                             color: 'white',
                             borderRadius: '50%',
                             width: '20px',
@@ -535,26 +565,37 @@ const SpeciesAnimalsMapped = ({
               sx={{
                 backgroundColor: theme.palette.background.default,
                 overflowY: 'auto',
-                height: 'calc(100vh - 195px)',
+                height: 'calc(100vh - 162px)',
                 px: 4,
                 py: 3,
                 mt: 4
               }}
               onScroll={handleScroll}
             >
-              {!loading && speciesData?.length === 0 ? (
-                <Typography
-                  variant='body2'
+              {!loading && speciesData?.length === 0 && searchQuery !== '' ? (
+                <Box
                   sx={{
-                    color: theme.palette.secondary.dark,
-                    fontSize: '16px',
-                    fontWeight: 400,
-                    textAlign: 'center',
-                    mt: 4
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '70%',
+                    textAlign: 'center'
                   }}
                 >
-                  No Animals assigned
-                </Typography>
+                  <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: theme.palette.secondary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      textAlign: 'center'
+                    }}
+                  >
+                    No Animals assigned
+                  </Typography>
+                </Box>
               ) : (
                 <>
                   {!loading ? (
@@ -566,7 +607,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        You have selected {tempSelectedSpecies?.length} species
+                        You have selected {tempSelectedSpecies?.length}species
                       </Typography>
                     ) : (
                       <Typography
@@ -628,7 +669,6 @@ const SpeciesAnimalsMapped = ({
           </TabPanel>
         </TabContext>
       </Grid>
-
       {/* bottom buttons */}
     </Drawer>
   )

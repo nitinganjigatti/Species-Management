@@ -55,6 +55,8 @@ import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 import ShipmentPrintComponent from 'src/components/ShipmentPrintComponent'
 import { getShipmentDetailOfOrder } from 'src/lib/api/pharmacy/storeWiseRequest'
+import { getRequestsShipmentDetailPdf, getStoreWiseShipmentDetailPdf } from 'src/lib/api/pharmacy/downloadShipmentPdf'
+import { textAlign } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -62,7 +64,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 const LabelValues = ({ label, value }) => {
   return (
-    <Grid item md={2} sm={3} xs={6} sx={{ pt: 6 }}>
+    <Grid item size={{ xs: 6, sm: 3, md: 2 }} sx={{ pt: 6 }}>
       <p style={{ margin: '0px' }}> {label}</p>
       <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{value}</h4>
     </Grid>
@@ -84,11 +86,11 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
   return (
     <div ref={ref}>
       {disputeItemDetails?.item_details?.length > 0 ? (
-        <Grid container xs={12} sx={{ mx: 'auto' }}>
-          <Grid item xs={12}>
+        <Grid container size={{ xs: 12 }} sx={{ mx: 'auto' }}>
+          <Grid item size={{ xs: 12 }}>
             <Grid
               container
-              xs={12}
+              size={{ xs: 12 }}
               className='printable-container'
               sx={{ backgroundColor: 'customColors.bodyBg', pb: 6, px: 6, borderRadius: '10px' }}
             >
@@ -135,7 +137,8 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     p: 1
                   }}
                 >
-                  <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
+                  <Typography variant='h6'>{`Items Shipped  - ${disputeItemDetails?.item_details?.length}`}</Typography>
+
                   {/* {disputeItemDetails?.delivery_status !== 'Delivered' &&
                   selectedPharmacy?.type === 'local' &&
                   selectedPharmacy?.id == orderData?.to_store_id ? (
@@ -166,14 +169,14 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                             checked={checked}
                             onChange={handleChange}
                             name=' mark_all_as_received'
-                            disabled={checked}
+                            // disabled={checked}
                           />
                         }
                       />
                     </FormGroup>
                   )}
                 </Box>
-                <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+                <Grid size={{ xs: 12, sm: 12, md: 12 }} sx={{ my: 2 }}>
                   <Box sx={{ width: '100%', overflow: 'auto' }}>
                     <TableBasic
                       columns={columns}
@@ -288,6 +291,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const [orderData, setOrderData] = useState([])
   const [showSpinner, setShowSpinner] = useState(false)
+  const [pdfLoader, setPdfLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
   const theme = useTheme()
@@ -382,7 +386,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
             request_item_id: el?.request_item_id ? el?.request_item_id : '',
             dispute_id: el?.dispute_id,
             shipment_id: el?.shipment_id,
-            total_deny_comments: el?.total_deny_comments
+            total_deny_comments: el?.total_deny_comments,
+            expiry_date: el?.expiry,
+            request_number: response?.data?.request_number
           }
 
           return data
@@ -458,18 +464,38 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy])
 
-  const bulkStatusUpdate = async () => {
-    const updatedItemDetails = disputeItemDetails.item_details.map(item => {
-      return {
-        ...item,
-        status: 'Received'
-      }
-    })
+  const bulkStatusUpdate = async isChecked => {
+    if (isChecked === true) {
+      const updatedItemDetails = disputeItemDetails.item_details.map(item => {
+        return {
+          ...item,
+          status: 'Received'
+        }
+      })
 
-    const items = disputeItemDetails
-    items['item_details'] = updatedItemDetails
-    setDisputeItemDetails({ ...disputeItemDetails, items })
-    updateStatus()
+      // const items = disputeItemDetails
+      // items['item_details'] = updatedItemDetails
+      setDisputeItemDetails(prevState => ({
+        ...prevState,
+        item_details: updatedItemDetails
+      }))
+    } else {
+      const updatedItemDetails = disputeItemDetails.item_details.map(item => {
+        return {
+          ...item,
+          status: ''
+        }
+      })
+
+      // const items = disputeItemDetails
+      // items['item_details'] = updatedItemDetails
+      setDisputeItemDetails(prevState => ({
+        ...prevState,
+        item_details: updatedItemDetails
+      }))
+    }
+
+    // updateStatus()
   }
 
   const resolveItems = async payload => {
@@ -858,20 +884,16 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const columns = [
     {
-      Width: 40,
-      field: 'uid`',
+      width: 100,
+      field: 'uid',
       headerName: 'SL.NO',
+      textAlign: 'center',
       renderCell: params => {
-        return (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.uid + '.'}
-          </Typography>
-        )
+        return <Typography sx={{ color: 'text.primary', textAlign: 'center' }}>{params.row.uid + '.'}</Typography>
       }
     },
     {
-      flex: 0.5,
-      Width: 100,
+      width: 300,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -885,8 +907,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -895,15 +916,44 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
         </Typography>
       )
     },
-
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
+      field: 'expiry_date',
+      headerName: 'Expiry Date',
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params?.row?.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 100,
       field: 'count',
       headerName: 'qty',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.count}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 150,
+      field: 'request_number',
+      headerName: 'Request ID',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.request_number}
         </Typography>
       )
     },
@@ -1094,7 +1144,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                   >
                     <Grid
                       item
-                      xs={5}
+                      size={{ xs: 5 }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1123,7 +1173,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                     </Grid>
                     <Grid
                       item
-                      xs={5}
+                      size={{ xs: 5 }}
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                     >
                       <TextField
@@ -1165,10 +1215,16 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                             })
                           }
                         }}
-                        inputProps={{ style: { fontSize: 12 } }}
+                        slotProps={{
+                          htmlInput: { style: { fontSize: 12 } }
+                        }}
                       />
                     </Grid>
-                    <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Grid
+                      item
+                      size={{ xs: 2 }}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
                       <Button
                         sx={{ minWidth: 0, p: 1, m: 1, color: 'customColors.neutralSecondary' }}
                         onClick={event => {
@@ -1202,13 +1258,13 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                       params?.row?.dispute_status === '' ||
                       params?.row?.dispute_status === undefined ||
                       params?.row?.dispute_status === 'Dispute Pending') ? (
-                      <Grid xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+                      <Grid size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', justifyContent: 'center' }}>
                         {/* in dispute wrong count case after denied */}
                         {params?.row?.status === 'Wrong Count - Deny Closed' ? (
                           <Grid container spacing={2} sx={{ py: 4 }}>
                             <Grid
                               item
-                              xs={5}
+                              size={{ xs: 5 }}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                               {!params?.row?.wrong_count_type === 'shortage' ? (
@@ -1246,7 +1302,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                             </Grid>
                             <Grid
                               item
-                              xs={5}
+                              size={{ xs: 5 }}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                             >
                               {!params?.row?.wrong_count_type === 'shortage' ? (
@@ -1294,7 +1350,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                       })
                                     }
                                   }}
-                                  inputProps={{ style: { fontSize: 12 } }}
+                                  slotProps={{
+                                    htmlInput: { style: { fontSize: 12 } }
+                                  }}
                                 />
                               ) : (
                                 <Typography sx={{ color: 'error.main' }}> Denied</Typography>
@@ -1302,7 +1360,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                             </Grid>
                             <Grid
                               item
-                              xs={2}
+                              size={{ xs: 2 }}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                               <Button
@@ -1506,17 +1564,14 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   const handleChange = async event => {
     const isChecked = event.target.checked
     setChecked(isChecked)
-
-    if (isChecked) {
-      setSubmitLoader(true) // Disable checkbox during submission
-      try {
-        await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(orderId, requestId) // Refresh the data only after updating status
-      } catch (error) {
-        console.error('Error in bulk status update: ', error)
-      } finally {
-        setSubmitLoader(false) // Re-enable checkbox after submission
-      }
+    setSubmitLoader(true) // Disable checkbox during submission
+    try {
+      await bulkStatusUpdate(isChecked) // Ensure this completes before moving forward
+      // await getOrderDetails(orderId, requestId) // Refresh the data only after updating status
+    } catch (error) {
+      console.error('Error in bulk status update: ', error)
+    } finally {
+      setSubmitLoader(false) // Re-enable checkbox after submission
     }
   }
 
@@ -1616,12 +1671,35 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const shipmentPrintRef = React.useRef(null)
 
-  const handlePrint = () => {
-    // Call the handlePrint method exposed by the ShipmentPrintFormat component
-    if (shipmentPrintRef.current) {
-      shipmentPrintRef.current.handlePrint()
+  const downLoadShipmentDetailPdf = async () => {
+    try {
+      // orderId is the shipmentId
+      setPdfLoader(true)
+      let pdfResult
+      if (requestedFrom === 'requestByAllStores') {
+        pdfResult = await getStoreWiseShipmentDetailPdf(orderId)
+      } else {
+        pdfResult = await getRequestsShipmentDetailPdf(orderId, requestId)
+      }
+      if (pdfResult?.success && pdfResult?.data) {
+        window.open(pdfResult?.data, '_blank')
+        setPdfLoader(false)
+      } else {
+        toast.error(pdfResult?.message)
+        setPdfLoader(false)
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      setPdfLoader(false)
     }
   }
+
+  // const handlePrint = () => {
+  //   // Call the handlePrint method exposed by the ShipmentPrintFormat component
+  //   if (shipmentPrintRef.current) {
+  //     shipmentPrintRef.current.handlePrint()
+  //   }
+  // }
 
   return (
     <>
@@ -1632,8 +1710,13 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
           {isStoreMatch() ? (
             <div>
               <Box sx={{ pb: 6 }}>
-                <Grid container justifyContent='space-between'>
-                  <Grid item xs={12} sm='auto'>
+                <Grid
+                  container
+                  sx={{
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Grid item size={{ xs: 12, sm: 'auto' }}>
                     <CardHeader
                       sx={{ padding: 0 }}
                       avatar={
@@ -1649,19 +1732,20 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                     />
                   </Grid>
 
-                  <Grid container item xs={12} sm='auto' spacing={2}>
+                  <Grid container item xs={12} sm='auto' sx={{ display: 'flex', justifyContent: 'right' }} spacing={2}>
                     <Grid item>
-                      <Button
+                      <LoadingButton
                         size='large'
+                        loading={pdfLoader}
                         variant='outlined'
                         fullWidth
                         target='_blank'
                         sx={{ mb: 3.5 }}
                         startIcon={<Icon icon='material-symbols:print' />}
-                        onClick={handlePrint}
+                        onClick={downLoadShipmentDetailPdf}
                       >
                         print
-                      </Button>
+                      </LoadingButton>
                     </Grid>
                     {/* <Grid item>
                 {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'central' ? (

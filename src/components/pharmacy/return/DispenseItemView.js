@@ -114,9 +114,9 @@ function DispenseItemView({ dispenseId }) {
   ]
 
   return (
-    <Grid xs={12}>
+    <Grid size={{ xs: 12 }}>
       {dispenseItem?.dispense_item_details?.length > 0 ? (
-        <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+        <Grid size={{ xs: 12, sm: 12, md: 12 }} sx={{ my: 2 }}>
           <TableBasic columns={dispenseItemsColumns} rows={dispenseItem?.dispense_item_details}></TableBasic>
         </Grid>
       ) : null}

@@ -74,7 +74,7 @@ const IngredientDetailCardview = ({
   }
 
   return (
-    <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+    <Grid item size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
         <div
           item

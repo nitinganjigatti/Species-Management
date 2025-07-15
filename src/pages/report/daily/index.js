@@ -16,11 +16,22 @@ import {
 import { DataGrid } from '@mui/x-data-grid'
 import { forwardRef, useState, useRef } from 'react'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { getAnimalReport, getReportTitle, getUserReport, getMedicalReport } from 'src/lib/api/report'
+import {
+  getAnimalReport,
+  getReportTitle,
+  getUserReport,
+  getMedicalReport,
+  getAnimalAssessment,
+  getEnclosureAssessment
+} from 'src/lib/api/report'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
+import { useTheme } from '@emotion/react'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import Toaster from 'src/components/Toaster'
 
 const Animal = () => {
+  const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [startDate, setStartDate] = useState(null)
@@ -89,18 +100,21 @@ const Animal = () => {
   }
 
   useEffect(() => {
-    if (enable_daily_report && reports_module) {
+    if (enable_daily_report && reports_module && enable_daily_report) {
       const fetchReportType = async () => {
-        const response = await getReportTitle()
+        const response = await getReportTitle({
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        })
         if (response) {
           setReportData(response)
         } else {
-          console.log('error >')
+          console.error('error >')
         }
       }
       fetchReportType()
     }
-  }, [])
+  }, [paginationModel])
 
   const downloadNewCSVFile = csvContent => {
     try {
@@ -132,15 +146,21 @@ const Animal = () => {
         response = await getUserReport(params)
       } else if (type === 'medical_report') {
         response = await getMedicalReport(params)
+      } else if (type === 'animal_assessment') {
+        response = await getAnimalAssessment(params)
+      } else if (type === 'enclosure_assessment') {
+        response = await getEnclosureAssessment(params)
       } else {
         response = await getAnimalReport(params)
       }
       if (response?.success) {
         downloadNewCSVFile(response?.data)
       } else {
+        Toaster({ type: 'error', message: response?.message || 'no assessments are recorded' })
         console.warn('No  data available to export')
       }
     } catch (error) {
+      Toaster({ type: 'error', message: 'Error on exporting data' })
       console.error('Error exporting data:', error)
     }
   }
@@ -224,7 +244,9 @@ const Animal = () => {
       flex: 0.7,
       headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', ml: 3 }}>
+        <Typography
+          sx={{ color: theme.palette.customColors.customHeadingTextColor, fontWeight: 500, fontSize: '14px', ml: 3 }}
+        >
           {params.row.title}
         </Typography>
       )
@@ -245,6 +267,7 @@ const Animal = () => {
         return (
           <Button
             variant='contained'
+            disabled={downloadingRowId === params.row.id}
             onClick={() => handleExport(params)}
             sx={{
               width: '120px',
@@ -265,11 +288,26 @@ const Animal = () => {
     }
   ]
 
+  const title = (
+    <>
+      <Typography
+        sx={{
+          fontSize: '24px',
+          fontWeight: 500,
+          fontFamily: 'Inter',
+          color: theme.palette.customColors.OnSurfaceVariant
+        }}
+      >
+        Daily Report
+      </Typography>
+    </>
+  )
+
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_daily_report ? (
         <Card>
-          <CardHeader title='Daily Report' sx={{ mb: '16px' }} />
+          <CardHeader title={title} sx={{ mb: '16px' }} />
           <Box
             sx={{
               display: 'flex',
@@ -344,7 +382,7 @@ const Animal = () => {
                     height: '45px', // Height of Show/Hide button
                     display: 'flex',
                     borderRadius: '8px',
-                    color: '#44544A',
+                    color: theme.palette.customColors.OnSurfaceVariant,
                     fontWeight: 400,
                     fontSize: '16px',
                     fontFamily: 'Inter',
@@ -364,7 +402,11 @@ const Animal = () => {
                     }}
                     alt='Filter Icon'
                   />
-                  <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
+                  >
+                    Show/Hide
+                  </Typography>
                 </Button>
                 <Popover
                   id={id}
@@ -428,7 +470,7 @@ const Animal = () => {
           </Box>
           <Box sx={{ width: '98%', margin: 4 }}>
             <Box sx={{ borderRadius: '8px' }}>
-              <DataGrid
+              {/* <DataGrid
                 sx={{
                   mt: 3,
                   mx: 2,
@@ -477,6 +519,17 @@ const Animal = () => {
                 autoHeight
                 disableColumnFilter={false}
                 hideFooterSelectedRowCount
+                rowHeight={70}
+                scrollbarSize={10}
+              /> */}
+              <CommonTable
+                setPaginationModel={setPaginationModel}
+                indexedRows={reportRows}
+                total={''}
+                disableColumnSorting={true}
+                columns={columns}
+                paginationModel={paginationModel}
+                disableColumnFilter={false}
                 rowHeight={70}
                 scrollbarSize={10}
               />

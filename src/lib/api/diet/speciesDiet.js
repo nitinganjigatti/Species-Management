@@ -7,8 +7,8 @@ export async function getSpeciesList(params) {
   return response.data
 }
 
-export async function getSpecieDetailById(id) {
-  return await axiosGet({ url: `${DIET}/get-species-detail/${id}` })
+export async function getSpecieDetailById(id, params) {
+  return await axiosGet({ url: `${DIET}/get-species-detail/${id}`, params })
 }
 
 export async function speciesAttachmentRemoveById(id) {
@@ -55,6 +55,12 @@ export async function speciesAttachmentActive(payload) {
 
     return error
   }
+}
+
+export async function getClassList(params) {
+  const response = await axiosGet({ url: `get/taxonomy/hierarchy`, params })
+
+  return response.data
 }
 
 // export async function updateRecipeStatus(id, payload) {

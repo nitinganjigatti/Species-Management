@@ -24,8 +24,10 @@ import {
   Select,
   InputLabel,
   FormHelperText,
-  InputAdornment
+  InputAdornment,
+  Box
 } from '@mui/material'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
@@ -172,19 +174,15 @@ const ExpiredMedicine = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_item_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_item_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
     {
@@ -371,7 +369,7 @@ const ExpiredMedicine = () => {
                 mx: { xs: 2, sm: 6, md: 6, lg: 6 }
               }}
             >
-              <Grid item xs={12} md={8} lg={8}>
+              <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
                 <TextField
                   variant='outlined'
                   size='small'
@@ -379,22 +377,24 @@ const ExpiredMedicine = () => {
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{
                     borderRadius: '8px'
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Grid>
 
               <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
                 {selectedPharmacy.type === 'central' && (
-                  <Grid item xs={12} md={4} lg={4}>
+                  <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
                     <FormControl
                       sx={{
                         width: { xs: '100%', md: 200, lg: 200 },
@@ -441,9 +441,7 @@ const ExpiredMedicine = () => {
 
                 <Grid
                   item
-                  xs={12}
-                  md={4}
-                  lg={4}
+                  size={{ xs: 12, md: 4, lg: 4 }}
                   sx={{
                     my: selectedPharmacy.type === 'central' ? 0 : 2
                   }}
@@ -518,7 +516,7 @@ const ExpiredMedicine = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ExpiredMedicine

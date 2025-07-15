@@ -53,8 +53,8 @@ const KeyInsights = ({ insights }) => {
             </Typography>
             <Typography
               variant='caption'
-              color='text.secondary'
               sx={{
+                color: 'text.secondary',
                 fontWeight: 400,
                 fontSize: '14px',
                 color: '#7A8684',

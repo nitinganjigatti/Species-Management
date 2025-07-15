@@ -44,7 +44,7 @@ const Diet = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(query.page || 0, 10),
-    pageSize: parseInt(query.pageSize || 10, 10)
+    pageSize: parseInt(query.pageSize || 50, 10)
   })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(query.status || '')
@@ -79,7 +79,7 @@ const Diet = () => {
 
   useEffect(() => {
     const page = parseInt(query.page || 0, 10)
-    const pageSize = parseInt(query.pageSize || 10, 10)
+    const pageSize = parseInt(query.pageSize || 50, 10)
     const status = query.status || ''
 
     setPaginationModel({ page: page, pageSize: pageSize })
@@ -90,8 +90,8 @@ const Diet = () => {
     // debugger
     setStatus(newValue)
     setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
-    updateQueryParams({ page: 0, status: newValue, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
+    updateQueryParams({ page: 0, status: newValue, pageSize: 50 })
   }
 
   // const addEventSidebarOpen = () => {
@@ -244,20 +244,20 @@ const Diet = () => {
     },
     {
       //flex: 0.3,
-      width: 100,
+      width: 130,
       field: 'no_meals',
-      headerName: 'No meals',
+      headerName: 'No of combos',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.num_meals ? params.row.num_meals : '-'}
+          {params.row.combo ? params.row.combo : '-'}
         </Typography>
       )
     },
     {
       //flex: 0.3,
-      width: 100,
+      width: 120,
       field: 'no_recipe',
-      headerName: 'No Recipe',
+      headerName: 'No of Recipes',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
@@ -443,7 +443,7 @@ const Diet = () => {
                   columns={columns}
                   sortingMode='server'
                   paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
+                  pageSizeOptions={[7, 10, 25, 50, 100]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
                   slots={{ toolbar: ServerSideToolbarWithFilter }}

@@ -3,6 +3,7 @@ import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import { styled, useTheme } from '@mui/material/styles'
 import MuiListSubheader from '@mui/material/ListSubheader'
+import Box from '@mui/material/Box'
 
 // ** Custom Components Imports
 import Translations from 'src/layouts/components/Translations'
@@ -79,9 +80,15 @@ const VerticalNavSectionTitle = props => {
           }}
         >
           {navCollapsed && !navHover ? null : (
-            <Typography noWrap variant='caption' sx={{ ...conditionalColor() }}>
+            <Box
+              sx={{
+                fontSize: '0.75rem',
+                letterSpacing: '0.21px',
+                ...conditionalColor()
+              }}
+            >
               <Translations text={item.sectionTitle} />
-            </Typography>
+            </Box>
           )}
         </Divider>
       </ListSubheader>

@@ -209,10 +209,10 @@ export default function NewProductList() {
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <div>
+        <Box>
           {params?.row.request_items?.map((item, index) => (
             <Typography
-              key={index}
+              key={`product-${params.row.id}-${index}`}
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
@@ -223,7 +223,7 @@ export default function NewProductList() {
               {item?.product_name}
             </Typography>
           ))}
-        </div>
+        </Box>
       )
     },
 
@@ -274,10 +274,10 @@ export default function NewProductList() {
       headerAlign: 'left',
       align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Box>
           {params?.row.request_items?.map((item, index) => (
             <Typography
-              key={index}
+              key={`quantity-${params.row.id}-${index}`}
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
@@ -288,7 +288,7 @@ export default function NewProductList() {
               {item?.quantity}
             </Typography>
           ))}
-        </Typography>
+        </Box>
       )
     },
 
@@ -349,12 +349,11 @@ export default function NewProductList() {
   const [excelLoader, setExcelLoader] = useState(false)
 
   const handleChange = (event, newValue) => {
-    // Reset total and search value
     setTotal(0)
     setSearchValue('')
     setPaginationModel({ page: 0, pageSize: 10 })
+    setFilterDates('')
 
-    // Update the status
     setStatus(newValue)
 
     // Fetch table data with the new status
@@ -681,7 +680,7 @@ export default function NewProductList() {
             }}
           >
             {/* Left Box (Date Picker) */}
-            <Grid item xs={12} sm={4} md={3} sx={{ mb: { xs: 3, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ mb: { xs: 3, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
 
@@ -711,12 +710,14 @@ export default function NewProductList() {
 
                   // mt: { xs: 3, sm: 0 }
                 }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  )
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
               />
 
@@ -873,7 +874,6 @@ export default function NewProductList() {
             />
           </Grid>
         </Card>
-
         {show && (
           <>
             <CardContent>

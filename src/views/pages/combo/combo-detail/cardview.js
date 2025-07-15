@@ -65,7 +65,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   }
 
   return (
-    <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+    <Grid item size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
         <div
           item
@@ -172,7 +172,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
           >
             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                Ingredients used
+                Items used
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>

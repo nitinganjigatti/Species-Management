@@ -101,7 +101,6 @@ const DirectDispatchList = () => {
       } catch (e) {
         setTotal(0)
         setRows([])
-        console.log(e)
         setLoading(false)
       }
     },
@@ -191,7 +190,6 @@ const DirectDispatchList = () => {
 
   const onRowClick = params => {
     var data = params.row
-    console.log('params.row', params.row)
 
     Router.push({
       pathname: `/pharmacy/local-dispatch/${data?.id}`
@@ -330,55 +328,57 @@ const DirectDispatchList = () => {
     },
     ,
     {
-      minWidth: 160,
-      field: 'shipping_status',
-      headerName: 'Status',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {params.row.shipping_status === 'Fully Shipped' && (
-              <Box sx={{ color: 'success.main', mr: 2 }}>
-                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
-              </Box>
-            )}
-            {params.row.shipping_status === 'Partially Shipped' && (
-              <>
-                <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+      ...(status !== 'pending' && {
+        minWidth: 160,
+        field: 'shipping_status',
+        headerName: 'Status',
+        renderCell: params => (
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {params.row.shipping_status === 'Fully Shipped' && (
+                <Box sx={{ color: 'success.main', mr: 2 }}>
+                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
                 </Box>
-                <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  {/ added for partial shipping /}
-                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+              )}
+              {params.row.shipping_status === 'Partially Shipped' && (
+                <>
+                  <Box sx={{ color: 'warning.main', mr: 2 }}>
+                    <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                  </Box>
+                  <Box sx={{ color: 'warning.main', mr: 2 }}>
+                    {/ added for partial shipping /}
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                  </Box>
+                </>
+              )}
+              {params.row.dispute_status === 'Dispute Pending' && (
+                <Box sx={{ color: 'error.main', mr: 2 }}>
+                  <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
                 </Box>
-              </>
-            )}
-            {params.row.dispute_status === 'Dispute Pending' && (
-              <Box sx={{ color: 'error.main', mr: 2 }}>
-                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
-              </Box>
-            )}
-            {params.row.dispute_status === 'Dispute Resolved' && (
-              <Box sx={{ color: 'success.main', mr: 2 }}>
-                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
-              </Box>
-            )}
-            {params.row.delivery_status === 'Delivered' && (
-              <Box sx={{ color: 'success.main', mr: 2 }}>
-                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
-              </Box>
-            )}
-          </div>
-          {params.row.status === 'Cancelled' ? params.row.status : null}
-        </Typography>
-      )
+              )}
+              {params.row.dispute_status === 'Dispute Resolved' && (
+                <Box sx={{ color: 'success.main', mr: 2 }}>
+                  <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+                </Box>
+              )}
+              {params.row.delivery_status === 'Delivered' && (
+                <Box sx={{ color: 'success.main', mr: 2 }}>
+                  <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+                </Box>
+              )}
+            </div>
+            {params.row.status === 'Cancelled' ? params.row.status : null}
+          </Typography>
+        )
+      })
     },
     {
       minWidth: 220,
@@ -436,9 +436,7 @@ const DirectDispatchList = () => {
     // }
   ]
 
-  const handleRowClick = params => {
-    console.log(params)
-  }
+  const handleRowClick = params => {}
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -479,7 +477,14 @@ const DirectDispatchList = () => {
               {/* Search Field and Filters */}
               <Grid container spacing={3}>
                 {/* Search Field */}
-                <Grid item xs={12} sm={6} spacing={3} gap={3}>
+                <Grid
+                  item
+                  size={{ xs: 12, sm: 6 }}
+                  spacing={3}
+                  sx={{
+                    gap: 3
+                  }}
+                >
                   <Box
                     sx={{
                       display: 'flex',
@@ -515,8 +520,7 @@ const DirectDispatchList = () => {
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
-                    xs={12}
-                    sm={6}
+                    size={{ xs: 12, sm: 6 }}
                     sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
                   >
                     <FormControlLabel

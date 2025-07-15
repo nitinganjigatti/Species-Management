@@ -63,7 +63,9 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
     reValidateMode: 'onChange'
   })
 
-  const NurseryList = async q => {
+  const nurseryId = watch('nursery')
+
+  const fetchNurseryList = async (q = '') => {
     try {
       const params = {
         type: 'only_active',
@@ -71,27 +73,68 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
         page: 1,
         limit: 50
       }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
+      const { data } = await GetNurseryList({ params: params })
+      setNurseryList(data?.result || [])
     } catch (e) {
-      console.log(e)
+      console.error('Failed to fetch nursery list', e)
     }
   }
 
-  useEffect(() => {
-    NurseryList()
-  }, [])
+  const searchNursery = useCallback(debounce(fetchNurseryList, 1000), [])
 
-  const nurseryId = watch('nursery')
+  const handleFormSuccess = response => {
+    reset()
+    setLoader(false)
+    Toaster({ type: 'success', message: response.message })
+    if (callApi) callApi()
+    if (callTableApi) callTableApi()
+    handleClose()
+  }
+
+  const onSubmit = async values => {
+    setLoader(true)
+    const payload = {
+      room_name: values.room_name,
+      site_id: values.site_id,
+      nursery_id: defaultNursery?.nursery_id || nurseryId
+    }
+
+    try {
+      const response = editParams?.nursery_id ? await EditRoom(id, payload) : await AddRoom(payload)
+
+      if (response.success) {
+        handleFormSuccess(response)
+      } else {
+        setLoader(false)
+        Toaster({ type: 'error', message: response.message })
+      }
+    } catch (error) {
+      setLoader(false)
+      console.error('Error while submitting form:', error)
+      Toaster({ type: 'error', message: 'An error occurred while submitting' })
+    }
+  }
+
+  const handleClose = () => {
+    setIsOpen(false)
+    setDefaultNursery(null)
+    setValue('site_id', '')
+    setValue('nursery', '')
+    reset()
+  }
+
+  useEffect(() => {
+    fetchNurseryList()
+  }, [])
 
   useEffect(() => {
     if (nurseryId) {
       const selectedNursery = nurseryList.find(nursery => nursery.nursery_id === nurseryId)
-      setValue('site_id', selectedNursery?.site_id)
+      setValue('site_id', selectedNursery?.site_id || '')
       clearErrors('site_id')
     }
-  }, [nurseryId])
+    // }, [nurseryId])
+  }, [nurseryId, nurseryList])
 
   useEffect(() => {
     if (isPreFilled?.nursery_id && isPreFilled?.site_id) {
@@ -105,81 +148,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
       setDefaultNursery({ nursery_id: editParams?.nursery_id, nursery_name: editParams?.nursery_name })
     }
   }, [isOpen])
-
-  const onSubmit = async values => {
-    setLoader(true)
-    try {
-      const payload = {
-        room_name: values?.room_name,
-        site_id: values?.site_id,
-        nursery_id: defaultNursery?.nursery_id ? defaultNursery?.nursery_id : nurseryId
-      }
-
-      if (editParams?.nursery_id) {
-        const response = await EditRoom(id, payload)
-
-        if (response.success) {
-          setLoader(false)
-          reset()
-          if (callApi) {
-            callApi()
-          }
-          if (callTableApi) {
-            callTableApi()
-          }
-          Toaster({ type: 'success', message: response.message })
-          handleClose()
-        } else {
-          setLoader(false)
-          // reset()
-          Toaster({ type: 'error', message: response.message })
-        }
-      } else {
-        const response = await AddRoom(payload)
-
-        if (response.success) {
-          setLoader(false)
-          reset()
-          Toaster({ type: 'success', message: response.message })
-          if (callApi) {
-            callApi()
-          }
-          if (callTableApi) {
-            callTableApi()
-          }
-          handleClose()
-        } else {
-          setLoader(false)
-          // reset()
-          Toaster({ type: 'error', message: response.message })
-        }
-      }
-    } catch (error) {
-      setLoader(false)
-      console.error('Error while adding room:', error)
-      reset()
-      Toaster({ type: 'error', message: 'An error occurred while adding room' })
-    }
-  }
-
-  const handleClose = () => {
-    setIsOpen(false)
-    setDefaultNursery(null)
-    setValue('site_id', '')
-    setValue('nursery', '')
-    reset()
-  }
-
-  const searchNursery = useCallback(
-    debounce(async q => {
-      try {
-        await NurseryList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
 
   return (
     <>
@@ -328,7 +296,9 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                       placeholder='Room Name'
                       error={Boolean(errors.room_name)}
                       name='room_name'
-                      inputProps={{ autoComplete: 'off' }}
+                      slotProps={{
+                        htmlInput: { autoComplete: 'off' }
+                      }}
                     />
                   )}
                 />

@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import {
   Avatar,
   Box,
@@ -12,54 +13,48 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import React, { useState } from 'react'
+import Icon from 'src/@core/components/icon'
 import moment from 'moment'
+import { LoadingButton } from '@mui/lab'
 
-const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions, allCompleted }) => {
+const CommonMediaView = ({
+  type,
+  image,
+  document,
+  handleDeleteImg,
+  fileViews,
+  permissions,
+  deleteAttachmentLoader
+}) => {
   const theme = useTheme()
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [error, setError] = useState(false)
-  // console.log('allCompleted', allCompleted)
+  const [uploadAnotherDialog, setUploadAnotherDialog] = useState(false)
 
   function extractHoursAndMinutes(date) {
-    //9:21 PM
     return moment(date).format('hh:mm A')
   }
 
   function convertUTCToLocal(date) {
     var stillUtc = moment.utc(date).toDate()
-    var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+    // var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+    var local = moment(stillUtc).local(true).format('DD-MMM-YYY')
 
     return local
   }
 
   const handleConfirmDialog = (e, item) => {
-    let attachments = image !== undefined ? image : document !== undefined ? document : []
     e.preventDefault()
     e.stopPropagation()
     setSelectedItem(item)
-    setOpenConfirmDialog(true)
-
-    // Check if all statuses start with "completed"
-
-    // const totalAttachments = attachments.flat().length // Merge image & document arrays into one
-
-    // console.log('Total Attachments:', totalAttachments)
-
-    // if (individual && attachments.length === 1) {
-    //   setError(true)
-
-    //   return
-    // }
-
-    // Check if total rows are equal to total attachments
-    if (allCompleted) {
+    if (Number(image?.length || 0) + Number(document?.length || 0) == 1) {
       setError(true)
-
-      return
+      setOpenConfirmDialog(true)
+    } else {
+      setOpenConfirmDialog(true)
     }
   }
 
@@ -69,6 +64,13 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
       setOpenConfirmDialog(false)
       setSelectedItem(null) // Reset after deletion
     }
+  }
+
+  const closeConfirmDialoge = () => {
+    setOpenConfirmDialog(false)
+    setTimeout(() => {
+      setError(false)
+    }, 1000)
   }
 
   return (
@@ -90,7 +92,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                   flexDirection: 'column',
                   gap: '8px',
                   width: '271px',
-                  height: '224px'
+                  height: '244px'
                 }}
               >
                 <Box
@@ -108,6 +110,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                         fontWeight: '400',
                         lineHeight: '19.36px',
                         overflow: 'hidden',
+                        whiteSpace: 'nowrap',
                         textOverflow: 'ellipsis',
                         p: 2
                       }}
@@ -158,7 +161,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                     <Tooltip title={item?.user_profile?.name || ''}>
                       <Typography
                         sx={{
-                          width: 120,
+                          width: '212px',
                           fontSize: '16px',
                           fontWeight: '400',
                           lineHeight: '19.36px',
@@ -171,20 +174,30 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                       </Typography>
                     </Tooltip>
                   </Box>
-                  <Box>
-                    <Typography
-                      sx={{
-                        width: 76,
-                        fontSize: '16px',
-                        fontWeight: '400',
-                        lineHeight: '19.36px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
-                    </Typography>
-                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {convertUTCToLocal(item?.user_profile?.created_at)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                  </Typography>
                 </Box>
               </Card>
             </a>
@@ -205,7 +218,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                   flexDirection: 'column',
                   gap: '8px',
                   width: '271px',
-                  height: '224px'
+                  height: '244px'
                 }}
               >
                 <Box
@@ -223,6 +236,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                         fontWeight: '400',
                         lineHeight: '19.36px',
                         overflow: 'hidden',
+                        whiteSpace: 'nowrap',
                         textOverflow: 'ellipsis',
                         p: 2
                       }}
@@ -260,7 +274,6 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                     mt: -2
                   }}
                 >
-                  {/* {console.log('item?.file_original_name :>> ', item?.file_type)} */}
                   <img
                     src={
                       item?.file_type === 'application/pdf'
@@ -282,6 +295,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                     <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
                     <Typography
                       sx={{
+                        width: '212px',
                         fontSize: '16px',
                         fontWeight: '400',
                         lineHeight: '19.36px',
@@ -292,59 +306,129 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                       {item?.user_profile?.name}
                     </Typography>
                   </Box>
-                  <Box>{extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}</Box>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {convertUTCToLocal(item?.user_profile?.created_at)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                  </Typography>
                 </Box>
               </Card>
             </a>
           ))}
       </>
-      <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)} fullWidth>
+      <Dialog open={openConfirmDialog} onClose={() => closeConfirmDialoge()} fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {/* <DeleteOutlineIcon sx={{ color: "red" }} /> */}
           <Icon
             icon='material-symbols:delete-outline'
             width='24'
             height='24'
             color={theme.palette.customColors.Error}
           />
+          <Typography
+            sx={{
+              fontSize: 20,
+              fontWeight: 'bold'
+            }}
+          >
+            Delete File!
+          </Typography>
+        </DialogTitle>
+
+        {error ? (
+          <>
+            <DialogContent>
+              <DialogContentText>
+                <Typography>
+                  Either upload the new report or change the test status to pending to delete this report.
+                </Typography>
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                sx={{ backgroundColor: theme.palette.primary.main }}
+                onClick={() => closeConfirmDialoge()}
+                variant='contained'
+              >
+                OK
+              </Button>
+            </DialogActions>
+          </>
+        ) : (
+          <>
+            <DialogContent>
+              <DialogContentText>
+                Are you sure you want to delete{' '}
+                <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
+                  {selectedItem?.file_original_name}
+                </Typography>
+                &nbsp;?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <LoadingButton
+                disabled={deleteAttachmentLoader}
+                onClick={() => {
+                  setOpenConfirmDialog(false)
+                  setError(false)
+                }}
+                variant='outlined'
+              >
+                CANCEL
+              </LoadingButton>
+              <LoadingButton loading={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
+                DELETE
+              </LoadingButton>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+      {/* <Dialog open={uploadAnotherDialog} onClose={() => setUploadAnotherDialog(false)} fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Icon icon='fluent:warning-20-filled' width='24' height='24' color={theme.palette.customColors.Error} />
           <Typography variant='h6' fontWeight='bold'>
             Delete File!
           </Typography>
         </DialogTitle>
         <DialogContent>
-          {error ? (
-            <DialogContentText>
-              <Typography>
-                Either upload the new report or change the test status to pending to delete this report.
-              </Typography>
-            </DialogContentText>
-          ) : (
-            <DialogContentText>
-              Are you sure you want to delete{' '}
-              <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
-                {selectedItem?.file_original_name}
-              </Typography>
-              &nbsp;?
-            </DialogContentText>
-          )}
+          <DialogContentText>
+            One or more tests have been marked as completed. Please upload the new report to delete the existing report{' '}
+            <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
+              {selectedItem?.file_original_name}
+            </Typography>
+            .
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
+
+
           <Button
-            onClick={() => {
-              setOpenConfirmDialog(false)
-              setError(false)
-            }}
-            variant='outlined'
+            sx={{ backgroundColor: theme.palette.primary.main }}
+            onClick={() => setUploadAnotherDialog(false)}
+            variant='contained'
           >
-            CANCEL
+            OK
           </Button>
-          {!error && !allCompleted && (
-            <Button onClick={handleDelete} variant='contained' color='error'>
-              DELETE
-            </Button>
-          )}
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </>
   )
 }

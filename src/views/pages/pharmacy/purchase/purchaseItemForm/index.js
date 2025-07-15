@@ -100,11 +100,14 @@ const PurchaseItemForm = props => {
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
 
   const schema = yup.object().shape({
-    product: yup.object().shape({
-      value: yup.string().required('Product name is required'),
-      label: yup.string().required('Product name is required'),
-      stock_type: yup.string().nullable()
-    }),
+    product: yup
+      .object()
+      .shape({
+        value: yup.string().required('Product name is required'),
+        label: yup.string().required('Product name is required'),
+        stock_type: yup.string().nullable()
+      })
+      .required('Product name is required'),
 
     purchase_expiry_date: yup.string().when('product.stock_type', (stockType, schema) => {
       if (stockType[0] === 'non_medical') {
@@ -117,17 +120,16 @@ const PurchaseItemForm = props => {
     }),
     purchase_batch_no: yup
       .string()
+      .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
+        const isDuplicate = purchase_details?.some(
+          (entry, index) =>
+            index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
+            entry?.purchase_unit_id === parent?.product?.value &&
+            entry?.purchase_batch_no?.trim()?.toLowerCase() === value?.trim()?.toLowerCase()
+        )
 
-      // .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
-      //   const isDuplicate = purchase_details?.some(
-      //     (entry, index) =>
-      //       index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
-      //       entry?.purchase_unit_id === parent?.product?.value &&
-      //       entry?.purchase_batch_no?.trim()?.toLowerCase() === value?.trim()?.toLowerCase()
-      //   )
-
-      //   return !isDuplicate
-      // })
+        return !isDuplicate
+      })
       .required('Batch number is required'),
 
     purchase_unit_price: yup
@@ -225,7 +227,10 @@ const PurchaseItemForm = props => {
       .typeError('Net amount must be a number')
 
       .required('Net amount is required'),
-    purchase_variant_id: yup.string().required('Product variant is required')
+    purchase_variant_id: yup
+      .string()
+      .transform(value => (value === '' ? null : value))
+      .required('Product variant is required')
   })
 
   const {
@@ -254,7 +259,6 @@ const PurchaseItemForm = props => {
       editingIndex: medicineItemId ? nestedRowMedicine?.index : -1
     }
   })
-
   const [nonMedicalProduct, setNonMedicalProduct] = useState(false)
   const [userInteracted, setUserInteracted] = useState(false)
 
@@ -464,7 +468,8 @@ const PurchaseItemForm = props => {
     )
     setValue(
       'purchase_gross_amount',
-      checkFloatValue(grossAmount)
+      checkFloatValue(grossAmount),
+      { shouldValidate: true }
 
       // grossAmount >= 0.01 ? parseFloat(grossAmount).toFixed(2) : parseFloat(grossAmount).toFixed(5)
     )
@@ -489,8 +494,10 @@ const PurchaseItemForm = props => {
   }
   useEffect(() => {
     if (productExpiryDate !== '') {
-      setValue('purchase_expiry_date', dayjs(productExpiryDate))
-      setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      setValue('purchase_expiry_date', dayjs(productExpiryDate), { shouldValidate: true })
+      if (nestedRowMedicine?.purchase_variant_id != 0)
+        setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id, { shouldValidate: true })
+      else setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
       setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
       const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
       setValue('isVariantIdPresent', true)
@@ -498,11 +505,11 @@ const PurchaseItemForm = props => {
       setValue('purchase_created_by', nestedRowMedicine?.purchase_created_by)
       setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml)
     } else {
-      setValue('purchase_expiry_date', '')
-      setValue('purchase_variant_id', '')
-      setValue('purchase_variant_ratio', '')
-      setValue('isVariantIdPresent', false)
-
+      // setValue('purchase_expiry_date', '')
+      // setValue('purchase_variant_id', '')
+      // setValue('purchase_variant_ratio', '')
+      // setValue('isVariantIdPresent', false)
+      setValue('purchase_expiry_date', dayjs(productExpiryDate))
       setValue('purchase_unit_qty', nestedRowMedicine?.purchase_qty)
     }
   }, [productExpiryDate, expiryDateLoader])
@@ -524,7 +531,10 @@ const PurchaseItemForm = props => {
       setValue('product', {
         // label: nestedRowMedicine?.purchase_unit_id ? nestedRowMedicine.medicine_name : '',
         label: nestedRowMedicine.medicine_name,
-        value: nestedRowMedicine.purchase_unit_id,
+        // value: nestedRowMedicine.purchase_unit_id,
+        value: nestedRowMedicine.purchase_unit_id
+          ? nestedRowMedicine.purchase_unit_id
+          : nestedRowMedicine.purchase_stock_item_id,
         stock_type: nestedRowMedicine.stock_type
       })
       setValue('package_details', nestedRowMedicine?.package_details)
@@ -577,7 +587,7 @@ const PurchaseItemForm = props => {
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Typography
             variant='body1'
             sx={{
@@ -594,12 +604,13 @@ const PurchaseItemForm = props => {
               {/* The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
               you entered is not available, please search and select.  */}
               The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label} </span>
-              you entered is either not available or not selected from the dropdown.
-              <br /> Please search and select it to continue.
+              was not found in our system. Please use the search option to
+              <br />
+              select the correct product from the list
             </Typography>
           )}
         </Grid>
-        <Grid item xs={12} sm={8}>
+        <Grid item size={{ xs: 12, sm: 8 }}>
           <FormControl fullWidth>
             <Controller
               name='product'
@@ -610,18 +621,24 @@ const PurchaseItemForm = props => {
                   disabled={nestedRowMedicine?.id ? true : false}
                   options={optionsMedicineList}
                   value={getValues('product')?.value ? value : null}
-                  renderOption={(props, option) => (
-                    <li
-                      {...props}
-                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                    >
-                      <Box>
-                        <Typography>{option?.value ? option?.label : ''}</Typography>
-                        <Typography variant='body2'>{option.package_details}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography>
-                      </Box>
-                    </li>
-                  )}
+                  getOptionDisabled={option => !option.status}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
+
+                    return (
+                      <li
+                        key={option?.value}
+                        {...otherProps}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option?.value ? option?.label : ''}</Typography>
+                          <Typography variant='body2'>{option.package_details}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
+                        </Box>
+                      </li>
+                    )
+                  }}
                   getOptionLabel={option => option.label}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
@@ -675,11 +692,7 @@ const PurchaseItemForm = props => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
 
-                      // console.log('product', product)
-
-                      // debugger
                       if (product?.purchase_created_by !== 'invoice_upload') {
-                        debugger
                         if (product?.product?.value && product?.purchase_batch_no) {
                           // setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml
                           checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
@@ -701,6 +714,9 @@ const PurchaseItemForm = props => {
                 />
               )}
             />
+            {errors?.product && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.product?.value?.message}</FormHelperText>
+            )}
             {/* {watch('package_details') && (
               <Box sx={{ mx: 1, display: 'flex', flexDirection: 'column' }}>
                 <Chip
@@ -722,7 +738,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_batch_no'
@@ -757,7 +773,7 @@ const PurchaseItemForm = props => {
         </Grid>
 
         {!nonMedicalProduct && (
-          <Grid item xs={12} sm={4}>
+          <Grid item size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth>
               {expiryDateLoader && (
                 <span style={{ position: 'absolute', right: '12px', top: '16px' }}>
@@ -776,9 +792,14 @@ const PurchaseItemForm = props => {
                       inputFormat='MM/DD/YYYY'
                       value={value}
                       onChange={onChange}
-                      renderInput={params => <TextField {...params} />}
+                      renderInput={params => <TextField {...params} error={Boolean(errors.purchase_expiry_date)} />}
+                      slotProps={{
+                        textField: {
+                          error: Boolean(errors.purchase_expiry_date)
+                        }
+                      }}
                       error={Boolean(errors.purchase_expiry_date)}
-                      helperText={errors.purchase_expiry_date?.message}
+                      // helperText={errors.purchase_expiry_date?.message}
                     />
                   </LocalizationProvider>
                 )}
@@ -791,7 +812,7 @@ const PurchaseItemForm = props => {
           </Grid>
         )}
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_unit_price'
@@ -826,7 +847,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_discount'
@@ -880,7 +901,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid> */}
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Divider
             orientation='horizontal'
             flexItem
@@ -892,7 +913,7 @@ const PurchaseItemForm = props => {
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Typography
             variant='body1'
             sx={{
@@ -905,9 +926,9 @@ const PurchaseItemForm = props => {
             Purchase Quantity
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
-            <InputLabel error={Boolean(errors.supplier_id)}>Product Variant*</InputLabel>
+            <InputLabel error={Boolean(errors.purchase_variant_id)}>Product Variant*</InputLabel>
             <Controller
               name='purchase_variant_id'
               control={control}
@@ -919,7 +940,6 @@ const PurchaseItemForm = props => {
                   value={value}
                   onChange={(e, val) => {
                     setValue('purchase_variant_ratio', Number(val?.props?.children))
-                    console.log('variant ratio', Number(val?.props?.children))
                     const purchaseQty = watch('purchase_qty')
 
                     const totalUnitQty = purchaseQty
@@ -948,7 +968,7 @@ const PurchaseItemForm = props => {
             {errors?.purchase_variant_id && <FormHelperText error>{errors.purchase_variant_id.message}</FormHelperText>}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_qty'
@@ -957,6 +977,7 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='Purchase Quantity*'
+                  variant='outlined'
                   // disabled={nestedRowMedicine?.id ? true : false}
                   onKeyUp={e => {
                     calculateStuff()
@@ -973,7 +994,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <Box
             sx={{
               width: '100%',
@@ -1008,6 +1029,7 @@ const PurchaseItemForm = props => {
             {errors.purchase_unit_qty && (
               <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_unit_qty?.message}</FormHelperText>
             )} */}
+
             <Typography
               sx={{
                 fontSize: '14px',
@@ -1023,7 +1045,7 @@ const PurchaseItemForm = props => {
             </Typography>
           </Box>
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Divider
             orientation='horizontal'
             flexItem
@@ -1035,7 +1057,7 @@ const PurchaseItemForm = props => {
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Typography
             variant='body1'
             sx={{
@@ -1045,7 +1067,7 @@ const PurchaseItemForm = props => {
               mb: 4
             }}
           >
-            GST Details
+            GST Amount Details
           </Typography>
         </Grid>
         <Grid
@@ -1074,21 +1096,20 @@ const PurchaseItemForm = props => {
         >
           <Grid
             item
-            lg={3}
-            sm={6}
-            xs={6}
+            size={{ xs: 12, sm: 6 }}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography
               variant='body1'
               sx={{
                 fontSize: '14px',
-                fontWeight: 4000,
+                fontWeight: 400,
                 color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
-              GST Amount:{watch('purchase_gst')}
+              GST :{Utility.formatAmountToReadableDigit(watch('purchase_gst'))}
+              {/* {watch('purchase_gst')} */}
             </Typography>
             <Divider
               orientation='vertical'
@@ -1106,21 +1127,20 @@ const PurchaseItemForm = props => {
           </Grid>
           <Grid
             item
-            lg={3}
-            sm={6}
-            xs={6}
+            size={{ xs: 12, sm: 6 }}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography
               variant='body1'
               sx={{
                 fontSize: '14px',
-                fontWeight: 4000,
+                fontWeight: 400,
                 color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
-              Central GST Amount:{watch('purchase_cgst_amount')}
+              Central GST :{Utility.formatAmountToReadableDigit(watch('purchase_cgst_amount'))}
+              {/* {watch('purchase_cgst_amount')} */}
             </Typography>
             <Divider
               orientation='vertical'
@@ -1135,21 +1155,20 @@ const PurchaseItemForm = props => {
           </Grid>
           <Grid
             item
-            lg={3}
-            sm={6}
-            xs={6}
+            size={{ xs: 12, sm: 6 }}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography
               variant='body1'
               sx={{
                 fontSize: '14px',
-                fontWeight: 4000,
+                fontWeight: 400,
                 color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
-              State GST Amount:{watch('purchase_sgst_amount')}
+              State GST :{Utility.formatAmountToReadableDigit(watch('purchase_sgst_amount'))}
+              {/* {watch('purchase_sgst_amount')} */}
             </Typography>
             <Divider
               orientation='vertical'
@@ -1164,26 +1183,25 @@ const PurchaseItemForm = props => {
           </Grid>
           <Grid
             item
-            lg={3}
-            sm={6}
-            xs={6}
+            size={{ xs: 12, sm: 6 }}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography
               variant='body1'
               sx={{
                 fontSize: '14px',
-                fontWeight: 4000,
+                fontWeight: 400,
                 color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
-              IGST Amount:{watch('purchase_igst_amount')}
+              IGST :{Utility.formatAmountToReadableDigit(watch('purchase_igst_amount'))}
+              {/* {watch('purchase_igst_amount')} */}
             </Typography>
           </Grid>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_cgst'
@@ -1219,7 +1237,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_sgst'
@@ -1253,7 +1271,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_igst'
@@ -1372,7 +1390,7 @@ const PurchaseItemForm = props => {
             />
           </FormControl>
         </Grid> */}
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Divider
             orientation='horizontal'
             flexItem
@@ -1384,7 +1402,7 @@ const PurchaseItemForm = props => {
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Typography
             sx={{
               fontSize: '16px',
@@ -1399,8 +1417,7 @@ const PurchaseItemForm = props => {
         </Grid>
         <Grid
           item
-          sm={12}
-          xs={12}
+          size={{ xs: 12, sm: 12 }}
           sx={{
             display: 'flex',
             justifyContent: 'flex-start',
@@ -1413,15 +1430,16 @@ const PurchaseItemForm = props => {
             variant='body1'
             sx={{
               fontSize: '14px',
-              fontWeight: 4000,
+              fontWeight: 400,
               color: 'customColors.customTextColorGray2',
               mb: 0.5
             }}
           >
-            Discount Amount:{watch('purchase_discount_amount')}
+            Discount :{Utility.formatAmountToReadableDigit(watch('purchase_discount_amount'))}
+            {/* {watch('purchase_discount_amount')} */}
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_gross_amount'
@@ -1429,12 +1447,13 @@ const PurchaseItemForm = props => {
               defaultValue=''
               render={({ field }) => (
                 <TextField
-                  disabled={true}
                   {...field}
                   label='Gross Amount*'
+                  variant='outlined'
                   error={Boolean(errors.purchase_gross_amount)}
-
-                  // helperText={errors.purchase_purchase_price?.message}
+                  slotProps={{
+                    input: { readOnly: true }
+                  }}
                 />
               )}
             />
@@ -1444,7 +1463,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        {/* <Grid item xs={12} sm={6}>
+        {/* <Grid item size={{xs: 12, sm: 6}}>
           <FormControl fullWidth>
             <Controller
               name='purchase_discount_amount'
@@ -1467,7 +1486,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid> */}
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_taxable_amount'
@@ -1490,7 +1509,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_net_amount'
@@ -1609,7 +1628,7 @@ const PurchaseItemForm = props => {
           }
         />
         {/* // file uploader */}
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right' }}>
             {medicineItemId ? (
               <>
@@ -1628,7 +1647,6 @@ const PurchaseItemForm = props => {
                   }}
                   size='large'
                   variant='outlined'
-                  git
                 >
                   Reset
                 </Button>
@@ -1641,4 +1659,4 @@ const PurchaseItemForm = props => {
   )
 }
 
-export default PurchaseItemForm
+export default React.memo(PurchaseItemForm)

@@ -46,6 +46,7 @@ const data = [
     borderColor: '#E4B819'
   }
 ]
+
 const cards = [
   {
     value: 0,
@@ -399,6 +400,7 @@ const Overview = () => {
             {organizationDetails.map((organization, index) => {
               // Find orgData that matches the current organization id
               const orgData = organizationCountList.find(org => org.org_id === organization.id)
+
               // If orgData is found, render CustomAccordion with fetched data
               if (orgData) {
                 return (

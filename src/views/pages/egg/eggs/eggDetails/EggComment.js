@@ -183,7 +183,7 @@ const EggComment = ({ eggDetails, eggId }) => {
         setCommentLoader(false)
       }
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
       setCommentLoader(false)
     }
   }
@@ -229,18 +229,20 @@ const EggComment = ({ eggDetails, eggId }) => {
                 addCommentForEgg()
               }
             }}
-            InputProps={{
-              endAdornment: (
-                <Button
-                  sx={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0, height: '57px' }}
-                  variant='contained'
-                  position='end'
-                  disabled={commentBtnLoader || commentText === ''}
-                  onClick={() => addCommentForEgg()}
-                >
-                  <Icon icon={'fluent:send-16-filled'} fontSize='28px' color={theme.palette.primary.contrastText} />
-                </Button>
-              )
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <Button
+                    sx={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0, height: '57px' }}
+                    variant='contained'
+                    position='end'
+                    disabled={commentBtnLoader || commentText === ''}
+                    onClick={() => addCommentForEgg()}
+                  >
+                    <Icon icon={'fluent:send-16-filled'} fontSize='28px' color={theme.palette.primary.contrastText} />
+                  </Button>
+                )
+              }
             }}
           />
         </Box>
@@ -388,7 +390,6 @@ const EggComment = ({ eggDetails, eggId }) => {
           </>
         ) : null}
       </CardContent>
-
       <ConfirmationDialog
         icon={'mdi:delete'}
         iconColor={theme.palette.customColors.Error}

@@ -1,6 +1,7 @@
 import { Typography, Box, Avatar } from '@mui/material'
 import { format } from 'date-fns'
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 
 const MedicalRecordNotes = ({ notes }) => {
   const theme = useTheme()
@@ -35,7 +36,10 @@ const MedicalRecordNotes = ({ notes }) => {
                 {`${note.user_profile.first_name} ${note.user_profile.last_name}`}
               </Typography>
               <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.antzNeturalBg }}>
-                {format(new Date(note.modified_at ? note.modified_at : note.created_at), 'MMM dd, yyyy hh:mm a')}
+                {format(
+                  new Date(Utility.convertUTCToLocal(note.modified_at ? note.modified_at : note.created_at)),
+                  'MMM dd, yyyy hh:mm a'
+                )}{' '}
               </Typography>
             </Box>
 

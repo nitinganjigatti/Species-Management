@@ -11,7 +11,7 @@ const composeDietNavigation = () => {
   }
 
   const ingredientsList = {
-    title: 'Ingredient',
+    title: 'Item',
     path: '/diet/ingredient',
     icon: <img src='/icons/ingredient.png' alt='Grocery Icon' />,
     activeIcon: <img src='/icons/icon_ingredient_white.png' alt='Grocery Icon' />
@@ -69,7 +69,26 @@ const composeDietNavigation = () => {
     path: '/diet/settings/cut-sizes'
   }
 
-  settingsParent.children.push(preparationTypes, cutSize)
+  const dietCategory = {
+    title: 'Diet Category',
+    path: '/diet/settings/diet-category'
+  }
+
+  const kitchenParent = {
+    title: 'Kitchen',
+    path: '/diet/kitchen/diet-report',
+    icon: 'uil:box',
+    children: []
+  }
+
+  const dietReport = {
+    title: 'Diet Report',
+    path: '/diet/kitchen/diet-report'
+  }
+
+  kitchenParent.children.push(dietReport)
+
+  settingsParent.children.push(preparationTypes, cutSize, dietCategory)
 
   const dietNavigation = [
     pharmacyTitle,
@@ -80,6 +99,7 @@ const composeDietNavigation = () => {
     recipeList,
     comboList,
     mealGroups,
+    kitchenParent,
     settingsParent
   ]
 

@@ -84,7 +84,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'Ingredient Name',
+      headerName: 'ITEM Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.ingredient_name}
@@ -95,9 +95,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'Ingredient ID',
+      headerName: 'ITEM ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
           {params.row.ingredient_id}
         </Typography>
       )
@@ -136,6 +136,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
         </Typography>
       )
     }
+
     // {
     //   flex: 0.4,
     //   minWidth: 20,
@@ -162,18 +163,18 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   return (
     <>
       <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
-        <Box sx={{ mb: 1, px: 5, mt: 2, float: 'left' }}>
+        <Box sx={{ float: 'left' }}>
           <Typography variant='h6'>Preview</Typography>
         </Box>
 
         <Grid container spacing={5}>
           {console.log(formData, 'formData')}
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mt: 0 }}>
+                <CardContent sx={{ px: 0, py: 0 }}>
                   <Grid container spacing={6}>
-                    <Grid item xs={4}>
+                    <Grid item size={{ xs: 4 }}>
                       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
                         <div
                           item
@@ -260,7 +261,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                                Ingredients used
+                                Items used
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -294,7 +295,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       </Card>
                     </Grid>
 
-                    <Grid item xs={8}>
+                    <Grid item size={{ xs: 8 }}>
                       <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>Description</Typography>
                       <Typography variant='body2' sx={{ fontSize: '14px', pt: 2 }}>
                         {formData.desc ? formData.desc : 'No Description to show'}
@@ -305,9 +306,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
               </Card>
 
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mb: 5, mt: 2 }}>
+                <CardContent sx={{ px: 0, py: 0 }}>
                   <Card sx={{ boxShadow: 'none' }}>
-                    <CardHeader title='Ingredient by percentage' />
+                    <CardHeader title='Item by percentage' sx={{ px: 0, py: 4 }} />
 
                     <DataGrid
                       sx={{
@@ -353,7 +354,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
             </>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
               <Button
                 color='secondary'

@@ -1,16 +1,16 @@
-import { RACK } from '../../../constants/ApiConstant'
+import { BASE_URL_Pharmacy, RACK } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
-export async function getRackList() {
-  const response = await axiosGet({ url: RACK, pharmacy: true })
+export async function getRackList({ params }) {
+  const response = await axiosGet({ url: RACK, params, pharmacy: true })
 
-  return response.data.data
+  return response?.data
 }
 
 export async function getRackListById(id) {
   const response = await axiosGet({ url: `${RACK}/${id}/show`, pharmacy: true })
 
-  return response.data
+  return response?.data
 }
 
 export async function addRackList(payload) {
@@ -55,6 +55,12 @@ export async function updateRackList(id, payload) {
 
 export async function deleteRackItem(id) {
   const response = await axiosGet({ url: `${RACK}/${id}/delete`, pharmacy: true })
+
+  return response?.data
+}
+
+export async function getNewRackList() {
+  const response = await axiosGet({ url: `${BASE_URL_Pharmacy}rack`, pharmacy: true })
 
   return response?.data
 }

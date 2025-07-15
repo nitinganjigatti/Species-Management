@@ -74,6 +74,8 @@ const ShipmentPrintComponent = forwardRef(({ data }, ref) => {
                             -webkit-print-color-adjust: exact !important;
                             print-color-adjust: exact !important;
                             color-adjust: exact !important;
+                            position: relative;
+                            min-height: 100vh;
                         }
                         .printable-container {
                             background-color: #f5f5f5 !important;
@@ -117,27 +119,37 @@ const ShipmentPrintComponent = forwardRef(({ data }, ref) => {
                             font-size: 14px;
                             color: #666;
                             background-color: white;
+                            page-break-after: avoid;
+                            page-break-inside: avoid;
                         }
                         .footer-left {
                             display: flex;
                             align-items: center;
                             padding: 20px;
+                            page-break-after: avoid;
+                            page-break-inside: avoid;
                         }
                         .footer-icon {
                             margin-right: 8px;
                             font-size: 16px;
+                            page-break-after: avoid;
+                            page-break-inside: avoid;
                         }
                         .footer-right {
                             text-align: right;
                         }
                         main {
                             margin-bottom: 50px;
+                            page-break-after: avoid;
+                            page-break-inside: avoid;
                         }
                         .img {
                            width: 60px;
-                         height: 60px;
-                         object-fit: contain;
-                   }
+                           height: 60px;
+                           object-fit: contain;
+                           page-break-after: avoid;
+                           page-break-inside: avoid;
+                        }
                     }
                 </style>
             </head>

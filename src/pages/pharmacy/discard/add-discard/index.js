@@ -85,7 +85,8 @@ const initialNestedRowMedicine = {
   stock_type: '',
   reason: '',
   variant_id: '',
-  multiplier: ''
+  multiplier: '',
+  unit_price: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -117,6 +118,10 @@ const AddDiscardProducts = () => {
   const router = useRouter()
   const { id, action } = router.query
   const theme = useTheme()
+
+  const totalDispatchValue = editParams.items.reduce((total, item) => {
+    return total + item.quantity * parseFloat(item.unit_price)
+  }, 0)
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -300,7 +305,8 @@ const AddDiscardProducts = () => {
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-            manufacture: item?.manufacturer_name
+            manufacture: item?.manufacturer_name,
+            unit_price: item?.unit_price
           }))
         )
       }
@@ -323,7 +329,6 @@ const AddDiscardProducts = () => {
     const year = parts[0]
     const month = Number(parts[1]) - 1
     const day = parts[2]
-    console.log('new Date :-', new Date(year, month, day))
 
     return new Date(year, month, day)
   }
@@ -352,7 +357,9 @@ const AddDiscardProducts = () => {
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
                 manufacture: item?.manufacturer_name,
                 variant_id: item?.variant_id,
-                multiplier: item?.multiplier
+                multiplier: item?.multiplier,
+                stock_type: item?.stock_type,
+                unit_price: item?.unit_price
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -407,7 +414,6 @@ const AddDiscardProducts = () => {
     try {
       const result = await getDiscardItemsListById(id)
       if (result.success === true && result?.data?.item_details?.length > 0) {
-        console.log('result', result.data?.item_details)
 
         const lineItems = result?.data?.item_details?.map(el => {
           return {
@@ -430,10 +436,10 @@ const AddDiscardProducts = () => {
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer_name,
             comments: el?.comments,
-            reason: el?.reason
+            reason: el?.reason,
+            unit_price: el?.unit_price
           }
         })
-        console.log('lineItems', lineItems)
 
         setEditParams({
           ...editParams,
@@ -472,7 +478,8 @@ const AddDiscardProducts = () => {
       packageDetails: getItems[0]?.packageDetails,
       manufacture: getItems[0]?.manufacture,
       comments: getItems[0]?.comments,
-      reason: getItems[0]?.reason
+      reason: getItems[0]?.reason,
+      unit_price: getItems[0]?.unit_price
     })
     // }
   }
@@ -542,7 +549,6 @@ const AddDiscardProducts = () => {
     setSelectedComment('')
   }
 
-  console.log(selectedComment)
 
   // const headerAction = (
   //   <ExcelExportButton
@@ -556,13 +562,11 @@ const AddDiscardProducts = () => {
   //   />
   // )
 
-  console.log('Supplier >>', supplierList)
 
   const getAddDiscardData = async () => {
     try {
       setExcelLoader(true)
       const response = await getDiscardItemsListById(id)
-      console.log('Response inventory>', response)
 
       if (response?.success === true && response?.data?.item_details?.length > 0) {
         setExcelLoader(false)
@@ -596,6 +600,19 @@ const AddDiscardProducts = () => {
     }
   }
 
+  const getLabelColor = params => {
+    const reasonTextColor =
+      params === 'Product Expired'
+        ? theme.palette.customColors.Error
+        : params === 'Not Required'
+        ? theme.palette.customColors.Antz_Body_Medium
+        : params === 'About to Expired'
+        ? theme.palette.customColors.Tertiary
+        : theme.palette.customColors.neutralSecondary
+
+    return reasonTextColor
+  }
+
   return (
     <>
       {selectedPharmacy.type === 'central' &&
@@ -627,7 +644,7 @@ const AddDiscardProducts = () => {
               }
               action={
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />
+                  {id && action && <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />}
                   {/* <ExcelExportButton
                     action={() => getAddDiscardData()}
                     title='Download'
@@ -669,7 +686,7 @@ const AddDiscardProducts = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12}>
+                <Grid item size={{ xs: 12, sm: 12 }}>
                   <Typography
                     variant='subtitle1'
                     sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}
@@ -677,8 +694,8 @@ const AddDiscardProducts = () => {
                     Supplier Name:
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={12} sx={{ display: 'flex', gap: 2 }}>
-                  <Grid xs={12} sm={6} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', gap: 2 }}>
+                  <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
 
@@ -711,7 +728,7 @@ const AddDiscardProducts = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6} lg={6} sx={{ mb: 5 }}>
+                  <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -787,7 +804,7 @@ const AddDiscardProducts = () => {
                 >
                   Total Discard Value:{' '}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    ₹0
+                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
                 </Typography>
               </Stack>
@@ -828,7 +845,6 @@ const AddDiscardProducts = () => {
                 <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
                   {editParams?.items
                     ? editParams?.items?.map((el, index) => {
-                        console.log(el, ';;;')
 
                         return (
                           <TableRow
@@ -869,10 +885,9 @@ const AddDiscardProducts = () => {
                                 {el.batch_no}
                               </Typography>
                             </TableCell>
-
                             <TableCell>
                               <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
+                                {Utility?.formatDisplayDate(el?.expiry_date)}
                               </Typography>
                             </TableCell>
                             <TableCell>{el.quantity}</TableCell>
@@ -887,7 +902,6 @@ const AddDiscardProducts = () => {
 
                               <Typography variant='body2'>{el.comments ? el.comments : ''}</Typography>
                             </TableCell> */}
-
                             {/* <TableCell
                               sx={{ cursor: el.comments ? 'pointer' : 'default' }}
                               onClick={() => el.comments && handleOpenCommentDrawer(el)}
@@ -928,7 +942,6 @@ const AddDiscardProducts = () => {
                                 </Box>
                               </Typography>
                             </TableCell> */}
-
                             <TableCell
                               sx={{ cursor: el.comments ? 'pointer' : 'default' }}
                               onClick={() => el.comments && handleOpenCommentDrawer(el)}
@@ -936,29 +949,31 @@ const AddDiscardProducts = () => {
                               <Typography
                                 variant='body2'
                                 sx={{
-                                  color: () => {
-                                    if (el.reason === 'Expired') {
-                                      return 'customColors.moderateTableRed'
-                                    } else if (el.reason === 'About to expire') {
-                                      return 'customColors.Tertiary'
-                                    } else {
-                                      return 'customColors.moderateSecondary'
-                                    }
-                                  }
+                                  // color: () => {
+                                  //   if (el?.reason === 'Product Expired') {
+                                  //     return 'customColors.moderateTableRed'
+                                  //   } else if (el.reason === 'About to expire') {
+                                  //     return 'customColors.Tertiary'
+                                  //   } else {
+                                  //     return 'customColors.moderateSecondary'
+                                  //   }
+                                  // }
+                                  fontWeight: 500,
+                                  fontSize: '14px',
+                                  color: getLabelColor(el?.reason)
                                 }}
                               >
                                 {el.reason}
                               </Typography>
                               <Typography
                                 variant='body2'
-                                mt={0.5}
                                 sx={{
+                                  mt: 0.5,
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: 1,
                                   overflow: 'hidden'
-                                }}
-                              >
+                                }}>
                                 {el.comments && <Icon icon='pepicons-pop:file' width='0.7em' height='0.7em' />}
                                 <span
                                   style={{
@@ -976,7 +991,6 @@ const AddDiscardProducts = () => {
                                 </span>
                               </Typography>
                             </TableCell>
-
                             {id ? null : (
                               <TableCell>
                                 <IconButton
@@ -1005,7 +1019,7 @@ const AddDiscardProducts = () => {
                               </TableCell>
                             )}
                           </TableRow>
-                        )
+                        );
                       })
                     : null}
                 </TableBody>
@@ -1044,7 +1058,7 @@ const AddDiscardProducts = () => {
               </Grid>
             ) : null}
           </CardContent> */}
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ float: 'right', my: 4, mx: 6 }}>
               {id ? null : (
                 <>
@@ -1079,7 +1093,6 @@ const AddDiscardProducts = () => {
           <Error404></Error404>
         </>
       )}
-
       <Drawer anchor='right' open={commentDrawerOpen} onClose={handleCloseCommentDrawer}>
         <Box
           sx={{
@@ -1160,7 +1173,7 @@ const AddDiscardProducts = () => {
         </Box>
       </Drawer>
     </>
-  )
+  );
 }
 
 export default AddDiscardProducts

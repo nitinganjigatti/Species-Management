@@ -128,6 +128,7 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
+
   // console.log('permissions', permissions)
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
@@ -140,6 +141,7 @@ const RequestDetails = () => {
 
   const [lab, setLab] = React.useState([])
   const [parentLab, setParentLab] = useState(null)
+
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
@@ -304,7 +306,7 @@ const RequestDetails = () => {
       setMedicalRecordNotes(requestData[0]?.medical_attachements?.notes)
 
       // ✅ API call ke baad `allCompleted` ko update karein
-      setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
+      setAllCompleted(testReports.some(row => row.status.startsWith('completed')))
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -431,6 +433,7 @@ const RequestDetails = () => {
     permissions?.allow_full_access ||
     (permissions?.perform_tests && permissions?.allow_upload_reports) ||
     (permissions?.perform_tests && !permissions?.allow_upload_reports)
+
   // &&
   // params.row.status.split(' ')[0] !== 'completed'
 
@@ -1005,6 +1008,7 @@ const RequestDetails = () => {
 
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
+
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
 
@@ -1088,7 +1092,12 @@ const RequestDetails = () => {
             >
               Requests list
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab request details
             </Typography>
           </Breadcrumbs>
@@ -1514,7 +1523,6 @@ const RequestDetails = () => {
           )}
         </>
       )}
-
       <Card sx={{ mt: 5 }}>
         <Box sx={{ py: 5, px: 7 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
@@ -1527,7 +1535,6 @@ const RequestDetails = () => {
           <MedicalRecordNotes notes={medicalRecordNotes} />
         </Box>
       </Card>
-
       <>
         {/* Open PopUp On Clicking Request Id */}
         <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
@@ -1549,7 +1556,11 @@ const RequestDetails = () => {
           </Box>
           {requestById?.map((item, index) => (
             <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
-              <Box ml={3}>
+              <Box
+                sx={{
+                  ml: 3
+                }}
+              >
                 <Typography variant='h6'>
                   Request -{' '}
                   <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
@@ -1560,7 +1571,13 @@ const RequestDetails = () => {
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
-                <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    gap: 4,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
                   <Typography>
                     No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
                   </Typography>
@@ -1573,7 +1590,11 @@ const RequestDetails = () => {
                 </Typography>
               </Box>
 
-              <Box mt={2}>
+              <Box
+                sx={{
+                  mt: 2
+                }}
+              >
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>
@@ -1642,7 +1663,6 @@ const RequestDetails = () => {
           ))}
         </Dialog>
       </>
-
       <>
         <Dialog
           open={openTransfer}
@@ -1808,7 +1828,7 @@ const RequestDetails = () => {
             <Box sx={{ mt: 6 }}>
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid container spacing={4}>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <Controller
                         name='lab_name'
@@ -1822,8 +1842,10 @@ const RequestDetails = () => {
                             name='lab_name'
                             error={Boolean(errors.lab_name)}
                             onChange={onChange}
-                            InputProps={{ readOnly: true }}
                             placeholder=''
+                            slotProps={{
+                              input: { readOnly: true }
+                            }}
                           />
                         )}
                       />
@@ -1837,7 +1859,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
                         Transfer To
@@ -1878,7 +1900,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={12} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 12 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth mt={2}>
                       <Controller
                         name='transfer_reason'

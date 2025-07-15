@@ -65,7 +65,7 @@ const EggTableHeader = ({
 
   const handleExport = async () => {
     try {
-      console.log('export')
+      // console.log('export')
       setExcelLoading(true)
       const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
 
@@ -286,12 +286,12 @@ const EggTableHeader = ({
           }
           Utility.exportToCSV(tableData, fileName)
         } else {
-          console.log('excel download fail')
+          console.error('excel download fail')
         }
       })
       setExcelLoading(false)
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
       setExcelLoading(true)
     }
   }
@@ -334,9 +334,6 @@ const EggTableHeader = ({
               variant='outlined'
               placeholder='Search'
               value={searchQuery}
-              InputProps={{
-                disableUnderline: true
-              }}
               onChange={e => {
                 setSearchQuery(e.target.value)
                 handleSearch(e.target.value)
@@ -350,6 +347,11 @@ const EggTableHeader = ({
                   '& fieldset': {
                     border: 'none'
                   }
+                }
+              }}
+              slotProps={{
+                input: {
+                  disableunderline: true
                 }
               }}
             />
@@ -369,7 +371,7 @@ const EggTableHeader = ({
                   cursor: 'pointer'
                 }}
               >
-                <CircularProgress color='success' size={30} />
+                <Icon icon='ic:round-download' fontSize={20} />
               </Box>
             ) : (
               <Box

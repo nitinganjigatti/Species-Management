@@ -42,10 +42,11 @@ export default function DetailsTable({ ...props }) {
 
   const renderTableCellContent = (el, props) => (
     <>
-      <Typography variant='body1' sx={{ fontWeight: 600 }}>
+      <Box sx={{ fontWeight: 600 }}>
         <Tooltip title={el.stock_name} placement='top'>
           <Typography
             variant='body1'
+            component='span'
             sx={{
               fontWeight: 600,
               color: 'customColors.OnSecondaryContainer',
@@ -67,7 +68,7 @@ export default function DetailsTable({ ...props }) {
             {el.stock_name}
           </Typography>
         </Tooltip>
-      </Typography>
+      </Box>
 
       <Tooltip
         title={`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
@@ -75,6 +76,7 @@ export default function DetailsTable({ ...props }) {
       >
         <Typography
           variant='body1'
+          component='span'
           sx={{
             color: 'text.primary',
             fontSize: '14px !important',
@@ -142,12 +144,14 @@ export default function DetailsTable({ ...props }) {
                 sx={{
                   color: 'customColors.customTextColorGray2',
                   fontSize: '12px',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  textAlign: 'left',
+                  maxWidth: 5
                 }}
               >
                 SL.NO
               </TableCell>
-              <TableCell>Priority</TableCell>
+              <TableCell sx={{ textAlign: 'center', padding: 2, width: 40, minWidth: 40 }}>Priority</TableCell>
               <TableCell>PRODUCT NAME</TableCell>
 
               <TableCell>QUANTITY</TableCell>
@@ -169,7 +173,8 @@ export default function DetailsTable({ ...props }) {
                       <TableCell
                         sx={{
                           backgroundColor: props?.getCellBgColor(el),
-                          verticalAlign: 'top'
+                          verticalAlign: 'top',
+                          textAlign: 'left'
                         }}
                       >
                         <Typography
@@ -192,7 +197,8 @@ export default function DetailsTable({ ...props }) {
                       <TableCell
                         sx={{
                           backgroundColor: props?.getCellBgColor(el),
-                          verticalAlign: 'top'
+                          verticalAlign: 'top',
+                          alignContent: 'center'
                         }}
                       >
                         {/* {console.log('items', paginatedItems)} */}
@@ -240,7 +246,7 @@ export default function DetailsTable({ ...props }) {
                           ? el.alt_parent.map((el, index) => {
                               return (
                                 <Grid
-                                  key={index}
+                                  key={`alt-parent-${el.id || index}`}
                                   sx={{
                                     minHeight: 104,
                                     maxHeight: 104,
@@ -314,9 +320,7 @@ export default function DetailsTable({ ...props }) {
                         {el?.alt_parent?.length > 0 &&
                           el.alt_parent.map((altEl, index) => (
                             <Grid
-                              key={index}
-                              container
-                              direction='column'
+                              key={`alt-content-${altEl.id || index}`}
                               sx={{
                                 minHeight: 104,
                                 maxHeight: 104,
@@ -383,9 +387,7 @@ export default function DetailsTable({ ...props }) {
                           ? el.alt_parent.map((el, index) => {
                               return (
                                 <Box
-                                  key={index}
-                                  container
-                                  direction='column'
+                                  key={`alt-quantity-${el.id || index}`}
                                   sx={{
                                     minHeight: 104,
                                     maxHeight: 104,
@@ -703,7 +705,7 @@ export default function DetailsTable({ ...props }) {
                             ? el.alt_parent?.map((el, index) => {
                                 return (
                                   <Grid
-                                    key={index}
+                                    key={`alt-action-${el.id || index}`}
                                     container
                                     direction='column'
                                     sx={{
@@ -732,6 +734,7 @@ export default function DetailsTable({ ...props }) {
 
                                     {el?.alternate_comments !== '' && (
                                       <TextEllipsisWithModal
+                                        key={`alt-comments-${el.id || index}`}
                                         text={el?.alternate_comments}
                                         icon={'material-symbols:sticky-note-2-outline-sharp'}
                                         style={{ opacity: 0.5 }}
@@ -773,7 +776,7 @@ export default function DetailsTable({ ...props }) {
                                 .map((nesEl, index) => {
                                   return (
                                     <Grid
-                                      key={index}
+                                      key={`alt-request-${nesEl.id || index}`}
                                       container
                                       direction='column'
                                       sx={{
@@ -797,6 +800,7 @@ export default function DetailsTable({ ...props }) {
                                             nesEl?.request_status !== 'Not Available' &&
                                             nesEl?.request_status !== 'Rejected' && (
                                               <MenuWithDots
+                                                key={`alt-menu-${nesEl.id || index}`}
                                                 options={props?.generateOptions(nesEl, nesEl?.id)}
                                                 disabled={props?.selectedPharmacy?.permission?.key === 'VIEW'}
                                               />
@@ -807,74 +811,75 @@ export default function DetailsTable({ ...props }) {
                                   )
                                 })
                             : null}
-                          {el?.alt_parent?.length > 0
-                            ? el.alt_parent?.map(nestElt => {
-                                return (
-                                  <>
-                                    {nestElt?.request_status === 'Not Available' && (
-                                      <Grid
+                          {el?.alt_parent?.length > 0 &&
+                            el?.alt_parent?.map((nestElt, index) => {
+                              return (
+                                <React.Fragment key={`alt-status-${nestElt.id || index}`}>
+                                  {nestElt?.request_status === 'Not Available' && (
+                                    <Grid
+                                      sx={{
+                                        minHeight: 104,
+                                        maxHeight: 104,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center'
+                                      }}
+                                    >
+                                      <Typography
+                                        variant='body1'
                                         sx={{
-                                          minHeight: 104,
-                                          maxHeight: 104,
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          justifyContent: 'center'
+                                          color: 'error.main',
+                                          textAlign: 'left',
+                                          fontSize: '14px !important',
+                                          fontWeight: 400
                                         }}
                                       >
-                                        <Typography
-                                          variant='body1'
-                                          sx={{
-                                            color: 'error.main',
-                                            textAlign: 'left',
-                                            fontSize: '14px !important',
-                                            fontWeight: 400
-                                          }}
-                                        >
-                                          Stock Stopped
-                                        </Typography>
-                                        {nestElt?.alternate_comments && (
-                                          <TextEllipsisWithModal
-                                            text={nestElt?.alternate_comments}
-                                            icon={'material-symbols:sticky-note-2-outline-sharp'}
-                                            style={{ opacity: 0.5 }}
-                                          />
-                                        )}
-                                      </Grid>
-                                    )}
-                                    {nestElt?.request_status === 'Rejected' && (
-                                      <Grid
+                                        Stock Stopped
+                                      </Typography>
+                                      {nestElt?.alternate_comments && (
+                                        <TextEllipsisWithModal
+                                          key={`alt-stock-comments-${nestElt.id || index}`}
+                                          text={nestElt?.alternate_comments}
+                                          icon={'material-symbols:sticky-note-2-outline-sharp'}
+                                          style={{ opacity: 0.5 }}
+                                        />
+                                      )}
+                                    </Grid>
+                                  )}
+                                  {nestElt?.request_status === 'Rejected' && (
+                                    <Grid
+                                      sx={{
+                                        minHeight: 104,
+                                        maxHeight: 104,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center'
+                                      }}
+                                    >
+                                      <Typography
+                                        variant='body1'
                                         sx={{
-                                          minHeight: 104,
-                                          maxHeight: 104,
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          justifyContent: 'center'
+                                          color: 'customColors.Tertiary',
+                                          textAlign: 'left',
+                                          fontSize: '14px !important',
+                                          fontWeight: 400
                                         }}
                                       >
-                                        <Typography
-                                          variant='body1'
-                                          sx={{
-                                            color: 'customColors.Tertiary',
-                                            textAlign: 'left',
-                                            fontSize: '14px !important',
-                                            fontWeight: 400
-                                          }}
-                                        >
-                                          Request Declined
-                                        </Typography>
-                                        {nestElt?.alternate_comments && (
-                                          <TextEllipsisWithModal
-                                            text={nestElt?.alternate_comments}
-                                            icon={'material-symbols:sticky-note-2-outline-sharp'}
-                                            style={{ opacity: 0.5 }}
-                                          />
-                                        )}
-                                      </Grid>
-                                    )}
-                                  </>
-                                )
-                              })
-                            : null}
+                                        Request Declined
+                                      </Typography>
+                                      {nestElt?.alternate_comments && (
+                                        <TextEllipsisWithModal
+                                          key={`alt-reject-comments-${nestElt.id || index}`}
+                                          text={nestElt?.alternate_comments}
+                                          icon={'material-symbols:sticky-note-2-outline-sharp'}
+                                          style={{ opacity: 0.5 }}
+                                        />
+                                      )}
+                                    </Grid>
+                                  )}
+                                </React.Fragment>
+                              )
+                            })}
                           {el?.request_status === 'Not Available' && (
                             <Grid
                               sx={{

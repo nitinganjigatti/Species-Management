@@ -203,7 +203,7 @@ const ListOfStores = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.site_name}
+          {params.row.site_name ? params.row.site_name : '-'}
         </Typography>
       )
     },
@@ -235,18 +235,19 @@ const ListOfStores = () => {
       renderCell: params => (
         <>
           {/* {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-          {pharmacyRole && params?.row?.type === 'local' && (
-            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+          {/* {pharmacyRole && params?.row?.type === 'local' && ( */}
+          <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+            {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-              <IconButton
-                size='small'
-                sx={{ mr: 0.5 }}
-                onClick={() => handleEdit(params?.row.id, params?.row.name, params?.row.status)}
-              >
-                <Icon icon='mdi:pencil-outline' />
-              </IconButton>
+            <IconButton
+              size='small'
+              sx={{ mr: 0.5 }}
+              onClick={() => handleEdit(params?.row.id, params?.row.name, params?.row.status)}
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+            {pharmacyRole && params?.row?.type === 'local' && (
               <IconButton
                 size='small'
                 sx={{ mr: 0.5 }}
@@ -259,8 +260,9 @@ const ListOfStores = () => {
               >
                 <Icon icon='mdi:delete-outline' />
               </IconButton>
-            </Box>
-          )}
+            )}
+          </Box>
+          {/* )} */}
         </>
       )
     }
@@ -404,6 +406,8 @@ const ListOfStores = () => {
 
         if (typeof pharmacyCheck === 'boolean') {
           payload.type = pharmacyCheck ? 'local' : 'central'
+          console.log('Pharmacy')
+
           response = await addStore(payload)
         } else {
           throw "Sorry.. Can't add pharmacy right now"
@@ -458,14 +462,13 @@ const ListOfStores = () => {
         setSubmitLoader(true)
         const response = await deleteStoreById(editParams?.id)
 
-        // console.log('response', response)
         handleResponse(response)
 
         // closeStoreValidate()
         // setTempPayload(null)
       } catch (error) {
         console.error(error)
-        handleResponse(response)
+        // handleResponse(response)
       }
     }
   }

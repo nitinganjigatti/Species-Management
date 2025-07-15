@@ -29,7 +29,7 @@ const steps = [
     subtitle: 'Enter details'
   },
   {
-    title: 'Add Ingredients',
+    title: 'Add Items',
     subtitle: 'Enter details'
   },
   {
@@ -134,6 +134,7 @@ const AddRecipe = () => {
       const params = {
         //status,
         q,
+
         //active: 1,
         page,
         limit,
@@ -151,6 +152,7 @@ const AddRecipe = () => {
       console.log(e)
     }
   }
+
   // const IngredientTypeListSearch = debounce(value => {
   //   console.log(value, 'value')
   //   if (value) {
@@ -308,6 +310,7 @@ const AddRecipe = () => {
   const handleStepBillingSubmit = async () => {
     if (!id) {
       setLoader(true)
+
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -337,9 +340,11 @@ const AddRecipe = () => {
         )
       }
       console.log(numericFormData, 'numericFormData')
+
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
+
         //by_percentage: numericFormData.by_percentage,
         by_percentage: [],
         by_quantity: numericFormData.by_quantity,
@@ -363,6 +368,7 @@ const AddRecipe = () => {
       }
     } else if (id && urlType === 'copy') {
       setLoader(true)
+
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -394,6 +400,7 @@ const AddRecipe = () => {
 
       const updatedFormData = {
         ...numericFormData,
+
         //by_percentage: numericFormData.by_percentage,
         by_percentage: [],
         by_quantity: numericFormData.by_quantity,
@@ -427,6 +434,7 @@ const AddRecipe = () => {
       }
     } else {
       setLoader(true)
+
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -458,6 +466,7 @@ const AddRecipe = () => {
 
       const updatedFormData = {
         ...numericFormData,
+
         //by_percentage: numericFormData.by_percentage,
         by_percentage: [],
         by_quantity: numericFormData.by_quantity,
@@ -546,9 +555,14 @@ const AddRecipe = () => {
           Recipe
         </Link>
 
-        <Typography color='text.primary'>{id ? 'Edit recipe' : 'Add new recipe'}</Typography>
+        <Typography
+          sx={{
+            color: 'text.primary'
+          }}
+        >
+          {id ? 'Edit recipe' : 'Add new recipe'}
+        </Typography>
       </Breadcrumbs>
-
       <Card>
         <CardContent>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -557,8 +571,8 @@ const AddRecipe = () => {
                 {id ? 'Edit Recipe' : 'Add New Recipe'}
               </Typography>
               <Typography sx={{ mb: 1, fontSize: 14 }}>
-                Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient
-                proportions for this <br /> ingredient prior to processing.
+                Please provide the nutritional values, unit of measurement,water percentage, and dry item proportions
+                for this <br /> item prior to processing.
               </Typography>
             </div>
           </div>
@@ -574,7 +588,11 @@ const AddRecipe = () => {
             {steps.map((step, index) => {
               return (
                 <Step key={index}>
-                  <StepLabel StepIconComponent={StepperCustomDot}>
+                  <StepLabel
+                    slots={{
+                      icon: StepperCustomDot
+                    }}
+                  >
                     <div className='step-label'>
                       {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
                       <div>

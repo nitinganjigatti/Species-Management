@@ -28,7 +28,9 @@ import {
   DialogContent,
   IconButton,
   Typography,
-  Card
+  Card,
+  CardHeader,
+  Chip
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -56,6 +58,7 @@ import UploadReports from 'src/components/lab/request/UploadReports'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
+import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
 
 // APIs
 import {
@@ -70,25 +73,29 @@ import {
 
 const RequestDetails = () => {
   const theme = useTheme()
-
   const router = useRouter()
   const authData = useContext(AuthContext)
+  const localLabData = authData?.userData?.modules?.lab_data?.lab
+
+  const { id, lab_id, page, q, pageSize } = Router.query
+  const searchParams = useSearchParams()
+  const Selectedlab_id = searchParams.get('lab_id')
+
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
-  const [image, setImage] = useState()
-  const [document, setDocument] = useState()
-  const [medicalImage, setMedicalImage] = useState()
-  const [medicalDocument, setMedicalDocument] = useState()
-  const [testImage, setTestImage] = useState()
+  const [deleteAttachmentLoader, setDeleteAttachmentLoader] = useState(false)
 
-  const [testDoc, setTestDoc] = useState()
+  const [medicalImage, setMedicalImage] = useState([])
+  const [medicalDocument, setMedicalDocument] = useState([])
+
+  const [image, setImage] = useState([])
+  const [document, setDocument] = useState([])
+
+  const [testImage, setTestImage] = useState([])
+  const [testDoc, setTestDoc] = useState([])
+
   const [transferStatus, setTransferStatus] = useState('')
-
-  const { id, lab_id, page, q, pageSize } = Router.query
-
-  const searchParams = useSearchParams()
-  const Selectedlab_id = searchParams.get('lab_id')
 
   const [medicineId, setMedicineId] = useState()
 
@@ -106,8 +113,6 @@ const RequestDetails = () => {
 
   const [status, setStatus] = React.useState('awaiting_sample')
 
-  const localLabData = authData?.userData?.modules?.lab_data?.lab
-
   const PrvLabId = request[0]?.lab_id
 
   const [lab, setLab] = React.useState([])
@@ -117,6 +122,7 @@ const RequestDetails = () => {
 
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
+  const [rowId, setRowId] = useState(null)
 
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
@@ -143,16 +149,21 @@ const RequestDetails = () => {
   const [allCompleted, setAllCompleted] = useState(false)
   const [openAnimalSheet, setOpenAnimalSheet] = useState(false)
   const [openCommentSheet, setOpenCommentSheet] = useState(false)
+  const [openAttachmentSheet, setOpenAttachmentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
+
+  // const [attachmentData, setAttachmentCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
   const [statusList, setStatusList] = useState([])
   const [filteredStatusData, setFilteredStatusData] = useState([])
   const [shouldShowBulkStatus, setShouldShowBulkStatus] = useState(false)
+  const [selectedSample, setSelectedSample] = useState(false)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
 
+    // console.log('labObject', labObject)
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
@@ -166,9 +177,9 @@ const RequestDetails = () => {
         value === 'completed_negative' ||
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
+        // value === 'completed_insufficient_samples'||
         value === 'completed_inconclusive' ||
-        value === 'completed' ||
-        value === 'completed_insufficient_samples') &&
+        value === 'completed') &&
       !(image || document) // Ensuring at least one attachment is present
     ) {
       Toaster({ type: 'error', message: 'Attach the report before completing the test' })
@@ -183,13 +194,31 @@ const RequestDetails = () => {
     postMultipleStatus(testIds, value)
   }
 
+  const getAllRequestDetails = useCallback(async id => {
+    try {
+      const response = await GetRequestPopUp(id)
+      if (response.success) {
+        return response?.data?.request[0]
+      } else {
+        return null
+      }
+    } catch (error) {
+      console.log('Error:', error)
+    }
+  }, [])
+
   const handleClickOpen = async item => {
     const id = item?.request_id
+    setSelectedSample([])
+    setRequestById(null)
     setOpen(true)
     try {
-      const response = await GetRequestPopUp(id).then(res => {
-        setRequestById(res?.data?.request[0])
-      })
+      let data = await getAllRequestDetails(id)
+      debugger
+      data[0]['total_no_test'] = data[0]?.test_count
+      data[0]['created_by'] = data[0]?.user_first_name
+
+      setRequestById(data)
       setOpen(true)
     } catch (error) {
       console.log('Error:', error)
@@ -201,23 +230,61 @@ const RequestDetails = () => {
   }
 
   useEffect(() => {
+    // const filteredStatusBlockData =
+    //   permissions?.allow_full_access || (permissions?.allow_upload_reports && permissions?.perform_tests)
+    //     ? statusList
+    //     : permissions?.perform_tests
+    //     ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status))
+    //     : permissions?.transfer_tests && permissions?.perform_tests
+    //     ? [
+    //         ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
+    //         ...statusList?.filter(item =>
+    //           ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
+    //         )
+    //       ]
+    //     : null
     const filteredStatusBlockData =
       permissions?.allow_full_access || (permissions?.allow_upload_reports && permissions?.perform_tests)
         ? statusList
+        : permissions?.allow_upload_reports && permissions?.perform_tests
+        ? statusList
         : permissions?.perform_tests
-        ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status))
-        : permissions?.transfer_tests && permissions?.perform_tests
-        ? [
-            ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
-            ...statusList?.filter(item =>
-              ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
-            )
-          ]
-        : null
+        ? // ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)) // commneted cause of getting completed on status value so we are taking keys instead of status
+          statusList?.filter(item =>
+            [
+              'awaiting_sample',
+              'sample_received',
+              'sample_rejected',
+              'sample_clotted',
+              'sample_haemolysed',
+              'completed_insufficient_samples',
+              'inprogress'
+            ].includes(item.key)
+          )
+        : // : permissions?.transfer_tests && permissions?.perform_tests
+          // ? [
+          //     ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
+          //     ...statusList?.filter(item =>
+          //       ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
+          //     )
+          //   ]
+          // https://antzsystems.atlassian.net/browse/WD-1784?linkSource=email
+          // need to discuss commented ones in ticket they are asking for it
+          null
     if (filteredStatusBlockData) {
       setFilteredStatusData(filteredStatusBlockData)
     }
   }, [statusList])
+
+  const matchSample = useCallback((sampleName, labName) => {
+    if (requestById?.length > 0) {
+      const result = requestById[0]?.test_reports.some(
+        (item, index) => sampleName === item?.sample_name && labName != item?.lab_name
+      )
+
+      return result
+    }
+  })
 
   const fetchRequestDetails = useCallback(async (sort, q) => {
     try {
@@ -228,6 +295,14 @@ const RequestDetails = () => {
         q,
         sort
       }
+
+      let allRequestedItems = await getAllRequestDetails(id)
+      if (allRequestedItems) {
+        allRequestedItems[0]['total_no_test'] = allRequestedItems?.test_count
+        allRequestedItems[0]['created_by'] = allRequestedItems?.user_first_name
+      }
+
+      setRequestById(allRequestedItems)
 
       const response = await GetRequestDetails(id, { params })
       const requestData = response?.data?.result || []
@@ -248,8 +323,18 @@ const RequestDetails = () => {
       setMedicalImage(requestData[0]?.medical_attachements?.images)
       setMedicalRecordNotes(requestData[0]?.medical_attachements?.notes)
 
+      const allowedStatuses = [
+        'completed',
+        'completed_positive',
+        'completed_negative',
+        'completed_detected',
+        'completed_not_detected',
+        'completed_inconclusive',
+        'completed'
+      ]
+
       // ✅ API call ke baad `allCompleted` ko update karein
-      setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
+      setAllCompleted(testReports.some(row => row.status && allowedStatuses.includes(row.status)))
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -269,16 +354,32 @@ const RequestDetails = () => {
     const params = {
       test_ids: labId
     }
+    const requestData = request
     await getLabListByMultipleIds(id, params).then(res => {
-      // console.log('res', res?.data)
-      setLab(res?.data)
+      const labList = res?.data?.filter(labListItem => {
+        return labListItem.lab_id != requestData[0]?.lab_id
+      })
+      setLab(labList)
     })
   }
 
   const handleOpenTransfer = async params => {
     // console.log('params', params?.row)
-    const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
-    if (hasCompleted && !params) {
+    // const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
+
+    const hasCompleted = selectedRowData?.filter(item =>
+      [
+        'completed',
+        'completed_positive',
+        'completed_negative',
+        'completed_detected',
+        'completed_not_detected',
+        'completed_inconclusive',
+        'inprogress'
+      ].includes(item?.key)
+    )
+
+    if (hasCompleted?.length > 0 && !params) {
       setHasCompletedStatus(true)
     } else {
       setHasCompletedStatus(false)
@@ -291,6 +392,7 @@ const RequestDetails = () => {
       setTestSampleName(params?.row?.sample_name)
       setTestId([params?.row?.id])
       await getAccessLabs(LabRequestId, labTestId)
+
       // console.log('first', params?.row?.id)
     } else {
       setFromParam(false)
@@ -301,6 +403,7 @@ const RequestDetails = () => {
       }
       await getAccessLabs(LabRequestId, selectedRow)
     }
+
     // if (selectedRow.length >= 1) {
     // } else {
     // }
@@ -345,14 +448,14 @@ const RequestDetails = () => {
   }
 
   const handleOpenShowFile = (e, params) => {
-    // setShowTestFile(true)
-
-    setTestImage(params?.row?.attachments?.images)
-    setTestDoc(params?.row?.attachments?.docs)
+    e.stopPropagation()
+    setRowId(params?.id)
+    setOpenAttachmentSheet(true)
   }
 
   const shouldShowDropdown =
     permissions?.allow_full_access ||
+    permissions?.perform_tests ||
     (permissions?.perform_tests && permissions?.allow_upload_reports) ||
     (permissions?.perform_tests && !permissions?.allow_upload_reports)
 
@@ -362,13 +465,26 @@ const RequestDetails = () => {
     setCommentData(params)
   }
 
+  // need to discuss about efefct on dropdown of status value
   const handleRowPermission = ({ params }) => {
     const st = statusList.filter(status => status.key === params.row.status)
-    if (
-      permissions?.perform_tests &&
-      !permissions?.allow_upload_reports &&
-      !permissions?.allow_full_access &&
-      st[0].status != 'completed'
+    const st1 = filteredStatusData.filter(status => status.key === params.row.status)
+
+    // console.log('statusList', statusList)
+    // console.log('st', st)
+    if (st1?.length === 0) {
+      return false
+    } else if (
+      (permissions?.perform_tests &&
+        !permissions?.allow_upload_reports &&
+        !permissions?.allow_full_access &&
+        st[0].key != 'awaiting_sample') ||
+      st[0].key != 'sample_received' ||
+      st[0].key != 'sample_rejected' ||
+      st[0].key != 'sample_clotted' ||
+      st[0].key != 'sample_haemolysed' ||
+      st[0].key != 'completed_insufficient_samples' ||
+      st[0].key != 'inprogress'
     ) {
       return true
     } else if ((permissions?.perform_tests && permissions?.allow_upload_reports) || permissions?.allow_full_access) {
@@ -377,6 +493,7 @@ const RequestDetails = () => {
       return false
     }
   }
+
   const columns = [
     // {
     //   flex: 0.05,
@@ -396,21 +513,47 @@ const RequestDetails = () => {
       sortable: false,
       headerName: 'Test Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-          {params?.row?.test_name}
-        </Typography>
+        <Box>
+          <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+            {params?.row?.test_name}
+            {params.row.is_special_sample === '1' && (
+              <span>
+                <Chip
+                  sx={{ ml: '6px', fontSize: '12px' }}
+                  size='small'
+                  variant='outlined'
+                  label='Other'
+                  color='success'
+                />
+              </span>
+            )}
+          </Typography>
+        </Box>
       )
     },
-
     {
-      // flex: 0.4,
       width: 300,
       field: 'sample_name',
       sortable: false,
       headerName: 'Sample',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-          <span alt={params?.row.sample_name}>{params.row.sample_name}</span>
+          {matchSample(params?.row.sample_name, params?.row?.lab_name) && (
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: 'red',
+                display: 'inline-block',
+                verticalAlign: 'middle',
+                marginRight: '8px'
+              }}
+            ></span>
+          )}
+          <span style={{ display: 'inline-block', verticalAlign: 'middle' }} alt={params?.row.sample_name}>
+            {params.row.sample_name}
+          </span>
         </Typography>
       )
     },
@@ -421,57 +564,99 @@ const RequestDetails = () => {
       sortable: false,
       headerName: 'STATUS',
       align: 'center',
-      renderCell: params => (
-        <>
-          <Box sx={{ minWidth: 260 }}>
-            {shouldShowDropdown && handleRowPermission({ params }) ? (
-              <FormControl fullWidth variant='outlined'>
-                <Select
-                  size='small'
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  defaultValue={status === 'transferred' ? 'awaiting_sample' : params.row.status}
-                  value={params.row.status}
-                  onChange={event => handleChangeStatus(event, params?.row)}
-                  sx={{
-                    width: 237,
-                    fontSize: '14px',
-                    backgroundColor:
-                      params.row.status === 'pending' ||
-                      params.row.status === 'transferred' ||
-                      params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_clotted' ||
-                      params.row.status === 'completed_insufficient_samples' ||
-                      params.row.status === 'sample_haemolysed' ||
-                      params.row.status === 'sample_rejected'
-                        ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
-                        : params.row.status === 'completed'
-                        ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
-                        : params.row.status === 'inprogress'
-                        ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
-                        : params.row.status === 'sample_received'
-                        ? 'rgba(0, 128, 0, 0.1)'
-                        : 'rgba(0, 128, 0, 0.1)',
+      renderCell: params => {
+        const isSelected = selectedRowData?.some(item => item?.id === params?.id)
+        return (
+          <>
+            <Box sx={{ minWidth: 260 }}>
+              {shouldShowDropdown && handleRowPermission({ params }) ? (
+                <FormControl fullWidth variant='outlined'>
+                  <Select
+                    disabled={isSelected}
+                    size='small'
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    defaultValue={status === 'transferred' ? 'awaiting_sample' : params.row.status}
+                    value={params.row.status}
+                    onChange={event => handleChangeStatus(event, params?.row)}
+                    sx={{
+                      width: 237,
+                      fontSize: '14px',
+                      backgroundColor:
+                        params.row.status === 'pending' ||
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
+                        params.row.status === 'sample_rejected'
+                          ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                          : params.row.status === 'completed'
+                          ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                          : params.row.status === 'inprogress'
+                          ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                          : params.row.status === 'sample_received'
+                          ? 'rgba(0, 128, 0, 0.1)'
+                          : 'rgba(0, 128, 0, 0.1)',
 
-                    color:
-                      params.row.status === 'pending' ||
-                      params.row.status === 'transferred' ||
-                      params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_clotted' ||
-                      params.row.status === 'completed_insufficient_samples' ||
-                      params.row.status === 'sample_haemolysed' ||
-                      params.row.status === 'sample_rejected'
-                        ? theme.palette.customColors.customDropdownColor
-                        : params.row.status === 'completed'
-                        ? theme.palette.primary.main
-                        : params.row.status === 'inprogress'
-                        ? theme.palette.customColors.moderateSecondary
-                        : params.row.status === 'sample_received'
-                        ? theme.palette.primary.main
-                        : theme.palette.primary.main,
+                      color:
+                        params.row.status === 'pending' ||
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
+                        params.row.status === 'sample_rejected'
+                          ? theme.palette.customColors.customDropdownColor
+                          : params.row.status === 'completed'
+                          ? theme.palette.primary.main
+                          : params.row.status === 'inprogress'
+                          ? theme.palette.customColors.moderateSecondary
+                          : params.row.status === 'sample_received'
+                          ? theme.palette.primary.main
+                          : theme.palette.primary.main,
 
-                    borderRadius: '8px',
-                    '& .MuiSelect-icon': {
+                      borderRadius: '8px',
+                      '& .MuiSelect-icon': {
+                        color:
+                          params.row.status === 'pending' ||
+                          params.row.status === 'transferred' ||
+                          params.row.status === 'awaiting_sample' ||
+                          params.row.status === 'sample_clotted' ||
+                          params.row.status === 'completed_insufficient_samples' ||
+                          params.row.status === 'sample_haemolysed' ||
+                          params.row.status === 'sample_rejected'
+                            ? theme.palette.customColors.customDropdownColor
+                            : params.row.status === 'completed'
+                            ? theme.palette.primary.main
+                            : params.row.status === 'inprogress'
+                            ? theme.palette.customColors.moderateSecondary
+                            : params.row.status === 'sample_received'
+                            ? theme.palette.primary.main
+                            : theme.palette.primary.main
+                      },
+
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        border: '0'
+                      },
+
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: '0'
+                      }
+                    }}
+                  >
+                    {filteredStatusData?.map((item, index) => (
+                      <MenuItem key={index} value={item?.key}>
+                        {item?.value}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ) : (
+                <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+                  <span
+                    alt={params.row.status}
+                    style={{
                       color:
                         params.row.status === 'pending' ||
                         params.row.status === 'transferred' ||
@@ -488,69 +673,21 @@ const RequestDetails = () => {
                           : params.row.status === 'sample_received'
                           ? theme.palette.primary.main
                           : theme.palette.primary.main
-                    },
-
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      border: '0'
-
-                      // borderColor:
-                      //   params.row.status === 'pending' ||
-                      //   params.row.status === 'transferred' ||
-                      //   params.row.status === 'awaiting_sample' ||
-                      //   params.row.status === 'sample_rejected' ||
-                      //   params.row.status === 'sample_received'
-                      //     ? theme.palette.customColors.customDropdownColor // Custom red border for these statuses
-                      //     : params.row.status === 'completed'
-                      //     ? theme.palette.primary.main // Custom green border for completed
-                      //     : params.row.status === 'inprogress'
-                      //     ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
-                      //     : theme.palette.primary.main // Default green border
-                    },
-
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: '0'
-                    }
-                  }}
-                >
-                  {filteredStatusData?.map((item, index) => (
-                    <MenuItem key={index} value={item?.key}>
-                      {item?.value}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ) : (
-              <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-                <span
-                  alt={params.row.status}
-                  style={{
-                    color:
-                      params.row.status === 'pending' ||
-                      params.row.status === 'transferred' ||
-                      params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_clotted' ||
-                      params.row.status === 'completed_insufficient_samples' ||
-                      params.row.status === 'sample_haemolysed' ||
-                      params.row.status === 'sample_rejected'
-                        ? theme.palette.customColors.customDropdownColor
-                        : params.row.status === 'completed'
-                        ? theme.palette.primary.main
-                        : params.row.status === 'inprogress'
-                        ? theme.palette.customColors.moderateSecondary
-                        : params.row.status === 'sample_received'
-                        ? theme.palette.primary.main
-                        : theme.palette.primary.main
-                  }}
-                >
-                  {params.row.status_label}
-                </span>
-              </Typography>
-            )}
-          </Box>
-        </>
-      )
+                    }}
+                  >
+                    {params.row.status_label}
+                  </span>
+                </Typography>
+              )}
+            </Box>
+          </>
+        )
+      }
     },
-    ...(permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests
+    ...(permissions?.allow_full_access ||
+    permissions?.transfer_tests ||
+    permissions?.perform_tests ||
+    permissions?.allow_upload_reports
       ? [
           {
             // flex: 0.2,
@@ -638,7 +775,7 @@ const RequestDetails = () => {
                     </>
                     <>
                       {(permissions?.allow_full_access || permissions?.transfer_tests) &&
-                        params.row.status.split(' ')[0] !== 'completed' && (
+                        params.row.status.split('_')[0] !== 'completed' && (
                           <Tooltip title='Transfer' arrow placement='top-start'>
                             <IconButton
                               variant='outlined'
@@ -697,7 +834,6 @@ const RequestDetails = () => {
           }
         ]
       : []),
-
     ,
   ]
 
@@ -718,6 +854,7 @@ const RequestDetails = () => {
     setOpenTransfer(false)
     handleClosePopover()
     setTestId([])
+    setLab([])
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -737,7 +874,7 @@ const RequestDetails = () => {
   const schema = yup.object().shape({
     lab_name: yup.string(),
     replaced_lab_id: yup.string().required('Transfer to is required'),
-    transfer_reason: yup.string().required('Transfer reason is required')
+    transfer_reason: yup.string().trim().required('Transfer reason is required')
   })
 
   const {
@@ -780,21 +917,22 @@ const RequestDetails = () => {
       Toaster({ type: 'error', message: "A test with status 'completed' was found!" })
       setOpenTransfer(false)
     } else {
-      // if (selectedRow?.length > 1) {
       const payloadMulti = {
         test_ids: selectedRow,
         replaced_lab_id,
         transfer_reason
       }
+
       const payloadSingle = {
         test_ids: testId,
         replaced_lab_id,
         transfer_reason
       }
-      // console.log('params1', params)
+
       const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
         handleCloseTransfer()
+
         Toaster({ type: 'success', message: res.message })
         reset({
           replaced_lab_id: '',
@@ -807,7 +945,7 @@ const RequestDetails = () => {
           replaced_lab_id: '',
           transfer_reason: ''
         })
-        Toaster({ type: 'error', message: res.message })
+        Toaster({ type: 'error', message: res.message.transfer_reason })
       }
     }
   }
@@ -817,31 +955,55 @@ const RequestDetails = () => {
     e.stopPropagation()
 
     const testId = item?.id
-
     setFileId(item?.id)
-
     try {
+      setDeleteAttachmentLoader(true)
       const params = { lab_test_id: id }
       const response = await DeleteLAbRequestAttachment(testId, params)
       fetchRequestDetails()
       if (response?.success) {
         Toaster({ type: 'success', message: response.message })
-
         fetchRequestDetails()
         setShowTestFile(false)
       } else {
         setShowTestFile(false)
         Toaster({ type: 'error', message: response.message })
       }
-    } catch (error) {}
+    } catch (error) {
+      Toaster({ type: 'error', message: response.message || 'Failed to delete' })
+    } finally {
+      setDeleteAttachmentLoader(false)
+    }
   }
+
+  useEffect(() => {
+    // for get updated UI in attachment side sheet
+    if (openAttachmentSheet && rowId) {
+      const selected = rows.find(item => item.id === rowId)
+      setTestImage(selected?.attachments?.images || [])
+      setTestDoc(selected?.attachments?.docs || [])
+    }
+  }, [rows, rowId, openAttachmentSheet])
 
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
 
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
-    setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
+
+    setShouldShowBulkStatus(
+      selectedRowData?.filter(item =>
+        [
+          'awaiting_sample',
+          'sample_received',
+          'sample_rejected',
+          'sample_clotted',
+          'sample_haemolysed',
+          'completed_insufficient_samples',
+          'inprogress'
+        ].includes(item?.key)
+      )
+    )
     setSelectedRowData(selectedRowData)
   }
 
@@ -861,7 +1023,7 @@ const RequestDetails = () => {
         fetchRequestDetails()
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
+      // console.error('Error fetching data:', error)
       Toaster({ type: 'error', message: res.message })
     }
   }
@@ -875,8 +1037,8 @@ const RequestDetails = () => {
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
         value === 'completed_inconclusive' ||
-        value === 'completed' ||
-        value === 'completed_insufficient_samples') &&
+        // value === 'completed_insufficient_samples' ||
+        value === 'completed') &&
       !(image || document)
     ) {
       setHeaderStatus('awaiting_sample')
@@ -886,6 +1048,239 @@ const RequestDetails = () => {
       setHeaderStatus(value)
       postMultipleStatus(selectedRow, value)
     }
+  }
+
+  const HeaderCard = ({ item, handleClickOpen }) => {
+    debugger
+    if (!item) return null
+
+    return (
+      <Box>
+        {/* Top row with optional back button */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/*
+          <IconButton
+            sx={{ mr: 1 }}
+            onClick={() => router.push({ pathname: '/lab/request' })}
+          >
+            <Icon icon='ep:back' fontSize={25} />
+          </IconButton>
+          */}
+          <Typography variant='h6'>
+            Request ID -{' '}
+            <span
+              onClick={() => (handleClickOpen ? handleClickOpen(item) : null)}
+              style={{
+                fontSize: '20px',
+                fontWeight: 'bold',
+                cursor: `${handleClickOpen ? 'pointer' : 'default'}`,
+                color: theme.palette.primary.main
+              }}
+            >
+              {item.request_id}
+            </span>
+          </Typography>
+        </Box>
+
+        {/* Request details */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+          <Typography>
+            Medical Record :{' '}
+            <span
+              style={{
+                fontSize: '15px',
+                fontWeight: 'bold',
+                color: theme.palette.customColors.secondaryBg
+              }}
+            >
+              {item.medical_record_code}
+            </span>
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+          <Typography>
+            Requested By :{' '}
+            <span
+              style={{
+                fontSize: '15px',
+                fontWeight: 'bold',
+                color: theme.palette.customColors.secondaryBg
+              }}
+            >
+              {item.created_by}
+            </span>
+          </Typography>
+        </Box>
+
+        <Typography>Requested On : {moment(item.created_at).format('DD MMM YYYY')}</Typography>
+
+        <Typography>
+          Site :{' '}
+          <span
+            style={{
+              fontSize: '15px',
+              fontWeight: 'bold',
+              color: theme.palette.customColors.secondaryBg
+            }}
+          >
+            {item.site_name}
+          </span>
+        </Typography>
+
+        <Typography>
+          No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.total_no_test}</span>
+        </Typography>
+      </Box>
+    )
+  }
+
+  const onCellClick = params => {
+    debugger
+    if (params.field === 'sample_name') {
+      const result = matchSample(params.formattedValue, params.row.lab_name)
+      if (result) {
+        setOpen(true)
+        setSelectedSample([params.formattedValue, params.row.lab_name])
+      }
+    }
+    console.log(params)
+  }
+
+  const TestListPopup = ({ open, handleClose, requestById, selectedSample }) => {
+    var testList = requestById
+
+    if (selectedSample.length > 0) {
+      const filteredTest = requestById[0]?.test_reports.filter((item, index) => selectedSample[0] === item?.sample_name)
+      testList[0]['test_reports'] = filteredTest
+      testList[0]['total_no_test'] = filteredTest.length
+      testList[0]['created_by'] = testList[0].user_first_name
+      debugger
+      console.log(testList)
+    }
+
+    return (
+      <>
+        {/* Open PopUp On Clicking Request Id */}
+        <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 3,
+              bgcolor: theme.palette.customColors.displaybgPrimary
+            }}
+          >
+            <Typography variant='h6' sx={{ ml: 3 }}>
+              Test list
+            </Typography>
+            <IconButton onClick={handleClose}>
+              <Icon icon='ep:close-bold' fontSize={20} color={'red'} />
+            </IconButton>
+          </Box>
+          {testList?.map((item, index) => (
+            <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
+              <HeaderCard item={item} handleClickOpen={null} />
+
+              {/* <Box ml={3}>
+              <Typography variant='h6'>
+                Request -{' '}
+                <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
+              </Typography>
+              <Typography>{Utility.formatDate(item.created_at)}</Typography>
+              <Typography>
+                Site - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
+              </Typography>
+            </Box> */}
+              {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
+              <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography>
+                  No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
+                </Typography>
+
+              </Box>
+              <Typography>
+                Request By - <span style={{ fontWeight: 'bold' }}>{item?.user_first_name}</span>
+              </Typography>
+            </Box> */}
+
+              <Box
+                sx={{
+                  mt: 2
+                }}
+              >
+                <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
+                        <TableCell>Test Name</TableCell>
+                        <TableCell>Sample Name</TableCell>
+                        <TableCell>Lab Name</TableCell>
+                        <TableCell>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {item?.test_reports?.map((data, dataID) => (
+                        <TableRow key={dataID}>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.sample_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+                              <span
+                                alt={data?.status}
+                                style={{
+                                  color:
+                                    data?.status === 'pending' ||
+                                    data?.status === 'transferred' ||
+                                    data?.status === 'awaiting_sample' ||
+                                    data?.status === 'sample_rejected'
+                                      ? theme.palette.customColors.customDropdownColor
+                                      : data?.status === 'completed'
+                                      ? theme.palette.primary.main
+                                      : data?.status === 'inprogress'
+                                      ? theme.palette.customColors.moderateSecondary
+                                      : data?.status === 'sample_received'
+                                      ? theme.palette.primary.main
+                                      : theme.palette.primary.main
+                                }}
+                              >
+                                {data?.status === 'awaiting_sample'
+                                  ? 'Awaiting sample'
+                                  : data?.status === 'sample_received'
+                                  ? 'Sample received'
+                                  : data?.status === 'sample_rejected'
+                                  ? 'sample rejected'
+                                  : data?.status === 'completed_positive'
+                                  ? 'completed positive'
+                                  : data?.status === 'completed_negative'
+                                  ? 'completed negative'
+                                  : data?.status === 'completed_detected'
+                                  ? 'completed detected'
+                                  : data?.status === 'completed_not_detected'
+                                  ? 'completed not detected'
+                                  : data?.status === 'completed_inconclusive'
+                                  ? 'completed inconclusive'
+                                  : data?.status === 'completed'
+                                  ? 'Completed'
+                                  : data?.status === 'completed_insufficient_samples'
+                                  ? 'Completed - Insufficient Samples'
+                                  : 'In Progress'}
+                              </span>
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            </Box>
+          ))}
+        </Dialog>
+      </>
+    )
   }
 
   return (
@@ -910,128 +1305,63 @@ const RequestDetails = () => {
             >
               Requests list
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab request details
             </Typography>
           </Breadcrumbs>
 
           <Card sx={{ p: 5 }}>
+            <CardHeader sx={{ py: 0, ml: -4 }} title='Request Details Page' />
             {request?.map((item, index) => (
-              <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {/* {' '}
-                      <IconButton
-                        sx={{ mr: 1 }}
-                        onClick={() =>
-                          router.push({
-                            pathname: '/lab/request'
-                          })
-                        }
-                      >
-                        <Icon icon='ep:back' fontSize={25} />
-                      </IconButton> */}
-                      <Typography variant='h6'>
-                        Request ID -{' '}
-                        <span
-                          onClick={() => handleClickOpen(item)}
-                          style={{
-                            fontSize: '20px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            color: theme.palette.primary.main
-                          }}
-                        >
-                          {item?.request_id}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                      <Typography>
-                        Medical Record :{' '}
-                        <span
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 'bold',
-                            color: theme.palette.customColors.secondaryBg
-                          }}
-                        >
-                          {item?.medical_record_code}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                      <Typography>
-                        Requested By :{' '}
-                        <span
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 'bold',
-                            color: theme.palette.customColors.secondaryBg
-                          }}
-                        >
-                          {item?.created_by}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
-                    <Typography>
-                      Site :{' '}
-                      <span
-                        style={{ fontSize: '15px', fontWeight: 'bold', color: theme.palette.customColors.secondaryBg }}
-                      >
-                        {item?.site_name}
-                      </span>
-                    </Typography>
-                    <Typography>
-                      No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
-                    </Typography>
-                  </Box>
+              <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <HeaderCard key={index} item={item} handleClickOpen={handleClickOpen} />
 
-                  <Box
-                    sx={{
-                      minWidth: '400px',
-                      display: 'flex',
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      backgroundColor: theme.palette.customColors.cardHeaderBg,
-                      borderRadius: '8px',
-
-                      alignItems: 'center'
-                    }}
-                  >
-                    <AnimalParentCard
-                      data={item?.animal_details[0]}
-                      backgroundColor={theme.palette.customColors.cardHeaderBg}
-                    />
-                    {item?.animal_details?.length > 1 && (
-                      <Box
-                        onClick={() => setOpenAnimalSheet(true)}
-                        sx={{
-                          display: 'flex',
-                          gap: 2,
-                          bgcolor: 'rgba(0, 128, 0, 0.1)',
-                          cursor: 'pointer',
-                          borderRadius: '50%',
-                          fontSize: '20px',
-                          fontWeight: 500,
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          color: theme.palette.primary.main,
-                          m: 3,
-                          p: 3,
-                          width: '50px',
-                          height: '50px'
-                        }}
-                      >
-                        +{item?.animal_details?.length - 1}
-                      </Box>
-                    )}
-                  </Box>
+                <Box
+                  sx={{
+                    minWidth: '400px',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    backgroundColor: theme.palette.customColors.cardHeaderBg,
+                    borderRadius: '8px',
+                    alignItems: ''
+                  }}
+                >
+                  <AnimalParentCard
+                    data={item?.animal_details[0]}
+                    backgroundColor={theme.palette.customColors.cardHeaderBg}
+                  />
+                  {item?.animal_details?.length > 1 && (
+                    <Box
+                      onClick={() => setOpenAnimalSheet(true)}
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        bgcolor: 'rgba(0, 128, 0, 0.1)',
+                        cursor: 'pointer',
+                        borderRadius: '50%',
+                        fontSize: '20px',
+                        fontWeight: 500,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: theme.palette.primary.main,
+                        m: 3,
+                        p: 3,
+                        width: '50px',
+                        height: '50px'
+                      }}
+                    >
+                      +{item?.animal_details?.length - 1}
+                    </Box>
+                  )}
                 </Box>
-              </>
+              </Box>
             ))}
           </Card>
 
@@ -1066,7 +1396,12 @@ const RequestDetails = () => {
                   </Box>
 
                   {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
-                    <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => handleOpenTransfer()}>
+                    <Button
+                      disabled={selectedRowData?.some(item => item?.status === 'completed')}
+                      variant='contained'
+                      sx={{ display: 'flex', gap: 2 }}
+                      onClick={() => handleOpenTransfer()}
+                    >
                       <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
                     </Button>
                   )}
@@ -1075,6 +1410,7 @@ const RequestDetails = () => {
                     {(permissions?.allow_full_access || permissions?.perform_tests) && shouldShowBulkStatus && (
                       <FormControl fullWidth variant='outlined'>
                         <Select
+                          disabled={selectedRowData?.some(item => item?.status === 'completed')}
                           size='small'
                           labelId='demo-simple-select-label'
                           id='demo-simple-select'
@@ -1175,11 +1511,13 @@ const RequestDetails = () => {
               )}
             </Box>
 
+            {/* {JSON.stringify(statusList)} */}
             <DataGrid
               checkboxSelection={
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
               }
               onRowSelectionModelChange={handleRowSelection}
+              onCellClick={onCellClick}
               isRowSelectable={params => {
                 if (
                   (permissions?.view &&
@@ -1190,7 +1528,18 @@ const RequestDetails = () => {
                   (permissions?.perform_tests === true &&
                     permissions?.allow_upload_reports === false &&
                     permissions?.allow_full_access === false &&
-                    params.row.status.includes('completed')) ||
+                    !statusList?.filter(item =>
+                      [
+                        'awaiting_sample',
+                        'sample_received',
+                        'sample_rejected',
+                        'sample_clotted',
+                        'sample_haemolysed',
+                        'completed_insufficient_samples',
+                        'inprogress'
+                      ].includes(item.key)
+                    )) ||
+                  // params.row.status.includes('completed'))
                   (permissions?.perform_tests === false &&
                     permissions?.transfer_tests === true &&
                     permissions?.allow_upload_reports === false &&
@@ -1268,24 +1617,26 @@ const RequestDetails = () => {
               {image?.length > 0 || document?.length > 0 ? (
                 <Box sx={{ px: 5, mb: 8 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                    {image && (
+                    {(image || document) && (
                       <CommonMediaView
                         allCompleted={allCompleted}
                         image={image}
-                        handleDeleteImg={handleDeleteImg}
-                        fileViews={fileViews}
-                        permissions={permissions}
-                      />
-                    )}
-                    {document && (
-                      <CommonMediaView
-                        allCompleted={allCompleted}
                         document={document}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
+                        deleteAttachmentLoader={deleteAttachmentLoader}
                         permissions={permissions}
                       />
                     )}
+                    {/* {document && (
+                      <CommonMediaView
+                        allCompleted={allCompleted}
+
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        permissions={permissions}
+                      />
+                    )} */}
                   </Box>
                 </Box>
               ) : null}
@@ -1334,7 +1685,6 @@ const RequestDetails = () => {
           )}
         </>
       )}
-
       <Card sx={{ mt: 5 }}>
         <Box sx={{ py: 5, px: 5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
@@ -1346,122 +1696,12 @@ const RequestDetails = () => {
           <MedicalRecordNotes notes={medicalRecordNotes} />
         </Box>
       </Card>
-
-      <>
-        {/* Open PopUp On Clicking Request Id */}
-        <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              px: 2,
-              py: 3,
-              bgcolor: theme.palette.customColors.displaybgPrimary
-            }}
-          >
-            <Typography variant='h6' sx={{ ml: 3 }}>
-              Tests list
-            </Typography>
-            <IconButton onClick={handleClose}>
-              <Icon icon='ep:close-bold' fontSize={20} color={'red'} />
-            </IconButton>
-          </Box>
-          {requestById?.map((item, index) => (
-            <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
-              <Box ml={3}>
-                <Typography variant='h6'>
-                  Request -{' '}
-                  <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
-                </Typography>
-                <Typography>{Utility.formatDate(item.created_at)}</Typography>
-                <Typography>
-                  Site - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
-                <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography>
-                    No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
-                  </Typography>
-                  {/* <Typography>
-                    No. of Samples : <span style={{ fontWeight: 'bold' }}>{item?.sample_count}</span>
-                  </Typography> */}
-                </Box>
-                <Typography>
-                  Request By - <span style={{ fontWeight: 'bold' }}>{item?.user_first_name}</span>
-                </Typography>
-              </Box>
-
-              <Box mt={2}>
-                <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
-                        <TableCell>Test Name</TableCell>
-                        <TableCell>Lab Name</TableCell>
-                        <TableCell>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {item?.test_reports?.map((data, dataID) => (
-                        <TableRow key={dataID}>
-                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
-                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-                              <span
-                                alt={data?.status}
-                                style={{
-                                  color:
-                                    data?.status === 'pending' ||
-                                    data?.status === 'transferred' ||
-                                    data?.status === 'awaiting_sample' ||
-                                    data?.status === 'sample_rejected'
-                                      ? theme.palette.customColors.customDropdownColor
-                                      : data?.status === 'completed'
-                                      ? theme.palette.primary.main
-                                      : data?.status === 'inprogress'
-                                      ? theme.palette.customColors.moderateSecondary
-                                      : data?.status === 'sample_received'
-                                      ? theme.palette.primary.main
-                                      : theme.palette.primary.main
-                                }}
-                              >
-                                {data?.status === 'awaiting_sample'
-                                  ? 'Awaiting sample'
-                                  : data?.status === 'sample_received'
-                                  ? 'Sample received'
-                                  : data?.status === 'sample_rejected'
-                                  ? 'sample rejected'
-                                  : data?.status === 'completed_positive'
-                                  ? 'completed positive'
-                                  : data?.status === 'completed_negative'
-                                  ? 'completed negative'
-                                  : data?.status === 'completed_detected'
-                                  ? 'completed detected'
-                                  : data?.status === 'completed_not_detected'
-                                  ? 'completed not detected'
-                                  : data?.status === 'completed_inconclusive'
-                                  ? 'completed inconclusive'
-                                  : data?.status === 'completed'
-                                  ? 'Completed'
-                                  : data?.status === 'completed_insufficient_samples'
-                                  ? 'Completed - Insufficient Samples'
-                                  : 'In Progress'}
-                              </span>
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
-            </Box>
-          ))}
-        </Dialog>
-      </>
-
+      <TestListPopup
+        open={open}
+        handleClose={handleClose}
+        requestById={requestById}
+        selectedSample={selectedSample}
+      ></TestListPopup>
       <>
         <Dialog
           open={openTransfer}
@@ -1643,7 +1883,7 @@ const RequestDetails = () => {
             <Box sx={{ mt: 6 }}>
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid container spacing={4}>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <Controller
                         name='lab_name'
@@ -1657,8 +1897,10 @@ const RequestDetails = () => {
                             name='lab_name'
                             error={Boolean(errors.lab_name)}
                             onChange={onChange}
-                            InputProps={{ readOnly: true }}
                             placeholder=''
+                            slotProps={{
+                              input: { readOnly: true }
+                            }}
                           />
                         )}
                       />
@@ -1672,7 +1914,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
                         Transfer To
@@ -1713,7 +1955,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={12} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 12 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth mt={2}>
                       <Controller
                         name='transfer_reason'
@@ -1755,7 +1997,8 @@ const RequestDetails = () => {
                     onClick={handleCloseTransfer}
                     variant='outlined'
                     size='large'
-                    disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
+
+                    // disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
                     Cancel
                   </LoadingButton>
@@ -1896,6 +2139,23 @@ const RequestDetails = () => {
             setOpenCommentSheet={setOpenCommentSheet}
             CommentData={CommentData}
             api={() => fetchRequestDetails()}
+          />
+        )}
+      </>
+      <>
+        {openAttachmentSheet && (
+          <AttachmentSheet
+            permissions={permissions}
+            handleDeleteImg={handleDeleteImg}
+            fileViews={fileViews}
+            openAttachmentSheet={openAttachmentSheet}
+            setOpenAttachmentSheet={setOpenAttachmentSheet}
+            allCompleted={allCompleted}
+            testImage={testImage}
+            testDoc={testDoc}
+            image={image}
+            document={document}
+            deleteAttachmentLoader={deleteAttachmentLoader}
           />
         )}
       </>

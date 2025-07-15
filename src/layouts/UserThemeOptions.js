@@ -104,6 +104,8 @@ const UserThemeOptions = () => {
         antzInfo60: '#32bfdd',
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
+        PrimaryContainer: '#52F990',
+        OnPrimary50: '#FFFFFFBF',
 
         // *** name required
         customTableHeaderBg: '#C1D3D0',
@@ -143,6 +145,7 @@ const UserThemeOptions = () => {
         OnPrimaryContainer: '#1F515B',
         TertiaryContainer: '#FFBDA8',
         OutlineVariant: '#C3CEC7',
+        MuiFieldBorder: '#4c4e6438',
         OutlineSecondary: '#D8D8DD',
         OnPrimarycontainer10: '#1F515B0D',
         Notes: '#FCF4AE',
@@ -158,7 +161,10 @@ const UserThemeOptions = () => {
         OnPrimary: '#FFFFFF',
         mainBg: '#20DE67',
         antzSecondaryBg: '#dff9f7',
-        statusText: '#7A7A7A'
+        statusText: '#7A7A7A',
+        Antz_Body_Medium: '#FFC300',
+        grey700: 'grey.700',
+        grey800: 'grey.800'
       },
       primary: {
         // light: '#20DE67',
@@ -268,6 +274,30 @@ const UserThemeOptions = () => {
           outlined: {
             color: '#38bd69',
             border: '1px solid #8080806b'
+          }
+        }
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            '&:hover': {
+              backgroundColor: '#F2FFF8',
+              boxShadow: '0px 1px 8px 0px #0000001A'
+            }
+          }
+        }
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderBottom: '0.5px solid #839D8D'
+          }
+        }
+      },
+      MuiTableHead: {
+        styleOverrides: {
+          root: {
+            backgroundColor: '#C1D3D0' // Ensures the header row gets the background color
           }
         }
       }

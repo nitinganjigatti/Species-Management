@@ -1,4 +1,4 @@
-import { Card, CardHeader, Grid, TextField, Typography } from '@mui/material'
+import { Card, CardHeader, Grid, TextField, Tooltip, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import { debounce } from 'lodash'
@@ -18,7 +18,6 @@ import RenderUtility from 'src/utility/render'
 
 function Escrow({ value }) {
   const router = useRouter()
-  console.log('Value >>', value)
 
   const theme = useTheme()
 
@@ -71,28 +70,30 @@ function Escrow({ value }) {
   }
 
   const columns = [
+    // {
+    //   width: 150,
+    //   minWidth: 100,
+    //   field: 'request_id',
+    //   headerName: 'Request Id',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {params.row.request_id}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 150,
-      minWidth: 100,
-      field: 'request_id',
-      headerName: 'Request Id',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.request_id}
-        </Typography>
-      )
-    },
-    {
-      width: 150,
-      minWidth: 100,
+      minWidth: 200,
+      align: 'center',
+      headerAlign: 'center',
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
@@ -111,21 +112,27 @@ function Escrow({ value }) {
     },
     {
       width: 150,
-      minWidth: 100,
+      minWidth: 200,
       field: 'from_store',
       headerName: 'From Store',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.from_store}
-        </Typography>
+        <Tooltip title={params.row.from_store}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.from_store}> {params.row.from_store}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -133,6 +140,8 @@ function Escrow({ value }) {
       minWidth: 100,
       field: 'quantity',
       headerName: 'Quantity',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -149,47 +158,61 @@ function Escrow({ value }) {
     },
     {
       width: 150,
-      minWidth: 100,
+      minWidth: 200,
       field: 'to_store',
       headerName: 'To Store',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.to_store}
-        </Typography>
+        <Tooltip title={params.row.to_store}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.to_store}> {params.row.to_store}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      width: 350,
+      width: 220,
       minWidth: 150,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.stock_name}
-        </Typography>
+        <Tooltip title={params.row.stock_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.stock_name}> {params.row.stock_name}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      width: 250,
+      width: 180,
       minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch No',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -206,8 +229,10 @@ function Escrow({ value }) {
     },
     {
       width: 150,
-      minWidth: 100,
+      minWidth: 140,
       field: 'status',
+      align: 'center',
+      headerAlign: 'center',
       headerName: 'Status',
       renderCell: params => (
         <Typography
@@ -224,9 +249,11 @@ function Escrow({ value }) {
       )
     },
     {
-      width: 150,
+      width: 180,
       minWidth: 100,
       field: 'no_of_days_exist',
+      align: 'center',
+      headerAlign: 'center',
       headerName: 'Exist from',
       renderCell: params => (
         <Typography
@@ -438,7 +465,7 @@ function Escrow({ value }) {
               }}
             >
               {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
+              <Grid item size={{ xs: 8 }}>
                 <Box
                   sx={{
                     display: 'flex',

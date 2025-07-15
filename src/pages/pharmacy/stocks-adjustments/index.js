@@ -32,6 +32,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { STOCK_ADJUSTMENT_REASON_TYPES } from 'src/constants/PharmacyConstants'
+import LabelAndDescriptionWithElipsisModal from 'src/views/utility/LabelAndDescriptionWithElipsisModal'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -185,6 +187,21 @@ const ListOfStockAdjusted = () => {
     searchTableData(sort, value, sortColumn, status)
   }
 
+  const getLabelColor = params => {
+    const { MISSED, EXPIRED } = STOCK_ADJUSTMENT_REASON_TYPES
+
+    const reasonTextColor =
+      params?.row?.reason === MISSED
+        ? theme.palette.customColors.Error
+        : params?.row?.reason === EXPIRED
+        ? theme.palette.customColors.Antz_Body_Medium
+        : theme.palette.customColors.Tertiary
+
+    const reason = params?.row?.reason === MISSED ? 'Missing' : params?.row?.reason === EXPIRED ? 'Expired' : 'Damaged'
+
+    return { reason, reasonTextColor }
+  }
+
   const renderUserAvatar = row => {
     if (row.user_profile_pic) {
       return <CustomAvatar src={row?.user_profile_pic} sx={{ mr: 3, width: 34, height: 34 }} />
@@ -195,12 +212,14 @@ const ListOfStockAdjusted = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      minWidth: 70,
-      field: 'sl',
-      headerName: 'S.NO',
+      width: 80,
+      headerName: 'SL.NO',
       renderCell: params => (
-        <Typography variant='body2'>{params.row.sl + '.'}</Typography>
+        <Box sx={{ display: 'flex' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {parseInt(params.row.sl) + '.'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -208,50 +227,40 @@ const ListOfStockAdjusted = () => {
       minWidth: 140,
       field: 'stock_name',
       headerName: 'Product',
-      renderCell: params => (
-        <Typography noWrap>{params.row.stock_name}</Typography>
-      )
+      renderCell: params => <Typography noWrap>{params.row.stock_name}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch No.',
-      renderCell: params => (
-        <Typography noWrap>{params.row.batch_no}</Typography>
-      )
+      renderCell: params => <Typography noWrap>{params.row.batch_no}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 100,
       field: 'adjustment_quantity',
       headerName: 'Qty',
-      renderCell: params => (
-        <Typography noWrap>{params.row.adjustment_quantity}</Typography>
-      )
+      renderCell: params => <Typography noWrap>{params.row.adjustment_quantity}</Typography>
     },
+
     {
       flex: 0.15,
       minWidth: 140,
       field: 'reason_name',
       headerName: 'Reason',
-      renderCell: params => (
-        <Tooltip title={params.row.reason_name}>
-          <Typography noWrap>{params.row.reason_name}</Typography>
-        </Tooltip>
-      )
-    },
-    {
-      flex: 0.15,
-      minWidth: 140,
-      field: 'comments',
-      headerName: 'Comments',
-      renderCell: params =>
-        params.row?.comments ? (
-          <TextEllipsisWithModal text={params.row.comments} />
-        ) : (
-          <Typography noWrap>NA</Typography>
+      renderCell: params => {
+        const { reason, reasonTextColor } = getLabelColor(params)
+
+        return (
+          <LabelAndDescriptionWithElipsisModal
+            reason={reason}
+            comment={params?.row?.comments}
+            reasonTextColor={reasonTextColor}
+            commentTextColor={theme.palette.customColors.neutral_50}
+          />
         )
+      }
     },
     {
       flex: 0.15,
@@ -277,7 +286,6 @@ const ListOfStockAdjusted = () => {
         )
     }
   ]
-  
 
   const headerAction = (
     <AddButtonContained

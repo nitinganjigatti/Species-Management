@@ -85,16 +85,45 @@ const AddFeedType = () => {
     fileInputRef?.current?.click()
   }
 
+  // const handleInputImageChange = file => {
+  //   const reader = new FileReader()
+  //   const { files } = file.target
+  //   if (files && files.length !== 0) {
+  //     reader.onload = () => {
+  //       setImgSrc(reader?.result)
+  //     }
+  //     setDisplayFile(files[0]?.name)
+  //     reader?.readAsDataURL(files[0])
+  //     setValue('feedImg', files[0])
+  //     clearErrors('feedImg')
+  //   }
+  // }
+
   const handleInputImageChange = file => {
-    const reader = new FileReader()
     const { files } = file.target
+    const reader = new FileReader()
+
     if (files && files.length !== 0) {
-      reader.onload = () => {
-        setImgSrc(reader?.result)
+      const selectedFile = files[0]
+
+      const validTypes = ['image/jpeg', 'image/png']
+      if (!validTypes.includes(selectedFile.type)) {
+        // Show error or toast
+        Toaster({
+          type: 'error',
+          message: 'Only PNG and JPG images are allowed'
+        })
+
+        return
       }
-      setDisplayFile(files[0]?.name)
-      reader?.readAsDataURL(files[0])
-      setValue('feedImg', files[0])
+
+      reader.onload = () => {
+        setImgSrc(reader.result)
+      }
+
+      setDisplayFile(selectedFile.name)
+      reader.readAsDataURL(selectedFile)
+      setValue('feedImg', selectedFile)
       clearErrors('feedImg')
     }
   }
@@ -201,7 +230,13 @@ const AddFeedType = () => {
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/feed')}>
                 Feed Type
               </Typography>
-              <Typography color='text.primary'>{id ? 'Update' : 'Add'} new Feed Type</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                {id ? 'Update' : 'Add'} new Feed Type
+              </Typography>
             </Breadcrumbs>
           </Box>
           <Card>
@@ -209,9 +244,6 @@ const AddFeedType = () => {
               <Typography sx={{ mb: '20px' }} variant='h6'>
                 {id ? 'Update Feed Type' : 'New Feed Type'}
               </Typography>
-              {/* <Typography sx={{ mb: 1 }}>
-          {id ? 'Update Feed type' : 'Add New Feed type'} and write some description for it
-        </Typography> */}
 
               <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
                 {/* {editParams?.id !== null ? ( */}
@@ -285,7 +317,8 @@ const AddFeedType = () => {
                 </FormControl>
                 <input
                   type='file'
-                  accept='image/*'
+                  // accept='image/*'
+                  // accept='image/png, image/jpeg'
                   onChange={e => handleInputImageChange(e)}
                   style={{ display: 'none' }}
                   name='feedImg'

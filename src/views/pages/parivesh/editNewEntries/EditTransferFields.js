@@ -18,10 +18,11 @@ const EditTransferFields = ({
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
   })
+
   return (
     <>
       <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormControl fullWidth>
             <Controller
               name='where_to_transfer'
@@ -47,7 +48,7 @@ const EditTransferFields = ({
         </Grid>
       </Grid>
       <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormControl fullWidth>
             <Controller
               name='gender'
@@ -65,7 +66,7 @@ const EditTransferFields = ({
         </Grid>
       </Grid>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='animal_count'
@@ -90,7 +91,7 @@ const EditTransferFields = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='transaction_date'

@@ -12,7 +12,8 @@ import {
   Grid,
   TextField,
   Autocomplete,
-  FormControl
+  FormControl,
+  Tooltip
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
@@ -43,7 +44,6 @@ const RoomsList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
-  const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
@@ -77,31 +77,7 @@ const RoomsList = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
-  // it can be removeed if there is no issue after long time
-  // const fetchTableData = useCallback(
-  //   async (q, nurseryId, status) => {
-  //     try {
-  //       setLoading(true)
 
-  //       const params = {
-  //         sort,
-  //         search: q || '',
-  //         nursery_id: nurseryId,
-  //         status: status || 'all',
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-  //       await GetRoomList({ params: params }).then(res => {
-  //         setTotal(parseInt(res?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
   const fetchTableData = useCallback(
     async (q = '', nurseryId, status) => {
       setLoading(true)
@@ -119,7 +95,7 @@ const RoomsList = () => {
         setTotal(parseInt(res?.data?.total_count ?? '0'))
         setRows(loadServerRows(paginationModel.page, res?.data?.result))
       } catch (e) {
-        console.error('Error fetching room list:', error)
+        console.error('Error fetching room list:', e)
       } finally {
         setLoading(false)
       }
@@ -149,7 +125,6 @@ const RoomsList = () => {
     if (newModel.length > 0) {
       const { sort, field } = newModel[0]
       setSort(sort)
-      setSortColumn(field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     }
   }
@@ -173,10 +148,6 @@ const RoomsList = () => {
   }
 
   // 📌 Debounced Nursery Search
-  // const searchNursery = useCallback(
-  //   debounce(q => NurseryList(q), 1000),
-  //   []
-  // )
   const searchNursery = useCallback(debounce(NurseryList, 1000), [])
 
   useEffect(() => {
@@ -210,16 +181,20 @@ const RoomsList = () => {
       headerName: 'room',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.room_name}
-        </Typography>
+        <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.room_name ? params.row.room_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -229,16 +204,20 @@ const RoomsList = () => {
       headerName: 'nursery name',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.nursery_name}
-        </Typography>
+        <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.nursery_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -247,18 +226,21 @@ const RoomsList = () => {
       field: 'site',
       headerName: 'site',
       sortable: false,
-
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.site_name}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.site_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -269,16 +251,20 @@ const RoomsList = () => {
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.no_of_incubators}
-        </Typography>
+        <Tooltip title={params.row.no_of_incubators ? params.row.no_of_incubators : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.no_of_incubators}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -440,148 +426,146 @@ const RoomsList = () => {
                   Incubator Room
                 </Typography>
               </Breadcrumbs>
-              <Grid container spacing={6}>
-                <Grid item xs={12}>
-                  <Card>
-                    <CardHeader title='Incubator Rooms' action={headerAction} />
+              <Card>
+                <CardHeader title='Incubator Rooms' action={headerAction} />
 
-                    <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
-                      <Grid item xs={3}>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            borderRadius: '4px',
-                            padding: '0 8px',
-                            height: '40px'
-                          }}
-                        >
-                          <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                <Box sx={{ px: 4, display: 'flex', gap: 4, flexWrap: 'wrap', mb: 6 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px'
+                    }}
+                  >
+                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      InputProps={
+                        {
+                          // disableUnderline: true
+                        }
+                      }
+                      onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+
+                  <Box>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        name='nursery'
+                        value={defaultNursery}
+                        disablePortal
+                        sx={{ width: 220 }}
+                        id='nursery'
+                        options={nurseryList?.length > 0 ? nurseryList : []}
+                        getOptionLabel={option => option.nursery_name}
+                        isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultNursery(null)
+                            fetchTableData(searchValue, '', defaultStatus?.key)
+                          } else {
+                            setDefaultNursery(val)
+                            fetchTableData(searchValue, val?.nursery_id, defaultStatus?.key)
+                          }
+                        }}
+                        renderInput={params => (
                           <TextField
-                            variant='outlined'
-                            placeholder='Search...'
-                            InputProps={
-                              {
-                                // disableUnderline: true
-                              }
-                            }
-                            onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
                             sx={{
+                              backgroundColor: theme.palette.primary.contrastText,
+                              borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              width: '100%',
                               '& .MuiOutlinedInput-root': {
-                                border: 'none',
-                                padding: '0',
-                                '& fieldset': {
-                                  border: 'none'
-                                }
+                                height: 40,
+                                borderRadius: '4px'
+                              },
+                              '& .MuiInputLabel-root': {
+                                top: -7
+                              },
+                              '& input': {
+                                position: 'relative',
+                                top: -7
                               }
                             }}
+                            onChange={e => {
+                              searchNursery(e.target.value)
+                            }}
+                            {...params}
+                            label='Nursery'
+                            placeholder='Search & Select'
                           />
-                        </Box>
-                      </Grid>
+                        )}
+                      />
+                    </FormControl>
+                  </Box>
+                  <Box>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        name='status'
+                        value={defaultStatus}
+                        disablePortal
+                        sx={{ width: 220 }}
+                        id='status'
+                        options={[
+                          { label: 'Active', key: 'active' },
+                          { label: 'Inactive', key: 'inactive' }
+                        ]}
+                        getOptionLabel={option => option.label}
+                        isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultStatus(null)
+                            fetchTableData(searchValue, defaultNursery?.nursery_id, '')
+                          } else {
+                            setDefaultStatus(val)
+                            fetchTableData(searchValue, defaultNursery?.nursery_id, val?.key)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            sx={{
+                              backgroundColor: theme.palette.primary.contrastText,
+                              borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              width: '100%',
+                              '& .MuiOutlinedInput-root': {
+                                height: 40,
+                                borderRadius: '4px'
+                              },
+                              '& .MuiInputLabel-root': {
+                                top: -7
+                              },
+                              '& input': {
+                                position: 'relative',
+                                top: -7
+                              }
+                            }}
+                            onChange={e => {
+                              // searchSite(e.target.value)
+                            }}
+                            {...params}
+                            label='Status'
+                            placeholder='Search & Select'
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Box>
+                </Box>
 
-                      <Grid item xs={3}>
-                        <FormControl fullWidth>
-                          <Autocomplete
-                            name='nursery'
-                            value={defaultNursery}
-                            disablePortal
-                            id='nursery'
-                            options={nurseryList?.length > 0 ? nurseryList : []}
-                            getOptionLabel={option => option.nursery_name}
-                            isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
-                            onChange={(e, val) => {
-                              if (val === null) {
-                                setDefaultNursery(null)
-                                fetchTableData(searchValue, '', defaultStatus?.key)
-                              } else {
-                                setDefaultNursery(val)
-                                fetchTableData(searchValue, val?.nursery_id, defaultStatus?.key)
-                              }
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                sx={{
-                                  backgroundColor: theme.palette.primary.contrastText,
-                                  borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                  width: '100%',
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 40,
-                                    borderRadius: '4px'
-                                  },
-                                  '& .MuiInputLabel-root': {
-                                    top: -7
-                                  },
-                                  '& input': {
-                                    position: 'relative',
-                                    top: -7
-                                  }
-                                }}
-                                onChange={e => {
-                                  searchNursery(e.target.value)
-                                }}
-                                {...params}
-                                label='Nursery'
-                                placeholder='Search & Select'
-                              />
-                            )}
-                          />
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <FormControl fullWidth>
-                          <Autocomplete
-                            name='status'
-                            value={defaultStatus}
-                            disablePortal
-                            id='status'
-                            options={[
-                              { label: 'Active', key: 'active' },
-                              { label: 'Inactive', key: 'inactive' }
-                            ]}
-                            getOptionLabel={option => option.label}
-                            isOptionEqualToValue={(option, value) => option?.key === value?.key}
-                            onChange={(e, val) => {
-                              if (val === null) {
-                                setDefaultStatus(null)
-                                fetchTableData(searchValue, defaultNursery?.nursery_id, '')
-                              } else {
-                                setDefaultStatus(val)
-                                fetchTableData(searchValue, defaultNursery?.nursery_id, val?.key)
-                              }
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                sx={{
-                                  backgroundColor: theme.palette.primary.contrastText,
-                                  borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                  width: '100%',
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 40,
-                                    borderRadius: '4px'
-                                  },
-                                  '& .MuiInputLabel-root': {
-                                    top: -7
-                                  },
-                                  '& input': {
-                                    position: 'relative',
-                                    top: -7
-                                  }
-                                }}
-                                onChange={e => {
-                                  // searchSite(e.target.value)
-                                }}
-                                {...params}
-                                label='Status'
-                                placeholder='Search & Select'
-                              />
-                            )}
-                          />
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-
-                    {/* <Box sx={{ py: 4, px: 4 }}>
+                {/* <Box sx={{ py: 4, px: 4 }}>
                       <Stack direction='row' gap={3}>
                         <Typography variant='h6'>Legends : </Typography>
                         <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
@@ -617,41 +601,37 @@ const RoomsList = () => {
                       </Stack>
                     </Box> */}
 
-                    <Box>
-                      <DataGrid
-                        sx={{
-                          '.MuiDataGrid-cell:focus': {
-                            outline: 'none'
-                          },
+                <DataGrid
+                  sx={{
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
 
-                          '& .MuiDataGrid-row:hover': {
-                            cursor: 'pointer'
-                          }
-                        }}
-                        columnVisibilityModel={{
-                          sl_no: false
-                        }}
-                        hideFooterSelectedRowCount
-                        disableColumnSelector={true}
-                        autoHeight
-                        pagination
-                        rows={indexedRows === undefined ? [] : indexedRows}
-                        rowCount={total}
-                        columns={columns}
-                        sortingMode='server'
-                        paginationMode='server'
-                        pageSizeOptions={[7, 10, 25, 50]}
-                        paginationModel={paginationModel}
-                        onSortModelChange={handleSortModel}
-                        onPaginationModelChange={setPaginationModel}
-                        rowHeight={64}
-                        loading={loading}
-                        onCellClick={onCellClick}
-                      />
-                    </Box>
-                  </Card>
-                </Grid>
-              </Grid>
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  onPaginationModelChange={setPaginationModel}
+                  rowHeight={64}
+                  loading={loading}
+                  onCellClick={onCellClick}
+                />
+              </Card>
             </Box>
             {isOpen && (
               <AddIncubatorRoom
@@ -664,10 +644,7 @@ const RoomsList = () => {
           </>
         )
       ) : (
-        <>
-          {' '}
-          <ErrorScreen></ErrorScreen>
-        </>
+        <ErrorScreen></ErrorScreen>
       )}
     </>
   )

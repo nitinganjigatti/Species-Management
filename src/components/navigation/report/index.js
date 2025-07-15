@@ -5,7 +5,8 @@ const ComposeReportNavigation = ({
   reports_module,
   enable_animal_report,
   enable_daily_report,
-  enable_specie_report
+  enable_specie_report,
+  enable_animal_assessment_report
 }) => {
   const reportTitle = {
     sectionTitle: 'Report'
@@ -14,6 +15,12 @@ const ComposeReportNavigation = ({
   const animalList = {
     title: 'Animal List Report',
     path: '/report/animalList',
+    icon: 'mdi:paw-outline'
+  }
+
+  const animalAssessment = {
+    title: 'Animal Assessment',
+    path: '/report/animalAssessment',
     icon: 'mdi:paw-outline'
   }
 
@@ -45,15 +52,26 @@ const ComposeReportNavigation = ({
     reportNavigationArray.push(animalList)
   }
 
+  if (enable_animal_assessment_report) {
+    reportNavigationArray.push(animalAssessment)
+  }
+
   return reportNavigationArray
 }
 
-const reportNavigation = ({ reports_module, enable_animal_report, enable_daily_report, enable_specie_report }) =>
+const reportNavigation = ({
+  reports_module,
+  enable_animal_report,
+  enable_daily_report,
+  enable_specie_report,
+  enable_animal_assessment_report
+}) =>
   ComposeReportNavigation({
     reports_module,
     enable_animal_report,
     enable_daily_report,
-    enable_specie_report
+    enable_specie_report,
+    enable_animal_assessment_report
   })
 
 export default reportNavigation

@@ -1,18 +1,5 @@
 import { LoadingButton } from '@mui/lab'
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  Grid,
-  IconButton,
-  Stack,
-  Tooltip,
-  Typography
-} from '@mui/material'
-import moment from 'moment'
+import { Avatar, Box, Button, Card, Dialog, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 import { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
@@ -23,8 +10,6 @@ import Utility from 'src/utility'
 const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDrawer }) => {
   const theme = useTheme()
 
-  console.log('eggList :>> ', eggList)
-
   const [iseOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [eggID, setEggId] = useState('')
@@ -33,46 +18,30 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
     setIsOpen(true)
 
     if (item) {
-      // console.log('item :>> ', item?.egg_id)
-
       setEggId(item?.id)
     }
-
-    // handleDelete()
   }
 
   const handleDelete = async () => {
     setLoading(true)
+    const payload = { id: eggID }
 
-    const payload = {
-      id: eggID
-    }
-
-    // console.log('params  handleDelete :>> ', payload)
     try {
-      await DeleteEggById(payload).then(res => {
-        console.log('res :>> ', res)
-
-        if (res?.success) {
-          setLoading(false)
-          setIsOpen(false)
-          if (getEggListSummary) {
-            getEggListSummary()
-          }
-          setDetailDrawer(false)
-          if (fetchTableData) {
-            fetchTableData()
-          }
-          Toaster({ type: 'success', message: res.message })
-        } else {
-          setLoading(false)
-          setIsOpen(false)
-          Toaster({ type: 'error', message: res.message })
-        }
-      })
+      const res = await DeleteEggById(payload)
+      if (res?.success) {
+        Toaster({ type: 'success', message: res.message })
+        if (getEggListSummary) getEggListSummary()
+        if (fetchTableData) fetchTableData()
+        setDetailDrawer(false)
+      } else {
+        Toaster({ type: 'error', message: res?.message || 'Failed to delete egg record' })
+      }
     } catch (error) {
+      console.error('DeleteEggById error:', error)
+      Toaster({ type: 'error', message: 'Something went wrong while deleting the egg' })
+    } finally {
       setLoading(false)
-      console.log('error :>> ', error)
+      setIsOpen(false)
     }
   }
 
@@ -87,15 +56,12 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
             my: 4,
             alignItems: 'center',
             ml: 4,
-
             display: 'flex',
             justifyContent: 'center',
             py: '20px',
             border: 1,
             borderColor: theme.palette.customColors.OutlineVariant
           }}
-
-          // onScroll={handleScroll}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {eggList?.map(item => (
@@ -159,8 +125,6 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                           color: theme.palette.customColors.OnSurfaceVariant,
                           position: 'relative',
                           right: '10px',
-
-                          // bottom: '2px',
                           lineHeight: '19.36px'
                         }}
                       >
@@ -207,37 +171,6 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                         <Icon icon='flowbite:trash-bin-outline' fontSize={24} />
                       </IconButton>
                     </Stack>
-                    {/* <Box
-                    sx={{
-                      px: 3,
-                      backgroundColor: theme.palette.customColors.AntzTertiary,
-                      textAlign: 'center',
-                      borderRadius: '4px',
-                      alignSelf: 'flex-start',
-                      position: 'relative',
-                      bottom: '0px'
-                    }}
-                  >
-                    {' '}
-                    <Tooltip title={item?.egg_state} placement='bottom'>
-                      <Typography
-                        sx={{
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap',
-                          color: theme.palette.customColors.Error,
-                          maxWidth: 100
-                        }}
-                      >
-                        {item?.egg_state}
-                      </Typography>
-                    </Tooltip>
-                  </Box>
-                  <Box sx={{ position: 'relative', left: '10px' }}>
-                    <Icon icon='flowbite:trash-bin-outline' fontSize={24} />
-                  </Box> */}
                   </Box>
 
                   <Box
@@ -247,8 +180,6 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                       alignItems: 'center',
                       position: 'relative',
                       right: '12px'
-
-                      // bottom: '10px'
                     }}
                   >
                     <Typography
@@ -259,7 +190,6 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                         lineHeight: '16.94px'
                       }}
                     >
-                      {/* {item.collection_date ? moment(item.collection_date).format('DD MMM YYYY') : '-'} */}
                       {item.collection_date ? Utility.formatDisplayDate(item.collection_date) : '-'}
                     </Typography>
                   </Box>
@@ -278,7 +208,6 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
             flexDirection: 'column',
             width: '500px',
             height: '342px',
-
             gap: '24px'
           }}
         >
@@ -302,23 +231,10 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
               You are removing the egg from this discarded batch
             </Typography>
           </Box>
-          {/* <Box sx={{ width: '100%', px: 4 }}>
-          <TextField
-            multiline
-            rows={2}
-            label='Add Comments*'
-            variant='outlined'
-            fullWidth
-            value={comments} // Bind the value to state
-            onChange={e => setComments(e.target.value)}
-          />
-        </Box> */}
-
           <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: 6, p: 4 }}>
             <Button variant='outlined' fullWidth sx={{ p: 4 }} onClick={() => setIsOpen(false)}>
               CANCEL
             </Button>
-
             <LoadingButton variant='contained' fullWidth sx={{ p: 4 }} loading={loading} onClick={() => handleDelete()}>
               REMOVE
             </LoadingButton>

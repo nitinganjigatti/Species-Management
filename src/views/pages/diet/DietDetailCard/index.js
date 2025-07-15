@@ -32,7 +32,8 @@ const DietDetailCard = ({
   refreshDietDetails,
   handleSpeciesClick,
   handleSpeciesClicknew,
-  setapplyfilterCheck
+  setapplyfilterCheck,
+  authData
 }) => {
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
@@ -165,7 +166,17 @@ const DietDetailCard = ({
   return (
     <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', pb: 4, pl: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            float: 'left',
+            gap: '16px',
+            alignItems: 'center',
+            pb: 4,
+            pl: 1
+          }}
+        >
           <Icon
             style={{ cursor: 'pointer' }}
             onClick={handlebackClick}
@@ -183,6 +194,100 @@ const DietDetailCard = ({
             Diet Details
           </Typography>
         </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: isSmallDevice ? '16px' : '24px',
+            alignItems: 'center',
+            flexDirection: isSmallDevice ? 'row' : 'row',
+            flexWrap: isSmallDevice ? 'row' : 'nowrap',
+            float: 'right'
+          }}
+        >
+          <Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isActive === '1' ? true : false}
+                  onChange={handleSwitchChange}
+                  fontSize={2}
+                  disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
+                  sx={{
+                    '&.Mui-disabled': {
+                      color: 'grey'
+                    },
+                    '& .MuiSwitch-switchBase.Mui-disabled + .MuiSwitch-track': {
+                      backgroundColor: '#ccc',
+                      opacity: 0.7
+                    }
+                  }}
+                />
+              }
+              labelPlacement='start'
+              label={isActive === '1' ? 'Active' : 'InActive'}
+              sx={{ marginLeft: isSmallDevice ? '0px' : '16px' }}
+            />
+          </Box>
+          {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+            <Tooltip title='Copy' placement='top'>
+              <Box>
+                {/* <Icon
+                          icon='fluent:copy-32-regular'
+                          style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+                          onClick={handleDietClick}
+                        /> */}
+                <Avatar
+                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer', fontSize: 24 }}
+                  src={'/icons/icon_copy.svg'}
+                  variant='square'
+                  onClick={handleDietClick}
+                />
+              </Box>
+            </Tooltip>
+          )}
+          {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+            <Tooltip title='Edit' placement='top'>
+              <Box>
+                {/* <Icon
+                          icon='bx:pencil'
+                          style={{ fontSize: 24, cursor: 'pointer' }}
+                          onClick={() =>
+                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                          }
+                        /> */}
+                <Avatar
+                  sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
+                  src={'/icons/pencil_outlined.svg'}
+                  variant='square'
+                  onClick={() =>
+                    Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                  }
+                />
+              </Box>
+            </Tooltip>
+          )}
+          {dietModuleAccess === 'DELETE' && (
+            <Tooltip title='Delete' placement='top'>
+              <Box>
+                {/* <Icon
+                          onClick={() => {
+                            handlelOpenDelete()
+                          }}
+                          icon='material-symbols:delete-outline'
+                          style={{ fontSize: 24, cursor: 'pointer' }}
+                        /> */}
+                <Avatar
+                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                  src={'/icons/delete_outlined.svg'}
+                  variant='square'
+                  onClick={() => {
+                    handlelOpenDelete()
+                  }}
+                />
+              </Box>
+            </Tooltip>
+          )}
+        </Box>
         <Grid
           sx={{
             justifyContent: 'space-between',
@@ -193,7 +298,7 @@ const DietDetailCard = ({
           }}
           container
         >
-          <Grid md={3.8} xs={12} item>
+          <Grid size={{ xs: 12, md: 3.8 }}>
             {/* <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
               <Avatar
                 variant='square'
@@ -237,77 +342,82 @@ const DietDetailCard = ({
                     objectPosition: isSmallDevice ? 'left' : 'center'
                   }
                 }}
-                src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
+                src={dietDetails?.image ? dietDetails?.image : '/images/diet_default.svg'}
               ></Avatar>
 
               {/* Details Section */}
               <Box sx={{ p: 3, pt: 5 }}>
-                <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
-                  <Typography fontWeight='400' sx={{ color: theme.palette.customColors.secondaryBg }}>
-                    Assigned to
-                  </Typography>
-                  <div>
-                    <Button
-                      variant='outlined'
-                      size='small'
-                      onClick={handleClick}
-                      sx={{
-                        textTransform: 'none',
-                        fontWeight: 'bold',
-                        fontSize: '14px',
-                        color: theme.palette.primary.dark,
-                        pl: 4,
-                        pr: 4,
-                        pt: 2,
-                        pb: 2
-                      }}
-                    >
-                      + Assign
-                    </Button>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleClose}
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                      // disablePortal // Prevents rendering in a separate portal
-                      //disableScrollLock // Prevents background scrolling from being locked
-                      sx={{
-                        '& .MuiPaper-root': {
-                          boxShadow: 'none',
-                          minWidth: 150,
-                          position: 'absolute',
-                          left: '484px !important'
-                        }
-                      }} // Removes shadow for a cleaner look
-                    >
-                      <MenuItem
-                        onClick={() => {
-                          handleSpeciesClick('species')
-                          handleClose()
-                          setapplyfilterCheck(false)
+                {authData?.userData?.roles?.settings?.assign_diet === true ? (
+                  <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
+                    <Typography fontWeight='400' sx={{ color: theme.palette.customColors.secondaryBg }}>
+                      Assigned to
+                    </Typography>
+                    <div>
+                      <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={handleClick}
+                        sx={{
+                          textTransform: 'none',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          color: theme.palette.primary.dark,
+                          pl: 4,
+                          pr: 4,
+                          pt: 2,
+                          pb: 2
                         }}
-                        sx={{ fontSize: '14px' }}
                       >
-                        Assign to Species
-                      </MenuItem>
-                      <MenuItem
-                        onClick={() => {
-                          handleSpeciesClick('animals')
-                          handleClose()
-                          setapplyfilterCheck(false)
-                        }}
-                        sx={{ fontSize: '14px' }}
+                        + Assign
+                      </Button>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleClose}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                        // disablePortal // Prevents rendering in a separate portal
+                        //disableScrollLock // Prevents background scrolling from being locked
+                        sx={{
+                          '& .MuiPaper-root': {
+                            boxShadow: 'none',
+                            minWidth: 150,
+                            position: 'absolute'
+
+                            // left: '484px !important'
+                          }
+                        }} // Removes shadow for a cleaner look
                       >
-                        Assign to Animals
-                      </MenuItem>
-                    </Menu>
-                  </div>
-                </Box>
+                        <MenuItem
+                          onClick={() => {
+                            handleSpeciesClick('species')
+                            handleClose()
+                            setapplyfilterCheck(false)
+                          }}
+                          sx={{ fontSize: '14px' }}
+                        >
+                          Assign to Species
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            handleSpeciesClick('animals')
+                            handleClose()
+                            setapplyfilterCheck(false)
+                          }}
+                          sx={{ fontSize: '14px' }}
+                        >
+                          Assign to Animals
+                        </MenuItem>
+                      </Menu>
+                    </div>
+                  </Box>
+                ) : (
+                  ''
+                )}
                 {/* Species and Animals Details */}
                 <Grid container spacing={2}>
                   {/* Species Section */}
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_species !== '0' ? (
                       <Box display='flex' justifyContent='space-between' alignItems='center'>
                         {/* Label */}
@@ -348,7 +458,7 @@ const DietDetailCard = ({
                   </Grid>
 
                   {/* Animals Section */}
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_animals !== '0' ? (
                       <Box
                         display='flex'
@@ -393,7 +503,7 @@ const DietDetailCard = ({
               </Box>
             </Box>
           </Grid>
-          <Grid item md={7.8} xs={12}>
+          <Grid size={{ xs: 12, md: 7.8 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Box
                 sx={{
@@ -420,99 +530,6 @@ const DietDetailCard = ({
                   >
                     {dietDetails?.diet_name}
                   </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: isSmallDevice ? '16px' : '24px',
-                    alignItems: 'center',
-                    flexDirection: isSmallDevice ? 'row' : 'row',
-                    flexWrap: isSmallDevice ? 'row' : 'nowrap'
-                  }}
-                >
-                  <Box>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={isActive === '1' ? true : false}
-                          onChange={handleSwitchChange}
-                          fontSize={2}
-                          disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
-                          sx={{
-                            '&.Mui-disabled': {
-                              color: 'grey'
-                            },
-                            '& .MuiSwitch-switchBase.Mui-disabled + .MuiSwitch-track': {
-                              backgroundColor: '#ccc',
-                              opacity: 0.7
-                            }
-                          }}
-                        />
-                      }
-                      labelPlacement='start'
-                      label={isActive === '1' ? 'Active' : 'InActive'}
-                      sx={{ marginLeft: isSmallDevice ? '0px' : '16px' }}
-                    />
-                  </Box>
-                  {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-                    <Tooltip title='Copy' placement='top'>
-                      <Box>
-                        {/* <Icon
-                          icon='fluent:copy-32-regular'
-                          style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
-                          onClick={handleDietClick}
-                        /> */}
-                        <Avatar
-                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer', fontSize: 24 }}
-                          src={'/icons/icon_copy.svg'}
-                          variant='square'
-                          onClick={handleDietClick}
-                        />
-                      </Box>
-                    </Tooltip>
-                  )}
-                  {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-                    <Tooltip title='Edit' placement='top'>
-                      <Box>
-                        {/* <Icon
-                          icon='bx:pencil'
-                          style={{ fontSize: 24, cursor: 'pointer' }}
-                          onClick={() =>
-                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
-                          }
-                        /> */}
-                        <Avatar
-                          sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
-                          src={'/icons/pencil_outlined.svg'}
-                          variant='square'
-                          onClick={() =>
-                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
-                          }
-                        />
-                      </Box>
-                    </Tooltip>
-                  )}
-                  {dietModuleAccess === 'DELETE' && (
-                    <Tooltip title='Delete' placement='top'>
-                      <Box>
-                        {/* <Icon
-                          onClick={() => {
-                            handlelOpenDelete()
-                          }}
-                          icon='material-symbols:delete-outline'
-                          style={{ fontSize: 24, cursor: 'pointer' }}
-                        /> */}
-                        <Avatar
-                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
-                          src={'/icons/delete_outlined.svg'}
-                          variant='square'
-                          onClick={() => {
-                            handlelOpenDelete()
-                          }}
-                        />
-                      </Box>
-                    </Tooltip>
-                  )}
                 </Box>
               </Box>
               {/* <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>

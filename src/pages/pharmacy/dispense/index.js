@@ -42,6 +42,7 @@ function Dispense() {
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
+  const [filterSwitch, setFilterSwitch] = useState(false)
 
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
@@ -392,7 +393,7 @@ function Dispense() {
             }}
           >
             {/* Search Field */}
-            <Grid item xs={12} sm={8} md={8} sx={{ mx: { xs: 3, md: 5 } }}>
+            <Grid item size={{ xs: 12, sm: 8, md: 8 }} sx={{ mx: { xs: 3, md: 5 } }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -425,15 +426,19 @@ function Dispense() {
             </Grid>
 
             {/* Switch */}
-            {status === 'all' || status === 'completed' ? (
-              <Grid item xs={12} sm='auto' sx={{ textAlign: { xs: 'center', sm: 'right' }, mt: { xs: 2, sm: 0 } }}>
+            {/* {status === 'all' || status === 'completed' ? (
+              <Grid
+                item
+                size={{ xs: 12, sm: 'auto' }}
+                sx={{ textAlign: { xs: 'center', sm: 'right' }, mt: { xs: 2, sm: 0 } }}
+              >
                 <FormControlLabel
                   control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                   label='Completed'
                   labelPlacement='end'
                 />
               </Grid>
-            ) : null}
+            ) : null} */}
           </Grid>
 
           {/* Table */}

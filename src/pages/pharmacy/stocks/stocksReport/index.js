@@ -56,6 +56,10 @@ import { useRouter } from 'next/router'
 import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
 import RenderUtility from 'src/utility/render'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import MenuWithDots from 'src/components/MenuWithDots'
+import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
+import StockConfigDetails from 'src/views/pages/pharmacy/stock/StockConfigDetails'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -107,6 +111,9 @@ const ListOfStocks = () => {
   const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
   const [purchaseLoading, setPurchaseLoading] = useState(false)
   const [searchPurchase, setSearchPurchase] = useState('')
+  const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
+  const [configReOrderMed, setConfigReOrderMed] = useState(null)
+  const [dialogCheck, setDialogCheck] = useState(false)
   const textFieldRef = useRef(null)
 
   const handleChange = (event, newValue) => {
@@ -117,7 +124,7 @@ const ListOfStocks = () => {
   }
 
   const closeDialog = () => {
-    setConfigureMedId('')
+    setConfigureMedId(null)
     setShow(false)
   }
 
@@ -290,8 +297,6 @@ const ListOfStocks = () => {
     [paginationModel, stockId]
   )
 
-  // console.log('stock Reports >', stockReport)
-
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
     id: `${row.id}_${index}`,
@@ -450,9 +455,18 @@ const ListOfStocks = () => {
     }
   }
 
+  const getMenuOptions = row => [
+    {
+      label: 'Add Re-Order Level',
+      action: () => {
+        setOpenReOrderLevelDialog(true)
+        setConfigReOrderMed(row)
+      }
+    }
+  ]
+
   const columns = [
     {
-      // flex: 0.05,
       Width: 40,
       field: 'uid',
       headerName: 'SL.NO',
@@ -462,48 +476,21 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.12,
-      minWidth: 20,
-      field: 'image',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <Badge
-          sx={{ ml: 2, cursor: 'pointer' }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-        >
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-          />
-        </Badge>
-      )
-    },
 
     {
-      // flex: 0.2,
       width: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_items_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_items_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
     {
@@ -530,7 +517,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
@@ -552,48 +538,60 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
-      headerName: 'Value',
+      headerName: 'Value(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.total_cost.toLocaleString()}
+          {Utility.formatAmountToReadableDigit(params.row.total_cost)}
         </Typography>
       )
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_item_id',
-      headerName: 'Average Price',
+      headerName: 'Average Price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Number.isInteger(params.row.total_cost / params.row.stock_qty)
+          {/* {Number.isInteger(params.row.total_cost / params.row.stock_qty)
             ? params.row.total_cost / params.row.stock_qty
-            : parseFloat(params.row.total_cost / params.row.stock_qty).toFixed(2)}
+            : parseFloat(params.row.total_cost / params.row.stock_qty).toFixed(2)} */}
           {/* {parseFloat(params.row.total_cost / params.row.stock_qty).toPrecision(2)} */}
           {/* {params.row.total_cost / params.row.stock_qty} */}
+          {Utility.formatAmountToReadableDigit(params.row.total_cost / params.row.stock_qty)}
         </Typography>
       )
     },
     {
-      // flex: 0.4,
       width: 260,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        <Typography variant='body2' sx={{ color: 'text.primary', ...RenderUtility.getEllipsisStyleForText('260') }}>
+          {RenderUtility.getToolTipForText(`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`)}
         </Typography>
       )
-    }
+    },
+    ...(!changeSwitch && value === '1'
+      ? [
+          {
+            width: 150,
+            field: 'action', // replace with your field name
+            headerName: 'Actions',
+            renderCell: params => (
+              <Tooltip title='More Options' placement='top'>
+                <MenuWithDots options={getMenuOptions(params?.row)} />
+              </Tooltip>
+            )
+          }
+        ]
+      : [])
   ]
 
   const batchWiseColumn = [
@@ -608,47 +606,22 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.2,
-      minWidth: 20,
-      field: 'image',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <Badge
-          sx={{ ml: 2, cursor: 'pointer' }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-        >
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-          />
-        </Badge>
-      )
-    },
+
     {
       // flex: 0.4,
       minWidth: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_items_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_items_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
     {
@@ -674,7 +647,6 @@ const ListOfStocks = () => {
       })
     },
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
@@ -688,34 +660,32 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
-      minWidth: 160,
+      minWidth: 200,
       field: 'unit_price',
-      headerName: 'Unit Price',
+      headerName: 'Net Unit Price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.unit_price) > 0 ? params.row.unit_price : 0}
+          {Utility.formatAmountToReadableDigit(params?.row?.unit_price)}
         </Typography>
       )
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
-      headerName: 'Value',
+      headerName: 'Value(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.total_cost) > 0 ? params.row.total_cost : 0}
+          {/* {parseInt(params.row.total_cost) > 0 ? params.row.total_cost : 0} */}
+          {Utility.formatAmountToReadableDigit(params?.row?.total_cost)}
         </Typography>
       )
     },
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'batch_no',
       type: 'text',
@@ -729,7 +699,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
@@ -745,9 +714,9 @@ const ListOfStocks = () => {
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        <Typography variant='body2' sx={{ color: 'text.primary', ...RenderUtility.getEllipsisStyleForText('260') }}>
+          {RenderUtility.getToolTipForText(`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`)}
         </Typography>
       )
     }
@@ -797,8 +766,19 @@ const ListOfStocks = () => {
   }
 
   const handleStockRowClick = params => {
-    if (selectedPharmacy?.id === stockId) {
-      setConfigureMedId(params?.row?.stock_item_id)
+    if (
+      selectedPharmacy?.id === stockId &&
+      (params?.field === 'stock_items_name' ||
+        params?.field === 'stock_qty' ||
+        params?.field === 'total_cost' ||
+        params?.field === 'unit_price' ||
+        params?.field === 'package' ||
+        params?.field === 'store_name' ||
+        params?.field === 'stock_item_id' ||
+        params?.field === 'batch_no' ||
+        params?.field === 'expiry_date')
+    ) {
+      setConfigureMedId(params?.row)
       showDialog()
     }
   }
@@ -1058,7 +1038,15 @@ const ListOfStocks = () => {
               <FallbackSpinner />
             ) : (
               <>
-                <CommonDialogBox
+                {show && (
+                  <StockConfigDetails
+                    open={showDialog}
+                    configMed={configureMedId}
+                    setConfigMed={setConfigureMedId}
+                    close={closeDialog}
+                  />
+                )}
+                {/* <CommonDialogBox
                   title={'Configure Medicine'}
                   dialogBoxStatus={show}
                   formComponent={
@@ -1066,7 +1054,7 @@ const ListOfStocks = () => {
                   }
                   close={closeDialog}
                   show={showDialog}
-                />
+                /> */}
                 {/* <TableWithFilter
                   TableTitle={stockReport.length > 0 ? 'Stock Report' : 'Stock Report is empty'}
                   columns={columns}
@@ -1098,7 +1086,7 @@ const ListOfStocks = () => {
                       mx: { xs: 2, sm: 6, md: 6, lg: 6 }
                     }}
                   >
-                    <Grid item xs={12} md={8} lg={8}>
+                    <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
                       <TextField
                         variant='outlined'
                         size='small'
@@ -1110,25 +1098,27 @@ const ListOfStocks = () => {
                             : handleSearch(e.target.value, stockId, stockType, paginationModel)
                         }}
                         fullWidth
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <Icon
-                                icon='mi:search'
-                                fontSize={24}
-                                color={theme.palette.customColors.neutralSecondary}
-                              />
-                            </InputAdornment>
-                          )
-                        }}
                         sx={{
                           borderRadius: '8px'
+                        }}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <Icon
+                                  icon='mi:search'
+                                  fontSize={24}
+                                  color={theme.palette.customColors.neutralSecondary}
+                                />
+                              </InputAdornment>
+                            )
+                          }
                         }}
                       />
                     </Grid>
                     <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
                       {selectedPharmacy.type === 'central' && (
-                        <Grid item xs={12} md={4} lg={4}>
+                        <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
                           <FormControl
                             sx={{
                               width: { xs: '100%', md: 200, lg: 200 },
@@ -1185,15 +1175,14 @@ const ListOfStocks = () => {
                               size='small'
                             >
                               <MenuItem value='all'>All</MenuItem>
-                              {stores.length > 0
-                                ? stores.map(el => {
-                                    return (
-                                      <MenuItem key={el.id} value={el.id}>
-                                        {el.name}
-                                      </MenuItem>
-                                    )
-                                  })
-                                : null}
+                              {stores.length > 0 &&
+                                stores.map(el => {
+                                  return (
+                                    <MenuItem key={el.id} value={el.id}>
+                                      {el.name}
+                                    </MenuItem>
+                                  )
+                                })}
                             </Select>
                             <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
                           </FormControl>
@@ -1201,9 +1190,7 @@ const ListOfStocks = () => {
                       )}
                       <Grid
                         item
-                        xs={12}
-                        md={8}
-                        lg={8}
+                        size={{ xs: 12, md: 8, lg: 8 }}
                         sx={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -1456,7 +1443,6 @@ const ListOfStocks = () => {
           <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow value={value} />}</TabPanel>
         </TabContext>
       </Grid>
-
       <StockReportDetails
         drawerWidth={400}
         addEventSidebarOpen={openDrawer}
@@ -1473,6 +1459,16 @@ const ListOfStocks = () => {
         setSearchPurchase={setSearchPurchase}
         handleClearSearch={handleClearSearch}
       />
+      {openReOrderLevelDialog && (
+        <AddReOrderDialog
+          openDrawer={openReOrderLevelDialog}
+          setOpenDrawer={setOpenReOrderLevelDialog}
+          stockDetails={configReOrderMed}
+          setStockDetails={setConfigReOrderMed}
+          dialogCheck={dialogCheck}
+          setDialogCheck={setDialogCheck}
+        />
+      )}
     </>
   )
 }

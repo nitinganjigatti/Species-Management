@@ -41,6 +41,7 @@ const RecipeList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
+
       const params = {
         page: ingredientPage,
         q: fromrow !== 'rowedit_recipe' ? searchValue : recipeName,
@@ -74,6 +75,7 @@ const RecipeList = props => {
   const handleScroll = async e => {
     const container = e.target
     const threshold = 20
+
     // Check if user has reached the bottom and more data is available
     if (totalCount > ingredientList?.length && !reachedEnd) {
       const isNearBottom =
@@ -203,19 +205,6 @@ const RecipeList = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <Icon
-                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                      icon={'ion:search-outline'}
-                    />
-                  ),
-                  endAdornment: searchValue && (
-                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                    </IconButton>
-                  )
-                }}
                 placeholder='Search recipe'
                 onChange={handleSearchChange}
                 sx={{
@@ -226,6 +215,24 @@ const RecipeList = props => {
                     }
                   }
                 }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <Icon
+                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                        icon={'ion:search-outline'}
+                      />
+                    ),
+                    endAdornment: searchValue && (
+                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                        <Icon
+                          icon={'ion:close-outline'}
+                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                        />
+                      </IconButton>
+                    )
+                  }
+                }}
               />
             </Box>
           </Box>
@@ -233,13 +240,14 @@ const RecipeList = props => {
           ''
         )}
       </Box>
-
       {/* on scroll */}
       <Box
         className=''
         sx={{
           marginTop: fromrow !== 'rowedit_recipe' ? 30 : 12,
-          height: fromrow !== 'rowedit_recipe' ? '70%' : '80%',
+
+          //height: fromrow !== 'rowedit_recipe' ? '70%' : '80%',
+          height: fromrow !== 'rowedit_recipe' ? 'calc(100vh - 220px)' : '80%',
           overflowY: 'auto',
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4

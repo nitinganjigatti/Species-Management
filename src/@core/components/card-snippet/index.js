@@ -128,7 +128,7 @@ const CardSnippet = props => {
         </Collapse>
       )}
     </Card>
-  )
+  );
 }
 
 export default CardSnippet

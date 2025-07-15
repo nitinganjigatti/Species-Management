@@ -25,7 +25,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const getSpecieDetail = async () => {
     setDetailsLoader(true)
     try {
-      const res = await getSpecieDetailById(speciesId)
+      const res = await getSpecieDetailById(speciesId, { uploaded_diet_section: true })
       setSpecieDetails(res.data.data)
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'Failed to fetch data' })
@@ -49,6 +49,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           species_id: `${speciesId}`,
           attachment_id: `${attachment_id}`
         })
+
         // Toaster({ type: 'success', message: res.message || 'Attachment removed successfully' })
         Toaster({ type: 'success', message: 'Diet Deactivated Successfully' })
         await fetchTableData()
@@ -70,6 +71,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           species_id: `${speciesId}`,
           attachment_id: `${attachmentId}`
         })
+
         // Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
         Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
@@ -80,6 +82,43 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         setDetailsLoader(false)
       }
     }
+  }
+
+  const DietitianAvatar = ({ item }) => {
+    const [imgError, setImgError] = useState(false)
+
+    const imageUrl = item?.dietitian_by_profile
+
+    return imageUrl && !imgError ? (
+      <Avatar
+        variant='rounded'
+        alt='Profile'
+        sx={{
+          width: 24,
+          height: 24,
+          borderRadius: '50%',
+          background: theme.palette.customColors.displaybgPrimary,
+          overflow: 'hidden'
+        }}
+      >
+        <img src={imageUrl} alt='Profile' style={{ width: '100%', height: '100%' }} onError={() => setImgError(true)} />
+      </Avatar>
+    ) : (
+      <Avatar
+        variant='rounded'
+        sx={{
+          width: 24,
+          height: 24,
+          borderRadius: '50%',
+          background: theme.palette.customColors.displaybgPrimary,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <Icon icon='mdi:user' />
+      </Avatar>
+    )
   }
 
   //////////////////-Cards-//////////////////////////////////////////
@@ -191,7 +230,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='pdf' />
               </Avatar>
 
-              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Box sx={{ flexGrow: 1, display: 'inline-grid' }}>
                 <Box
                   sx={{
                     width: '100%',
@@ -213,6 +252,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         width: 'calc(100% - 120px)'
+
                         // minWidth: 150
                       }}
                     >
@@ -232,24 +272,17 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     defaultChecked={type === 'attach' ? true : false}
                   />
                 </Box>
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Avatar
-                    variant='rounded'
-                    alt='dietitian_by_profile'
-                    sx={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: '50%',
-                      background: theme.palette.customColors.displaybgPrimary,
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {item?.dietitian_by_profile ? (
-                      <img style={{ width: '100%', height: '100%' }} src={item?.dietitian_by_profile} alt='Profile' />
-                    ) : (
-                      <Icon icon='mdi:user' />
-                    )}
-                  </Avatar>
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    mb: '6px',
+                    maxWidth: '400px'
+                  }}
+                >
+                  <DietitianAvatar item={item} />
 
                   <Tooltip title={item?.dietitian_name ? item?.dietitian_name : '-'}>
                     <Typography
@@ -261,8 +294,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         letterSpacing: '0.1px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: 100
+                        whiteSpace: 'nowrap'
+
+                        // maxWidth: 100
                       }}
                     >
                       {item?.dietitian_name ? item?.dietitian_name : '-'}
@@ -275,10 +309,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       fontSize: '14px',
                       fontWeight: '500',
                       lineHeight: '100%',
-                      letterSpacing: '0.1px'
+                      letterSpacing: '0.1px',
+                      display: 'flex'
                     }}
                   >
-                    &#8226; Dietitian
+                    <span style={{ margin: '0px 6px' }}>&#8226;</span> <span>Dietitian</span>
                   </Typography>
                 </Box>
                 {item?.notes && (
@@ -290,7 +325,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       fontWeight: '400',
                       lineHeight: '20px',
                       letterSpacing: '0%',
-                      textAlign: 'justify'
+                      textAlign: 'justify',
+                      mb: '6px'
                     }}
                   >
                     {item?.notes}
@@ -364,6 +400,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const handleChange = (event, newValue) => {
     setStatus(newValue)
   }
+
   const TabBadge = ({ label }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -430,7 +467,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 6
+          gap: 6,
+          maxWidth: '562px'
         }}
       >
         {!!detailsLoader ? (
@@ -517,6 +555,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             setspeciesId(specieDetails.species_id)
             setUploadDietDrawer(true)
           }}
+
           // loading={loader}
         >
           UPLOAD NEW

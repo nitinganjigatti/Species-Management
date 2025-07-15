@@ -25,7 +25,6 @@ const DispatchValidationList = () => {
     setLoader(true)
     const response = await getDispatchValidation()
     if (response?.length > 0) {
-      console.log('list', response)
 
       let listWithId = response.map((el, i) => {
         return { ...el, uid: i + 1 }

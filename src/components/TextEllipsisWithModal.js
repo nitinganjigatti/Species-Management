@@ -28,7 +28,7 @@ const TextEllipsisWithModal = ({ ...props }) => {
         {props?.icon && (
           <Icon
             icon={props?.icon}
-            style={{ fontSize: '20px', color: props?.iconColor ? props?.iconColor : '#00000066' }}
+            style={{ fontSize: '20px', color: props?.iconColor ? props?.iconColor : '#00000066', flexShrink: 0 }}
           />
         )}
         <Tooltip sx={{ cursor: 'pointer' }} title={props?.text}>
@@ -59,7 +59,7 @@ const TextEllipsisWithModal = ({ ...props }) => {
             <Divider />
             <CardContent>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Grid sx={{ mt: 2, position: 'relative', right: 8 }}>
                     <Typography sx={{ fontSize: '16px', fontFamily: 'Inter', fontWeight: 500 }}>
                       {props?.text}

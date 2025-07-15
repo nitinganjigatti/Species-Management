@@ -100,13 +100,13 @@ function DisputeItemView({ disputeId }) {
         // <Typography variant='body2' sx={{ color: 'text.primary' }}>
         //   {params.row.to_store_name}
         // </Typography>
-        <div>
+        (<div>
           <Tooltip title={params.row.to_store_name} placement='top'>
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params.row.to_store_name}
             </Typography>
           </Tooltip>
-        </div>
+        </div>)
       )
     },
 
@@ -136,9 +136,9 @@ function DisputeItemView({ disputeId }) {
   ]
 
   return (
-    <Grid xs={12}>
+    <Grid size={{ xs: 12 }}>
       {disputedItem?.dispute_item_details?.length > 0 ? (
-        <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+        <Grid size={{ xs: 12, sm: 12, md: 12 }} sx={{ my: 2 }}>
           <TableBasic columns={disputedItemsColumns} rows={disputedItem?.dispute_item_details}></TableBasic>
         </Grid>
       ) : null}

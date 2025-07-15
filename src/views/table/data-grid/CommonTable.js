@@ -10,6 +10,7 @@ const CommonTable = ({
   paginationModel,
   handleSortModel,
   setPaginationModel,
+  pageSizeOptions,
   loading,
   searchValue,
   onCellClick,
@@ -41,7 +42,7 @@ const CommonTable = ({
         },
         '.MuiDataGrid-virtualScroller': {
           // overflow: 'hidden',
-          overflowX: 'auto',
+
           ...(maxHeight && { maxHeight: maxHeight, overflowY: 'auto !important' })
         },
         '.MuiDataGrid-main': {
@@ -79,7 +80,13 @@ const CommonTable = ({
       // paginationMode='server'
       // pageSizeOptions={[7, 10, 25, 50]}
       paginationMode={disablePagination ? undefined : 'server'}
-      pageSizeOptions={disablePagination ? [total] : [7, 10, 25, 50, 100]}
+      pageSizeOptions={
+        pageSizeOptions && pageSizeOptions.length > 0
+          ? pageSizeOptions
+          : disablePagination
+          ? [total]
+          : [7, 10, 25, 50, 100]
+      }
       onCellClick={onCellClick ? onCellClick : null}
       // paginationModel={paginationModel}
       paginationModel={disablePagination ? undefined : paginationModel}
