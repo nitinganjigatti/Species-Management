@@ -11,7 +11,7 @@ import Button from '@mui/material/Button'
 import QuickSearchToolbar from '../views/table/data-grid/QuickSearchToolbar'
 
 const escapeRegExp = value => {
-  return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+  return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
 
 const TableWithFilter = ({ TableTitle, columns, rows, headerActions, inpFields, onRowClick }) => {

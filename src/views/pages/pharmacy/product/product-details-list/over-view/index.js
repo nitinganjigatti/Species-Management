@@ -11,7 +11,6 @@ import {
   List,
   ListItem,
   CardHeader,
-  Drawer,
   alpha,
   CircularProgress
 } from '@mui/material'
@@ -88,9 +87,6 @@ const addValidationSchema = yup.object().shape({
 
               const hasDuplicates = duplicates.length > 0
 
-              // console.log('Duplicate Count (excluding self):', duplicates.length)
-              // console.log('Validation Result:', !hasDuplicates)
-
               return !hasDuplicates // Return false if duplicates exist, causing an error
             })
         })
@@ -114,7 +110,6 @@ const editValidationSchema = yup.object().shape({
 const Overview = props => {
   const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue, updateUrlParams } = props
   const theme = useTheme()
-
   const router = useRouter()
   const { id } = router.query
   const { selectedPharmacy } = usePharmacyContext()
@@ -240,16 +235,6 @@ const Overview = props => {
           const totalPages = Math.ceil(totalCount / limit)
           const hasMore = pageNum < totalPages
 
-          console.log('data setAlternativeMedicinesList', {
-            ...prev,
-            [tab]: {
-              list_items: updatedList,
-              total_count: totalCount,
-              page: pageNum,
-              hasMore
-            }
-          })
-
           return {
             ...prev,
             [tab]: {
@@ -307,7 +292,7 @@ const Overview = props => {
                 {selectedPharmacy.name}
                 {/* Central Pharmacy */}
               </Typography>
-              <Typography variant='body1' component='div'>
+              <Box>
                 <Typography
                   component='span'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
@@ -320,15 +305,19 @@ const Overview = props => {
                 >
                   {totalCentralQty}
                 </Typography>
-              </Typography>{' '}
+              </Box>
             </Box>
 
             {/* Table Section */}
             <Card sx={{ p: 4 }}>
               <Typography
                 variant='subtitle1'
-                marginBottom={2}
-                sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                sx={{
+                  marginBottom: 2,
+                  color: 'customColors.customHeadingTextColor',
+                  fontWeight: 500,
+                  fontSize: '14px'
+                }}
               >
                 Other Pharmacy Quantity Details
               </Typography>
@@ -589,19 +578,21 @@ const Overview = props => {
       totalBatches: totalValue?.totalBatches,
       totalValue: totalValue?.totalValue
     },
-    {
-      name: 'expiredBatches',
-      title: 'Expired Batches',
-      style: 'customColors.Background',
-
-      // bgColor: '#E933531A',
-      bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
-      icon: '/images/Incubator_ICON.svg',
-      value: productDashboardData?.expired,
-      description: 'Expired Quantity',
-      totalBatches: totalValue?.totalBatches,
-      totalValue: totalValue?.totalValue
-    }
+    ...(productDetails?.stock_type !== 'non_medical'
+      ? [
+          {
+            name: 'expiredBatches',
+            title: 'Expired Batches',
+            style: 'customColors.Background',
+            bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
+            icon: '/images/Incubator_ICON.svg',
+            value: productDashboardData?.expired,
+            description: 'Expired Quantity',
+            totalBatches: totalValue?.totalBatches,
+            totalValue: totalValue?.totalValue
+          }
+        ]
+      : [])
   ]
 
   const closeDrawer = () => {
@@ -633,7 +624,7 @@ const Overview = props => {
 
       if (result?.success && result?.data) {
         setIsLoading(false)
-        setDrawerDataArray(result.data)
+        setDrawerDataArray(result?.data)
         if (name === 'quantityInStores') {
           const allStores = [...(result?.data?.central || []), ...(result?.data?.local || [])]
 
@@ -664,6 +655,8 @@ const Overview = props => {
             totalValue
           })
         }
+      } else {
+        setIsLoading(false)
       }
     } catch (error) {
       setIsLoading(false)
@@ -681,7 +674,11 @@ const Overview = props => {
       return <AboutToExpireContent data={drawerDataArray} isLoading={isLoading} />
     }
     if (activeDrawer === 'expiredBatches') {
-      return <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+      return (
+        productDetails?.stock_type !== 'non_medical' && (
+          <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+        )
+      )
     }
 
     return null
@@ -860,7 +857,13 @@ const Overview = props => {
 
   return (
     <>
-      <Grid container spacing={4} pt={5}>
+      <Grid
+        container
+        spacing={4}
+        sx={{
+          pt: 5
+        }}
+      >
         {drawerData.map(card => (
           <StyleWithIconCardComponent
             key={card.name}
@@ -873,11 +876,9 @@ const Overview = props => {
           />
         ))}
       </Grid>
-
       <Divider sx={{ my: 5 }} />
-
       <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'stretch' }}>
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             {/* <MonthlyChart
               title='Dispatch'
@@ -903,7 +904,7 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <ProductsChart
               title='Purchases'
@@ -925,38 +926,37 @@ const Overview = props => {
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header Section */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography
-                  variant='body1'
+                <Box
                   sx={{
                     color: 'customColors.customHeadingTextColor',
                     fontSize: '16px',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
-                  <Box display='flex' alignItems='center'>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bgcolor: 'customColors.Tertiary',
-                        borderRadius: '4px',
-                        width: '30px',
-                        height: '24px',
-                        marginRight: '8px'
-                      }}
-                    >
-                      <Icon
-                        icon='clarity:child-arrow-line'
-                        style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }} // Icon color and size
-                      />
-                    </Box>
-                    Alternative Medicines{' '}
-                    {alternativeMedicinesList?.active?.total_count
-                      ? `(${alternativeMedicinesList?.active?.total_count})`
-                      : null}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      bgcolor: 'customColors.Tertiary',
+                      borderRadius: '4px',
+                      width: '30px',
+                      height: '24px',
+                      marginRight: '8px'
+                    }}
+                  >
+                    <Icon
+                      icon='clarity:child-arrow-line'
+                      style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}
+                    />
                   </Box>
-                </Typography>
+                  Alternative Medicines{' '}
+                  {alternativeMedicinesList?.active?.total_count
+                    ? `(${alternativeMedicinesList?.active?.total_count})`
+                    : null}
+                </Box>
 
                 <CardHeader
                   sx={{ p: 0, m: 0 }}
@@ -979,7 +979,6 @@ const Overview = props => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
                 {isLoading && !alternativeMedicinesList?.active?.list_items?.length ? (
                   <Typography
-                    color='primary.light'
                     style={{
                       fontWeight: 400,
                       fontSize: '0.875rem',
@@ -987,6 +986,9 @@ const Overview = props => {
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center'
+                    }}
+                    sx={{
+                      color: 'primary.light'
                     }}
                   >
                     <CircularProgress />
@@ -1043,7 +1045,7 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -1161,22 +1163,20 @@ const Overview = props => {
           </Card>
         </Grid>
       </Grid>
-
       {activeDrawerData && (
         <CommonDrawerBox
-          title={activeDrawerData.title}
-          totalStores={activeDrawerData.totalStores}
-          totalQuantity={activeDrawerData.totalQuantity}
-          totalBatches={activeDrawerData.totalBatches}
-          totalValue={activeDrawerData.totalValue}
+          title={activeDrawerData?.title}
+          totalStores={activeDrawerData?.totalStores}
+          totalQuantity={activeDrawerData?.totalQuantity}
+          totalBatches={activeDrawerData?.totalBatches}
+          totalValue={activeDrawerData?.totalValue}
           drawerStatus={Boolean(activeDrawer)}
           close={closeDrawer}
           contentComponent={renderDrawerContent()}
-          style={activeDrawerData.style}
+          style={activeDrawerData?.style}
           width={700}
         />
       )}
-
       <CommonDrawerBox
         imageUrl={productDetails?.image}
         title={productDetails?.name}
@@ -1192,7 +1192,6 @@ const Overview = props => {
         }
         style='customColors.Background'
       />
-
       {addMedicinesDrawerOpen && (
         <AddAlternativeMedicineDrawer
           open={addMedicinesDrawerOpen}
@@ -1210,7 +1209,6 @@ const Overview = props => {
           searchMedicineData={searchMedicineData}
         />
       )}
-
       {editMedicinesDrawerOpen && (
         <EditAlternativeMedicineDrawer
           open={editMedicinesDrawerOpen}
@@ -1229,4 +1227,4 @@ const Overview = props => {
   )
 }
 
-export default Overview
+export default React.memo(Overview)

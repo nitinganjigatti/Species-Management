@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { Breadcrumbs, Grid, Typography } from '@mui/material'
+
 import { Box } from '@mui/system'
+import { Breadcrumbs, Grid, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-
-// ** Custom Components Imports
-import { getAllStats } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
-import Toaster from 'src/components/Toaster'
 
+import Toaster from 'src/components/Toaster'
 // import TodaysCollection from 'src/views/pages/egg/eggDashboard/todaysCollection'
 // import TransferDetails from 'src/views/pages/egg/eggDashboard/transferDetails'
 import Species from 'src/views/pages/egg/eggDashboard/species'
 import EggsStats from 'src/views/pages/egg/eggDashboard/EggsStats'
+import { getAllStats } from 'src/lib/api/egg/dashboard'
 
 const Dashboard = () => {
   const theme = useTheme()
@@ -73,7 +72,7 @@ const Dashboard = () => {
       </Breadcrumbs>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <Grid container spacing={6} sx={{ justifyContent: 'space-between' }} columns={5}>
-          <Grid item sm={5} md={2} xl={2}>
+          <Grid item size={{ sm: 5, md: 2, xl: 2 }}>
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,

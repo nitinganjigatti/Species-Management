@@ -254,17 +254,17 @@ export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
 
 export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'
 
-export const PURCHASE_REPORT = 'purchase-report'
-
-export const RETURN_REPORT = 'return-report'
-
-export const SHIPMENT_REPORT = 'shipment-report'
-
 export const CONSUMPTION_REPORT = 'consumption-report'
 
 export const REQUESTED_ITEMS_REPORT = 'requested-items'
 
 export const DISPENSE_REPORT = 'dispense-report'
+
+export const PURCHASE_REPORT = 'purchase-report'
+
+export const RETURN_REPORT = 'return-report'
+
+export const SHIPMENT_REPORT = 'shipment-report'
 
 export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
@@ -454,9 +454,9 @@ export const ANIMAL_REPORT = 'v1/animal/report'
 
 export const USER_REPORT = 'v1/user/report'
 
-export const MEDICAL_REPORT = 'v1/medical/report'
-
 export const ASSESSMENT_REPORT = 'v1/animal/batch/assessments'
+
+export const MEDICAL_REPORT = 'v1/medical/report'
 
 export const All_ANIMAL_LIST = 'v1/all/animal/report'
 

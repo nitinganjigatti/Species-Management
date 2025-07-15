@@ -4,6 +4,7 @@ import Utility from 'src/utility'
 
 const iconMap = {
   pets: '/dashboard/all_animal.svg',
+
   // eggs: '/dashboard/Egg.svg',
   enclosures: ' /dashboard/insights/Enclosure.svg',
   medicalRecords: '/dashboard/medical_record.svg',
@@ -27,6 +28,7 @@ const StatCard = ({ icon, value, label, bgColor }) => {
       sx={{
         p: 4,
         height: '100%',
+
         //  width: 272,
         borderRadius: '10px',
         boxShadow: '0px 2px 10px 0px #4C4E6438'
@@ -44,7 +46,11 @@ const StatCard = ({ icon, value, label, bgColor }) => {
           }}
           src={icon}
         />
-        <Box textAlign={'start'}>
+        <Box
+          sx={{
+            textAlign: 'start'
+          }}
+        >
           <Typography sx={{ fontSize: '34px', fontWeight: 600, color: '#44544A' }}>
             {Utility.formatAmountCompactDisplay(value)}
           </Typography>
@@ -60,7 +66,7 @@ const DashboardStatsPanel = ({ stats }) => {
     <>
       <Grid container spacing={3}>
         {stats.map(({ key, value, label, bgColor, icon }) => (
-          <Grid item xs={12} sm={6} md={4} lg={2} key={key}>
+          <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 2 }} key={key}>
             <StatCard icon={icon || iconMap[key]} value={value} label={label} bgColor={bgColor || bgColors[key]} />
           </Grid>
         ))}
@@ -124,13 +130,13 @@ export default DashboardStatsPanel
 //   return (
 //     <Box sx={{ p: 2 }}>
 //       <Grid container spacing={2}>
-//         <Grid item xs={12} sm={6} md={4} lg={2}>
+//         <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
 //           <StatCard icon={<PetsIcon />} value={data.animals.toLocaleString()} label='All animals' bgColor='#E1F9ED' />
 //         </Grid>
-//         <Grid item xs={12} sm={6} md={4} lg={2}>
+//         <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
 //           <StatCard icon={<EggIcon />} value={data.eggs} label='Eggs collected' bgColor='rgba(255, 235, 128, 0.2)' />
 //         </Grid>
-//         <Grid item xs={12} sm={6} md={4} lg={2}>
+//         <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
 //           <StatCard
 //             icon={<DescriptionIcon />}
 //             value={data.medicalRecords}
@@ -138,7 +144,7 @@ export default DashboardStatsPanel
 //             bgColor='rgba(255, 192, 173, 0.2)'
 //           />
 //         </Grid>
-//         <Grid item xs={12} sm={6} md={4} lg={2}>
+//         <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
 //           <StatCard
 //             icon={<ScienceIcon />}
 //             value={data.labRequests}
@@ -146,7 +152,7 @@ export default DashboardStatsPanel
 //             bgColor='rgba(173, 216, 230, 0.2)'
 //           />
 //         </Grid>
-//         <Grid item xs={12} sm={6} md={4} lg={2}>
+//         <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
 //           <StatCard
 //             icon={<PeopleIcon />}
 //             value={data.activeUsers}
@@ -154,7 +160,7 @@ export default DashboardStatsPanel
 //             bgColor='rgba(176, 196, 222, 0.2)'
 //           />
 //         </Grid>
-//         <Grid item xs={12} sm={6} md={4} lg={2}>
+//         <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
 //           <StatCard
 //             icon={<MedicalServicesIcon />}
 //             value={data.lowStockMedicines}

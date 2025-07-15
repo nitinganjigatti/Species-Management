@@ -276,7 +276,7 @@ const DietDetail = () => {
           setspeciestotalcount(totalCount)
 
           // Check if we've reached the end of available data
-          if (resultData.length === 0 || resultData.length < pageSize) {
+          if (resultData.length === 0 || resultData.length < totalCount) {
             setHasMoreData(false)
           } else {
             setHasMoreData(true)
@@ -356,8 +356,9 @@ const DietDetail = () => {
             })
 
             setspeciestotalcount(totalCount)
+
             // Check if we've reached the end of available data
-            if (resultData.length === 0 || resultData.length < pageSize) {
+            if (resultData.length === 0 || resultData.length < totalCount) {
               setHasMoreData(false)
             } else {
               setHasMoreData(true)
@@ -619,13 +620,19 @@ const DietDetail = () => {
               </Box>
             </CardContent>
           ) : (
-            <Box container spacing={6}>
+            <Box spacing={6}>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Diet</Typography>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
                   Diet
                 </Typography>
-                <Typography color='text.primary'>Diet Details</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.primary'
+                  }}
+                >
+                  Diet Details
+                </Typography>
               </Breadcrumbs>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <DietDetailCard
@@ -659,13 +666,17 @@ const DietDetail = () => {
                         className='tabs_diet_dtl'
                       >
                         {tabs.map((item, index) => (
-                          <Tab key={index} value={item.value} label={item.label} />
+                          <Tab key={item?.value} value={item.value} label={item.label} />
                         ))}
                       </TabList>
                       {tabs.map((item, index) => (
                         <>
                           {item?.value === value && (
-                            <TabPanel sx={{ overflowX: 'auto', pb: 0, pl: '0px' }} key={index} value={item?.value}>
+                            <TabPanel
+                              sx={{ overflowX: 'auto', pb: 0, pl: '0px' }}
+                              key={item?.value}
+                              value={item?.value}
+                            >
                               {loaderTwo ? (
                                 <Box
                                   sx={{
@@ -695,17 +706,34 @@ const DietDetail = () => {
                                         No records to show
                                       </div>
                                     ) : (
-                                      <TableHead>
-                                        <TableRow>
+                                      <TableHead
+                                        sx={{
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          '&:hover': {
+                                            backgroundColor: theme.palette.secondary.contrastText
+                                          }
+                                        }}
+                                      >
+                                        <TableRow
+                                          sx={{
+                                            '&:hover': {
+                                              backgroundColor: theme.palette.secondary.contrastText,
+                                              boxShadow: 'none'
+                                            }
+                                          }}
+                                        >
                                           <TableCell
                                             style={{ padding: '0px' }}
                                             sx={{
                                               border: 'none',
                                               height: '40px',
-                                              backgroundColor: theme.palette.primary.contrastText,
+                                              backgroundColor: theme.palette.secondary.contrastText,
                                               width: '160px',
                                               position: isSmallDevice ? '' : 'sticky ',
-                                              left: 0
+                                              left: 0,
+                                              '&:hover': {
+                                                backgroundColor: theme.palette.secondary.contrastText
+                                              }
                                             }}
                                             className={classes.sticky}
                                           >
@@ -737,6 +765,7 @@ const DietDetail = () => {
                                               position: isSmallDevice ? '' : 'sticky ',
                                               left: '160px',
                                               p: 0
+
                                               // width: '580px'
                                             }}
                                             className='meal_dtl_hd'
@@ -937,591 +966,6 @@ const DietDetail = () => {
                                     )}
                                     {dietDetails?.meal_data?.length > 0 ? (
                                       <TableBody>
-                                        {/* <>
-                                      {dietDetails?.meal_data?.map(itemd => {
-                                        const startTimes = itemd?.meal_from_time
-                                        const endTimes = itemd?.meal_to_time
-
-                                        const itemData1 = itemd?.ingredient?.length
-                                          ? itemd.ingredient.map(item => ({ ...item, ingredient: true }))
-                                          : []
-
-                                        const itemData2 = itemd?.recipe?.length
-                                          ? itemd.recipe.map(item => ({ ...item, recipe: true }))
-                                          : []
-
-                                        const itemData3 = itemd?.ingredientwithchoice?.length
-                                          ? itemd?.ingredientwithchoice?.map(item => ({
-                                              ...item,
-                                              ingredientwithchoice: true
-                                            }))
-                                          : []
-                                        const itemData = [...itemData1, ...itemData2, ...itemData3]
-
-                                        return (
-                                          <>
-                                            {itemData?.length ? (
-                                              itemData?.map((item, index) => {
-                                                let first = startArry.indexOf(itemd.meal_from_time) === -1
-                                                startArry = [...startArry, itemd.meal_from_time]
-
-                                                return (
-                                                  <>
-                                                    <TableRow key={index}>
-                                                      {first ? (
-                                                        <TableCell
-                                                          sx={{
-                                                            position: 'sticky',
-                                                            left: 0,
-                                                            width: '160px',
-                                                            border: 'none',
-                                                            pl: '0px !important',
-                                                            pr: '18px'
-                                                          }}
-                                                        >
-                                                          <Box
-                                                            sx={{
-                                                              borderRadius: '25px',
-                                                              py: '5px',
-                                                              px: '2px'
-                                                            }}
-                                                          >
-                                                            <Typography
-                                                              sx={{
-                                                                textAlign: 'center',
-                                                                color: theme.palette.customColors.addPrimary,
-                                                                fontWeight: 500,
-                                                                fontSize: '16px',
-                                                                lineHeight: '19.36px'
-                                                              }}
-                                                            >
-                                                              {startTimes}
-                                                            </Typography>
-                                                          </Box>
-                                                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                                            <Box
-                                                              sx={{
-                                                                width: 0,
-                                                                height: '19px',
-                                                              }}
-                                                            ></Box>
-                                                          </Box>
-
-                                                          <Box
-                                                            sx={{
-                                                              borderRadius: '25px',
-                                                              py: '5px',
-                                                              px: '4px'
-                                                            }}
-                                                          >
-                                                            <Typography
-                                                              sx={{
-                                                                textAlign: 'center',
-                                                                color: theme.palette.customColors.addPrimary,
-                                                                fontWeight: 500,
-                                                                fontSize: '16px',
-                                                                lineHeight: '19.36px'
-                                                              }}
-                                                            >
-                                                              {endTimes}
-                                                            </Typography>
-                                                          </Box>
-                                                        </TableCell>
-                                                      ) : (
-                                                        <TableCell
-                                                          sx={{
-                                                            borderBottom:
-                                                              index === itemd?.items?.length - 1
-                                                                ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                                                : 'none'
-                                                          }}
-                                                        ></TableCell>
-                                                      )}
-
-                                                      <TableCell
-                                                        sx={{
-                                                          position: 'sticky',
-                                                          left: '160px',
-                                                          pl: 0,
-                                                          border: 'none',
-                                                          backgroundColor: theme.palette. primary. contrastText
-                                                        }}
-                                                      >
-                                                        {item?.ingredientwithchoice ? (
-                                                          <Box
-                                                            sx={{
-                                                              display: 'flex',
-                                                              flexDirection: 'column',
-                                                              backgroundColor: item.ingredientwithchoice
-                                                                ? '#00D6C933'
-                                                                : 'white',
-                                                              borderRadius: '8px',
-                                                              p: '12px',
-                                                              gap: '16px'
-                                                            }}
-                                                          >
-                                                            <Box
-                                                              sx={{
-                                                                display: 'flex',
-                                                                flexDirection: 'column',
-                                                                gap: '12px'
-                                                              }}
-                                                            >
-                                                              {item?.no_of_component_required && (
-                                                                <Typography
-                                                                  sx={{
-                                                                    color: theme.palette. customColors. neutralPrimary,
-                                                                    lineHeight: '16.94px',
-                                                                    fontWeight: 600,
-                                                                    fontSize: '16px'
-                                                                  }}
-                                                                >
-                                                                  Offer minimum {item?.no_of_component_required} from
-                                                                  the below items
-                                                                </Typography>
-                                                              )}
-
-                                                              {item?.ingredientList?.length > 0 && (
-                                                                <Box
-                                                                  sx={{
-                                                                    display: 'flex',
-                                                                    flexWrap: 'wrap',
-                                                                    columnGap: `24px`,
-                                                                    rowGap: '10px'
-                                                                  }}
-                                                                >
-                                                                  {item?.ingredientList?.map((item, index) => (
-                                                                    <>
-                                                                      <Box
-                                                                        key={index}
-                                                                        sx={{
-                                                                          height: '32px',
-                                                                          borderRadius: '16px',
-                                                                          backgroundColor: '#1F415B1A',
-                                                                          display: 'center',
-                                                                          px: 2,
-                                                                          justifyContent: 'center',
-                                                                          alignItems: 'center'
-                                                                        }}
-                                                                      >
-                                                                        <Typography
-                                                                          sx={{
-                                                                            fontWeight: 600,
-                                                                            fontSize: '14px',
-                                                                            lineHeight: '16.94px',
-                                                                            color: theme.palette. secondary. dark
-                                                                          }}
-                                                                        >
-                                                                          {item?.ingredient_name}
-                                                                        </Typography>
-                                                                        {item?.preparation_type_label ||
-                                                                          (item?.preparation_type && (
-                                                                            <Typography
-                                                                              sx={{
-                                                                                fontWeight: 400,
-                                                                                fontSize: '14px',
-                                                                                lineHeight: '18px',
-                                                                                color: theme.palette. secondary. dark
-                                                                              }}
-                                                                            >
-                                                                              &nbsp;-&nbsp;
-                                                                              {item?.preparation_type_label ||
-                                                                                item?.preparation_type}
-                                                                            </Typography>
-                                                                          ))}
-                                                                        {item?.feed_uom_name && (
-                                                                          <Typography
-                                                                            sx={{
-                                                                              fontWeight: 400,
-                                                                              fontSize: '14px',
-                                                                              lineHeight: '18px',
-                                                                              color: theme.palette. secondary. dark
-                                                                            }}
-                                                                          >
-                                                                            &nbsp;-&nbsp;{item?.feed_uom_name}
-                                                                          </Typography>
-                                                                        )}
-                                                                      </Box>
-                                                                    </>
-                                                                  ))}
-                                                                </Box>
-                                                              )}
-
-                                                              {item?.remarks && (
-                                                                <Box
-                                                                  sx={{
-                                                                    backgroundColor: theme.palette. customColors. mdAntzNeutral,
-                                                                    display: 'flex',
-                                                                    flexDirection: 'column',
-                                                                    gap: '4px',
-                                                                    p: '12px',
-                                                                    borderRadius: '8px'
-                                                                  }}
-                                                                >
-                                                                  <Typography
-                                                                    sx={{
-                                                                      color: theme.palette. customColors. neutralPrimary,
-                                                                      lineHeight: '16.94px',
-                                                                      fontWeight: 600,
-                                                                      fontSize: '14px'
-                                                                    }}
-                                                                  >
-                                                                    Remarks
-                                                                  </Typography>
-                                                                  <Typography
-                                                                    sx={{
-                                                                      color: theme.palette. customColors. neutralPrimary,
-                                                                      lineHeight: '16.94px',
-                                                                      fontWeight: 400,
-                                                                      fontSize: '14px'
-                                                                    }}
-                                                                  >
-                                                                    {item?.remarks}
-                                                                  </Typography>
-                                                                </Box>
-                                                              )}
-                                                            </Box>
-                                                            <Divider />
-
-                                                            <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                              {Object?.entries(item?.days_of_weeks).map(
-                                                                ([key, value]) => (
-                                                                  <Box
-                                                                    key={index}
-                                                                    sx={{
-                                                                      width: '48px',
-                                                                      height: '32px',
-                                                                      borderRadius: '16px',
-                                                                      backgroundColor: theme.palette. customColors. mdAntzNeutral,
-                                                                      display: 'center',
-                                                                      justifyContent: 'center',
-                                                                      alignItems: 'center'
-                                                                    }}
-                                                                  >
-                                                                    <Typography
-                                                                      sx={{
-                                                                        fontWeight: 400,
-                                                                        fontSize: '13px',
-                                                                        lineHeight: '18px',
-                                                                        color: theme.palette. customColors. OnSurfaceVariant
-                                                                      }}
-                                                                    >
-                                                                      {value}
-                                                                    </Typography>
-                                                                  </Box>
-                                                                )
-                                                              )}
-                                                            </Box>
-                                                          </Box>
-                                                        ) : (
-                                                          <Box
-                                                            key={index}
-                                                            sx={{
-                                                              display: 'flex',
-                                                              flexDirection: 'column',
-                                                              backgroundColor:
-                                                                item.ingredient || item.ingredientwithchoice
-                                                                  ? '#00D6C933'
-                                                                  : item.recipe
-                                                                  ? theme.palette. background.OnBackground
-                                                                  : 'white',
-                                                              borderRadius: '8px',
-                                                              p: '12px',
-                                                              gap: '16px'
-                                                            }}
-                                                          >
-                                                            <Box>
-                                                              <Box
-                                                                sx={{
-                                                                  display: 'flex',
-                                                                  flexDirection: 'column',
-                                                                  gap: '12px'
-                                                                }}
-                                                              >
-                                                                <Box sx={{ display: 'flex' }}>
-                                                                  {item?.ingredient_name && (
-                                                                    <Typography
-                                                                      sx={{
-                                                                        color: theme.palette. customColors. neutralPrimary,
-                                                                        lineHeight: '16.94px',
-                                                                        fontWeight: 600,
-                                                                        fontSize: '16px'
-                                                                      }}
-                                                                    >
-                                                                      {item?.ingredient_name}
-                                                                    </Typography>
-                                                                  )}
-
-                                                                  {item?.recipe_name && (
-                                                                    <Typography
-                                                                      sx={{
-                                                                        color: theme.palette. customColors. neutralPrimary,
-                                                                        lineHeight: '16.94px',
-                                                                        fontWeight: 600,
-                                                                        fontSize: '16px'
-                                                                      }}
-                                                                    >
-                                                                      {item?.recipe_name}
-                                                                    </Typography>
-                                                                  )}
-                                                                  {item?.preparation_type_label && (
-                                                                    <Typography
-                                                                      sx={{
-                                                                        color: theme.palette.customColors.secondaryBg,
-                                                                        lineHeight: '16.94px',
-                                                                        fontWeight: 400,
-                                                                        fontSize: '14px'
-                                                                      }}
-                                                                    >
-                                                                      &nbsp;-&nbsp; {item?.preparation_type_label}
-                                                                    </Typography>
-                                                                  )}
-                                                                </Box>
-
-                                                                {item?.ingredients?.length > 0 && (
-                                                                  <Box
-                                                                    sx={{
-                                                                      display: 'flex',
-                                                                      flexWrap: 'wrap',
-                                                                      columnGap: `24px`,
-                                                                      rowGap: '10px'
-                                                                    }}
-                                                                  >
-                                                                    {item?.ingredients?.map((item, index) => (
-                                                                      <Box key={index} sx={{ display: 'flex' }}>
-                                                                        <Typography
-                                                                          sx={{
-                                                                            color: theme.palette. primary. light,
-                                                                            lineHeight: '16.94px',
-                                                                            fontWeight: 400,
-                                                                            fontSize: '14px'
-                                                                          }}
-                                                                        >
-                                                                          {item?.ingredient_name}&nbsp;
-                                                                        </Typography>
-                                                                        <Typography
-                                                                          sx={{
-                                                                            color: theme.palette. customColors. neutralPrimary,
-                                                                            lineHeight: '16.94px',
-                                                                            fontWeight: 600,
-                                                                            fontSize: '14px'
-                                                                          }}
-                                                                        >
-                                                                          {item?.quantity}%
-                                                                        </Typography>
-                                                                      </Box>
-                                                                    ))}
-                                                                  </Box>
-                                                                )}
-                                                                {(item?.preparationType || item?.desc) && (
-                                                                  <Box
-                                                                    sx={{
-                                                                      display: 'flex',
-                                                                      gap: '24px'
-                                                                    }}
-                                                                  >
-                                                                    {item?.preparationType && (
-                                                                      <Typography
-                                                                        sx={{
-                                                                          color: theme.palette. primary. light,
-                                                                          lineHeight: '16.94px',
-                                                                          fontWeight: 400,
-                                                                          fontSize: '14px'
-                                                                        }}
-                                                                      >
-                                                                        {item?.preparationType}
-                                                                      </Typography>
-                                                                    )}
-                                                                    {item?.desc && (
-                                                                      <Typography
-                                                                        sx={{
-                                                                          color: theme.palette. primary. light,
-                                                                          lineHeight: '16.94px',
-                                                                          fontWeight: 400,
-                                                                          fontSize: '14px'
-                                                                        }}
-                                                                      >
-                                                                        {item?.desc}
-                                                                      </Typography>
-                                                                    )}
-                                                                  </Box>
-                                                                )}
-                                                                {item?.remarks && (
-                                                                  <Box
-                                                                    sx={{
-                                                                      backgroundColor: theme.palette. customColors. mdAntzNeutral,
-                                                                      display: 'flex',
-                                                                      flexDirection: 'column',
-                                                                      gap: '4px',
-                                                                      p: '12px',
-                                                                      borderRadius: '8px'
-                                                                    }}
-                                                                  >
-                                                                    <Typography
-                                                                      sx={{
-                                                                        color: theme.palette. customColors. neutralPrimary,
-                                                                        lineHeight: '16.94px',
-                                                                        fontWeight: 600,
-                                                                        fontSize: '14px'
-                                                                      }}
-                                                                    >
-                                                                      Remarks
-                                                                    </Typography>
-                                                                    <Typography
-                                                                      sx={{
-                                                                        color: theme.palette. customColors. neutralPrimary,
-                                                                        lineHeight: '16.94px',
-                                                                        fontWeight: 400,
-                                                                        fontSize: '14px'
-                                                                      }}
-                                                                    >
-                                                                      {item?.remarks}
-                                                                    </Typography>
-                                                                  </Box>
-                                                                )}
-                                                              </Box>
-                                                            </Box>
-                                                            <Divider />
-
-                                                            <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                              {Object?.entries(item?.days_of_weeks).map(
-                                                                ([key, value]) => (
-                                                                  <Box
-                                                                    key={index}
-                                                                    sx={{
-                                                                      width: '48px',
-                                                                      height: '32px',
-                                                                      borderRadius: '16px',
-                                                                      backgroundColor: theme.palette. customColors. mdAntzNeutral,
-                                                                      display: 'center',
-                                                                      justifyContent: 'center',
-                                                                      alignItems: 'center'
-                                                                    }}
-                                                                  >
-                                                                    <Typography
-                                                                      sx={{
-                                                                        fontWeight: 400,
-                                                                        fontSize: '13px',
-                                                                        lineHeight: '18px',
-                                                                        color: theme.palette. customColors. OnSurfaceVariant
-                                                                      }}
-                                                                    >
-                                                                      {value}
-                                                                    </Typography>
-                                                                  </Box>
-                                                                )
-                                                              )}
-                                                            </Box>
-                                                          </Box>
-                                                        )}
-                                                      </TableCell>
-
-                                                      {item?.meal_type?.map((item, index) => (
-                                                        <TableCell
-                                                          key={index}
-                                                          style={{
-                                                            height: '10px',
-                                                            maxHeight: '100%',
-                                                            border: 'none',
-                                                            paddingLeft: '8px',
-                                                            paddingRight: '8px'
-                                                          }}
-                                                        >
-                                                          <Box
-                                                            sx={{
-                                                              height: '100%'
-                                                            }}
-                                                          >
-                                                            {item?.quantity && (
-                                                              <CustomTooltip title={item?.notes} placement='left'>
-                                                                <Box
-                                                                  sx={{
-                                                                    backgroundColor: theme.palette. customColors. mdAntzNeutral,
-                                                                    p: '10px',
-                                                                    width: '100%',
-                                                                    display: 'flex',
-                                                                    justifyContent: 'center',
-                                                                    alignItems: 'center',
-                                                                    borderRadius: '8px',
-                                                                    height: '100%'
-                                                                  }}
-                                                                >
-                                                                  <Typography
-                                                                    sx={{
-                                                                      color: theme.palette. customColors. neutralPrimary,
-                                                                      lineHeight: '16.94px',
-                                                                      fontWeight: 400,
-                                                                      fontSize: '14px'
-                                                                    }}
-                                                                  >
-                                                                    {item?.quantity}&nbsp;{item?.feed_uom_name}
-                                                                  </Typography>
-                                                                </Box>
-                                                              </CustomTooltip>
-                                                            )}
-                                                          </Box>
-                                                        </TableCell>
-                                                      ))}
-                                                    </TableRow>
-                                                    {index === itemData?.length - 1 ? (
-                                                      <TableRow
-                                                        sx={{
-                                                          borderBottom:
-                                                            itemData?.items?.length === 0
-                                                              ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                                              : index === itemData?.length - 1
-                                                              ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                                              : 'none'
-                                                        }}
-                                                      >
-                                                        {itemd?.notes ? (
-                                                          <Box
-                                                            sx={{
-                                                              display: 'flex',
-                                                              flexDirection: 'row',
-                                                              alignItems: 'center',
-                                                              gap: '4px',
-                                                              my: '10px',
-                                                              width: '1070px'
-                                                            }}
-                                                          >
-                                                            <Typography
-                                                              sx={{
-                                                                lineHeight: '29.05px',
-                                                                fontSize: '20px',
-                                                                fontWeight: 500,
-                                                                color: theme.palette. customColors. OnSurfaceVariant
-                                                              }}
-                                                            >
-                                                              Note:- &nbsp;
-                                                              <Typography
-                                                                component='span'
-                                                                sx={{
-                                                                  lineHeight: '19.36px',
-                                                                  fontSize: '16px',
-                                                                  fontWeight: 400,
-                                                                  color: theme.palette. customColors. OnSurfaceVariant
-                                                                }}
-                                                              >
-                                                                {itemd.notes}
-                                                              </Typography>
-                                                            </Typography>
-                                                          </Box>
-                                                        ) : (
-                                                          ''
-                                                        )}
-                                                      </TableRow>
-                                                    ) : null}
-                                                  </>
-                                                )
-                                              })
-                                            ) : (
-                                              <Typography sx={{ mt: 2, fontWeight: 700 }}>No Data</Typography>
-                                            )}
-                                          </>
-                                        )
-                                      })}
-                                    </> */}
                                         {dietDetails.meal_data?.map((itemd, index) => {
                                           const formattedfromTime = moment(itemd?.meal_from_time, 'h:mm A').isValid()
                                             ? moment(itemd.meal_from_time, 'h:mm A').format('h:mm A')
@@ -1544,7 +988,15 @@ const DietDetail = () => {
                                                   No records to show
                                                 </Typography>
                                               ) : (
-                                                <TableRow key={index}>
+                                                <TableRow
+                                                  key={index}
+                                                  sx={{
+                                                    '&:hover': {
+                                                      backgroundColor: theme.palette.secondary.contrastText,
+                                                      boxShadow: 'none'
+                                                    }
+                                                  }}
+                                                >
                                                   <TableCell
                                                     sx={{
                                                       position: isSmallDevice ? 'relative' : 'sticky ',
@@ -1555,6 +1007,7 @@ const DietDetail = () => {
                                                       pr: '36px',
                                                       background: theme.palette.primary.contrastText,
                                                       height: '185px',
+                                                      pl: '1rem !important',
 
                                                       //display: 'flex',
                                                       //flexDirection: 'column',
@@ -1647,7 +1100,15 @@ const DietDetail = () => {
                                                     {itemd?.recipe?.length > 0 &&
                                                       itemd?.recipe?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -1656,29 +1117,7 @@ const DietDetail = () => {
                                                                 border: 'none',
 
                                                                 backgroundColor: theme.palette.primary.contrastText
-
-                                                                //float: 'left'
                                                               }}
-
-                                                              // className={
-                                                              //   dietDetails.diet_type_name === 'Generic'
-                                                              //     ? 'cell_dimn'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 0
-                                                              //     ? 'cell_dimn'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 1
-                                                              //     ? 'cell_dimn1'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 2
-                                                              //     ? 'cell_dimn2'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 3
-                                                              //     ? 'cell_dimn3'
-                                                              //     : dietDetails.diet_type_name === 'By Gender'
-                                                              //     ? 'cell_gend'
-                                                              //     : 'cellmodule4'
-                                                              // }
                                                             >
                                                               <Box
                                                                 key={index}
@@ -1980,11 +1419,11 @@ const DietDetail = () => {
                                                                   <>
                                                                     <Divider />
                                                                     <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                                      {item?.days_of_week?.map((item, index) => (
+                                                                      {item?.all_days ? (
                                                                         <Box
                                                                           key={index}
                                                                           sx={{
-                                                                            width: '48px',
+                                                                            width: '80px',
                                                                             height: '32px',
                                                                             borderRadius: '16px',
                                                                             backgroundColor:
@@ -2004,10 +1443,40 @@ const DietDetail = () => {
                                                                                   .OnSurfaceVariant
                                                                             }}
                                                                           >
-                                                                            {getDayName(item)}
+                                                                            {item?.all_days}
                                                                           </Typography>
                                                                         </Box>
-                                                                      ))}
+                                                                      ) : (
+                                                                        item?.days_of_week?.map((item, index) => (
+                                                                          <Box
+                                                                            key={index}
+                                                                            sx={{
+                                                                              width: '48px',
+                                                                              height: '32px',
+                                                                              borderRadius: '16px',
+                                                                              backgroundColor:
+                                                                                theme.palette.customColors
+                                                                                  .mdAntzNeutral,
+                                                                              display: 'center',
+                                                                              justifyContent: 'center',
+                                                                              alignItems: 'center'
+                                                                            }}
+                                                                          >
+                                                                            <Typography
+                                                                              sx={{
+                                                                                fontWeight: 400,
+                                                                                fontSize: '13px',
+                                                                                lineHeight: '18px',
+                                                                                color:
+                                                                                  theme.palette.customColors
+                                                                                    .OnSurfaceVariant
+                                                                              }}
+                                                                            >
+                                                                              {getDayName(item)}
+                                                                            </Typography>
+                                                                          </Box>
+                                                                        ))
+                                                                      )}
                                                                     </Box>
                                                                   </>
                                                                 )}
@@ -2072,6 +1541,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -2162,6 +1651,116 @@ const DietDetail = () => {
                                                                                     : ''
                                                                                 })
                                                                               : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : ''}
                                                                           </Typography>
                                                                         </Box>
                                                                       </Box>
@@ -2181,7 +1780,15 @@ const DietDetail = () => {
                                                     {itemd?.combo?.length > 0 &&
                                                       itemd?.combo?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -2190,29 +1797,7 @@ const DietDetail = () => {
                                                                 border: 'none',
 
                                                                 backgroundColor: theme.palette.primary.contrastText
-
-                                                                //float: 'left'
                                                               }}
-
-                                                              // className={
-                                                              //   dietDetails.diet_type_name === 'Generic'
-                                                              //     ? 'cell_dimn'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 0
-                                                              //     ? 'cell_dimn'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 1
-                                                              //     ? 'cell_dimn1'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 2
-                                                              //     ? 'cell_dimn2'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 3
-                                                              //     ? 'cell_dimn3'
-                                                              //     : dietDetails.diet_type_name === 'By Gender'
-                                                              //     ? 'cell_gend'
-                                                              //     : 'cellmodule4'
-                                                              // }
                                                             >
                                                               <Box
                                                                 key={index}
@@ -2531,36 +2116,66 @@ const DietDetail = () => {
                                                                 {item?.days_of_week?.length > 0 && (
                                                                   <>
                                                                     <Divider />
-                                                                    <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                                      {item?.days_of_week?.map((item, index) => (
-                                                                        <Box
-                                                                          key={index}
+                                                                    {item?.all_days ? (
+                                                                      <Box
+                                                                        key={index}
+                                                                        sx={{
+                                                                          width: '80px',
+                                                                          height: '32px',
+                                                                          borderRadius: '16px',
+                                                                          backgroundColor:
+                                                                            theme.palette.customColors.mdAntzNeutral,
+                                                                          display: 'center',
+                                                                          justifyContent: 'center',
+                                                                          alignItems: 'center'
+                                                                        }}
+                                                                      >
+                                                                        <Typography
                                                                           sx={{
-                                                                            width: '48px',
-                                                                            height: '32px',
-                                                                            borderRadius: '16px',
-                                                                            backgroundColor:
-                                                                              theme.palette.customColors.mdAntzNeutral,
-                                                                            display: 'center',
-                                                                            justifyContent: 'center',
-                                                                            alignItems: 'center'
+                                                                            fontWeight: 400,
+                                                                            fontSize: '13px',
+                                                                            lineHeight: '18px',
+                                                                            color:
+                                                                              theme.palette.customColors
+                                                                                .OnSurfaceVariant
                                                                           }}
                                                                         >
-                                                                          <Typography
+                                                                          {item?.all_days}
+                                                                        </Typography>
+                                                                      </Box>
+                                                                    ) : (
+                                                                      <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                                        {item?.days_of_week?.map((item, index) => (
+                                                                          <Box
+                                                                            key={index}
                                                                             sx={{
-                                                                              fontWeight: 400,
-                                                                              fontSize: '13px',
-                                                                              lineHeight: '18px',
-                                                                              color:
+                                                                              width: '48px',
+                                                                              height: '32px',
+                                                                              borderRadius: '16px',
+                                                                              backgroundColor:
                                                                                 theme.palette.customColors
-                                                                                  .OnSurfaceVariant
+                                                                                  .mdAntzNeutral,
+                                                                              display: 'center',
+                                                                              justifyContent: 'center',
+                                                                              alignItems: 'center'
                                                                             }}
                                                                           >
-                                                                            {getDayName(item)}
-                                                                          </Typography>
-                                                                        </Box>
-                                                                      ))}
-                                                                    </Box>
+                                                                            <Typography
+                                                                              sx={{
+                                                                                fontWeight: 400,
+                                                                                fontSize: '13px',
+                                                                                lineHeight: '18px',
+                                                                                color:
+                                                                                  theme.palette.customColors
+                                                                                    .OnSurfaceVariant
+                                                                              }}
+                                                                            >
+                                                                              {getDayName(item)}
+                                                                            </Typography>
+                                                                          </Box>
+                                                                        ))}
+                                                                      </Box>
+                                                                    )}
                                                                   </>
                                                                 )}
                                                               </Box>
@@ -2624,6 +2239,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -2714,6 +2349,116 @@ const DietDetail = () => {
                                                                                     : ''
                                                                                 })
                                                                               : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : ''}
                                                                           </Typography>
                                                                         </Box>
                                                                       </Box>
@@ -2733,7 +2478,15 @@ const DietDetail = () => {
                                                     {itemd?.ingredient?.length > 0 &&
                                                       itemd?.ingredient?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -2741,29 +2494,7 @@ const DietDetail = () => {
                                                                 left: '160px',
                                                                 border: 'none',
                                                                 backgroundColor: theme.palette.primary.contrastText
-
-                                                                //float: 'left'
                                                               }}
-
-                                                              // className={
-                                                              //   dietDetails.diet_type_name === 'Generic'
-                                                              //     ? 'cell_dimn'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 0
-                                                              //     ? 'cell_dimn'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 1
-                                                              //     ? 'cell_dimn1'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 2
-                                                              //     ? 'cell_dimn2'
-                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                              //       dietDetails?.child?.length === 3
-                                                              //     ? 'cell_dimn3'
-                                                              //     : dietDetails.diet_type_name === 'By Gender'
-                                                              //     ? 'cell_gend'
-                                                              //     : 'cellmodule4'
-                                                              // }
                                                             >
                                                               <Box
                                                                 key={index}
@@ -2985,36 +2716,66 @@ const DietDetail = () => {
                                                                 {item?.days_of_week?.length > 0 && (
                                                                   <>
                                                                     <Divider />
-                                                                    <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                                      {item?.days_of_week?.map((item, index) => (
-                                                                        <Box
-                                                                          key={index}
+                                                                    {item?.all_days ? (
+                                                                      <Box
+                                                                        key={index}
+                                                                        sx={{
+                                                                          width: '80px',
+                                                                          height: '32px',
+                                                                          borderRadius: '16px',
+                                                                          backgroundColor:
+                                                                            theme.palette.customColors.mdAntzNeutral,
+                                                                          display: 'center',
+                                                                          justifyContent: 'center',
+                                                                          alignItems: 'center'
+                                                                        }}
+                                                                      >
+                                                                        <Typography
                                                                           sx={{
-                                                                            width: '48px',
-                                                                            height: '32px',
-                                                                            borderRadius: '16px',
-                                                                            backgroundColor:
-                                                                              theme.palette.customColors.mdAntzNeutral,
-                                                                            display: 'center',
-                                                                            justifyContent: 'center',
-                                                                            alignItems: 'center'
+                                                                            fontWeight: 400,
+                                                                            fontSize: '13px',
+                                                                            lineHeight: '18px',
+                                                                            color:
+                                                                              theme.palette.customColors
+                                                                                .OnSurfaceVariant
                                                                           }}
                                                                         >
-                                                                          <Typography
+                                                                          {item?.all_days}
+                                                                        </Typography>
+                                                                      </Box>
+                                                                    ) : (
+                                                                      <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                                        {item?.days_of_week?.map((item, index) => (
+                                                                          <Box
+                                                                            key={index}
                                                                             sx={{
-                                                                              fontWeight: 400,
-                                                                              fontSize: '13px',
-                                                                              lineHeight: '18px',
-                                                                              color:
+                                                                              width: '48px',
+                                                                              height: '32px',
+                                                                              borderRadius: '16px',
+                                                                              backgroundColor:
                                                                                 theme.palette.customColors
-                                                                                  .OnSurfaceVariant
+                                                                                  .mdAntzNeutral,
+                                                                              display: 'center',
+                                                                              justifyContent: 'center',
+                                                                              alignItems: 'center'
                                                                             }}
                                                                           >
-                                                                            {getDayName(item)}
-                                                                          </Typography>
-                                                                        </Box>
-                                                                      ))}
-                                                                    </Box>
+                                                                            <Typography
+                                                                              sx={{
+                                                                                fontWeight: 400,
+                                                                                fontSize: '13px',
+                                                                                lineHeight: '18px',
+                                                                                color:
+                                                                                  theme.palette.customColors
+                                                                                    .OnSurfaceVariant
+                                                                              }}
+                                                                            >
+                                                                              {getDayName(item)}
+                                                                            </Typography>
+                                                                          </Box>
+                                                                        ))}
+                                                                      </Box>
+                                                                    )}
                                                                   </>
                                                                 )}
                                                               </Box>
@@ -3081,6 +2842,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -3173,6 +2954,116 @@ const DietDetail = () => {
                                                                                     : ''
                                                                                 })
                                                                               : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : ''}
                                                                           </Typography>
                                                                         </Box>
                                                                       </Box>
@@ -3191,7 +3082,15 @@ const DietDetail = () => {
                                                   <>
                                                     {itemd?.ingredientwithchoice?.map((item, index) => {
                                                       return (
-                                                        <TableRow key={index}>
+                                                        <TableRow
+                                                          key={index}
+                                                          sx={{
+                                                            '&:hover': {
+                                                              backgroundColor: theme.palette.secondary.contrastText,
+                                                              boxShadow: 'none'
+                                                            }
+                                                          }}
+                                                        >
                                                           <TableCell
                                                             style={{ paddingLeft: '0px' }}
                                                             sx={{
@@ -3199,29 +3098,7 @@ const DietDetail = () => {
                                                               left: '160px',
                                                               border: 'none',
                                                               backgroundColor: theme.palette.primary.contrastText
-
-                                                              // float: 'left'
                                                             }}
-
-                                                            // className={
-                                                            //   dietDetails.diet_type_name === 'Generic'
-                                                            //     ? 'cell_dimn'
-                                                            //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                            //       dietDetails?.child?.length === 0
-                                                            //     ? 'cell_dimn'
-                                                            //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                            //       dietDetails?.child?.length === 1
-                                                            //     ? 'cell_dimn1'
-                                                            //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                            //       dietDetails?.child?.length === 2
-                                                            //     ? 'cell_dimn2'
-                                                            //     : dietDetails.diet_type_name === 'By Weight' &&
-                                                            //       dietDetails?.child?.length === 3
-                                                            //     ? 'cell_dimn3'
-                                                            //     : dietDetails.diet_type_name === 'By Gender'
-                                                            //     ? 'cell_gend'
-                                                            //     : 'cellmodule4'
-                                                            // }
                                                           >
                                                             <Box
                                                               key={index}
@@ -3297,56 +3174,54 @@ const DietDetail = () => {
                                                                     }}
                                                                   >
                                                                     {item?.ingredientList?.map((item, index) => (
-                                                                      <>
-                                                                        <Box
-                                                                          key={index}
+                                                                      <Box
+                                                                        key={index}
+                                                                        sx={{
+                                                                          height: '32px',
+                                                                          borderRadius: '16px',
+                                                                          backgroundColor: '#1F415B1A',
+                                                                          display: 'center',
+                                                                          px: 2,
+                                                                          justifyContent: 'center',
+                                                                          alignItems: 'center'
+                                                                        }}
+                                                                      >
+                                                                        <Typography
                                                                           sx={{
-                                                                            height: '32px',
-                                                                            borderRadius: '16px',
-                                                                            backgroundColor: '#1F415B1A',
-                                                                            display: 'center',
-                                                                            px: 2,
-                                                                            justifyContent: 'center',
-                                                                            alignItems: 'center'
+                                                                            fontWeight: 600,
+                                                                            fontSize: '14px',
+                                                                            lineHeight: '16.94px',
+                                                                            color: theme.palette.secondary.dark
                                                                           }}
                                                                         >
+                                                                          {item?.ingredient_name}
+                                                                        </Typography>
+                                                                        {item?.master_cut_size ? (
                                                                           <Typography
                                                                             sx={{
-                                                                              fontWeight: 600,
+                                                                              fontWeight: 400,
                                                                               fontSize: '14px',
-                                                                              lineHeight: '16.94px',
+                                                                              lineHeight: '18px',
                                                                               color: theme.palette.secondary.dark
                                                                             }}
                                                                           >
-                                                                            {item?.ingredient_name}
+                                                                            &nbsp;-&nbsp; {item?.preparation_type}
+                                                                            &nbsp;-&nbsp;
+                                                                            {item?.master_cut_size}
                                                                           </Typography>
-                                                                          {item?.master_cut_size ? (
-                                                                            <Typography
-                                                                              sx={{
-                                                                                fontWeight: 400,
-                                                                                fontSize: '14px',
-                                                                                lineHeight: '18px',
-                                                                                color: theme.palette.secondary.dark
-                                                                              }}
-                                                                            >
-                                                                              &nbsp;-&nbsp; {item?.preparation_type}
-                                                                              &nbsp;-&nbsp;
-                                                                              {item?.master_cut_size}
-                                                                            </Typography>
-                                                                          ) : (
-                                                                            <Typography
-                                                                              sx={{
-                                                                                fontWeight: 400,
-                                                                                fontSize: '14px',
-                                                                                lineHeight: '18px',
-                                                                                color: theme.palette.secondary.dark
-                                                                              }}
-                                                                            >
-                                                                              &nbsp;-&nbsp; {item?.preparation_type}
-                                                                            </Typography>
-                                                                          )}
-                                                                        </Box>
-                                                                      </>
+                                                                        ) : (
+                                                                          <Typography
+                                                                            sx={{
+                                                                              fontWeight: 400,
+                                                                              fontSize: '14px',
+                                                                              lineHeight: '18px',
+                                                                              color: theme.palette.secondary.dark
+                                                                            }}
+                                                                          >
+                                                                            &nbsp;-&nbsp; {item?.preparation_type}
+                                                                          </Typography>
+                                                                        )}
+                                                                      </Box>
                                                                     ))}
                                                                   </Box>
                                                                 )}
@@ -3391,36 +3266,64 @@ const DietDetail = () => {
                                                               {item?.days_of_week?.length > 0 && (
                                                                 <>
                                                                   <Divider />
-                                                                  <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                                    {item?.days_of_week?.map((item, index) => (
-                                                                      <Box
-                                                                        key={index}
+                                                                  {item?.all_days ? (
+                                                                    <Box
+                                                                      key={index}
+                                                                      sx={{
+                                                                        width: '80px',
+                                                                        height: '32px',
+                                                                        borderRadius: '16px',
+                                                                        backgroundColor:
+                                                                          theme.palette.customColors.mdAntzNeutral,
+                                                                        display: 'center',
+                                                                        justifyContent: 'center',
+                                                                        alignItems: 'center'
+                                                                      }}
+                                                                    >
+                                                                      <Typography
                                                                         sx={{
-                                                                          width: '48px',
-                                                                          height: '32px',
-                                                                          borderRadius: '16px',
-                                                                          backgroundColor:
-                                                                            theme.palette.customColors.mdAntzNeutral,
-                                                                          display: 'center',
-                                                                          justifyContent: 'center',
-                                                                          alignItems: 'center'
+                                                                          fontWeight: 400,
+                                                                          fontSize: '13px',
+                                                                          lineHeight: '18px',
+                                                                          color:
+                                                                            theme.palette.customColors.OnSurfaceVariant
                                                                         }}
                                                                       >
-                                                                        <Typography
+                                                                        {item?.all_days}
+                                                                      </Typography>
+                                                                    </Box>
+                                                                  ) : (
+                                                                    <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                                      {item?.days_of_week?.map((item, index) => (
+                                                                        <Box
+                                                                          key={index}
                                                                           sx={{
-                                                                            fontWeight: 400,
-                                                                            fontSize: '13px',
-                                                                            lineHeight: '18px',
-                                                                            color:
-                                                                              theme.palette.customColors
-                                                                                .OnSurfaceVariant
+                                                                            width: '48px',
+                                                                            height: '32px',
+                                                                            borderRadius: '16px',
+                                                                            backgroundColor:
+                                                                              theme.palette.customColors.mdAntzNeutral,
+                                                                            display: 'center',
+                                                                            justifyContent: 'center',
+                                                                            alignItems: 'center'
                                                                           }}
                                                                         >
-                                                                          {getDayName(item)}
-                                                                        </Typography>
-                                                                      </Box>
-                                                                    ))}
-                                                                  </Box>
+                                                                          <Typography
+                                                                            sx={{
+                                                                              fontWeight: 400,
+                                                                              fontSize: '13px',
+                                                                              lineHeight: '18px',
+                                                                              color:
+                                                                                theme.palette.customColors
+                                                                                  .OnSurfaceVariant
+                                                                            }}
+                                                                          >
+                                                                            {getDayName(item)}
+                                                                          </Typography>
+                                                                        </Box>
+                                                                      ))}
+                                                                    </Box>
+                                                                  )}
                                                                 </>
                                                               )}
                                                             </Box>
@@ -3486,6 +3389,26 @@ const DietDetail = () => {
                                                                           : ''
                                                                       })
                                                                     : ''}
+                                                                  {item.meal_type
+                                                                    ? item.meal_type.map((meal, i) =>
+                                                                        meal.meal_value_header === 'Generic' &&
+                                                                        meal.notes &&
+                                                                        meal.notes.trim() !== '' ? (
+                                                                          <Typography
+                                                                            key={i}
+                                                                            sx={{ textAlign: 'center' }}
+                                                                          >
+                                                                            <Tooltip title={meal.notes}>
+                                                                              <img
+                                                                                src='/icons/Notes.svg'
+                                                                                alt='Grocery Icon'
+                                                                                width='35px'
+                                                                              />
+                                                                            </Tooltip>
+                                                                          </Typography>
+                                                                        ) : null
+                                                                      )
+                                                                    : null}
                                                                 </Typography>
                                                               </Box>
                                                             </Box>
@@ -3575,6 +3498,116 @@ const DietDetail = () => {
                                                                                   : ''
                                                                               })
                                                                             : ''}
+                                                                          {dietDetails.diet_type_name === 'By Weight' &&
+                                                                          item.meal_type
+                                                                            ? item.meal_type
+                                                                                .map((meal, i) => {
+                                                                                  if (
+                                                                                    all.includes(
+                                                                                      meal.meal_value_header
+                                                                                    ) &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                                .filter(Boolean).length === 0
+                                                                              ? ''
+                                                                              : item.meal_type.map((meal, i) => {
+                                                                                  if (
+                                                                                    all.includes(
+                                                                                      meal.meal_value_header
+                                                                                    ) &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                            : item.meal_type
+                                                                            ? item.meal_type
+                                                                                .map((meal, i) => {
+                                                                                  if (
+                                                                                    meal.meal_value_header === all &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                                .filter(Boolean).length === 0
+                                                                              ? ''
+                                                                              : item.meal_type.map((meal, i) => {
+                                                                                  if (
+                                                                                    meal.meal_value_header === all &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                            : ''}
                                                                         </Typography>
                                                                       </Box>
                                                                     </Box>
@@ -3593,7 +3626,11 @@ const DietDetail = () => {
                                                 sx={{
                                                   width: '100%',
                                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  pb: 3
+                                                  pb: 3,
+                                                  '&:hover': {
+                                                    backgroundColor: theme.palette.secondary.contrastText,
+                                                    boxShadow: 'none'
+                                                  }
                                                 }}
                                               >
                                                 <TableCell
@@ -3603,6 +3640,7 @@ const DietDetail = () => {
                                                   {itemd.notes &&
                                                   (itemd?.ingredient?.length >= 1 ||
                                                     itemd?.ingredientwithchoice?.length >= 1 ||
+                                                    itemd?.combo?.length >= 1 ||
                                                     itemd?.recipe?.length >= 1) ? (
                                                     <>
                                                       <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>

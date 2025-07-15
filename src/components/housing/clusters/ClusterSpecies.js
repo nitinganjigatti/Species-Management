@@ -169,16 +169,28 @@ const ClusterSpecies = () => {
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography
+        <Box
           sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: 'default'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'default',
+            justifyContent: 'left',
+            
           }}
         >
-          {params.row.sl_no}.
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'default'
+            }}
+          >
+            {params.row.sl_no}.
+          </Typography>
+        </Box>
       )
     },
     {
@@ -188,13 +200,24 @@ const ClusterSpecies = () => {
       sortable: false,
       headerName: 'Species',
       renderCell: params => (
-        <SpeciesCard
-          species={{
-            common_name: params.row.common_name,
-            scientific_name: params.row.complete_name,
-            default_icon: params.row.default_icon
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'default',
+            justifyContent: 'left'
           }}
-        />
+        >
+          <SpeciesCard
+            species={{
+              common_name: params.row.common_name,
+              scientific_name: params.row.complete_name,
+              default_icon: params.row.default_icon
+            }}
+          />
+        </Box>
       )
     },
     {
@@ -205,11 +228,23 @@ const ClusterSpecies = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'default',
+            justifyContent: 'left',
+           
+          }}
         >
-          {params.row.animal_count || 0}
-        </Typography>
+          <Typography
+            sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+          >
+            {params.row.animal_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -252,11 +287,23 @@ const ClusterSpecies = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.undetermined || 0}
-          bgcolor={theme.palette.customColors.SurfaceVariant}
-          color={theme.palette.customColors.Error}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'default',
+            justifyContent: 'left',
+         
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.undetermined || 0}
+            bgcolor={theme.palette.customColors.SurfaceVariant}
+            color={theme.palette.customColors.Error}
+          />
+        </Box>
       )
     },
     {
@@ -265,14 +312,25 @@ const ClusterSpecies = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'INDETERMINATE',
-
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.indeterminate || 0}
-          bgcolor={theme.palette.customColors.displaybgSecondary}
-          color={theme.palette.customColors.OnPrimaryContainer}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'default',
+            justifyContent: 'left',
+           
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.indeterminate || 0}
+            bgcolor={theme.palette.customColors.displaybgSecondary}
+            color={theme.palette.customColors.OnPrimaryContainer}
+          />
+        </Box>
       )
     }
 

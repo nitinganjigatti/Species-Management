@@ -32,7 +32,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
   const [status, setStatus] = useState('1')
@@ -74,6 +74,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
           if (Array.isArray(result)) {
             // If result is an array, update rows directly
             const startingIndex = paginationModel.page * paginationModel.pageSize
+
             let listWithId = res.data.data.result.map((el, i) => {
               return { ...el, uid: startingIndex + i + 1 }
             })
@@ -150,6 +151,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   const handleclickChange = (data, val) => {
     Router.push({
       pathname: `/diet/recipe/${data?.id}`
+
       //query: { source: val, ingId: id }
     })
   }
@@ -300,7 +302,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                 paginationMode='server'
                 sortingMode='server'
                 onSortModelChange={handleSortModel}
-                pageSizeOptions={[7, 10, 25, 50]}
+                pageSizeOptions={[7, 10, 25, 50, 100]}
                 paginationModel={paginationModel}
                 slots={{ toolbar: ServerSideToolbar }}
                 onPaginationModelChange={setPaginationModel}
@@ -327,7 +329,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   return (
     <>
       <Grid container spacing={6}>
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}

@@ -6,8 +6,6 @@ import { useTheme } from '@mui/material/styles'
 const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultName, completeName, eggIcon, tab }) => {
   const theme = useTheme()
 
-  // console.log('egg_status :>> ', egg_status)
-
   return (
     <Stack direction='row' spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
       <Box

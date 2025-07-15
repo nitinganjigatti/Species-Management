@@ -105,6 +105,7 @@ const UserThemeOptions = () => {
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
         PrimaryContainer: '#52F990',
+        OnPrimary50: '#FFFFFFBF',
 
         // *** name required
         customTableHeaderBg: '#C1D3D0',
@@ -144,6 +145,7 @@ const UserThemeOptions = () => {
         OnPrimaryContainer: '#1F515B',
         TertiaryContainer: '#FFBDA8',
         OutlineVariant: '#C3CEC7',
+        MuiFieldBorder: '#4c4e6438',
         OutlineSecondary: '#D8D8DD',
         OnPrimarycontainer10: '#1F515B0D',
         Notes: '#FCF4AE',

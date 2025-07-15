@@ -58,7 +58,7 @@ const PdfFileCard = ({ media, isBorderedCard = false }) => {
             m: 2
           }}
         >
-          <Image src={getIconByFileType(media?.file_original_name)?.image_path} alt='' width={60} height={60} />
+          <img src={getIconByFileType(media?.file_original_name)?.image_path} alt='' width={60} height={60} />
         </Box>
       )}
 

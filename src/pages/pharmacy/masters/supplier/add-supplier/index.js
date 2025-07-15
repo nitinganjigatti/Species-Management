@@ -312,7 +312,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
         <CardContent>
           <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
             <Grid container spacing={5}>
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='company_name'
@@ -335,7 +335,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='name'
@@ -348,7 +348,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='mobile'
@@ -372,7 +372,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.state_id)} id='state_id'>
                     State*
@@ -404,7 +404,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='gst_number'
@@ -427,7 +427,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='email'
@@ -451,7 +451,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='phone'
@@ -474,7 +474,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='description'
@@ -493,7 +493,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='address'
@@ -504,7 +504,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              {/* <Grid item xs={12}>
+              {/* <Grid item size={{xs: 12}}>
             <FormControl fullWidth>
               <Controller
                 name='opening_balance'
@@ -525,7 +525,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
             </FormControl>
           </Grid> */}
 
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
                   Submit
                 </LoadingButton>
@@ -543,7 +543,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   return (
     <>
       <Grid container spacing={6} className='match-height'>
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           {supplierDialog ? (
             <Grid>{supplierForm()}</Grid>
           ) : (

@@ -42,7 +42,7 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
     } catch (error) {
       setLoading(false)
       setIsEdit(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 

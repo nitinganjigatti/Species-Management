@@ -20,8 +20,6 @@ const AnimalActivityChart = ({ animalActivityData }) => {
   const labels = animalActivityData.map(item => item.label)
   const opacityLevels = [1, 0.8, 0.6, 0.4, 0.2]
 
-  console.log(animalActivityData, 'animalActivityData')
-
   const options = {
     chart: {
       sparkline: { enabled: true }

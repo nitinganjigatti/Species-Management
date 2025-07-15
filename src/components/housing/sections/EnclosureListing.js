@@ -112,8 +112,8 @@ const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerTy
 
   const handleSortModelChange = model => {
     let updated
-    if (sortModel.length > 0) {
-      const { field, sort } = sortModel[0]
+    if (model.length > 0) {
+      const { field, sort } = model[0]
       updated = {
         ...filters,
         sortBy: field,

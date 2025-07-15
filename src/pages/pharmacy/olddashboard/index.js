@@ -96,10 +96,10 @@ const Dashboard = () => {
   return (
     <ApexChartWrapper>
       <Grid container spacing={6} className='match-height'>
-        <Grid item xs={12} md={8}>
+        <Grid item size={{ xs: 12, md: 8 }}>
           <AnalyticsCongratulations />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item size={{ xs: 12, md: 4 }}>
           <Card>
             <CardHeader
               title={'Critical info'}
@@ -112,7 +112,7 @@ const Dashboard = () => {
             />
             <CardContent sx={{ marginTop: -6 }}>
               <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} className='match-height'>
-                <Grid item xs={6} sm={11 / 2}>
+                <Grid item size={{ xs: 6, sm: 11 / 2 }}>
                   <CriticalInfoCards
                     title={expiredMedicine?.value}
                     subTitle={expiredMedicine?.name}
@@ -121,7 +121,7 @@ const Dashboard = () => {
                 </Grid>
                 <Divider orientation='vertical' variant='middle' flexItem />
 
-                <Grid item xs={11 / 2}>
+                <Grid item size={{ xs: 11 / 2 }}>
                   <CriticalInfoCards
                     title={outOfStockMedicine?.value}
                     subTitle={outOfStockMedicine?.name}
@@ -132,7 +132,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={12}>
+        <Grid item size={{ xs: 12, md: 12 }}>
           <TotalListCard
             data={
               selectedPharmacy.type === 'central'
@@ -142,34 +142,34 @@ const Dashboard = () => {
             modifiedProperties={modifiedProperties}
           />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item size={{ xs: 12, md: 4 }}>
           <PendingRequestsChart />
         </Grid>
         {selectedPharmacy.type === 'central' ? (
           <>
-            <Grid item xs={12} md={4}>
+            <Grid item size={{ xs: 12, md: 4 }}>
               <StoreWisePendingRequestsChart />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item size={{ xs: 12, md: 4 }}>
               <RequestCompletedChart />
             </Grid>
           </>
         ) : null}
         {selectedPharmacy.type === 'central' ? (
-          <Grid container item spacing={6} xs={12} md={8} sx={{ display: 'flex' }}>
-            <Grid item xs={12} md={6}>
+          <Grid container item spacing={6} size={{ xs: 12, md: 8 }} sx={{ display: 'flex' }}>
+            <Grid item size={{ xs: 12, md: 6 }}>
               <MonthlyDispatchChart />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item size={{ xs: 12, md: 6 }}>
               <MonthlyPurchaseChart />
             </Grid>
-            <Grid item xs={12} md={12}>
+            <Grid item size={{ xs: 12, md: 12 }}>
               <StoreWiseNewRequests />
             </Grid>
           </Grid>
         ) : null}
 
-        <Grid item xs={12} md={4}>
+        <Grid item size={{ xs: 12, md: 4 }}>
           <FastMovingProducts />
         </Grid>
       </Grid>

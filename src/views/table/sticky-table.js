@@ -65,6 +65,11 @@ const StickyTable = ({
   const [rearrangedColumns, setRearrangedColumns] = useState(columns)
   const [anchorEl, setAnchorEl] = useState(null)
 
+  const hasSubHeader = rearrangedColumns.some(col => Array.isArray(col.subHeader) && col.subHeader.length > 0)
+  const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+
+  // const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + subHeaderHeight
+
   useEffect(() => {
     const leftPinnedColumns = columns.filter(col => col.pinned === 'left')
     const rightPinnedColumns = columns.filter(col => col.pinned === 'right')
@@ -76,6 +81,7 @@ const StickyTable = ({
       ...nonPinnedColumns,
       ...rightPinnedColumns // Right pinned columns in normal order
     ]
+
     // console.log('columns', columns)
     setRearrangedColumns(prev => Columns)
   }, [columns])
@@ -141,6 +147,7 @@ const StickyTable = ({
       }
     } catch (error) {
       console.error('Error transforming text:', error)
+
       return text
     }
   }
@@ -167,6 +174,7 @@ const StickyTable = ({
   const handlePinClick = pinDirection => {
     if (anchorEl) {
       const field = anchorEl.field
+
       // console.log(` ${field}: ${pinDirection}`)
       setRearrangedColumns(prevColumns => {
         // Find the column to update
@@ -174,12 +182,14 @@ const StickyTable = ({
         const updatedColumns = prevColumns.map(col => {
           if (col.field === field) {
             null
+
             // Update the pinned value based on the selected pinDirection
             return {
               ...col,
               pinned: pinDirection === 'none' ? null : pinDirection // Reset `pinned` for "none"
             }
           }
+
           return col
         })
 
@@ -217,11 +227,13 @@ const StickyTable = ({
     try {
       setSelectedRows(prevSelected => {
         const isRowSelected = prevSelected.includes(row)
+
         const updatedRows = isRowSelected
           ? prevSelected.filter(selectedRow => selectedRow !== row)
           : [...prevSelected, row]
 
         onRowSelect({ currentRow: row, rows: updatedRows })
+
         return updatedRows
       })
     } catch (error) {
@@ -242,8 +254,10 @@ const StickyTable = ({
         if (Array.isArray(column.subHeader)) {
           // Add the widths of all subHeader items
           const subHeaderWidth = column.subHeader.reduce((subSum, subCol) => subSum + (subCol.width || 0), 0)
+
           return sum + subHeaderWidth
         }
+
         // Add the column's width if no subHeader
         return sum + (column.width || 0)
       }, 0) // Initial sum is 0
@@ -251,6 +265,7 @@ const StickyTable = ({
     const totalWidth = calculateTotalWidth(rightPinnedColumns)
 
     rightOffset = rightOffset + totalWidth
+
     return (
       <TableRow sx={{ position: 'relative', zIndex: 200 }}>
         {rowSelection && (
@@ -296,11 +311,13 @@ const StickyTable = ({
               zIndex: 150 // Higher z-index for pinned columns
             }
             leftOffset += isGrouped ? widthWithSubHeader : col.width
+
             // Add a right border to the last left-pinned column
             if (index === leftPinnedColumns.length - 1) {
               borderStyle = {
                 // borderRight: '1px solid #DAE7DF',
                 boxShadow: '-4px 0 12px -6px rgba(0, 0, 0, 0.3) inset'
+
                 // boxShadow: `-20px 0px 10px -24px rgba(0,0,0,0.45) inset`
               }
             }
@@ -316,12 +333,14 @@ const StickyTable = ({
             if (index === rearrangedColumns.length - rightPinnedColumns.length) {
               borderStyle = {
                 borderLeft: '1px solid #DAE7DF'
+
                 // boxShadow: '-4px 0 12px -6px rgba(0, 0, 0, 0.3)',
                 // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
                 // boxShadow: `rgba(33, 35, 38, 0.1) -10px 0px 10px -10px`
               }
             }
           }
+
           return (
             <TableCell
               key={col.field || index}
@@ -331,6 +350,7 @@ const StickyTable = ({
                 maxWidth: isGrouped ? widthWithSubHeader : col.width,
                 fontWeight: 'bold',
                 color: theme.palette.customColors.OnSecondaryContainer,
+
                 // borderRight: '1px solid pink',
                 borderBottom: 'none',
                 ...pinnedStyle,
@@ -367,6 +387,7 @@ const StickyTable = ({
                         field: col.field,
                         direction: newStates[col.field]
                       })
+
                       return newStates
                     })
                   }}
@@ -430,13 +451,16 @@ const StickyTable = ({
         if (Array.isArray(column.subHeader)) {
           // Add the widths of all subHeader items
           const subHeaderWidth = column.subHeader.reduce((subSum, subCol) => subSum + (subCol.width || 0), 0)
+
           return sum + subHeaderWidth
         }
+
         // Add the column's width if no subHeader
         return sum + (column.width || 0)
       }, 0) // Initial sum is 0
     }
     const totalWidth = calculateTotalWidth(rightPinnedColumns)
+
     // const totalWidth = rightPinnedColumns.reduce((sum, column) => sum + (column.width || 0), 0)
     rightOffset = rightOffset + totalWidth
 
@@ -468,6 +492,7 @@ const StickyTable = ({
             if (leftPinnedColumns?.length - 1 === index && !isSubHeader) {
               borderStyle = {
                 borderRight: '1px solid #DAE7DF'
+
                 // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
               }
             }
@@ -479,14 +504,17 @@ const StickyTable = ({
               right: rightOffset,
               zIndex: 150 // Higher z-index for pinned columns
             }
+
             // Add a right border to the last left-pinned column
             if (index === rearrangedColumns.length - rightPinnedColumns.length && !isSubHeader) {
               borderStyle = {
                 borderLeft: '1px solid #DAE7DF'
+
                 // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
               }
             }
           }
+
           return isSubHeader ? (
             colGroup.subHeader.map((subCol, subIndex) => {
               let borderStyle = {}
@@ -503,25 +531,30 @@ const StickyTable = ({
                   // console.log('colGroup', colGroup.field)
                   borderStyle = {
                     borderRight: '1px solid #DAE7DF'
+
                     // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
                   }
                 }
               } else if (colGroup.pinned === 'right') {
                 rightOffset -= subCol.width
+
                 // console.log('colGroup', colGroup.field)
                 pinnedStyle = {
                   position: 'sticky',
                   right: rightOffset,
                   zIndex: 150 // Higher z-index for pinned columns
                 }
+
                 // Add a right border to the last left-pinned column
                 if (subIndex === 0) {
                   borderStyle = {
                     borderLeft: '1px solid #DAE7DF'
+
                     // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
                   }
                 }
               }
+
               return (
                 <TableCell
                   key={`${colGroup.field || index}-${subIndex}`}
@@ -534,6 +567,7 @@ const StickyTable = ({
                     height: `${subHeaderHeight}px`,
                     backgroundColor: '#f4f6f8',
                     textAlign: 'center',
+
                     // top: headerHeight,
                     // zIndex: 210,
                     ...pinnedStyle,
@@ -552,6 +586,7 @@ const StickyTable = ({
                           field: subCol.field,
                           direction: newStates[subCol.field]
                         })
+
                         return newStates
                       })
                     }}
@@ -603,8 +638,10 @@ const StickyTable = ({
           if (Array.isArray(column.subHeader)) {
             // Add the widths of all subHeader items
             const subHeaderWidth = column.subHeader.reduce((subSum, subCol) => subSum + (subCol.width || 0), 0)
+
             return sum + subHeaderWidth
           }
+
           // Add the column's width if no subHeader
           return sum + (column.width || 0)
         }, 0) // Initial sum is 0
@@ -622,10 +659,12 @@ const StickyTable = ({
           }}
           sx={{
             height: rowHeight,
+
             // backgroundColor: rowIndex % 2 === 0 ? '#f9f9f9' : 'white',
             backgroundColor: 'white',
             position: 'relative',
             cursor: onRowClick && 'pointer'
+
             // '&:hover': {
             //   backgroundColor: !onCellClick && onRowClick && '#ECFFDC'
             // }
@@ -674,10 +713,12 @@ const StickyTable = ({
               if (index === rearrangedColumns.length - rightPinnedColumns.length && !isSubHeader) {
                 borderStyle = {
                   borderLeft: '1px solid #DAE7DF'
+
                   // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
                 }
               }
             }
+
             // console.log('col', col)
             // console.log('row', row)
             // console.log('render', col.renderCell({ row }))
@@ -698,6 +739,7 @@ const StickyTable = ({
                   if (leftPinnedColumns?.length - 1 === index && subIndex === col?.subHeader?.length - 1) {
                     borderStyle = {
                       borderRight: '1px solid #DAE7DF'
+
                       // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
                     }
                   }
@@ -714,10 +756,12 @@ const StickyTable = ({
                   if (subIndex === 0) {
                     borderStyle = {
                       borderLeft: '1px solid #DAE7DF'
+
                       // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
                     }
                   }
                 }
+
                 return (
                   <TableCell
                     onClick={e => {
@@ -732,6 +776,7 @@ const StickyTable = ({
                       maxWidth: subCol.width,
                       backgroundColor: 'inherit',
                       cursor: onCellClick && 'pointer',
+
                       // '&:hover': {
                       //   backgroundColor: onCellClick && '#ECFFDC'
                       // },
@@ -763,6 +808,7 @@ const StickyTable = ({
 
                   backgroundColor: 'inherit',
                   cursor: onCellClick && 'pointer',
+
                   // '&:hover': {
                   //   backgroundColor: onCellClick && '#ECFFDC'
                   // },
@@ -772,6 +818,7 @@ const StickyTable = ({
                   minHeight: '70px',
                   maxHeight: '70px',
                   borderBottom: filteredRows.length != rowIndex && '1px solid #DAE7DF'
+
                   // borderBottom: '1px solid #DAE7DF'
                 }}
               >
@@ -797,15 +844,36 @@ const StickyTable = ({
       >
         <Box sx={{ marginLeft: 4, display: 'flex' }}>
           {rowSelection && (
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary'
+              }}
+            >
               Selected rows: {selectedRows?.length}
             </Typography>
           )}
         </Box>
-        <Box display='flex' gap='10px'>
-          <Box display='flex' alignItems='center' gap={5}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: '10px'
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5
+            }}
+          >
             {/* Label for rows per page */}
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary'
+              }}
+            >
               Rows in view:
             </Typography>
 
@@ -822,11 +890,28 @@ const StickyTable = ({
                 minWidth: '0px !important',
                 width: '40px !important',
                 '& .MuiSelect-icon': {
-                  color: 'text.secondary'
+                  color: 'text.secondary',
+                  boxShadow: 'none !important', // ✅ forcefully remove any shadow
+                  overflow: 'hidden',
+                  maxHeight: 200 // optional: keeps menu compact
                 },
                 '& .MuiSelect-select': {
                   minWidth: '0px !important',
-                  width: '40px !important'
+                  width: '40px !important',
+                  paddingY: '8px' // optional: aligns better
+                }
+              }}
+              MenuProps={{
+                anchorOrigin: {
+                  vertical: 'bottom',
+                  horizontal: 'left'
+                },
+                transformOrigin: {
+                  vertical: 'top',
+                  horizontal: 'left'
+                },
+                PaperProps: {
+                  elevation: 0 // ✅ fully disables the default shadow
                 }
               }}
             >
@@ -860,6 +945,7 @@ const StickyTable = ({
             }}
             sx={{
               background: loading ? '#f5f5f5' : '#fff',
+
               // borderTop: '1px solid #ddd',
               // boxShadow: '0px -2px 5px rgba(0,0,0,0.1)',
               pointerEvents: loading ? 'none' : 'auto' // Disable interactions when loading
@@ -903,19 +989,21 @@ const StickyTable = ({
           component={Paper}
           sx={{
             borderRadius: 2,
-            height: rowSelection
-              ? Math.max(5 * (rowHeight + 0.88), defaultRowsInView * (rowHeight + 0.88)) +
-                headerHeight +
-                subHeaderHeight +
-                16
-              : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + -0.1)) +
-                headerHeight +
-                subHeaderHeight,
+            // height: rowSelection
+            //   ? Math.max(5 * (rowHeight + 0.88), defaultRowsInView * (rowHeight + 0.88)) +
+            //     headerHeight +
+            //     subHeaderHeight +
+            //     16
+            //   : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + -0.1)) +
+            //     headerHeight +
+            //     subHeaderHeight,
+            height: tableTotalHeight,
+            // maxHeight: tableTotalHeight,
             overflowY: 'auto',
             position: 'relative',
             border: '1px solid #ddd',
-            overflow: loading ? 'hidden' : 'auto',
-            '&::-webkit-scrollbar': { width: '0px', height: '0px' }
+            overflow: loading ? 'hidden' : 'auto'
+            // '&::-webkit-scrollbar': { width: '0px', height: '0px' }
             // '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888' },
             // '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' }
           }}

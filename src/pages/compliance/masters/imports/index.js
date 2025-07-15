@@ -318,8 +318,7 @@ const Imports = () => {
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Importer'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Importer</Typography>}
           action={headerAction}
           sx={{ px: 5, display: 'flex', flexWrap: 'wrap', gap: 2 }}
         />

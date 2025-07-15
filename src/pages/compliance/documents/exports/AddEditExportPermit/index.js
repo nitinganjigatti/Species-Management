@@ -16,7 +16,7 @@ const AddEditExportPermit = () => {
   const { id, type } = router.query
   const isEdit = Boolean(id && id !== 'new')
   const { userData } = useContext(AuthContext)
-  const [expanded, setExpanded] = useState('permit-details') // Accordion open state
+  const [expanded, setExpanded] = useState(['permit-details']) // Accordion open state
   const [exportData, setExportData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(false)
@@ -32,9 +32,19 @@ const AddEditExportPermit = () => {
 
   useEffect(() => {
     if (id && type) {
-      setExpanded('supporting-documents')
+      setExpanded(['supporting-documents'])
     }
   }, [id, type])
+
+  // Accordion toggle handler
+  const handleAccordionChange = panelId => {
+    setExpanded(
+      prev =>
+        prev.includes(panelId)
+          ? prev.filter(id => id !== panelId) // Close if open
+          : [...prev, panelId] // Open if closed
+    )
+  }
 
   const fetchExportDetails = async () => {
     setLoading(true)
@@ -108,17 +118,15 @@ const AddEditExportPermit = () => {
         </Breadcrumbs>
       </Box>
 
-      <CardHeader
-        title={isEdit ? 'Edit CITES Export Permit' : 'CITES Export Permit'}
-        titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
-      />
+      <CardHeader title={isEdit ? 'Edit CITES Export Permit' : 'CITES Export Permit'} />
 
       {/* PERMIT DETAILS SECTION */}
       <CustomAccordion
         id='permit-details'
         title='Details'
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        expanded={expanded.includes('permit-details')}
+        onChange={handleAccordionChange}
+        shouldScrollToTop={false}
       >
         <ExportPermitForm id={id} exportData={exportData} isLoading={loading} onSubmit={handleFormSubmit} />
       </CustomAccordion>
@@ -127,8 +135,8 @@ const AddEditExportPermit = () => {
         id='supporting-documents'
         title='Supporting Documents'
         docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        expanded={expanded.includes('supporting-documents')}
+        onChange={handleAccordionChange}
       >
         {!isEdit && !documentList?.length ? (
           <Box

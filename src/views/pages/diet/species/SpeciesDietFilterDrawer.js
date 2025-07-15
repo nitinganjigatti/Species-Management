@@ -196,6 +196,7 @@ const SpeciesDietFilterDrawer = ({
     setClassListData([])
     setClassListCount(0)
   }
+
   return (
     <Drawer
       anchor='right'
@@ -230,7 +231,6 @@ const SpeciesDietFilterDrawer = ({
           </IconButton>
         </Box>
       </Box>
-
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -239,7 +239,7 @@ const SpeciesDietFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu.map(menu => (
               <Box
                 key={menu.id}
@@ -251,6 +251,7 @@ const SpeciesDietFilterDrawer = ({
                   borderTopLeftRadius: '8px',
                   borderBottomLeftRadius: '8px'
                 }}
+
                 // onClick={() => handleMenuClick(menu)}
               >
                 <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
@@ -259,7 +260,7 @@ const SpeciesDietFilterDrawer = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               ref={scrollContainerRef}
               onScroll={handleScroll}
@@ -296,9 +297,6 @@ const SpeciesDietFilterDrawer = ({
                     placeholder='Search'
                     value={searchQuery}
                     onChange={handleSearchChange}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
@@ -306,6 +304,11 @@ const SpeciesDietFilterDrawer = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false
                       }
                     }}
                   />
@@ -349,7 +352,6 @@ const SpeciesDietFilterDrawer = ({
           </Grid>
         </Grid>
       </Box>
-
       {/* bottom buttons */}
       <Box
         sx={{

@@ -12,7 +12,7 @@ export const ConfirmationBox = ({ setConfirmationBox }) => {
             Are you sure you want to Cancel ?
           </Typography>
         </Grid>
-        <Grid xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Button
             variant='outlined'
             sx={{ position: 'relative', left: '144px', m: '5px' }}

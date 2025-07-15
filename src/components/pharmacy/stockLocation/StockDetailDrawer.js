@@ -43,17 +43,19 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
       anchor='right'
       open={openDrawer}
       onClose={setDrawerClose}
-      PaperProps={{
-        sx: {
-          width: {
-            xs: '100%',
-            sm: '80%',
-            md: 560
-          },
-          backgroundColor: 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%'
+      slotProps={{
+        paper: {
+          sx: {
+            width: {
+              xs: '100%',
+              sm: '80%',
+              md: 560
+            },
+            backgroundColor: 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }
         }
       }}
     >
@@ -67,8 +69,15 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
           borderBottom: '1px solid #e0e0e0'
         }}
       >
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          <Typography variant='h6' fontWeight='bold'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+          <Typography variant='h6' sx={{
+            fontWeight: 'bold'
+          }}>
             Rack and Shelves
           </Typography>
           <IconButton onClick={setDrawerClose}>
@@ -94,7 +103,7 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
             icon={stockDetail?.image}
           />
           <Typography sx={{ fontSize: '14px' }}>
-            Reorder-Level: <strong>{stockDetail?.min_qty ? stockDetail?.min_qty : 0}</strong>
+            Reorder Level: <strong>{stockDetail?.min_qty ? stockDetail?.min_qty : 0}</strong>
           </Typography>
         </Box>
 
@@ -109,25 +118,44 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
             boxShadow: 'none'
           }}
         >
-          <Typography
+          {/* <Typography
             variant='subtitle1'
-            marginBottom={2}
-            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-          >
+            sx={{
+              marginBottom: 2,
+              color: 'customColors.customHeadingTextColor',
+              fontWeight: 500,
+              fontSize: '14px'
+            }}>
             Rack and Shelves Details
-          </Typography>
+          </Typography> */}
           <Card
             sx={{
-              // m: 6,
-              border: '1px solid',
-              borderColor: 'customColors.customTableBorderBg',
               boxShadow: 'none'
             }}
           >
             <TableContainer component={Paper}>
-              <Table aria-label='rack and shelves table'>
+              <Table
+                aria-label='rack and shelves table'
+                sx={{
+                  border: '1px solid #e0e0e0',
+                  '& .MuiTableCell-root': {
+                    border: '1px solid #e0e0e0'
+                  },
+                  '& .MuiTableBody-root .MuiTableRow-root:last-child .MuiTableCell-root': {
+                    borderBottom: '1px solid #e0e0e0'
+                  }
+                }}
+              >
                 <TableHead>
-                  <TableRow>
+                  <TableRow
+                    sx={{
+                      backgroundColor: '#c8d0d0',
+                      '& .MuiTableCell-root': {
+                        backgroundColor: '#c8d0d0',
+                        fontWeight: 'bold'
+                      }
+                    }}
+                  >
                     <TableCell>
                       <strong>Rack</strong>
                     </TableCell>
@@ -165,7 +193,7 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
         </Card>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default StockDetailDrawer

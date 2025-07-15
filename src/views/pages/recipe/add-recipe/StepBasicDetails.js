@@ -36,6 +36,7 @@ const schema = yup.object().shape({
   recipe_name: yup.string().required('Recipe name is required'),
   portion_size: yup.string().required('Portion size is required'),
   portion_uom_id: yup.string().required('Unit of measurement is required')
+
   // nutrional_value: yup.string().required('Nutritional values are required'),
   // nutrional_uom_id: yup.string().required('Unit of measurement is required'),
   // kcal: yup.string().required('Total calories are required')
@@ -53,6 +54,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
     clearErrors,
     watch,
     setValue,
+    setError,
     formState: { errors }
   } = useForm({
     mode: 'all',
@@ -140,12 +142,12 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
         </CardContent>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
+          <Box sx={{ mb: 5, px: 5, mt: 5, float: 'left' }}>
             <Typography variant='h6'>Recipe details</Typography>
           </Box>
           <ScrollToFieldError errors={errors} />
           <Grid container spacing={5} sx={{ px: 5 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='recipe_name'
@@ -168,8 +170,8 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
               </FormControl>
             </Grid>
 
-            <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
-              <Grid item xs={12} sm={3}>
+            <Grid container spacing={6} sx={{ py: 2 }}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='portion_size'
@@ -197,7 +199,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={3.17}>
+              <Grid size={{ xs: 12, sm: 6.17, md: 3.17 }}>
                 <FormControl fullWidth>
                   {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                   {console.log(uomList, 'uomList')}
@@ -343,19 +345,19 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
             </Grid>
           </Grid> */}
 
-            <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} />
+            <Divider sx={{ width: '98%' }} />
 
-            <Box sx={{ mb: 0, px: 5, mt: 3, float: 'left', width: '100%' }}>
+            <Box sx={{ mb: 0, px: 0, mt: 0, float: 'left', width: '100%' }}>
               <Typography variant='h6'>Add image</Typography>
             </Box>
             {console.log(uploadedImage, 'uploadedImage')}
-            <Grid item xs={6} sx={{ pt: 0 }}>
-              <CardContent sx={{ px: 0, paddingTop: 2 }}>
+            <Grid size={{ xs: 6 }} sx={{ pt: 0 }}>
+              <CardContent sx={{ px: 0, paddingTop: 0 }}>
                 <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
               </CardContent>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
                 <Button
                   color='secondary'

@@ -61,7 +61,7 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
         <CloseIcon />
       </IconButton>
       <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={12} sx={{ mb: 1 }}>
+        <Grid size={{ xs: 12 }} sx={{ mb: 1 }}>
           <Select fullWidth value={data.gender} onChange={e => onChange(index, 'gender', e.target.value)} displayEmpty>
             <MenuItem value='' disabled>
               Gender*
@@ -73,7 +73,7 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
             ))}
           </Select>
         </Grid>
-        <Grid item xs={12} sx={{ mb: 1 }}>
+        <Grid size={{ xs: 12 }} sx={{ mb: 1 }}>
           <Select
             fullWidth
             value={currentIdType?.key || ''}
@@ -93,7 +93,7 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
             ))}
           </Select>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <TextField
             fullWidth
             label='Identifier Details*'
@@ -356,7 +356,7 @@ const AddanimalCountDrawer = ({
               Gender Wise Count
             </Typography>
             <Grid container spacing={2} sx={{ mt: 2, mb: 2 }}>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   fullWidth
                   type='number'
@@ -371,20 +371,21 @@ const AddanimalCountDrawer = ({
                       setCounts(prev => ({ ...prev, male: isNaN(numeric) ? 0 : numeric }))
                     }
                   }}
-                  inputProps={{
-                    min: 0,
-                    inputMode: 'numeric',
-                    pattern: '[0-9]*'
+                  slotProps={{
+                    input: {
+                      min: 0,
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*'
+                    }
                   }}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   fullWidth
                   type='number'
                   label='# Female'
                   value={counts.female}
-                  // onChange={e => setCounts(prev => ({ ...prev, female: e.target.value }))}
                   onChange={e => {
                     const value = e.target.value
                     if (value === '') {
@@ -394,20 +395,21 @@ const AddanimalCountDrawer = ({
                       setCounts(prev => ({ ...prev, female: isNaN(numeric) ? 0 : numeric }))
                     }
                   }}
-                  inputProps={{
-                    min: 0,
-                    inputMode: 'numeric',
-                    pattern: '[0-9]*'
+                  slotProps={{
+                    input: {
+                      min: 0,
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*'
+                    }
                   }}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   fullWidth
                   type='number'
                   label='# Unknown'
                   value={counts.unknown}
-                  //onChange={e => setCounts(prev => ({ ...prev, unknown: e.target.value }))}
                   onChange={e => {
                     const value = e.target.value
                     if (value === '') {
@@ -417,10 +419,12 @@ const AddanimalCountDrawer = ({
                       setCounts(prev => ({ ...prev, unknown: isNaN(numeric) ? 0 : numeric }))
                     }
                   }}
-                  inputProps={{
-                    min: 0,
-                    inputMode: 'numeric',
-                    pattern: '[0-9]*'
+                  slotProps={{
+                    input: {
+                      min: 0,
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*'
+                    }
                   }}
                 />
               </Grid>

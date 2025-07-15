@@ -19,7 +19,7 @@ const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCa
   const handleExport = useCallback(
     data => {
       let formattedData
-      console.log('data', data)
+      // console.log('data', data)
       if (tab_Value === 'species') {
         setFileName('Species')
 

@@ -68,6 +68,7 @@ const EditAcquisitionFields = ({
       setSelectedFileId(fileId)
     } else {
       setDgftDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
+
       // Update the attachments in the form
       const currentFiles = getValues('dgft_attachments') || []
       const updatedFiles = currentFiles.filter((_, i) => i !== index)
@@ -130,6 +131,7 @@ const EditAcquisitionFields = ({
 
     if (filesArray.length + dgftDisplayFile?.length > 2) {
       Toaster({ type: 'error', message: 'You can only upload up to 2 files.' })
+
       return
     }
 
@@ -176,7 +178,7 @@ const EditAcquisitionFields = ({
   return (
     <>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='where_to_acquisition'
@@ -187,6 +189,7 @@ const EditAcquisitionFields = ({
                   fullWidth
                   label='Which organization would you acquire?'
                   error={Boolean(errors.where_to_acquisition)}
+
                   //   helperText={errors.where_to_acquisition?.message}
                 />
               )}
@@ -196,7 +199,7 @@ const EditAcquisitionFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='gender'
@@ -215,7 +218,7 @@ const EditAcquisitionFields = ({
       </Grid>
       <Grid container spacing={2}>
         {reasonType !== 'death' && (
-          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+          <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='animal_count'
@@ -240,7 +243,7 @@ const EditAcquisitionFields = ({
             </FormControl>
           </Grid>
         )}
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='transaction_date'
@@ -276,7 +279,7 @@ const EditAcquisitionFields = ({
           DGFT
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+          <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='dgft_number'
@@ -287,6 +290,7 @@ const EditAcquisitionFields = ({
                     fullWidth
                     label='DGFT Number*'
                     error={Boolean(errors.dgft_number)}
+
                     // helperText={errors.dgft_number?.message}
                   />
                 )}
@@ -296,9 +300,9 @@ const EditAcquisitionFields = ({
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <Grid container spacing={2} sx={{ mb: 6 }}>
-              <Grid item xs={12} sm={4} md={3} lg={3.8}>
+              <Grid item size={{ xs: 12, sm: 4, md: 3, lg: 3.8 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='dgft_attachments'
@@ -336,8 +340,9 @@ const EditAcquisitionFields = ({
               {/* {/ Uploaded files display /} */}
               {dgftDisplayFile?.map((src, index) => {
                 const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
+
                 return (
-                  <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
+                  <Grid item size={{ xs: 12, sm: 'auto', md: 'auto', lg: 'auto' }} key={index}>
                     <FormControl fullWidth>
                       <Box
                         sx={{
@@ -421,7 +426,7 @@ const EditAcquisitionFields = ({
           CITES
         </Typography>
         <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='cites_required'
@@ -433,6 +438,7 @@ const EditAcquisitionFields = ({
                     fullWidth
                     label='CITES required *'
                     error={Boolean(errors.cites_required)}
+
                     // helperText={errors.cites_required?.message}
                   >
                     <MenuItem value='yes'>Yes</MenuItem>
@@ -448,7 +454,7 @@ const EditAcquisitionFields = ({
         </Grid>
         {watch('cites_required') === 'yes' && (
           <Grid container spacing={2} sx={{ mb: 6 }}>
-            <Grid item xs={12} sm={3}>
+            <Grid item size={{ xs: 12, sm: 3 }}>
               <FormControl fullWidth>
                 <Controller
                   name='cites_appendix'
@@ -460,6 +466,7 @@ const EditAcquisitionFields = ({
                       fullWidth
                       label='Select Appendix'
                       error={Boolean(errors.cites_appendix)}
+
                       //   helperText={errors.cites_appendix?.message}
                     >
                       <MenuItem value='Appendix-1'>Appendix I</MenuItem>
@@ -473,7 +480,7 @@ const EditAcquisitionFields = ({
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item size={{ xs: 12, sm: 3 }}>
               <FormControl fullWidth>
                 <Controller
                   name='cites_numbers'
@@ -484,6 +491,7 @@ const EditAcquisitionFields = ({
                       fullWidth
                       label='CITES Numbers'
                       error={Boolean(errors.cites_numbers)}
+
                       //   helperText={errors.cites_numbers?.message}
                     />
                   )}
@@ -557,7 +565,7 @@ const EditAcquisitionFields = ({
         <DialogContent />
       </Dialog>
     </>
-  )
+  );
 }
 
 export default EditAcquisitionFields

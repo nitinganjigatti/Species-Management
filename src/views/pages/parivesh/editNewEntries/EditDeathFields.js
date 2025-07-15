@@ -22,7 +22,7 @@ const EditDeathFields = ({
   return (
     <>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='reason_for_death'
@@ -45,7 +45,7 @@ const EditDeathFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='death_date'
@@ -80,7 +80,7 @@ const EditDeathFields = ({
         </Grid>
       </Grid>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='death_animal_id'
@@ -103,9 +103,9 @@ const EditDeathFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <FormControl fullWidth>
                 <Controller
                   name='gender'
@@ -127,7 +127,7 @@ const EditDeathFields = ({
         </Grid>
       </Grid>
       <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='transaction_date'

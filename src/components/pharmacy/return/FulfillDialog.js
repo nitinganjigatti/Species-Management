@@ -378,18 +378,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   const removeSaltButton = index => {
     return (
-      <Box>
-        <Icon
-          onClick={() => {
-            // var tempDefaultSalts = defaultSalts
-            // tempDefaultSalts.splice(index, 1)
-            // setDefaultSalts(tempDefaultSalts)
-            remove(index)
-          }}
-          icon='material-symbols-light:close'
-        />
-      </Box>
-
       // <Button
       //   variant='outlined'
       //   color='error'
@@ -403,7 +391,18 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       // >
       //   {/* Remove */}
       // </Button>
-    )
+      <Box>
+        <Icon
+          onClick={() => {
+            // var tempDefaultSalts = defaultSalts
+            // tempDefaultSalts.splice(index, 1)
+            // setDefaultSalts(tempDefaultSalts)
+            remove(index)
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
+    );
   }
 
   const clearSaltFields = index => {
@@ -434,7 +433,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           icon='material-symbols-light:close'
         />
       </Box>
-    )
+    );
   }
 
   const getAllQuantityValues = () => {
@@ -518,7 +517,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           </CardContent>
           <CardContent>
             <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-              <Grid item xs={4}>
+              <Grid item size={{ xs: 4 }}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   Medicine Name
                 </Typography>
@@ -527,7 +526,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   {fulfillMedicine?.stock_name}
                 </Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item size={{ xs: 4 }}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   QTY Requested
                 </Typography>
@@ -535,7 +534,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   {fulfillMedicine?.requested_qty}
                 </Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item size={{ xs: 4 }}>
                 <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold' }}>
                   QTY Remaining
                 </Typography>
@@ -549,11 +548,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           <CardContent>
             <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12}>
+                <Grid item size={{ xs: 12, sm: 12 }}>
                   <FormGroup>
                     {fields.map((field, index) => (
                       <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
-                        <Grid item xs={3}>
+                        <Grid item size={{ xs: 3 }}>
                           <FormControl fullWidth>
                             <Controller
                               name={`product_batches[${index}].batch_no`}
@@ -627,7 +626,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             )}
                           </FormControl>
                         </Grid>
-                        <Grid item xs={3}>
+                        <Grid item size={{ xs: 3 }}>
                           <FormControl fullWidth>
                             <Controller
                               name={`product_batches[${index}].expiry_date`}
@@ -652,7 +651,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             )}
                           </FormControl>
                         </Grid>
-                        <Grid item xs={3}>
+                        <Grid item size={{ xs: 3 }}>
                           <FormControl fullWidth>
                             <Controller
                               name={`product_batches[${index}].qty`}
@@ -688,17 +687,13 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                         <Grid
                           item
-                          xs={3}
-                          // eslint-disable-next-line lines-around-comment
-                          // justifyContent='flex-end'
-
-                          alignSelf='center'
+                          size={{ xs: 3 }}
                           sx={{
+                            alignSelf: 'center',
                             display: 'flex',
                             justifyItems: 'center',
                             alignItems: 'center'
-                          }}
-                        >
+                          }}>
                           {handleAddRemoveSalts(fields, index)}
                         </Grid>
                       </Grid>
@@ -709,7 +704,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               {fulfilledQuantity > 0 ? (
                 <>
                   <Grid container>
-                    <Grid xs={12} style={{ textAlign: 'left', fontWeight: 'bold', marginTop: '10px' }}>
+                    <Grid size={{ xs: 12 }} style={{ textAlign: 'left', fontWeight: 'bold', marginTop: '10px' }}>
                       <Typography variant='body2' style={{ fontWeight: 'bold' }} sx={{ color: 'text.primary' }}>
                         <span style={{ fontWeight: 'normal' }}>Remaining Quantity - </span>
                         {checkNumber(fulfillMedicine?.requested_qty) -
@@ -728,7 +723,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <StyledErrorText>Total quantity should be lesser than Quantity Remaining</StyledErrorText>
                   </div>
                 ) : null}
-                <Grid item xs={12} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
+                <Grid item size={{ xs: 12 }} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
                   <LoadingButton
                     size='large'
                     variant='contained'
@@ -861,7 +856,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         </>
       )}
     </>
-  )
+  );
 }
 
 export default FulfillDialog

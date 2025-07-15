@@ -448,7 +448,7 @@ export default function AddProduct() {
       {selectedPharmacy.type === 'local' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <Grid container spacing={6}>
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Card>
               <CardHeader
                 title={!id ? 'Add Product Form' : 'Edit Product Form'}
@@ -492,7 +492,7 @@ export default function AddProduct() {
                         )}
                       </FormControl>
                     </Grid> */}
-                    <Grid item xs={12} sm={6}>
+                    <Grid item size={{ xs: 12, sm: 6 }}>
                       <FormControl fullWidth>
                         <Controller
                           name='product_name'
@@ -515,7 +515,7 @@ export default function AddProduct() {
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6}>
+                    <Grid item size={{ xs: 12, sm: 6 }}>
                       <FormControl fullWidth>
                         <InputLabel>Select Product Type*</InputLabel>
                         <Controller
@@ -544,10 +544,12 @@ export default function AddProduct() {
                       </FormControl>
                     </Grid>
                   </Grid>
-                  <Grid container mt={4} xs={12}>
+                  <Grid container size={{ xs: 12 }} sx={{
+                    mt: 4
+                  }}>
                     <Grid container spacing={6}>
                       {
-                        <Grid item xs={12} sm={6}>
+                        <Grid item size={{ xs: 12, sm: 6 }}>
                           <FormControl fullWidth>
                             <Controller
                               name='generic_name'
@@ -572,7 +574,7 @@ export default function AddProduct() {
                           </FormControl>
                         </Grid>
                       }
-                      <Grid item xs={12} sm={6}>
+                      <Grid item size={{ xs: 12, sm: 6 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='quantity'
@@ -596,7 +598,7 @@ export default function AddProduct() {
                       </Grid>
 
                       {
-                        <Grid item xs={12} sm={6}>
+                        <Grid item size={{ xs: 12, sm: 6 }}>
                           <FormControl fullWidth>
                             <InputLabel>From Store Name*</InputLabel>
                             <Controller
@@ -625,7 +627,7 @@ export default function AddProduct() {
                       }
                       {}
 
-                      <Grid item xs={12} sm={6}>
+                      <Grid item size={{ xs: 12, sm: 6 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='comment'
@@ -636,7 +638,7 @@ export default function AddProduct() {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={12}>
+                      <Grid item size={{ xs: 12, sm: 12 }}>
                         <FormControl fullWidth error={Boolean(errors.radio)}>
                           <FormLabel>Priority</FormLabel>
                           <Controller
@@ -668,7 +670,7 @@ export default function AddProduct() {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={6}>
+                      <Grid item size={{ xs: 12, sm: 6 }}>
                         <Typography sx={{ mb: 4 }}>Product Image</Typography>
 
                         {imgSrc !== '' && imgSrc !== null && (
@@ -714,8 +716,7 @@ export default function AddProduct() {
 
                         <Grid
                           item
-                          xs={12}
-                          sm={12}
+                          size={{ xs: 12, sm: 12 }}
                           sx={{
                             position: 'relative',
                             width: { xs: '100%', sm: '300px' }, // Full width on small screens, fixed on larger ones
@@ -779,12 +780,11 @@ export default function AddProduct() {
                         />
                       )}
 
-                      <Grid item xs={12} sm={6}>
+                      <Grid item size={{ xs: 12, sm: 6 }}>
                         <Typography sx={{ mb: 4 }}>Prescription Images</Typography>
                         <Grid
                           item
-                          xs={12}
-                          sm={12}
+                          size={{ xs: 12, sm: 12 }}
                           sx={{
                             position: 'relative',
                             width: '300px', // Adjust container width as needed
@@ -837,16 +837,15 @@ export default function AddProduct() {
                   </Grid>
                   <Grid
                     container
-                    sm={12}
+                    size={{ sm: 12 }}
                     spacing={6}
-                    mt={5}
                     item
                     sx={{
+                      mt: 5,
                       display: 'flex',
                       justifyContent: 'flex-end',
                       alignItems: 'center'
-                    }}
-                  >
+                    }}>
                     {id && (
                       <Button
                         styles={{ color: theme.palette.error.dark, border: '1px solid red', margin: '5px' }}
@@ -880,5 +879,5 @@ export default function AddProduct() {
         </>
       )}
     </>
-  )
+  );
 }

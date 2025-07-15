@@ -926,10 +926,16 @@ const AddLab = () => {
                 >
                   Lab list
                 </Typography>
-                <Typography color='text.primary'>Add lab</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.primary'
+                  }}
+                >
+                  Add lab
+                </Typography>
               </Breadcrumbs>
               <Grid container spacing={6} className='match-height'>
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Card>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {/* <IconButton sx={{ ml: 2 }} onClick={() => router.back()}>
@@ -940,7 +946,7 @@ const AddLab = () => {
                     <CardContent>
                       <form onSubmit={handleSubmit(onSubmit)}>
                         <Grid container spacing={5}>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='lab_name'
@@ -964,7 +970,7 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth mt={2}>
                               <InputLabel error={Boolean(errors?.type)} id='type'>
                                 Lab Type*
@@ -995,7 +1001,7 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='incharge_name'
@@ -1020,7 +1026,7 @@ const AddLab = () => {
                             </FormControl>
                           </Grid>
 
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='address'
@@ -1042,7 +1048,7 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='lab_contact_number'
@@ -1057,7 +1063,9 @@ const AddLab = () => {
                                     placeholder=''
                                     error={Boolean(errors?.lab_contact_number)}
                                     name='lab_contact_number'
-                                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} // Allow only numeric input
+                                    slotProps={{
+                                      htmlInput: { inputMode: 'numeric', pattern: '[0-9]*' }
+                                    }}
                                   />
                                 )}
                               />
@@ -1068,7 +1076,7 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <Controller
                               name='is_default'
                               control={control}
@@ -1097,7 +1105,7 @@ const AddLab = () => {
                           </Grid>
 
                           {/* test Data */}
-                          <Grid item xs={12} md={12} sm={12}>
+                          <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                             <Card
                               sx={{
                                 p: 2,
@@ -1186,9 +1194,9 @@ const AddLab = () => {
                                       {sample?.tests?.map(parent => (
                                         <Card key={parent.test_id} sx={{ p: 2, mb: 2 }}>
                                           <Stack
-                                            gap={1}
                                             direction='row'
                                             sx={{
+                                              gap: 1,
                                               display: 'flex',
                                               alignItems: 'center',
                                               justifyContent: 'space-between'
@@ -1208,10 +1216,15 @@ const AddLab = () => {
                                             {parent.child_tests?.map((child, childId) =>
                                               child.value === true ? (
                                                 <Stack
-                                                  key={child.test_id} // Provide a unique key for each child test
+                                                  // Provide a unique key for each child test
+                                                  key={child.test_id}
                                                   direction='row'
-                                                  gap={2}
-                                                  sx={{ display: 'flex', alignItems: 'center', p: 1 }}
+                                                  sx={{
+                                                    gap: 2,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    p: 1
+                                                  }}
                                                 >
                                                   <Icon
                                                     icon='ic:baseline-check'
@@ -1237,7 +1250,7 @@ const AddLab = () => {
                             </Card>
                           </Grid>
 
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <Card sx={{ p: 2 }}>
                               <Box
                                 sx={{
@@ -1286,7 +1299,11 @@ const AddLab = () => {
                                   </FormHelperText>
                                 )}
                               </FormControl>
-                              <Box mt={2}>
+                              <Box
+                                sx={{
+                                  mt: 2
+                                }}
+                              >
                                 <FormControl fullWidth>
                                   <Controller
                                     name='latitude'
@@ -1314,14 +1331,14 @@ const AddLab = () => {
                               </Box>
                             </Card>
                           </Grid>
-                          <Grid item xs={12} md={12} sm={12}>
+                          <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                             <Card>
                               <CardHeader title='Add Lab Picture' />
                               <CardContent>
                                 {/* <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} /> */}
                                 <Grid container>
                                   {/* {imgSrc !== '' ? null : ( */}
-                                  <Grid item md={12} sm={12} xs={12}>
+                                  <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                                     <input
                                       type='file'
                                       accept='*/*'
@@ -1353,9 +1370,7 @@ const AddLab = () => {
                                   {/* )} */}
                                   <Grid
                                     item
-                                    md={12}
-                                    sm={12}
-                                    xs={12}
+                                    size={{ xs: 12, sm: 12, md: 12 }}
                                     sx={{ display: 'flex', justifyContent: 'flex-start' }}
                                   >
                                     <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
@@ -1515,7 +1530,7 @@ const AddLab = () => {
               {/* drawer */}
               <Stack sx={{ p: 5 }} spacing={3}>
                 {TestData?.map((sample, index) => (
-                  <>
+                  <Box key={index}>
                     <Stack
                       key={index}
                       direction='row'
@@ -1550,7 +1565,7 @@ const AddLab = () => {
                     {sample?.tests?.map((parent, index) =>
                       parent?.child_tests?.length > 0 ? (
                         <Card key={index} mt={2}>
-                          <Accordion>
+                          <Accordion slotProps={{ heading: { component: 'h4' } }}>
                             <AccordionSummary
                               expandIcon={<ExpandMoreIcon />}
                               aria-controls='panel1a-content'
@@ -1566,6 +1581,7 @@ const AddLab = () => {
                                     fontSize: '15px',
                                     fontWeight: '500'
                                   }}
+                                  component='span'
                                 >
                                   {parent?.test_name}
                                 </Typography>
@@ -1624,8 +1640,8 @@ const AddLab = () => {
                           >
                             <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
                               <Typography
-                                ml={4}
                                 sx={{
+                                  ml: 4,
                                   whiteSpace: 'nowrap',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
@@ -1644,7 +1660,7 @@ const AddLab = () => {
                         </Card>
                       )
                     )}
-                  </>
+                  </Box>
                 ))}
               </Stack>
             </div>

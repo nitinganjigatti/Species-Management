@@ -203,7 +203,7 @@ const ListOfStores = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.site_name}
+          {params.row.site_name ? params.row.site_name : '-'}
         </Typography>
       )
     },
@@ -406,6 +406,8 @@ const ListOfStores = () => {
 
         if (typeof pharmacyCheck === 'boolean') {
           payload.type = pharmacyCheck ? 'local' : 'central'
+          console.log('Pharmacy')
+
           response = await addStore(payload)
         } else {
           throw "Sorry.. Can't add pharmacy right now"
@@ -460,14 +462,13 @@ const ListOfStores = () => {
         setSubmitLoader(true)
         const response = await deleteStoreById(editParams?.id)
 
-        // console.log('response', response)
         handleResponse(response)
 
         // closeStoreValidate()
         // setTempPayload(null)
       } catch (error) {
         console.error(error)
-        handleResponse(response)
+        // handleResponse(response)
       }
     }
   }

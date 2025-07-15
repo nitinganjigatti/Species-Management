@@ -106,31 +106,6 @@ const CommonDateRangePickers = ({
       }
     ]
 
-    // const allTimeLabel = showFutureDates
-    //   ? `From - ${format(today, 'dd MMM yyyy')}`
-    //   : `Upto - ${format(today, 'dd MMM yyyy')}`
-
-    // return [
-    //   {
-    //     label: 'All time',
-    //     subLabel: allTimeLabel,
-    //     startDate: null,
-    //     endDate: null
-    //   },
-    //   {
-    //     label: 'Today',
-    //     subLabel: format(today, 'dd MMM yyyy'),
-    //     startDate: today,
-    //     endDate: today
-    //   },
-    //   ...(showFutureDates ? futureDateRanges : pastDateRanges),
-    //   {
-    //     label: 'Custom range',
-    //     subLabel: 'Select a custom range',
-    //     hasChevron: true
-    //   }
-    // ]
-
     const initialRanges = []
 
     if (useCustomText) {
@@ -240,108 +215,6 @@ const CommonDateRangePickers = ({
     }
   }, [filterDates, showFutureDates, useCustomText, customText, today, dateRanges])
 
-  // useEffect(() => {
-  //   if (!filterDates) return
-  //   const { startDate: startDateProp, endDate: endDateProp } = filterDates
-
-  //   // Handle All time case (no dates)
-  //   if (!startDateProp && !endDateProp) {
-  //     if (useCustomText) {
-  //       setSelectedRange(customText)
-  //     } else {
-  //       const allTimeLabel = showFutureDates
-  //         ? `All time - From - ${format(today, 'dd MMM yyyy')}`
-  //         : `All time - Upto - ${format(today, 'dd MMM yyyy')}`
-  //       setSelectedRange(allTimeLabel)
-  //     }
-
-  //     return
-  //   }
-
-  //   // Proceed if dates are present
-  //   if (startDateProp && endDateProp) {
-  //     const startDate = startDateProp instanceof Date ? startDateProp : new Date(startDateProp)
-  //     const endDate = endDateProp instanceof Date ? endDateProp : new Date(endDateProp)
-
-  //     // Check predefined ranges except All time and Custom
-  //     const predefinedRanges = dateRanges.slice(1, -1)
-  //     let matchedRange = null
-
-  //     for (const range of predefinedRanges) {
-  //       const rangeStart = range.startDate
-  //       const rangeEnd = range.endDate
-
-  //       if (
-  //         rangeStart &&
-  //         rangeEnd &&
-  //         startDate.toDateString() === rangeStart.toDateString() &&
-  //         endDate.toDateString() === rangeEnd.toDateString()
-  //       ) {
-  //         matchedRange = range
-  //         break
-  //       }
-  //     }
-
-  //     if (matchedRange) {
-  //       setSelectedRange(`${matchedRange.label} - ${matchedRange.subLabel}`)
-  //     } else {
-  //       // Check if it's a single day
-  //       if (startDate.toDateString() === endDate.toDateString()) {
-  //         // Check if it's today
-  //         if (startDate.toDateString() === today.toDateString()) {
-  //           setSelectedRange(`Today - ${format(today, 'dd MMM yyyy')}`)
-  //         } else {
-  //           // Single day, not today
-  //           const formattedDate = format(startDate, 'dd MMM yyyy')
-  //           setSelectedRange(`Custom Range - ${formattedDate} - ${formattedDate}`)
-  //         }
-  //       } else {
-  //         // Custom range
-  //         const formattedStart = format(startDate, 'dd MMM yyyy')
-  //         const formattedEnd = format(endDate, 'dd MMM yyyy')
-  //         setSelectedRange(`Custom Range - ${formattedStart} - ${formattedEnd}`)
-  //       }
-  //     }
-  //   }
-  // }, [filterDates, showFutureDates, useCustomText, customText])
-
-  // useEffect(() => {
-  //   const { from_date, to_date } = router.query
-
-  //   if (from_date && to_date) {
-  //     const fromDate = new Date(from_date)
-  //     const toDate = new Date(to_date)
-
-  //     // Check if from_date and to_date are the same
-  //     if (fromDate.toDateString() === toDate.toDateString()) {
-  //       setSelectedRange(`Today - ${format(today, 'dd MMM yyyy')}`)
-  //       onChange?.(fromDate, toDate)
-  //     } else {
-  //       // Find the matching range in dateRanges
-  //       const matchingRange = dateRanges.find(
-  //         range =>
-  //           range.startDate &&
-  //           range.endDate &&
-  //           range.startDate.toDateString() === fromDate.toDateString() &&
-  //           range.endDate.toDateString() === toDate.toDateString()
-  //       )
-
-  //       if (matchingRange) {
-  //         // If a predefined range matches, use its label and subLabel
-  //         setSelectedRange(`${matchingRange.label} - ${matchingRange.subLabel}`)
-  //       } else {
-  //         // set a custom range
-  //         const customRangeLabel = `Custom Range - ${format(fromDate, 'dd MMM yyyy')} - ${format(
-  //           toDate,
-  //           'dd MMM yyyy'
-  //         )}`
-  //         setSelectedRange(customRangeLabel)
-  //       }
-  //       onChange?.(fromDate, toDate)
-  //     }
-  //   }
-  // }, [router.query.tab])
-
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
   }
@@ -371,7 +244,6 @@ const CommonDateRangePickers = ({
 
   const handleDateChange = range => {
     setTempRange(range)
-    console.log('Selected Range:', range)
   }
 
   const handleApply = () => {
@@ -422,6 +294,7 @@ const CommonDateRangePickers = ({
           <CalendarTodayIcon sx={{ color: 'white', fontSize: 24 }} />
         </Box>
         <Typography
+          component='div'
           sx={{
             color: 'customColors.OnSurfaceVariant',
             fontSize: '16px',
@@ -438,31 +311,47 @@ const CommonDateRangePickers = ({
           <Box sx={{ display: { xs: 'block', md: 'inline' } }}>{selectedRange.split(' - ').slice(1).join(' - ')}</Box>
         </Typography>
       </Box>
-
       <Menu
         id='date-range-menu'
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        MenuListProps={{
-          'aria-labelledby': 'date-range-button'
-        }}
-        PaperProps={{
-          elevation: 3,
-          sx: {
-            width: '300px',
-            maxHeight: 'none',
-            mt: 1,
-            '& .MuiList-root': {
-              padding: 0
-            }
+        // eslint-disable-next-line lines-around-comment
+        // PaperProps={{
+        //   elevation: 3,
+        //   sx: {
+        //     width: '300px',
+        //     maxHeight: 'none',
+        //     mt: 1,
+        //     '& .MuiList-root': {
+        //       padding: 0
+        //     }
 
-            // borderRadius: '8px'
-            // border: '1px solid #E0E0E0'
-          }
-        }}
+        //     // borderRadius: '8px'
+        //     // border: '1px solid #E0E0E0'
+        //   }
+        // }}
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+        slotProps={{
+          paper: {
+            elevation: 3,
+            sx: {
+              width: '300px',
+              maxHeight: 'none',
+              mt: 1,
+              '& .MuiList-root': {
+                padding: 0
+              }
+
+              // borderRadius: '8px'
+              // border: '1px solid #E0E0E0'
+            }
+          },
+          list: {
+            'aria-labelledby': 'date-range-button'
+          }
+        }}
       >
         {dateRanges.map((range, index) => (
           <Box key={range.label}>
@@ -521,14 +410,16 @@ const CommonDateRangePickers = ({
         onClose={() => setCustomDialogOpen(false)}
         maxWidth='sm'
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '12px',
-            height: { xs: '400px', sm: '460px', md: '490px' },
-            maxHeight: '90vh',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden'
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '12px',
+              height: { xs: '400px', sm: '460px', md: '490px' },
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }
           }
         }}
       >

@@ -1,7 +1,9 @@
 // FilterDrawer.js
 import React, { useState } from 'react'
-import { Drawer, Box, Typography, IconButton, List, ListItem, ListItemText, Button } from '@mui/material'
+import { Drawer, Box, Typography, IconButton, List, ListItemText, Button } from '@mui/material'
 import { Icon } from '@iconify/react'
+
+import ListItemButton from '@mui/material/ListItemButton'
 
 const FilterDrawer = ({
   open,
@@ -18,12 +20,14 @@ const FilterDrawer = ({
       anchor='right'
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: { xs: '100%', sm: 560 },
-          backgroundColor: 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column'
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: '100%', sm: 560 },
+            backgroundColor: 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column'
+          }
         }
       }}
     >
@@ -37,7 +41,13 @@ const FilterDrawer = ({
           flexShrink: 0
         }}
       >
-        <Typography variant='h6' fontWeight='bold' ml={3}>
+        <Typography
+          variant='h6'
+          sx={{
+            fontWeight: 'bold',
+            ml: 3
+          }}
+        >
           Filter
         </Typography>
         <IconButton onClick={onClose}>
@@ -65,8 +75,7 @@ const FilterDrawer = ({
         >
           <List sx={{ p: 0, ml: 5 }}>
             {filterLists.map(item => (
-              <ListItem
-                button
+              <ListItemButton
                 key={item}
                 onClick={() => onSelectItem(item)}
                 sx={{
@@ -89,7 +98,7 @@ const FilterDrawer = ({
                     }
                   }}
                 />
-              </ListItem>
+              </ListItemButton>
             ))}
           </List>
         </Box>
@@ -106,7 +115,6 @@ const FilterDrawer = ({
           {children}
         </Box>
       </Box>
-
       <Box
         sx={{
           display: 'flex',

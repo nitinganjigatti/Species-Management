@@ -457,9 +457,9 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
         return isSmallScreen ? (
           phoneNumber ? (
             <Box
-              display='flex'
-              gap={4}
               sx={{
+                display: 'flex',
+                gap: 4,
                 width: '100%',
                 height: '100%',
                 display: 'flex',

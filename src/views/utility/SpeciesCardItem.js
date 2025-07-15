@@ -141,8 +141,10 @@ const SpeciesCardItem = ({ species, children, theme, tempSelectedSpecies, select
             )}
           </>
         }
-        secondaryTypographyProps={{
-          sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+        slotProps={{
+          secondary: {
+            sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+          }
         }}
       />
     </ListItem>

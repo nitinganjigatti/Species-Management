@@ -30,14 +30,15 @@ const AnimalDetails = ({ eggDetails }) => {
   return (
     <Card sx={{ backgroundColor: theme.palette.primary.contrastText }}>
       <CardHeader
-        sx={{ pb: 0 }}
+        sx={{ pb: 0, pl: 5 }}
         title={'Animal Details'}
+
         // action={headerAction}
       />
       <CardContent sx={{ pt: 2 }}>
         <Box sx={{ backgroundColor: theme.palette.customColors.lightBg, borderRadius: '8px', py: '14px', px: '16px' }}>
           <Grid spacing={2} sx={{ rowGap: 4, alignItems: 'center' }} container>
-            <Grid xs={12} sm={6} md={4} xl={3} item>
+            <Grid size={{ xs: 12, sm: 6, md: 4, xl: 3 }} item>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Avatar
                   src={
@@ -57,65 +58,70 @@ const AnimalDetails = ({ eggDetails }) => {
                 />
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.light,
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      lineHeight: '19.36px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      // whiteSpace: 'nowrap',
-                      // whiteSpace: 'normal', // Change this to allow wrapping
-                      wordWrap: 'break-word',
-                      wordBreak: 'break-word', // Change this to 'break-word'
-                      width: '100%'
-                    }}
-                  >
-                    {eggDetails?.animal_data?.common_name || '-'}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.light,
-                      fontSize: '14px',
-                      fontWeight: '400',
-                      lineHeight: '16.94px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      whiteSpace: 'normal', // Change this to allow wrapping
-                      wordWrap: 'break-word',
-                      wordBreak: 'break-word', // Change this to 'break-word'
-                      width: '100%'
-                    }}
-                  >
-                    {eggDetails?.animal_data?.scientific_name || '-'}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.light,
-                      fontSize: '14px',
-                      fontWeight: '400',
-                      lineHeight: '16.94px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      whiteSpace: 'normal', // Change this to allow wrapping
-                      wordWrap: 'break-word',
-                      wordBreak: 'break-word', // Change this to 'break-word'
-                      width: '100%'
-                    }}
-                  >
-                    {(eggDetails?.animal_data?.local_identifier_name &&
-                      eggDetails?.animal_data?.local_identifier_value &&
-                      `${eggDetails?.animal_data?.local_identifier_name}:${eggDetails?.animal_data?.local_identifier_value}`) ||
-                      '-'}
-                  </Typography>
+                  {eggDetails?.animal_data?.common_name && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.light,
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        lineHeight: '19.36px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        wordWrap: 'break-word',
+                        wordBreak: 'break-word', // Change this to 'break-word'
+                        width: '100%'
+                      }}
+                    >
+                      {eggDetails?.animal_data?.common_name || '-'}
+                    </Typography>
+                  )}
+                  {eggDetails?.animal_data?.scientific_name && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.light,
+                        fontSize: '14px',
+                        fontWeight: '400',
+                        lineHeight: '16.94px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        whiteSpace: 'normal', // Change this to allow wrapping
+                        wordWrap: 'break-word',
+                        wordBreak: 'break-word', // Change this to 'break-word'
+                        width: '100%'
+                      }}
+                    >
+                      {eggDetails?.animal_data?.scientific_name || '-'}
+                    </Typography>
+                  )}
+                  {eggDetails?.animal_data?.local_identifier_name &&
+                    eggDetails?.animal_data?.local_identifier_value && (
+                      <Typography
+                        sx={{
+                          color: theme.palette.primary.light,
+                          fontSize: '14px',
+                          fontWeight: '400',
+                          lineHeight: '16.94px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          whiteSpace: 'normal', // Change this to allow wrapping
+                          wordWrap: 'break-word',
+                          wordBreak: 'break-word', // Change this to 'break-word'
+                          width: '100%'
+                        }}
+                      >
+                        {(eggDetails?.animal_data?.local_identifier_name &&
+                          eggDetails?.animal_data?.local_identifier_value &&
+                          `${eggDetails?.animal_data?.local_identifier_name}:${eggDetails?.animal_data?.local_identifier_value}`) ||
+                          '-'}
+                      </Typography>
+                    )}
                 </Box>
               </Box>
             </Grid>
             {animalData?.map((item, index) => (
-              <Grid key={index} xs={12} sm={6} md={4} xl={2.25} item>
+              <Grid key={index} size={{ xs: 12, sm: 6, md: 4, xl: 2.25 }} item>
                 <Typography
                   sx={{
                     color: theme.palette.customColors.neutralSecondary,

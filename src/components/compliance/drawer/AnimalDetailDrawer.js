@@ -54,21 +54,21 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
             }}
           >
             <Grid container spacing={4}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Species Name</Typography>
                 <Typography sx={{ fontWeight: 500 }}>{specie.common_name || '-'}</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Scientific Name
                 </Typography>
                 <Typography sx={{ fontWeight: 500 }}>{specie.scientific_name || '-'}</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>CITES</Typography>
                 <Typography sx={{ fontWeight: 500 }}>{specie.appendix || '-'}</Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
                   Total Animals
                 </Typography>
@@ -206,7 +206,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {specie.common_name}
+                        {specie.common_name || '-'}
                       </Typography>
                     </Box>
                     <Box sx={{ fontSize: '0.875rem' }}>
@@ -219,7 +219,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {animal.identifier_value}
+                        {animal.identifier_value || '-'}
                       </Typography>
                     </Box>
                   </Box>

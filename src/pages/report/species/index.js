@@ -9,24 +9,26 @@ import {
   TextField,
   debounce,
   InputAdornment,
-  Tooltip
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
 import { TabContext, TabList } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
-import { Popover, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
-import CheckIcon from '@mui/icons-material/Check'
+import { Popover } from '@mui/material'
 import toast from 'react-hot-toast'
-import { getReportFilterList, getSpeciesList, getSpeciesListing } from 'src/lib/api/report'
+import { getReportFilterList, getSpeciesListing } from 'src/lib/api/report'
 import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
-import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import StickyTable from 'src/views/table/sticky-table'
 import Icon from 'src/@core/components/icon'
 import { useAnimalContext } from 'src/context/AnimalContext'
+import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 
 const SpeciesReport = () => {
   const router = useRouter()
@@ -136,7 +138,7 @@ const SpeciesReport = () => {
         setIsLoader(false)
         setSpeciesList(response.data.result)
       } else {
-        console.log('Error something went wrong')
+        console.error('Error something went wrong')
       }
     }
     fetchSpeciesList()
@@ -195,6 +197,8 @@ const SpeciesReport = () => {
         URL.revokeObjectURL(csvUrl)
       } else if (response.success) {
         const { header, datalist, total_count } = response.data || {}
+
+        // console.log(response)
 
         // setDataList(datalist || [])
         // if (setHeaders) setHeaderList(header)
@@ -268,7 +272,7 @@ const SpeciesReport = () => {
   const initialLoad = useRef(true)
 
   const fetchData = useCallback(
-    async (param, q, paginationModel) => {
+    async (param, q) => {
       let params = {
         page: paginationModel?.page + 1,
         limit: paginationModel?.pageSize,
@@ -301,14 +305,15 @@ const SpeciesReport = () => {
 
   useEffect(() => {
     if (reports_module && enable_specie_report) {
-      fetchData(apiFilterParams, searchValue, paginationModel)
+      fetchData(apiFilterParams, searchValue)
     }
   }, [fetchData, apiFilterParams])
 
-  const columns = headerList.map(header => {
+  const columns = headerList.map((header, index) => {
+    // Check if this is the species column (contains default_icon)
     if (header.key.includes('default_icon')) {
       return {
-        field: 'speciesAndCommonName',
+        field: 'speciesAndCommonName', // Use a custom field name
         headerName: header.label,
         isAvatar: true,
         pinned: 'left',
@@ -320,22 +325,30 @@ const SpeciesReport = () => {
             sx={{ paddingX: 0 }}
             avatar={
               <img
-                src={params.row.default_icon}
-                alt={params.row.common_name}
+                src={params.row.default_icon || '/placeholder-image.png'}
+                alt={params.row.common_name || 'Species'}
                 style={{ width: 40, height: 40, borderRadius: '50%' }}
               />
             }
             title={
-              <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-                {params.row.common_name}
+              <Typography
+                sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: theme.palette.primary.onSurface }}
+              >
+                {params.row.common_name || ''}
               </Typography>
             }
             subheader={
               <Typography
-                sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  fontStyle: 'italic',
+                  color: theme.palette.primary.onSurface
+                }}
                 variant='body2'
               >
-                {params.row.scientific_name}
+                {params.row.scientific_name || ''}
               </Typography>
             }
           />
@@ -343,8 +356,11 @@ const SpeciesReport = () => {
       }
     }
 
+    // For other columns, use the first key from the array
+    const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
+
     return {
-      field: header.key,
+      field: fieldKey,
       headerName: header.label,
       minWidth: 200,
       sortable: false,
@@ -412,13 +428,13 @@ const SpeciesReport = () => {
   const getCellBackgroundColor = label => {
     switch (label) {
       case 'Male':
-        return '#AFEFEB'
+        return theme.palette.customColors.SecondaryContainer
       case 'Female':
-        return '#FFD3D3'
+        return theme.palette.customColors.AntzTertiary
       case 'Undetermined':
-        return '#DDEBE9'
+        return theme.palette.customColors.displaybgSecondary
       case 'Indeterminate':
-        return '#DDEBE9'
+        return theme.palette.customColors.displaybgSecondary
       default:
         return 'transparent'
     }
@@ -428,13 +444,13 @@ const SpeciesReport = () => {
     switch (label) {
       case 'Male':
       case 'Female':
-        return '#1F415B'
+        return theme.palette.customColors.OnSecondaryContainer
       case 'Undetermined':
-        return '#E93353'
+        return theme.palette.customColors.Error
       case 'Indeterminate':
-        return '#44544A'
+        return theme.palette.customColors.OnSurfaceVariant
       default:
-        return '#44544A'
+        return theme.palette.customColors.OnSurfaceVariant
     }
   }
 
@@ -493,13 +509,9 @@ const SpeciesReport = () => {
   // }
 
   const handleRowClick = params => {
-    // console.log('Params >', params)
-    // const { setSelectedAnimal, setApiFilterParams, setSelectedSites } = useAnimalContext();
-
     const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
     const hasSitesChanged = JSON.stringify(selectedSites) !== JSON.stringify(sites)
 
-    // Store values in Context instead of sessionStorage
     setSelectedAnimal({
       default_icon: params?.default_icon,
       scientific_name: params?.scientific_name,
@@ -614,6 +626,7 @@ const SpeciesReport = () => {
   }
 
   const getTotalSelectedFilters = selectedOptions => {
+    // console.log('selectedOptions', selectedOptions)
     // Use Object.values to extract arrays of selected items
     return Object.values(selectedOptions)
       .flat() // Flatten to combine all selected items into a single array
@@ -642,6 +655,107 @@ const SpeciesReport = () => {
     searchTableData(value)
   }
 
+  // const handleSelectedSite = async selectedSiteIDs => {
+  //   let params = {}
+
+  //   if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
+  //     // "All Sites" selected and was not already selected
+  //     params = {
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSites(['All Sites'])
+  //   } else if (selectedSiteIDs.includes('All Sites')) {
+  //     // Remove "All Sites" and use specific site IDs
+  //     const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
+  //     params = {
+  //       site_ids: filteredSiteIDs.toString(),
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSites(filteredSiteIDs)
+  //   } else if (selectedSiteIDs.length === 0) {
+  //     // No sites selected, fallback to "All Sites"
+  //     params = {
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSites(['All Sites'])
+  //   } else {
+  //     // Specific site IDs selected
+  //     params = {
+  //       site_ids: selectedSiteIDs.toString(),
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSites(selectedSiteIDs)
+  //   }
+  // }
+
+  const handleSelectedSite = async selectedSiteIDs => {
+    let params = {}
+
+    if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
+      // "All Sites" selected and was not already selected
+      params = {
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(['All Sites'])
+    } else if (selectedSiteIDs.includes('All Sites')) {
+      // Remove "All Sites" and use specific site IDs
+      const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
+      params = {
+        site_ids: filteredSiteIDs.toString(),
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(filteredSiteIDs)
+    } else if (selectedSiteIDs.length === 0) {
+      // No sites selected, fallback to "All Sites"
+      params = {
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(['All Sites'])
+    } else {
+      // Specific site IDs selected
+      params = {
+        site_ids: selectedSiteIDs.toString(),
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(selectedSiteIDs)
+    }
+
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setApiFilterParams(params)
+  }
+
   return (
     <>
       {reports_module && enable_specie_report ? (
@@ -655,7 +769,7 @@ const SpeciesReport = () => {
                   fontSize: '20px',
                   fontWeight: '400',
                   fontFamily: 'Inter',
-                  color: '#006D35',
+                  color: theme.palette.primary.OnSurface,
                   display: 'flex',
                   alignItems: 'center',
                   cursor: 'pointer',
@@ -717,13 +831,13 @@ const SpeciesReport = () => {
                 {/* </Box> */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                   {/* Search Box */}
-                  <TextField
+                  {/* <TextField
                     variant='outlined'
                     size='small'
                     value={searchValue}
                     onChange={e => handleSearch(e?.target?.value)}
                     placeholder='Search'
-                    InputProps={{
+                    slotProps={{
                       startAdornment: (
                         <InputAdornment position='start'>
                           <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -740,7 +854,7 @@ const SpeciesReport = () => {
                         borderRadius: '4px' // Applies to the input field
                       }
                     }}
-                  />
+                  /> */}
                   {/* Tabs */}
                   <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
                 </Box>
@@ -756,43 +870,7 @@ const SpeciesReport = () => {
                       mr: 2
                     }}
                   >
-                    {/* <FormControl fullWidth sx={{ maxWidth: '200px' }}>
-                      <InputLabel
-                        sx={{
-                          fontSize: '14px',
-                          fontFamily: 'Inter',
-                          fontWeight: 400,
-                          color: '#44544A',
-                          width: '152px',
-                          height: '17px',
-                          mt: 0.5
-                        }}
-                      >
-                        All Sites
-                      </InputLabel>
-                      <Select
-                        multiple
-                        value={selectedSite}
-                        onChange={handleSelectedSite}
-                        label='Site'
-                        sx={{
-                          height: '40px',
-                          mt: 2,
-                          width: '200px',
-                          borderRadius: '4px',
-                          mr: { sm: 1, xs: 0 }
-                        }}
-                      >
-                        <MenuItem value='All Sites'>All Sites</MenuItem>
-                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => (
-                          <MenuItem key={index} value={item?.site_id}>
-                            {item?.site_name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl> */}
-
-                    {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
+                    <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
                       <Button
                         variant='outlined'
                         onClick={() => setOpenSiteDrawer(true)}
@@ -863,88 +941,7 @@ const SpeciesReport = () => {
                       selectedSites={selectedSites}
                       setSelectedSites={setSelectedSites}
                       handleSelectedSite={handleSelectedSite}
-                    /> */}
-
-                    <Button
-                      onClick={() => handleFilterSection()}
-                      variant='outlined'
-                      sx={{
-                        width: '129px',
-                        height: '40px',
-                        mt: 2,
-
-                        display: 'flex',
-                        color: '#44544A',
-                        borderRadius: '4px',
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        fontFamily: 'Inter',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 2,
-                        minWidth: '100px'
-                      }}
-                    >
-                      <img
-                        src={`/images/${
-                          getTotalSelectedFilters(selectedOptions) > 0 ? 'filterIconActive' : 'filterIcon'
-                        }.svg`}
-                        style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
-                        alt='Filter Icon'
-                      />
-
-                      <Typography
-                        sx={{
-                          color: getTotalSelectedFilters(selectedOptions) > 0 ? '#1F515B' : '#44544A',
-                          textTransform: 'capitalize',
-                          mr: 8,
-                          fontSize: '16px',
-                          fontWeight: 400
-                        }}
-                      >
-                        Filter
-                      </Typography>
-
-                      {getTotalSelectedFilters(selectedOptions) > 0 && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: '5px',
-                            right: '6px',
-                            width: '29px',
-                            height: '27px',
-                            borderRadius: '69%',
-                            backgroundColor: '#1F515B',
-                            color: '#FFFFFF',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '12px',
-                            fontWeight: 500
-                          }}
-                        >
-                          {getTotalSelectedFilters(selectedOptions)}
-                          {/* Replace this with the actual count from your state */}
-                        </Box>
-                      )}
-                    </Button>
-                    {
-                      <FilterSheet
-                        open={openFilterDrawer}
-                        setOpenFilterDrawer={setOpenFilterDrawer}
-                        categories={categories}
-                        sites={sites}
-                        setSites={setSites}
-                        isLoader={isLoader}
-                        selectedSites={selectedSites}
-                        setSelectedSites={setSelectedSites}
-                        options={options}
-                        selectedOptions={selectedOptions}
-                        setSelectedOptions={setSelectedOptions}
-                        handleSelection={handleSpeciesSelection}
-                        getTotalSelectedFilters={getTotalSelectedFilters}
-                      />
-                    }
+                    />
 
                     <Button
                       onClick={handleClick}
@@ -955,14 +952,12 @@ const SpeciesReport = () => {
                         mt: 2,
                         display: 'flex',
                         borderRadius: '4px',
-                        color: '#44544A',
+                        color: theme.palette.customColors.OnSurfaceVariant,
                         fontWeight: 400,
                         fontSize: '16px',
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
-
-                        // mr: 2,
                         gap: 1,
                         minWidth: '100px'
                       }}
@@ -978,7 +973,11 @@ const SpeciesReport = () => {
                         }}
                         alt='Filter Icon'
                       />
-                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                      <Typography
+                        sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
+                      >
+                        Show/Hide
+                      </Typography>
                     </Button>
                     <Popover
                       id={id}
@@ -1047,60 +1046,6 @@ const SpeciesReport = () => {
 
               <Box sx={{ width: '98%', margin: 4 }}>
                 <Box sx={{ borderRadius: '8px' }}>
-                  {/* <DataGrid
-                    sx={{
-                      mt: 3,
-                      borderRadius: '8px',
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
-                      '& .MuiDataGrid-columnHeader': {
-                        backgroundColor: '#DDEBE9',
-                        color: '#1F415B',
-                        fontWeight: 600,
-                        fontSize: '12px',
-                        fontFamily: 'Inter',
-                        textTransform: 'capitalize',
-                        borderBottom: '2px solid #C3CEC7'
-                      },
-                      '.MuiDataGrid-main': {
-                        borderLeft: '1px solid #C3CEC7',
-                        borderRight: '1px solid #C3CEC7',
-                        borderTop: '1px solid #C3CEC7',
-                        borderBottom: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        overflow: 'hidden'
-                      },
-                      '& .MuiDataGrid-footerContainer': {
-                        borderTop: 'none'
-                      },
-
-                      '& .MuiDataGrid-cell': {
-                        fontFamily: 'Inter',
-                        fontSize: '14px',
-                        fontWeight: 400,
-                        lineHeight: '16.94px',
-                        textAlign: 'left',
-                        color: '#44544A'
-                      }
-                    }}
-                    rows={reportRows}
-                    disableColumnSorting={true}
-                    rowCount={total}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={isLoading}
-                    onRowClick={handleRowClick}
-                    autoHeight
-                    disableColumnFilter={false}
-                    hideFooterSelectedRowCount
-                    rowHeight={70}
-                    scrollbarSize={10}
-                  /> */}
                   {columns.length > 0 && (
                     <StickyTable
                       rows={reportRows}

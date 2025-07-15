@@ -137,7 +137,6 @@ const SectionsDrawer = ({ open, onClose, data }) => {
           subtitleColor={theme.palette.customColors.secondaryBg}
         />
       </Box>
-
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Sections {total ? `(${total})` : ''}
       </Typography>
@@ -157,7 +156,6 @@ const SectionsDrawer = ({ open, onClose, data }) => {
           backgroundColor={theme.palette.common.white}
         />
       </Box>
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(section => (
           <Box key={section?.section_id}>
@@ -166,13 +164,28 @@ const SectionsDrawer = ({ open, onClose, data }) => {
         ))}
 
         {isFetching && list.length === 0 && (
-          <Box display='flex' justifyContent='center' p={2} mt={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              p: 2,
+              mt: 2
+            }}
+          >
             <CircularProgress />
           </Box>
         )}
 
         {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
+          <Box
+            ref={loaderRef}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              p: 2,
+              mt: 2
+            }}
+          >
             <CircularProgress />
           </Box>
         )}

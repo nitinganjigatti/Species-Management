@@ -370,7 +370,7 @@ const StockOut = () => {
             }}
           >
             {/* Left Box (Search Field) */}
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -405,8 +405,7 @@ const StockOut = () => {
 
             <Grid
               item
-              xs={12}
-              sm={6}
+              size={{ xs: 12, sm: 6 }}
               sx={{
                 textAlign: { xs: 'left', sm: 'right' },
                 ml: { xs: 3, sm: 6 },

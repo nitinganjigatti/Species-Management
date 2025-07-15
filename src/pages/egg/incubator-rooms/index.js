@@ -12,7 +12,8 @@ import {
   Grid,
   TextField,
   Autocomplete,
-  FormControl
+  FormControl,
+  Tooltip
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
@@ -43,7 +44,6 @@ const RoomsList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
-  const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
@@ -77,31 +77,7 @@ const RoomsList = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
-  // it can be removeed if there is no issue after long time
-  // const fetchTableData = useCallback(
-  //   async (q, nurseryId, status) => {
-  //     try {
-  //       setLoading(true)
 
-  //       const params = {
-  //         sort,
-  //         search: q || '',
-  //         nursery_id: nurseryId,
-  //         status: status || 'all',
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-  //       await GetRoomList({ params: params }).then(res => {
-  //         setTotal(parseInt(res?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
   const fetchTableData = useCallback(
     async (q = '', nurseryId, status) => {
       setLoading(true)
@@ -119,7 +95,7 @@ const RoomsList = () => {
         setTotal(parseInt(res?.data?.total_count ?? '0'))
         setRows(loadServerRows(paginationModel.page, res?.data?.result))
       } catch (e) {
-        console.error('Error fetching room list:', error)
+        console.error('Error fetching room list:', e)
       } finally {
         setLoading(false)
       }
@@ -149,7 +125,6 @@ const RoomsList = () => {
     if (newModel.length > 0) {
       const { sort, field } = newModel[0]
       setSort(sort)
-      setSortColumn(field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     }
   }
@@ -173,10 +148,6 @@ const RoomsList = () => {
   }
 
   // 📌 Debounced Nursery Search
-  // const searchNursery = useCallback(
-  //   debounce(q => NurseryList(q), 1000),
-  //   []
-  // )
   const searchNursery = useCallback(debounce(NurseryList, 1000), [])
 
   useEffect(() => {
@@ -210,16 +181,20 @@ const RoomsList = () => {
       headerName: 'room',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.room_name}
-        </Typography>
+        <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.room_name ? params.row.room_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -229,16 +204,20 @@ const RoomsList = () => {
       headerName: 'nursery name',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.nursery_name}
-        </Typography>
+        <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.nursery_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -247,18 +226,21 @@ const RoomsList = () => {
       field: 'site',
       headerName: 'site',
       sortable: false,
-
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.site_name}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.site_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -269,16 +251,20 @@ const RoomsList = () => {
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.no_of_incubators}
-        </Typography>
+        <Tooltip title={params.row.no_of_incubators ? params.row.no_of_incubators : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.no_of_incubators}
+          </Typography>
+        </Tooltip>
       )
     },
     {
