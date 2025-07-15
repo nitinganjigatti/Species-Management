@@ -56,7 +56,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
   if (FeedDetailsValue) {
     return (
       <>
-        <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+        <Grid item size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
           {/* <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
             <div
               item

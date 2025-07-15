@@ -105,7 +105,7 @@ const MonthWisedispatchFilter = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',
@@ -141,9 +141,6 @@ const MonthWisedispatchFilter = ({
                     placeholder='Search'
                     value={filtersearchValue}
                     onChange={handleSearchChange}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
                     sx={{
                       flex: 1,
                       mx: 1,
@@ -153,6 +150,11 @@ const MonthWisedispatchFilter = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false
                       }
                     }}
                   />
@@ -232,7 +234,7 @@ const MonthWisedispatchFilter = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default MonthWisedispatchFilter

@@ -54,7 +54,6 @@ const ListOfDiscardProducts = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, page, limit }) => {
-      console.log(page, 'page')
 
       try {
         setLoading(true)
@@ -68,7 +67,6 @@ const ListOfDiscardProducts = () => {
         }
 
         await getDiscardList({ params: params }).then(res => {
-          console.log('getDiscardList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -273,13 +271,13 @@ const ListOfDiscardProducts = () => {
       field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
-        <>
+        (<>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_profile_pic,
             params?.row?.created_by_user_name,
             params?.row?.created_at
           )}
-        </>
+        </>)
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_profile_pic)}

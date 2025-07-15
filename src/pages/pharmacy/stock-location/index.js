@@ -30,6 +30,8 @@ import StockLocationFilter from 'src/components/pharmacy/stockLocation/StockLoca
 import { getNewRackList } from 'src/lib/api/pharmacy/getRackList'
 import StockDetailDrawer from 'src/components/pharmacy/stockLocation/StockDetailDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import MenuWithDots from 'src/components/MenuWithDots'
+import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
 
 const StockLocation = () => {
   const theme = useTheme()
@@ -67,6 +69,8 @@ const StockLocation = () => {
   const [openStockDetailDrawer, setOpenStockDetailDrawer] = useState(false)
   const [configMed, setConfigMed] = useState(null)
   const [editProduct, setEditProduct] = useState(null)
+  const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
+  const [configReOrderMed, setConfigReOrderMed] = useState(null)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -86,10 +90,10 @@ const StockLocation = () => {
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        if (response?.data?.racks?.length > 0) {
           setItems(prev => ({
             ...prev,
-            Racks: response?.data
+            Racks: response?.data?.racks
           }))
         }
       } catch (error) {
@@ -155,6 +159,18 @@ const StockLocation = () => {
     ...row,
     id: getSlNo(index)
   }))
+
+  const getMenuOptions = row => [
+    {
+      label: 'Add Re-Order Level',
+      action: () => {
+        setOpenReOrderLevelDialog(true)
+        setConfigReOrderMed(row)
+      }
+    }
+  ]
+
+  console.log('Config Meds', configMed)
 
   const columns = [
     {
@@ -259,7 +275,7 @@ const StockLocation = () => {
       minWidth: 20,
       width: 220,
       field: 'min_qty',
-      headerName: 'RE-ORDER LEVEL',
+      headerName: 'REORDER LEVEL',
       sortable: true,
       align: 'center',
       headerAlign: 'center',
@@ -286,7 +302,7 @@ const StockLocation = () => {
       align: 'right',
       sortable: false,
       renderCell: params => (
-        <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
           <Tooltip title='Edit' placement='top'>
             <IconButton
               size='small'
@@ -300,9 +316,7 @@ const StockLocation = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title='More Options' placement='top'>
-            <IconButton size='small' onClick={() => console.log(params?.rows?.stock_item_id)} aria-label='options'>
-              <Icon icon='mdi-dots-vertical' />
-            </IconButton>
+            <MenuWithDots options={getMenuOptions(params?.row)} />
           </Tooltip>
         </Box>
       )
@@ -392,10 +406,21 @@ const StockLocation = () => {
   const filterCount = selectedItems?.Racks?.length > 0 ? 1 : 0
 
   const handleStockRowClick = params => {
-    if (params.field === 'stock_name') {
+    if (
+      params.field === 'stock_name' ||
+      params.field === 'rack_count' ||
+      params.field === 'shelf_count' ||
+      params.field === 'total_available_qty' ||
+      params.field === 'min_qty'
+    ) {
       setConfigMed(params?.row)
       setOpenStockDetailDrawer(true)
     }
+  }
+
+  const handleStockRowClose = () => {
+    setOpenStockDetailDrawer(false)
+    setConfigMed(null)
   }
 
   return (
@@ -419,8 +444,15 @@ const StockLocation = () => {
         />
         <CardContent sx={{ paddingTop: '4px' }}>
           <Box sx={{ mx: 1, mb: 2 }}>
-            <Grid container spacing={2} justifyContent='flex-end' alignItems='center'>
-              <Grid item xs={12} sm={6} md={4} lg={3}>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                justifyContent: 'flex-end',
+                alignItems: 'center'
+              }}
+            >
+              <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <TextField
                   variant='outlined'
                   size='small'
@@ -428,24 +460,31 @@ const StockLocation = () => {
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{
                     borderRadius: '8px'
                   }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
                 />
               </Grid>
-              <Grid item xs='auto'>
+              <Grid item size={{ xs: 'auto' }}>
                 <Button
                   variant='outlined'
                   startIcon={<FilterListIcon />}
                   endIcon={
-                    <Badge badgeContent={filterCount} color='primary' invisible={filterCount === 0} sx={{ ml: 2 }} />
+                    <Badge
+                      badgeContent={filterCount}
+                      color='primary'
+                      invisible={filterCount === 0}
+                      sx={{ ml: 2, mr: 2 }}
+                    />
                   }
                   sx={{
                     border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -546,8 +585,18 @@ const StockLocation = () => {
       {openStockDetailDrawer && (
         <StockDetailDrawer
           openDrawer={openStockDetailDrawer}
-          setOpenDrawer={setOpenStockDetailDrawer}
+          setDrawerClose={handleStockRowClose}
           stockDetail={configMed}
+        />
+      )}
+      {openReOrderLevelDialog && (
+        <AddReOrderDialog
+          openDrawer={openReOrderLevelDialog}
+          setOpenDrawer={setOpenReOrderLevelDialog}
+          stockDetails={configReOrderMed}
+          setStockDetails={setConfigReOrderMed}
+          dialogCheck={dialogCheck}
+          setDialogCheck={setDialogCheck}
         />
       )}
     </>

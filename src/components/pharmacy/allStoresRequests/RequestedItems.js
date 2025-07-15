@@ -40,6 +40,7 @@ import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { alpha } from '@mui/material'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 // import Drawer from '@mui/material/Drawer'
 const Transition = forwardRef(function Transition(props, ref) {
@@ -114,6 +115,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [show, setShow] = useState(false)
   const [requestedItemsSubTab, setRequestedItemsSubTab] = useState(router.query.requestedItemsSubTab || 'Available')
+  const [exportLoading, setExportLoading] = useState(false)
 
   const showDialog = () => {
     setShow(true)
@@ -206,7 +208,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 25
   })
   function loadServerRows(currentPage, data) {
     return data
@@ -235,8 +237,20 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
     {
       width: 300,
@@ -271,11 +285,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               params?.row?.package ||
               params?.row?.package_qty ||
               params?.row?.package_uom_label ||
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'
+              (params?.row?.product_form_label &&
+                `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                  params?.row?.package_uom_label
+                } ${params?.row?.product_form_label}`)
             }
             placement='top'
           >
@@ -334,6 +347,23 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           }}
         >
           {params.row.pending_qty}
+        </Typography>
+      )
+    },
+    {
+      width: 200,
+      field: 'latest_requested_date',
+      headerName: 'Recent requested date',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility?.formatDisplayDate(params.row.latest_requested_date)}
         </Typography>
       )
     },
@@ -624,6 +654,45 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestedItemsSubTab])
 
+  const handleExport = async () => {
+    try {
+      setExportLoading(true)
+      const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
+      const now = new Date()
+
+      const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
+
+      let params = {
+        limit: total,
+        page: 1,
+        q: searchValue,
+        sort: sort,
+        column: sortColumn,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+        ...(controlledDrug !== 'all' && { controlled: controlledDrug }),
+        ...(priority !== 'all' && { priority: priority }),
+        ...(requestedItemsSubTab !== 'all' && { stock_status: requestedItemsSubTab }),
+        response_type: 'csv'
+      }
+
+      const response = await getAllRequestsOfSelectedStore({ params: params }, currentStoreId)
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(
+          response.data,
+          `Requested_Items_${requestedItemsSubTab.replace(/\s+/g, '_').toLowerCase()} ${timestamp}`
+        )
+      }
+    } catch (error) {
+      console.log('Error Downloading Excel File :', error)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   const pageContent = () => {
     return (
       <Box sx={{ mt: 6 }}>
@@ -639,10 +708,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               gap: { xs: 2, md: 0 }
             }}
           >
-            <Grid item xs={12} sm={12} md='auto' lg='auto' xl='auto'>
+            <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto', xl: 'auto' }}>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
-            <Grid item xs={12} md={2.5} lg={2.5}>
+            <Grid item size={{ xs: 12, md: 2.5, lg: 2.5 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel>Controlled</InputLabel>
                 <Select
@@ -657,7 +726,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2.5} lg={2.5}>
+            <Grid item size={{ xs: 12, md: 2.5, lg: 2.5 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel>Priority</InputLabel>
                 <Select
@@ -673,7 +742,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={3} lg={3}>
+            {/* <Grid item xs={8} sm={8} md={3} lg={3}>
               <TextField
                 variant='outlined'
                 size='small'
@@ -692,6 +761,52 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                   borderRadius: '8px'
                 }}
               />
+            </Grid>
+            <Grid
+              item
+              xs={4}
+              sm={4}
+              md='auto'
+              lg='auto'
+
+              // sx={{
+              //   display: 'flex',
+              //   justifyContent: { xs: 'flex-start', md: 'flex-end' },
+              //   alignItems: 'center'
+              // }}
+            >
+              <ExportButton />
+            </Grid> */}
+            <Grid item xs={12} md={3} lg={3}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'row', md: 'row' },
+                  alignItems: 'center',
+                  width: '100%',
+                  gap: 2
+                }}
+              >
+                <TextField
+                  variant='outlined'
+                  size='small'
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{ borderRadius: '8px', flexGrow: 1 }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                />
+                <ExportButton loading={exportLoading} onClick={handleExport} disabled={total === 0 ? true : false} />
+              </Box>
             </Grid>
           </Grid>
         </Box>
@@ -727,7 +842,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           }}
           onClose={() => closeFulfillDialog()}
           TransitionComponent={Transition}
-          onBackdropClick={() => closeFulfillDialog()}
         >
           <Grid
             container
@@ -752,7 +866,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
             }}
           />
         </Dialog>
-        <Grid container sx>
+        <Grid container>
           <CommonDialogBox
             noWidth={'noWidth'}
             title={'Add Alternative Supply'}
@@ -824,15 +938,22 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }, [selectedPharmacy.type === 'local'])
 
   return (
-    <TabContext sx={{ border: '1px solid red' }} value={requestedItemsSubTab}>
+    <TabContext value={requestedItemsSubTab}>
       <TabLists
         variant='scrollable'
         allowScrollButtonsMobile
         container
         onChange={(event, newValue) => {
           setRequestedItemsSubTab(newValue)
+          setPaginationModel({
+            page: 0,
+            pageSize: 25
+          })
+
           updateUrlParams({
-            requestedItemsSubTab: newValue
+            requestedItemsSubTab: newValue,
+            page: 0,
+            limit: 25
           })
         }}
         sx={{

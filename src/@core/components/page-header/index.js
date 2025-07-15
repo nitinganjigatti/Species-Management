@@ -6,7 +6,7 @@ const PageHeader = props => {
   const { title, subtitle } = props
 
   return (
-    <Grid item xs={12}>
+    <Grid item size={{ xs: 12 }}>
       {title}
       {subtitle || null}
     </Grid>

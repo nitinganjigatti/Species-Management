@@ -41,11 +41,16 @@ function formattedPresentDate() {
 }
 
 function formatDisplayDate(date) {
-  const result = moment(date).format('DD MMM YYYY')
-  if (result === 'Invalid date') {
-    return 'NA'
+  if (date) {
+    const result = moment(date).format('DD MMM YYYY')
+
+    if (result === 'Invalid date') {
+      return 'NA'
+    } else {
+      return result
+    }
   } else {
-    return result
+    return 'NA'
   }
 
   // return moment(date).format('DD MMM YYYY')
@@ -216,7 +221,7 @@ const downloadFileFromURL = async (fileUrl, title = '') => {
 }
 
 const formatText = text => {
-  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 }
 
 function toPascalSentenceCase(str) {
@@ -226,7 +231,7 @@ function toPascalSentenceCase(str) {
     .trim()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
-    .join(' ')
+    .join(' ');
 }
 
 function formatAmountCompactDisplay(value) {
@@ -244,6 +249,7 @@ function formatAmountCompactDisplay(value) {
       compactDisplay: 'short'
     })
   }
+
   return `${Number(roundedNum)}`
 }
 
@@ -255,15 +261,28 @@ const encryptData = data => {
 
 const decryptData = cipherText => {
   const bytes = CryptoJS.AES.decrypt(cipherText, SECRET_KEY)
+
   return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+}
+
+function formatIdentifierType(type) {
+  if (!type) return '' // handle empty/undefined cases
+
+  return type
+    .replace(/_/g, ' ') // Replace underscores with spaces
+    .split(' ') // Split into words
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
+    .join(' ') // Join back with spaces
 }
 
 function hexToHex8(hex, opacity) {
   debugger
   hex = hex.replace('#', '')
+
   let alpha = Math.round(opacity * 255)
     .toString(16)
     .padStart(2, '0')
+
   return `#${hex}${alpha}`
 }
 
@@ -291,6 +310,7 @@ const Utility = {
   formatAmountCompactDisplay,
   encryptData,
   decryptData,
+  formatIdentifierType,
   hexToHex8
 }
 

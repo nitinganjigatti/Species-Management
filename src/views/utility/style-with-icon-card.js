@@ -6,7 +6,7 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
   console.log('customCss', customCss)
 
   return (
-    <Grid item xs={12} sm={6} md={4}>
+    <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
       <Box
         sx={{
           display: 'flex',
@@ -45,11 +45,16 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
             }}
           />
         </Box>
-        <Box flex='1' ml={2}>
+        <Box
+          sx={{
+            flex: '1',
+            ml: 2
+          }}
+        >
           {value && (
             <Tooltip
               title={value}
-              componentsProps={{
+              slotProps={{
                 tooltip: {
                   sx: {
                     bgcolor: '#ededed', // Background color
@@ -99,7 +104,12 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
           )}
         </Box>
         {showIcon && (
-          <Typography variant='body2' color='customColors.customHeadingTextColor'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'customColors.customHeadingTextColor'
+            }}
+          >
             <Icon icon='weui:arrow-filled' />
           </Typography>
         )}

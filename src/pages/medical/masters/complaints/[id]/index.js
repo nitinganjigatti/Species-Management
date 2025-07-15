@@ -238,7 +238,12 @@ const ComplaintsDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
               Category
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Complaints
             </Typography>
           </Breadcrumbs>

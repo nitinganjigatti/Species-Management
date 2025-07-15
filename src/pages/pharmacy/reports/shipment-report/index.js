@@ -195,9 +195,11 @@ const ShipmentReport = () => {
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
+      align: 'center',
+      headerAlign: 'center',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -245,7 +247,7 @@ const ShipmentReport = () => {
       )
     },
     {
-      width: 260,
+      width: 340,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -254,66 +256,13 @@ const ShipmentReport = () => {
 
       renderCell: params => (
         <Box>
-          {/* <StyleWithIconCardComponent
-            value={
-              <>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px'
-
-                      // ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderPrescriptionLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.stock_name}
-                  </Typography>
-                </Typography>
-              </>
-            }
-            description={params.row.generic_name}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
-          /> */}
           <PharmacyProductCard
             title={params?.row?.stock_name}
             subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
             icon={params?.row?.image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
       )
@@ -869,13 +818,15 @@ const ShipmentReport = () => {
             }}
           >
             <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Grid item xs={12} sm={5} md={5}>
+              <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
                 <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
               </Grid>
 
-              <Grid item sm={7} xs={12}>
-                <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                  <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+              <Grid item sm={7} size={{ xs: 12, sm: 7 }}>
+                <Grid container spacing={2} sx={{
+                  justifyContent: { xs: 'flex-end' }
+                }}>
+                  <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                     <TextField
                       variant='outlined'
                       size='small'
@@ -883,15 +834,17 @@ const ShipmentReport = () => {
                       value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                          </InputAdornment>
-                        )
-                      }}
                       sx={{
                         borderRadius: '8px'
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                            </InputAdornment>
+                          )
+                        }
                       }}
                     />
                   </Grid>
@@ -952,7 +905,7 @@ const ShipmentReport = () => {
         />
       )}
     </>
-  )
+  );
 }
 
 export default ShipmentReport

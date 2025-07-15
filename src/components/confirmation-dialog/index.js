@@ -29,7 +29,6 @@ const ConfirmationDialog = ({
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
       onClose={() => onClose()}
-      onBackdropClick={() => onClose()}
       sx={{
         '& .MuiDialog-paper': {
           backgroundColor: '#fff',

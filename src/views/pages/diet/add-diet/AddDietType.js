@@ -26,6 +26,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   const [uom, setUom] = useState('')
   const [dis, setDis] = useState(true)
   const theme = useTheme()
+
   const getUnitsList = async () => {
     try {
       const params = {
@@ -169,6 +170,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
   const checkDisabled = () => {
     const dietTypes = getValues('diet_types')
+
     const isDisabled = dietTypes.some(item => {
       return !item?.weight || item?.weight === '' || !item?.unit?.value || item?.unit?.value === ''
     })
@@ -273,8 +275,15 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
               <Box>
                 <FormGroup>
                   {fields.map((field, index) => (
-                    <Grid container gap={3} key={field?.id} sx={{ mb: 4 }}>
-                      <Grid item xs={12} sm={5}>
+                    <Grid
+                      container
+                      key={field?.id}
+                      sx={{
+                        gap: 3,
+                        mb: 4
+                      }}
+                    >
+                      <Grid item size={{ xs: 12, sm: 5 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].weight`}
@@ -288,14 +297,17 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                     // setValue(`diet_types[${index}].weight`, e.target.value)
                                     onChange(e?.target?.value || '')
                                     checkDisabled()
+
                                     //setDis(false)
                                   }}
                                   error={Boolean(errors?.diet_types?.[index]?.weight)}
                                   type='number'
-                                  inputProps={{ min: 1 }}
                                   name={`diet_types[${index}].weight`}
                                   onKeyUp={() => {
                                     handleKeyUp(index)
+                                  }}
+                                  slotProps={{
+                                    htmlInput: { min: 1 }
                                   }}
                                 />
                               </>
@@ -308,7 +320,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             errors?.diet_types?.[index]?.weight?.message}
                         </Typography>
                       </Grid>
-                      {/* <Grid item xs={12} sm={2.5}>
+                      {/* <Grid item size={{xs: 12, sm: 2.5}}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].maxWeight`}
@@ -340,7 +352,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             errors?.diet_types?.[index]?.maxWeight?.message}
                         </Typography>
                       </Grid> */}
-                      <Grid item xs={12} sm={5}>
+                      <Grid item size={{ xs: 12, sm: 5 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].unit.value`}
@@ -374,14 +386,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                         </FormControl>
                       </Grid>
                       {errors?.diet_types?.[index]?.weight?.message === 'same range value be not allowed' && (
-                        <Grid item xs={10}>
+                        <Grid item size={{ xs: 10 }}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
                             {errors?.diet_types?.[index]?.weight?.message}
                           </Typography>
                         </Grid>
                       )}
                       {/* {errors?.diet_types?.[index]?.maxWeight?.message === 'same range value be not allowed' && (
-                        <Grid item xs={10}>
+                        <Grid item size={{xs: 10}}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
                             {errors?.diet_types?.[index]?.maxWeight?.message}
                           </Typography>
@@ -390,8 +402,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
                       <Grid
                         item
-                        alignSelf='center'
                         sx={{
+                          alignSelf: 'center',
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center'

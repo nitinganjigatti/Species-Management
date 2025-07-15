@@ -68,6 +68,7 @@ const ListOfSpeciesMapped = ({
   const [endDate, setEndDate] = useState(null)
   const [errors, setErrors] = useState({})
   const [openModal, setOpenModal] = useState(false)
+
   const handleClickOpen = () => {
     setOpenModal(true)
   }
@@ -125,10 +126,12 @@ const ListOfSpeciesMapped = ({
 
   const handelClose = () => {
     setIsOpennew(false)
+
     //refreshDietDetails()
     setspeciesview('')
     setStartDate(null)
     setEndDate(null)
+
     //setSearchQuery('')
     // setPrimaryStatus({}) // Reset primary status when closing
   }
@@ -198,6 +201,7 @@ const ListOfSpeciesMapped = ({
       setLoader(false)
     }
   }
+
   // Handle date changes
   const handleStartDateChange = date => {
     setStartDate(date)
@@ -271,7 +275,7 @@ const ListOfSpeciesMapped = ({
         </Box>
       </Box>
       {speciesview === 'details' ? (
-        <Grid item md={8} sm={8} xs={8}>
+        <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
           <Box
             sx={{
               bgcolor: theme.palette.background.paper,
@@ -306,9 +310,6 @@ const ListOfSpeciesMapped = ({
                   placeholder='Search'
                   value={searchQuery}
                   onChange={handleSearch}
-                  InputProps={{
-                    disableUnderline: false
-                  }}
                   sx={{
                     flex: 1,
                     mx: 1,
@@ -320,6 +321,11 @@ const ListOfSpeciesMapped = ({
                       }
                     }
                   }}
+                  slotProps={{
+                    input: {
+                      disableUnderline: false
+                    }
+                  }}
                 />
                 {searchQuery ? <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} /> : ''}
               </Box>
@@ -329,7 +335,6 @@ const ListOfSpeciesMapped = ({
       ) : (
         ''
       )}
-
       <Box
         sx={{
           backgroundColor: theme.palette.background.default,
@@ -374,9 +379,14 @@ const ListOfSpeciesMapped = ({
                 </ListItemAvatar>
                 <ListItemText
                   primary={dietDetails.diet_name}
-                  primaryTypographyProps={{
-                    sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                  slotProps={{
+                    primary: {
+                      sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                    }
                   }}
+                  // primaryTypographyProps={{
+                  //   sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                  // }}
                   secondary={
                     <Typography
                       variant='body2'
@@ -416,20 +426,6 @@ const ListOfSpeciesMapped = ({
                           label='From Date'
                           value={formatDisplayDate(startDate)}
                           error={Boolean(errors.startDate)}
-                          InputLabelProps={{
-                            shrink: true,
-                            sx: {
-                              color: '#44544A'
-                            }
-                          }}
-                          InputProps={{
-                            sx: {
-                              mt: 1,
-                              height: '40px',
-                              padding: '0 14px',
-                              alignItems: 'center'
-                            }
-                          }}
                           sx={{
                             '& .MuiInputBase-input': {
                               padding: '14px'
@@ -440,6 +436,23 @@ const ListOfSpeciesMapped = ({
                               }
                             },
                             width: '100%'
+                          }}
+                          slotProps={{
+                            input: {
+                              sx: {
+                                mt: 1,
+                                height: '40px',
+                                padding: '0 14px',
+                                alignItems: 'center'
+                              }
+                            },
+
+                            inputLabel: {
+                              shrink: true,
+                              sx: {
+                                color: '#44544A'
+                              }
+                            }
                           }}
                         />
                       }
@@ -459,20 +472,6 @@ const ListOfSpeciesMapped = ({
                           label='To Date'
                           value={formatDisplayDate(endDate)}
                           error={Boolean(errors.endDate)}
-                          InputLabelProps={{
-                            shrink: true,
-                            sx: {
-                              color: '#44544A'
-                            }
-                          }}
-                          InputProps={{
-                            sx: {
-                              mt: 1,
-                              height: '40px',
-                              padding: '0 14px',
-                              alignItems: 'center'
-                            }
-                          }}
                           sx={{
                             '& .MuiInputBase-input': {
                               padding: '14px'
@@ -483,6 +482,23 @@ const ListOfSpeciesMapped = ({
                               }
                             },
                             width: '100%'
+                          }}
+                          slotProps={{
+                            input: {
+                              sx: {
+                                mt: 1,
+                                height: '40px',
+                                padding: '0 14px',
+                                alignItems: 'center'
+                              }
+                            },
+
+                            inputLabel: {
+                              shrink: true,
+                              sx: {
+                                color: '#44544A'
+                              }
+                            }
                           }}
                         />
                       }
@@ -604,6 +620,7 @@ const ListOfSpeciesMapped = ({
                                   : '',
                               px: 2,
                               py: 1.5,
+
                               // height: '70px',
                               borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                               borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
@@ -644,12 +661,14 @@ const ListOfSpeciesMapped = ({
                                   </Typography>
                                 }
                                 secondary={species.scientific_name ? species.scientific_name : '-'}
-                                secondaryTypographyProps={{
-                                  sx: {
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600,
-                                    lineHeight: 1.2
+                                slotProps={{
+                                  secondary: {
+                                    sx: {
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: 600,
+                                      lineHeight: 1.2
+                                    }
                                   }
                                 }}
                               />
@@ -742,11 +761,13 @@ const ListOfSpeciesMapped = ({
                                     </Typography>
                                   </>
                                 }
-                                primaryTypographyProps={{
-                                  sx: {
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600
+                                slotProps={{
+                                  primary: {
+                                    sx: {
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: 600
+                                    }
                                   }
                                 }}
                                 secondary={
@@ -829,9 +850,7 @@ const ListOfSpeciesMapped = ({
           </>
         )}
       </Box>
-
       {/* bottom buttons */}
-
       <Box
         sx={{
           width: '100%',

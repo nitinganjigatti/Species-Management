@@ -237,8 +237,8 @@ export const AddRequestLineItemsForm = ({
     <>
       {/* <CardContent> */}
       <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
-          <Grid item xs={12} sm={6}>
+        <Grid container spacing={5} size={{ xs: 12 }}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <InputLabel>Product Type</InputLabel>
               <Controller
@@ -265,7 +265,7 @@ export const AddRequestLineItemsForm = ({
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <Controller
                 control={control}
@@ -287,7 +287,7 @@ export const AddRequestLineItemsForm = ({
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='generic_name'
@@ -310,7 +310,7 @@ export const AddRequestLineItemsForm = ({
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='quantity'
@@ -333,7 +333,7 @@ export const AddRequestLineItemsForm = ({
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Priority</FormLabel>
               <Controller
@@ -365,7 +365,7 @@ export const AddRequestLineItemsForm = ({
             </FormControl>
           </Grid>
 
-          <Grid item xs={6}>
+          <Grid item size={{ xs: 6 }}>
             <input
               type='file'
               accept='image/*'
@@ -410,16 +410,18 @@ export const AddRequestLineItemsForm = ({
 
           {/* salt composition */}
 
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <FormGroup>
-              <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
-                <Grid item xs={6}>
+              <Grid container item size={{ xs: 12, sm: 12 }} spacing={2} sx={{
+                alignItems: 'center'
+              }}>
+                <Grid item size={{ xs: 6 }}>
                   <span style={{ marginRight: '10px' }}>Salt Composition</span>
                 </Grid>
               </Grid>
               {fields.map((field, index) => (
                 <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
-                  <Grid item xs={4}>
+                  <Grid item size={{ xs: 4 }}>
                     <FormControl fullWidth>
                       <Controller
                         name={`salts[${index}].salt_id`}
@@ -438,7 +440,7 @@ export const AddRequestLineItemsForm = ({
                       />
                     </FormControl>
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid item size={{ xs: 4 }}>
                     <FormControl fullWidth>
                       <Controller
                         name={`salts[${index}].salt_qty`}
@@ -460,17 +462,13 @@ export const AddRequestLineItemsForm = ({
 
                   <Grid
                     item
-                    xs={4}
-                    // eslint-disable-next-line lines-around-comment
-                    // justifyContent='flex-end'
-
-                    alignSelf='center'
+                    size={{ xs: 4 }}
                     sx={{
+                      alignSelf: 'center',
                       display: 'flex',
                       justifyItems: 'center',
                       alignItems: 'center'
-                    }}
-                  >
+                    }}>
                     {handleAddRemoveSalts(fields, index)}
                   </Grid>
                 </Grid>
@@ -478,7 +476,13 @@ export const AddRequestLineItemsForm = ({
             </FormGroup>
           </Grid>
 
-          <Grid item xs={12} display={'flex'} justifyContent={'flex-end'}>
+          <Grid
+            item
+            size={{ xs: 12 }}
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}>
             {!editValues ? (
               <Button type='submit' variant='contained'>
                 Save
@@ -500,5 +504,5 @@ export const AddRequestLineItemsForm = ({
       </form>
       {/* </CardContent> */}
     </>
-  )
+  );
 }

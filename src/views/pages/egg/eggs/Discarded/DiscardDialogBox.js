@@ -42,7 +42,7 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
         setLoading(false)
       }
     } catch (error) {
-      console.log('error :>> ', error)
+      console.error('error :>> ', error)
       setComments('')
       handleClose()
       Toaster({ type: 'error', message: 'An error occurred while discard' })
@@ -80,7 +80,7 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
           <TextField
             multiline
             rows={2}
-            label='Add Comments*'
+            label='Add Comments'
             variant='outlined'
             fullWidth
             value={comments} // Bind the value to state

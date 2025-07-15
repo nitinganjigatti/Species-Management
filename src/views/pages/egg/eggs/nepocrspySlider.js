@@ -176,8 +176,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
       }
     } catch (error) {
       setLoading(false)
-
-      console.log('error :>> ', error)
+      console.error('error :>> ', error)
     }
   }
 
@@ -271,7 +270,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                 {' '}
                 <Grid container sx={{ justifyContent: 'space-between' }}>
                   {imgSrc !== '' ? null : (
-                    <Grid item xs={12} sm={12} md={12}>
+                    <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                       <input
                         type='file'
                         accept='*/*'
@@ -305,9 +304,14 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                       )}
                     </Grid>
                   )}
-                  <Grid item md={12}>
+                  <Grid item size={{ md: 12 }}>
                     {imgSrc !== '' && (
-                      <Stack direction='row' gap={'24px'}>
+                      <Stack
+                        direction='row'
+                        sx={{
+                          gap: '24px'
+                        }}
+                      >
                         <Box sx={{ display: 'flex', width: '48px', height: '48px' }}>
                           <img
                             style={{

@@ -267,7 +267,7 @@ const ImportPurchase = () => {
             <form ref={formRef} autoComplete='off'>
               <CardContent>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={5} sx={{ my: 2, ml: 6 }}>
+                  <Grid item size={{ xs: 12, sm: 5 }} sx={{ my: 2, ml: 6 }}>
                     <FormControl fullWidth>
                       <FormLabel sx={{ m: 1 }}>Upload CSV file</FormLabel>
                       <TextField
@@ -280,32 +280,34 @@ const ImportPurchase = () => {
                         onChange={e => {
                           handleFileChange(e)
                         }}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position='end'>
-                              {loader ? (
-                                <IconButton edge='end'>{<LoaderIcon size={40} />}</IconButton>
-                              ) : getValues('upload_file') !== '' ? (
-                                <Icon
-                                  color='error.main'
-                                  onClick={() => {
-                                    reset(defaultValues)
-                                    setFileUploadErrors([])
-                                    setUploadedFileData([])
-                                    setLoader(false)
-                                  }}
-                                  icon='mdi:close'
-                                />
-                              ) : null}
-                            </InputAdornment>
-                          )
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position='end'>
+                                {loader ? (
+                                  <IconButton edge='end'>{<LoaderIcon size={40} />}</IconButton>
+                                ) : getValues('upload_file') !== '' ? (
+                                  <Icon
+                                    color='error.main'
+                                    onClick={() => {
+                                      reset(defaultValues)
+                                      setFileUploadErrors([])
+                                      setUploadedFileData([])
+                                      setLoader(false)
+                                    }}
+                                    icon='mdi:close'
+                                  />
+                                ) : null}
+                              </InputAdornment>
+                            )
+                          }
                         }}
                       />
                     </FormControl>
                   </Grid>
 
                   {fileUploadErrors?.length > 0 ? (
-                    <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                    <Grid item size={{ xs: 12, sm: 12 }} sx={{ my: 2, mx: 6 }}>
                       <Card>
                         <CardHeader title='Rows with errors' />
                         <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
@@ -356,12 +358,13 @@ const ImportPurchase = () => {
                                               borderRight: '1px solid #ccc'
                                             }}
                                           >
-                                            <Typography variant='subtitle2' color='error.main'>
+                                            <Typography variant='subtitle2' sx={{
+                                              color: 'error.main'
+                                            }}>
                                               Row {el.key}, {el.value}
                                             </Typography>
                                           </TableCell>
                                         )}
-
                                         <TableCell>
                                           <TableHead>
                                             <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
@@ -396,10 +399,10 @@ const ImportPurchase = () => {
                                             >
                                               CGST
                                               <Grid container>
-                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                   Rate
                                                 </Grid>
-                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                   Amount
                                                 </Grid>
                                               </Grid>
@@ -414,10 +417,10 @@ const ImportPurchase = () => {
                                             >
                                               SGST
                                               <Grid container>
-                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                   Rate
                                                 </Grid>
-                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                   Amount
                                                 </Grid>
                                               </Grid>
@@ -425,10 +428,10 @@ const ImportPurchase = () => {
                                             <TableCell sx={{ backgroundColor: 'transparent', textAlign: 'center' }}>
                                               IGST
                                               <Grid container>
-                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                   Rate
                                                 </Grid>
-                                                <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                   Amount
                                                 </Grid>
                                               </Grid>
@@ -487,7 +490,7 @@ const ImportPurchase = () => {
                                         <TableCell></TableCell>
                                         {/*  <TableCell>{el.purchase_date}</TableCell> */}
                                       </TableRow>
-                                    )
+                                    );
                                   })
                                 : null}
                             </TableBody>
@@ -498,7 +501,7 @@ const ImportPurchase = () => {
                   ) : null}
                   {uploadedFileData.length > 0 ? (
                     <>
-                      <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                      <Grid item size={{ xs: 12, sm: 12 }} sx={{ my: 2, mx: 6 }}>
                         <Card>
                           <CardHeader title='Invoices good to upload' />
                           {console.log('uploadedFileData', uploadedFileData)}
@@ -563,10 +566,10 @@ const ImportPurchase = () => {
                                               >
                                                 CGST
                                                 <Grid container>
-                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                     Rate
                                                   </Grid>
-                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                     Amount
                                                   </Grid>
                                                 </Grid>
@@ -580,10 +583,10 @@ const ImportPurchase = () => {
                                               >
                                                 SGST
                                                 <Grid container>
-                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                     Rate
                                                   </Grid>
-                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                     Amount
                                                   </Grid>
                                                 </Grid>
@@ -597,10 +600,10 @@ const ImportPurchase = () => {
                                               >
                                                 IGST
                                                 <Grid container>
-                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                     Rate
                                                   </Grid>
-                                                  <Grid item xs={6} sx={{ backgroundColor: 'transparent' }}>
+                                                  <Grid item size={{ xs: 6 }} sx={{ backgroundColor: 'transparent' }}>
                                                     Amount
                                                   </Grid>
                                                 </Grid>
@@ -672,7 +675,7 @@ const ImportPurchase = () => {
                     </>
                   ) : null}
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mx: 6, my: 2 }}>
                   {uploadedFileData?.length > 0 ? (
                     <LoadingButton
                       disabled={getValues('upload_file') === '' || fileUploadErrors.length > 0 ? true : false}
@@ -708,7 +711,7 @@ const ImportPurchase = () => {
         <Error404 />
       )}
     </>
-  )
+  );
 }
 
 export default ImportPurchase

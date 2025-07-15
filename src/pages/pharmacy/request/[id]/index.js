@@ -61,7 +61,7 @@ import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
 import CloseIcon from '@mui/icons-material/Close'
 import RenderUtility from 'src/utility/render'
 import { useTheme } from '@emotion/react'
-import { width } from '@mui/system'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -132,6 +132,7 @@ const IndividualRequest = () => {
   const [status, setStatus] = useState('Pending')
   const [detailsTab, setDetailsTab] = useState(router?.query?.detailsTab || 'Pending')
   const [shipmentTab, setShipmentTab] = useState(router?.query?.shipmentTab || 'Ready To Ship')
+
   const theme = useTheme()
 
   const TabBadge = ({ label, totalCount }) => (
@@ -241,6 +242,7 @@ const IndividualRequest = () => {
 
       const data = responseData?.dispatch_items?.map((el, index) => {
         const items = {
+          ...el,
           sl_no: index + 1,
           id: index + 1,
           dispatch_id: el.dispatch_id,
@@ -272,10 +274,12 @@ const IndividualRequest = () => {
 
         return items
       })
+
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
 
-      setDispatchedItems(responseData.dispatch_items)
+      setDispatchedItems(responseData?.dispatch_items)
+
       setLoader(false)
     } else {
       setLoader(false)
@@ -374,10 +378,23 @@ const IndividualRequest = () => {
   const init = async id => {
     if (id !== undefined) {
       await getRequestItemLists(id)
+
       await getDispatchedItems(id)
       await getShippedItems(id)
     }
   }
+
+  // useEffect(() => {
+  //   if (router?.query?.detailsTab === 'Shipped') {
+  //     getDispatchedItems(id)
+  //   }
+  // }, [router?.query?.detailsTab, getDispatchedItems, id])
+
+  // useEffect(() => {
+  //   if (router?.query?.shipmentTab === 'Shipped') {
+  //     getShippedItems(id)
+  //   }
+  // }, [router?.query?.shipmentTab, getShippedItems, id])
 
   useEffect(() => {
     if (id !== undefined) {
@@ -985,7 +1002,7 @@ const IndividualRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Tooltip title={params.row.medicin_name} placement='top'>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+            <Typography sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}>
               {params.row.medicin_name}
             </Typography>
           </Tooltip>
@@ -1032,7 +1049,7 @@ const IndividualRequest = () => {
       headerName: 'Packed Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
+          {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
     },
@@ -1099,7 +1116,7 @@ const IndividualRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_id}</div>
+            {params.row.shipment_id}
           </Typography>
         </div>
       )
@@ -1150,7 +1167,7 @@ const IndividualRequest = () => {
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography component='div' variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -1426,8 +1443,6 @@ const IndividualRequest = () => {
   //   }
   // }
 
-  console.log(shippedItems, 'shippedItems')
-
   const hasNotFulfilledItems = requestItems?.request_item_details?.some(
     el =>
       el?.dispatch_status === 'Not Fulfilled' &&
@@ -1450,6 +1465,10 @@ const IndividualRequest = () => {
       setShipmentTab('Shipped')
     }
   }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
+
+  const allShippedLineItems =
+    shippedItems.length > 0 &&
+    shippedItems?.flatMap(shipment => shipment?.shipment_item_details?.map(item => ({ ...item })))
 
   return (
     <>
@@ -1496,7 +1515,8 @@ const IndividualRequest = () => {
                   action={
                     selectedPharmacy?.type === 'local' &&
                     requestItems?.status === 'request' &&
-                    requestItems?.is_modified !== '1' ? (
+                    requestItems?.is_modified !== '1' &&
+                    Number(requestItems?.shipped_product_count) === 0 && (
                       <Button
                         size='big'
                         variant='contained'
@@ -1506,8 +1526,6 @@ const IndividualRequest = () => {
                       >
                         Edit
                       </Button>
-                    ) : (
-                      <></>
                     )
                   }
                 />
@@ -1531,7 +1549,6 @@ const IndividualRequest = () => {
                       sx={{
                         width: '100%',
                         height: '100%',
-
                         display: 'flex',
                         alignItems: 'center',
 
@@ -1567,7 +1584,7 @@ const IndividualRequest = () => {
                             color: 'customColors.neutralSecondary'
                           }}
                         >
-                          Requested By:
+                          Requested By :
                           <Box
                             component='span'
                             sx={{
@@ -1620,14 +1637,13 @@ const IndividualRequest = () => {
                         sx={{
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '4px',
                           height: '46px',
                           gap: '10px',
 
                           textAlign: {
                             xs: 'left',
-                            sm: 'right',
-                            md: 'right',
+                            sm: 'left',
+                            md: 'left',
                             lg: 'left'
                           },
                           mb: {
@@ -1662,16 +1678,30 @@ const IndividualRequest = () => {
                             </Box>
                           </Typography>
                         )}
-
-                        <Typography
+                        <Box
                           sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
+                            display: 'flex',
+                            alignItems: 'center'
+
+                            // marginLeft: { xs: 0, md: 0, sm: '47px' }
+
+                            // overflow: 'hidden' // optional, if you want to clip long content
                           }}
                         >
-                          Total Requested Value:
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary',
+                              whiteSpace: 'nowrap' // optional if this label might wrap
+                              // ml: { xs: 0, sm: 0 }
+                            }}
+                          >
+                            Total Requested Value:
+                          </Typography>
+
                           <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
                             <Box
                               component='span'
@@ -1680,20 +1710,15 @@ const IndividualRequest = () => {
                                 fontSize: '16px',
                                 color: 'primary.light',
                                 lineHeight: '19.36px',
-                                mx: 2,
-                                [theme.breakpoints.up('lg')]: {
-                                  ...RenderUtility?.getEllipsisStyleForText('140')
-                                }
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
                               }}
                             >
                               {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                              {/* ₹
-                              {RenderUtility?.getToolTipForText(
-                                Utility.formatNumberToDisplay(requestItems?.requested_amount)
-                              )} */}
                             </Box>
                           </Tooltip>
-                        </Typography>
+                        </Box>
 
                         {/* <Typography
                           sx={{
@@ -1708,12 +1733,12 @@ const IndividualRequest = () => {
                             component='span'
                             sx={{
                               fontWeight: '500',
+                          >
                               fontSize: '16px',
                               color: 'primary.OnSurface',
                               lineHeight: '19.36px',
                               mx: 2
                             }}
-                          >
                             {requestItems?.shipped_qty}
                           </Box>
                         </Typography> */}
@@ -1912,6 +1937,9 @@ const IndividualRequest = () => {
                                 selectedPharmacy={selectedPharmacy}
                               />
                             )}
+                            {requestItems?.request_item_details?.length === 0 && (
+                              <NoDataFound variant='Meerkat' height={200} width={200} />
+                            )}
                           </Box>
                         </TabPanel>
                         <TabPanel
@@ -1921,7 +1949,7 @@ const IndividualRequest = () => {
                           }}
                         >
                           <Box sx={{ my: 5 }}>
-                            {shippedItems?.length > 0 ? (
+                            {shippedItems?.length > 0 && (
                               <>
                                 <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
                                   {/* <CardHeader title={`Shipments`}></CardHeader> */}
@@ -1935,10 +1963,11 @@ const IndividualRequest = () => {
                                         query: { orderId: e.id, requestId: id }
                                       })
                                     }}
-                                  ></TableBasic>
+                                  />
                                 </Card>
                               </>
-                            ) : null}
+                            )}
+                            {shippedItems?.length === 0 && <NoDataFound variant='Meerkat' height={200} width={200} />}
                           </Box>
                         </TabPanel>
                       </>
@@ -2003,6 +2032,12 @@ const IndividualRequest = () => {
                                       />
                                     )
                                   : null}
+                                {requestItems?.request_item_details?.length > 0 &&
+                                  requestItems?.request_item_details?.filter(
+                                    el =>
+                                      el?.dispatch_status === 'Not Fulfilled' &&
+                                      (el?.request_status !== 'Rejected' || el?.request_status !== 'Not Available')
+                                  )?.length === 0 && <NoDataFound variant='Meerkat' height={200} width={200} />}
                               </TabPanel>
                               <TabPanel
                                 value='All'
@@ -2022,6 +2057,9 @@ const IndividualRequest = () => {
                                     generateOptions={generateOptions}
                                     selectedPharmacy={selectedPharmacy}
                                   />
+                                )}
+                                {requestItems?.request_item_details.length === 0 && (
+                                  <NoDataFound variant='Meerkat' height={200} width={200} />
                                 )}
                               </TabPanel>
                             </TabContext>
@@ -2076,8 +2114,12 @@ const IndividualRequest = () => {
                                       action={
                                         (selectedPharmacy.permission.key === 'ADD' ||
                                           selectedPharmacy.permission.key === 'allow_full_access') &&
-                                        requestItems.status !== 'Cancelled' ? (
-                                          <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                        requestItems.status !== 'Cancelled' && (
+                                          <Grid
+                                            item
+                                            size={{ xs: 6 }}
+                                            style={{ display: 'flex', justifyContent: 'right' }}
+                                          >
                                             <Button
                                               size='big'
                                               variant='contained'
@@ -2094,15 +2136,14 @@ const IndividualRequest = () => {
                                               Ship All Items
                                             </Button>
                                           </Grid>
-                                        ) : null
+                                        )
                                       }
                                     ></CardHeader>
-                                    <TableBasic
-                                      rowHeight={90}
-                                      columns={fulfillColumns}
-                                      rows={dispatchedItems}
-                                    ></TableBasic>
+                                    <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems} />
                                   </Card>
+                                )}
+                                {dispatchedItems?.length === 0 && (
+                                  <NoDataFound variant='Meerkat' height={200} width={200} />
                                 )}
                               </TabPanel>
                               <TabPanel
@@ -2111,7 +2152,7 @@ const IndividualRequest = () => {
                                   padding: '0px !important'
                                 }}
                               >
-                                {shippedItems?.length > 0 ? (
+                                {shippedItems?.length > 0 && (
                                   <>
                                     <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
                                       <TableBasic
@@ -2127,7 +2168,10 @@ const IndividualRequest = () => {
                                       ></TableBasic>
                                     </Card>
                                   </>
-                                ) : null}
+                                )}
+                                {shippedItems?.length === 0 && (
+                                  <NoDataFound variant='Meerkat' height={200} width={200} />
+                                )}
                               </TabPanel>
                             </TabContext>
                           </Grid>
@@ -2410,8 +2454,8 @@ const IndividualRequest = () => {
                       paddingTop: 3
                     }}
                   >
-                    {shippedItems[0]?.shipment_item_details?.length ? (
-                      shippedItems[0]?.shipment_item_details?.map((ship, index) => (
+                    {shippedItems?.length ? (
+                      allShippedLineItems?.map((ship, index) => (
                         <Card
                           key={index}
                           sx={{
@@ -2490,8 +2534,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Shipping ID:
                                 </Typography>
@@ -2509,8 +2556,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Batch No:
                                 </Typography>
@@ -2528,8 +2578,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Shipped Quantity:
                                 </Typography>
@@ -2663,7 +2716,6 @@ const IndividualRequest = () => {
                 }}
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeDialog()}
               >
                 <Grid
                   container
@@ -2693,7 +2745,6 @@ const IndividualRequest = () => {
                 scroll='body'
                 onClose={() => closeShipDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeShipDialog()}
               >
                 <Grid
                   container
@@ -2745,4 +2796,4 @@ const IndividualRequest = () => {
   )
 }
 
-export default IndividualRequest
+export default React.memo(IndividualRequest)

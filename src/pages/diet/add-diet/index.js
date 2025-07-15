@@ -2,17 +2,7 @@
 import { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports
-import {
-  Card,
-  CardContent,
-  Divider,
-  Breadcrumbs,
-  Link,
-  debounce,
-  Box,
-  Typography,
-  CircularProgress
-} from '@mui/material'
+import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
@@ -265,6 +255,7 @@ const AddDiet = () => {
           diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
           dietitian_id: data?.dietitian_id,
+          dietitian_name: data?.dietitian?.user_name,
           child: data.child,
           diet_image: data.diet_image,
           desc: data.desc,
@@ -696,11 +687,14 @@ const AddDiet = () => {
             Diet
           </Link>
 
-          <Typography color='text.primary'>
+          <Typography
+            sx={{
+              color: 'text.primary'
+            }}
+          >
             {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
           </Typography>
         </Breadcrumbs>
-
         <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, boxShadow: 'none' }}>
           <CardContent>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -722,7 +716,11 @@ const AddDiet = () => {
               {steps.map((step, index) => {
                 return (
                   <Step key={index}>
-                    <StepLabel StepIconComponent={StepperCustomDot}>
+                    <StepLabel
+                      slots={{
+                        icon: StepperCustomDot
+                      }}
+                    >
                       <div className='step-label'>
                         {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
                         <div>

@@ -63,9 +63,24 @@ const DashboardNotes = ({ notesData }) => {
     <>
       <ReactApexcharts type='bar' height={200} options={options} series={[{ data: values }]} />
       {/* Custom Legend with Text & Values */}
-      <Box display='flex' justifyContent='start' flexWrap='wrap' mb={4} sx={{ px: '16px' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'start',
+          flexWrap: 'wrap',
+          mb: 4,
+          px: '16px'
+        }}
+      >
         {categories.map((label, index) => (
-          <Box key={index} display='flex' alignItems='center' mx={1.2}>
+          <Box
+            key={index}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              mx: 1.2
+            }}
+          >
             <Box sx={{ width: 11, height: 11, borderRadius: '50%', backgroundColor: colors[index], mr: 0.5 }} />
             <Typography variant='body2' sx={{ color: '#44544A', fontSize: '13px', fontWeight: 400 }}>
               {label} -{' '}

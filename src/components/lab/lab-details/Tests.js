@@ -18,7 +18,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useTheme } from '@mui/material/styles'
 
 const Tests = ({ labTest }) => {
-  console.log('labTest', labTest)
+  // console.log('labTest', labTest)
   const theme = useTheme()
 
   const columns = [
@@ -145,7 +145,7 @@ const Tests = ({ labTest }) => {
             </Typography>
             {list?.tests?.map((parent, index) =>
               parent?.child_tests?.length > 0 ? (
-                <>
+                <Box key={index}>
                   <Box
                     sx={{
                       bgcolor: theme.palette.customColors.displaybgPrimary,
@@ -155,8 +155,8 @@ const Tests = ({ labTest }) => {
                     }}
                   >
                     <Typography
-                      ml={4}
                       sx={{
+                        ml: 4,
                         display: 'flex',
                         py: 2,
                         justifyContent: 'space-between',
@@ -211,9 +211,11 @@ const Tests = ({ labTest }) => {
                         borderBottomRightRadius: '4px'
                       }
                     }}
+                    slotProps={{ heading: { component: 'h4' } }}
                   >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography
+                        component="span"
                         sx={{ overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 'bold', fontSize: '15px' }}
                       >
                         {parent?.test_name}
@@ -233,7 +235,7 @@ const Tests = ({ labTest }) => {
                       })}
                     </AccordionDetails>
                   </Accordion> */}
-                </>
+                </Box>
               ) : (
                 <>
                   <Box
@@ -245,8 +247,8 @@ const Tests = ({ labTest }) => {
                     }}
                   >
                     <Typography
-                      ml={4}
                       sx={{
+                        ml: 4,
                         display: 'flex',
                         py: 2,
                         justifyContent: 'space-between',

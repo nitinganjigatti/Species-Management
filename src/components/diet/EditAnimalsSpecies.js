@@ -98,6 +98,7 @@ const EditAnimalSpeciesMapped = ({
     setPrimaryStatus(prev => {
       const newStatus = { ...prev }
       delete newStatus[id]
+
       return newStatus
     })
 
@@ -158,20 +159,20 @@ const EditAnimalSpeciesMapped = ({
 
   const hasChanges = () => {
     const editData = getChangedRecords()
+
     return editData.length > 0 || removedIds.length > 0
   }
 
   const handleAdd = async () => {
     const editData = getChangedRecords()
+
     // Convert string IDs to numbers
     const numericRemovedIds = removedIds.map(id => Number(id))
-    console.log(numericRemovedIds, 'numericRemovedIds')
+
     const payload = {
       edit_data: JSON.stringify(editData),
       remove_ids: JSON.stringify(numericRemovedIds)
     }
-
-    console.log('Final Payload:', payload)
 
     setLoader(true)
     try {
@@ -185,6 +186,7 @@ const EditAnimalSpeciesMapped = ({
         Toaster({
           type: 'success',
           message: 'Primary diet successfully updated'
+
           //message: response.message
         })
       } else {
@@ -204,6 +206,7 @@ const EditAnimalSpeciesMapped = ({
   const handelClose = () => {
     setIsOpenTabsEdit(false)
     refreshDietDetails()
+
     //setspeciesview('')
     setSearchQuery('')
   }
@@ -270,8 +273,7 @@ const EditAnimalSpeciesMapped = ({
           </IconButton>
         </Box>
       </Box>
-
-      <Grid item md={8} xs={12} sx={{ mb: 14 }}>
+      <Grid item size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
         <TabContext value={selectionType}>
           <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
             <Tab
@@ -286,7 +288,7 @@ const EditAnimalSpeciesMapped = ({
             />
           </TabList>
           {speciesview === 'details' ? (
-            <Grid item md={8} sm={8} xs={8}>
+            <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
               <Box
                 sx={{
                   bgcolor: 'background.default',
@@ -323,9 +325,6 @@ const EditAnimalSpeciesMapped = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         flex: 1,
                         mx: 1,
@@ -335,6 +334,11 @@ const EditAnimalSpeciesMapped = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -402,8 +406,14 @@ const EditAnimalSpeciesMapped = ({
                       </ListItemAvatar>
                       <ListItemText
                         primary={dietDetails.diet_name}
-                        primaryTypographyProps={{
-                          sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                        slotProps={{
+                          primary: {
+                            sx: {
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '16px',
+                              fontWeight: 600
+                            }
+                          }
                         }}
                         secondary={
                           <Typography
@@ -533,6 +543,7 @@ const EditAnimalSpeciesMapped = ({
                                       : '',
                                   px: 2,
                                   py: 1.5,
+
                                   // height: '70px',
                                   borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                                   borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
@@ -573,12 +584,14 @@ const EditAnimalSpeciesMapped = ({
                                       </Typography>
                                     }
                                     secondary={species.scientific_name ? species.scientific_name : '-'}
-                                    secondaryTypographyProps={{
-                                      sx: {
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '16px',
-                                        fontWeight: 600,
-                                        lineHeight: 1.2
+                                    slotProps={{
+                                      secondary: {
+                                        sx: {
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: 600,
+                                          lineHeight: 1.2
+                                        }
                                       }
                                     }}
                                   />
@@ -840,11 +853,13 @@ const EditAnimalSpeciesMapped = ({
                                         </Typography>
                                       </>
                                     }
-                                    primaryTypographyProps={{
-                                      sx: {
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '16px',
-                                        fontWeight: 600
+                                    slotProps={{
+                                      primary: {
+                                        sx: {
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: 600
+                                        }
                                       }
                                     }}
                                     secondary={
@@ -930,9 +945,7 @@ const EditAnimalSpeciesMapped = ({
           </TabPanel>
         </TabContext>
       </Grid>
-
       {/* bottom buttons */}
-
       <Box
         sx={{
           width: '100%',

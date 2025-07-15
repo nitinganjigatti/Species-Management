@@ -152,7 +152,7 @@ const EggsStats = ({ allStats, setOpenDiscard }) => {
   return (
     <Grid container spacing={3} columns={5}>
       {statsData.map((stat, index) => (
-        <Grid item xs={5} sm={2.5} lg={1} key={index}>
+        <Grid item size={{ xs: 5, sm: 2.5, lg: 1 }} key={index}>
           <StatBox {...stat} />
         </Grid>
       ))}

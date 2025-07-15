@@ -12,7 +12,6 @@ import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
-import CustomChip from 'src/@core/components/mui/chip'
 import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
 
 // ** MUI Imports
@@ -28,7 +27,7 @@ import TabContext from '@mui/lab/TabContext'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Avatar, Box, CardContent, CardHeader, Tooltip, Chip } from '@mui/material'
+import { Box, CardHeader, Tooltip, Chip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -351,15 +350,18 @@ const IndividualRequest = () => {
       )
     },
     {
-      width: 400,
-      minWidth: 400,
+      width: 300,
+      minWidth: 300,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <Box sx={{ width: '100%' }}>
           <div>
             <Tooltip title={params?.row?.stock_name} placement='top'>
-              <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              <Typography
+                variant='subtitle2'
+                sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}
+              >
                 {RenderUtility?.renderControlLabel(parseInt(params?.row?.control_substance) === 1, 'CS')}
                 {RenderUtility?.renderControlLabel(parseInt(params?.row?.prescription_required) === 1, 'PR')}
                 {params?.row?.stock_name}
@@ -427,10 +429,10 @@ const IndividualRequest = () => {
       )
     },
     {
-      width: 150,
-      minWidth: 150,
+      width: 200,
+      minWidth: 200,
       field: 'unit_price',
-      headerName: 'unit price(₹)',
+      headerName: 'Net Unit price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -592,13 +594,16 @@ const IndividualRequest = () => {
 
     {
       flex: 1,
-      minWidth: 200,
+      minWidth: 300,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
           <Tooltip title={params.row.medicin_name} placement='top'>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+            <Typography
+              variant='subtitle2'
+              sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}
+            >
               {params.row.medicin_name}
             </Typography>
           </Tooltip>
@@ -657,9 +662,9 @@ const IndividualRequest = () => {
       )
     },
     {
-      width: 140,
+      width: 200,
       field: 'unit_price',
-      headerName: 'unit price(₹)',
+      headerName: 'Net Unit Price(₹)',
       align: 'right',
       headerAlign: 'right',
 
@@ -715,7 +720,7 @@ const IndividualRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_id}</div>
+            {params.row.shipment_id}
           </Typography>
         </div>
       )
@@ -1116,23 +1121,23 @@ const IndividualRequest = () => {
                 <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched To</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.to_store}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched From</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.from_store}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched Date</h5>
                       <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched ID</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.request_number}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
                       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
                         {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
@@ -1148,7 +1153,7 @@ const IndividualRequest = () => {
                       </Box>
                     </Grid>
                     <>
-                      <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                      <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                         <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
                         <p style={{ marginBottom: '0' }}>
                           {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
@@ -1156,13 +1161,13 @@ const IndividualRequest = () => {
                       </Grid>
                       {shippedItems.length > 0 && (
                         <>
-                          <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                          <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
                             <p style={{ marginBottom: '0' }}>
                               {Utility.formatAmountToReadableDigit(requestItems?.shipped_amount)}
                             </p>
                           </Grid>
-                          <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                          <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
                             <p style={{ marginBottom: '0' }}>{requestItems?.shipped_qty}</p>
                           </Grid>
@@ -1270,7 +1275,11 @@ const IndividualRequest = () => {
                                       requestItems.status !== 'Cancelled' &&
                                       (selectedPharmacy.permission.key === 'ADD' ||
                                         selectedPharmacy.permission.key === 'allow_full_access') && (
-                                        <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                        <Grid
+                                          item
+                                          size={{ xs: 6 }}
+                                          style={{ display: 'flex', justifyContent: 'right' }}
+                                        >
                                           <Button size='large' variant='contained' onClick={handleNavigate}>
                                             Ship all items
                                           </Button>
@@ -1334,7 +1343,6 @@ const IndividualRequest = () => {
                 scroll='body'
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeDialog()}
               >
                 <Grid
                   container
@@ -1366,7 +1374,6 @@ const IndividualRequest = () => {
                 scroll='body'
                 onClose={() => closeShipDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeShipDialog()}
               >
                 <Grid
                   container
@@ -2569,7 +2576,6 @@ export default IndividualRequest
 //                 scroll='body'
 //                 onClose={() => closeDialog()}
 //                 TransitionComponent={Transition}
-//                 onBackdropClick={() => closeDialog()}
 //               >
 //                 <Grid
 //                   container
@@ -2601,7 +2607,6 @@ export default IndividualRequest
 //                 scroll='body'
 //                 onClose={() => closeShipDialog()}
 //                 TransitionComponent={Transition}
-//                 onBackdropClick={() => closeShipDialog()}
 //               >
 //                 <Grid
 //                   container

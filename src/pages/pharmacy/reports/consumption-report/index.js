@@ -26,7 +26,6 @@ import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/Consumptio
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const productTypes = [
@@ -224,9 +223,11 @@ const ConsumptionReport = () => {
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
+      align: 'center',
+      headerAlign: 'center',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -235,7 +236,7 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 260,
+      width: 340,
       field: 'stock_name',
       headerName: 'PRODUCT NAME',
       sortable: true,
@@ -246,6 +247,7 @@ const ConsumptionReport = () => {
             icon={params?.row?.image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </>
       )
@@ -254,27 +256,49 @@ const ConsumptionReport = () => {
       minWidth: 20,
       width: 200,
       field: 'generic_name',
-      headerName: 'GENERIC NAME',
       sortable: true,
-      renderCell: params => (
-        <Tooltip title={params.row.generic_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            {params.row.generic_name ? <span alt={params.row.generic_name}> {params.row.generic_name}</span> : 'NA'}
-          </Typography>
-        </Tooltip>
-      )
+      headerName: 'GENERIC NAME',
+      renderCell: params => {
+        const genericName = params.row.generic_name
+
+        return (
+          <Tooltip title={genericName || '-'}>
+            {genericName ? (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {genericName}
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  width: '100%',
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                  fontFamily: 'Inter',
+                  fontWeight: 400
+                }}
+              >
+                -
+              </Box>
+            )}
+          </Tooltip>
+        )
+      }
     },
     {
       minWidth: 20,
@@ -319,6 +343,7 @@ const ConsumptionReport = () => {
       headerName: '',
       sortable: true,
       align: 'right',
+      headerAlign: 'right',
       renderHeader: () => (
         <div
           style={{
@@ -350,11 +375,12 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 170,
+      width: 190,
       field: 'available_qty',
       headerName: '',
       sortable: true,
       align: 'center',
+      headerAlign: 'center',
       renderHeader: () => (
         <div
           style={{
@@ -635,13 +661,15 @@ const ConsumptionReport = () => {
             }}
           >
             <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Grid item xs={12} sm={5} md={5}>
+              <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
                 <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
               </Grid>
 
-              <Grid item sm={7} xs={12}>
-                <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                  <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+              <Grid item size={{ xs: 12, sm: 7 }}>
+                <Grid container spacing={2} sx={{
+                  justifyContent: { xs: 'flex-end' }
+                }}>
+                  <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                     <TextField
                       variant='outlined'
                       size='small'
@@ -649,15 +677,17 @@ const ConsumptionReport = () => {
                       value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                          </InputAdornment>
-                        )
-                      }}
                       sx={{
                         borderRadius: '8px'
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                            </InputAdornment>
+                          )
+                        }
                       }}
                     />
                   </Grid>
@@ -724,7 +754,7 @@ const ConsumptionReport = () => {
         />
       )}
     </>
-  )
+  );
 }
 
 export default ConsumptionReport

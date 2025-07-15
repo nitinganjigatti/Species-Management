@@ -34,7 +34,7 @@ import { getRackListById } from 'src/lib/api/pharmacy/getRackList'
 const schema = yup.object().shape({
   name: yup.string().required('Rack name is required'),
   position: yup.string().required('Position is required'),
-  store_id: yup.string().required('Store is required'),
+
   shelf: yup.string().required('Shelf is required'),
   status: yup.string().nullable()
 })
@@ -42,14 +42,24 @@ const schema = yup.object().shape({
 const defaultValues = {
   name: '',
   position: '',
-  store_id: '',
+
+  // store_id: '',
   shelf: '',
   status: 'active'
 }
 
 const AddRack = props => {
   // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const {
+    addEventSidebarOpen,
+    handleSidebarClose,
+    handleSubmitData,
+    resetForm,
+    submitLoader,
+    editParams,
+    selectedPharmacy
+  } = props
+
   console.log('props', props)
 
   // ** States
@@ -72,12 +82,12 @@ const AddRack = props => {
   })
 
   const onSubmit = async params => {
-    const { name, position, store_id, shelf, status } = { ...params }
+    const { name, position, shelf, status } = { ...params }
 
     const payload = {
       name,
       position,
-      store_id,
+      store_id: selectedPharmacy?.id,
       shelf,
       status
     }
@@ -174,6 +184,7 @@ const AddRack = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
+          {/* <form> */}
           {/* <FormControl fullWidth sx={{ mb: 6 }}>
             <InputLabel error={Boolean(errors?.state_id)} id='store_id'>
               Store
@@ -314,6 +325,7 @@ const AddRack = props => {
               )}
             </FormControl>
           ) : null}
+
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

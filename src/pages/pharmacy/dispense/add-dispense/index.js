@@ -41,6 +41,8 @@ import { th } from 'date-fns/locale'
 import { useTheme } from '@emotion/react'
 import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
 
 function AddDispense() {
   const theme = useTheme()
@@ -237,8 +239,7 @@ function AddDispense() {
   const totalQty = productArrayUi.reduce((sum, item) => sum + item.qty, 0)
   const totalUnitPrice = productArrayUi.reduce((sum, item) => sum + Number(item.unit_price) * item.qty, 0)
 
-  console.log(productArrayUi, 'productArrayUi')
-  console.log(productArray, 'productArray')
+
 
   return (
     <>
@@ -252,7 +253,6 @@ function AddDispense() {
             height='auto'
             scroll='body'
             onClose={() => closeDialog()}
-            onBackdropClick={() => closeDialog()}
           >
             <Card>
               <CardHeader
@@ -286,8 +286,7 @@ function AddDispense() {
           </Dialog>
           <Grid
             container
-            sm={12}
-            xs={12}
+            size={{ xs: 12, sm: 12 }}
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -313,7 +312,7 @@ function AddDispense() {
           <form onSubmit={handleSubmit(submitForm, onError)}>
             <CardContent>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
                   <FormControl fullWidth>
                     <Controller
                       name='user_id'
@@ -322,15 +321,24 @@ function AddDispense() {
                         <>
                           <Autocomplete
                             forcePopupIcon={false}
-                            inputProps={{ tabIndex: '6' }}
                             disablePortal
                             value={field?.value}
                             options={users}
                             noOptionsText='Type to search'
                             getOptionLabel={option => option?.label || ''}
+                            isOptionEqualToValue={(option, value) => option.value === value.value}
+                            renderOption={(props, option) => (
+                              <li {...props} key={option.value}>
+                                {option.label}
+                              </li>
+                            )}
                             renderInput={params => (
                               <TextField
                                 {...params}
+                                slotProps={{
+                                  ...params.inputProps,
+                                  tabIndex: 6
+                                }}
                                 label='Dispense To*'
                                 placeholder='Search & Select'
                                 error={Boolean(errors.user_id)}
@@ -450,7 +458,7 @@ function AddDispense() {
 
                           return (
                             <TableRow
-                              key={index}
+                              key={`${el?.stock_id}${index}`}
                               sx={{
                                 borderColor: 'customColors.customTableBorderBg',
                                 '&:last-child td, &:last-child th': { borderBottom: 'none' }
@@ -464,7 +472,13 @@ function AddDispense() {
                                     '&:last-child td, &:last-child th': { borderBottom: 'none' }
                                   }}
                                 >
-                                  {el?.stock_id?.label}
+                                  <PharmacyProductCard
+                                    title={el?.stock_id?.label}
+                                    subTitle={el?.stock_id?.generic_name}
+                                    icon={el?.stock_id?.image}
+                                    controlSubstance={el?.stock_id?.controlled_substance === '1' && true}
+                                    prescriptionRequired={el?.stock_id?.prescription_required === '1' && true}
+                                  />
                                 </TableCell>
                               )}
                               <TableCell>{el?.batch_no?.label}</TableCell>
@@ -533,9 +547,9 @@ function AddDispense() {
                 <Table>
                   <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
                     <TableRow>
-                      <TableCell></TableCell>
+                      <TableCell>Animal Name</TableCell>
                       <TableCell>Animal Id</TableCell>
-                      <TableCell>animal Name</TableCell>
+                      {/* <TableCell>animal Name</TableCell> */}
                       <TableCell>enclosure Id</TableCell>
                       <TableCell>section Name</TableCell>
                       <TableCell>gender</TableCell>
@@ -547,27 +561,20 @@ function AddDispense() {
                       ? animals_s.map((elmnt, index) => {
                           return (
                             <TableRow
-                              key={index}
+                              key={`${elmnt?.animal_id}${index}`}
                               sx={{
                                 borderColor: 'customColors.customTableBorderBg',
                                 '&:last-child td, &:last-child th': { borderBottom: 'none' }
                               }}
                             >
                               <TableCell>
-                                {' '}
-                                <Avatar
-                                  sx={{
-                                    '& > img': {
-                                      objectFit: 'contain'
-                                    }
-                                  }}
-                                  variant='rounded'
-                                  alt={elmnt?.icon}
-                                  src={elmnt?.icon}
+                                <AnimalLabelCard
+                                  title={elmnt?.animalName}
+                                  subTitle={elmnt?.full_animal_name}
+                                  icon={elmnt?.icon}
                                 />
                               </TableCell>
                               <TableCell>{elmnt?.animal_id}</TableCell>
-                              <TableCell>{elmnt?.animalName}</TableCell>
                               <TableCell>{elmnt?.enclosure_id}</TableCell>
                               <TableCell>{elmnt?.section_name}</TableCell>
                               <TableCell>{elmnt?.gender}</TableCell>
@@ -591,8 +598,14 @@ function AddDispense() {
               </TableContainer>
             </Card>
             <CardContent>
-              <Grid item xs={12} sm={12} md={6}>
-                <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
+              <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
+                <Grid
+                  container
+                  sx={{
+                    alignItems: 'flex-end',
+                    justifyContent: 'flex-end',
+                    height: '100%'
+                  }}>
                   <Button
                     sx={{ width: '100px', height: '40px' }}
                     disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
@@ -633,7 +646,7 @@ function AddDispense() {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default AddDispense

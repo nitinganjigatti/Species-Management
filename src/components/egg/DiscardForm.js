@@ -33,26 +33,15 @@ import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
 const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
-  const [reason, setReason] = useState('')
-
-  const [necropsy, setNecropsy] = useState('')
-  const [imgSrc, setImgSrc] = useState('')
   const [discardReason, setDiscardReason] = useState([])
   const [eggStateID, setEggStateId] = useState(null)
   const [loader, setLoader] = useState(false)
-
+  const [imgSrc, setImgSrc] = useState('')
   const [imgArr, setImgArr] = useState([])
-
-  // console.log('imgArr :>> ', imgArr)
   const [displayFile, setDisplayFile] = useState('')
 
   const getEggMasterData = async () => {
     try {
-      // const params = {
-      //   type: ['length', 'weight'],
-      //   page_no: 1,
-      //   limit: 50
-      // }
       await GetEggMaster().then(res => {
         if (res.success) {
           const eggState = res?.data?.egg_status?.find(state => state?.egg_status === 'Discard')
@@ -63,29 +52,19 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
             const filteredEggStatus = res?.data?.egg_state.filter(status => status.egg_status_id === eggStateId)
             setDiscardReason(filteredEggStatus)
           }
-        } else {
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
   useEffect(() => {
-    try {
-      getEggMasterData()
-    } catch (error) {
-      console.log('error :>> ', error)
-    }
+    getEggMasterData()
   }, [])
 
-  const handleChange = event => {
-    setReason(event.target.value)
-  }
-
   const defaultValues = {
-    // reason: '',
-
+    reason: '',
     image: '',
     status_radioBtn: '',
     comment: '',
@@ -93,11 +72,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
   }
 
   const schema = yup.object().shape({
-    // status_radioBtn
-    // status_radioBtn: yup.string().required('State is required'),
-    // comment: yup.string().required('Comments is required'),
-    // reason: yup.string().required('Reason is required'),
-    // necropsy: yup.string().required('Necropsy decision is required')
+    status_radioBtn: yup.string().required('State is required'),
+    necropsy_Btn: yup.number().required('Necropsy decision is required')
   })
 
   const {
@@ -106,6 +82,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
     setValue,
     getValues,
     clearErrors,
+    watch,
     reset,
     formState: { errors }
   } = useForm({
@@ -116,27 +93,33 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
     reValidateMode: 'onChange'
   })
 
-  // image
+  const reason = watch('status_radioBtn')
 
   const { getRootProps, getInputProps } = useDropzone({
-    multiple: true,
+    multiple: true, // changed to true for multiple files
     accept: {
-      '*/*': []
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
     },
     onDrop: acceptedFiles => {
-      const reader = new FileReader()
-      const files = acceptedFiles
-      if (files && files.length !== 0) {
-        reader.onload = () => {
-          setImgSrc(pre => [...pre, reader?.result])
-        }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files[0]])
-        setValue('image', files)
+      acceptedFiles.forEach(file => {
+        const reader = new FileReader()
 
-        clearErrors('image')
-      }
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+
+        reader.readAsDataURL(file)
+      })
+
+      // Update filenames as comma-separated string
+      const fileNames = acceptedFiles.map(file => file.name).join(', ')
+      setDisplayFile(fileNames)
+
+      // Add all files to imgArr state
+      setImgArr(prev => [...prev, ...acceptedFiles])
+
+      setValue('image', acceptedFiles)
+      clearErrors('image')
     }
   })
 
@@ -144,47 +127,29 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
     fileInputRef?.current?.click()
   }
 
-  // const handleInputImageChange = file => {
-  //   const reader = new FileReader()
-  //   const { files } = file.target
-
-  //   if (files && files.length !== 0) {
-  //     reader.onload = () => {
-  //       setImgSrc(pre => [...pre, reader?.result])
-  //     }
-  //     setDisplayFile(files[0]?.name)
-  //     reader?.readAsDataURL(files[0])
-  //     setImgArr(pre => [...pre, files[0]])
-  //     setValue('image', files)
-  //     clearErrors('image')
-  //   }
-  // }
   const handleInputImageChange = file => {
     const { files } = file.target
 
     if (files && files.length !== 0) {
-      // Clear existing images and names before adding new ones
-      setImgSrc([])
-      setImgArr([])
-
-      for (let i = 0; i < files.length; i++) {
+      Array.from(files).forEach(fileItem => {
         const reader = new FileReader()
-        const currentFile = files[i]
 
-        // Closure to capture the current file
-        reader.onload = e => {
-          // Add the new image source to the state
-          setImgSrc(pre => [...pre, e.target.result])
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
         }
 
-        // Start reading the current file as a data URL
-        reader.readAsDataURL(currentFile)
-      }
+        reader.readAsDataURL(fileItem)
 
-      // Update file display and set form values
-      setDisplayFile(files.length > 1 ? `${files.length} files selected` : files[0]?.name)
-      setImgArr(pre => [...pre, ...files]) // Store all selected files
-      setValue('image', files) // Update your form state
+        setImgArr(prev => [...prev, fileItem])
+      })
+
+      // Display filenames as comma-separated string
+      const fileNames = Array.from(files)
+        .map(f => f.name)
+        .join(', ')
+      setDisplayFile(fileNames)
+
+      setValue('image', files)
       clearErrors('image')
     }
   }
@@ -197,7 +162,6 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
       } else {
         setValue('image', updatedImages)
       }
-
       return updatedImages
     })
 
@@ -208,12 +172,9 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
       } else {
         setValue('image', updatedFiles)
       }
-
       return updatedFiles
     })
   }
-
-  // ---------------
 
   const onSubmit = async values => {
     setLoader(true)
@@ -221,44 +182,27 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
       const payload = {
         egg_id: eggID,
         egg_status_id: eggStateID,
-        egg_state_id: reason,
+        egg_state_id: values.status_radioBtn,
         is_necropsy_needed: values?.necropsy_Btn,
-        comment: getValues('comment'),
+        comment: values?.comment,
         egg_attachment: imgArr
-
-        // egg_attachment: [getValues('image')]
       }
-      console.log('payload :>> ', payload)
 
       const res = await AddEggStatusAndCondition(payload)
       if (res.success) {
-        setReason('')
-        setImgSrc('')
         reset()
+        setImgSrc('')
         setIsOpen(false)
         setLoader(false)
         Toaster({ type: 'success', message: res?.message })
 
-        if (callApi) {
-          callApi('')
-        }
-
-        if (getDetails) {
-          getDetails(eggID)
-        }
-        if (GetGalleryImgList) {
-          GetGalleryImgList({ ref_id: eggID, ref_type: 'egg' })
-        }
+        if (callApi) callApi('')
+        if (getDetails) getDetails(eggID)
+        if (GetGalleryImgList) GetGalleryImgList({ ref_id: eggID, ref_type: 'egg' })
       } else {
-        // setReason('')
-        // setImgSrc('')
-        // // reset()
-        // setIsOpen(false)
         setLoader(false)
         Toaster({ type: 'error', message: res?.message })
       }
-
-      // Perform any additional operations, e.g., API call
     } catch (error) {
       console.error('Error while :', error)
       setLoader(false)
@@ -268,10 +212,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
 
   const handelClose = () => {
     setIsOpen(false)
-    setReason('')
-    setImgSrc('')
-    setNecropsy('')
     reset()
+    setImgSrc('')
   }
 
   return (
@@ -296,7 +238,6 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
               justifyContent: 'space-between',
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px',
-
               bgcolor: theme.palette.customColors.lightBg
             }}
           >
@@ -329,36 +270,48 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                 borderColor: theme.palette.customColors.OutlineVariant
               }}
             >
-              {discardReason?.map(item => (
-                <Box
-                  key={item?.id}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    border: 1,
-                    borderColor: theme.palette.customColors.OutlineVariant,
-                    p: 2,
-                    borderRadius: '5px'
-                  }}
-                >
-                  <Typography>{item?.egg_state}</Typography>
-
-                  <FormControl>
-                    <RadioGroup
-                      aria-labelledby='demo-controlled-radio-buttons-group'
-                      name='status_radioBtn'
-                      value={reason}
-                      onChange={handleChange}
-                    >
-                      <FormControlLabel value={item?.id} control={<Radio />} style={{ mr: '0px', mr: '0px' }} />
-                    </RadioGroup>
-                  </FormControl>
-                </Box>
-              ))}
+              <FormControl error={Boolean(errors.status_radioBtn)}>
+                <Controller
+                  name='status_radioBtn'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <>
+                      {discardReason?.map((item, index) => (
+                        <Box
+                          key={item?.id}
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            border: 1,
+                            borderColor: theme.palette.customColors.OutlineVariant,
+                            p: 2,
+                            mb: discardReason.length - 1 === index ? 0 : 4,
+                            borderRadius: '5px'
+                          }}
+                        >
+                          <Typography>{item?.egg_state}</Typography>
+                          <FormControl>
+                            <RadioGroup
+                              aria-labelledby='demo-controlled-radio-buttons-group'
+                              name='status_radioBtn'
+                              value={field.value}
+                              onChange={field.onChange}
+                            >
+                              <FormControlLabel value={item?.id} control={<Radio />} style={{ mr: '0px' }} />
+                            </RadioGroup>
+                          </FormControl>
+                        </Box>
+                      ))}
+                    </>
+                  )}
+                />
+                {errors.status_radioBtn && (
+                  <FormHelperText sx={{ color: 'error.main', m: 5 }}>{errors.status_radioBtn?.message}</FormHelperText>
+                )}
+              </FormControl>
             </Box>
-            {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is required</FormHelperText>}
-
             <Typography variant='h6' sx={{ m: 5 }}>
               Add Reason For Discard
             </Typography>
@@ -398,7 +351,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
               </FormControl>
 
               <Grid container sx={{ justifyContent: 'space-between' }}>
-                <Grid item md={12} sm={12} xs={12}>
+                <Grid item size={{ md: 12, sm: 12, xs: 12 }}>
                   <input
                     type='file'
                     accept='image/*'
@@ -408,7 +361,6 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                     ref={fileInputRef}
                     multiple={true}
                   />
-
                   <Box
                     {...getRootProps({ className: 'dropzone' })}
                     onClick={handleAddImageClick}
@@ -417,22 +369,19 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                       alignItems: 'center',
                       gap: 7,
                       height: 70,
-
                       border: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: 1,
-
                       padding: 3
                     }}
                   >
                     <Image alt={'filename'} src={imageUploader} width={50} height={50} />
-
                     <Typography>Drop your image here</Typography>
                   </Box>
                 </Grid>
 
-                <Grid item md={12} sm={12} xs={12}>
+                <Grid item size={{ md: 12, sm: 12, xs: 12 }}>
                   {imgSrc && imgSrc.length > 0 && (
-                    <Box sx={{ display: 'flex', mt: 2 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, mt: 2 }}>
                       {imgSrc.map((src, index) => (
                         <Box
                           key={index}
@@ -442,8 +391,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                             borderRadius: '10px',
                             height: 121,
                             padding: '10.5px',
-                            boxSizing: 'border-box',
-                            marginRight: '10px' // Add margin for spacing between images
+                            boxSizing: 'border-box'
                           }}
                         >
                           <img
@@ -518,14 +466,11 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                             flexDirection: 'row',
                             alignItems: 'center',
                             flexGrow: 1,
-
                             gap: 2,
                             border: 1,
                             borderColor: theme.palette.customColors.OutlineVariant,
                             p: 2,
                             borderRadius: '5px',
-
-                            // opacity: 0.6,
                             justifyContent: 'space-between'
                           }}
                         >
@@ -543,14 +488,10 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                             borderColor: theme.palette.customColors.OutlineVariant,
                             p: 2,
                             borderRadius: '5px',
-
-                            // opacity: 0.6,
-
                             justifyContent: 'space-between'
                           }}
                         >
                           <Typography>No</Typography>
-
                           <FormControlLabel value={0} control={<Radio />} />
                         </Box>
                       </RadioGroup>

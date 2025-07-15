@@ -2,7 +2,7 @@ import { Button, Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextFi
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LoadingButton } from '@mui/lab'
 
 const SiteSheet = ({
@@ -12,10 +12,24 @@ const SiteSheet = ({
   setSites,
   selectedSites,
   setSelectedSites,
+  apiFilterParams,
   handleSelectedSite
 }) => {
   const [searchValue, setSearchValue] = useState('')
-  const [tempSelectedSites, setTempSelectedSites] = useState([...selectedSites])
+  const [tempSelectedSites, setTempSelectedSites] = useState([])
+
+  console.log('selected Sites >', selectedSites)
+
+  useEffect(() => {
+    if (openSiteDrawer) {
+      // Use context's selectedSites directly instead of apiFilterParams
+      const storedSiteIds = selectedSites.includes('All Sites')
+        ? ['All Sites'] // Keep 'All Sites' if selected
+        : selectedSites // Otherwise, use selectedSites
+
+      setTempSelectedSites(storedSiteIds) // Set correct site IDs from context
+    }
+  }, [openSiteDrawer, selectedSites]) // Add selectedSites as a dependency
 
   const handleSelectAll = event => {
     if (event.target.checked) {
@@ -36,7 +50,7 @@ const SiteSheet = ({
   const filteredSites = sites.filter(site => site.site_name.toLowerCase().includes(searchValue.toLowerCase()))
 
   const handleConfirmSelection = () => {
-    debugger
+   
     const totalSites = [...sites] // Assuming sites is an array of objects
     const selectedArr = [...tempSelectedSites] // Array of selected site IDs
 
@@ -137,7 +151,14 @@ const SiteSheet = ({
                 />
               }
               label={
-                <Typography sx={{ color: '#839D8D', fontSize: '16px', fontFamily: 'Inter', fontWeight: 400 }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.Outline,
+                    fontSize: '16px',
+                    fontFamily: 'Inter',
+                    fontWeight: 400
+                  }}
+                >
                   Select All
                 </Typography>
               }
@@ -181,7 +202,7 @@ const SiteSheet = ({
                   sx={{
                     fontWeight: 400,
                     fontFamily: 'Inter',
-                    color: '#839D8D',
+                    color: theme.palette.customColors.Outline,
                     fontSize: '16px',
                     flex: 1 // Allows text to grow naturally while respecting spacing
                   }}

@@ -1,11 +1,7 @@
 /* eslint-disable lines-around-comment */
-import { useState, useEffect, useRef, useCallback } from 'react'
-import axios from 'axios'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Typography, Grid, Box, Button, FormControl, TextField, FormHelperText, Card, Tab, alpha } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
-import Image from 'next/image'
-import Chip from '@mui/material/Chip'
 import { LoadingButton } from '@mui/lab'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { v4 as uuidv4 } from 'uuid'
@@ -13,6 +9,8 @@ import { useTheme } from '@emotion/react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
 import ImagePreview from 'src/views/utility/ImagePreview'
+import { variantMappingForProductBatch } from 'src/lib/api/pharmacy/getPurchaseList'
+import { invoiceProcessForPurchase } from 'src/lib/api/pharmacy/invoiceProcess'
 
 const customScrollbar = {
   overflowX: 'auto',
@@ -37,7 +35,8 @@ const PurchaseInvoiceUpload = ({
   closeDialog,
   handleInputImageChange,
   invoiceSubmitLoader,
-  setInvoiceSubmitLoader
+  setInvoiceSubmitLoader,
+  variantLists
 }) => {
   const theme = useTheme()
   const [cameras, setCameras] = useState([])
@@ -59,6 +58,12 @@ const PurchaseInvoiceUpload = ({
 
   const handleClick = () => {
     fileInputRef.current.click()
+  }
+
+  const findVariantIdWithUnitMultiplierOne = () => {
+    const found = variantLists?.length > 0 && variantLists?.find(item => item?.unit_multiplier === '1')
+
+    return found ? found?.id : ''
   }
 
   const formatInvoiceDate = dateStr => {
@@ -115,8 +120,6 @@ const PurchaseInvoiceUpload = ({
     stopCamera() // Stop the previous camera if any
 
     try {
-      console.log(`Starting camera with deviceId: ${deviceId}`)
-
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { deviceId: { exact: deviceId } }
       })
@@ -186,10 +189,8 @@ const PurchaseInvoiceUpload = ({
 
       context.drawImage(video, 0, 0, width, height)
       const imageDataUrl = canvas.toDataURL('image/png')
-      console.log('Picture captured.', imageDataUrl)
       const blob = dataURLtoBlob(imageDataUrl)
       const file = new File([blob], 'captured-image.png', { type: 'image/png' })
-      console.log('Picture saved as file.', file)
 
       // setCapturedImage(imageDataUrl)
 
@@ -197,7 +198,6 @@ const PurchaseInvoiceUpload = ({
       setFile(prev => [...prev, file])
 
       // stopCamera()
-      console.log('Picture captured.')
     }
   }
 
@@ -286,7 +286,8 @@ const PurchaseInvoiceUpload = ({
       purchase_cgst_amount: checkFloatValue(cgstAmount),
       purchase_sgst_amount: checkFloatValue(sgstAmount),
       purchase_igst_amount: checkFloatValue(igstAmount),
-      purchase_gst: totalGst
+      // purchase_gst: totalGst
+      purchase_gst: parseFloat(taxableAmount * (totalGst / 100))
     }
   }
 
@@ -298,7 +299,7 @@ const PurchaseInvoiceUpload = ({
     }
 
     // Stop the camera before submitting
-    // stopCamera()
+    stopCamera()
     setInvoiceSubmitLoader(true)
 
     const promises = Array.from(file).map(file => {
@@ -318,170 +319,185 @@ const PurchaseInvoiceUpload = ({
     try {
       const base64Images = await Promise.all(promises)
 
-      const response = await axios
-        .post(
-          'https://api.dev.antzsystems.com:8082/inferInvoices',
-          {
-            dataType: 'bytes',
-            data: base64Images,
-            save: false
-          },
-          {
-            headers: {
-              'X-API-KEY': '4ebaa3c6-9e70-42dd-bc1b-74e948aa468b',
-              'Content-Type': 'application/json'
+      const response = await invoiceProcessForPurchase(base64Images).then(async response => {
+        setInvoiceSubmitLoader(false)
+        console.log('response,', response)
+        closeDialog()
+        let responseData = response?.data
+
+        const payLoad = responseData?.product_details
+          ?.filter(el => el?.purchase_stock_item_id && el?.purchase_batch_no)
+          .map(el => ({
+            stock_item_id: el?.purchase_stock_item_id,
+            batch_no: el?.purchase_batch_no
+          }))
+
+        try {
+          await variantMappingForProductBatch(payLoad).then(res => {
+            if (res?.success && res?.data?.length > 0) {
+              responseData.product_details = responseData?.product_details?.map(el => {
+                const matched = res.data.find(
+                  src => src?.batch_no === el?.purchase_batch_no && src?.stock_item_id === el?.purchase_stock_item_id
+                )
+
+                return {
+                  ...el,
+                  purchase_variant_id: matched?.variant_id || '',
+                  purchase_variant_ratio: matched?.unit_multiplier || ''
+                }
+              })
             }
-          }
-        )
-        .then(data => {
-          setInvoiceSubmitLoader(false)
-          closeDialog()
-          console.log(data.data.data)
-          const responseData = data.data.data
-          if (responseData) {
-            const purchase_details = responseData.product_details.map((el, index) => {
-              // Get GST values from invoice data
-              const purchase_gst = el.purchase_gst || 0
-              const purchase_cgst = purchase_gst / 2 // Split GST into CGST and SGST
-              const purchase_sgst = purchase_gst / 2
-              const purchase_igst = 0.0 // IGST is 0 for local transactions
+          })
+        } catch (error) {
+          console.error('Error in variant mapping:', error)
+        }
+        if (responseData) {
+          const purchase_details = responseData?.product_details?.map((el, index) => {
+            // Get GST values from invoice data
+            const purchase_gst = el.purchase_gst || 0
+            const purchase_cgst = purchase_gst / 2 // Split GST into CGST and SGST
+            const purchase_sgst = purchase_gst / 2
+            const purchase_igst = 0.0 // IGST is 0 for local transactions
 
-              // Calculate amounts using the calculateStuff function
-              const calculatedAmounts = calculateStuff(
-                el.purchase_qty,
-                el.purchase_unit_price,
-                el.purchase_discount || 0,
-                purchase_cgst,
-                purchase_sgst,
-                purchase_igst
-              )
-
-              return {
-                ...el,
-                uid: uuidv4(),
-                medicine_name: el?.medicine_name,
-                purchase_stock_item_id: el?.purchase_stock_item_id,
-                id: el?.id || '',
-                stock_type: el?.stock_type,
-                package_details:
-                  el?.package && el?.package_qty && el?.package_uom_label && el?.product_form_label
-                    ? `${el.package} of ${el.package_qty} ${el.package_uom_label} ${el.product_form_label}`
-                    : '',
-                manufacture: el?.manufacturer,
-                purchase_expiry_date: el?.purchase_expiry_date,
-
-                // variant id hardcodedd for demoprepose
-                purchase_variant_id: el?.purchase_variant_id,
-                purchase_variant_ratio: el?.unit_multiplier ? el?.unit_multiplier : 1,
-
-                // purchase_variant_id: 1,
-                // purchase_variant_ratio: 1,
-                // purchase_unit_qty: el?.purchase_qty * 1,
-
-                ///********** */
-                purchase_qty: el?.purchase_qty,
-                purchase_unit_price: el?.purchase_unit_price,
-                purchase_discount: el?.purchase_discount || 0,
-                purchase_cgst: purchase_cgst,
-                purchase_sgst: purchase_sgst,
-                purchase_igst: purchase_igst,
-                ...calculatedAmounts,
-                purchase_created_by: 'invoice_upload',
-                medicine_name_by_ml: el?.medicine_name
-              }
-            })
-
-            // Calculate totals from line items
-            const totalLineItemsAmount = purchase_details?.reduce(
-              (acc, row) => acc + parseFloat(row.purchase_gross_amount || 0),
-              0
+            // Calculate amounts using the calculateStuff function
+            const calculatedAmounts = calculateStuff(
+              el?.purchase_qty,
+              // el.purchase_unit_price,
+              el?.purchase_purchase_price,
+              el?.purchase_discount || 0,
+              purchase_cgst,
+              purchase_sgst,
+              purchase_igst
             )
 
-            const totalLineItemsDiscount = purchase_details?.reduce(
-              (acc, row) => acc + parseFloat(row.purchase_discount_amount || 0),
-              0
-            )
+            return {
+              ...el,
+              uid: uuidv4(),
+              medicine_name: el?.medicine_name,
+              purchase_unit_id: el?.purchase_unit_id ? el?.purchase_unit_id : el?.purchase_stock_item_id,
+              purchase_stock_item_id: el?.purchase_stock_item_id,
+              id: el?.id || '',
+              stock_type: el?.stock_type,
+              package_details:
+                el?.package && el?.package_qty && el?.package_uom_label && el?.product_form_label
+                  ? `${el.package} of ${el.package_qty} ${el.package_uom_label} ${el.product_form_label}`
+                  : '',
+              manufacture: el?.manufacturer,
+              purchase_expiry_date: el?.purchase_expiry_date,
 
-            const totalLineItemsTaxable = purchase_details?.reduce(
-              (acc, row) => acc + parseFloat(row.purchase_taxable_amount || 0),
-              0
-            )
+              // variant id hardcodedd for demoprepose
+              // purchase_variant_id: findVariantIdWithUnitMultiplierOne(),
+              // purchase_variant_ratio: 1,
 
-            const totalLineItemsCGST = purchase_details?.reduce(
-              (acc, row) => acc + parseFloat(row.purchase_cgst_amount || 0),
-              0
-            )
+              // purchase_variant_id: 1,
+              // purchase_variant_ratio: 1,
+              purchase_unit_qty: el?.purchase_qty * 1,
 
-            const totalLineItemsSGST = purchase_details?.reduce(
-              (acc, row) => acc + parseFloat(row.purchase_sgst_amount || 0),
-              0
-            )
+              ///********** */
+              purchase_qty: el?.purchase_qty,
+              // purchase_unit_price: el?.purchase_unit_price,
+              purchase_unit_price: el?.purchase_purchase_price,
+              purchase_discount: el?.purchase_discount || 0,
+              purchase_cgst: purchase_cgst,
+              purchase_sgst: purchase_sgst,
+              purchase_igst: purchase_igst,
+              ...calculatedAmounts,
+              purchase_created_by: 'invoice_upload',
+              medicine_name_by_ml: el?.ml_generated_name
+            }
+          })
 
-            const totalLineItemsIGST = purchase_details?.reduce(
-              (acc, row) => acc + parseFloat(row.purchase_igst_amount || 0),
-              0
-            )
+          // Calculate totals from line items
+          const totalLineItemsAmount = purchase_details?.reduce(
+            (acc, row) => acc + parseFloat(row.purchase_gross_amount || 0),
+            0
+          )
 
-            const totalLineItemsNet = purchase_details?.reduce(
-              (acc, row) => acc + parseFloat(row.purchase_net_amount || 0),
-              0
-            )
+          const totalLineItemsDiscount = purchase_details?.reduce(
+            (acc, row) => acc + parseFloat(row.purchase_discount_amount || 0),
+            0
+          )
 
-            setPurchaseItems(prev => ({
-              ...prev,
-              po_no: responseData?.po_no,
-              po_date: formatInvoiceDate(responseData?.po_date),
-              store_id: '',
-              requested_by: responseData ? responseData?.requested_by : '',
-              supplier_id: responseData?.supplier_id,
-              description: responseData?.description,
-              type_of_store: responseData?.type_of_store,
-              purchase_details: purchase_details,
-              total_amount: checkFloatValue(totalLineItemsAmount),
-              discount_type: '',
-              discount_amount: checkFloatValue(totalLineItemsDiscount),
-              discount_percentage: 0,
-              net_amount: checkFloatValue(totalLineItemsNet),
-              tax_amount: checkFloatValue(totalLineItemsCGST + totalLineItemsSGST + totalLineItemsIGST),
-              purchase_order_no: '',
-              invoice_transcript: [],
-              freight_charges: '',
-              freight_gst: '',
-              freight_total_charges: '',
-              additional_charges: '',
-              round_off: '',
-              purchase_created_by: 'invoice_upload'
-            }))
+          const totalLineItemsTaxable = purchase_details?.reduce(
+            (acc, row) => acc + parseFloat(row.purchase_taxable_amount || 0),
+            0
+          )
 
-            reset({
-              po_no: responseData?.po_no,
-              po_date: formatInvoiceDate(responseData?.po_date),
-              store_id: '',
-              requested_by: responseData ? responseData?.requested_by : '',
-              supplier_id: responseData?.supplier_id,
-              description: responseData?.description,
-              type_of_store: responseData?.type_of_store,
-              purchase_details: purchase_details,
-              total_amount: checkFloatValue(totalLineItemsAmount),
-              discount_type: '',
-              discount_amount: checkFloatValue(totalLineItemsDiscount),
-              discount_percentage: 0,
-              net_amount: checkFloatValue(totalLineItemsNet),
-              tax_amount: checkFloatValue(totalLineItemsCGST + totalLineItemsSGST + totalLineItemsIGST),
-              purchase_order_no: '',
-              invoice_transcript: [],
-              freight_charges: '',
-              freight_gst: '',
-              freight_total_charges: '',
-              additional_charges: '',
-              round_off: '',
-              purchase_created_by: 'invoice_upload'
-            })
-            handleInputImageChange(file)
-            toast.success('Invoice processed successfully')
-          }
-        })
-      console.log('Upload success:', response.data)
+          const totalLineItemsCGST = purchase_details?.reduce(
+            (acc, row) => acc + parseFloat(row.purchase_cgst_amount || 0),
+            0
+          )
+
+          const totalLineItemsSGST = purchase_details?.reduce(
+            (acc, row) => acc + parseFloat(row.purchase_sgst_amount || 0),
+            0
+          )
+
+          const totalLineItemsIGST = purchase_details?.reduce(
+            (acc, row) => acc + parseFloat(row.purchase_igst_amount || 0),
+            0
+          )
+
+          const totalLineItemsNet = purchase_details?.reduce(
+            (acc, row) => acc + parseFloat(row.purchase_net_amount || 0),
+            0
+          )
+
+          setPurchaseItems(prev => ({
+            ...prev,
+            po_no: responseData?.po_no,
+            po_date: formatInvoiceDate(responseData?.po_date),
+            store_id: '',
+            requested_by: responseData ? responseData?.requested_by : '',
+            supplier_id: responseData?.supplier_id,
+            description: responseData?.description,
+            type_of_store: responseData?.type_of_store,
+            purchase_details: purchase_details,
+            total_amount: checkFloatValue(totalLineItemsAmount),
+            discount_type: '',
+            discount_amount: checkFloatValue(totalLineItemsDiscount),
+            discount_percentage: 0,
+            net_amount: checkFloatValue(totalLineItemsNet),
+            tax_amount: checkFloatValue(totalLineItemsCGST + totalLineItemsSGST + totalLineItemsIGST),
+            purchase_order_no: '',
+            invoice_transcript: [],
+            freight_charges: '',
+            freight_gst: '',
+            freight_total_charges: '',
+            additional_charges: '',
+            round_off: '',
+            purchase_created_by: 'invoice_upload'
+          }))
+
+          reset({
+            po_no: responseData?.po_no,
+            po_date: formatInvoiceDate(responseData?.po_date),
+            store_id: '',
+            requested_by: responseData ? responseData?.requested_by : '',
+            supplier_id: responseData?.supplier_id,
+            description: responseData?.description,
+            type_of_store: responseData?.type_of_store,
+            purchase_details: purchase_details,
+            total_amount: checkFloatValue(totalLineItemsAmount),
+            discount_type: '',
+            discount_amount: checkFloatValue(totalLineItemsDiscount),
+            discount_percentage: 0,
+            net_amount: checkFloatValue(totalLineItemsNet),
+            tax_amount: checkFloatValue(totalLineItemsCGST + totalLineItemsSGST + totalLineItemsIGST),
+            purchase_order_no: '',
+            invoice_transcript: [],
+            freight_charges: '',
+            freight_gst: '',
+            freight_total_charges: '',
+            additional_charges: '',
+            round_off: '',
+            purchase_created_by: 'invoice_upload'
+          })
+          handleInputImageChange(file)
+          toast.success('Invoice processed successfully')
+        }
+      })
+      console.log('Upload success:', response?.data)
     } catch (error) {
       console.error('Error uploading images:', error)
 
@@ -588,7 +604,7 @@ const PurchaseInvoiceUpload = ({
       <TabContext value={tabStatus}>
         <TabPanel value='by_camera'>
           <Grid container>
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               {!hasPermission && !permissionDenied ? (
                 <div>
                   <Typography
@@ -634,7 +650,7 @@ const PurchaseInvoiceUpload = ({
                     <p>No cameras found.</p>
                   ) : (
                     <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Grid item xs={12} sm={3}>
+                      <Grid item size={{ xs: 12, sm: 3 }}>
                         <Typography
                           sx={{
                             fontWeight: 400,
@@ -660,6 +676,7 @@ const PurchaseInvoiceUpload = ({
                               fontSize: '14px',
                               backgroundColor: 'customColors.bodyBg',
                               cursor: 'pointer',
+                              my: 1,
                               borderColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
                             }}
                             onClick={() => startCamera(camera.deviceId)}
@@ -671,8 +688,7 @@ const PurchaseInvoiceUpload = ({
                       </Grid>
                       <Grid
                         item
-                        xs={12}
-                        sm={5}
+                        size={{ xs: 12, sm: 5 }}
                         sx={{ borderRight: `1px solid ${theme.palette.customColors.neutral05}` }}
                       >
                         {currentCamera && (
@@ -754,8 +770,7 @@ const PurchaseInvoiceUpload = ({
                       </Grid>
                       <Grid
                         item
-                        xs={12}
-                        sm={3}
+                        size={{ xs: 12, sm: 3 }}
                         sx={{ overflowY: 'auto', overflowX: 'hidden', height: 400, ...customScrollbar }}
                       >
                         {Array.isArray(file) && file?.length > 0 && (
@@ -784,16 +799,15 @@ const PurchaseInvoiceUpload = ({
           </Grid>
         </TabPanel>
         <TabPanel value='by_input' sx={{ px: '24px' }}>
-          {console.log('file', file)}
           <Grid
             container
-            gap={1}
             sx={{
+              gap: 1,
               display: 'flex',
               alignItems: 'center'
             }}
           >
-            <Grid item xs={12} md={5} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12, md: 5 }}>
               <FormControl fullWidth sx={{ my: 4 }}>
                 <input
                   type='file'
@@ -904,9 +918,7 @@ const PurchaseInvoiceUpload = ({
 
             <Grid
               item
-              xs={12}
-              md={6}
-              sm={12}
+              size={{ xs: 12, sm: 12, md: 6 }}
               sx={{
                 display: 'flex',
                 overflowX: 'auto',
@@ -951,6 +963,7 @@ const PurchaseInvoiceUpload = ({
           variant='outlined'
           onClick={() => {
             closeDialog()
+            stopCamera()
           }}
           sx={{ mr: 2 }}
         >
@@ -970,4 +983,4 @@ const PurchaseInvoiceUpload = ({
   )
 }
 
-export default PurchaseInvoiceUpload
+export default React.memo(PurchaseInvoiceUpload)

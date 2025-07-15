@@ -44,8 +44,10 @@ const EggDetail = () => {
           pathname: '/egg/eggs',
           query: queryParams
         })
+
         return false // Prevent the default back action
       }
+
       return true
     })
 
@@ -64,7 +66,7 @@ const EggDetail = () => {
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -80,7 +82,7 @@ const EggDetail = () => {
       })
     } catch (error) {
       setLoader(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -93,7 +95,7 @@ const EggDetail = () => {
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -108,7 +110,7 @@ const EggDetail = () => {
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -140,7 +142,13 @@ const EggDetail = () => {
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => handleBackButton()}>
                 Egg List
               </Typography>
-              <Typography color='text.primary'>Egg Details</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                Egg Details
+              </Typography>
             </Breadcrumbs>
             <EggHeroSection
               getActivityLogsFunc={getActivityLogsFunc}

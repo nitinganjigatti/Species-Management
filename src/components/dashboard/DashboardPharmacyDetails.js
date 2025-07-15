@@ -54,8 +54,6 @@ const slidesImg = {
 }
 
 const Slides = ({ sliderData }) => {
-  console.log(sliderData, 'sliderData')
-
   const formatTitleCase = str => {
     return str
       .replace(/_/g, ' ') // Replace underscores with spaces
@@ -108,7 +106,7 @@ const Slides = ({ sliderData }) => {
                   </Typography>
                   <Grid container spacing={2.5}>
                     {Object.keys(slide.details).map((key, index) => (
-                      <Grid item xs={6} key={index}>
+                      <Grid item size={{ xs: 6 }} key={index}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <CustomAvatar
                             skin='light'
@@ -146,7 +144,6 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
   // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
-  console.log(pharmacyData, 'pharmacyData')
 
   // ** Hook
   const theme = useTheme()
@@ -168,17 +165,11 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
   return (
     <Card sx={{ bgcolor: '#1F515B' }}>
       <CardHeader
-        // title='Pharmacy'
         title={
           <Typography sx={{ fontSize: '20px', fontWeight: 500, color: '#FFFFFF', textAlign: 'start' }}>
             {pharmacyData[currentSlide]?.title}
           </Typography>
         }
-        titleTypographyProps={{
-          variant: 'h6',
-          sx: { letterSpacing: '0.15px' },
-          textAlign: 'start'
-        }}
         sx={{ '& .swiper-dots': { mt: 0.75, mr: -1.75 } }}
         subheader={
           <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { color: 'success.main' } }}>
@@ -227,6 +218,13 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
             </Box>
           )
         }
+        slotProps={{
+          title: {
+            variant: 'h6',
+            sx: { letterSpacing: '0.15px' },
+            textAlign: 'start'
+          }
+        }}
       />
       <CardContent>
         {pharmacyData.length > 0 && (

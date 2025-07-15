@@ -56,78 +56,79 @@ const CustomInput = ({
         autoFocus={autoFocus}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment
-              position='start'
-              sx={{
-                position: 'absolute',
-                left: 16,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                height: 'auto',
-                pointerEvents: 'none'
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', color: 'customColors.OnSurfaceVariant' }}>
-                {getIcon()}
-                <Divider
-                  sx={{
-                    mx: 2.5,
-                    minHeight: 20,
-                    width: '1px',
-                    backgroundColor: theme.palette.customColors?.OnSurfaceVariant
-                  }}
-                />
-              </Box>
-            </InputAdornment>
-          ),
-          endAdornment: (type === 'password' || isOtp) && (
-            <InputAdornment position='end'>
-              <IconButton
-                onClick={handleClickShowPassword}
-                edge='end'
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment
+                position='start'
                 sx={{
-                  color: 'customColors.OnSurfaceVariant',
                   position: 'absolute',
-                  right: 16,
+                  left: 16,
                   top: '50%',
-                  transform: 'translateY(-50%)'
+                  transform: 'translateY(-50%)',
+                  height: 'auto',
+                  pointerEvents: 'none'
                 }}
               >
-                <Icon icon={showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} fontSize={20} />
-              </IconButton>
-            </InputAdornment>
-          ),
+                <Box sx={{ display: 'flex', alignItems: 'center', color: 'customColors.OnSurfaceVariant' }}>
+                  {getIcon()}
+                  <Divider
+                    sx={{
+                      mx: 2.5,
+                      minHeight: 20,
+                      width: '1px',
+                      backgroundColor: theme.palette.customColors?.OnSurfaceVariant
+                    }}
+                  />
+                </Box>
+              </InputAdornment>
+            ),
+            endAdornment: (type === 'password' || isOtp) && (
+              <InputAdornment position='end'>
+                <IconButton
+                  onClick={handleClickShowPassword}
+                  edge='end'
+                  sx={{
+                    color: 'customColors.OnSurfaceVariant',
+                    position: 'absolute',
+                    right: 16,
+                    top: '50%',
+                    transform: 'translateY(-50%)'
+                  }}
+                >
+                  <Icon icon={showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} fontSize={20} />
+                </IconButton>
+              </InputAdornment>
+            ),
 
-          sx: {
-            borderRadius: 0.5,
-            backgroundColor: 'white',
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: alpha(theme.palette.customColors.neutralSecondary, 0.2)
-            },
-            '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: alpha(theme.palette.customColors.neutralSecondary, 0.4)
-            },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: alpha(theme.palette.customColors.neutralSecondary, 1)
-            },
-            height: 56,
-            pt: showLabel ? 2 : 0,
-            '& .MuiInputBase-input::placeholder': {
-              color: 'customColors.neutralSecondary',
-              opacity: 1
-            },
-            '& .MuiInputBase-input': {
-              paddingLeft: '46px !important', // Add enough padding for the icon and divider
-              color: `${theme.palette.customColors.OnSurfaceVariant} !important`,
-              fontWeight: 500,
-              fontSize: '0.875rem'
+            sx: {
+              borderRadius: 0.5,
+              backgroundColor: 'white',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: alpha(theme.palette.customColors.neutralSecondary, 0.2)
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: alpha(theme.palette.customColors.neutralSecondary, 0.4)
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: alpha(theme.palette.customColors.neutralSecondary, 1)
+              },
+              height: 56,
+              pt: showLabel ? 2 : 0,
+              '& .MuiInputBase-input::placeholder': {
+                color: 'customColors.neutralSecondary',
+                opacity: 1
+              },
+              '& .MuiInputBase-input': {
+                paddingLeft: '46px !important', // Add enough padding for the icon and divider
+                color: `${theme.palette.customColors.OnSurfaceVariant} !important`,
+                fontWeight: 500,
+                fontSize: '0.875rem'
+              }
             }
           }
         }}
       />
-
       {showLabel && (
         <Typography
           variant='caption'
@@ -144,7 +145,7 @@ const CustomInput = ({
         </Typography>
       )}
     </Box>
-  )
+  );
 }
 
 export default CustomInput

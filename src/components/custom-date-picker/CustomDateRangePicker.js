@@ -44,11 +44,14 @@ const CustomDateRangePicker = ({
     ? addMonths(currentDate, monthsShown - 2)
     : subMonths(currentDate, monthsShown - 1)
 
-  console.log(selectFutureDates, disableFutureDates, 'selectFutureDates')
-
   return (
     <DatePickerWrapper>
-      <Box p={2} sx={{ width: '100%' }}>
+      <Box
+        sx={{
+          p: 2,
+          width: '100%'
+        }}
+      >
         <DatePicker
           selectsRange
           monthsShown={monthsShown}
@@ -73,70 +76,3 @@ const CustomDateRangePicker = ({
 }
 
 export default CustomDateRangePicker
-
-//////////////////////////
-
-// // // ** React Imports
-// import { useState, forwardRef } from 'react'
-// // ** MUI Imports
-// import { Box, TextField } from '@mui/material'
-// import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
-
-// // ** Third Party Imports
-// import format from 'date-fns/format'
-// import DatePicker from 'react-datepicker'
-
-// const CommonDateRangePicker = ({
-//   label = 'Select Date Range',
-//   popperPlacement = 'bottom-start',
-//   monthsShown = 1,
-//   shouldCloseOnSelect = true,
-//   initialStartDate = new Date(),
-//   initialEndDate = null,
-//   onChange = () => {},
-//   open,
-//   disableFutureDates
-// }) => {
-//   // ** States
-//   const [startDate, setStartDate] = useState(initialStartDate)
-//   const [endDate, setEndDate] = useState(initialEndDate)
-
-//   const handleOnChange = dates => {
-//     const [start, end] = dates
-//     setStartDate(start)
-//     setEndDate(end)
-//     onChange({ startDate: start, endDate: end }) // Callback for parent component
-//   }
-
-//   const CustomInput = forwardRef(({ start, end, ...props }, ref) => {
-//     const startDateFormatted = start ? format(start, 'MM/dd/yyyy') : ''
-//     const endDateFormatted = end ? ` - ${format(end, 'MM/dd/yyyy')}` : ''
-//     const value = `${startDateFormatted}${endDateFormatted}`
-
-//     return <TextField inputRef={ref} label={props.label || ''} {...props} value={value} fullWidth />
-//   })
-
-//   return (
-//     <DatePickerWrapper>
-//       <Box p={2} sx={{ width: '100%' }}>
-//         <DatePicker
-//           selectsRange
-//           monthsShown={monthsShown}
-//           endDate={endDate}
-//           selected={startDate}
-//           startDate={startDate}
-//           shouldCloseOnSelect={shouldCloseOnSelect}
-//           onChange={handleOnChange}
-//           popperPlacement={popperPlacement}
-//           customInput={<CustomInput label={label} start={startDate} end={endDate} />}
-//           open={open ? open : false}
-//           maxDate={new Date()}
-//           showDisabledMonthNavigation
-//         />
-//       </Box>
-//     </DatePickerWrapper>
-//   )
-// }
-
-// export default CommonDateRangePicker
-////////////////////////

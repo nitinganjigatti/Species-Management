@@ -1,29 +1,18 @@
-import { Autocomplete, Avatar, Breadcrumbs, FormControl, Grid, TextField, Typography } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+
 import { Box } from '@mui/system'
-import React, { useContext, useEffect, useState } from 'react'
+import { Breadcrumbs, Grid, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DatePicker } from '@mui/x-date-pickers'
-import dayjs from 'dayjs'
-import Icon from 'src/@core/components/icon'
-
-// ** Custom Components Imports
-import OptionsMenu from 'src/@core/components/option-menu'
-import ReactApexcharts from 'src/@core/components/react-apexcharts'
-import { AuthContext } from 'src/context/AuthContext'
-import { DataGrid } from '@mui/x-data-grid'
-import { getAllStats } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
-import Toaster from 'src/components/Toaster'
 
+import Toaster from 'src/components/Toaster'
 // import TodaysCollection from 'src/views/pages/egg/eggDashboard/todaysCollection'
 // import TransferDetails from 'src/views/pages/egg/eggDashboard/transferDetails'
 import Species from 'src/views/pages/egg/eggDashboard/species'
 import EggsStats from 'src/views/pages/egg/eggDashboard/EggsStats'
+import { getAllStats } from 'src/lib/api/egg/dashboard'
 
 const Dashboard = () => {
-  // const authData = useContext(AuthContext)
   const theme = useTheme()
 
   const [fromDate, setFromDate] = useState(null)
@@ -83,7 +72,7 @@ const Dashboard = () => {
       </Breadcrumbs>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <Grid container spacing={6} sx={{ justifyContent: 'space-between' }} columns={5}>
-          <Grid item sm={5} md={2} xl={2}>
+          <Grid item size={{ sm: 5, md: 2, xl: 2 }}>
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,

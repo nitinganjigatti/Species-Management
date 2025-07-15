@@ -136,7 +136,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='name'
@@ -157,7 +157,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='company_name'
@@ -176,7 +176,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='mobile'
@@ -200,7 +200,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <InputLabel error={Boolean(errors?.state_id)} id='state_id'>
                   State
@@ -232,7 +232,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='gst_number'
@@ -255,7 +255,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='email'
@@ -279,7 +279,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='phone'
@@ -302,7 +302,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='description'
@@ -321,7 +321,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <FormControl fullWidth>
                 <Controller
                   name='address'
@@ -332,7 +332,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <FormControl fullWidth>
                 <Controller
                   name='opening_balance'
@@ -357,7 +357,7 @@ const AddSupplierForm = ({ action, onSubmit, statesList }) => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <Button size='large' type='submit' variant='contained'>
                 Submit
               </Button>

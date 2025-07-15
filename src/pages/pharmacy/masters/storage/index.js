@@ -119,7 +119,7 @@ const StorageList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.label}
+          {`${params.row.label}°C`}
         </Typography>
       )
     },

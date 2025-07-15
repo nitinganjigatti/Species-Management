@@ -363,7 +363,7 @@ const DirectDispatchList = () => {
     {
       minWidth: 120,
       field: 'total_qty',
-      headerName: 'Total Qty',
+      headerName: 'Total items',
       type: 'number',
       headerAlign: 'left',
       align: 'left',
@@ -388,7 +388,7 @@ const DirectDispatchList = () => {
         field: 'shipping_status',
         headerName: 'Status',
         renderCell: params => (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Box sx={{ color: 'text.primary' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {params.row.shipping_status === 'Fully Shipped' && (
                 <Box sx={{ color: 'success.main', mr: 2 }}>
@@ -423,7 +423,7 @@ const DirectDispatchList = () => {
               )}
             </div>
             {params.row.status === 'Cancelled' ? params.row.status : null}
-          </Typography>
+          </Box>
         )
       })
     },
@@ -443,9 +443,7 @@ const DirectDispatchList = () => {
     }
   ]
 
-  const handleRowClick = params => {
-    console.log(params)
-  }
+  const handleRowClick = params => {}
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -488,7 +486,14 @@ const DirectDispatchList = () => {
               >
                 <Grid container spacing={3}>
                   {/* Search Field */}
-                  <Grid item xs={12} sm={6} spacing={3} gap={3}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 6 }}
+                    spacing={3}
+                    sx={{
+                      gap: 3
+                    }}
+                  >
                     <Box
                       sx={{
                         display: 'flex',
@@ -524,12 +529,11 @@ const DirectDispatchList = () => {
                   {(status === 'all' || status === 'completed') && (
                     <Grid
                       item
-                      xs={12}
-                      sm={6}
+                      size={{ xs: 12, sm: 6 }}
                       sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
                     >
                       <FormControlLabel
-                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                        control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
                         label='Completed'
                         labelPlacement='end'
                         sx={{ marginRight: 1 }}

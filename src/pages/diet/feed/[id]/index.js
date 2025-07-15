@@ -75,7 +75,7 @@ const FeedDetails = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('ASC')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
 
@@ -152,11 +152,11 @@ const FeedDetails = () => {
   const columns = [
     {
       flex: 0.1,
-      minWidth: 30,
+      minWidth: 40,
       field: 'id',
       headerName: 'SL',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id}
         </Typography>
       )
@@ -194,18 +194,18 @@ const FeedDetails = () => {
           </Box>
         </Box>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 10,
-      field: 'status',
-      headerName: '',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', gap: 2, cursor: 'pointer' }}>
-          <Icon color='#a7a7a7' icon='mdi:eye-outline' />
-        </Box>
-      )
     }
+    // {
+    //   flex: 0.2,
+    //   minWidth: 10,
+    //   field: 'status',
+    //   headerName: '',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', gap: 2, cursor: 'pointer' }}>
+    //       <Icon color='#a7a7a7' icon='mdi:eye-outline' />
+    //     </Box>
+    //   )
+    // }
   ]
 
   const convertToTitleCase = str => {
@@ -315,7 +315,7 @@ const FeedDetails = () => {
             </CardContent>
           ) : (
             <Grid container spacing={6}>
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                   <Typography color='inherit'>Diet</Typography>
                   <Typography
@@ -330,7 +330,13 @@ const FeedDetails = () => {
                   >
                     Feed
                   </Typography>
-                  <Typography color='text.primary'>Feed Details</Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.primary'
+                    }}
+                  >
+                    Feed Details
+                  </Typography>
                 </Breadcrumbs>
                 <>
                   <Card>
@@ -354,7 +360,7 @@ const FeedDetails = () => {
                                   }
                                 /> */}
                                 <Avatar
-                                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                                  sx={{ width: 'auto', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
                                   src={'/icons/pencil_outlined.svg'}
                                   variant='square'
                                   onClick={() =>
@@ -383,11 +389,11 @@ const FeedDetails = () => {
                                 /> */}
                                 <Avatar
                                   sx={{
-                                    width: '100%',
+                                    width: 'auto',
                                     height: '100%',
                                     borderRadius: '8px',
                                     cursor: 'pointer',
-                                    marginLeft: '15px'
+                                    marginLeft: '0px'
                                   }}
                                   src={'/icons/delete_outlined.svg'}
                                   variant='square'
@@ -411,7 +417,7 @@ const FeedDetails = () => {
                           FeedDetailsValue={FeedDetailsValue}
                           permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
                         />
-                        <Grid item md={8} xs={12}>
+                        <Grid item size={{ xs: 12, md: 8 }}>
                           <TabContext value={value}>
                             <TabList onChange={handleChange} aria-label='customized tabs example'>
                               <Tab
@@ -579,7 +585,7 @@ const FeedDetails = () => {
                                 columns={columns}
                                 sortingMode='server'
                                 paginationMode='server'
-                                pageSizeOptions={[5, 10, 25, 50]}
+                                pageSizeOptions={[5, 10, 25, 50, 100]}
                                 paginationModel={paginationModel}
                                 onSortModelChange={handleSortModel}
                                 slots={{

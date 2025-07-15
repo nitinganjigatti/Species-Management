@@ -151,7 +151,13 @@ const SelectSectionList = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: theme.palette.customColors.OnPrimaryContainer }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: '500',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               Choose Section
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -172,30 +178,32 @@ const SelectSectionList = ({
             size='small'
             value={searchTerm}
             onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm && (
-                <InputAdornment position='end'>
-                  <IconButton
-                    size='small'
-                    onClick={() => {
-                      setSearchTerm('')
-                      fetchSections('')
-                    }}
-                  >
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              style: {
-                background: theme.palette.customColors.bodyBg,
-                borderRadius: '4px',
-                padding: '4px 8px',
-                color: theme.palette.customColors.OnPrimaryContainer
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position='end'>
+                    <IconButton
+                      size='small'
+                      onClick={() => {
+                        setSearchTerm('')
+                        fetchSections('')
+                      }}
+                    >
+                      <Icon icon='mdi:close' fontSize={20} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                style: {
+                  background: theme.palette.customColors.bodyBg,
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
               }
             }}
           />
@@ -264,6 +272,7 @@ const SelectSectionList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
+
             //height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
@@ -302,11 +311,25 @@ const SelectSectionList = ({
                   <ListItemText
                     primary={section.section_name}
                     // secondary={section.location || '-'}
-                    primaryTypographyProps={{
-                      fontWeight: 'bold',
-                      color: theme.palette.customColors.OnPrimaryContainer
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 'bold',
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }
+                      },
+                      secondary: {
+                        sx: {
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }
+                      }
                     }}
-                    secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
+
+                    // primaryTypographyProps={{
+                    //   fontWeight: 'bold',
+                    //   color: theme.palette.customColors.OnPrimaryContainer
+                    // }}
+                    // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
                     checked={selectedSections.includes(section.section_id)}

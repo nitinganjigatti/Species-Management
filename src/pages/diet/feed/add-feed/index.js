@@ -113,6 +113,7 @@ const AddFeedType = () => {
           type: 'error',
           message: 'Only PNG and JPG images are allowed'
         })
+
         return
       }
 
@@ -229,7 +230,13 @@ const AddFeedType = () => {
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/feed')}>
                 Feed Type
               </Typography>
-              <Typography color='text.primary'>{id ? 'Update' : 'Add'} new Feed Type</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                {id ? 'Update' : 'Add'} new Feed Type
+              </Typography>
             </Breadcrumbs>
           </Box>
           <Card>
