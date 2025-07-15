@@ -162,7 +162,7 @@ const StockLocation = () => {
 
   const getMenuOptions = row => [
     {
-      label: 'Add Re-Order Level',
+      label: 'Add Reorder Level',
       action: () => {
         setOpenReOrderLevelDialog(true)
         setConfigReOrderMed(row)

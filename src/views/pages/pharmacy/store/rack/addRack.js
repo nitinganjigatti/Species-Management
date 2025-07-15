@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, Fragment, useRef } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -80,6 +80,16 @@ const AddRack = props => {
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (addEventSidebarOpen) {
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+    }
+  }, [addEventSidebarOpen])
 
   const onSubmit = async params => {
     const { name, position, shelf, status } = { ...params }
@@ -228,6 +238,7 @@ const AddRack = props => {
                   placeholder='Rack Name'
                   error={Boolean(errors.name)}
                   name='name'
+                  inputRef={inputRef}
                 />
               )}
             />
