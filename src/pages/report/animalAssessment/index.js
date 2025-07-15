@@ -31,7 +31,6 @@ import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
-import Error404 from 'src/pages/401'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
@@ -232,6 +231,7 @@ const AnimalAssessment = () => {
     })
 
     setDataList(transformed)
+
     // setTotal(transformed.length)
     const headers = [
       { key: 'default_icon', label: 'ANIMAL DETAILS' },
@@ -496,6 +496,7 @@ const AnimalAssessment = () => {
                 // minHeight: '121px',
                 bgcolor: theme.palette.customColors.lightBg,
                 borderRadius: '8px'
+
                 // padding: '10px',
                 // paddingLeft: '20px'
               }}
@@ -801,6 +802,7 @@ const AnimalAssessment = () => {
                         }}
                         sx={{
                           backgroundColor: theme.palette.primary.contrastText,
+
                           // borderRadius: '40px', // Applies to the container
                           '& .MuiOutlinedInput-root': {
                             width: '240px',
