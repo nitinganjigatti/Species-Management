@@ -320,12 +320,17 @@ const LabSamples = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab Samples
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Lab Samples' action={headerAction} />
+            <CardHeader title='Lab Samples' sx={{ paddingX: 5 }} action={headerAction} />
 
             <DataGrid
               sx={{

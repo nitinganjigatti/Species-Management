@@ -14,11 +14,13 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { AddEnclosureToExistng, getMealGroupList } from 'src/lib/api/diet/mealgroup'
 import SelectedEnclosure from './selectedEnclosure'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
+import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CreateEnclosure = ({
   enclosureDrawer,
@@ -45,6 +47,10 @@ const CreateEnclosure = ({
   const [groupList, setGroupList] = useState([])
   const [mealGroupError, setMealGroupError] = useState(false)
   const [selectedEnclosureDrawer, setSelectedEnclosureDrawer] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   useEffect(() => {
     if (checkedRows) {
@@ -53,6 +59,7 @@ const CreateEnclosure = ({
       const fetchMealGroupNames = async () => {
         const groupparams = {
           site_id: selectedOption
+
           // page_no: paginationModel.page + 1
         }
         try {
@@ -80,6 +87,7 @@ const CreateEnclosure = ({
   const handleAddEnclosure = async () => {
     if (!groupId.trim()) {
       setMealGroupError(true)
+
       return
     }
 
@@ -119,11 +127,14 @@ const CreateEnclosure = ({
   const RenderSidebarFooter = () => {
     function hexToHex8(hex, opacity) {
       hex = hex.replace('#', '')
+
       let alpha = Math.round(opacity * 255)
         .toString(16)
         .padStart(2, '0')
+
       return `#${hex}${alpha}`
     }
+
     return (
       <Box
         sx={{
@@ -132,6 +143,7 @@ const CreateEnclosure = ({
           right: 0,
           width: '100%',
           maxWidth: '562px',
+
           // width: { xs: '100%', sm: '73%', md: '562px' },
           height: '106px',
           bgcolor: 'white',
@@ -148,9 +160,12 @@ const CreateEnclosure = ({
         {/* Left: Selected Dropdown */}
         <Box
           onClick={handleSelected}
-          display='flex'
-          alignItems='center'
-          sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'center', sm: 'flex-start' } }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: { xs: '100%', sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'flex-start' }
+          }}
         >
           <Typography
             sx={{
@@ -158,7 +173,8 @@ const CreateEnclosure = ({
               color: theme.palette.primary.main,
               fontWeight: 600,
               fontSize: '16px',
-              fontFamily: 'Inter'
+              fontFamily: 'Inter',
+              cursor: 'pointer'
             }}
           >
             {selectedEnclosureIds.length} Selected
@@ -167,12 +183,14 @@ const CreateEnclosure = ({
             <Icon icon='mdi:chevron-down' />
           </IconButton>
         </Box>
-
         {/* Right: Cancel + Add Buttons */}
         <Box
-          display='flex'
-          gap={2}
-          sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'center', sm: 'flex-end' } }}
+          sx={{
+            display: 'flex',
+            gap: 2,
+            width: { xs: '100%', sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'flex-end' }
+          }}
         >
           <Button
             onClick={event => {
@@ -217,7 +235,7 @@ const CreateEnclosure = ({
     setSelectedEnclosureIds(prev => (prev.includes(id) ? prev.filter(eId => eId !== id) : [...prev, id]))
   }
 
-  return (
+  return dietModule ? (
     <>
       <Drawer
         anchor='right'
@@ -225,6 +243,7 @@ const CreateEnclosure = ({
         ModalProps={{ keepMounted: true }}
         sx={{
           '& .MuiDrawer-paper': { width: '100%', maxWidth: '562px' },
+
           // position: 'fixed',
           position: 'relative',
           top: 0,
@@ -238,7 +257,7 @@ const CreateEnclosure = ({
           sx={{
             bgcolor: theme.palette.customColors.bodyBg,
             zIndex: 10,
-            height: 'calc(100dvh - 10px)'
+            height: 'calc(100dvh - 0px)'
           }}
         >
           {/* Header */}
@@ -280,7 +299,13 @@ const CreateEnclosure = ({
             {/* Outer wrapper with padding from all sides */}
             <Box sx={{ p: 4, backgroundColor: '#EEF5F1', borderRadius: '8px', mt: 3 }}>
               {/* Search */}
-              <Box display='flex' gap={1} mb={6}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  mb: 6
+                }}
+              >
                 <TextField
                   placeholder='Search...'
                   variant='outlined'
@@ -288,17 +313,19 @@ const CreateEnclosure = ({
                   value={searchValue}
                   fullWidth
                   onChange={e => handleEnclosureSearch(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    ),
-                    sx: {
-                      backgroundColor: 'white',
-                      borderRadius: '8px',
-                      height: '48px',
-                      input: { color: theme.palette.customColors.Outline, padding: '10px 0' }
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      ),
+                      sx: {
+                        backgroundColor: 'white',
+                        borderRadius: '8px',
+                        height: '48px',
+                        input: { color: theme.palette.customColors.Outline, padding: '10px 0' }
+                      }
                     }
                   }}
                 />
@@ -315,12 +342,14 @@ const CreateEnclosure = ({
                     if (!selected || selected === '')
                       return <Typography color='textSecondary'>Select Meal Group</Typography>
                     const selectedItem = groupList.find(item => item.id === selected)
+
                     return selectedItem?.group_name || ''
                   }}
                   size='small'
                   sx={{
                     backgroundColor: 'white',
                     width: '100%',
+
                     // maxWidth: '200px',
                     borderRadius: '4px',
                     mb: 5
@@ -338,18 +367,27 @@ const CreateEnclosure = ({
               )}
 
               {/* Card List */}
-              <Box sx={{}}>
+              <Box sx={{ height: '58vh' }}>
+                {' '}
+                {/* Outer Box with fixed height */}
                 <Card
                   sx={{
                     borderRadius: '8px',
                     boxShadow: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '70vh',
+                    height: '100%', // fill full height of outer Box
                     width: '100%'
                   }}
                 >
-                  <Box sx={{ flex: 1, overflowY: 'auto', height: '60vh', px: 2, pt: 2 }}>
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      px: 2,
+                      pt: 2
+                    }}
+                  >
                     {loader ? (
                       <Box
                         sx={{
@@ -363,11 +401,8 @@ const CreateEnclosure = ({
                       </Box>
                     ) : (
                       selectedItems.map((item, index) => (
-                        <Box sx={{ m: 3 }}>
-                          {' '}
-                          {/* Adds margin around the Card */}
+                        <Box key={index} sx={{ m: 3 }}>
                           <Card
-                            key={index}
                             sx={{
                               p: 2,
                               width: '100%',
@@ -410,8 +445,6 @@ const CreateEnclosure = ({
                                   fontSize: '14px',
                                   color: theme.palette.customColors.OnSurfaceVariant,
                                   maxWidth: '100px',
-                                  // overflow: 'hidden',
-                                  // textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap'
                                 }}
                               >
@@ -458,6 +491,7 @@ const CreateEnclosure = ({
           setSelectedEnclosureDrawer={setSelectedEnclosureDrawer}
           selectEnclosures={selectedItems.filter(item => selectedEnclosureIds.includes(item.enclosure_id))}
           selectedEnclosureIds={selectedEnclosureIds}
+          loader={loader}
           setSelectedEnclosureIds={setSelectedEnclosureIds}
           selectedItems={selectedItems}
           checkedRows={checkedRows}
@@ -466,6 +500,9 @@ const CreateEnclosure = ({
         />
       )}
     </>
+  ) : (
+    <Error404 />
   )
 }
+
 export default CreateEnclosure

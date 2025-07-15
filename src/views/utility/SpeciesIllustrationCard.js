@@ -1,6 +1,6 @@
 import React from 'react'
-import { ImageListItem, Typography } from '@mui/material'
-import { Box, height } from '@mui/system'
+import { Tooltip, Typography } from '@mui/material'
+import { Box } from '@mui/system'
 
 function SpeciesIllustrationCard({ eggDetails, theme }) {
   return (
@@ -48,26 +48,60 @@ function SpeciesIllustrationCard({ eggDetails, theme }) {
           flexDirection: 'column'
         }}
       >
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px',
-            color: theme.palette.primary.contrastText
-          }}
+        <Tooltip
+          title={
+            eggDetails?.default_common_name
+              ? eggDetails?.default_common_name
+              : eggDetails?.animal_data?.common_name
+              ? eggDetails?.animal_data?.common_name
+              : ''
+          }
         >
-          {eggDetails?.default_common_name ? eggDetails?.default_common_name : 'Unknown'}
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontWeight: 400,
-            lineHeight: '16.94px',
-            color: theme.palette.primary.contrastText
-          }}
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: theme.palette.primary.contrastText
+            }}
+          >
+            {eggDetails?.default_common_name
+              ? eggDetails?.default_common_name
+              : eggDetails?.animal_data?.common_name
+              ? eggDetails?.animal_data?.common_name
+              : 'Unknown'}
+          </Typography>
+        </Tooltip>
+        <Tooltip
+          title={
+            eggDetails?.complete_name
+              ? eggDetails?.complete_name
+              : eggDetails?.animal_data?.complete_name
+              ? eggDetails?.animal_data?.complete_name
+              : ''
+          }
         >
-          {eggDetails?.complete_name ? eggDetails?.complete_name : 'Unknown'}
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 400,
+              lineHeight: '16.94px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: theme.palette.primary.contrastText
+            }}
+          >
+            {eggDetails?.complete_name
+              ? eggDetails?.complete_name
+              : eggDetails?.animal_data?.complete_name
+              ? eggDetails?.animal_data?.complete_name
+              : 'Unknown'}
+          </Typography>
+        </Tooltip>
       </Box>
     </Box>
   )

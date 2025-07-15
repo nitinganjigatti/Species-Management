@@ -128,13 +128,26 @@ export default function ShipmentRequests({ updateUrlParams }) {
         </Typography>
       )
     },
+
     {
-      width: 5,
+      width: 100,
       field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row?.priority)}</Box>
+      headerName: 'Priority',
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
     {
       width: 300,
@@ -166,14 +179,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
           </Tooltip>
           <Tooltip
             title={
-              params?.row?.package &&
-              params?.row?.package_qty &&
-              params?.row?.package_uom_label &&
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'
+              (params?.row?.package ||
+                params?.row?.package_qty ||
+                params?.row?.package_uom_label ||
+                params?.row?.product_form_label) &&
+              `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                params?.row?.package_uom_label
+              } ${params?.row?.product_form_label}`
             }
             placement='top'
           >
@@ -186,14 +198,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 ...RenderUtility?.getEllipsisStyleForText()
               }}
             >
-              {params?.row?.package &&
-              params?.row?.package_qty &&
-              params?.row?.package_uom_label &&
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'}
+              {(params?.row?.package ||
+                params?.row?.package_qty ||
+                params?.row?.package_uom_label ||
+                params?.row?.product_form_label) &&
+                `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                  params?.row?.package_uom_label
+                } ${params?.row?.product_form_label}`}
             </Typography>
           </Tooltip>
         </Box>
@@ -444,7 +455,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
       >
         <Grid item xs={12} sm={6} md={6}>
           <TabLists
-            container
             variant='scrollable'
             allowScrollButtonsMobile
             onChange={(event, newValue) => {

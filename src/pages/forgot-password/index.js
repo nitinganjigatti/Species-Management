@@ -60,7 +60,7 @@ const ForgotPassword = () => {
       .string()
       .test(
         'username-or-email',
-        'Enter a valid username (min 1 chars) or email',
+        'Please enter a valid username or email address.',
         value => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value) || /^[A-Za-z0-9]{1,}$/.test(value)
       )
       .required('Username or Email is required')
@@ -100,9 +100,11 @@ const ForgotPassword = () => {
         //   temp_auth_token
         // })
         toast.success(response?.message)
+
         // setIsOtpSent(true)
         router.push('/verify-otp')
         setForgotPasswordData(response.data)
+
         // router.push({
         //   pathname: '/verify-otp',
         //   query: { data: encryptedQuery }

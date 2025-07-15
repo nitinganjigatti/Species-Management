@@ -84,6 +84,7 @@ const ComboCard = ({
 
     // Update selectedCardCombo with merged objects
     const currentselectedCardCombo = selectedCardCombo || []
+
     const updatedSelectedCard = [
       ...currentselectedCardCombo,
       ...selectedValuesWithCheckId
@@ -183,12 +184,13 @@ const ComboCard = ({
 
       // Merge updatedSelectedDays with the existing selectedDays state
       const finalSelectedDays = rows.map(row => {
-        const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
+        const updatedDay = updatedSelectedDays?.find(updated => updated.cardId === row.id)
 
         if (updatedDay) {
           return updatedDay // Use the updated selection if available
         } else {
-          const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+          const existingDay = selectedDays?.find(existing => existing.cardId === row.id)
+
           return existingDay || { cardId: row.id, days: Day }
         }
       })
@@ -210,7 +212,7 @@ const ComboCard = ({
       searchValue
     ) {
       const finalSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         // If no match with checkid, enable all days
         const enabledAllDays = Day.map(day => ({
@@ -231,6 +233,7 @@ const ComboCard = ({
       selectedCardCombo?.length > 0
     ) {
       const previousSelectedDays = selectedDays || []
+
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
@@ -243,7 +246,7 @@ const ComboCard = ({
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -261,13 +264,14 @@ const ComboCard = ({
       })
 
       setSelectedDays(updatedSelectedDays)
+
       //setRemarks({})
     } else if (searchValue !== '' && !dietid) {
       const previousSelectedDays = selectedDays || []
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -288,6 +292,7 @@ const ComboCard = ({
       setRemarks({})
     } else if (!searchValue && selectedCardCombo.length <= 0) {
       const previousSelectedDays = selectedDays || []
+
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
@@ -384,8 +389,10 @@ const ComboCard = ({
       toast.error('Combos are required.', {
         duration: 1000
       })
+
       return
     }
+
     // Check for missing cut sizes in all selected combos
     const cardsWithMissingCutSize = selectedCardCombo.filter(item =>
       item.ingredients.some(ingredient => !size[item.id]?.[ingredient.ingredient_id]?.id)
@@ -397,6 +404,7 @@ const ComboCard = ({
         duration: 1000
       })
       setShowErrors(true)
+
       return
     }
     setShowErrors(false)
@@ -404,14 +412,14 @@ const ComboCard = ({
     const filteredItems = selectedCardCombo.map(item => {
       // Find the selected days for the current item
 
-      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
+      const selectedDaysForItem = selectedDays?.find(selectedDay => selectedDay.cardId === item.id)
 
       // Extract the selected day names and ids
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
       // Find the remarks for the current item
-      const cardRemarks = selectedCardCombo.find(card => card.id === item.id)?.remarks || ''
+      const cardRemarks = selectedCardCombo?.find(card => card.id === item.id)?.remarks || ''
 
       // Extract ingredient details
       const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
@@ -425,7 +433,7 @@ const ComboCard = ({
       }))
 
       // Find the existing card in selectedCardCombo to preserve previous data
-      const existingCard = selectedCardCombo.find(card => card.id === item.id)
+      const existingCard = selectedCardCombo?.find(card => card.id === item.id)
 
       // Preserve the previous days_of_week if new ones are not selected
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
@@ -433,7 +441,7 @@ const ComboCard = ({
       // Update ingredients with cut_size information
       const updatedIngredients = item.ingredients.map(ingredient => {
         const cutSizeId = size[item.id]?.[ingredient.ingredient_id]?.id || null
-        const cutSize = cutsizelist.find(cs => cs.id === cutSizeId)?.cut_size || null
+        const cutSize = cutsizelist?.find(cs => cs.id === cutSizeId)?.cut_size || null
 
         return {
           ...ingredient,
@@ -643,7 +651,7 @@ const ComboCard = ({
                           {item?.ingredients_count}&nbsp;
                           <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
                         </Typography>
-                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
+                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Items by %</Typography>
                       </Box>
                       {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
@@ -672,7 +680,7 @@ const ComboCard = ({
                       <Typography
                         sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
                       >
-                        Ingredients
+                        Items
                       </Typography>
                       <Typography
                         sx={{
@@ -830,10 +838,10 @@ const ComboCard = ({
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            bgcolor: selectedDays.find(
+                            bgcolor: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? '#203e56'
                               : '#dedede',
@@ -843,10 +851,10 @@ const ComboCard = ({
                             alignItems: 'center',
                             cursor: 'pointer',
 
-                            color: selectedDays.find(
+                            color: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? 'white'
                               : 'black'
@@ -861,7 +869,7 @@ const ComboCard = ({
                       <Divider />
                       <TextField
                         multiline
-                        rows={expandedIndex.includes(index) ? 3 : 1}
+                        rows={expandedIndex.includes(index) ? 2 : 2}
                         onChange={e => handleAddRemarks(e, item.id)}
                         placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
                         value={remarks[item.id] || ''}
@@ -875,7 +883,9 @@ const ComboCard = ({
                           },
                           transition: 'max-height 0.5s ease-in-out',
                           overflow: 'hidden',
-                          maxHeight: expandedIndex.includes(index) ? '100px' : '56px'
+                          maxHeight: expandedIndex.includes(index) ? '100px' : '70px',
+                          pl: 4,
+                          pt: 3
                         }}
                       />
                     </Box>
@@ -891,14 +901,22 @@ const ComboCard = ({
         <Box
           sx={{
             display: 'flex',
+            flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            marginTop: '14%',
-            color: theme.palette.customColors.statusText,
-            fontSize: '16px'
+            height: '70%',
+            textAlign: 'center'
           }}
         >
-          No records to show
+          <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+          <Box
+            sx={{
+              color: theme.palette.customColors.statusText,
+              fontSize: '16px'
+            }}
+          >
+            No records to show
+          </Box>
         </Box>
       )}
       {/* {selectedCardCombo?.length > 0 && ( */}

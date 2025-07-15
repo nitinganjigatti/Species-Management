@@ -86,7 +86,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'INGREDIENT NAME',
+      headerName: 'ITEM NAME',
       renderCell: params => (
         <Box
           sx={{
@@ -132,7 +132,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'INGREDIENT ID',
+      headerName: 'ITEM ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
@@ -351,7 +351,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ boxShadow: 'none' }}>
-            <CardHeader title='Ingredient by quantity' />
+            <CardHeader title='Item by quantity' sx={{ pl: 0 }} />
 
             <DataGrid
               sx={{
@@ -395,17 +395,19 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
             value={searchValue}
             onChange={e => handleSearch(e.target.value)}
             sx={{ width: '250px', height: '20px' }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-              endAdornment: searchValue && (
-                <IconButton onClick={handleClearSearch}>
-                  <ClearIcon />
-                </IconButton>
-              )
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: searchValue && (
+                  <IconButton onClick={handleClearSearch}>
+                    <ClearIcon />
+                  </IconButton>
+                )
+              }
             }}
           />
         </Grid>

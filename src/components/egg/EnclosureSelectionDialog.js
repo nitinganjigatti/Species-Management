@@ -1,38 +1,34 @@
+import { useCallback, useContext, useState } from 'react'
 import {
   Autocomplete,
-  Avatar,
-  Box,
-  Card,
-  Drawer,
   FormControl,
   FormHelperText,
-  IconButton,
   InputLabel,
   MenuItem,
   Select,
   TextField,
-  Typography,
   debounce,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  DialogContentText,
   Button,
   Grid
 } from '@mui/material'
-import { Controller, useForm } from 'react-hook-form'
-import { AuthContext } from 'src/context/AuthContext'
-import { useCallback, useContext, useState, useEffect } from 'react'
-import { getSectionList, getEnclosures } from 'src/lib/api/egg/egg/createAnimal'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { Controller, useForm } from 'react-hook-form'
+
+import { AuthContext } from 'src/context/AuthContext'
+import { getSectionList, getEnclosures } from 'src/lib/api/egg/egg/createAnimal'
 
 const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) => {
   const authData = useContext(AuthContext)
   const sitesList = authData?.userData?.user?.zoos[0]?.sites
   const zoo_id = authData?.userData?.user?.zoos[0]?.zoo_id
+
   const [selected_site_id, setSelectedSiteId] = useState('')
+  const [selected_section_id, setSelectedSectionId] = useState('')
   const [sectionList, setSectionList] = useState([])
   const [enclosure_list, setEnclosureList] = useState([])
   const [loadingSections, setLoadingSections] = useState(false)
@@ -72,56 +68,103 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
       .required('Enclosure is required')
   })
 
+  // const searchSections = useCallback(
+  //   debounce(async (searchText, selected_site_id) => {
+  //     try {
+  //       setLoadingSections(true)
+  //       await getSectionList({
+  //         zoo_id: zoo_id.toString(),
+  //         q: searchText,
+  //         page: 1,
+  //         offset: 30,
+  //         selected_site_id: selected_site_id,
+  //         filter_empty_enclosures: 1,
+  //         ignore_sys_gen: 1
+  //       }).then(res => {
+  //         if (res?.sections[0]?.length > 0) {
+  //           setSectionList(res?.sections[0])
+  //         } else {
+  //           setSectionList([])
+  //         }
+  //         setLoadingSections(false)
+  //       })
+  //     } catch (error) {
+  //       console.error(error)
+  //       setLoadingSections(false)
+  //     }
+  //   }, 500),
+  //   []
+  // )
+
   const searchSections = useCallback(
-    debounce(async (searchText, selected_site_id) => {
+    debounce(async (searchText = '', selected_site_id) => {
+      setLoadingSections(true)
       try {
-        debugger
-        setLoadingSections(true)
-        await getSectionList({
+        const res = await getSectionList({
           zoo_id: zoo_id.toString(),
           q: searchText,
           page: 1,
           offset: 30,
-          selected_site_id: selected_site_id,
+          selected_site_id,
           filter_empty_enclosures: 1,
           ignore_sys_gen: 1
-        }).then(res => {
-          if (res?.sections[0]?.length > 0) {
-            // console.log('first', res?.data)
-            setSectionList(res?.sections[0])
-          } else {
-            setSectionList([])
-          }
-          setLoadingSections(false)
         })
+
+        const sectionList = res?.sections?.[0] || []
+        setSectionList(sectionList)
       } catch (error) {
-        console.error(error)
+        setSectionList([])
+        console.error('Failed to fetch sections:', error)
+      } finally {
         setLoadingSections(false)
       }
     }, 500),
     []
   )
 
+  // const searchEnclosures = useCallback(
+  //   debounce(async ({ searchText, section_id }) => {
+  //     try {
+  //       setLoadingEnclosure(true)
+  //       await getEnclosures({
+  //         section_id: section_id,
+  //         q: searchText,
+  //         ignore_sys_gen: 1,
+  //         limit: 50
+  //       }).then(res => {
+  //         if (res?.data?.length > 0) {
+  //           setEnclosureList(res?.data)
+  //         } else {
+  //           setEnclosureList([])
+  //         }
+  //         setLoadingEnclosure(false)
+  //       })
+  //     } catch (error) {
+  //       setLoadingEnclosure(false)
+  //       console.error(error)
+  //     }
+  //   }, 500),
+  //   []
+  // )
+
   const searchEnclosures = useCallback(
-    debounce(async ({ searchText, section_id }) => {
+    debounce(async ({ searchText = '', section_id }) => {
+      setLoadingEnclosure(true)
       try {
-        setLoadingEnclosure(true)
-        await getEnclosures({
+        const res = await getEnclosures({
           section_id: section_id,
           q: searchText,
           ignore_sys_gen: 1,
           limit: 50
-        }).then(res => {
-          if (res?.data?.length > 0) {
-            setEnclosureList(res?.data)
-          } else {
-            setEnclosureList([])
-          }
-          setLoadingEnclosure(false)
         })
+
+        const enclosures = res?.data || []
+        setEnclosureList(enclosures)
       } catch (error) {
+        setEnclosureList([])
+        console.error('Failed to fetch enclosures:', error)
+      } finally {
         setLoadingEnclosure(false)
-        console.error(error)
       }
     }, 500),
     []
@@ -146,14 +189,10 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
   })
 
   const onSubmit = params => {
-    console.log(params)
+    // console.log(params)
     getEnclosureDetails(params?.enclosure)
     handleClose(true)
   }
-
-  // useEffect(() => {
-  //   searchSections('', '')
-  // }, [])
 
   return (
     <>
@@ -168,10 +207,9 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
 
         <DialogContent>
           <div>
-            {/* onSubmit={handleSubmit(onSubmit)} */}
             <form>
               <Grid container spacing={2}>
-                <Grid item xs={6}>
+                <Grid item size={{ xs: 6 }}>
                   <FormControl fullWidth sx={{ mb: 4, mt: 4 }}>
                     <InputLabel id='site_id'>Select Site</InputLabel>
                     <Controller
@@ -199,9 +237,6 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                             setSectionList([])
                             setEnclosureList([])
                             await searchSections('', e.target.value)
-
-                            // console.log('site_id', e.target.value)
-
                             return onChange(e)
                           }}
                           labelId='site_id'
@@ -220,7 +255,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item size={{ xs: 6 }}>
                   <FormControl fullWidth sx={{ mb: 4, mt: 4 }}>
                     <Controller
                       name='section'
@@ -251,7 +286,6 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                                 section_name: ''
                               })
                             } else {
-                              // console.log(val)
                               resetField('enclosure', {
                                 enclosure_id: '',
                                 site_id: '',
@@ -259,19 +293,15 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                                 user_enclosure_name: ''
                               })
                               setEnclosureList([])
-
+                              setSelectedSectionId(val?.section_id)
                               await searchEnclosures({ searchText: '', section_id: val?.section_id })
-
                               return onChange(val)
                             }
-                            console.log('section_id', val?.section_id)
                           }}
+                          onClose={() => searchSections('', selected_site_id)}
                           renderInput={params => (
                             <TextField
                               onChange={e => {
-                                // const site_id = getValues('site_id')
-                                // console.log('-----Site Id-----', site_id)
-                                // console.log('-----Selected Site Id-----', selected_site_id)
                                 searchSections(e.target.value, selected_site_id)
                               }}
                               {...params}
@@ -290,7 +320,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item size={{ xs: 6 }}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller
                       name='enclosure'
@@ -318,11 +348,11 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                               return onChange(val)
                             }
                           }}
+                          onClose={() => searchEnclosures({ searchText: '', section_id: selected_section_id })}
                           renderInput={params => (
                             <TextField
                               onChange={async e => {
-                                // const section getValue('')
-                                // await searchEnclosures(e.target.value, )
+                                searchEnclosures({ searchText: e.target.value, section_id: selected_section_id })
                               }}
                               {...params}
                               label='Select Enclosure*'

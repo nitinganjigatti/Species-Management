@@ -105,6 +105,17 @@ const UploadReports = ({
     fileInputRef?.current?.click()
   }
 
+  const allowedTypes = [
+    'image/png',
+    'image/jpeg', // PNG, JPG
+    'application/pdf', // PDF
+    'application/msword', // DOC
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+    'application/vnd.ms-excel', // XLS
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+    'text/csv' // CSV
+  ]
+
   // const handleInputImageChange = event => {
   //   const { files } = event.target
 
@@ -163,21 +174,11 @@ const UploadReports = ({
     if (!files) return
     const newFileArr = []
 
-    const allowedTypes = [
-      'image/png',
-      'image/jpeg', // PNG, JPG
-      'application/pdf', // PDF
-      'application/msword', // DOC
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
-      'application/vnd.ms-excel', // XLS
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
-      'text/csv' // CSV
-    ]
-
     if (restrictExecutiveFiles) {
       Array.from(files).forEach(file => {
         if (!allowedTypes.includes(file.type)) {
           Toaster({ type: 'error', message: 'Executive files are not valid.' })
+
           return
         }
 
@@ -300,16 +301,17 @@ const UploadReports = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Grid container>
-        <Grid item md={12} xs={12} sm={12} sx={{ m: 5 }}>
+        <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ m: 5 }}>
           <Box key={key}>
             <Grid container>
               {/* {imgSrc !== '' ? null : ( */}
-              <Grid item md={12} sm={12} xs={12}>
+              <Grid item size={{ md: 12, sm: 12, xs: 12 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', width: 'auto', flexWrap: 'wrap' }}>
                   <input
                     multiple
                     type='file'
-                    accept='*/*'
+                    // accept='*/*'
+                    accept={allowedTypes}
                     onChange={e => handleInputImageChange(e)}
                     style={{ display: 'none' }}
                     name='image'
@@ -337,7 +339,7 @@ const UploadReports = ({
                 </Box>
               </Grid>
               {/* )} */}
-              <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <Stack
                   direction='row'
                   sx={{

@@ -162,12 +162,14 @@ const ActivityLogs = ({
                   value={searchValue}
                   fullWidth
                   label='Search activity'
-                  InputProps={{
-                    startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
-                  }}
                   onChange={e => {
                     setSearchValue(e.target.value)
                     activityLogSearch(e.target.value)
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                    }
                   }}
                 />
               </Box>
@@ -177,7 +179,7 @@ const ActivityLogs = ({
                 {activitydata?.map((item, index) => (
                   <Box key={index}>
                     <Grid container spacing={3}>
-                      <Grid item xs='auto'>
+                      <Grid size={{ xs: 'auto' }}>
                         <Box
                           sx={{
                             display: 'flex',
@@ -210,8 +212,7 @@ const ActivityLogs = ({
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}
-                        item
-                        xs
+                        size='grow'
                       >
                         <Box
                           sx={{

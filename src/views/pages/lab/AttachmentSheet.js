@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Drawer,
   IconButton,
@@ -17,6 +17,8 @@ import {
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
+import { LoadingButton } from '@mui/lab'
 
 function AttachmentSheet({
   openAttachmentSheet,
@@ -26,7 +28,8 @@ function AttachmentSheet({
   fileViews,
   handleDeleteImg,
   permissions,
-  allCompleted,
+  image,
+  document,
   deleteAttachmentLoader
 }) {
   const theme = useTheme()
@@ -49,20 +52,11 @@ function AttachmentSheet({
     e.preventDefault()
     e.stopPropagation()
     setSelectedItem(item)
-    if (item?.file_type?.startsWith('image')) {
-      if (testImage?.length === 1 && allCompleted) {
-        setError(true)
-        setOpenConfirmDialog(true)
-      } else {
-        setOpenConfirmDialog(true)
-      }
+    if (Number(image?.length || 0) + Number(document?.length || 0) === 1) {
+      setError(true)
+      setOpenConfirmDialog(true)
     } else {
-      if (testDoc?.length === 1 && allCompleted) {
-        setError(true)
-        setOpenConfirmDialog(true)
-      } else {
-        setOpenConfirmDialog(true)
-      }
+      setOpenConfirmDialog(true)
     }
   }
 
@@ -96,7 +90,7 @@ function AttachmentSheet({
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Icon icon='fluent:comment-note-24-regular' width='28' height='28' color='rgba(68, 84, 74, 1)' />
-          <Typography variant='h6'>Attachments</Typography>
+          <Typography variant='h6'>Reports</Typography>
         </Box>
         <IconButton
           sx={{ position: 'absolute', left: '560px', top: 16, zIndex: 102 }}
@@ -105,7 +99,6 @@ function AttachmentSheet({
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Box>
-
       <Box
         sx={{
           pt: 22,
@@ -116,6 +109,7 @@ function AttachmentSheet({
           flexWrap: 'wrap',
           flexDirection: 'row',
           gap: 4
+
           // justifyContent: 'center'
         }}
       >
@@ -136,7 +130,7 @@ function AttachmentSheet({
                     flexDirection: 'column',
                     gap: '8px',
                     width: '271px',
-                    height: '224px'
+                    height: '250px'
                   }}
                 >
                   <Box
@@ -195,40 +189,49 @@ function AttachmentSheet({
                       />
                     )}
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, alignItems: 'center' }}>
-                      <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, alignItems: 'center' }}>
+                    <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
 
-                      <Tooltip title={item?.user_profile?.name || ''}>
-                        <Typography
-                          sx={{
-                            width: 120,
-                            fontSize: '16px',
-                            fontWeight: '400',
-                            lineHeight: '19.36px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {item?.user_profile?.name}
-                        </Typography>
-                      </Tooltip>
-                    </Box>
-                    <Box>
+                    <Tooltip title={item?.user_profile?.name || ''}>
                       <Typography
                         sx={{
-                          width: 76,
+                          width: 120,
                           fontSize: '16px',
                           fontWeight: '400',
                           lineHeight: '19.36px',
                           overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
                         }}
                       >
-                        {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                        {item?.user_profile?.name}
                       </Typography>
-                    </Box>
+                    </Tooltip>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: '400',
+                        lineHeight: '19.36px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {Utility.convertUTCToLocalDate(convertUTCToLocal(item?.user_profile?.created_at))}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        width: 76,
+                        fontSize: '16px',
+                        fontWeight: '400',
+                        lineHeight: '19.36px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                    </Typography>
                   </Box>
                 </Card>
               </a>
@@ -251,7 +254,7 @@ function AttachmentSheet({
                   flexDirection: 'column',
                   gap: '8px',
                   width: '271px',
-                  height: '224px'
+                  height: '250px'
                 }}
               >
                 <Box
@@ -270,6 +273,7 @@ function AttachmentSheet({
                         lineHeight: '19.36px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                         p: 2
                       }}
                     >
@@ -320,21 +324,22 @@ function AttachmentSheet({
                     style={{ width: '56px', height: '60px', objectFit: 'contain' }}
                   />
                 </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {item?.user_profile?.name}
+                  </Typography>
+                </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
-                    <Typography
-                      sx={{
-                        fontSize: '16px',
-                        fontWeight: '400',
-                        lineHeight: '19.36px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {item?.user_profile?.name}
-                    </Typography>
-                  </Box>
+                  <Box>{Utility.convertUTCToLocalDate(convertUTCToLocal(item?.user_profile?.created_at))}</Box>
                   <Box>{extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}</Box>
                 </Box>
               </Card>
@@ -349,7 +354,12 @@ function AttachmentSheet({
             height='24'
             color={theme.palette.customColors.Error}
           />
-          <Typography variant='h6' fontWeight='bold'>
+          <Typography
+            variant='h6'
+            sx={{
+              fontWeight: 'bold'
+            }}
+          >
             Delete File!
           </Typography>
         </DialogTitle>
@@ -390,7 +400,7 @@ function AttachmentSheet({
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button
+              <LoadingButton
                 disabled={deleteAttachmentLoader}
                 onClick={() => {
                   setOpenConfirmDialog(false)
@@ -399,10 +409,10 @@ function AttachmentSheet({
                 variant='outlined'
               >
                 CANCEL
-              </Button>
-              <Button disabled={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
+              </LoadingButton>
+              <LoadingButton loading={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
                 DELETE
-              </Button>
+              </LoadingButton>
             </DialogActions>
           </>
         )}

@@ -254,17 +254,17 @@ export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
 
 export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'
 
-export const PURCHASE_REPORT = 'purchase-report'
-
-export const RETURN_REPORT = 'return-report'
-
-export const SHIPMENT_REPORT = 'shipment-report'
-
 export const CONSUMPTION_REPORT = 'consumption-report'
 
 export const REQUESTED_ITEMS_REPORT = 'requested-items'
 
 export const DISPENSE_REPORT = 'dispense-report'
+
+export const PURCHASE_REPORT = 'purchase-report'
+
+export const RETURN_REPORT = 'return-report'
+
+export const SHIPMENT_REPORT = 'shipment-report'
 
 export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
@@ -454,6 +454,8 @@ export const ANIMAL_REPORT = 'v1/animal/report'
 
 export const USER_REPORT = 'v1/user/report'
 
+export const ASSESSMENT_REPORT = 'v1/animal/batch/assessments'
+
 export const MEDICAL_REPORT = 'v1/medical/report'
 
 export const All_ANIMAL_LIST = 'v1/all/animal/report'
@@ -467,6 +469,8 @@ export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteatta
 export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
 
 export const SPECIES_LIST = 'species-list-egg-wise'
+
+export const SPECIES_FILTER = 'egg/get-species-list'
 
 export const GET_SECTIONS = 'master/zoos/getsections'
 
@@ -494,8 +498,102 @@ export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
 
+// Housing
+
+export const HOUSING_SITE_ANALYTICS = 'zoo/home'
+
+export const GET_SITES = 'site-list'
+
+export const SITE_DETAILS = 'site-details'
+
+export const GET_ALL_SECTIONS = 'get-site-wise-section-list'
+
+export const GET_ALL_ENCLOSURES = 'housing-listing'
+
+export const SECTION_INSIGHTS = 'zoos/section/details'
+
+export const GET_ALL_NOTES = 'v1/get-observation-by-type-id'
+
+export const GET_ALL_SPECIES = 'v1/species/listing'
+
+export const GET_MORTALITY = 'animal/get-mortality-listing-type-wise'
+
+export const GET_ANIMAL_TREATMENT = 'site-wise-animal-medical-data'
+
+export const SECTION_GET_ANIMAL_TREATMENT = 'section-wise-animal-medical-data'
+
+export const GET_MEDIA = 'zoos/all-type-media-list'
+
+export const GET_ANIMAL = 'v1/animal/listing'
+
+export const GET_CLUSTERS_LIST = `cluster/get-cluster-list`
+
+export const GET_SPECIFIC_CLUSTER_ANALYTICS = `/cluster/get-cluster-header-details`
+
+export const GET_ENCLOSURE_LIST_SECTION_WISE = `v1/enclosure/sub/listing`
+
+export const GET_ENCLOSURE_WISE_STATS = `enclosure/get-enclosure`
+
+export const GET_ENCLOSURE_WISE_SPECIES = `v1/enclosure/species/listing`
+
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 
 export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
 
 export const GET_ALL_SHIPMENTS = 'shipment/receive/show'
+
+// Compliance  module
+
+export const GET_DOCUMENT_TYPE_LIST = 'v1/document-types'
+
+export const GET_TRADE_PARTIES_LIST = 'v1/trade/parties'
+
+export const CREATE_DOCUMENT_TYPE = 'v1/document-types'
+
+export const UPDATE_DOCUMENT_TYPE = 'v1/document-types' // Add `/id` dynamically
+
+export const GET_TRADE_CONTEXT_TYPE = 'v1/trade/context/types' // Add `/id` dynamically
+
+export const GET_EXPORTS_LIST = 'v1/trade/exports'
+
+export const GET_EXPORTS_DETAILS = 'v1/trade/exports'
+
+export const GET_LINKED_SHIPMENT_DETAILS = 'v1/trade/exports/linked-shipments'
+
+export const GET_LINKED_IMPORTS_DETAILS = 'v1/trade/exports/linked-imports'
+
+export const ADD_EXPORT = 'v1/trade/exports'
+
+export const EDIT_EXPORT = 'v1/trade/exports/update'
+
+export const GET_DOCUMENT_TYPE = 'v1/trade/support/docs'
+
+export const ADD_DOCUMENT = 'v1/trade/support/docs'
+
+export const GET_SHIPMENTS_LIST = 'v1/trade/shipments'
+
+export const ADD_SHIPMENT_BASICDETAILS = 'v1/trade/shipments/create'
+
+export const GET_SHIPMENT_BASICDETAILS = 'v1/trade/shipments'
+
+export const UPDATE_SHIPMENT_BASICDETAILS = 'v1/trade/shipments/update'
+
+export const GET_EXPORT_ANIMAL_LIST = 'v1/trade/exports/species'
+
+export const EDIT_DOCUMENT = 'v1/trade/support/docs/update'
+
+export const GET_SPECIES_LIST = 'master/taxonomy/search-pagination'
+
+export const GET_MASTER_SPECIES_LIST = 'v1/trade/master-species'
+
+export const CREATE_MASTER_SPECIES = 'v1/trade/master-species'
+
+export const GET_MASTERS_DATA = 'v1/trade/exports/masters'
+
+export const CREATE_SHIPMENT_SPECIES = 'v1/trade/shipments-species/create'
+
+export const GET_SHIPMENT_SPECIES_DATA = 'v1/trade/shipments-species'
+
+export const UPDATE_SHIPMENT_SPECIES = 'v1/trade/shipments-species/update'
+
+export const GET_LINKED_DOCUMENTS_SHIPMENT = 'v1/trade/shipments/documents'

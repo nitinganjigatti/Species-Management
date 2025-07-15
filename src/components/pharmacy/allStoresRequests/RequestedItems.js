@@ -237,8 +237,20 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
     {
       width: 300,
@@ -273,11 +285,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               params?.row?.package ||
               params?.row?.package_qty ||
               params?.row?.package_uom_label ||
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'
+              (params?.row?.product_form_label &&
+                `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                  params?.row?.package_uom_label
+                } ${params?.row?.product_form_label}`)
             }
             placement='top'
           >
@@ -697,10 +708,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               gap: { xs: 2, md: 0 }
             }}
           >
-            <Grid item xs={12} sm={12} md='auto' lg='auto' xl='auto'>
+            <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto', xl: 'auto' }}>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
-            <Grid item xs={12} md={2.5} lg={2.5}>
+            <Grid item size={{ xs: 12, md: 2.5, lg: 2.5 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel>Controlled</InputLabel>
                 <Select
@@ -715,7 +726,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2.5} lg={2.5}>
+            <Grid item size={{ xs: 12, md: 2.5, lg: 2.5 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel>Priority</InputLabel>
                 <Select
@@ -783,14 +794,16 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{ borderRadius: '8px', flexGrow: 1 }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
                 />
                 <ExportButton loading={exportLoading} onClick={handleExport} disabled={total === 0 ? true : false} />
               </Box>
@@ -829,7 +842,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           }}
           onClose={() => closeFulfillDialog()}
           TransitionComponent={Transition}
-          onBackdropClick={() => closeFulfillDialog()}
         >
           <Grid
             container

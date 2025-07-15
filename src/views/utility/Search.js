@@ -9,7 +9,11 @@ const Search = ({
   onChange,
   onClear,
   placeholder = 'Search...',
-  sx = {}
+  width = 300,
+  sx = {},
+  textFielsSX = {},
+  backgroundColor,
+  borderRadius
 }) => {
   const theme = useTheme()
   const iconColor = theme.palette.customColors.neutralSecondary
@@ -18,41 +22,58 @@ const Search = ({
     <Box
       sx={{
         display: 'flex',
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         alignItems: 'center',
+        backgroundColor: backgroundColor || 'transparent',
+        borderRadius: borderRadius || '8px',
         ...sx
       }}
     >
       <TextField
-        variant="outlined"
-        size="small"
+        variant='outlined'
+        size='small'
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" color={iconColor} />
-            </InputAdornment>
-          ),
-          endAdornment: value ? (
-            <InputAdornment position="end">
-              <IconButton
-                size="small"
-                onClick={onClear}
-                aria-label="clear search"
-              >
-                <ClearIcon fontSize="small" color={iconColor} />
-              </IconButton>
-            </InputAdornment>
-          ) : null
-        }}
+        fullWidth
         sx={{
-          width: 300,
+          width: width,
+          ...textFielsSX,
+          '& .MuiBox-root': {
+            backgroundColor: 'transparent'
+          },
+          '& .MuiInputBase-root': {
+            backgroundColor: backgroundColor || 'transparent',
+            borderRadius: borderRadius || '8px',
+            height: textFielsSX?.height || 'auto', // allow height from parent
+            minHeight: textFielsSX?.height || 'auto',
+            paddingRight: '4px'
+          },
+          '& .MuiInputBase-input': {
+            height: '100%',
+            boxSizing: 'border-box',
+            padding: '10px 8px'
+          }
+        }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position='start'>
+                <SearchIcon fontSize='small' color={iconColor} />
+              </InputAdornment>
+            ),
+            endAdornment: value ? (
+              <InputAdornment position='end'>
+                <IconButton size='small' onClick={onClear} aria-label='clear search'>
+                  <ClearIcon fontSize='small' color={iconColor} />
+                </IconButton>
+              </InputAdornment>
+            ) : null
+          }
         }}
       />
     </Box>
-  )
+  );
 }
 
 export default React.memo(Search)

@@ -336,7 +336,6 @@ const AddIngredients = props => {
       master_cut_size_id: feed_type !== '' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
       master_cut_size: feed_type !== '' ? (newUom ? newUom.cut_size : size[item.id]?.name || '') : ''
     }
-    console.log('boxValues :>> ', boxValues)
 
     const existingIndex = selectedCard.findIndex(card => card.ingredient_id === item.id)
 
@@ -368,6 +367,7 @@ const AddIngredients = props => {
       setSearchValue('')
       onChange(selectedCard)
       setSelectedIngredient(selectedCard)
+
       return toast.success('Ingredient selected')
     }
   }
@@ -565,7 +565,6 @@ const AddIngredients = props => {
     debounce(async search => {
       try {
         setLoading(true)
-        console.log(feed, 'feed')
         const params = { page: 1, q: search, sort, status: 1, limit: 20, feed_type: feed }
         const res = await getIngredientList({ params })
         if (res?.data?.result.length > 0) {
@@ -625,6 +624,21 @@ const AddIngredients = props => {
       const updatedSelectedCard = [...selectedCard]
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCard(updatedSelectedCard)
+
+      // Remove only the matching item from selectFeed and size
+      setSelectFeed(prev => {
+        const newFeed = { ...prev }
+        delete newFeed[itemId]
+
+        return newFeed
+      })
+
+      setSize(prev => {
+        const newSize = { ...prev }
+        delete newSize[itemId]
+
+        return newSize
+      })
     }
   }
 
@@ -665,7 +679,7 @@ const AddIngredients = props => {
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
               <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                Add Ingredients
+                Add Items
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -683,23 +697,25 @@ const AddIngredients = props => {
                 <TextField
                   value={searchValue}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <Icon
-                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                        icon={'ion:search-outline'}
-                      />
-                    ),
-                    endAdornment: searchValue && (
-                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                  slotProps={{
+                    input: {
+                      startAdornment: (
                         <Icon
-                          icon={'ion:close-outline'}
-                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                          style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                          icon={'ion:search-outline'}
                         />
-                      </IconButton>
-                    )
+                      ),
+                      endAdornment: searchValue && (
+                        <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                          <Icon
+                            icon={'ion:close-outline'}
+                            style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                          />
+                        </IconButton>
+                      )
+                    }
                   }}
-                  placeholder='Search ingredient'
+                  placeholder='Search item'
                   onChange={handleSearchChange}
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -873,7 +889,7 @@ const AddIngredients = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Id - {item?.id}</Typography>
+                      <Typography>ING - {item?.id}</Typography>
                       <Typography
                         sx={{
                           mr: 3,
@@ -1028,7 +1044,14 @@ const AddIngredients = props => {
                     <Box>
                       <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
 
-                      <Stack direction='row' gap={3} mb={2} sx={{ px: 2 }}>
+                      <Stack
+                        direction='row'
+                        sx={{
+                          gap: 3,
+                          mb: 2,
+                          px: 2
+                        }}
+                      >
                         {Day?.map(day => (
                           <Box
                             key={day.id}
@@ -1089,7 +1112,12 @@ const AddIngredients = props => {
                             id='demo-simple-select-label'
                             placeholder='Add Remarks (optional)'
                             variant='standard'
-                            InputProps={{ disableUnderline: true }}
+                            // InputProps={{ disableUnderline: true }}
+                            slotProps={{
+                              input: {
+                                disableUnderline: true
+                              }
+                            }}
                             value={remarks[item.id]?.remarks || ''}
                             onChange={event => handleAddRemarks(event, item)}
                           />
@@ -1105,14 +1133,22 @@ const AddIngredients = props => {
             <Box
               sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '40%',
-                color: theme.palette.customColors.statusText,
-                fontSize: '16px'
+                height: '70%',
+                textAlign: 'center'
               }}
             >
-              No records to show
+              <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+              <Box
+                sx={{
+                  color: theme.palette.customColors.statusText,
+                  fontSize: '16px'
+                }}
+              >
+                No records to show
+              </Box>
             </Box>
           ) : null}
           {!loading && reachedEnd ? (
@@ -1138,11 +1174,11 @@ const AddIngredients = props => {
         >
           {fromrow === 'rowedit_ingredient' ? (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD INGREDIENT
+              ADD ITEM
             </Button>
           ) : (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD INGREDIENT - {selectedCard?.length} SELECTED
+              ADD ITEM - {selectedCard?.length} SELECTED
             </Button>
           )}
         </Box>

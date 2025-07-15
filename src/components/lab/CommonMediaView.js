@@ -16,13 +16,22 @@ import {
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
+import { LoadingButton } from '@mui/lab'
 
-const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions, allCompleted }) => {
+const CommonMediaView = ({
+  type,
+  image,
+  document,
+  handleDeleteImg,
+  fileViews,
+  permissions,
+  deleteAttachmentLoader
+}) => {
   const theme = useTheme()
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
-  const [uploadAnotherDialog, setUploadAnotherDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [error, setError] = useState(false)
+  const [uploadAnotherDialog, setUploadAnotherDialog] = useState(false)
 
   function extractHoursAndMinutes(date) {
     return moment(date).format('hh:mm A')
@@ -30,7 +39,9 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
 
   function convertUTCToLocal(date) {
     var stillUtc = moment.utc(date).toDate()
-    var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+    // var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+    var local = moment(stillUtc).local(true).format('DD-MMM-YYY')
 
     return local
   }
@@ -38,24 +49,12 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
   const handleConfirmDialog = (e, item) => {
     e.preventDefault()
     e.stopPropagation()
-    let attachments = image !== undefined ? image : document !== undefined ? document : []
     setSelectedItem(item)
-    if (image?.length === 1) {
+    if (Number(image?.length || 0) + Number(document?.length || 0) == 1) {
+      setError(true)
       setOpenConfirmDialog(true)
-      if (allCompleted) {
-        setError(true)
-
-        return
-      }
     } else {
       setOpenConfirmDialog(true)
-
-      // Check if total rows are equal to total attachments
-      // if (allCompleted && ) {
-      //   setError(true)
-
-      //   return
-      // }
     }
   }
 
@@ -65,6 +64,13 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
       setOpenConfirmDialog(false)
       setSelectedItem(null) // Reset after deletion
     }
+  }
+
+  const closeConfirmDialoge = () => {
+    setOpenConfirmDialog(false)
+    setTimeout(() => {
+      setError(false)
+    }, 1000)
   }
 
   return (
@@ -86,7 +92,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                   flexDirection: 'column',
                   gap: '8px',
                   width: '271px',
-                  height: '224px'
+                  height: '244px'
                 }}
               >
                 <Box
@@ -155,7 +161,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                     <Tooltip title={item?.user_profile?.name || ''}>
                       <Typography
                         sx={{
-                          width: 120,
+                          width: '212px',
                           fontSize: '16px',
                           fontWeight: '400',
                           lineHeight: '19.36px',
@@ -168,20 +174,30 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                       </Typography>
                     </Tooltip>
                   </Box>
-                  <Box>
-                    <Typography
-                      sx={{
-                        width: 76,
-                        fontSize: '16px',
-                        fontWeight: '400',
-                        lineHeight: '19.36px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
-                    </Typography>
-                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {convertUTCToLocal(item?.user_profile?.created_at)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                  </Typography>
                 </Box>
               </Card>
             </a>
@@ -202,7 +218,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                   flexDirection: 'column',
                   gap: '8px',
                   width: '271px',
-                  height: '224px'
+                  height: '244px'
                 }}
               >
                 <Box
@@ -220,6 +236,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                         fontWeight: '400',
                         lineHeight: '19.36px',
                         overflow: 'hidden',
+                        whiteSpace: 'nowrap',
                         textOverflow: 'ellipsis',
                         p: 2
                       }}
@@ -257,7 +274,6 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                     mt: -2
                   }}
                 >
-                  {/* {console.log('item?.file_original_name :>> ', item?.file_type)} */}
                   <img
                     src={
                       item?.file_type === 'application/pdf'
@@ -279,6 +295,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                     <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
                     <Typography
                       sx={{
+                        width: '212px',
                         fontSize: '16px',
                         fontWeight: '400',
                         lineHeight: '19.36px',
@@ -289,22 +306,49 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                       {item?.user_profile?.name}
                     </Typography>
                   </Box>
-                  <Box>{extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}</Box>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {convertUTCToLocal(item?.user_profile?.created_at)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                  </Typography>
                 </Box>
               </Card>
             </a>
           ))}
       </>
-      <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)} fullWidth>
+      <Dialog open={openConfirmDialog} onClose={() => closeConfirmDialoge()} fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {/* <DeleteOutlineIcon sx={{ color: "red" }} /> */}
           <Icon
             icon='material-symbols:delete-outline'
             width='24'
             height='24'
             color={theme.palette.customColors.Error}
           />
-          <Typography variant='h6' fontWeight='bold'>
+          <Typography
+            sx={{
+              fontSize: 20,
+              fontWeight: 'bold'
+            }}
+          >
             Delete File!
           </Typography>
         </DialogTitle>
@@ -319,19 +363,9 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              {/* <Button
-            onClick={() => {
-              setOpenConfirmDialog(false)
-              setError(false)
-            }}
-            variant='outlined'
-          >
-            CANCEL
-          </Button>
-          */}
               <Button
                 sx={{ backgroundColor: theme.palette.primary.main }}
-                onClick={() => setOpenConfirmDialog(false)}
+                onClick={() => closeConfirmDialoge()}
                 variant='contained'
               >
                 OK
@@ -350,7 +384,8 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button
+              <LoadingButton
+                disabled={deleteAttachmentLoader}
                 onClick={() => {
                   setOpenConfirmDialog(false)
                   setError(false)
@@ -358,12 +393,10 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                 variant='outlined'
               >
                 CANCEL
-              </Button>
-              {/* {!error && !allCompleted && ( */}
-              <Button onClick={handleDelete} variant='contained' color='error'>
+              </LoadingButton>
+              <LoadingButton loading={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
                 DELETE
-              </Button>
-              {/* )} */}
+              </LoadingButton>
             </DialogActions>
           </>
         )}

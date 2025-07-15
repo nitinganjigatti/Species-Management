@@ -818,13 +818,15 @@ const ShipmentReport = () => {
             }}
           >
             <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Grid item xs={12} sm={5} md={5}>
+              <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
                 <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
               </Grid>
 
-              <Grid item sm={7} xs={12}>
-                <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                  <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+              <Grid item sm={7} size={{ xs: 12, sm: 7 }}>
+                <Grid container spacing={2} sx={{
+                  justifyContent: { xs: 'flex-end' }
+                }}>
+                  <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                     <TextField
                       variant='outlined'
                       size='small'
@@ -832,15 +834,17 @@ const ShipmentReport = () => {
                       value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                          </InputAdornment>
-                        )
-                      }}
                       sx={{
                         borderRadius: '8px'
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                            </InputAdornment>
+                          )
+                        }
                       }}
                     />
                   </Grid>
@@ -901,7 +905,7 @@ const ShipmentReport = () => {
         />
       )}
     </>
-  )
+  );
 }
 
 export default ShipmentReport

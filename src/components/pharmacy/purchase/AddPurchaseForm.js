@@ -602,7 +602,6 @@ const AddPurchaseForm = () => {
 
   const onSubmit = async data => {
     setSubmitLoader(true)
-    // console.log('data', data)
 
     const postData = editParams
     postData.description = data.description
@@ -639,8 +638,6 @@ const AddPurchaseForm = () => {
     //   parseFloat(roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue)
     postData.net_amount = grandTotalAmount
     // added grand total amount
-    console.log('postData', postData)
-    // debugger
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
@@ -676,12 +673,8 @@ const AddPurchaseForm = () => {
               }
             })
 
-            console.log('ml trained triggered')
-            console.log('suggestionData', suggestionData)
-
             try {
               const mlResult = await productMappingForMlTraining(suggestionData)
-              console.log('ML training completed successfully', mlResult)
               toast.success(mlResult?.data)
 
               setEditParams(editParamsInitialState)
@@ -706,7 +699,6 @@ const AddPurchaseForm = () => {
           }
           if (response?.message) {
             toast.error(response.message)
-            console.log('error', response.message)
           }
         }
       }
@@ -823,16 +815,15 @@ const AddPurchaseForm = () => {
         }))
 
         setProductExpiryDate(response.data.expiry_date)
+      } else {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: '',
+          purchase_variant_id: '',
+          purchase_variant_ratio: ''
+        }))
+        setProductExpiryDate('')
       }
-      //  else {
-      //   setNestedRowMedicine(prevState => ({
-      //     ...prevState,
-      //     purchase_expiry_date: '',
-      //     purchase_variant_id: '',
-      //     purchase_variant_ratio: ''
-      //   }))
-      //   setProductExpiryDate('')
-      // }
     } catch (error) {
       console.log('supplier error', error)
     } finally {
@@ -1135,50 +1126,50 @@ const AddPurchaseForm = () => {
   // ****** edit section //////
   // data posting section
 
-  const postItemsData = async () => {
-    // if (editParams.discount_type !== '') {
-    //   if (editParams.discount_amount === '' || editParams.discount_percentage === '') {
-    //     setValidateDiscount('Please enter discount value')
+  // const postItemsData = async () => {
+  //   if (editParams.discount_type !== '') {
+  //     if (editParams.discount_amount === '' || editParams.discount_percentage === '') {
+  //       setValidateDiscount('Please enter discount value')
 
-    //     return
-    //   }
-    // }
-    setSubmitLoader(true)
+  //       return
+  //     }
+  //   }
+  //   setSubmitLoader(true)
 
-    const postData = editParams
-    postData.total_amount = totalLineItemsPurchase + calculateTotalTaxAmount
+  //   const postData = editParams
+  //   postData.total_amount = totalLineItemsPurchase + calculateTotalTaxAmount
 
-    if (id) {
-      postData.antz_pharmacy_purchase_id = id
-      const response = await updatePurchase(id, postData)
+  //   if (id) {
+  //     postData.antz_pharmacy_purchase_id = id
+  //     const response = await updatePurchase(id, postData)
 
-      if (response?.success) {
-        toast.success(response.message)
-        setSubmitLoader(false)
-        getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/')
-      } else {
-        setSubmitLoader(false)
-        toast.error(response.message)
-      }
-    } else {
-      const response = await addPurchase(postData)
-      if (response?.success) {
-        toast.success(response.message)
-        setEditParams(editParamsInitialState)
-        setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/')
-      } else {
-        setSubmitLoader(false)
-        if (response.data?.po_no) {
-          toast.error('Purchase number already exist ')
-        }
-        if (response?.message) {
-          toast.error(response.message)
-        }
-      }
-    }
-  }
+  //     if (response?.success) {
+  //       toast.success(response.message)
+  //       setSubmitLoader(false)
+  //       getListOfItemsById(id)
+  //       Router.push('/pharmacy/purchase/')
+  //     } else {
+  //       setSubmitLoader(false)
+  //       toast.error(response.message)
+  //     }
+  //   } else {
+  //     const response = await addPurchase(postData)
+  //     if (response?.success) {
+  //       toast.success(response.message)
+  //       setEditParams(editParamsInitialState)
+  //       setSubmitLoader(false)
+  //       Router.push('/pharmacy/purchase/')
+  //     } else {
+  //       setSubmitLoader(false)
+  //       if (response.data?.po_no) {
+  //         toast.error('Purchase number already exist ')
+  //       }
+  //       if (response?.message) {
+  //         toast.error(response.message)
+  //       }
+  //     }
+  //   }
+  // }
 
   // validatePurchaseProducts
 
@@ -1502,7 +1493,7 @@ const AddPurchaseForm = () => {
   return (
     <Card>
       <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Grid item sm={4} xs={12}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <CardHeader
             sx={{
               display: 'flex',
@@ -1528,8 +1519,7 @@ const AddPurchaseForm = () => {
         </Grid>
         <Grid
           item
-          sm={7}
-          xs={12}
+          size={{ xs: 12, sm: 7 }}
           sx={{
             display: 'flex',
             flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
@@ -1561,14 +1551,13 @@ const AddPurchaseForm = () => {
           )}
         </Grid>
       </Grid>
-
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
         <CardContent>
           <Divider sx={{ mb: '16px', mt: -2 }} />
           <Typography sx={{ fontSize: '16px', fontWeight: 500, mb: '16px' }}>Supplier Details</Typography>
           <Grid container spacing={5}>
             {/* <Grid item xs={12} sm={6}> */}
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
                 <Controller
@@ -1599,7 +1588,7 @@ const AddPurchaseForm = () => {
                 {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='po_date'
@@ -1614,6 +1603,7 @@ const AddPurchaseForm = () => {
                       width={'100%'}
                       onChangeHandler={date => {
                         let formatted = formatDate(date)
+
                         onChange(formatted)
                       }}
                       customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
@@ -1628,7 +1618,7 @@ const AddPurchaseForm = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='po_no'
@@ -1654,7 +1644,7 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
 
-            {/* <Grid item xs={12} sm={6}>
+            {/* <Grid item size={{xs: 12, sm: 6}}>
               <FormControl fullWidth>
                 <InputLabel error={Boolean(errors.supplier_id)}>Byy*</InputLabel>
                 <Controller
@@ -1685,7 +1675,7 @@ const AddPurchaseForm = () => {
                 {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
               </FormControl>
             </Grid> */}
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='purchase_order_no'
@@ -1705,7 +1695,7 @@ const AddPurchaseForm = () => {
                 />
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='requested_by'
@@ -1727,7 +1717,7 @@ const AddPurchaseForm = () => {
             </Grid>
 
             {/* Upload Docs */}
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <Box sx={{ display: 'flex', gap: '12px' }}>
                 <Box sx={{ width: '100%' }}>
                   <input
@@ -1878,7 +1868,7 @@ const AddPurchaseForm = () => {
                 icon='fluent:subtract-circle-48-regular'
                 width='20px'
                 height='20px'
-                margineTop={-2}
+                // margineTop={-2}
                 color={theme.palette.customColors.addPrimary}
                 onClick={() => setShowFreight(false)}
               />
@@ -1897,10 +1887,7 @@ const AddPurchaseForm = () => {
 
             <Grid
               item
-              xs={12}
-              sm={4}
-              md={4}
-              lg={4}
+              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
               sx={{
                 mt: showFreight ? '16px' : 0,
                 height: showFreight ? 'auto' : 0,
@@ -1938,10 +1925,7 @@ const AddPurchaseForm = () => {
             {/* GST Input */}
             <Grid
               item
-              xs={12}
-              sm={4}
-              md={4}
-              lg={4}
+              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
               sx={{
                 mt: showFreight ? '16px' : 0,
                 height: showFreight ? 'auto' : 0,
@@ -1978,10 +1962,7 @@ const AddPurchaseForm = () => {
 
             <Grid
               item
-              xs={12}
-              sm={4}
-              md={4}
-              lg={4}
+              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
               sx={{
                 mt: showFreight ? '16px' : 0,
                 height: showFreight ? 'auto' : 0,
@@ -2004,11 +1985,11 @@ const AddPurchaseForm = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={12} md={12} lg={12}>
+            <Grid item size={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
               <Divider />
             </Grid>
 
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='additional_charges'
@@ -2038,7 +2019,7 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   {/* Dropdown for "+" or "-" */}
@@ -2119,10 +2100,12 @@ const AddPurchaseForm = () => {
                             setRoundUpValue(e.target.value) // Update local state with numeric value
                           }
                         }}
-                        InputProps={{
-                          sx: {
-                            borderTopLeftRadius: 0,
-                            borderBottomLeftRadius: 0
+                        slotProps={{
+                          input: {
+                            sx: {
+                              borderTopLeftRadius: 0,
+                              borderBottomLeftRadius: 0
+                            }
                           }
                         }}
                       />
@@ -2132,7 +2115,7 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='description'
@@ -2167,8 +2150,7 @@ const AddPurchaseForm = () => {
           <Grid container>
             <Grid
               item
-              sm={12}
-              xs={12}
+              size={{ xs: 12, sm: 12 }}
               sx={{
                 display: 'flex',
                 justifyContent: 'flex-end',
@@ -2218,154 +2200,77 @@ const AddPurchaseForm = () => {
               }}
               aria-label='simple table'
             >
-              <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+              <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                <TableRow>
+                  <TableCell rowSpan={2} sx={{ minWidth: 20 }}>
+                    SL.No
+                  </TableCell>
+                  <TableCell rowSpan={2} sx={{ minWidth: 300 }}>
+                    Product Name
+                  </TableCell>
+                  <TableCell rowSpan={2} sx={{ textAlign: 'center' }}>
+                    Batch
+                  </TableCell>
+                  <TableCell rowSpan={2} sx={{ minWidth: 130, textAlign: 'center' }}>
+                    Expiry Date
+                  </TableCell>
+                  <TableCell rowSpan={2} align='right'>
+                    Quantity
+                  </TableCell>
+                  <TableCell rowSpan={2} align='right'>
+                    Rate
+                  </TableCell>
+                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130 }}>
+                    Discount in %
+                  </TableCell>
+                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130 }}>
+                    Net Amount
+                  </TableCell>
+                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130, whiteSpace: 'nowrap' }}>
+                    Gross Amount
+                  </TableCell>
+
+                  <TableCell colSpan={2} align='center'>
+                    CGST
+                  </TableCell>
+                  <TableCell colSpan={2} align='center'>
+                    SGST
+                  </TableCell>
+                  <TableCell colSpan={2} align='center'>
+                    IGST
+                  </TableCell>
+                  <TableCell rowSpan={2} align='right'>
+                    Action
+                  </TableCell>
+                </TableRow>
                 <TableRow>
                   <TableCell
                     sx={{
-                      minWidth: 20
+                      borderTopLeftRadius: '0px !important'
                     }}
+                    align='center'
                   >
-                    SL.No
+                    Rate
                   </TableCell>
+                  <TableCell align='center'>Amount</TableCell>
+                  <TableCell align='center'>Rate</TableCell>
+                  <TableCell align='center'>Amount</TableCell>
+                  <TableCell align='center'>Rate</TableCell>
                   <TableCell
                     sx={{
-                      minWidth: 300
+                      borderTopRightRadius: '0px !important'
                     }}
+                    align='center'
                   >
-                    Product Name
+                    Amount
                   </TableCell>
-
-                  <TableCell
-                    sx={{
-                      textAlign: 'center'
-                    }}
-                  >
-                    Batch
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      minWidth: 130,
-                      textAlign: 'center'
-                    }}
-                  >
-                    Expiry Date
-                  </TableCell>
-                  <TableCell align='right'>Quantity</TableCell>
-                  {/* <TableCell align='right'>Free Quantity</TableCell> */}
-                  <TableCell align='right'>Rate</TableCell>
-                  <TableCell
-                    align='right'
-                    sx={{
-                      minWidth: 130
-                    }}
-                  >
-                    Discount in %
-                  </TableCell>
-                  {/* <TableCell align='right'>GST in %</TableCell> */}
-                  <TableCell
-                    align='right'
-                    sx={{
-                      minWidth: 130
-                    }}
-                  >
-                    Net Amount
-                  </TableCell>
-                  <TableCell
-                    align='right'
-                    sx={{
-                      minWidth: 130,
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Gross Amount
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      minWidth: 130,
-                      textAlign: 'center'
-                    }}
-                  >
-                    CGST
-                    <Grid container>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Rate
-                      </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Amount
-                      </Grid>
-                    </Grid>
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: 'center',
-                      minWidth: 130
-                    }}
-                  >
-                    SGST
-                    <Grid container>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Rate
-                      </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Amount
-                      </Grid>
-                    </Grid>
-                  </TableCell>
-                  <TableCell sx={{ textAlign: 'center', minWidth: 130 }}>
-                    IGST
-                    <Grid container>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Rate
-                      </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Amount
-                      </Grid>
-                    </Grid>
-                  </TableCell>
-                  <TableCell align='right'>Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {editParams?.purchase_details
                   ? editParams?.purchase_details.map((el, index) => {
                       return (
-                        <TableRow key={index} sx={{ overflowX: 'scroll' }}>
+                        <TableRow key={`${index}${el?.medicine_name}`} sx={{ overflowX: 'scroll' }}>
                           <TableCell>
                             <Typography variant='body2'>{index + 1}</Typography>
                           </TableCell>
@@ -2375,15 +2280,8 @@ const AddPurchaseForm = () => {
                             >
                               {el?.medicine_name}
                             </Typography>
-
                             <Typography variant='body2'>{el?.package_details}</Typography>
-
                             <Typography variant='body2'>{el?.manufacture}</Typography>
-                            {/* {(!el?.purchase_stock_item_id || !el?.medicine_name) && (
-                              <Typography sx={{ color: 'error.main', fontSize: '12px' }}>
-                                Some product information appears to be missing. Kindly update the details.
-                              </Typography>
-                            )} */}
                           </TableCell>
                           <TableCell>{el?.purchase_batch_no}</TableCell>
                           <TableCell>
@@ -2392,53 +2290,30 @@ const AddPurchaseForm = () => {
                               : Utility.formatDisplayDate(el?.purchase_expiry_date)}
                           </TableCell>
                           <TableCell align='right'>{el?.purchase_qty}</TableCell>
-                          {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
                           <TableCell align='right'>
                             {Utility.formatAmountToReadableDigit(el?.purchase_unit_price)}
                           </TableCell>
                           <TableCell align='right'>{el?.purchase_discount}%</TableCell>
-                          {/* <TableCell align='right'>{el.purchase_igst}%</TableCell> */}
                           <TableCell align='right'>
                             {Utility.formatAmountToReadableDigit(el?.purchase_net_amount)}
                           </TableCell>
                           <TableCell align='right'>
                             {Utility.formatAmountToReadableDigit(el?.purchase_gross_amount)}
                           </TableCell>
-                          <TableCell
-                            sx={{
-                              textAlign: 'center'
-                            }}
-                          >
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_cgst}%
-                            </TableCell>
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {Utility.formatAmountToReadableDigit(el?.purchase_cgst_amount)}
-                            </TableCell>
+
+                          <TableCell align='center'>{el?.purchase_cgst}%</TableCell>
+                          <TableCell align='center'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_cgst_amount)}
                           </TableCell>
-                          <TableCell
-                            sx={{
-                              textAlign: 'center'
-                            }}
-                          >
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_sgst}%
-                            </TableCell>
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {Utility.formatAmountToReadableDigit(el?.purchase_sgst_amount)}
-                            </TableCell>
-                          </TableCell>{' '}
-                          <TableCell
-                            sx={{
-                              textAlign: 'center'
-                            }}
-                          >
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_igst}%
-                            </TableCell>
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {Utility.formatAmountToReadableDigit(el?.purchase_igst_amount)}
-                            </TableCell>
+
+                          <TableCell align='center'>{el?.purchase_sgst}%</TableCell>
+                          <TableCell align='center'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_sgst_amount)}
+                          </TableCell>
+
+                          <TableCell align='center'>{el?.purchase_igst}%</TableCell>
+                          <TableCell align='center'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_igst_amount)}
                           </TableCell>
                           <TableCell align='center'>
                             <Box sx={{ display: 'flex' }}>
@@ -2479,15 +2354,12 @@ const AddPurchaseForm = () => {
             </Table>
           </TableContainer>
         </Box>
-        <Grid item xs={6}>
+        <Grid item size={{ xs: 6 }}>
           {/* {totalQty ? ( */}
           <Grid container>
             <Grid
               item
-              xs={12}
-              sm={7}
-              lg={4}
-              md={5}
+              size={{ xs: 12, sm: 7, lg: 4, md: 5 }}
               sx={{
                 mb: { sm: 0, xs: 4 },
                 mt: { xs: 4 },
@@ -2549,7 +2421,7 @@ const AddPurchaseForm = () => {
 
                   {/* <CalcWrapper>
                   <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} spacing={2}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item size={{xs: 12, sm: 6}}>
                       <FormControl fullWidth>
                         <InputLabel>Discount</InputLabel>
                         <Select
@@ -2565,7 +2437,7 @@ const AddPurchaseForm = () => {
                         </Select>
                       </FormControl>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item size={{xs: 12, sm: 6}}>
                       <FormControl fullWidth>
                         <TextField
                           type='text'
@@ -2907,19 +2779,23 @@ const AddPurchaseForm = () => {
                             }
                           }
                         }}
-                        inputProps={{
-                          style: { textAlign: 'right' } // Aligns text and placeholder to the right
+                        // Highlights the field in red if there's an error
+                        error={isError}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <IconButton edge='start'>
+                                  <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
+                                </IconButton>
+                              </InputAdornment>
+                            )
+                          },
+
+                          htmlInput: {
+                            style: { textAlign: 'right' } // Aligns text and placeholder to the right
+                          }
                         }}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <IconButton edge='start'>
-                                <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
-                              </IconButton>
-                            </InputAdornment>
-                          )
-                        }}
-                        error={isError} // Highlights the field in red if there's an error
                       />
                     </CalcWrapper>
                   </Box>
@@ -2940,7 +2816,7 @@ const AddPurchaseForm = () => {
           {/* // ) : null} */}
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}

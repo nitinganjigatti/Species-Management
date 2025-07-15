@@ -376,7 +376,7 @@ export const AddItemsForm = ({
       style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
     >
       <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <ControlledAutocomplete
             name='request_item'
             label='Product Name*'
@@ -387,7 +387,12 @@ export const AddItemsForm = ({
             onKeyUp={e => searchMedicineData(e.target.value)}
             onChangeOverride={handleProductChange}
             onBlur={() => searchMedicineData(nestedMedicine?.stock_id, nestedMedicine?.stock_type)}
-            renderOption={(props, option) => <ProductOption option={option} {...props} />}
+            // renderOption={(props, option) => <ProductOption option={option} {...props} />}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props
+
+              return <ProductOption key={key} option={option} {...otherProps} />
+            }}
           />
 
           {watch('packageDetails') && (
@@ -400,11 +405,11 @@ export const AddItemsForm = ({
           )}
         </Grid>
 
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormFieldLabel text={getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'} />
         </Grid>
 
-        <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+        <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
           <ControlledAutocomplete
             name='batch_no'
             label='Batch No*'
@@ -415,7 +420,12 @@ export const AddItemsForm = ({
             getOptionLabel={option => option.label || ''}
             isOptionEqualToValue={(option, value) => option.value === value?.value}
             onChangeOverride={handleBatchChange}
-            renderOption={(props, option) => <BatchOption option={option} {...props} />}
+            // renderOption={(props, option) => <BatchOption option={option} {...props} />}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props
+
+              return <BatchOption key={key} option={option} {...otherProps} />
+            }}
             PaperProps={{
               elevation: 3,
               sx: {
@@ -436,7 +446,7 @@ export const AddItemsForm = ({
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+        <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
           <ControlledTextField
             name='multiplier'
             label='Product Variant'
@@ -446,7 +456,7 @@ export const AddItemsForm = ({
           />
         </Grid>
         {getValues('stock_type') != 'non_medical' && (
-          <Grid item xs={12} sm={4}>
+          <Grid item size={{ xs: 12, sm: 4 }}>
             <ControlledTextField
               name='expiry_date'
               label='Expiry Date*'
@@ -458,10 +468,10 @@ export const AddItemsForm = ({
           </Grid>
         )}
 
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormFieldLabel text='Quantity' />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <ControlledTextField
             name='quantity'
             label='Quantity*'
@@ -475,10 +485,10 @@ export const AddItemsForm = ({
             onInput={checkTotalCount}
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormFieldLabel text='Reason for Discard' />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <ControlledSelect
             name='reason'
             label='Select reason*'
@@ -491,15 +501,24 @@ export const AddItemsForm = ({
             }
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <ControlledTextField name='comments' label='Comments' control={control} errors={errors} required />
         </Grid>
         {quantityError && (
-          <Grid item xs={12}>
-            <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+          <Grid item size={{ xs: 12 }}>
+            <Typography sx={{
+              color: 'error.main'
+            }}>Quantity should be lesser than available Quantity.</Typography>
           </Grid>
         )}
-        <Grid item xs={12} display={'flex'} justifyContent={'flex-end'} gap={3}>
+        <Grid
+          item
+          size={{ xs: 12 }}
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 3
+          }}>
           <Button variant='outlined' onClick={closeDialog}>
             Cancel
           </Button>
@@ -509,5 +528,5 @@ export const AddItemsForm = ({
         </Grid>
       </Grid>
     </form>
-  )
+  );
 }

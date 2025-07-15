@@ -175,7 +175,7 @@ const IngredientDetail = () => {
             </CardContent>
           ) : (
             <Grid container spacing={6}>
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                   <Typography color='inherit'>Diet</Typography>
                   <Typography
@@ -186,11 +186,17 @@ const IngredientDetail = () => {
                       }
                     }}
                     color='inherit'
-                    onClick={() => router.back()}
+                    onClick={() => Router.push('/diet/ingredient')}
                   >
-                    Ingredients
+                    Items
                   </Typography>
-                  <Typography color='text.primary'>Ingredient Details</Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.primary'
+                    }}
+                  >
+                    Item Details
+                  </Typography>
                 </Breadcrumbs>
                 {Object.keys(IngredientsDetailsval).length !== 0 ? (
                   <Card>
@@ -269,7 +275,7 @@ const IngredientDetail = () => {
                           getIngredientsDetailval={getIngredientsDetailval}
                         />
 
-                        <Grid item md={8} xs={12}>
+                        <Grid item size={{ xs: 12, md: 8 }}>
                           <TabContext value={value}>
                             <TabList onChange={handleChange} aria-label='customized tabs example'>
                               <Tab

@@ -187,7 +187,7 @@
 
 // export default AddSample
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
@@ -346,6 +346,15 @@ const AddSample = props => {
     searchSampleData(value)
   }
 
+  // Inside your component
+  const inputRef = useRef()
+
+  useEffect(() => {
+    if (inputRef.current && control._formValues.test_name) {
+      inputRef.current.focus()
+    }
+  }, [control._formValues.test_name])
+
   // const fetchSampleTypesData = useCallback(async q => {
   //   try {
   //     const params = { q }
@@ -424,6 +433,7 @@ const AddSample = props => {
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
+                      inputRef={inputRef}
                       label='Sample Name*'
                       value={value}
                       onChange={onChange}
@@ -624,6 +634,7 @@ const AddSample = props => {
                       type='reset'
                       color='error'
                       variant='outlined'
+                      disabled={submitLoader}
                     >
                       Cancel
                     </Button>

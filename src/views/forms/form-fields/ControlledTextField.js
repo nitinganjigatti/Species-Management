@@ -37,10 +37,8 @@ const ControlledTextField = ({
           label={label}
           onWheel={event => event.target.blur()}
           disabled={disabled}
-          InputProps={{ readOnly }}
           error={Boolean(error)}
           helperText={helperText}
-          inputProps={inputProps}
           onChange={e => {
             field.onChange(e)
             if (onChangeOverride) onChangeOverride(e)
@@ -49,6 +47,10 @@ const ControlledTextField = ({
           onPaste={onPaste}
           onInput={onInput}
           sx={sx}
+          slotProps={{
+            input: { readOnly },
+            htmlInput: inputProps
+          }}
         />
       )}
     />

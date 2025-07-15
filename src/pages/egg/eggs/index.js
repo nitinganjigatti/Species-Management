@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useContext } from 'react'
+import React, { useCallback, useEffect, useState, useContext, useMemo } from 'react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 
@@ -11,6 +11,7 @@ import {
   Card,
   CardHeader,
   Chip,
+  CircularProgress,
   Divider,
   Stack,
   Tab,
@@ -62,6 +63,10 @@ const EggList = () => {
     selected_filters_options
   } = router.query
 
+  const authData = useContext(AuthContext)
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
+
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
   const [loader, setLoader] = useState(false)
@@ -79,7 +84,6 @@ const EggList = () => {
 
   const [isDiscarded, setIsDiscarded] = useState(subTab_value ? subTab_value : 'eggs_discarded')
 
-  const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
   const [eggID, setEggId] = useState('')
@@ -109,13 +113,14 @@ const EggList = () => {
   const [filterList, setFilterList] = useState([])
 
   // nursery filter dropdown
+  const [nurseryLoading, setNurseryLoading] = useState(false)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
 
   useEffect(() => {
     if (filter_list) {
-      console.log('filter_list', filter_list)
+      // console.log('filter_list', filter_list)
       setFilterList(JSON.parse(filter_list))
     }
     if (selected_options) {
@@ -125,10 +130,6 @@ const EggList = () => {
       setSelectedFiltersOptions(JSON.parse(selected_filters_options))
     }
   }, [])
-
-  const authData = useContext(AuthContext)
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
-  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
 
   const handleDiscard = (e, eggId) => {
     e.stopPropagation()
@@ -149,7 +150,7 @@ const EggList = () => {
 
   const checkAddPermission = () => {
     if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
-      console.log('animal_record_access', animal_record_access)
+      // console.log('animal_record_access', animal_record_access)
 
       return true
     } else {
@@ -363,6 +364,7 @@ const EggList = () => {
                   handleAction={handleAction}
                   setAllocationValues={setAllocationValues}
                   condition={params.row.egg_condition}
+
                   // hover={hover} setHover={setHover}
                 />
               </div>
@@ -602,6 +604,7 @@ const EggList = () => {
                   setEggId={setEggId}
                   handleAction={handleAction}
                   setAllocationValues={setAllocationValues}
+
                   // hover={hover} setHover={setHover}
                 />
               </div>
@@ -771,7 +774,7 @@ const EggList = () => {
       headerName: 'Animal Id',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-          {console.log(params.row.animal_id)}
+          {/* {console.log(params.row.animal_id)} */}
           {params.row.animal_id ? (
             <Typography
               style={{
@@ -1338,7 +1341,8 @@ const EggList = () => {
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '14px',
                   fontWeight: '500',
-                  lineHeight: '16.94px'
+                  lineHeight: '16.94px',
+                  mb: 0.7
                 }}
               >
                 {params.row.user_full_name ? params.row.user_full_name : '-'}
@@ -1944,12 +1948,15 @@ const EggList = () => {
       }
     )
   }
+  // console.log('tab_Value', tab_Value)
+  // console.log('subTab_value', subTab_value)
 
   const fetchTableData = useCallback(
     async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}, filterByNurseryId) => {
       // debugger
       try {
         setLoading(true)
+
         // Extracting IDs from selectedFiltersOptions
         // const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || []
         const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
@@ -1970,6 +1977,7 @@ const EggList = () => {
           : ''
 
         // console.log('status', status)
+        // console.log('first')
         // console.log('isDiscarded', isDiscarded)
         const params = {
           sort,
@@ -1997,9 +2005,8 @@ const EggList = () => {
           //   : subTab_value === 'eggs_discarded_at_nursery'
           //   ? { discarded_date: collectedDate || '' }
           //   : { collected_date: collectedDate || '' }),
-          ...(status === 'eggs_ready_to_be_discarded_at_nursery'
-            ? { discarded_date: collectedDate || '' }
-            : isDiscarded === 'eggs_discarded_at_nursery'
+
+          ...(status === 'eggs_ready_to_be_discarded_at_nursery' || status === 'eggs_discarded'
             ? { discarded_date: collectedDate || '' }
             : { collected_date: collectedDate || '' }),
 
@@ -2033,7 +2040,7 @@ const EggList = () => {
         }
         setLoading(false)
       } catch (error) {
-        console.log(error)
+        console.error(error)
         setLoading(false)
       }
     },
@@ -2075,6 +2082,7 @@ const EggList = () => {
   )
 
   const NurseryList = async q => {
+    setNurseryLoading(true)
     try {
       const params = {
         search: q,
@@ -2090,7 +2098,9 @@ const EggList = () => {
         setNurseryList(updatedList)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
+    } finally {
+      setNurseryLoading(false)
     }
   }
 
@@ -2111,25 +2121,40 @@ const EggList = () => {
     NurseryList()
   }, [])
 
+  // 👇 debounce the function just once using useMemo
+  const debouncedSetFilterByNurseryId = useMemo(
+    () =>
+      debounce(value => {
+        NurseryList(value)
+      }, 400),
+    []
+  )
+
   const headerAction = (
     <>
       <Box>
         <Autocomplete
           sx={{
             width: 250,
-            m: 2,
             ml: 5
           }}
           name='nursery'
           value={defaultNursery}
           disablePortal
           id='nursery'
+          onInputChange={(event, newInputValue, reason) => {
+            if (reason === 'reset') {
+              debouncedSetFilterByNurseryId(newInputValue)
+            }
+            debouncedSetFilterByNurseryId(newInputValue)
+          }}
+          loading={nurseryLoading}
           options={nurseryList?.length > 0 ? nurseryList : []}
           getOptionLabel={option => option.nursery_name}
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
             if (val === null || val.nursery_id === '') {
-              setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
+              // setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
               setFilterByNurseryId('')
               write('Nursery', JSON.stringify({ nursery_id: '', nursery_name: 'All' }))
             } else {
@@ -2140,12 +2165,18 @@ const EggList = () => {
           }}
           renderInput={params => (
             <TextField
-              onChange={e => {
-                searchNursery(e.target.value)
-              }}
               {...params}
               label='Select Nursery *'
               placeholder='Search & Select'
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {nurseryLoading ? <CircularProgress size={20} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                )
+              }}
             />
           )}
         />
@@ -2307,7 +2338,12 @@ const EggList = () => {
               Egg
             </Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Egg List
             </Typography>
           </Breadcrumbs>
@@ -2361,6 +2397,7 @@ const EggList = () => {
                     loading={loading}
                     searchValue={searchValue}
                     maxHeight='70vh'
+                    externalTableStyle={{ mx: 4 }}
                   />
                 </Box>
               </TabPanel>
@@ -2496,474 +2533,3 @@ const EggList = () => {
 }
 
 export default EggList
-// label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
-
-{
-  /* <DataGrid
-                        sx={{
-                          '.MuiDataGrid-cell:focus': {
-                            outline: 'none'
-                          },
-                          '& .MuiDataGrid-row:hover': {
-                            cursor: 'pointer'
-                          },
-                          '& .MuiDataGrid-row:hover .customButton': {
-                            display: 'block'
-                          },
-                          '& .MuiDataGrid-row:hover .hideField': {
-                            display: 'none'
-                          },
-                          '& .MuiDataGrid-row .customButton': {
-                            display: 'none'
-                          },
-                          '& .MuiDataGrid-row .hideField': {
-                            display: 'block'
-                          }
-                        }}
-                        columnVisibilityModel={{
-                          sl_no: false
-                        }}
-                        hideFooterSelectedRowCount
-                        disableColumnSelector={true}
-                        autoHeight
-                        pagination
-                        rows={indexedRows === undefined ? [] : indexedRows}
-                        rowCount={total}
-                        columns={discarded_Egg_Columns}
-                        sortingMode='server'
-                        paginationMode='server'
-                        pageSizeOptions={[7, 10, 25, 50]}
-                        paginationModel={paginationModel}
-                        onSortModelChange={handleSortModel}
-                        // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                        onPaginationModelChange={setPaginationModel}
-                        loading={loading}
-                        rowHeight={72}
-                        slotProps={{
-                          baseButton: {
-                            variant: 'outlined'
-                          },
-                          toolbar: {
-                            value: searchValue,
-                            clearSearch: () => handleSearch(''),
-                            onChange: event => handleSearch(event.target.value)
-                          }
-                        }}
-                        onCellClick={onCellClick}
-                      /> */
-}
-
-// {
-//   width: 160,
-//   field: 'state',
-//   sortable: false,
-//   headerName: 'STATE',
-
-//   // align: 'center',
-//   renderCell: params => (
-//     <Box>
-//       <TextCard egg_status={params.row.egg_status} />
-//     </Box>
-//   )
-// },
-
-// {
-//   width: 160,
-//   field: 'state',
-//   sortable: false,
-//   headerName: 'STATE',
-
-//   // align: 'center',
-//   renderCell: params => (
-//     <Box>
-//       <TextCard egg_status={params.row.egg_status} />
-//     </Box>
-//   )
-// },
-
-// {
-//  width: 140,
-//   sortable: false,
-//   field: 'discard_status',
-//   headerName: 'DISCARD STATUS',
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px'
-//       }}
-//     >
-//       {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 140,
-//   sortable: false,
-//   field: 'batch_no',
-//   headerName: 'BATCH NO',
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px'
-//       }}
-//     >
-//       {params.row.batch_no ? params.row.batch_no : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 150,
-//   sortable: false,
-//   field: 'hatch_no',
-//   headerName: 'Hatch NO',
-
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px',
-//         ml: 3
-//       }}
-//     >
-//       {params.row.hatch_no ? params.row.hatch_no : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 200,
-//   sortable: false,
-//   field: 'lay_date',
-//   headerName: 'Lay Date',
-
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px',
-//         ml: 3
-//       }}
-//     >
-//       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 170,
-//   sortable: false,
-//   field: 'nursery_name',
-//   headerName: 'Nursery',
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px'
-//       }}
-//     >
-//       {params.row.nursery_name ? params.row.nursery_name : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 200,
-//   sortable: false,
-//   field: 'collected_by',
-//   headerName: 'Collected By',
-//   renderCell: params => (
-//     <>
-//       <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-//         <Avatar
-//           variant='square'
-//           alt='Medicine Image'
-//           className={status === 'eggs_received' ? 'hideField' : ''}
-//           sx={{
-//             width: 30,
-//             height: 30,
-
-//             borderRadius: '50%',
-//             background: theme.palette.customColors.displaybgPrimary,
-//             overflow: 'hidden'
-//           }}
-//         >
-//           {params.row.user_profile_pic ? (
-//             <img
-//               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-//               src={params.row.user_profile_pic}
-//               alt='Profile'
-//             />
-//           ) : (
-//             <Icon icon='mdi:user' fontSize={30} />
-//           )}
-//         </Avatar>
-//         <Box
-//           sx={{ display: 'flex', flexDirection: 'column' }}
-//           className={status === 'eggs_received' ? 'hideField' : ''}
-//         >
-//           <Typography
-//             noWrap
-//             sx={{
-//               color: theme.palette.customColors.OnSurfaceVariant,
-//               fontSize: '14px',
-//               fontWeight: '500',
-//               lineHeight: '16.94px'
-//             }}
-//           >
-//             {params.row.user_full_name ? params.row.user_full_name : '-'}
-//           </Typography>
-//           <Typography
-//             noWrap
-//             sx={{
-//               color: theme.palette.customColors.neutralSecondary,
-//               fontSize: '12px',
-//               fontWeight: '400',
-//               lineHeight: '14.52px'
-//             }}
-//           >
-//             {params.row.created_at
-//               ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
-//               : '-'}
-//           </Typography>
-//         </Box>
-//       </Box>
-//     </>
-//   )
-// }
-
-// {
-//   // flex: 0.15,
-//   width: 130,
-//   sortable: false,
-//   field: 'condition',
-//   headerName: 'condition',
-//   align: 'center',
-
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color:
-//           params.row.egg_condition === 'Intact'
-//             ? theme.palette.primary.dark
-//             : params.row.egg_condition === 'Thin-Shelled'
-//             ? theme.palette.primary.light
-//             : params.row.egg_condition === 'Broken'
-//             ? theme.palette.customColors.Error
-//             : params.row.egg_condition === 'Rotten'
-//             ? theme.palette.customColors.Tertiary
-//             : params.row.egg_condition === 'Cracked'
-//             ? theme.palette.customColors.moderateSecondary
-//             : theme.palette.primary.dark,
-//         fontSize: '16px',
-//         fontWeight: 500,
-//         lineHeight: '19.36px',
-//         overflow: 'hidden',
-//         textOverflow: 'ellipsis',
-//         whiteSpace: 'nowrap',
-//         textTransform: 'capitalize'
-//       }}
-//     >
-//       {params.row.egg_condition ? params.row.egg_condition : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 150,
-//   sortable: false,
-//   field: 'lay_date',
-//   headerName: 'Lay Date',
-
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px',
-//         ml: 3
-//       }}
-//     >
-//       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 140,
-//   sortable: false,
-//   field: 'batch_no',
-//   headerName: 'Batch NO',
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px'
-//       }}
-//     >
-//       {params.row.batch_no ? params.row.batch_no : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 160,
-//   sortable: false,
-//   field: 'nursery_name',
-//   headerName: 'Nursery',
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px'
-//       }}
-//     >
-//       {params.row.nursery_name ? params.row.nursery_name : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//  width: 140,
-//   sortable: false,
-//   field: 'discard_status',
-//   headerName: 'DISCARD STATUS',
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px'
-//       }}
-//     >
-//       {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 140,
-//   sortable: false,
-//   field: 'batch_no',
-//   headerName: 'BATCH NO',
-//   renderCell: params => (
-//     <Typography
-//       sx={{
-//         color: theme.palette.customColors.OnSurfaceVariant,
-//         fontSize: '16px',
-//         fontWeight: '400',
-//         lineHeight: '19.36px'
-//       }}
-//     >
-//       {params.row.batch_no ? params.row.batch_no : '-'}
-//     </Typography>
-//   )
-// },
-
-// {
-//   width: 270,
-//   sortable: false,
-//   field: 'collected_by',
-//   headerName: 'COLLECTED BY',
-//   renderCell: params => (
-//     <>
-//       {/* {status === 'eggs_received' && (
-//         <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
-//           Allocate{' '}
-//         </Button>
-//       )} */}
-//       {status === 'eggs_received' ? (
-//         <>
-//           <div>
-//             <DiscardStatusCell
-//               customButton={status === 'eggs_received' ? 'customButton' : null}
-//               hideField='hideField'
-//               params={params}
-//               setIsOpen={setIsOpen}
-//               handleDiscard={handleDiscard}
-//               setEggId={setEggId}
-//               handleAction={handleAction}
-//               setAllocationValues={setAllocationValues}
-
-//               // hover={hover} setHover={setHover}
-//             />
-//           </div>
-//         </>
-//       ) : (
-//         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-//           <Avatar
-//             variant='square'
-//             alt='Medicine Image'
-//             className={status === 'eggs_received' ? 'hideField' : ''}
-//             sx={{
-//               width: 30,
-//               height: 30,
-
-//               borderRadius: '50%',
-//               background: theme.palette.customColors.displaybgPrimary,
-//               overflow: 'hidden'
-//             }}
-//           >
-//             {params.row.user_profile_pic ? (
-//               <img
-//                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-//                 src={params.row.user_profile_pic}
-//                 alt='Profile'
-//               />
-//             ) : (
-//               <Icon icon='mdi:user' fontSize={30} />
-//             )}
-//           </Avatar>
-//           <Box
-//             sx={{ display: 'flex', flexDirection: 'column' }}
-//             className={status === 'eggs_received' ? 'hideField' : ''}
-//           >
-//             <Typography
-//               noWrap
-//               sx={{
-//                 color: theme.palette.customColors.OnSurfaceVariant,
-//                 fontSize: '14px',
-//                 fontWeight: '500',
-//                 lineHeight: '16.94px'
-//               }}
-//             >
-//               {params.row.user_full_name ? params.row.user_full_name : '-'}
-//             </Typography>
-//             <Typography
-//               noWrap
-//               sx={{
-//                 color: theme.palette.customColors.neutralSecondary,
-//                 fontSize: '12px',
-//                 fontWeight: '400',
-//                 lineHeight: '14.52px'
-//               }}
-//             >
-//               {params.row.created_at
-//                 ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
-//                 : '-'}
-//             </Typography>
-//           </Box>
-//         </Box>
-//       )}
-//     </>
-//   )
-// }

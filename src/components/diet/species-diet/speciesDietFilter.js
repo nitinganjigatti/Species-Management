@@ -56,6 +56,7 @@ const DashboardFilter = ({
 
     const allOptions = getOptionsForMenu(menu)
     console.log('menu', menu)
+
     // Always update selectAll based on the new selection state
     setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions.length)
   }
@@ -286,7 +287,7 @@ const DashboardFilter = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
             {leftMenu.map(menu => (
               <Box
                 key={menu.id}
@@ -307,7 +308,7 @@ const DashboardFilter = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',
@@ -346,9 +347,14 @@ const DashboardFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      InputProps={{
-                        disableUnderline: false
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
+                        }
                       }}
+                      // InputProps={{
+                      //   disableUnderline: false
+                      // }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -366,7 +372,13 @@ const DashboardFilter = ({
                   <Checkbox
                     checked={selectAll}
                     onChange={handleSelectAllChange}
-                    inputProps={{ 'aria-label': 'controlled' }}
+                    slotProps={{
+                      input: {
+                        'aria-label': 'controlled'
+                      }
+                    }}
+
+                    //inputProps={{ 'aria-label': 'controlled' }}
                   />
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                 </Box>
@@ -380,7 +392,12 @@ const DashboardFilter = ({
                       <Checkbox
                         checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
                         onChange={() => handleCheckboxChange(option.id, option.name)}
-                        inputProps={{ 'aria-label': 'controlled' }}
+                        slotProps={{
+                          input: {
+                            'aria-label': 'controlled'
+                          }
+                        }}
+                        //inputProps={{ 'aria-label': 'controlled' }}
                       />
                       <Typography
                         sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D', textTransform: 'capitalize' }}

@@ -61,7 +61,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     handleSubmit,
     formState: { errors, isValid, isDirty },
     watch,
-    trigger
+    trigger,
+    setValue
   } = useForm({
     defaultValues: defaultValues,
     resolver: yupResolver(schema),
@@ -183,13 +184,16 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        console.log(response, 'response')
+        if (response?.data?.racks.length > 0) {
           setRacks(
-            response?.data?.map(item => ({
-              ...item,
-              rack_id: item?.id,
-              rack_name: item?.name
-            }))
+            response?.data?.racks
+              .filter(item => item.status === 'active')
+              .map(item => ({
+                ...item,
+                rack_id: item?.id,
+                rack_name: item?.name
+              }))
           )
         }
       } catch (error) {
@@ -218,6 +222,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     },
     [selectedPharmacy?.id]
   )
+
+  console.log(shelves, 'shelves')
 
   const onSubmit = async data => {
     // Trigger validation before submitting
@@ -345,8 +351,14 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
 
   return (
     <>
-      <Grid container spacing={2} justifyContent='center'>
-        <Grid item xs={12} sm={12} md={12}>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          justifyContent: 'center'
+        }}
+      >
+        <Grid item size={{ xs: 12, md: 12, sm: 12 }}>
           {isConfigLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
               <CircularProgress />
@@ -361,7 +373,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
               </Box>
 
               <Grid container spacing={2}>
-                <Grid item sm={6} xs={12}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller
                       name='stock_id'
@@ -455,9 +467,17 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                 </Box>
               ) : (
                 fields.map((field, index) => (
-                  <Grid container spacing={2} key={field.id} alignItems='flex-start' sx={{ mb: 0 }}>
+                  <Grid
+                    container
+                    spacing={2}
+                    key={field.id}
+                    sx={{
+                      alignItems: 'flex-start',
+                      mb: 0
+                    }}
+                  >
                     {/* Rack Field */}
-                    <Grid item xs={12} sm={5}>
+                    <Grid item size={{ xs: 12, sm: 5 }}>
                       <FormControl fullWidth sx={{ mb: 6 }}>
                         <Controller
                           name={`locations[${index}].rack_id`}
@@ -476,12 +496,51 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                                 isOptionEqualToValue={(option, value) =>
                                   parseInt(option?.rack_id) === parseInt(value?.rack_id)
                                 }
+                                // onChange={(e, val) => {
+                                //   if (val === null) {
+                                //     var rack = defaultRack
+                                //     rack[index] = null
+                                //     setDefaultRack(rack)
+
+                                //     setConfigErrors(prev => {
+                                //       const newErrors = { ...prev }
+                                //       delete newErrors[index]
+
+                                //       return newErrors
+                                //     })
+                                //     setValue(`locations[${index}].shelf_id`, '')
+
+                                //     return onChange('')
+                                //   } else {
+                                //     var rack = defaultRack
+                                //     rack[index] = { rack_id: val?.rack_id, rack_name: val?.rack_name }
+                                //     setDefaultRack(prev => {
+                                //       const newArr = [...prev]
+                                //       newArr[index] = val ? { rack_id: val.rack_id, rack_name: val.rack_name } : null
+
+                                //       return newArr
+                                //     })
+                                //     getShelves({ rackId: val?.rack_id })
+                                //     setValue(`locations[${index}].shelf_id`, '')
+
+                                //     return onChange(val.rack_id)
+                                //   }
+                                // }}
                                 onChange={(e, val) => {
                                   if (val === null) {
-                                    var rack = defaultRack
-                                    rack[index] = null
-                                    setDefaultRack(rack)
+                                    setDefaultRack(prev => {
+                                      const newArr = [...prev]
+                                      newArr[index] = null
 
+                                      return newArr
+                                    })
+                                    setDefaultShelf(prev => {
+                                      const newArr = [...prev]
+                                      newArr[index] = null
+
+                                      return newArr
+                                    })
+                                    setValue(`locations[${index}].shelf_id`, '')
                                     setConfigErrors(prev => {
                                       const newErrors = { ...prev }
                                       delete newErrors[index]
@@ -491,15 +550,26 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
 
                                     return onChange('')
                                   } else {
-                                    var rack = defaultRack
-                                    rack[index] = { rack_id: val?.rack_id, rack_name: val?.rack_name }
                                     setDefaultRack(prev => {
                                       const newArr = [...prev]
-                                      newArr[index] = val ? { rack_id: val.rack_id, rack_name: val.rack_name } : null
+                                      newArr[index] = { rack_id: val.rack_id, rack_name: val.rack_name }
 
                                       return newArr
                                     })
+                                    setDefaultShelf(prev => {
+                                      const newArr = [...prev]
+                                      newArr[index] = null
+
+                                      return newArr
+                                    })
+                                    setValue(`locations[${index}].shelf_id`, '')
                                     getShelves({ rackId: val?.rack_id })
+                                    setConfigErrors(prev => {
+                                      const newErrors = { ...prev }
+                                      delete newErrors[index]
+
+                                      return newErrors
+                                    })
 
                                     return onChange(val.rack_id)
                                   }
@@ -530,7 +600,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                     </Grid>
 
                     {/* Shelf Field */}
-                    <Grid item xs={12} sm={5}>
+                    <Grid item size={{ xs: 12, sm: 5 }}>
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <Controller
                           name={`locations[${index}].shelf_id`}
@@ -616,8 +686,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                     </Grid>
                     <Grid
                       item
-                      xs={12}
-                      sm={2}
+                      size={{ xs: 12, sm: 2 }}
                       sx={{
                         display: 'flex',
                         gap: 1,
@@ -670,8 +739,15 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
               )}
 
               <Divider sx={{ my: 4 }} />
-              <Grid container spacing={2} justifyContent='flex-end' sx={{ mt: 2 }}>
-                <Grid item xs={12} sm='auto'>
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  justifyContent: 'flex-end',
+                  mt: 2
+                }}
+              >
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box>
                     <Button
                       variant='outlined'
@@ -686,7 +762,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                     </Button>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm='auto'>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Button
                     variant='contained'
                     color='primary'

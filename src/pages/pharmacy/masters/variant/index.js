@@ -1,5 +1,5 @@
 import { Box, Card, CardHeader, debounce, Grid, TextField, Typography } from '@mui/material'
-import { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import IconButton from '@mui/material/IconButton'
 
@@ -15,6 +15,7 @@ import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import Utility from 'src/utility'
 
 const VariantList = () => {
   const theme = useTheme()
@@ -365,4 +366,4 @@ const VariantList = () => {
   )
 }
 
-export default VariantList
+export default React.memo(VariantList)

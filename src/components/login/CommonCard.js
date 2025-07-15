@@ -44,7 +44,7 @@ const CommonCard = ({ children, bgImage, logoVantara, logoAntz, title, subtitle,
           border: '1px solid transparent',
           backgroundColor: alpha('#F2FFF8D9', 0.9),
           p: 6,
-          width: { xs: '90%', md: 390 },
+          width: { xs: 390 },
           borderRadius: '20px'
         }}
       >

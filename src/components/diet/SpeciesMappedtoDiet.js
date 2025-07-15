@@ -129,9 +129,11 @@ const SpeciesMappedtoDiet = ({
       })
       setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     }
+
     //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     if (selectionType === 'animals') {
       setFilterState('species')
+
       // refreshSpeciesData('')
       setPageNo(1)
     } else {
@@ -161,6 +163,7 @@ const SpeciesMappedtoDiet = ({
     }
     setSelectedEnclosures([])
     setSelectedSections([])
+
     //refreshSpeciesData('')
   }
 
@@ -209,10 +212,8 @@ const SpeciesMappedtoDiet = ({
           </IconButton>
         </Box>
       </Box>
-
       {/* Search and filter start */}
-
-      <Grid item md={8} sm={8} xs={8}>
+      <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
         <Box
           sx={{
             bgcolor: theme.palette.background.paper,
@@ -256,9 +257,6 @@ const SpeciesMappedtoDiet = ({
                   placeholder='Search'
                   value={searchQuery}
                   onChange={handleSearch}
-                  InputProps={{
-                    disableUnderline: false
-                  }}
                   sx={{
                     flex: 1,
                     mx: 1,
@@ -268,6 +266,11 @@ const SpeciesMappedtoDiet = ({
                       '& fieldset': {
                         border: 'none'
                       }
+                    }
+                  }}
+                  slotProps={{
+                    input: {
+                      disableUnderline: false
                     }
                   }}
                 />
@@ -300,7 +303,7 @@ const SpeciesMappedtoDiet = ({
                       position: 'absolute',
                       top: '-7px',
                       right: '-5px',
-                      backgroundColor: '#FA6140',
+                      backgroundColor: theme.palette.customColors.customDropdownColor,
                       color: 'white',
                       borderRadius: '50%',
                       width: '20px',
@@ -326,9 +329,7 @@ const SpeciesMappedtoDiet = ({
           </>
         </Box>
       </Grid>
-
       {/* Search and filter end */}
-
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -355,17 +356,20 @@ const SpeciesMappedtoDiet = ({
                   px: 4,
                   py: 1,
                   borderRadius: '10px',
-                  background: '#EAF5EC',
+                  background: theme.palette.customColors.Primary10,
                   border: '1px solid #0000000D'
                 }}
               >
-                <Typography variant='body2' sx={{ color: '#006D35', fontWeight: 600 }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: theme.palette.primary.dark, fontWeight: 500, fontSize: '16px' }}
+                >
                   {site.site_name}
                 </Typography>
                 <IconButton
                   edge='end'
                   onClick={() => handleRemove(site.site_id)}
-                  sx={{ color: '#1F515B', padding: '4px' }}
+                  sx={{ color: theme.palette.primary.light, padding: '4px' }}
                 >
                   <Icon icon='material-symbols:close-rounded' fontSize={20} />
                 </IconButton>
@@ -410,7 +414,7 @@ const SpeciesMappedtoDiet = ({
                     !loading &&
                     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                       ? theme.palette.primary.main
-                      : '#44544A',
+                      : theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '12px',
                   fontWeight: 600,
                   textTransform: 'none',
@@ -441,12 +445,12 @@ const SpeciesMappedtoDiet = ({
                       !loading &&
                       tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                         ? theme.palette.primary.main
-                        : '#44544A',
+                        : theme.palette.customColors.OnSurfaceVariant,
                     color:
                       !loading &&
                       tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                         ? theme.palette.primary.main
-                        : '#44544A'
+                        : theme.palette.customColors.OnSurfaceVariant
                   },
                   mr: 1
                 }}
@@ -491,14 +495,28 @@ const SpeciesMappedtoDiet = ({
                         borderRadius: '4px',
                         width: '22px',
                         height: '22px',
-                        color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
+                        color: species.mapped_to_diet
+                          ? theme.palette.customColors.secondaryBg
+                          : theme.palette.primary.main
                       }
                     }}
                   />
                 </SpeciesCardItem>
               ))
             ) : (
-              <Typography sx={{ textAlign: 'center', mt: 10, fontWeight: '500' }}>No Species Found</Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '70%',
+                  textAlign: 'center'
+                }}
+              >
+                <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+              </Box>
             )}
             {isLoadingMore && (
               <Box
@@ -542,14 +560,28 @@ const SpeciesMappedtoDiet = ({
                         borderRadius: '4px',
                         width: '22px',
                         height: '22px',
-                        color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
+                        color: species.mapped_to_diet
+                          ? theme.palette.customColors.secondaryBg
+                          : theme.palette.primary.main
                       }
                     }}
                   />
                 </AnimalCardItem>
               ))
             ) : (
-              <Typography sx={{ textAlign: 'center', mt: 10, fontWeight: '500' }}>No Animals Found</Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '70%',
+                  textAlign: 'center'
+                }}
+              >
+                <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Animals Found</Typography>
+              </Box>
             )}
             {isLoadingMore && (
               <Box
@@ -568,9 +600,7 @@ const SpeciesMappedtoDiet = ({
           </List>
         )}
       </Box>
-
       {/* bottom buttons */}
-
       <Box
         sx={{
           height: '122px',

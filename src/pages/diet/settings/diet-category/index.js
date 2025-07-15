@@ -23,13 +23,14 @@ const DietCategory = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const dietModuleAccessContext = useContext(AuthContext)
-  const dietModuleAccess = dietModuleAccessContext?.userData?.roles?.settings?.diet_module_access || ""
+  const dietModuleAccess = dietModuleAccessContext?.userData?.roles?.settings?.diet_module_access || ''
 
-  const hasAddEditAccess = dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT'
+  const hasAddAccess = dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
+  const hasEditAccess = dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
   const hasFullAccess = dietModuleAccess === 'allow_full_access'
 
   function loadServerRows(currentPage, data) {
@@ -70,7 +71,10 @@ const DietCategory = () => {
       headerName: 'NAME',
       renderCell: params => (
         <Tooltip title={params.row.label?.length > 30 ? params.row.label : ''}>
-          <Typography sx={{ color: 'text.primary', pl: 1, fontSize: '0.875rem', fontWeight: 400 }} className='text_overflow_moduled'>
+          <Typography
+            sx={{ color: 'text.primary', pl: 1, fontSize: '0.875rem', fontWeight: 400 }}
+            className='text_overflow_moduled'
+          >
             {params.row.label}
           </Typography>
         </Tooltip>
@@ -88,9 +92,9 @@ const DietCategory = () => {
       )
     }
   ]
-  
+
   // Conditionally add Action column
-  if (hasAddEditAccess || hasFullAccess) {
+  if (hasAddAccess || hasEditAccess || hasFullAccess) {
     baseColumns.push({
       flex: 0.2,
       minWidth: 100,
@@ -98,23 +102,25 @@ const DietCategory = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', pl: 2 }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => handleEdit(params.row.id, params.row.label, params.row.status)}
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
+          {parseInt(params.row.zoo_id) === 0 ? null : (
+            <IconButton
+              size='small'
+              sx={{ mr: 0.5 }}
+              onClick={() => handleEdit(params.row.id, params.row.label, params.row.status)}
+              aria-label='Edit'
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )}
         </Box>
       )
     })
   }
-  
-  const columns = baseColumns
-  
 
-  const headerAction = (hasAddEditAccess || hasFullAccess) ? <AddButton title='Add Diet Category' action={addEventSidebarOpen} /> : null
+  const columns = baseColumns
+
+  const headerAction =
+    hasAddAccess || hasFullAccess ? <AddButton title='Add Diet Category' action={addEventSidebarOpen} /> : null
 
   const fetchTableData = useCallback(
     async (sortBy, q, column) => {
@@ -181,7 +187,6 @@ const DietCategory = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [sort, sortColumn, searchTableData, searchValue]
   )
-  
 
   const handleSubmitData = async payload => {
     try {
@@ -229,7 +234,7 @@ const DietCategory = () => {
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, justifyContent: 'flex-end' }}
           />
           <CommonTable
             columnVisibilityModel={{ id: false }}

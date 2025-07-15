@@ -38,6 +38,7 @@ import { useRouter } from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import SubTypeDetails from 'src/views/pages/notes/SubTypeDetails'
+import FallbackSpinner from 'src/@core/components/spinner'
 
 const Notes = () => {
   const editInitialValues = { id: null, type_name: '' }
@@ -49,13 +50,13 @@ const Notes = () => {
   const [typeName, setTypeName] = useState('')
   const [subArr, setSubArr] = useState([])
 
-
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
+
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -232,6 +233,7 @@ const Notes = () => {
     setLoading(true)
     try {
       const res = await getNotesList({ type: 'parent' })
+
       // setTotal(parseInt(res?.data?.total_count));
       setTotal(res?.data?.length)
       console.log(res.data, 'response>>>>>>>')
@@ -270,6 +272,7 @@ const Notes = () => {
     setEditParams({ parent_id: null, type_name: '' })
     setOpenDrawer(true)
   }
+
   const handleSidebarClose = () => {
     setOpenDrawer(false)
   }
@@ -308,10 +311,12 @@ const Notes = () => {
       setSubArr(response.data)
       setModalOpen(true)
       setTypeName(params.type_name)
+
       return response
     } catch (error) {
       console.error('Error fetching subtype list:', error)
       toast.error('Something went wrong')
+
       return null
     }
   }

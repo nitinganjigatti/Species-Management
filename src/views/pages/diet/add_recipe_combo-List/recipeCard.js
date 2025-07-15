@@ -79,6 +79,7 @@ const RecipeCard = ({
 
     // Update selectedCardRecipe with merged objects
     const currentSelectedCardRecipe = selectedCardRecipe || []
+
     const updatedSelectedCard = [
       ...currentSelectedCardRecipe,
       ...selectedValuesWithCheckId
@@ -158,12 +159,13 @@ const RecipeCard = ({
 
       // Merge updatedSelectedDays with the existing selectedDays state
       const finalSelectedDays = rows.map(row => {
-        const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
+        const updatedDay = updatedSelectedDays?.find(updated => updated.cardId === row.id)
 
         if (updatedDay) {
           return updatedDay // Use the updated selection if available
         } else {
-          const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+          const existingDay = selectedDays?.find(existing => existing.cardId === row.id)
+
           return existingDay || { cardId: row.id, days: Day }
         }
       })
@@ -185,7 +187,7 @@ const RecipeCard = ({
       searchValue
     ) {
       const finalSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         // If no match with checkid, enable all days
         const enabledAllDays = Day.map(day => ({
@@ -206,6 +208,7 @@ const RecipeCard = ({
       selectedCardRecipe?.length > 0
     ) {
       const previousSelectedDays = selectedDays || []
+
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
@@ -218,7 +221,7 @@ const RecipeCard = ({
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -236,13 +239,14 @@ const RecipeCard = ({
       })
 
       setSelectedDays(updatedSelectedDays)
+
       //setRemarks({})
     } else if (searchValue !== '' && !dietid) {
       const previousSelectedDays = selectedDays || []
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -263,6 +267,7 @@ const RecipeCard = ({
       setRemarks({})
     } else if (!searchValue && selectedCardRecipe.length <= 0) {
       const previousSelectedDays = selectedDays || []
+
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
@@ -357,8 +362,10 @@ const RecipeCard = ({
   const handleSelected = () => {
     if (selectedCardRecipe.length === 0) {
       toast.error('Recipes are required.')
+
       return // Exit early to prevent further processing
     }
+
     const filteredItems = selectedCardRecipe.map(item => {
       // Find the selected days for the current item
 
@@ -576,7 +583,7 @@ const RecipeCard = ({
                           {' '}
                           {item?.by_quantity?.length} nos
                         </Typography>
-                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by qty</Typography>
+                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Items by qty</Typography>
                       </Box>
                       {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
@@ -596,7 +603,7 @@ const RecipeCard = ({
                       <Typography
                         sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
                       >
-                        Ingredients
+                        Items
                       </Typography>
                       <Typography
                         sx={{
@@ -731,10 +738,10 @@ const RecipeCard = ({
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            bgcolor: selectedDays.find(
+                            bgcolor: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay?.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? '#203e56'
                               : '#dedede',
@@ -744,10 +751,10 @@ const RecipeCard = ({
                             alignItems: 'center',
                             cursor: 'pointer',
 
-                            color: selectedDays.find(
+                            color: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay?.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? 'white'
                               : 'black'
@@ -762,7 +769,7 @@ const RecipeCard = ({
                       <Divider />
                       <TextField
                         multiline
-                        rows={expandedIndex.includes(index) ? 3 : 1}
+                        rows={expandedIndex.includes(index) ? 2 : 2}
                         onChange={e => handleAddRemarks(e, item.id)}
                         placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
                         value={remarks[item.id] || ''}
@@ -776,7 +783,9 @@ const RecipeCard = ({
                           },
                           transition: 'max-height 0.5s ease-in-out',
                           overflow: 'hidden',
-                          maxHeight: expandedIndex.includes(index) ? '100px' : '56px'
+                          maxHeight: expandedIndex.includes(index) ? '100px' : '70px',
+                          pl: 4,
+                          pt: 3
                         }}
                       />
                     </Box>
@@ -792,14 +801,22 @@ const RecipeCard = ({
         <Box
           sx={{
             display: 'flex',
+            flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            marginTop: '14%',
-            color: theme.palette.customColors.statusText,
-            fontSize: '16px'
+            height: '70%',
+            textAlign: 'center'
           }}
         >
-          No records to show
+          <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+          <Box
+            sx={{
+              color: theme.palette.customColors.statusText,
+              fontSize: '16px'
+            }}
+          >
+            No records to show
+          </Box>
         </Box>
       )}
       {/* {selectedCardRecipe?.length > 0 && ( */}

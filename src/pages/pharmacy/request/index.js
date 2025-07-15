@@ -262,7 +262,7 @@ const RequestList = () => {
           sort,
           q: searchValue,
           column: sortColumn,
-          status: currentStatus,
+          status: status,
           startDate: filterDates.startDate,
           endDate: filterDates.endDate,
           store: filterByStoreId,
@@ -393,8 +393,6 @@ const RequestList = () => {
   const columns = [
     {
       width: 80,
-
-      // field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
         <Box sx={{ display: 'flex' }}>
@@ -406,36 +404,25 @@ const RequestList = () => {
     },
 
     {
-      width: 90,
+      width: 100,
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility?.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
-
-    // {
-    //   width: 4,
-    //   field: 'priority',
-    //   headerName: '',
-    //   headerAlign: 'left',
-    //   textAlign: 'center',
-    //   renderCell: params => (
-    //     <Box>
-    //       {params.row.priority !== null && (
-    //         <span
-    //           style={{
-    //             width: '10px',
-    //             height: '10px',
-    //             borderRadius: '100%',
-    //             background: theme.palette.customColors.Error,
-    //             display: 'inline-block'
-    //           }}
-    //         ></span>
-    //       )}
-    //     </Box>
-    //   )
-    // },
 
     {
       width: 120,
@@ -597,8 +584,8 @@ const RequestList = () => {
       field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <Box variant='body2' sx={{ color: 'text.primary' }}>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
             {params.row.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
@@ -646,9 +633,9 @@ const RequestList = () => {
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
               )}
-          </div>
+          </Box>
           {params.row.status === 'Cancelled' ? params.row.status : null}
-        </Typography>
+        </Box>
       )
     },
     {
@@ -749,16 +736,18 @@ const RequestList = () => {
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  )
-                }}
                 sx={{
                   borderRadius: '8px',
                   width: { xs: '100%', md: '290px' }
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
               />
               {/* </Box> */}
@@ -780,7 +769,7 @@ const RequestList = () => {
                 {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
-                    xs={12}
+                    size={{ xs: 12 }}
                     sx={{
                       maxWidth: { xs: '100%', md: '250px' },
                       width: '100%',
@@ -814,8 +803,7 @@ const RequestList = () => {
                 {/* Filter by Days */}
                 <Grid
                   item
-                  xs={12}
-                  md='auto'
+                  size={{ xs: 12, md: 'auto' }}
                   sx={{
                     maxWidth: { xs: '100%', md: '250px' },
                     mt: { xs: 2, md: 0 },
@@ -846,8 +834,7 @@ const RequestList = () => {
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
-                    xs={12}
-                    md='auto'
+                    size={{ xs: 12, md: 'auto' }}
                     sx={{
                       height: '48px',
                       display: 'flex',

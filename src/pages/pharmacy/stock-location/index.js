@@ -90,10 +90,10 @@ const StockLocation = () => {
     const getRacksLists = async () => {
       try {
         const response = await getNewRackList()
-        if (response?.data.length > 0) {
+        if (response?.data?.racks?.length > 0) {
           setItems(prev => ({
             ...prev,
-            Racks: response?.data
+            Racks: response?.data?.racks
           }))
         }
       } catch (error) {
@@ -275,7 +275,7 @@ const StockLocation = () => {
       minWidth: 20,
       width: 220,
       field: 'min_qty',
-      headerName: 'RE-ORDER LEVEL',
+      headerName: 'REORDER LEVEL',
       sortable: true,
       align: 'center',
       headerAlign: 'center',
@@ -444,8 +444,15 @@ const StockLocation = () => {
         />
         <CardContent sx={{ paddingTop: '4px' }}>
           <Box sx={{ mx: 1, mb: 2 }}>
-            <Grid container spacing={2} justifyContent='flex-end' alignItems='center'>
-              <Grid item xs={12} sm={6} md={4} lg={3}>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                justifyContent: 'flex-end',
+                alignItems: 'center'
+              }}
+            >
+              <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <TextField
                   variant='outlined'
                   size='small'
@@ -453,19 +460,21 @@ const StockLocation = () => {
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{
                     borderRadius: '8px'
                   }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
                 />
               </Grid>
-              <Grid item xs='auto'>
+              <Grid item size={{ xs: 'auto' }}>
                 <Button
                   variant='outlined'
                   startIcon={<FilterListIcon />}

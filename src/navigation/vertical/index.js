@@ -5,11 +5,13 @@ import pharmacyNavigation from 'src/components/navigation/pharmacy'
 import labNavigation from 'src/components/navigation/lab'
 import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
+import complianceNavigation from 'src/components/navigation/compliance'
 import mastersNavigation from 'src/components/navigation/masters'
 import eggNavigation from 'src/components/navigation/egg'
 import pariveshNavigation from 'src/components/navigation/parivesh/index'
 import reportNavigation from 'src/components/navigation/report'
 import medicalNavigation from 'src/components/navigation/medical'
+import housingNavigation from 'src/components/navigation/housing'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -29,6 +31,7 @@ const ComposeNavigation = () => {
   const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
   const enable_daily_report = authData?.userData?.permission?.user_settings?.enable_daily_report
   const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
+  const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
@@ -44,7 +47,8 @@ const ComposeNavigation = () => {
       reports_module,
       enable_specie_report,
       enable_daily_report,
-      enable_animal_report
+      enable_animal_report,
+      enable_animal_assessment_report
     })
     navigationArray.push(...reportNav)
   }
@@ -76,10 +80,16 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
+  const housingnav = housingNavigation()
+  navigationArray.push(...housingnav)
+
   const medicalNav = medicalNavigation({
     userSettings
   })
   navigationArray.push(...medicalNav)
+
+  const complianceNav = complianceNavigation()
+  navigationArray.push(...complianceNav)
 
   return navigationArray
 }

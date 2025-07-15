@@ -33,20 +33,32 @@ import FilterDrawer from 'src/components/FilterDrawer'
 import { getPharmacyTransactionConstants } from 'src/constants/PharmacyConstants'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { readAsync } from 'src/lib/windows/utils'
+import RenderUtility from 'src/utility/render'
 
 const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_profile_pic }) => {
   return (
     <Box
-      p={2}
-      border={1}
-      borderColor={isSelected ? 'primary.main' : 'divider'}
-      borderRadius={1}
-      display='flex'
-      alignItems='center'
-      justifyContent='space-between'
+      sx={{
+        p: 2,
+        border: 1,
+        borderColor: isSelected ? 'primary.main' : 'divider',
+        borderRadius: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}
     >
-      <Box display='flex' alignItems='center'>
-        <Box mr={2}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
+        <Box
+          sx={{
+            mr: 2
+          }}
+        >
           <Avatar
             sx={{
               '& > img': {
@@ -441,44 +453,18 @@ function Ledger({ tabValue, updateUrlParams }) {
         </Typography>
       )
     },
+
     {
-      width: 200,
+      minWidth: 250,
       field: 'transaction_created_by',
       headerName: 'TRANSACTION CREATED',
       renderCell: params => (
         <>
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit: 'contain'
-              },
-              width: 40,
-              height: 40,
-              mr: 4
-            }}
-            variant='circular'
-            alt={params?.row?.transaction_created_by_profile_pic}
-            src={params?.row?.transaction_created_by_profile_pic}
-          />
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.transaction_created_by || 'NA'}
-            <Typography
-              sx={{
-                fontSize: '12px',
-                fontWeight: 400
-              }}
-            >
-              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at)) || 'NA'}
-            </Typography>
-          </Typography>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.transaction_created_by_profile_pic,
+            params?.row?.transaction_created_by,
+            params?.row?.created_at
+          )}
         </>
       )
     }
@@ -942,14 +928,14 @@ function Ledger({ tabValue, updateUrlParams }) {
       <Grid
         container
         spacing={2}
-        justifyContent='flex-end'
-        alignItems='center'
         sx={{
+          justifyContent: 'flex-end',
+          alignItems: 'center',
           mt: 3,
           flexWrap: 'wrap'
         }}
       >
-        <Grid item xs={12} sm={12} md={3} lg={3}>
+        <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }} md={3} lg={3}>
           <Box
             sx={{
               display: 'flex',
@@ -981,18 +967,19 @@ function Ledger({ tabValue, updateUrlParams }) {
           </Box>
         </Grid>
       </Grid>
-
       <Box sx={{ mt: 5 }}>
         {/* Tabs */}
         <Grid
           container
           spacing={4}
-          alignItems='center'
-          justifyContent='space-between'
-          sx={{ flexWrap: { xs: 'wrap', md: 'nowrap' } }}
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: { xs: 'wrap', md: 'nowrap' }
+          }}
         >
           {/* Tabs Section */}
-          <Grid item xs={12} md='auto'>
+          <Grid item size={{ xs: 12, md: 'auto' }}>
             <Box
               sx={{
                 display: 'flex',
@@ -1065,12 +1052,18 @@ function Ledger({ tabValue, updateUrlParams }) {
             mt: 5
           }}
         >
-          <Grid container spacing={{ xs: 3, sm: 10 }} alignItems='center' sx={{ flexWrap: 'wrap' }}>
+          <Grid
+            container
+            spacing={{ xs: 3, sm: 10 }}
+            sx={{
+              alignItems: 'center',
+              flexWrap: 'wrap'
+            }}
+          >
             {/* Avatar Section */}
             <Grid
               item
-              xs={12}
-              sm='auto'
+              size={{ xs: 12, sm: 'auto' }}
               sx={{
                 display: 'flex',
                 justifyContent: { xs: 'center', sm: 'flex-start' }
@@ -1095,10 +1088,20 @@ function Ledger({ tabValue, updateUrlParams }) {
 
             {/* Data Section */}
             <Grid item xs={12} sm>
-              <Grid container spacing={12} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+              <Grid
+                container
+                spacing={12}
+                sx={{
+                  justifyContent: { xs: 'center', sm: 'flex-start' }
+                }}
+              >
                 {/* Total Purchase */}
-                <Grid item xs={12} sm='auto'>
-                  <Box textAlign={{ xs: 'center', sm: 'left' }}>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
+                  <Box
+                    sx={{
+                      textAlign: { xs: 'center', sm: 'left' }
+                    }}
+                  >
                     <Typography
                       sx={{
                         color: 'customColors.neutralSecondary',
@@ -1121,8 +1124,12 @@ function Ledger({ tabValue, updateUrlParams }) {
                 </Grid>
 
                 {/* Total Return */}
-                <Grid item xs={12} sm='auto'>
-                  <Box textAlign={{ xs: 'center', sm: 'left' }}>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
+                  <Box
+                    sx={{
+                      textAlign: { xs: 'center', sm: 'left' }
+                    }}
+                  >
                     <Typography
                       sx={{
                         color: 'customColors.neutralSecondary',
@@ -1145,8 +1152,12 @@ function Ledger({ tabValue, updateUrlParams }) {
                 </Grid>
 
                 {/* Total Outgoing */}
-                <Grid item xs={12} sm='auto'>
-                  <Box textAlign={{ xs: 'center', sm: 'left' }}>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
+                  <Box
+                    sx={{
+                      textAlign: { xs: 'center', sm: 'left' }
+                    }}
+                  >
                     <Typography
                       sx={{
                         color: 'customColors.neutralSecondary',
@@ -1178,7 +1189,11 @@ function Ledger({ tabValue, updateUrlParams }) {
           </Grid>
         </Box>
       </Box>
-      <Grid mt={6}>
+      <Grid
+        sx={{
+          mt: 6
+        }}
+      >
         <CommonTable
           onRowClick={onRowClick}
           indexedRows={indexedRows}
@@ -1191,7 +1206,6 @@ function Ledger({ tabValue, updateUrlParams }) {
           searchValue={searchValue}
         />
       </Grid>
-
       <FilterDrawer
         open={open}
         onClose={toggleDrawer}
@@ -1230,23 +1244,25 @@ function Ledger({ tabValue, updateUrlParams }) {
                   size='small'
                   value={batchSearchTerm}
                   onChange={e => handleBatchSearch(e.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        {batchSearchTerm && (
-                          <IconButton
-                            size='small'
-                            aria-label='clear search'
-                            onClick={() => {
-                              handleBatchSearch('')
-                            }}
-                            edge='end'
-                          >
-                            <ClearIcon />
-                          </IconButton>
-                        )}
-                      </InputAdornment>
-                    )
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          {batchSearchTerm && (
+                            <IconButton
+                              size='small'
+                              aria-label='clear search'
+                              onClick={() => {
+                                handleBatchSearch('')
+                              }}
+                              edge='end'
+                            >
+                              <ClearIcon />
+                            </IconButton>
+                          )}
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Box>
@@ -1279,7 +1295,12 @@ function Ledger({ tabValue, updateUrlParams }) {
                 ))
               ) : (
                 <Box sx={{ textAlign: 'center', padding: 2 }}>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary'
+                    }}
+                  >
                     No batch details found
                   </Typography>
                 </Box>
@@ -1310,7 +1331,14 @@ function Ledger({ tabValue, updateUrlParams }) {
 
           {/* Created By */}
           {selectedItem === 'Created By' && (
-            <Box display='grid' gap={2} pt={2} sx={{ pt: 3 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 2,
+                pt: 2,
+                pt: 3
+              }}
+            >
               {createByOptions.map(doctor => (
                 <DoctorCard
                   key={doctor.id}
@@ -1518,7 +1546,6 @@ function Ledger({ tabValue, updateUrlParams }) {
           </>
         )} */}
       </FilterDrawer>
-
       <>{/* <Error404></Error404> */}</>
     </>
   )

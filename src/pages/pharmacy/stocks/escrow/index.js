@@ -465,7 +465,7 @@ function Escrow({ value }) {
               }}
             >
               {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
+              <Grid item size={{ xs: 8 }}>
                 <Box
                   sx={{
                     display: 'flex',

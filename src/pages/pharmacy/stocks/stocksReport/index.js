@@ -1086,7 +1086,7 @@ const ListOfStocks = () => {
                       mx: { xs: 2, sm: 6, md: 6, lg: 6 }
                     }}
                   >
-                    <Grid item xs={12} md={8} lg={8}>
+                    <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
                       <TextField
                         variant='outlined'
                         size='small'
@@ -1098,25 +1098,27 @@ const ListOfStocks = () => {
                             : handleSearch(e.target.value, stockId, stockType, paginationModel)
                         }}
                         fullWidth
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <Icon
-                                icon='mi:search'
-                                fontSize={24}
-                                color={theme.palette.customColors.neutralSecondary}
-                              />
-                            </InputAdornment>
-                          )
-                        }}
                         sx={{
                           borderRadius: '8px'
+                        }}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <Icon
+                                  icon='mi:search'
+                                  fontSize={24}
+                                  color={theme.palette.customColors.neutralSecondary}
+                                />
+                              </InputAdornment>
+                            )
+                          }
                         }}
                       />
                     </Grid>
                     <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
                       {selectedPharmacy.type === 'central' && (
-                        <Grid item xs={12} md={4} lg={4}>
+                        <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
                           <FormControl
                             sx={{
                               width: { xs: '100%', md: 200, lg: 200 },
@@ -1173,15 +1175,14 @@ const ListOfStocks = () => {
                               size='small'
                             >
                               <MenuItem value='all'>All</MenuItem>
-                              {stores.length > 0
-                                ? stores.map(el => {
-                                    return (
-                                      <MenuItem key={el.id} value={el.id}>
-                                        {el.name}
-                                      </MenuItem>
-                                    )
-                                  })
-                                : null}
+                              {stores.length > 0 &&
+                                stores.map(el => {
+                                  return (
+                                    <MenuItem key={el.id} value={el.id}>
+                                      {el.name}
+                                    </MenuItem>
+                                  )
+                                })}
                             </Select>
                             <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
                           </FormControl>
@@ -1189,9 +1190,7 @@ const ListOfStocks = () => {
                       )}
                       <Grid
                         item
-                        xs={12}
-                        md={8}
-                        lg={8}
+                        size={{ xs: 12, md: 8, lg: 8 }}
                         sx={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -1444,7 +1443,6 @@ const ListOfStocks = () => {
           <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow value={value} />}</TabPanel>
         </TabContext>
       </Grid>
-
       <StockReportDetails
         drawerWidth={400}
         addEventSidebarOpen={openDrawer}

@@ -59,7 +59,7 @@ const TextEllipsisWithModal = ({ ...props }) => {
             <Divider />
             <CardContent>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Grid sx={{ mt: 2, position: 'relative', right: 8 }}>
                     <Typography sx={{ fontSize: '16px', fontFamily: 'Inter', fontWeight: 500 }}>
                       {props?.text}

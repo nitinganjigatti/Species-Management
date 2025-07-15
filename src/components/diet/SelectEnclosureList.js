@@ -153,10 +153,16 @@ const SelectEnclosureList = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: '500',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               Choose Enclosure
             </Typography>
-            <Typography variant='body2' sx={{ color: '#44544A' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
               Select a enclosure from the list below
             </Typography>
           </Box>
@@ -174,33 +180,40 @@ const SelectEnclosureList = ({
             size='small'
             value={searchTerm}
             onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon sx={{ color: '#1F515B' }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm && (
-                <InputAdornment position='end'>
-                  <IconButton
-                    size='small'
-                    onClick={() => {
-                      setSearchTerm('')
-                      fetchEnclosures('')
-                    }}
-                  >
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position='end'>
+                    <IconButton
+                      size='small'
+                      onClick={() => {
+                        setSearchTerm('')
+                        fetchEnclosures('')
+                      }}
+                    >
+                      <Icon icon='mdi:close' fontSize={20} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                style: {
+                  background: theme.palette.customColors.Background,
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
+              }
             }}
           />
         </Box>
 
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: '#44544A' }}>
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
             {loading ? '' : `Selected ${selectedEnclosures.length}/${enclosuresData.length}`}
           </Typography>
           <Box
@@ -215,7 +228,7 @@ const SelectEnclosureList = ({
                 color:
                   selectedEnclosures.length === enclosuresData.length && enclosuresData.length > 0
                     ? theme.palette.primary.main
-                    : '#44544A',
+                    : theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -242,11 +255,11 @@ const SelectEnclosureList = ({
                   borderColor:
                     selectedEnclosures.length === enclosuresData.length && enclosuresData.length > 0
                       ? theme.palette.primary.main
-                      : '#44544A',
+                      : theme.palette.customColors.OnSurfaceVariant,
                   color:
                     selectedEnclosures.length === enclosuresData.length && enclosuresData.length > 0
                       ? theme.palette.primary.main
-                      : '#44544A'
+                      : theme.palette.customColors.OnSurfaceVariant
                 },
                 mr: 1
               }}
@@ -261,6 +274,7 @@ const SelectEnclosureList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
+
             //height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
@@ -284,9 +298,13 @@ const SelectEnclosureList = ({
                     mb: 4,
                     height: '70px',
                     border: '1px solid',
-                    borderColor: selectedEnclosures.includes(enclosure.enclosure_id) ? '#80E0A3' : '#C3CEC7',
+                    borderColor: selectedEnclosures.includes(enclosure.enclosure_id)
+                      ? '#80E0A3'
+                      : theme.palette.customColors.OutlineVariant,
                     borderRadius: '8px',
-                    bgcolor: selectedEnclosures.includes(enclosure.enclosure_id) ? '#E1F9ED' : 'transparent'
+                    bgcolor: selectedEnclosures.includes(enclosure.enclosure_id)
+                      ? theme.palette.customColors.OnBackground
+                      : 'transparent'
                   }}
                 >
                   <ListItemAvatar>
@@ -295,8 +313,25 @@ const SelectEnclosureList = ({
                   <ListItemText
                     primary={enclosure.user_enclosure_name}
                     //secondary={enclosure.location || '-'}
-                    primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
-                    secondaryTypographyProps={{ color: '#44544A' }}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 'bold',
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }
+                      },
+                      secondary: {
+                        sx: {
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }
+                      }
+                    }}
+
+                    // primaryTypographyProps={{
+                    //   fontWeight: 'bold',
+                    //   color: theme.palette.customColors.OnPrimaryContainer
+                    // }}
+                    // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
                     checked={selectedEnclosures.includes(enclosure.enclosure_id)}

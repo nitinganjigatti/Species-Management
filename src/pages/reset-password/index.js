@@ -7,7 +7,7 @@ import CommonCard from 'src/components/login/CommonCard'
 import CustomButton from 'src/components/login/CustomButton'
 import CustomInput from 'src/components/login/CustomInput'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
-import { Avatar } from '@mui/material'
+import { Avatar, FormHelperText } from '@mui/material'
 import { useRouter } from 'next/router'
 import { resetPassword } from 'src/lib/api/login'
 import toast from 'react-hot-toast'
@@ -27,7 +27,7 @@ const ResetPassword = () => {
     control,
     handleSubmit,
     watch,
-    formState: { touchedFields }
+    formState: { touchedFields, errors }
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -49,7 +49,8 @@ const ResetPassword = () => {
   // Password validation status
   const validations = {
     minChars: newPassword.length >= 8,
-    upperCase: /[A-Z]/.test(newPassword),
+
+    // upperCase: /[A-Z]/.test(newPassword),
     numerical: /[0-9]/.test(newPassword),
     special: /[@#$&*]/.test(newPassword),
     passwordMismatch: confirmPassword ? confirmPassword !== newPassword : false
@@ -57,6 +58,7 @@ const ResetPassword = () => {
 
   const onSubmit = async data => {
     console.log('Form submitted successfully', data)
+
     // Handle form submission logic here
 
     const payload = {
@@ -94,6 +96,7 @@ const ResetPassword = () => {
 
   const getColor = isValid => {
     if (!isInteracted) return 'customColors.OnSurfaceVariant'
+
     return isValid ? 'success.main' : 'error.main'
   }
 
@@ -131,10 +134,11 @@ const ResetPassword = () => {
             name='newPassword'
             control={control}
             rules={{
-              required: true,
+              required: 'Please enter a new password',
               validate: {
                 minChars: value => value.length >= 8,
-                upperCase: value => /[A-Z]/.test(value),
+
+                // upperCase: value => /[A-Z]/.test(value),
                 numerical: value => /[0-9]/.test(value),
                 special: value => /[@#$&*]/.test(value)
               }
@@ -161,6 +165,9 @@ const ResetPassword = () => {
               />
             )}
           />
+          {errors.newPassword && (
+            <FormHelperText sx={{ color: 'error.main', m: 0 }}>{errors.newPassword.message}</FormHelperText>
+          )}
         </FormControl>
 
         {/* Always show validation section once user interacts with password field */}
@@ -168,11 +175,12 @@ const ResetPassword = () => {
           <Typography sx={{ mb: 1, color: 'customColors.OnSurfaceVariant', fontSize: '12px', fontWeight: 600 }}>
             Password must contain:
           </Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {[
               { label: 'Minimum 8 characters', key: 'minChars' },
               { label: '1 Numerical character', key: 'numerical' },
-              { label: 'Upper case letter', key: 'upperCase' },
+
+              // { label: 'Upper case letter', key: 'upperCase' },
               { label: '1 Special character (@#$&*)', key: 'special' }
             ].map(item => (
               <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>

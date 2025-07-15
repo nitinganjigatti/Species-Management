@@ -25,7 +25,6 @@ const Dispatch = () => {
     setLoader(true)
     const response = await getDispatch()
     if (response?.length > 0) {
-      console.log('list', response)
 
       let listWithId = response.map((el, i) => {
         return { ...el, uid: i + 1 }
@@ -144,9 +143,7 @@ const Dispatch = () => {
           <IconButton
             size='small'
             sx={{ mr: 0.5 }}
-            onClick={() => {
-              console.log(params.row.id)
-            }}
+
           >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
