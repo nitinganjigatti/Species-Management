@@ -1945,8 +1945,8 @@ const EggList = () => {
       }
     )
   }
-  console.log('tab_Value', tab_Value)
-  console.log('subTab_value', subTab_value)
+  // console.log('tab_Value', tab_Value)
+  // console.log('subTab_value', subTab_value)
 
   const fetchTableData = useCallback(
     async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}, filterByNurseryId) => {
@@ -1973,14 +1973,14 @@ const EggList = () => {
           : ''
 
         // console.log('status', status)
-        console.log('first')
+        // console.log('first')
         // console.log('isDiscarded', isDiscarded)
         const params = {
           sort,
           q: search ? search : '',
           sorting_by_date: 'latest_date',
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          page_no: paginationModel?.page + 1,
+          limit: paginationModel?.pageSize,
 
           // nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
           egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
@@ -2065,16 +2065,35 @@ const EggList = () => {
     }
   }
 
+  // const searchTableData = useCallback(
+  //   debounce(async (sort, q, status, isDiscarded) => {
+  //     setSearchValue(q)
+  //     try {
+  //       await fetchTableData(sort, q, status, isDiscarded, selectedFiltersOptions)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
+
   const searchTableData = useCallback(
     debounce(async (sort, q, status, isDiscarded) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, status, isDiscarded, selectedFiltersOptions)
+        await fetchTableData(
+          sort,
+          q,
+          status,
+          isDiscarded,
+          selectedFiltersOptions,
+          filterByNurseryId // optional but if you're using this in normal call, keep it consistent
+        )
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    []
+    [(fetchTableData, selectedFiltersOptions, filterByNurseryId)] // <== important for latest values
   )
 
   const NurseryList = async q => {

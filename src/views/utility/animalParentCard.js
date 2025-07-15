@@ -32,11 +32,15 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               sx={{
                 '& > img': {
                   objectFit:
-                    data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg')
+                    data?.default_icon?.includes('class_images' || 'species_images') &&
+                    data?.default_icon?.endsWith('.svg')
                       ? 'contain'
                       : 'cover',
                   padding:
-                    data?.default_icon?.includes('class_images') && data?.default_icon.endsWith('.svg') ? '3px' : 0
+                    data?.default_icon?.includes('class_images' || 'species_images') &&
+                    data?.default_icon.endsWith('.svg')
+                      ? 1
+                      : 0
                 },
                 width: 44,
                 height: 44,
