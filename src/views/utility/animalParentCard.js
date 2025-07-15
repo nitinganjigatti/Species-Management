@@ -28,16 +28,23 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
       sx={{
         '& > img': {
           objectFit:
-            data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 'contain' : 'cover'
+            data?.default_icon?.includes('class_images' || 'species_images') && data?.default_icon?.endsWith('.svg')
+              ? 'contain'
+              : 'cover'
         },
-        padding: data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 0.4 : 0,
+        padding:
+          data?.default_icon?.includes('class_images' || 'species_images') && data?.default_icon?.endsWith('.svg')
+            ? 1
+            : 0,
         width: 44,
         height: 44,
         border: '1px solid #C3CEC7'
       }}
       alt={data?.default_icon}
       src={data?.default_icon}
-
+      // src={
+      //   'https://api.dev.antzsystems.com/api/image/download/uploaded/file?path=uploads/assets/class_images/birds.svg'
+      // }
       // onLoad={handleImageLoad}
     />
   )

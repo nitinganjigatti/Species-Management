@@ -31,7 +31,6 @@ import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
-import Error404 from 'src/pages/401'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
