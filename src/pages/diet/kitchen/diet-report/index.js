@@ -228,12 +228,13 @@ const DietReportPage = () => {
   // ** Column Definitions
   const columns = [
     {
-      width: 40,
+      width: 80,
       field: 'id',
-      headerName: 'ID',
+      headerName: 'SL.NO',
       headerAlign: 'center',
       alignItems: 'center',
       align: 'center',
+      sortable: false,
       renderCell: params => params.value
     },
     {
@@ -241,6 +242,7 @@ const DietReportPage = () => {
       minWidth: 300,
       field: 'reportName',
       headerName: 'Report Name',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
           <Typography sx={{ color: 'customColors.OnSecondaryContainer', fontSize: '14px', fontWeight: '400px' }}>
@@ -265,6 +267,7 @@ const DietReportPage = () => {
       headerName: 'Download',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
       renderCell: params => (
         <>
           {!params?.row.downloadStatus ? (
