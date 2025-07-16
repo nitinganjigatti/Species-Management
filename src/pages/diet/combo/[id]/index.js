@@ -217,7 +217,7 @@ const RecipeDetail = () => {
                             /> */}
                             <Avatar
                               sx={{
-                                width: '100%',
+                                width: 'auto',
                                 height: '100%',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
@@ -244,7 +244,7 @@ const RecipeDetail = () => {
                               /> */}
                               <Avatar
                                 sx={{
-                                  width: '100%',
+                                  width: 'auto',
                                   height: '100%',
                                   borderRadius: '8px',
                                   cursor: 'pointer',
@@ -283,7 +283,7 @@ const RecipeDetail = () => {
                               /> */}
                               <Avatar
                                 sx={{
-                                  width: '100%',
+                                  width: 'auto',
                                   height: '100%',
                                   borderRadius: '8px',
                                   cursor: 'pointer',

@@ -1082,10 +1082,10 @@ const StepBasicDetails = ({
                       return (
                         <Autocomplete
                           id='dietitian_id'
-                          value={dieticianList?.find(option => option.value === value) || null}
+                          value={dieticianList?.find(option => option.value === String(value)) || null}
                           options={dieticianList || []}
                           getOptionLabel={option => option.label}
-                          isOptionEqualToValue={(option, value) => option?.value === value}
+                          isOptionEqualToValue={(option, value) => option?.value === String(value)}
                           onChange={(e, val) => {
                             if (val === null) {
                               setFormValue('dietitian_id', '')
