@@ -124,7 +124,7 @@ const SpeciesAddEdit = ({
         1. Import Permit Details
       </Typography>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             label='Enter Certificate ID*'
@@ -133,16 +133,16 @@ const SpeciesAddEdit = ({
             onChange={handleAirwaybillChange}
             error={Boolean(errors.airwaybillvalue)}
             helperText={errors.airwaybillvalue}
-            inputProps={{
-              maxLength: 31
-            }}
-            InputProps={{
-              style: { borderRadius: 8 }
+            slotProps={{
+              input: {
+                maxLength: 25,
+                style: { borderRadius: 8 }
+              }
             }}
           />
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SingleDatePicker
             selected={startDate}
             onChange={handleDateChange}
@@ -156,20 +156,22 @@ const SpeciesAddEdit = ({
                 value={startDate ? startDate?.toLocaleDateString() : ''}
                 error={Boolean(errors.startDate)}
                 helperText={errors.startDate}
-                InputLabelProps={{
-                  shrink: true
-                }}
-                InputProps={{
-                  sx: {
-                    height: '55px',
-                    padding: '0 14px',
-                    alignItems: 'center'
+                slotProps={{
+                  inputLabel: {
+                    shrink: true
                   },
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <CalendarMonth style={{ cursor: 'pointer' }} />
-                    </InputAdornment>
-                  )
+                  input: {
+                    sx: {
+                      height: '55px',
+                      padding: '0 14px',
+                      alignItems: 'center'
+                    },
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <CalendarMonth style={{ cursor: 'pointer' }} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
                 sx={{
                   '& .MuiInputBase-input': {
@@ -189,9 +191,13 @@ const SpeciesAddEdit = ({
       </Grid>
 
       <Grid container spacing={2} sx={{ mt: 2 }}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
-          {errors.uploadedFile && <Typography color='error'>{errors.uploadedFile}</Typography>}
+          {errors.uploadedFile && (
+            <Typography sx={{ color: '#FF4D49', fontSize: '12px', fontWeight: '400', mt: 1 }}>
+              {errors.uploadedFile}
+            </Typography>
+          )}
         </Grid>
       </Grid>
       <Box sx={{ mt: 6 }}>

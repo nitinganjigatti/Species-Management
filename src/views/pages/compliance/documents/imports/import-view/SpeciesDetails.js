@@ -164,7 +164,7 @@ const SpeciesDetailsContainer = ({
           >
             <Grid container spacing={2}>
               {/* Shipment ID */}
-              <Grid item xs={6} md={4}>
+              <Grid size={{ xs: 6, md: 4 }}>
                 <Typography fontWeight='400' color='#7A8684' fontSize='16px'>
                   Certificate ID
                 </Typography>
@@ -174,7 +174,7 @@ const SpeciesDetailsContainer = ({
               </Grid>
 
               {/* Date Of Issue */}
-              <Grid item xs={6} md={4}>
+              <Grid size={{ xs: 6, md: 4 }}>
                 <Typography fontWeight='400' color='#7A8684' fontSize='16px'>
                   Date Of Issue
                 </Typography>

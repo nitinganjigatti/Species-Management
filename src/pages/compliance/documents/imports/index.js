@@ -158,15 +158,15 @@ const ImportsPage = () => {
           sx={{ px: 5, pb: 0 }}
         />
         <Grid container spacing={4} sx={{ px: 5, py: 2, mt: 2 }} alignItems='center'>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Search
               placeholder='Search'
               onChange={e => handleSearch(e.target.value)}
               onClear={() => handleSearch('')}
             />
           </Grid>
-          <Grid item xs={12} md={2} />
-          <Grid item xs={12} md={4.5}>
+          <Grid size={{ xs: 12, md: 2 }} />
+          <Grid size={{ xs: 12, md: 4.5 }}>
             {/* <CommonDateRangePickers
               filterDates={filterDate}
               onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
@@ -202,7 +202,7 @@ const ImportsPage = () => {
             </Grid>
           </Grid> */}
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <CommonTable
               columns={columns}
               indexedRows={rows}

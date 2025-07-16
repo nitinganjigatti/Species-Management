@@ -19,7 +19,7 @@ const AnimalCardLayout = ({
   onSelect,
   loading,
   selectedExportData,
-  setSelectedExportData,
+  setSearchValue,
   exportNumber,
   exportID,
   onClose,
@@ -206,6 +206,7 @@ const AnimalCardLayout = ({
     })
     onClose()
     setexportPermitDrawerOpen(false)
+    setSearchValue('')
   }
 
   return (

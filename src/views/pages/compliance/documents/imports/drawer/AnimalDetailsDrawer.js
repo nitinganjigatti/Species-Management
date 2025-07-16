@@ -102,25 +102,25 @@ const AnimalDetailsDrawer = ({
             }}
           >
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Species Name</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
                   {animalDetails?.common_name || 'N/A'}
                 </Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Scientific Name</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
                   {animalDetails?.scientific_name || 'N/A'}
                 </Typography>
               </Grid>
-              <Grid item xs={6} sx={{ mt: 3 }}>
+              <Grid sx={{ mt: 3 }} size={{ xs: 6 }}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>CITES</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
                   {animalDetails?.cites || 'N/A'}
                 </Typography>
               </Grid>
-              <Grid item xs={6} sx={{ mt: 3 }}>
+              <Grid size={{ xs: 6 }} sx={{ mt: 3 }}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Animal count</Typography>
                 <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
                   {animalDetails?.total_count ||
@@ -129,7 +129,7 @@ const AnimalDetailsDrawer = ({
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} sx={{ mt: 3 }}>
+              <Grid size={{ xs: 12 }} sx={{ mt: 3 }}>
                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Gender & Count</Typography>
                 <Box display='flex' gap={1} sx={{ mt: 1 }}>
                   <Chip

@@ -16,7 +16,7 @@ const AddEditImport = () => {
   const { id, action } = router.query
   const theme = useTheme()
   const isEdit = Boolean(id && id !== 'new')
-  const [expanded, setExpanded] = useState('animals-details')
+  const [expanded, setExpanded] = useState(['animals-details'])
   const [showEditAnimals, setShowEditAnimals] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
   const [isFetching, setIsFetching] = useState(false)
@@ -87,6 +87,16 @@ const AddEditImport = () => {
 
   const isAnimalsEditable = showEditAnimals && expanded === 'animals-details' && id && action === 'details'
 
+  // Accordion toggle handler
+  const handleAccordionChange = panelId => {
+    setExpanded(
+      prev =>
+        prev.includes(panelId)
+          ? prev?.filter(id => id !== panelId) // Close if open
+          : [...prev, panelId] // Open if closed
+    )
+  }
+
   return (
     <>
       <Box sx={{ mb: 2 }}>
@@ -131,8 +141,8 @@ const AddEditImport = () => {
           ) : null
         }
         title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Details</Typography>}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        expanded={expanded.includes('animals-details')}
+        onChange={handleAccordionChange}
         editable={showEditAnimals && expanded === 'animals-details' && id && action === 'details'}
         handleEditClick={() => {
           animalsEditRef.current?.()
@@ -161,8 +171,8 @@ const AddEditImport = () => {
             <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Supporting Documents</Typography>
           }
           docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
-          expanded={expanded}
-          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+          expanded={expanded.includes('supporting-documents')}
+          onChange={handleAccordionChange}
         >
           {!isEdit && !documentList?.length ? (
             <Box
@@ -200,8 +210,8 @@ const AddEditImport = () => {
         <CustomAccordion
           id='linked-shipments'
           title={`Linked Shipments - ${totalLinkedShipments}`}
-          expanded={expanded}
-          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+          expanded={expanded.includes('linked-shipments')}
+          onChange={handleAccordionChange}
         >
           <LinkedShipments
             shipments={linkedShipments}

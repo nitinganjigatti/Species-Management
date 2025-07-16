@@ -17,7 +17,7 @@ const AddEditShipment = () => {
   const { id, action, export: exportCount } = router.query
   const theme = useTheme()
   const isEdit = Boolean(id && id !== 'new')
-  const [expanded, setExpanded] = useState('permit-details')
+  const [expanded, setExpanded] = useState(['permit-details'])
   const [showEdit, setShowEdit] = useState(true)
   const [showEditAnimals, setShowEditAnimals] = useState(true)
   const [status, setStatus] = useState('draft')
@@ -94,6 +94,16 @@ const AddEditShipment = () => {
   const isBasicEditable = showEdit && expanded === 'permit-details' && id && action === 'details'
   const isAnimalsEditable =
     showEditAnimals && expanded === 'animals-details' && id && action === 'details' && exportCount > 0
+
+  // Accordion toggle handler
+  const handleAccordionChange = panelId => {
+    setExpanded(
+      prev =>
+        prev.includes(panelId)
+          ? prev?.filter(id => id !== panelId) // Close if open
+          : [...prev, panelId] // Open if closed
+    )
+  }
 
   return (
     <>
@@ -181,8 +191,8 @@ const AddEditShipment = () => {
         id='permit-details'
         docsCount={!isBasicEditable && expanded !== 'permit-details' && id ? `ID: ${formattedValue}` : null}
         title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>}
-        expanded={expanded}
-        onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+        expanded={expanded.includes('permit-details')}
+        onChange={handleAccordionChange}
         editable={showEdit && expanded === 'permit-details' && id && action === 'details'}
         handleEditClick={() => {
           basicDetailsEditRef.current?.()
@@ -213,8 +223,8 @@ const AddEditShipment = () => {
             ) : null
           }
           title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>}
-          expanded={expanded}
-          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+          expanded={expanded.includes('animals-details')}
+          onChange={handleAccordionChange}
           editable={showEditAnimals && expanded === 'animals-details' && id && action === 'details' && exportCount > 0}
           handleEditClick={() => {
             animalsEditRef.current?.()
@@ -244,8 +254,8 @@ const AddEditShipment = () => {
             </Typography>
           }
           docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
-          expanded={expanded}
-          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+          expanded={expanded.includes('supporting-documents')}
+          onChange={handleAccordionChange}
         >
           {!isEdit && !documentList?.length ? (
             <Box
@@ -283,8 +293,8 @@ const AddEditShipment = () => {
         <CustomAccordion
           id='linked-documents'
           title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Linked Documents</Typography>}
-          expanded={expanded}
-          onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
+          expanded={expanded.includes('linked-documents')}
+          onChange={handleAccordionChange}
           docsCount={
             linkedDocumentsData?.exports_count || linkedDocumentsData?.imports_count ? (
               <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>

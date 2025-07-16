@@ -21,7 +21,8 @@ const ExportPermitDrawer = ({
   isLoading,
   loader,
   draftData,
-  setDraftData
+  setDraftData,
+  setSearchValue
 }) => {
   const theme = useTheme()
 
@@ -114,6 +115,7 @@ const ExportPermitDrawer = ({
                       setDraftData={setDraftData}
                       draftData={draftData}
                       setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+                      setSearchValue={setSearchValue}
                     />
                   ))}
 

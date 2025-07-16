@@ -617,6 +617,7 @@ const SpeciesAddEdit = ({
           draftData={draftData}
           loader={loader}
           setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+          setSearchValue={setSearchValue}
         />
 
         <AddAnimalsDrawer
@@ -633,6 +634,7 @@ const SpeciesAddEdit = ({
           setDraftData={setDraftData}
           draftData={draftData}
           setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+          setSearchValue={setSearchValue}
         />
 
         <LinkedShipmentsDrawer

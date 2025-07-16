@@ -145,7 +145,11 @@ const BasicDetailsAddEdit = ({
       <Grid container spacing={2} sx={{ mt: 2 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
-          {errors.uploadedFile && <Typography color='error'>{errors.uploadedFile}</Typography>}
+          {errors.uploadedFile && (
+            <Typography sx={{ color: '#FF4D49', fontSize: '12px', fontWeight: '400', mt: 1 }}>
+              {errors.uploadedFile}
+            </Typography>
+          )}
         </Grid>
       </Grid>
 

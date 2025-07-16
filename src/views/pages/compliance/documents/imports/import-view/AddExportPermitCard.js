@@ -59,7 +59,7 @@ const ExportCard = ({
             </span>
           </Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item>
+            <Grid>
               <Button
                 size='small'
                 sx={{
@@ -77,7 +77,7 @@ const ExportCard = ({
                 Species <Typography sx={{ fontWeight: 600, fontSize: '14px', pl: 1 }}>{species}</Typography>
               </Button>
             </Grid>
-            <Grid item>
+            <Grid>
               <Button
                 size='small'
                 sx={{
