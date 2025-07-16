@@ -106,7 +106,9 @@ const ImportsPage = () => {
       field: 'import_date',
       headerName: 'Issued',
       renderCell: params => (
-        <Typography sx={{ px: 0, width: '100%' }}>{moment(params.value).format('DD MMM YYYY')}</Typography>
+        <Typography sx={{ px: 0, width: '100%' }}>
+          {params?.value !== null ? moment(params.value).format('DD MMM YYYY') : '-'}
+        </Typography>
       )
     },
     {
