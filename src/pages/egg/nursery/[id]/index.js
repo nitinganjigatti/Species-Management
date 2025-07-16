@@ -11,7 +11,6 @@ import {
   IconButton,
   Button,
   Breadcrumbs,
-  Grid,
   TextField,
   Autocomplete,
   FormControl,
@@ -48,6 +47,7 @@ const NurseryDetails = () => {
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
+  const [nurseryDataLoader, setNurseryDataLoader] = useState(false)
   const [nurseryData, setNurseryData] = useState({})
   const [editName, setEditName] = useState('')
   const [editSite, setEditSite] = useState('')
@@ -113,44 +113,9 @@ const NurseryDetails = () => {
     }
   }
 
-  // const fetchNurseryDetails = () => {
-  //   try {
-  //     GetNurseryDetailsById(id).then(res => {
-  //       if (res?.success) {
-  //         setIncubatorNo(res?.data?.no_of_incubators)
-  //         setNurseryData({
-  //           list: {
-  //             'Nursery Name': res?.data?.nursery_name,
-  //             Room: res?.data?.no_of_rooms,
-  //             Site: res?.data?.site_name,
-  //             Incubator: res?.data?.no_of_incubators,
-  //             'Eggs in Nursery': res?.data?.no_of_eggs
-  //           },
-  //           Avatar: {
-  //             profile_Pic: res?.data?.user_profile_pic,
-  //             user_Name: res?.data?.user_full_name,
-  //             create_at: res?.data?.created_at,
-  //             site_id: res?.data?.site_id
-  //           }
-  //         })
-  //         setActive(Boolean(Number(res?.data?.active)))
-  //         setIsPreFilled(res?.data)
-  //         setdisabledAddRoomBtn(false)
-  //         setEditNurseryId(id)
-  //         setEditName(res.data?.nursery_name)
-  //         setEditSite(res?.data?.site_id)
-  //         setEditSiteName(res?.data?.site_name)
-  //       } else {
-  //         Toaster({ message: res.message, type: 'error' })
-  //       }
-  //     })
-  //   } catch (error) {
-  //     Toaster({ message: res.message, type: 'error' })
-  //   }
-  // }
-
   // API Call: Fetch Nursery Details
   const fetchNurseryDetails = async () => {
+    setNurseryDataLoader(true)
     try {
       const res = await GetNurseryDetailsById(id)
 
@@ -186,14 +151,10 @@ const NurseryDetails = () => {
       }
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'Failed to fetch nursery details' })
+    } finally {
+      setNurseryDataLoader(false)
     }
   }
-
-  useEffect(() => {
-    if (egg_nursery_permission || egg_collection_permission) {
-      fetchNurseryDetails()
-    }
-  }, [])
 
   // API Call: Fetch Room Table Data
   const fetchTableData = useCallback(
@@ -252,7 +213,6 @@ const NurseryDetails = () => {
       fetchTableData(searchValue, sortColumn, defaultStatus?.key)
     }
   }, [])
-  // }, [fetchTableData])
 
   const columns = [
     {
@@ -548,6 +508,7 @@ const NurseryDetails = () => {
             </Box>
             <Box sx={{ px: '16px', my: '12px' }}>
               <DetailCard
+                loading={nurseryDataLoader}
                 title='Nursery Details'
                 ButtonName={'ADD ROOM'}
                 DetailsListData={nurseryData}

@@ -353,15 +353,16 @@ const EggComment = ({ eggDetails, eggId }) => {
                         )}
                       </Box>
                       <Box sx={{ display: 'flex', gap: '12px', justifyContent: { xs: 'end' } }}>
-                        <IconButton>
+                        <IconButton
+                          onClick={() => {
+                            setCommentId(item?.id)
+                            setDeleteDialogBox(true)
+                          }}
+                        >
                           <Icon
                             color={theme.palette.customColors.secondaryBg}
                             icon='material-symbols:delete-outline'
                             fontSize={20}
-                            onClick={() => {
-                              setCommentId(item?.id)
-                              setDeleteDialogBox(true)
-                            }}
                             style={{ cursor: 'pointer' }}
                           />
                         </IconButton>

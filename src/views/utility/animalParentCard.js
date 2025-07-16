@@ -23,7 +23,7 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
 
   const avatarContent = imageLoading ? (
     <Skeleton variant='circular' width={44} height={44} />
-  ) : (
+  ) : data?.default_icon ? (
     <Avatar
       sx={{
         '& > img': {
@@ -42,10 +42,20 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
       }}
       alt={data?.default_icon}
       src={data?.default_icon}
-      // src={
-      //   'https://api.dev.antzsystems.com/api/image/download/uploaded/file?path=uploads/assets/class_images/birds.svg'
-      // }
-      // onLoad={handleImageLoad}
+    />
+  ) : (
+    <Avatar
+      sx={{
+        '& > img': {
+          objectFit: 'contain'
+        },
+        padding: 1.4,
+        width: 44,
+        height: 44,
+        border: '1px solid #C3CEC7'
+      }}
+      alt={'/branding/antz/Antz_logomark_h_color.svg'}
+      src={'/branding/antz/Antz_logomark_h_color.svg'}
     />
   )
 
@@ -71,23 +81,6 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               alignItems: 'center'
             }}
           >
-            {/* <Avatar
-              sx={{
-                '& > img': {
-                  objectFit:
-                    data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg')
-                      ? 'contain'
-                      : 'cover',
-                  padding:
-                    data?.default_icon?.includes('class_images') && data?.default_icon.endsWith('.svg') ? '3px' : 0
-                },
-                width: 44,
-                height: 44,
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-              }}
-              alt={data?.default_icon}
-              src={data?.default_icon}
-            /> */}
             {avatarContent}
             <Avatar
               sx={{
@@ -111,8 +104,6 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
                 alignItems: 'center',
                 borderRadius: '4px'
               }}
-
-              // variant='rounded'
             >
               {data?.type === 'group' ? (
                 <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>
