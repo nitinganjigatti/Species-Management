@@ -8,7 +8,7 @@ import { getAllShippedItemsOfSelectedStore } from 'src/lib/api/pharmacy/storeWis
 import Icon from 'src/@core/components/icon'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-export default function ShippedItems({ updateUrlParams, setTotalShippedCounts }) {
+export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, onExportClick }) {
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -51,7 +51,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_id}</div>
+            {params.row.shipment_id}
           </Typography>
         </div>
       )
@@ -102,7 +102,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography component='div' variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -263,6 +263,40 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
       query: { shipmentId: params.row.id }
     })
   }
+
+  const handleExport = async () => {
+    try {
+      const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
+      const now = new Date()
+
+      const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
+
+      let params = {
+        limit: total,
+        page: 1,
+        q: searchValue,
+        sort: sort,
+        column: sortColumn,
+        response_type: 'csv'
+      }
+
+      const response = await getAllShippedItemsOfSelectedStore({ params: params }, currentStoreId)
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response.data, `Requested_by_store_shipped_items ${timestamp}`)
+      }
+    } catch (error) {
+      console.error('Problem downloading Excel File :', error)
+    }
+  }
+
+  useEffect(() => {
+    if (onExportClick) {
+      onExportClick(handleExport)
+    }
+  }, [total, searchValue, sort, sortColumn])
 
   return (
     <CommonTable

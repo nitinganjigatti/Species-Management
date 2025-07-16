@@ -46,6 +46,7 @@ function UploadDiet({
   fetchTableData,
   speciesData,
   getSpecieDetail,
+  handleSearch,
   speciesDetailsDrawer
 }) {
   const theme = useTheme()
@@ -101,6 +102,7 @@ function UploadDiet({
     const allowedTypes = ['application/pdf']
     if (!file || !allowedTypes.includes(file.type)) {
       Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
+
       return
     }
     setSelectedFile(file)
@@ -110,6 +112,7 @@ function UploadDiet({
       clearErrors('attachment')
     }
   }
+
   ////////////////////////////////////////////////////////////
   const onSubmit = async ({ dietitian_id, notes }) => {
     setUploadingAttachment(true)
@@ -127,6 +130,7 @@ function UploadDiet({
       setDefaultPreparedBy(null)
       setSelectedFileName(null)
       setSelectedFile(null)
+      handleSearch('')
       if (speciesDetailsDrawer) {
         getSpecieDetail(speciesId)
       }
@@ -357,7 +361,7 @@ function UploadDiet({
                       control={control}
                       //   rules={{ required: !editNurseryId }}
                       render={({ field: { value, onChange } }) => (
-                        <Grid onClick={() => fileInputRef.current.click()} item md={12} sm={12} xs={12}>
+                        <Grid onClick={() => fileInputRef.current.click()} item size={{ md: 12, sm: 12, xs: 12 }}>
                           <input
                             type='file'
                             multiple

@@ -105,8 +105,10 @@ const AnimalCardItem = ({ species, children, theme, tempSelectedSpecies, selecti
             </Box>
           </>
         }
-        primaryTypographyProps={{
-          sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+        slotProps={{
+          primary: {
+            sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+          }
         }}
         secondary={
           <>

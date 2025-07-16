@@ -1,5 +1,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
+import get from 'lodash/get'
 import { TextField } from '@mui/material'
 
 const ControlledTextField = ({
@@ -19,6 +20,9 @@ const ControlledTextField = ({
   onInput,
   sx = {}
 }) => {
+  const error = get(errors, name) //  safely access nested error
+  const helperText = error?.message || ''
+
   return (
     <Controller
       name={name}
@@ -31,11 +35,10 @@ const ControlledTextField = ({
           value={field.value}
           type={type}
           label={label}
+          onWheel={event => event.target.blur()}
           disabled={disabled}
-          InputProps={{ readOnly }}
-          error={Boolean(errors?.[name])}
-          helperText={errors?.[name]?.message || ''}
-          inputProps={inputProps}
+          error={Boolean(error)}
+          helperText={helperText}
           onChange={e => {
             field.onChange(e)
             if (onChangeOverride) onChangeOverride(e)
@@ -44,6 +47,10 @@ const ControlledTextField = ({
           onPaste={onPaste}
           onInput={onInput}
           sx={sx}
+          slotProps={{
+            input: { readOnly },
+            htmlInput: inputProps
+          }}
         />
       )}
     />

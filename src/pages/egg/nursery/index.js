@@ -1,3 +1,5 @@
+import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import {
   Autocomplete,
   Avatar,
@@ -9,122 +11,91 @@ import {
   FormControl,
   Grid,
   TextField,
-  Typography,
-  debounce
+  Typography
 } from '@mui/material'
-import Icon from 'src/@core/components/icon'
-import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { AddNursery, GetNurseryList } from 'src/lib/api/egg/nursery'
-import moment from 'moment'
+import { useTheme } from '@mui/material/styles'
+import { debounce } from 'lodash'
+
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
 import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
-import { useRouter } from 'next/router'
-import { styled } from '@mui/system'
-import { useTheme } from '@mui/material/styles'
-import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
-import { AuthContext } from 'src/context/AuthContext'
+
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 const NurseryList = () => {
   const theme = useTheme()
   const router = useRouter()
+  const { userData } = useContext(AuthContext)
+
+  const nurseryPermission = userData?.permission?.user_settings?.add_nursery_permisson
+  const collectionPermission = userData?.roles?.settings?.enable_egg_collection_module
+
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('nursery_name')
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-
   const [defaultSite, setDefaultSite] = useState(null)
 
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
-
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
   const fetchTableData = useCallback(
-    async (q, siteId) => {
+    async (q = '', siteId) => {
+      setLoading(true)
+      const params = {
+        sort,
+        search: q,
+        site_id: siteId,
+        type: 'all',
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
       try {
-        setLoading(true)
+        const res = await GetNurseryList({ params })
+        const { total_count, result } = res?.data || {}
 
-        const params = {
-          sort,
-          search: q || '',
-          site_id: siteId,
-          type: 'all',
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-
-        await GetNurseryList({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
-        })
-        setLoading(false)
-      } catch (e) {
+        setTotal(parseInt(total_count || 0))
+        setRows(result || [])
+      } catch (error) {
+        console.error('Failed to fetch data:', error) // Optional for debugging
+      } finally {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, sort]
   )
 
   useEffect(() => {
-    if (egg_nursery_permission || egg_collection_permission) {
+    if (nurseryPermission || collectionPermission) {
       fetchTableData(searchValue, defaultSite?.site_id)
     }
-  }, [fetchTableData])
+  }, [fetchTableData, nurseryPermission, collectionPermission, defaultSite?.site_id])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(searchValue, newModel[0].field, status)
-    } else {
+      const { sort: newSort, field: newField } = newModel[0]
+      setSort(newSort)
+      fetchTableData(searchValue, defaultSite?.site_id)
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (q, siteId) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(q, siteId)
-      } catch (error) {
-        console.error(error)
-      }
+    debounce((q, siteId) => {
+      fetchTableData(q, siteId)
     }, 1000),
-    []
+    [fetchTableData]
   )
-
-  const handleSearch = (value, siteId) => {
-    setSearchValue(value)
-    searchTableData(value, siteId)
-  }
-
-  const addEventSidebarOpen = () => {
-    setOpenDrawer(true)
-  }
-
-  const closeSideSheet = () => {
-    setOpenDrawer(false)
-  }
-
-  const StyledRow = styled('div')({
-    borderBottom: '1px solid #ccc'
-  })
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 20,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       headerAlign: 'center',
       sortable: false,
@@ -141,7 +112,6 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.3,
       minWidth: 30,
@@ -149,7 +119,6 @@ const NurseryList = () => {
       field: 'Nursery Name',
       headerName: 'Nursery Name',
       align: 'left',
-
       renderCell: params => (
         <Typography
           noWrap
@@ -164,7 +133,6 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -186,7 +154,6 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.24,
       minWidth: 20,
@@ -208,7 +175,6 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.23,
       minWidth: 20,
@@ -217,7 +183,6 @@ const NurseryList = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'SITE NAME',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -318,189 +283,175 @@ const NurseryList = () => {
     }
   ]
 
-  const handleCellClick = params => {
-    router.push(`/egg/nursery/${params.row.id}`)
-  }
-
   const headerAction = (
     <>
-      {egg_nursery_permission && (
-        <div>
-          <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
-            <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; Add New
-          </Button>
-        </div>
+      {nurseryPermission && (
+        <Button size='medium' variant='contained' onClick={() => setOpenDrawer(true)}>
+          <Icon icon='mdi:add' fontSize={20} />
+          &nbsp; Add New
+        </Button>
       )}
     </>
   )
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const indexedRows = rows?.map((row, index) => ({ ...row, id: row.nursery_id, sl_no: getSlNo(index) }))
 
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    id: row.nursery_id,
-    sl_no: getSlNo(index)
-  }))
+  const handleCellClick = params => router.push(`/egg/nursery/${params.row.id}`)
 
+  if (!nurseryPermission && !collectionPermission) return <ErrorScreen />
   return (
     <>
-      {egg_nursery_permission || egg_collection_permission ? (
-        <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Egg
-            </Typography>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+          Egg
+        </Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-              Nursery List
-            </Typography>
-          </Breadcrumbs>
-          <Card>
-            <CardHeader title='Nursery' action={headerAction} />
+        <Typography
+          sx={{
+            color: 'text.primary',
+            cursor: 'pointer'
+          }}
+        >
+          Nursery List
+        </Typography>
+      </Breadcrumbs>
+      <Card>
+        <CardHeader title='Nursery' action={headerAction} />
 
-            <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
-              <Grid item xs={3}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '4px',
-                    padding: '0 8px',
-                    height: '40px'
-                  }}
-                >
-                  <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    InputProps={
-                      {
-                        // disableUnderline: true
-                      }
-                    }
-                    onChange={e => handleSearch(e.target.value, defaultSite?.site_id)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              </Grid>
-
-              <Grid item xs={3}>
-                <FormControl fullWidth>
-                  <Autocomplete
-                    name='site'
-                    value={defaultSite}
-                    disablePortal
-                    id='site'
-                    options={authData?.userData?.user?.zoos[0].sites}
-                    getOptionLabel={option => option.site_name}
-                    isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultSite(null)
-                        fetchTableData(searchValue, '')
-                      } else {
-                        setDefaultSite(val)
-                        fetchTableData(searchValue, val?.site_id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        sx={{
-                          backgroundColor: theme.palette.primary.contrastText,
-                          borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                          width: '100%',
-                          '& .MuiOutlinedInput-root': {
-                            height: 40,
-                            borderRadius: '4px'
-                          },
-                          '& .MuiInputLabel-root': {
-                            top: -7
-                          },
-                          '& input': {
-                            position: 'relative',
-                            top: -7
-                          }
-                        }}
-                        onChange={e => {
-                          // searchSite(e.target.value)
-                        }}
-                        {...params}
-                        label='Site'
-                        placeholder='Search & Select'
-                      />
-                    )}
-                  />
-                </FormControl>
-              </Grid>
-            </Grid>
-
-            <DataGrid
+        <Box sx={{ mb: 6 }}>
+          <Box sx={{ px: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            <Box
               sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
+                display: 'flex',
+                alignItems: 'center',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                borderRadius: '4px',
+                padding: '0 8px',
+                height: '40px'
+              }}
+            >
+              <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+              <TextField
+                variant='outlined'
+                placeholder='Search...'
+                onChange={e => {
+                  setSearchValue(e.target.value)
+                  searchTableData(e.target.value, defaultSite?.site_id)
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    border: 'none',
+                    padding: '0',
+                    '& fieldset': {
+                      border: 'none'
+                    }
+                  }
+                }}
+              />
+            </Box>
 
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              rowHeight={64}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              // slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              // slotProps={{
-              //   baseButton: {
-              //     variant: 'outlined'
-              //   },
-              //   toolbar: {
-              //     value: searchValue,
-              //     clearSearch: () => handleSearch(''),
-              //     onChange: event => handleSearch(event.target.value)
-              //   }
-              // }}
-              onCellClick={handleCellClick}
-            />
-          </Card>
-          {openDrawer && (
-            <NurseryAddComponent
-              openDrawer={openDrawer}
-              setOpenDrawer={setOpenDrawer}
-              loading={loading}
-              fetchTableData={fetchTableData}
-            />
-          )}
-        </>
-      ) : (
-        <>
-          {' '}
-          <ErrorScreen></ErrorScreen>
-        </>
+            <FormControl>
+              <Autocomplete
+                name='site'
+                value={defaultSite}
+                disablePortal
+                id='site'
+                sx={{ width: 220 }}
+                options={userData?.user?.zoos[0].sites}
+                getOptionLabel={option => option?.site_name || ''}
+                isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                onChange={(e, val) => {
+                  if (val === null) {
+                    setDefaultSite(null)
+                    fetchTableData(searchValue, '')
+                  } else {
+                    setDefaultSite(val)
+                    fetchTableData(searchValue, val?.site_id)
+                  }
+                }}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.site_id}>
+                    {option.site_name}
+                  </li>
+                )}
+                renderInput={params => (
+                  <TextField
+                    sx={{
+                      backgroundColor: theme.palette.primary.contrastText,
+                      borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      width: '100%',
+                      '& .MuiOutlinedInput-root': {
+                        height: 40,
+                        borderRadius: '4px'
+                      },
+                      '& .MuiInputLabel-root': {
+                        top: -7
+                      },
+                      '& .MuiInputLabel-shrink': {
+                        top: 0
+                      },
+                      '& input': {
+                        position: 'relative',
+                        top: -0
+                      }
+                    }}
+                    onChange={e => {
+                      // searchNursery(e.target.value)
+                    }}
+                    {...params}
+                    label='Site'
+                    placeholder='Search & Select'
+                  />
+                )}
+              />
+            </FormControl>
+          </Box>
+        </Box>
+
+        <DataGrid
+          autoHeight
+          rows={indexedRows || []}
+          rowCount={total}
+          columns={columns}
+          rowHeight={64}
+          pagination
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          onSortModelChange={handleSortModel}
+          loading={loading}
+          onCellClick={handleCellClick}
+          hideFooterSelectedRowCount
+          disableColumnSelector
+          disableColumnMenu
+          // columnVisibilityModel={{
+          //   sl_no: false
+          // }}
+          sx={{
+            '.MuiDataGrid-cell:focus': { outline: 'none' },
+            '.MuiDataGrid-main': {
+              borderLeft: '1px solid #0000000D',
+              borderRight: '1px solid #0000000D',
+              marginLeft: '16px',
+              marginRight: '16px',
+              borderRadius: '8px',
+              border: '1px solid rgba(233, 233, 236, 1)'
+            },
+            '& .MuiDataGrid-footerContainer': { borderTop: 'none' },
+            '& .MuiDataGrid-row:hover': { cursor: 'pointer' }
+          }}
+        />
+      </Card>
+      {openDrawer && (
+        <NurseryAddComponent
+          openDrawer={openDrawer}
+          setOpenDrawer={setOpenDrawer}
+          loading={loading}
+          fetchTableData={fetchTableData}
+        />
       )}
     </>
   )

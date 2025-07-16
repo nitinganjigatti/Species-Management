@@ -27,6 +27,7 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import { getPurchaseDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { v4 as uuidv4 } from 'uuid'
+import RenderUtility from 'src/utility/render'
 
 const formatDate = dateString => {
   const date = new Date(dateString)
@@ -40,8 +41,6 @@ const formatDate = dateString => {
 function Purchase({ tabValue, updateUrlParams }) {
   const router = useRouter()
   const theme = useTheme()
-
-  console.log(router.query, 'router.queryP')
 
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
@@ -92,7 +91,7 @@ function Purchase({ tabValue, updateUrlParams }) {
 
   const columns = [
     {
-      width: 70,
+      width: 90,
       field: 'sl_no',
       headerName: 'SL.NO',
       sortable: false,
@@ -139,9 +138,9 @@ function Purchase({ tabValue, updateUrlParams }) {
       )
     },
     {
-      width: 130,
-      field: 'net_unit_price',
-      headerName: 'UNIT PRICE (₹)',
+      width: 200,
+      field: 'unit_price',
+      headerName: 'NET UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -198,8 +197,6 @@ function Purchase({ tabValue, updateUrlParams }) {
       field: 'net_amount',
       headerName: 'TOTAL VALUE (₹)',
       renderCell: params => {
-        const totalValue = params.row.qty * params.row.net_unit_price
-
         return (
           <Typography
             variant='body2'
@@ -210,15 +207,15 @@ function Purchase({ tabValue, updateUrlParams }) {
               fontFamily: 'Inter'
             }}
           >
-            {Utility.formatAmountToReadableDigit(totalValue)}
+            {Utility.formatAmountToReadableDigit(params.row.net_amount)}
           </Typography>
         )
       }
     },
     {
       width: 140,
-      field: 'created_at',
-      headerName: 'ENTRY DATE',
+      field: 'expiry_date',
+      headerName: 'EXPIRE DATE',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -229,7 +226,7 @@ function Purchase({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.expiry_date))}
           {/* -{' '}
           {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.entry_date))} */}
         </Typography>
@@ -276,48 +273,18 @@ function Purchase({ tabValue, updateUrlParams }) {
         </>
       )
     },
-    {
-      width: 200,
 
-      // field: 'veterinarian',
-      // headerName: 'VETERINARIAN',
+    {
+      minWidth: 250,
       field: 'created_by_user_name',
       headerName: 'created by',
-
       renderCell: params => (
         <>
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit: 'contain'
-              },
-              width: 40,
-              height: 40,
-              mr: 4
-            }}
-            variant='circular'
-            alt={params?.row?.user_created_profile_pic}
-            src={params?.row?.user_created_profile_pic}
-          />
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.created_by_user_name}
-            <Typography
-              sx={{
-                fontSize: '12px',
-                fontWeight: 400
-              }}
-            >
-              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
-            </Typography>
-          </Typography>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
         </>
       )
     }
@@ -400,8 +367,6 @@ function Purchase({ tabValue, updateUrlParams }) {
     }
   })
 
-  console.log(indexedRows)
-
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
@@ -435,7 +400,6 @@ function Purchase({ tabValue, updateUrlParams }) {
 
   const onRowClick = params => {
     var data = params.row
-    console.log(data, 'data123')
     Router.push({
       pathname: `/pharmacy/medicine/${id}/purchase-details`,
       query: { p_id: data?.uuid, po_no: data.po_no, action: 'edit' }
@@ -477,8 +441,8 @@ function Purchase({ tabValue, updateUrlParams }) {
     <>
       <Grid
         container
-        gap={5}
         sx={{
+          gap: 5,
           mt: 5,
           flexWrap: 'wrap',
           display: 'flex',
@@ -486,10 +450,10 @@ function Purchase({ tabValue, updateUrlParams }) {
           alignItems: 'center'
         }}
       >
-        <Grid item xs={12} sm={12} md='auto' lg='auto' sx={{ width: '100%' }}>
+        <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto' }} sx={{ width: '100%' }}>
           <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
         </Grid>
-        <Grid item xs={12} sm={12} md={3} lg={3}>
+        <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
           <Box
             sx={{
               display: 'flex',
@@ -521,7 +485,6 @@ function Purchase({ tabValue, updateUrlParams }) {
           </Box>
         </Grid>
       </Grid>
-
       <Grid>
         <CommonTable
           onRowClick={onRowClick}

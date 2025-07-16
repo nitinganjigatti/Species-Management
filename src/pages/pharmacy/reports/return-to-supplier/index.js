@@ -230,9 +230,10 @@ const ReturnSupplier = () => {
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
-
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -280,7 +281,7 @@ const ReturnSupplier = () => {
       )
     },
     {
-      width: 260,
+      width: 340,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -289,66 +290,13 @@ const ReturnSupplier = () => {
 
       renderCell: params => (
         <Box>
-          {/* <StyleWithIconCardComponent
-            value={
-              <>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px'
-
-                      // ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderPrescriptionLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    <span>{params.row.stock_name}</span>
-                  </Typography>
-                </Box>
-              </>
-            }
-            description={params.row.generic_name ? params.row.generic_name : 'NA'}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
-          /> */}
           <PharmacyProductCard
             title={params?.row?.stock_name}
             subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
             icon={params?.row?.image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
       )
@@ -516,7 +464,7 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 220,
+      width: 260,
       field: 'manufacturer_name',
       sortable: true,
       headerName: 'MANUFACTURER NAME',
@@ -532,7 +480,7 @@ const ReturnSupplier = () => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              maxWidth: 200
+              maxWidth: 240
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -542,29 +490,51 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 250,
+      width: 200,
       field: 'comments',
-      sortable: true,
+      sortable: false,
       headerName: 'COMMENTS',
-      renderCell: params => (
-        <Tooltip title={params.row.comments}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.comments}> {params.row.comments ? params.row.comments : '-'}</span>
-          </Typography>
-        </Tooltip>
-      )
+      renderCell: params => {
+        const comment = params.row.comments
+
+        return (
+          <Tooltip title={comment || '-'}>
+            {comment ? (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {comment}
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  width: '100%',
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                  fontFamily: 'Inter',
+                  fontWeight: 400
+                }}
+              >
+                -
+              </Box>
+            )}
+          </Tooltip>
+        )
+      }
     },
     {
       minWidth: 200,
@@ -789,13 +759,15 @@ const ReturnSupplier = () => {
                   spacing={4}
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Grid item xs={12} sm={5} md={5}>
+                  <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
                     <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                   </Grid>
 
-                  <Grid item sm={7} xs={12}>
-                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                  <Grid item size={{ xs: 12, sm: 7 }}>
+                    <Grid container spacing={2} sx={{
+                      justifyContent: { xs: 'flex-end' }
+                    }}>
+                      <Grid item size={{ xs: 12, sm: 8 }} sm={8} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
                           size='small'
@@ -803,19 +775,21 @@ const ReturnSupplier = () => {
                           value={searchValue}
                           onChange={e => handleSearch(e.target.value)}
                           fullWidth
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position='start'>
-                                <Icon
-                                  icon='mi:search'
-                                  fontSize={24}
-                                  color={theme.palette.customColors.neutralSecondary}
-                                />
-                              </InputAdornment>
-                            )
-                          }}
                           sx={{
                             borderRadius: '8px'
+                          }}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position='start'>
+                                  <Icon
+                                    icon='mi:search'
+                                    fontSize={24}
+                                    color={theme.palette.customColors.neutralSecondary}
+                                  />
+                                </InputAdornment>
+                              )
+                            }
                           }}
                         />
                       </Grid>
@@ -887,7 +861,7 @@ const ReturnSupplier = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ReturnSupplier

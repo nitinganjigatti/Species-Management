@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -7,18 +7,10 @@ import {
   Avatar,
   Card,
   CardContent,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Button,
   List,
   ListItem,
-  ListItemText,
   CardHeader,
-  Drawer,
-  TextField,
-  Autocomplete,
   alpha,
   CircularProgress
 } from '@mui/material'
@@ -32,8 +24,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
-import { Controller, useForm } from 'react-hook-form'
-import IconButton from '@mui/material/IconButton'
+import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import ProductsChart from 'src/components/pharmacy/medicine/ProductsChart'
@@ -41,46 +32,177 @@ import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import {
+  getMedicineList,
   getProductAboutToExpireList,
-  getProductDashboardList,
   getProductExpiredBatchesList,
-  getProductMonthWiseDispatchList,
-  getProductMonthWisePurchaseList,
   getProductQuantityInStoresList
 } from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner'
 import Utility from 'src/utility'
 import MonthlyChart from 'src/views/utility/monthlychart'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import {
+  addNewAlternativeMedicineProducts,
+  editNewAlternativeMedicineProducts,
+  getAlternativeMedicineProducts
+} from 'src/lib/api/pharmacy/alternateMedicines'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import { debounce } from 'lodash'
+import ProductOption from 'src/views/pages/pharmacy/utility/ProductOption'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import AlternativeMedicinesList from './AlternativeMedicinesList'
+import EditIcon from '@mui/icons-material/Edit'
+import EditAlternativeMedicineDrawer from './EditAlternativeMedicineDrawer'
+import AddAlternativeMedicineDrawer from './AddAlternativeMedicineDrawer'
+import AlternativeMedicinesTabs from './AlternativeMedicinesTabs'
+import toast from 'react-hot-toast'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
-const validationSchema = yup.object().shape({
+const addValidationSchema = yup.object().shape({
   alternatives: yup.array().of(
     yup.object().shape({
-      productName: yup.string().required('Product Name is required'),
-      manufacturerName: yup
-        .string()
-        .min(3, 'Manufacturer Name must be at least 3 characters')
-        .required('Manufacturer Name is required')
+      productName: yup
+        .object()
+        .shape({
+          label: yup.string().required('Product Name is required'),
+          value: yup
+            .string()
+            .required('Product Name is required')
+            .test('is-unique', 'Duplicate Product Name selected', function (value) {
+              const { options, parent, path } = this
+
+              // Skip validation if we are not on the updated field
+              if (!parent || !path) return true
+
+              // Extract all alternatives (entire form array)
+              const allAlternatives = options?.from?.[2]?.value?.alternatives || []
+              const currentIndex = Number(path.match(/\d+/)?.[0])
+
+              // Ensure we're not validating the same field more than once
+              const duplicates = allAlternatives.filter((item, idx) => {
+                const isSameProduct = item?.productName?.value === value
+
+                return isSameProduct && idx !== currentIndex // exclude the current field itself
+              })
+
+              const hasDuplicates = duplicates.length > 0
+
+              return !hasDuplicates // Return false if duplicates exist, causing an error
+            })
+        })
+        .required('Product Name is required'),
+      manufacturerName: yup.string().min(3, 'Manufacturer Name is required').required('Manufacturer Name is required')
     })
   )
 })
 
+const editValidationSchema = yup.object().shape({
+  productName: yup
+    .object()
+    .shape({
+      label: yup.string().required('Product Name is required'),
+      value: yup.string().required('Product Name is required')
+    })
+    .required('Product Name is required'),
+  manufacturerName: yup.string().min(3, 'Manufacturer Name is required').required('Manufacturer Name is required')
+})
+
 const Overview = props => {
-  console.log(props, 'props')
   const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue, updateUrlParams } = props
   const theme = useTheme()
-
   const router = useRouter()
   const { id } = router.query
   const { selectedPharmacy } = usePharmacyContext()
+
+  const limit = 10
 
   // const [productDashboardData, setProductDashboardData] = useState()
   // const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
   // const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
   const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
   const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
+  const [editMedicinesDrawerOpen, setEditMedicinesDrawerOpen] = useState(false)
 
-  console.log(selectedPharmacy, 'selectedPharmacy')
+  const [alternativeMedicinesList, setAlternativeMedicinesList] = useState({
+    active: { list_items: [], total_count: 0, page: 1, hasMore: true },
+    inactive: { list_items: [], total_count: 0, page: 1, hasMore: true }
+  })
+  const [optionsMedicineList, setOptionsMedicineList] = useState([])
+  const [productLoading, setProductLoading] = useState(false)
+
+  const searchMedicineData = useCallback(
+    debounce(async searchText => {
+      try {
+        await fetchMedicineData(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
+
+  const handleProductChange = (selectedOption, index) => {
+    // Update productName field
+    setValue(`alternatives[${index}].productName`, selectedOption)
+
+    // Update or clear manufacturerName field
+    setValue(`alternatives[${index}].manufacturerName`, selectedOption?.manufacture || '')
+
+    // Re-trigger validation with current form context
+    trigger(undefined, {
+      shouldFocus: false,
+      context: {
+        alternatives: getValues('alternatives')
+      }
+    })
+  }
+
+  const handleEditProductChange = option => {
+    if (option) {
+      setValue('manufacturerName', option.manufacture || '')
+      setValue('status', option.status == 1 ? 'active' : 'inactive')
+    } else {
+      setValue('manufacturerName', '')
+      setValue('status', 'inactive') // fallback to 'inactive' if no option is selected
+    }
+  }
+
+  const fetchMedicineData = async searchText => {
+    try {
+      setProductLoading(true)
+
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
+      }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items?.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items
+            ?.filter(item => item?.id !== id && item?.active === '1')
+            ?.map(item => ({
+              value: item.id,
+              label: item.name,
+              status: item?.active === '0' ? 0 : 1,
+              control_substance: item.controlled_substance === '1' ? true : false,
+              stock_type: item.stock_type,
+              packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+              manufacture: item?.manufacturer_name
+            }))
+        )
+      }
+    } catch (e) {
+      console.error('error', e)
+    } finally {
+      setProductLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchMedicineData()
+  }, [])
 
   useEffect(() => {
     if (router.query.tab !== tabValue) {
@@ -90,78 +212,54 @@ const Overview = props => {
     }
   }, [tabValue, updateUrlParams])
 
-  const medicines = [
-    {
-      name: 'Genimol 650 Tablet',
-      manufacturer: 'Geneda Pharma'
-    },
-    {
-      name: 'Duramol Advanced Tablet',
-      manufacturer: 'Makers Laboratories Ltd'
-    },
-    {
-      name: 'Calpol 650 + Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Opara Semi Tablet',
-      manufacturer: '10 tablets'
-    },
-    {
-      name: 'Pyregesic 650mg Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Calpol 650 + Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Pyregesic 650mg Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Genimol 650 Tablet',
-      manufacturer: 'Geneda Pharma'
-    },
-    {
-      name: 'Pyregesic 650mg Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Calpol 650 + Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    }
-  ]
+  const getAlternativeMedicineList = async (tab = 'active', pageNum = 1) => {
+    setIsLoading(true)
+    try {
+      const payload = {
+        page: pageNum,
+        limit,
+        status: tab === 'active' ? 1 : 0
+      }
 
-  const alternativeMedicines = (
-    <>
-      <Typography
-        variant='h6'
-        gutterBottom
-        sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}
-      >
-        Alternative Medicines (10)
-      </Typography>
-      <Paper elevation={3}>
-        <List>
-          {medicines.map((medicine, index) => (
-            <ListItem key={index}>
-              <ListItemText
-                primary={medicine.name}
-                secondary={medicine.manufacturer}
-                primaryTypographyProps={{
-                  sx: { color: 'primary.dark', fontWeight: 500, fontSize: '14px' } // Customize primary text
-                }}
-                secondaryTypographyProps={{
-                  sx: { color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Paper>
-    </>
-  )
+      const response = await getAlternativeMedicineProducts(id, payload)
+
+      if (response.success) {
+        const newItems = response.data?.list_items || []
+        const totalCount = response?.data?.total_count || 0
+
+        setAlternativeMedicinesList(prev => {
+          const prevTabData = prev[tab] || {}
+
+          const updatedList = pageNum === 1 ? newItems : [...(prevTabData.list_items || []), ...newItems]
+
+          const totalPages = Math.ceil(totalCount / limit)
+          const hasMore = pageNum < totalPages
+
+          return {
+            ...prev,
+            [tab]: {
+              list_items: updatedList,
+              total_count: totalCount,
+              page: pageNum,
+              hasMore
+            }
+          }
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (id) {
+      getAlternativeMedicineList('active', 1)
+      getAlternativeMedicineList('inactive', 1)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   const QuantityInStoresContent = ({ data, isLoading }) => {
     const totalCentralQty = Array.isArray(data?.central)
@@ -194,7 +292,7 @@ const Overview = props => {
                 {selectedPharmacy.name}
                 {/* Central Pharmacy */}
               </Typography>
-              <Typography variant='body1' component='div'>
+              <Box>
                 <Typography
                   component='span'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
@@ -207,15 +305,19 @@ const Overview = props => {
                 >
                   {totalCentralQty}
                 </Typography>
-              </Typography>{' '}
+              </Box>
             </Box>
 
             {/* Table Section */}
             <Card sx={{ p: 4 }}>
               <Typography
                 variant='subtitle1'
-                marginBottom={2}
-                sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                sx={{
+                  marginBottom: 2,
+                  color: 'customColors.customHeadingTextColor',
+                  fontWeight: 500,
+                  fontSize: '14px'
+                }}
               >
                 Other Pharmacy Quantity Details
               </Typography>
@@ -259,7 +361,7 @@ const Overview = props => {
                         </TableRow>
                       ) : (
                         <>
-                          {data?.local.map(store => (
+                          {data?.local?.map(store => (
                             <TableRow
                               key={store?.store_id}
                               sx={{
@@ -476,19 +578,21 @@ const Overview = props => {
       totalBatches: totalValue?.totalBatches,
       totalValue: totalValue?.totalValue
     },
-    {
-      name: 'expiredBatches',
-      title: 'Expired Batches',
-      style: 'customColors.Background',
-
-      // bgColor: '#E933531A',
-      bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
-      icon: '/images/Incubator_ICON.svg',
-      value: productDashboardData?.expired,
-      description: 'Expired Quantity',
-      totalBatches: totalValue?.totalBatches,
-      totalValue: totalValue?.totalValue
-    }
+    ...(productDetails?.stock_type !== 'non_medical'
+      ? [
+          {
+            name: 'expiredBatches',
+            title: 'Expired Batches',
+            style: 'customColors.Background',
+            bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
+            icon: '/images/Incubator_ICON.svg',
+            value: productDashboardData?.expired,
+            description: 'Expired Quantity',
+            totalBatches: totalValue?.totalBatches,
+            totalValue: totalValue?.totalValue
+          }
+        ]
+      : [])
   ]
 
   const closeDrawer = () => {
@@ -520,10 +624,9 @@ const Overview = props => {
 
       if (result?.success && result?.data) {
         setIsLoading(false)
-        setDrawerDataArray(result.data)
+        setDrawerDataArray(result?.data)
         if (name === 'quantityInStores') {
           const allStores = [...(result?.data?.central || []), ...(result?.data?.local || [])]
-          console.log(allStores, 'allStores')
 
           const totalQuantity = allStores.reduce((sum, store) => sum + Number(store.total_qty), 0)
           const totalStores = allStores.length
@@ -535,7 +638,6 @@ const Overview = props => {
             totalBatches: 0,
             totalValue: 0
           })
-          console.log('Calculated Totals:', { totalQuantity, totalStores })
         } else {
           const totalValue = result.data.reduce((acc, item) => {
             return acc + parseInt(item.qty) * parseInt(item.unit_price)
@@ -553,6 +655,8 @@ const Overview = props => {
             totalValue
           })
         }
+      } else {
+        setIsLoading(false)
       }
     } catch (error) {
       setIsLoading(false)
@@ -570,14 +674,23 @@ const Overview = props => {
       return <AboutToExpireContent data={drawerDataArray} isLoading={isLoading} />
     }
     if (activeDrawer === 'expiredBatches') {
-      return <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+      return (
+        productDetails?.stock_type !== 'non_medical' && (
+          <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+        )
+      )
     }
 
     return null
   }
 
   const handleAddAlternativeMedicine = () => {
+    reset(addDefaultValues)
     setAddMedicinesDrawerOpen(true)
+  }
+
+  const addDefaultValues = {
+    alternatives: [{ productName: {}, manufacturerName: '' }]
   }
 
   const {
@@ -585,27 +698,21 @@ const Overview = props => {
     handleSubmit,
     watch,
     setValue,
+    trigger,
+    getValues,
     reset,
+    setError,
     formState: { errors }
   } = useForm({
-    resolver: yupResolver(validationSchema),
-    defaultValues: {
-      alternatives: [{ productName: '', manufacturerName: '' }]
-    }
+    resolver: yupResolver(editMedicinesDrawerOpen ? editValidationSchema : addValidationSchema),
+    defaultValues: addDefaultValues
   })
 
-  const productOptions = [
-    { label: 'Paracetamol', value: 'paracetamol' },
-    { label: 'Ibuprofen', value: 'ibuprofen' },
-    { label: 'Aspirin', value: 'aspirin' },
-    { label: 'Amoxicillin', value: 'amoxicillin' }
-  ]
-
   // Watch alternatives field
-  const alternatives = watch('alternatives', [])
+  const alternatives = watch('alternatives')
 
   const handleAddAlternative = () => {
-    setValue('alternatives', [...alternatives, { productName: '', manufacturerName: '' }])
+    setValue('alternatives', [...alternatives, { productName: { value: '', label: '' }, manufacturerName: '' }])
   }
 
   const handleDeleteLastAlternative = () => {
@@ -615,12 +722,85 @@ const Overview = props => {
     }
   }
 
-  const onSubmit = data => {
-    console.log('Submitted Alternatives:', data.alternatives)
-    reset()
+  const onSubmit = async data => {
+    try {
+      const body = data?.alternatives?.map(item => ({
+        stock_item_id: id,
+        alternate_stock_item_id: item?.productName?.value,
+        status: item?.productName?.status
+      }))
+
+      const response = await addNewAlternativeMedicineProducts(JSON.stringify(body))
+      if (response.success) {
+        toast.success(response?.message)
+        await getAlternativeMedicineList('active', 1)
+        setAddMedicinesDrawerOpen(false)
+        reset()
+      } else if (response.errors?.length) {
+        response.errors.forEach(error => {
+          const errorIndex = error.index
+
+          if (typeof errorIndex === 'number' && error.exists) {
+            setError(`alternatives.${errorIndex}.productName`, {
+              type: 'manual',
+              message: error.exists
+            })
+          }
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  console.log(productDetails, 'overview')
+  const onEditAlternativeMedicineSubmit = async data => {
+    try {
+      const body = {
+        stock_item_id: +id,
+        alternate_stock_item_id: +data?.productName?.value,
+        status: data.status === 'active' ? 1 : 0
+      }
+
+      const response = await editNewAlternativeMedicineProducts(+data?.id, JSON.stringify(body))
+      if (response.success) {
+        toast.success(response?.message)
+
+        // Refetch first page of the relevant tab
+        await getAlternativeMedicineList('active', 1)
+        await getAlternativeMedicineList('inactive', 1)
+        setEditMedicinesDrawerOpen(false)
+        reset()
+      } else if (response.errors?.length) {
+        response.errors.forEach(error => {
+          const errorIndex = error.index
+
+          if (typeof errorIndex === 'number' && error.exists) {
+            setError(`productName`, {
+              type: 'manual',
+              message: error.exists
+            })
+          }
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleEditAlternativeMedicine = medicine => {
+    const defaultValues = {
+      productName: { ...medicine, value: medicine.alternate_stock_item_id || '', label: medicine.stock_name } || {
+        value: '',
+        label: ''
+      },
+      manufacturerName: medicine.manufacturer_name || '',
+      status: medicine.status == 1 ? 'active' : 'inactive',
+      id: medicine.id
+    }
+
+    reset(defaultValues) // Prefill form
+    setEditMedicinesDrawerOpen(true)
+  }
 
   // const productDashboardList = async id => {
   //   try {
@@ -675,11 +855,15 @@ const Overview = props => {
   //   }
   // }, [id])
 
-  console.log(purchaseData, 'purchaseData')
-
   return (
     <>
-      <Grid container spacing={4} pt={5}>
+      <Grid
+        container
+        spacing={4}
+        sx={{
+          pt: 5
+        }}
+      >
         {drawerData.map(card => (
           <StyleWithIconCardComponent
             key={card.name}
@@ -692,11 +876,9 @@ const Overview = props => {
           />
         ))}
       </Grid>
-
       <Divider sx={{ my: 5 }} />
-
       <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'stretch' }}>
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             {/* <MonthlyChart
               title='Dispatch'
@@ -722,7 +904,7 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <ProductsChart
               title='Purchases'
@@ -739,40 +921,42 @@ const Overview = props => {
         </Grid>
 
         {/* Apply similar structure to the rest of the cards */}
-        <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
+        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header Section */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography
-                  variant='body1'
+                <Box
                   sx={{
                     color: 'customColors.customHeadingTextColor',
                     fontSize: '16px',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
-                  <Box display='flex' alignItems='center'>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bgcolor: 'customColors.Tertiary',
-                        borderRadius: '4px',
-                        width: '30px',
-                        height: '24px',
-                        marginRight: '8px'
-                      }}
-                    >
-                      <Icon
-                        icon='clarity:child-arrow-line'
-                        style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }} // Icon color and size
-                      />
-                    </Box>
-                    Alternative Medicines (10)
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      bgcolor: 'customColors.Tertiary',
+                      borderRadius: '4px',
+                      width: '30px',
+                      height: '24px',
+                      marginRight: '8px'
+                    }}
+                  >
+                    <Icon
+                      icon='clarity:child-arrow-line'
+                      style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}
+                    />
                   </Box>
-                </Typography>
+                  Alternative Medicines{' '}
+                  {alternativeMedicinesList?.active?.total_count
+                    ? `(${alternativeMedicinesList?.active?.total_count})`
+                    : null}
+                </Box>
 
                 <CardHeader
                   sx={{ p: 0, m: 0 }}
@@ -793,42 +977,75 @@ const Overview = props => {
 
               {/* Medicine List */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
-                <Typography variant='body2'>
-                  <List>
-                    {medicines.slice(0, 5).map((medicine, index) => (
-                      <ListItem key={index}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
-                            {medicine.name}
-                          </Typography>
-                          <Typography
-                            component='span'
-                            sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
+                {isLoading && !alternativeMedicinesList?.active?.list_items?.length ? (
+                  <Typography
+                    style={{
+                      fontWeight: 400,
+                      fontSize: '0.875rem',
+                      color: 'customColors.OnPrimaryContainer',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}
+                    sx={{
+                      color: 'primary.light'
+                    }}
+                  >
+                    <CircularProgress />
+                  </Typography>
+                ) : alternativeMedicinesList?.active?.list_items?.length > 0 ? (
+                  <>
+                    <List>
+                      {alternativeMedicinesList?.active?.list_items?.slice(0, 5)?.map((medicine, index) => (
+                        <ListItem sx={{ display: 'flex', justifyContent: 'space-between' }} key={index} disableGutters>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
+                              {medicine.stock_name}
+                            </Typography>
+                            <Typography
+                              component='span'
+                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
+                            >
+                              {medicine.manufacturer_name}
+                            </Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'flex-end',
+                              cursor: 'pointer',
+                              ':hover': { color: 'primary.main' }
+                            }}
+                            onClick={() => handleEditAlternativeMedicine(medicine)}
                           >
-                            {medicine.manufacturer}
-                          </Typography>
-                        </Box>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Typography>
-              </Box>
+                            <EditIcon />
+                          </Box>
+                        </ListItem>
+                      ))}
+                    </List>
 
-              {/* More Section - Always at the bottom */}
-              <Box>
-                <Button
-                  variant='text'
-                  sx={{ color: 'primary.main', cursor: 'pointer' }}
-                  onClick={() => setAlternativeMedicinesDrawerOpen(true)}
-                >
-                  +5 More
-                </Button>
+                    {/* More Section - Only show if more than 5 */}
+                    {alternativeMedicinesList?.active?.total_count > 5 && (
+                      <Box>
+                        <Button
+                          variant='text'
+                          sx={{ color: 'primary.main', cursor: 'pointer', textTransform: 'none', fontSize: '13px' }}
+                          onClick={() => setAlternativeMedicinesDrawerOpen(true)}
+                        >
+                          +{alternativeMedicinesList?.active?.total_count - 5} More
+                        </Button>
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <NoDataFound variant='Seal' height={200} width={200} />
+                )}
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -946,160 +1163,68 @@ const Overview = props => {
           </Card>
         </Grid>
       </Grid>
-
       {activeDrawerData && (
         <CommonDrawerBox
-          title={activeDrawerData.title}
-          totalStores={activeDrawerData.totalStores}
-          totalQuantity={activeDrawerData.totalQuantity}
-          totalBatches={activeDrawerData.totalBatches}
-          totalValue={activeDrawerData.totalValue}
+          title={activeDrawerData?.title}
+          totalStores={activeDrawerData?.totalStores}
+          totalQuantity={activeDrawerData?.totalQuantity}
+          totalBatches={activeDrawerData?.totalBatches}
+          totalValue={activeDrawerData?.totalValue}
           drawerStatus={Boolean(activeDrawer)}
           close={closeDrawer}
           contentComponent={renderDrawerContent()}
-          style={activeDrawerData.style}
+          style={activeDrawerData?.style}
           width={700}
         />
       )}
-
       <CommonDrawerBox
-        imageUrl={'https://img.freepik.com/free-photo/colorful-design-with-spiral-design_188544-9588.jpg'}
-        title='Dolo 650 Tablet'
+        imageUrl={productDetails?.image}
+        title={productDetails?.name}
         drawerStatus={isAlternativeMedicinesDrawerOpen}
         close={() => setAlternativeMedicinesDrawerOpen(false)}
-        contentComponent={alternativeMedicines}
+        contentComponent={
+          <AlternativeMedicinesTabs
+            data={alternativeMedicinesList}
+            isLoading={isLoading}
+            onLoadMore={tab => getAlternativeMedicineList(tab, alternativeMedicinesList[tab].page + 1)}
+            onEdit={handleEditAlternativeMedicine}
+          />
+        }
         style='customColors.Background'
       />
-
-      <Drawer
-        anchor='right'
-        open={addMedicinesDrawerOpen}
-        onClose={() => setAddMedicinesDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            width: 500,
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'customColors.Background'
-          }
-        }}
-      >
-        {/* Drawer Header */}
-        <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ p: 4 }}>
-          <Box display='flex' alignItems='center' gap={2}>
-            <Typography variant='h6' fontWeight='bold'>
-              Add New Alternative Medicine
-            </Typography>
-          </Box>
-          <IconButton onClick={() => setAddMedicinesDrawerOpen(false)}>
-            <Icon icon='mdi:close' />
-          </IconButton>
-        </Box>
-        <Divider />
-
-        {/* Drawer Content */}
-        <Box
-          p={4}
-          sx={{
-            flex: 1, // Allow content to grow and shrink
-            overflowY: 'auto' // Enable scrolling for content if it overflows
-          }}
-        >
-          <Card sx={{ p: 4 }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <Box display='flex' flexDirection='column' gap={2}>
-                {/* Map through alternatives */}
-                {alternatives.map((alt, index) => (
-                  <Box key={index} display='flex' flexDirection='column' gap={2}>
-                    {/* Product Name */}
-                    <FormControl fullWidth sx={{ mb: 4 }}>
-                      <Controller
-                        name={`alternatives[${index}].productName`}
-                        control={control}
-                        render={({ field }) => (
-                          <Autocomplete
-                            {...field}
-                            options={productOptions}
-                            getOptionLabel={option => (typeof option === 'string' ? option : option?.label || '')}
-                            value={productOptions.find(option => option.value === field.value) || null}
-                            onChange={(_, selectedOption) => field.onChange(selectedOption?.value || '')}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                label='Product Name'
-                                variant='outlined'
-                                error={!!errors?.alternatives?.[index]?.productName}
-                                helperText={errors?.alternatives?.[index]?.productName?.message}
-                                fullWidth
-                              />
-                            )}
-                          />
-                        )}
-                      />
-                    </FormControl>
-
-                    {/* Manufacturer Name */}
-                    <FormControl fullWidth sx={{ mb: 4 }}>
-                      <Controller
-                        name={`alternatives[${index}].manufacturerName`}
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Manufacturer Name'
-                            variant='outlined'
-                            error={!!errors?.alternatives?.[index]?.manufacturerName}
-                            helperText={errors?.alternatives?.[index]?.manufacturerName?.message}
-                            fullWidth
-                          />
-                        )}
-                      />
-                    </FormControl>
-                  </Box>
-                ))}
-
-                {/* Common Action Buttons */}
-                <Box display='flex' justifyContent='flex-end' gap={2}>
-                  {/* Delete Last Alternative */}
-                  <Button
-                    variant='text'
-                    color='error'
-                    onClick={handleDeleteLastAlternative}
-                    disabled={alternatives.length <= 1}
-                    startIcon={<Icon icon='mdi:delete' />}
-                  >
-                    Delete
-                  </Button>
-
-                  {/* Add Alternative */}
-                  <Button variant='text' onClick={handleAddAlternative} startIcon={<Icon icon='mdi:plus' />}>
-                    Add Alternative
-                  </Button>
-                </Box>
-              </Box>
-            </form>
-          </Card>
-        </Box>
-
-        {/* Drawer Footer */}
-        <Box
-          sx={{
-            p: 4,
-            borderTop: '1px solid #ddd'
-          }}
-        >
-          <Button
-            type='submit'
-            variant='contained'
-            fullWidth
-            onClick={handleSubmit(onSubmit)} // Ensure form submission is handled
-          >
-            Save
-          </Button>
-        </Box>
-      </Drawer>
+      {addMedicinesDrawerOpen && (
+        <AddAlternativeMedicineDrawer
+          open={addMedicinesDrawerOpen}
+          onClose={() => setAddMedicinesDrawerOpen(false)}
+          onSubmit={onSubmit}
+          handleSubmit={handleSubmit}
+          control={control}
+          errors={errors}
+          alternatives={alternatives}
+          handleProductChange={handleProductChange}
+          handleAddAlternative={handleAddAlternative}
+          handleDeleteLastAlternative={handleDeleteLastAlternative}
+          optionsMedicineList={optionsMedicineList}
+          productLoading={productLoading}
+          searchMedicineData={searchMedicineData}
+        />
+      )}
+      {editMedicinesDrawerOpen && (
+        <EditAlternativeMedicineDrawer
+          open={editMedicinesDrawerOpen}
+          onClose={() => setEditMedicinesDrawerOpen(false)}
+          onSubmit={onEditAlternativeMedicineSubmit}
+          handleSubmit={handleSubmit}
+          control={control}
+          errors={errors}
+          handleProductChange={handleEditProductChange}
+          optionsMedicineList={optionsMedicineList}
+          productLoading={productLoading}
+          searchMedicineData={searchMedicineData}
+        />
+      )}
     </>
   )
 }
 
-export default Overview
+export default React.memo(Overview)

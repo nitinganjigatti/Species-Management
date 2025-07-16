@@ -10,6 +10,8 @@ import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
 
 const IndividualDispense = () => {
   const [dispenseData, setDispenseData] = useState({})
@@ -37,9 +39,13 @@ const IndividualDispense = () => {
       headerName: 'PRODUCT NAME',
       renderCell: params => {
         return (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.name}
-          </Typography>
+          <PharmacyProductCard
+            title={params?.row?.name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
         )
       }
     },
@@ -62,13 +68,12 @@ const IndividualDispense = () => {
       )
     },
     {
-      flex: 0.15,
-      minWidth: 120,
+      minWidth: 180,
       field: 'unit_price',
-      headerName: 'Unit Price',
+      headerName: 'Net Unit Price(₹)',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+          {Utility.formatAmountToReadableDigit(params.row.unit_price ? params.row.unit_price : 0)}
         </Typography>
       )
     },
@@ -87,23 +92,15 @@ const IndividualDispense = () => {
 
   const animalsColumns = [
     {
-      flex: 0.1,
-      field: ' ',
-      headerName: '',
+      width: 300,
+      headerName: 'Animal Name',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ p: 1.4 }}>
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit: 'contain'
-              },
-              width: '100%',
-              height: '100%'
-            }}
-            variant='circular'
-            alt={params?.row?.default_icon}
-            src={params?.row?.default_icon}
+        <Box sx={{ py: 3 }}>
+          <AnimalLabelCard
+            title={params.row.common_name}
+            subTitle={params.row.scientific_name}
+            icon={params?.row?.default_icon}
           />
         </Box>
       )
@@ -118,18 +115,7 @@ const IndividualDispense = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.25,
-      field: 'common_name',
-      headerName: 'Animal Name',
-      renderCell: params => {
-        return (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.common_name}
-          </Typography>
-        )
-      }
-    },
+
     {
       flex: 0.25,
       field: 'enclosure_id',
@@ -174,9 +160,7 @@ const IndividualDispense = () => {
     sl_no: index + 1
   }))
 
-  console.log(dispenseRows, 'dispenseRows')
-
-  const totalDispenseQuantity = dispenseRows?.reduce((sum, item) => {
+  const totalDispenseQuantityAmount = dispenseRows?.reduce((sum, item) => {
     return sum + Number(item.qty) * Number(item.unit_price)
   }, 0)
 
@@ -185,8 +169,15 @@ const IndividualDispense = () => {
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Grid container gap={3} justifyContent={'space-between'} alignItems={'stretch'}>
-            <Grid item xs={12} md={6.4}>
+          <Grid
+            container
+            sx={{
+              gap: 3,
+              justifyContent: 'space-between',
+              alignItems: 'stretch'
+            }}
+          >
+            <Grid item size={{ xs: 12, md: 6.4 }}>
               <Card>
                 <CardHeader
                   title='Dispense Detail'
@@ -249,7 +240,7 @@ const IndividualDispense = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={5.4}>
+            <Grid item size={{ xs: 12, md: 5.4 }}>
               <Card>
                 <CardHeader title='Dispense To' avatar={<Icon style={{ cursor: 'pointer' }} icon='ep:user' />} />
                 <CardContent>
@@ -289,7 +280,12 @@ const IndividualDispense = () => {
             {dispenseData?.dispense_item_details?.length > 0 ? (
               <>
                 {/* <CardHeader title='Dispense List' /> */}
-                <Box px={4} pt={4}>
+                <Box
+                  sx={{
+                    px: 4,
+                    pt: 4
+                  }}
+                >
                   <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                     Dispense List
                   </Typography>
@@ -299,14 +295,18 @@ const IndividualDispense = () => {
                       variant='body2'
                       sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                     >
-                      Total Dispense Quantity:{' '}
+                      Total Dispense Value:
                       <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                        {totalDispenseQuantity ? totalDispenseQuantity : '0'}
+                        {totalDispenseQuantityAmount ? totalDispenseQuantityAmount : '0'}
                       </Typography>
                     </Typography>
                   </Stack>
                 </Box>
-                <Box p={4}>
+                <Box
+                  sx={{
+                    p: 4
+                  }}
+                >
                   <TableBasic rows={dispenseRows} columns={dispenseColumns} />
                 </Box>
 
@@ -321,7 +321,11 @@ const IndividualDispense = () => {
             {dispenseData?.animal_details?.length > 0 ? (
               <>
                 <CardHeader title='Animal List' />
-                <Box px={4}>
+                <Box
+                  sx={{
+                    px: 4
+                  }}
+                >
                   <TableBasic rows={animalDispenseRows} columns={animalsColumns} />
                 </Box>
                 {/* <DataGrid

@@ -1,4 +1,7 @@
-import { Icon } from '@iconify/react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
+import { useRouter } from 'next/router'
+import Router from 'next/router'
+
 import {
   Card,
   Box,
@@ -16,28 +19,35 @@ import {
   FormControlLabel
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
-import moment from 'moment'
-import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState, useContext } from 'react'
+import { useTheme } from '@mui/material/styles'
+
+import { Icon } from '@iconify/react'
+
+import CustomChip from 'src/@core/components/mui/chip'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
-import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
-import Router from 'next/router'
-import CustomChip from 'src/@core/components/mui/chip'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import ErrorScreen from 'src/pages/Error'
-
-import { useTheme } from '@mui/material/styles'
-import Utility from 'src/utility'
-import { AuthContext } from 'src/context/AuthContext'
-import { hatcheryStatus } from 'src/lib/api/egg'
+import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import Toaster from 'src/components/Toaster'
+
+import ErrorScreen from 'src/pages/Error'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
-import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
+
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+
+import { hatcheryStatus } from 'src/lib/api/egg'
+import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
 
 const NurseryDetails = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
+  const authData = useContext(AuthContext)
+
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
   const [nurseryData, setNurseryData] = useState({})
   const [editName, setEditName] = useState('')
   const [editSite, setEditSite] = useState('')
@@ -52,9 +62,9 @@ const NurseryDetails = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [openRoomSideBar, setOpenRoomSidebar] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [isPreFilled, setIsPreFilled] = useState({})
+  const [disabledAddRoomBtn, setdisabledAddRoomBtn] = useState(true)
 
   const [defaultStatus, setDefaultStatus] = useState(null)
 
@@ -64,188 +74,191 @@ const NurseryDetails = () => {
 
   const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
   const [editMessage, setEditMessage] = useState('')
-
-  const router = useRouter()
-  const { id } = router.query
   const [active, setActive] = useState(false)
 
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
-
-  // console.log('rows >>', rows)
-  // console.log('Paginate>', paginationModel)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
 
   const EditRedirectionFunc = () => {
     setOpenDrawer(true)
     setOpenRedirectionDialog(false)
   }
 
-  const hatcheryStatusFunc = () => {
+  // API Call: Toggle Active Status
+  const toggleHatcheryStatus = async () => {
     setStatusLoading(true)
     try {
-      hatcheryStatus({
+      const response = await hatcheryStatus({
         ref_type: 'nursery',
         ref_id: id,
         status: active ? 'deactivate' : 'activate'
-      }).then(response => {
-        if (response.success) {
-          Toaster({ type: 'success', message: response.message })
-          setOpenStatusDialog(false)
-          setStatusLoading(false)
-          setActive(!active)
-          fetchNurseryById()
-        } else {
-          Toaster({ type: 'error', message: response.message })
-          setEditMessage(response?.message)
-          setOpenRedirectionDialog(true)
-          fetchNurseryById()
-          setOpenStatusDialog(false)
-          setStatusLoading(false)
-        }
       })
+
+      if (response.success) {
+        Toaster({ type: 'success', message: response.message })
+        setActive(!active)
+      } else {
+        Toaster({ type: 'error', message: response.message })
+        setEditMessage(response?.message)
+        setOpenRedirectionDialog(true)
+      }
+
+      fetchNurseryDetails()
     } catch (error) {
+      Toaster({ type: 'error', message: error.message || 'Status update failed' })
+    } finally {
       setOpenStatusDialog(false)
       setStatusLoading(false)
-      Toaster({ type: 'error', message: response.message })
     }
   }
 
-  const fetchNurseryById = () => {
+  // const fetchNurseryDetails = () => {
+  //   try {
+  //     GetNurseryDetailsById(id).then(res => {
+  //       if (res?.success) {
+  //         setIncubatorNo(res?.data?.no_of_incubators)
+  //         setNurseryData({
+  //           list: {
+  //             'Nursery Name': res?.data?.nursery_name,
+  //             Room: res?.data?.no_of_rooms,
+  //             Site: res?.data?.site_name,
+  //             Incubator: res?.data?.no_of_incubators,
+  //             'Eggs in Nursery': res?.data?.no_of_eggs
+  //           },
+  //           Avatar: {
+  //             profile_Pic: res?.data?.user_profile_pic,
+  //             user_Name: res?.data?.user_full_name,
+  //             create_at: res?.data?.created_at,
+  //             site_id: res?.data?.site_id
+  //           }
+  //         })
+  //         setActive(Boolean(Number(res?.data?.active)))
+  //         setIsPreFilled(res?.data)
+  //         setdisabledAddRoomBtn(false)
+  //         setEditNurseryId(id)
+  //         setEditName(res.data?.nursery_name)
+  //         setEditSite(res?.data?.site_id)
+  //         setEditSiteName(res?.data?.site_name)
+  //       } else {
+  //         Toaster({ message: res.message, type: 'error' })
+  //       }
+  //     })
+  //   } catch (error) {
+  //     Toaster({ message: res.message, type: 'error' })
+  //   }
+  // }
+
+  // API Call: Fetch Nursery Details
+  const fetchNurseryDetails = async () => {
     try {
-      GetNurseryDetailsById(id).then(res => {
-        if (res?.success) {
-          setIncubatorNo(res?.data?.no_of_incubators)
-          setNurseryData({
-            list: {
-              'Nursery Name': res?.data?.nursery_name,
-              Room: res?.data?.no_of_rooms,
-              Site: res?.data?.site_name,
-              Incubator: res?.data?.no_of_incubators,
-              Eggs: res?.data?.no_of_eggs
-            },
-            Avatar: {
-              profile_Pic: res?.data?.user_profile_pic,
-              user_Name: res?.data?.user_full_name,
-              create_at: res?.data?.created_at,
-              site_id: res?.data?.site_id
-            }
-          })
-          setActive(Boolean(Number(res?.data?.active)))
-          setIsPreFilled(res?.data)
-          setEditNurseryId(id)
-          setEditName(res.data?.nursery_name)
-          setEditSite(res?.data?.site_id)
-          setEditSiteName(res?.data?.site_name)
-        } else {
-          Toaster({ message: res.message, type: 'error' })
-        }
-      })
+      const res = await GetNurseryDetailsById(id)
+
+      if (res?.success) {
+        const data = res.data
+
+        setIncubatorNo(data?.no_of_incubators)
+        setNurseryData({
+          list: {
+            'Nursery Name': data?.nursery_name,
+            Room: data?.no_of_rooms,
+            Site: data?.site_name,
+            Incubator: data?.no_of_incubators,
+            'Eggs in Nursery': data?.no_of_eggs
+          },
+          Avatar: {
+            profile_Pic: data?.user_profile_pic,
+            user_Name: data?.user_full_name,
+            create_at: data?.created_at,
+            site_id: data?.site_id
+          }
+        })
+
+        setActive(Boolean(Number(data?.active)))
+        setIsPreFilled(data)
+        setdisabledAddRoomBtn(false)
+        setEditNurseryId(id)
+        setEditName(data?.nursery_name)
+        setEditSite(data?.site_id)
+        setEditSiteName(data?.site_name)
+      } else {
+        Toaster({ type: 'error', message: res.message })
+      }
     } catch (error) {
-      Toaster({ message: res.message, type: 'error' })
+      Toaster({ type: 'error', message: error.message || 'Failed to fetch nursery details' })
     }
   }
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
-      fetchNurseryById()
+      fetchNurseryDetails()
     }
   }, [])
 
-  // console.log('Id >>', editNurseryId)
-
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
-  const closeSideSheet = () => {
-    setOpenDrawer(false)
-  }
-
+  // API Call: Fetch Room Table Data
   const fetchTableData = useCallback(
-    async (q, column, status) => {
+    async (search = '', column, status) => {
+      setLoading(true)
       try {
-        setLoading(true)
-
         const params = {
           sort,
-          search: q || '',
+          search,
           column,
           status,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
-        await GetRoomByNursery(id, params).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
-        })
-        setLoading(false)
-      } catch (e) {
+        const res = await GetRoomByNursery(id, params)
+        setTotal(parseInt(res?.data?.total_count || 0))
+        setRows(loadServerRows(paginationModel.page, res?.data?.result || []))
+      } catch (error) {
+        console.error('Failed to fetch room data', error)
+      } finally {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, sort]
   )
-
-  // console.log('Rows >>', rows)
-
-  // console.log('Nursery Details >>', nurseryData)
-
-  useEffect(() => {
-    if (egg_nursery_permission || egg_collection_permission) {
-      fetchTableData(searchValue, sortColumn, defaultStatus?.key)
-    }
-  }, [fetchTableData])
 
   const searchTableData = useCallback(
-    debounce(async (q, column, status) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(q, column, status)
-      } catch (error) {
-        console.error(error)
-      }
+    debounce(async (value, column, status) => {
+      setSearchValue(value)
+      await fetchTableData(value, column, status)
     }, 1000),
-    []
+    [fetchTableData]
   )
 
+  // Search Input Handler
   const handleSearch = (value, status) => {
     setSearchValue(value)
     searchTableData(value, sortColumn, status)
   }
 
+  // Sort Change Handler
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
-    } else {
+      const { sort: newSort, field } = newModel[0]
+      setSort(newSort)
+      setSortColumn(field)
+      fetchTableData(searchValue, field, defaultStatus?.key)
     }
   }
 
-  // setDetailsListData({
-  //   list: {
-  //     Room: res?.data?.room_name,
-  //     NurseryName: res?.data?.nursery_name,
-  //     Site: res?.data?.site_name,
-  //     Incubator: res?.data?.no_of_incubators,
-  //     Eggs: res?.data?.no_of_eggs
-  //   },
-  //   Avatar: {
-  //     profile_Pic: res?.data?.user_profile_pic,
-  //     user_Name: res?.data?.user_full_name,
-  //     create_at: res?.data?.created_at,
-  //     site_id: res?.data?.site_id
-  //   }
-  // })
+  // Effect: Initial Fetch on Load
+  useEffect(() => {
+    if (egg_nursery_permission || egg_collection_permission) {
+      fetchNurseryDetails()
+      fetchTableData(searchValue, sortColumn, defaultStatus?.key)
+    }
+  }, [])
+  // }, [fetchTableData])
 
   const columns = [
     {
-      flex: 0.05,
-      minWidth: 40,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       headerAlign: 'center',
       align: 'center',
       sortable: false,
@@ -310,7 +323,7 @@ const NurseryDetails = () => {
       flex: 0.1,
       minWidth: 10,
       field: 'Eggs',
-      headerName: 'Eggs',
+      headerName: 'Eggs in Incubator',
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -421,8 +434,7 @@ const NurseryDetails = () => {
             >
               {params.row.created_at
                 ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.created_at))
-                : // moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
-                  '-'}
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -438,31 +450,9 @@ const NurseryDetails = () => {
     sl_no: getSlNo(index)
   }))
 
-  // console.log(indexedRows, 'indexedRows')
-
   const onCellClick = params => {
-    // console.log('params  2323>>', params)
     router.push(`/egg/incubator-rooms/${params.row.id}`)
   }
-
-  // const headerAction = (
-  //   <>
-  //     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-  //       <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-  //         <Icon
-  //           icon='mdi:pencil-outline'
-  //           fontSize={28}
-  //           color={theme.palette.customColors.OnSurfaceVariant}
-  //           onClick={() => setOpenDrawer(true)}
-  //         />
-  //       </IconButton>
-  //       <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
-  //         <Icon icon='mdi:add' fontSize={20} />
-  //         &nbsp; ADD ROOM
-  //       </Button>
-  //     </Box>
-  //   </>
-  // )
 
   return (
     <>
@@ -476,13 +466,26 @@ const NurseryDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
               Nursery List
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Nursery Details
             </Typography>
           </Breadcrumbs>
           <Card>
-            {/* <CardHeader title={'Nursery Details'} action={headerAction} /> */}
-            <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box
+              sx={{
+                m: '16px',
+                display: 'flex',
+                gap: 4,
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap'
+              }}
+            >
               <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <Icon
                   style={{ cursor: 'pointer', fontSize: '24px' }}
@@ -502,37 +505,46 @@ const NurseryDetails = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {' '}
-                {egg_nursery_permission && (
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={active}
-                          onChange={e => {
-                            setOpenStatusDialog(true)
-                          }}
-                        />
-                      }
-                      labelPlacement='start'
-                      label='Active'
-                    />
-                    <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-                      <Icon
-                        icon='mdi:pencil-outline'
-                        fontSize={28}
-                        color={theme.palette.customColors.OnSurfaceVariant}
-                        onClick={() => setOpenDrawer(true)}
+              {egg_nursery_permission && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '16px'
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={active}
+                        onChange={e => {
+                          setOpenStatusDialog(true)
+                        }}
                       />
-                    </IconButton>
-                    <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
-                      <Icon icon='mdi:add' fontSize={20} />
-                      &nbsp; ADD ROOM
-                    </Button>
-                  </Box>
-                )}
-              </Box>
+                    }
+                    labelPlacement='start'
+                    label='Active'
+                  />
+                  <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+                    <Icon
+                      icon='mdi:pencil-outline'
+                      fontSize={28}
+                      color={theme.palette.customColors.OnSurfaceVariant}
+                      onClick={() => setOpenDrawer(true)}
+                    />
+                  </IconButton>
+                  <Button
+                    size='medium'
+                    variant='contained'
+                    disabled={disabledAddRoomBtn}
+                    onClick={() => setIsOpen(true)}
+                  >
+                    <Icon icon='mdi:add' fontSize={20} />
+                    &nbsp; ADD ROOM
+                  </Button>
+                </Box>
+              )}
             </Box>
             <Box sx={{ px: '16px', my: '12px' }}>
               <DetailCard
@@ -541,98 +553,110 @@ const NurseryDetails = () => {
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
               />{' '}
-              <Grid sx={{ ml: -6, mb: 6, mt: 0 }} container columns={15} spacing={6}>
-                <Grid item xs={3}>
-                  <Box
+              <Box sx={{ display: 'flex', gap: 4, mb: 6, mt: 6, flexWrap: 'wrap' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '4px',
+                    padding: '0 8px',
+                    height: '40px'
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '40px'
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
                     }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      InputProps={{
-                        disableUnderline: true
-                      }}
-                      onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
+                    slotProps={{
+                      input: {
+                        disableunderline: true
+                      }
+                    }}
+                  />
+                </Box>
 
-                <Grid item xs={3}>
-                  <FormControl fullWidth>
-                    <Autocomplete
-                      name='status'
-                      value={defaultStatus}
-                      disablePortal
-                      id='status'
-                      options={[
-                        { label: 'Active', key: 'active' },
-                        { label: 'Inactive', key: 'inactive' }
-                      ]}
-                      getOptionLabel={option => option.label}
-                      isOptionEqualToValue={(option, value) => option?.key === value?.key}
-                      onChange={(e, val) => {
-                        if (val === null) {
-                          setDefaultStatus(null)
-                          fetchTableData(searchValue, sortColumn, '')
-                        } else {
-                          setDefaultStatus(val)
-                          fetchTableData(searchValue, sortColumn, val?.key)
-                        }
-                      }}
-                      renderInput={params => (
-                        <TextField
-                          sx={{
-                            backgroundColor: theme.palette.primary.contrastText,
-                            borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            width: '100%',
-                            '& .MuiOutlinedInput-root': {
-                              height: 40,
-                              borderRadius: '4px'
-                            },
-                            '& .MuiInputLabel-root': {
-                              top: -7
-                            },
-                            '& input': {
-                              position: 'relative',
-                              top: -7
-                            }
-                          }}
-                          onChange={e => {
-                            // searchNursery(e.target.value)
-                          }}
-                          {...params}
-                          label='Status'
-                          placeholder='Search & Select'
-                        />
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-              </Grid>
+                <FormControl>
+                  <Autocomplete
+                    name='status'
+                    value={defaultStatus}
+                    disablePortal
+                    sx={{ width: 220 }}
+                    id='status'
+                    options={[
+                      { label: 'Active', key: 'active' },
+                      { label: 'Inactive', key: 'inactive' }
+                    ]}
+                    getOptionLabel={option => option.label}
+                    isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultStatus(null)
+                        fetchTableData(searchValue, sortColumn, '')
+                      } else {
+                        setDefaultStatus(val)
+                        fetchTableData(searchValue, sortColumn, val?.key)
+                      }
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        sx={{
+                          backgroundColor: theme.palette.primary.contrastText,
+                          borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          width: '100%',
+                          '& .MuiOutlinedInput-root': {
+                            height: 40,
+                            borderRadius: '4px'
+                          },
+                          '& .MuiInputLabel-root': {
+                            top: -7
+                          },
+                          '& .MuiInputLabel-shrink': {
+                            top: 0
+                          },
+                          '& input': {
+                            position: 'relative',
+                            top: -0
+                          }
+                        }}
+                        onChange={e => {
+                          // searchNursery(e.target.value)
+                        }}
+                        {...params}
+                        label='Status'
+                        placeholder='Search & Select'
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Box>
             </Box>
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
-
+                '.MuiDataGrid-main': {
+                  borderLeft: '1px solid #0000000D',
+                  borderRight: '1px solid #0000000D',
+                  marginLeft: '16px',
+                  marginRight: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(233, 233, 236, 1)'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  borderTop: 'none'
+                },
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }
@@ -649,7 +673,6 @@ const NurseryDetails = () => {
               disableMultipleColumnsSorting={true}
               columns={columns}
               sortingMode='server'
-              // slots={{ toolbar: ServerSideToolbarWithFilter }}
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
@@ -657,16 +680,6 @@ const NurseryDetails = () => {
               onPaginationModelChange={setPaginationModel}
               rowHeight={64}
               loading={loading}
-              // slotProps={{
-              //   baseButton: {
-              //     variant: 'outlined'
-              //   },
-              //   toolbar: {
-              //     value: searchValue,
-              //     clearSearch: () => handleSearch(''),
-              //     onChange: event => handleSearch(event.target.value)
-              //   }
-              // }}
               onCellClick={onCellClick}
             />
             {openDrawer && (
@@ -675,7 +688,7 @@ const NurseryDetails = () => {
                 setOpenDrawer={setOpenDrawer}
                 editName={editName}
                 fetchTableData={fetchTableData}
-                callApi={fetchNurseryById}
+                callApi={fetchNurseryDetails}
                 editSite={editSite}
                 editSiteName={editSiteName}
                 editNurseryId={editNurseryId}
@@ -683,7 +696,7 @@ const NurseryDetails = () => {
             )}
             <AddIncubatorRoom
               callTableApi={fetchTableData}
-              callApi={fetchNurseryById}
+              callApi={fetchNurseryDetails}
               isOpen={isOpen}
               setIsOpen={setIsOpen}
               isPreFilled={isPreFilled}
@@ -695,7 +708,7 @@ const NurseryDetails = () => {
               setOpenStatusDialog={setOpenStatusDialog}
               elements={incubatorNo}
               statusLoading={statusLoading}
-              hatcheryStatusFunc={hatcheryStatusFunc}
+              toggleHatcheryStatus={toggleHatcheryStatus}
             />
             <EditRedirectionDialog
               refType={'nursery'}

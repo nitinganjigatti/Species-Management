@@ -4,7 +4,9 @@ import {
   PHARMACY_BASE_URL,
   UPDATE_PURCHASE_BASE_URL,
   VALIDATE_PURCHASE,
-  PRODUCT_MAPPING_FOR_ML
+  PRODUCT_MAPPING_FOR_ML,
+  MEDICINE,
+  VARIANTS_MAPPING_FOR_BATCH
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
@@ -176,10 +178,29 @@ export async function validatePurchaseProducts(payload) {
   }
 }
 
-// http://localhost:8080/api/v1/public/pharmacy/ml/product-mapping/bulkInsert
 export async function productMappingForMlTraining(payload) {
   try {
     const url = `${PRODUCT_MAPPING_FOR_ML}`
+    var data = payload
+    const response = await axiosPost({ url, body: data, pharmacy: true })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function variantMappingForProductBatch(payload) {
+  try {
+    const url = `${PHARMACY_BASE_URL}${MEDICINE}/${VARIANTS_MAPPING_FOR_BATCH}`
+
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy: true })
 

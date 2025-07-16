@@ -59,6 +59,7 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 
 const schema = yup.object().shape({
   email: yup.string().required('Username/Email required').min(1),
+
   // password: yup.string().trim('Password required').required()
   password: yup.string().required('Password required')
 })
@@ -70,6 +71,7 @@ const defaultValues = {
 
 const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true)
+  const [loginError, setLoginError] = useState('')
 
   // ** Hooks
   const auth = useAuth()
@@ -92,11 +94,13 @@ const LoginPage = () => {
 
   const onSubmit = async data => {
     const { email, password } = data
+    setLoginError('')
     auth.login({ email, password, rememberMe }, () => {
-      setError('email', {
-        type: 'manual',
-        message: 'Email or Password is invalid'
-      })
+      // setError('email', {
+      //   type: 'manual',
+      //   message: 'Email or Password is invalid'
+      // })
+      setLoginError('Email or Password is invalid')
     })
   }
 
@@ -119,6 +123,18 @@ const LoginPage = () => {
         subtitle=''
       >
         <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+          {loginError && (
+            <Typography
+              variant='body2'
+              sx={{
+                mb: 3,
+                color: 'error.main',
+                textAlign: 'center'
+              }}
+            >
+              {loginError}
+            </Typography>
+          )}
           <FormControl fullWidth sx={{ mb: 3 }}>
             <Controller
               name='email'

@@ -111,7 +111,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const CustomTooltip = ({ title, children, placement = 'bottom', disableHoverListener }) => (
     <Tooltip
       disableHoverListener={disableHoverListener || false}
-      TransitionComponent={Fade}
+      slots={{
+        transition: Fade
+      }}
+      //TransitionComponent={Fade}
       title={
         <Box
           sx={{
@@ -150,7 +153,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       }
       arrow
       placement={placement}
-      componentsProps={{
+      slotProps={{
         tooltip: {
           sx: {
             border: '0.1px solid #C3CEC7',
@@ -171,27 +174,26 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   )
 
   const columnSpecies = [
-    // {
-    //   width: 60,
-    //   field: 'uid',
-    //   headerName: 'NO',
-    //   disableColumnMenu: true,
-    //   sortable: false,
-    //   align: 'center',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '12px',
-    //         fontWeight: '400',
-    //         lineHeight: '14.52px'
-    //       }}
-    //     >
-    //       {params.row.sl_no}
-    //     </Typography>
-    //   )
-    // },
-
+    {
+      width: 80,
+      field: 'uid',
+      headerName: 'SL.NO',
+      disableColumnMenu: true,
+      sortable: false,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
     {
       width: 280,
       sortable: true,
@@ -207,16 +209,17 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               width: 35,
               height: 35,
               mr: 4,
+              p: 1,
+              objectFit: 'contain',
               borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
+              background: '#E8F4F2'
             }}
           >
-            {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
+            <img
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
+              alt='Profile'
+            />
           </Avatar>
 
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -799,6 +802,26 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const columnSites = [
     {
+      width: 80,
+      field: 'uid',
+      headerName: 'SL.NO',
+      disableColumnMenu: true,
+      sortable: false,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
+    {
       width: 320,
       sortable: true,
       disableColumnMenu: true,
@@ -813,16 +836,17 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               width: 35,
               height: 35,
               mr: 4,
+              p: 1,
+              objectFit: 'contain',
               borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
+              background: '#E8F4F2'
             }}
           >
-            {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
+            <img
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
+              alt='Profile'
+            />
           </Avatar>
 
           <Tooltip title={params.row.site_name ? Utility?.toPascalSentenceCase(params.row.site_name) : '-'}>
@@ -1383,6 +1407,26 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const columnNurseries = [
     {
+      width: 80,
+      field: 'uid',
+      headerName: 'SL.NO',
+      disableColumnMenu: true,
+      sortable: false,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
+    {
       width: 340,
       sortable: true,
       disableColumnMenu: true,
@@ -1397,16 +1441,23 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               width: 35,
               height: 35,
               mr: 4,
+              p: 1,
+              objectFit: 'contain',
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
             }}
           >
-            {params.row.default_icon ? (
+            <img
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
+              alt='Profile'
+            />
+            {/* {params.row.default_icon ? (
               <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
             ) : (
               <Icon icon='mdi:user' />
-            )}
+            )} */}
           </Avatar>
 
           <Tooltip title={params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
@@ -1829,7 +1880,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     try {
       setLoading(true)
 
-      console.log('sortModelcccc', sortModel)
+      // console.log('sortModelcccc', sortModel)
 
       const params = {
         ref_type: statuss || status,
@@ -1905,7 +1956,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     return (
       <>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 6, mb: '24px' }} container>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 6, mb: '24px' }}
+          // container
+        >
           {/* Search Box */}
           <Box
             sx={{
@@ -1919,6 +1973,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           >
             <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
             <TextField
+              disabled={loading}
               variant='outlined'
               placeholder='Search'
               onChange={handleSearchChange}
@@ -2145,7 +2200,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     <Box
       sx={{
         backgroundColor: '#fff',
-        padding: '24px',
+        padding: '16px',
         paddingBottom: '0px',
         display: 'flex',
         flexDirection: 'column',
@@ -2156,14 +2211,20 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     >
       <TabContext value={status}>
         <TabList onChange={handleChange}>
-          <Tab value='species' label={'Eggs by species'} />
+          <Tab sx={{ pl: 0 }} value='species' label={'Eggs by species'} />
           <Tab value='site' label={'Eggs by sites'} />
           <Tab value='nursery' label={'Eggs by nurseries'} />
         </TabList>
 
-        <TabPanel value='species'>{tableData()}</TabPanel>
-        <TabPanel value='site'>{tableData()}</TabPanel>
-        <TabPanel value='nursery'>{tableData()}</TabPanel>
+        <TabPanel sx={{ p: 0 }} value='species'>
+          {tableData()}
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value='site'>
+          {tableData()}
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value='nursery'>
+          {tableData()}
+        </TabPanel>
       </TabContext>
       {openDrawer && (
         <DashboardSlider

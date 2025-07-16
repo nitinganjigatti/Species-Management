@@ -89,7 +89,8 @@ function ProductForm({
             },
             qty: '',
             variant_id: '',
-            multiplier: ''
+            multiplier: '',
+            expiry_date: ''
           }
         ]
       }
@@ -104,7 +105,8 @@ function ProductForm({
         },
         qty: '',
         variant_id: '',
-        multiplier: ''
+        multiplier: '',
+        expiry_date: ''
       }
 
   const ProductValidationSchema = !editMode
@@ -144,13 +146,13 @@ function ProductForm({
                 const isValid = product_batches?.every(item => {
                   const batchQty = parseFloat(item?.batch_no?.qty)
                   const inputQty = parseFloat(item?.qty)
-                  
+
                   if (isNaN(batchQty) || isNaN(inputQty)) return true
 
                   return inputQty <= batchQty
                 })
                 if (!isValid) {
-                  return this.createError({ message: 'Quantity cannot be more than total available quantity' })
+                  return this.createError({ message: 'Quantity exceeds available stock' })
                 }
 
                 return isValid
@@ -332,20 +334,6 @@ function ProductForm({
           icon='material-symbols-light:close-small'
         />
       </Box>
-
-      // <Button
-      //   variant='outlined'
-      //   color='error'
-      //   startIcon={<Icon icon='material-symbols-light:close' />}
-      //   onClick={() => {
-      //     var tempDefaultSalts = defaultSalts
-      //     tempDefaultSalts.splice(index, 1)
-      //     setDefaultSalts(tempDefaultSalts)
-      //     remove(index)
-      //   }}
-      // >
-      //   {/* Remove */}
-      // </Button>
     )
   }
 
@@ -414,8 +402,6 @@ function ProductForm({
   // }
 
   function submitItems(data) {
-    console.log(data, 'data')
-
     const index = productArrayUi.findIndex(item => item.stock_id?.value === data?.stock_id?.value)
 
     // If index is found, insert the new items just after that index
@@ -518,8 +504,6 @@ function ProductForm({
     if (!editMode) {
       try {
         getProductList({ params: { sort: 'asc', q: '', limit: 20, is_specific: 1 } }).then(res => {
-          console.log('unit_price', res)
-
           if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
@@ -530,7 +514,9 @@ function ProductForm({
                 status: item?.active === '0' ? 0 : 1,
                 manufacture: item?.manufacturer_name,
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                control_substance: item.controlled_substance === '1' ? true : false
+                control_substance: item?.controlled_substance === '1' ? true : false,
+                generic_name: item?.generic_name,
+                image: item?.image
               }))
             )
           }
@@ -574,7 +560,6 @@ function ProductForm({
   const callBatchesApi = (stock_id, stock_type) => {
     if (stock_id) {
       getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type, stock_type }).then(res => {
-        console.log('unit_price', res)
         if (res?.data?.items?.length > 0) {
           setBatches(
             res?.data?.items?.map(item => ({
@@ -582,7 +567,8 @@ function ProductForm({
               value: item?.batch_no,
               qty: item?.qty,
               variant_id: item?.variant_id,
-              multiplier: item?.multiplier
+              multiplier: item?.multiplier,
+              expiry_date: item?.expiry_date
             }))
           )
 
@@ -615,11 +601,13 @@ function ProductForm({
 
   useEffect(() => {
     if (editMode) {
+      console.log('dataForEditRow', dataForEditRow)
       setValue('stock_id', dataForEditRow?.stock_id)
       setValue('batch_no', dataForEditRow?.batch_no)
       setValue('qty', dataForEditRow?.qty)
       setValue('variant_id', dataForEditRow?.variant_id)
       setValue('multiplier', dataForEditRow?.multiplier)
+      setValue('expiry_date', dataForEditRow?.expiry_date)
 
       callBatchesApi(dataForEditRow.stock_id?.value, dataForEditRow?.stock_id?.stock_type)
       setTotalQty(getValues('batch_no.qty'))
@@ -687,9 +675,14 @@ function ProductForm({
           </>
         }
       />
-      <form onSubmit={handleSubmit(editMode ? EditItems : submitItems, onError)}>
-        <Grid container mb={5}>
-          <Grid item xs={12}>
+      <form style={{ width: '100%' }} onSubmit={handleSubmit(editMode ? EditItems : submitItems, onError)}>
+        <Grid
+          container
+          sx={{
+            mb: 5
+          }}
+        >
+          <Grid item size={{ xs: 12 }}>
             <FormControl fullWidth>
               {/* <Typography sx={{ my: 2 }}>
                 {`${
@@ -703,14 +696,11 @@ function ProductForm({
                   <>
                     <Autocomplete
                       forcePopupIcon={false}
-                      inputProps={{ tabIndex: '6' }}
                       noOptionsText='Type to search'
                       id='autocomplete-controlled'
                       options={products}
                       value={field?.value}
                       onChange={(event, newValue) => {
-                        console.log(newValue, 'newValue')
-
                         field.onChange(newValue)
                         callBatchesApi(newValue?.value, newValue?.stock_type)
                         setValue('batch_no', '')
@@ -719,29 +709,38 @@ function ProductForm({
                       onKeyUp={e => {
                         searchProductData(e?.target?.value)
                       }}
+                      slotProps={{
+                        input: {
+                          tabIndex: '6'
+                        }
+                      }}
                       renderInput={params => (
                         <TextField
                           {...params}
-                          label='
-                          Product Name*'
+                          label='Product Name*'
                           placeholder='Search & Select'
                           error={Boolean(errors?.stock_id)}
                         />
                       )}
-                      renderOption={(props, option) => (
-                        <li
-                          {...props}
-                          style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                        >
-                          <Box>
-                            <Typography>{option.label}</Typography>
-                            <Typography variant='body2'>{option.packageDetails}</Typography>
-                            <Typography variant='body2'>{option.manufacture}</Typography>
-                            {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                            {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
-                          </Box>
-                        </li>
-                      )}
+                      renderOption={(props, option) => {
+                        const { key, ...otherProps } = props
+
+                        return (
+                          <li
+                            key={key}
+                            {...otherProps}
+                            style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                          >
+                            <Box>
+                              <Typography>{option.label}</Typography>
+                              <Typography variant='body2'>{option.packageDetails}</Typography>
+                              <Typography variant='body2'>{option.manufacture}</Typography>
+                              {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                              {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                            </Box>
+                          </li>
+                        )
+                      }}
                     />
                     {errors?.stock_id && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -775,28 +774,40 @@ function ProductForm({
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px'
+                      }}
                     >
                       Package:
                     </Typography>
                     <Typography
-                      color='primary.light'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {watch('stock_id')?.packageDetails}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px'
+                      }}
                     >
                       Manufactured by:
                     </Typography>
                     <Typography
-                      color='primary.light'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {watch('stock_id')?.manufacture}
                     </Typography>
@@ -804,14 +815,20 @@ function ProductForm({
 
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px'
+                      }}
                     >
                       Total Available Quantity:
                     </Typography>
                     <Typography
-                      color='primary.light'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {`${errors?.stock_id || watch('stock_id')?.value === '' ? '' : totalQty} `}
                     </Typography>
@@ -878,49 +895,67 @@ function ProductForm({
         </Box>
 
         {!editMode ? (
-          <FormGroup sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1 }}>
+          <Grid
+            sx={{
+              bgcolor: '#0000000D',
+              padding: 2,
+              borderRadius: 1,
+              width: '100%'
+            }}
+          >
             {fields.map((field, index) => (
-              <Grid container spacing={2} key={field?.id} sx={{ mb: 2, mt: 2 }}>
-                <Grid item xs={12} sm={3}>
-                  <FormControl fullWidth>
+              <Grid container spacing={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
+                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
+                  <FormControl fullWidth sx={{ width: 'full', minWidth: 230 }}>
                     <Controller
+                      fullWidth
+                      sx={{ width: '100%' }}
                       name={`product_batches[${index}].batch_no`}
                       control={control}
                       render={({ field }) => (
-                        <>
-                          <Autocomplete
-                            forcePopupIcon={false}
-                            inputProps={{ tabIndex: '6' }}
-                            id={`product_batches[${index}].batch_no`}
-                            options={batches}
-                            getOptionLabel={option => option?.label || ''}
-                            disabled={
-                              batches?.length === 0
-                                ? true
-                                : false || watch('stock_id')?.value === '' || null || errors.stock_id?.message
+                        <Autocomplete
+                          fullWidth
+                          sx={{ width: '100%' }}
+                          forcePopupIcon={false}
+                          id={`product_batches[${index}].batch_no`}
+                          options={batches}
+                          getOptionLabel={option => option?.label || ''}
+                          disabled={
+                            batches?.length === 0
+                              ? true
+                              : false || watch('stock_id')?.value === '' || null || errors.stock_id?.message
+                          }
+                          isOptionEqualToValue={(option, value) =>
+                            parseInt(option?.batch_no) === parseInt(value?.batch_no)
+                          }
+                          value={field?.value}
+                          onChange={(event, newValue) => {
+                            field.onChange(newValue)
+                            handleBatchChange(event, newValue, index)
+                          }}
+                          slotProps={{
+                            input: {
+                              tabIndex: '6'
                             }
-                            isOptionEqualToValue={(option, value) =>
-                              parseInt(option?.batch_no) === parseInt(value?.batch_no)
-                            }
-                            value={field?.value}
-                            onChange={(event, newValue) => {
-                              field.onChange(newValue)
+                          }}
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              fullWidth
+                              label='Batch No.*'
+                              placeholder='Search'
+                              error={Boolean(errors?.product_batches?.[index]?.batch_no)}
+                              sx={{ backgroundColor: 'white', borderRadius: 1 }}
+                            />
+                          )}
+                          renderOption={(props, option) => {
+                            const { key, ...otherProps } = props
 
-                              handleBatchChange(event, newValue, index)
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                label='Batch No.*'
-                                placeholder='Search'
-                                error={Boolean(errors?.product_batches?.[index]?.batch_no)}
-                                sx={{ backgroundColor: 'white', borderRadius: 1 }}
-                              />
-                            )}
-                            renderOption={(props, option) => (
+                            return (
                               <Box
                                 component='li'
-                                {...props}
+                                key={key}
+                                {...otherProps}
                                 sx={{
                                   border: '1px solid transparent',
                                   '&:last-child': {
@@ -930,28 +965,41 @@ function ProductForm({
                                   '&:hover': {
                                     border: `1px solid ${theme.palette.customColors.neutral05}`
                                   },
-
                                   borderRadius: '2px'
                                 }}
                               >
                                 <Box sx={{ p: 1 }}>
                                   <Typography
                                     variant='body2'
-                                    color='customColors.customHeadingTextColor'
-                                    sx={{ fontWeight: 600 }}
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor',
+                                      fontWeight: 600
+                                    }}
                                   >
                                     {option.label}
                                   </Typography>
-                                  <Typography variant='body2' color='customColors.neutralSecondary'>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.neutralSecondary'
+                                    }}
+                                  >
                                     Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
                                   </Typography>
-                                  <Typography variant='body2' color='customColors.Tertiary'>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'primary.main'
+                                    }}
+                                  >
                                     Availability: {option?.qty}
                                   </Typography>
                                 </Box>
                               </Box>
-                            )}
-                            PaperComponent={({ children, ...props }) => (
+                            )
+                          }}
+                          slots={{
+                            paper: ({ children, ...props }) => (
                               <Paper
                                 {...props}
                                 elevation={3}
@@ -965,30 +1013,30 @@ function ProductForm({
                               >
                                 {children}
                               </Paper>
-                            )}
-                          />
-                          {errors?.product_batches?.[index]?.batch_no && (
-                            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                              {errors?.product_batches?.[index]?.batch_no?.message?.includes('cannot be null') ||
-                              errors?.product_batches?.[index]?.batch_no?.message?.includes('must be a `object` type')
-                                ? 'Batch No. is required'
-                                : errors?.product_batches?.[index]?.batch_no?.value?.message ||
-                                  'Batch number already exists for this product' ||
-                                  'Batch No. is required'}
-                              {/* {errors?.product_batches?.[index]?.batch_no?.message ===
+                            )
+                          }}
+                        />
+                      )}
+                    />
+                    {errors?.product_batches?.[index]?.batch_no && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        {errors?.product_batches?.[index]?.batch_no?.message?.includes('cannot be null') ||
+                        errors?.product_batches?.[index]?.batch_no?.message?.includes('must be a `object` type')
+                          ? 'Batch No. is required'
+                          : errors?.product_batches?.[index]?.batch_no?.value?.message ||
+                            'Batch number already exists for this product' ||
+                            'Batch No. is required'}
+                        {/* {errors?.product_batches?.[index]?.batch_no?.message ===
                               `product_batches[${index}].batch_no cannot be null`
                                 ? 'Batch No. is required'
                                 : errors?.product_batches?.[index]?.batch_no?.message ||
                                   'Batch number already exists for this product' ||
                                   'Batch No. is required'} */}
-                            </FormHelperText>
-                          )}
-                        </>
-                      )}
-                    />
+                      </FormHelperText>
+                    )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].multiplier`}
@@ -996,10 +1044,10 @@ function ProductForm({
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <TextField
+                          fullWidth
                           disabled
                           type='text'
-                          value={value || ""}
-                          InputLabelProps={{ shrink: true }}
+                          value={value || ''}
                           label='Product Variant'
                           error={Boolean(errors?.product_batches?.[index]?.multiplier)}
                           name={`product_batches[${index}].multiplier`}
@@ -1011,12 +1059,15 @@ function ProductForm({
                             }
                           }}
                           sx={{ backgroundColor: 'white', borderRadius: 1 }}
+                          slotProps={{
+                            inputLabel: { shrink: true }
+                          }}
                         />
                       )}
-                    ></Controller>
+                    />
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].qty`}
@@ -1024,6 +1075,7 @@ function ProductForm({
                       render={({ field: { value, onChange } }) => (
                         <>
                           <TextField
+                            fullWidth
                             type='number'
                             value={value}
                             label='Quantity*'
@@ -1042,8 +1094,14 @@ function ProductForm({
                         </>
                       )}
                     />
+                    {errors?.product_batches?.[index]?.qty && (
+                      <FormHelperText sx={{ color: 'error.main', maxWidth: 300 }}>
+                        {errors?.product_batches?.[index]?.qty?.message}
+                      </FormHelperText>
+                    )}
                   </FormControl>
-                  <Typography sx={{ fontSize: 12, ml: 2 }}>
+
+                  {/* <Typography sx={{ fontSize: 12, ml: 2 }}>
                     {` ${
                       getValues('product_batches')[index]?.batch_no?.value === '' ||
                       getValues('product_batches')[index]?.batch_no?.value === null ||
@@ -1054,33 +1112,45 @@ function ProductForm({
                         ? ''
                         : selectedBatches[index] && 'Available Batch Quantity: ' + selectedBatches[index].qty
                     }`}
-                  </Typography>
+                  </Typography> */}
                 </Grid>
-
                 <Grid
                   item
-                  xs={12}
-                  sm={3}
+                  size={{ xs: 12, sm: 12, md: 1.5 }}
                   sx={{
                     display: 'flex',
-                    justifyContent: { xs: 'flex-start', sm: 'flex-end' },
-                    alignItems: 'center'
+                    justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                    alignItems: 'center',
+                    alignContent: 'center',
+
+                    my: 'auto'
                   }}
                 >
                   {handleAddRemoveSalts(fields, index)}
                 </Grid>
               </Grid>
             ))}
-          </FormGroup>
+          </Grid>
         ) : (
           <Grid
             container
-            mb={3}
-            rowSpacing={4}
+            rowSpacing={2}
             columnSpacing={2}
-            sx={{ bgcolor: '#0000000D', padding: 2, pl: 0, borderRadius: 1 }}
+            sx={{
+              mb: 3,
+              bgcolor: '#0000000D',
+
+              padding: 2,
+              borderRadius: 1,
+              display: 'flex',
+              flexDirection: { md: 'row', lg: 'row', sm: 'column', xs: 'column' },
+
+              justifyContent: 'space-around',
+
+              alignItems: 'center'
+            }}
           >
-            <Grid item xs={12} sm={4} md={4}>
+            <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
               <FormControl fullWidth>
                 <Controller
                   name='batch_no'
@@ -1089,12 +1159,16 @@ function ProductForm({
                     <>
                       <Autocomplete
                         forcePopupIcon={false}
-                        inputProps={{ tabIndex: '6' }}
                         disablePortal
                         disabled={batches?.length === 0 ? true : false}
                         value={field?.value}
                         options={batches}
                         getOptionLabel={option => option?.label || ''}
+                        slotProps={{
+                          input: {
+                            tabIndex: '6'
+                          }
+                        }}
                         renderInput={params => (
                           <TextField
                             {...params}
@@ -1105,8 +1179,6 @@ function ProductForm({
                         )}
                         onChange={(event, newValue) => {
                           field.onChange(newValue)
-
-                          // clearErrors('product_batches')
                           clearErrors('qty')
                           setEditBatchQty(newValue?.qty)
                           if (parseFloat(newValue?.qty) < parseFloat(getValues('qty'))) {
@@ -1115,6 +1187,56 @@ function ProductForm({
                               message: `Quantity should not be greater than ${newValue?.qty}`
                             })
                           }
+                        }}
+                        renderOption={(props, option) => {
+                          const { key, ...otherProps } = props
+
+                          return (
+                            <Box
+                              component='li'
+                              key={key}
+                              {...otherProps}
+                              sx={{
+                                border: '1px solid transparent',
+                                '&:last-child': {
+                                  borderBottom: 'none'
+                                },
+                                m: 3,
+                                '&:hover': {
+                                  border: `1px solid ${theme.palette.customColors.neutral05}`
+                                },
+                                borderRadius: '2px'
+                              }}
+                            >
+                              <Box sx={{ p: 1 }}>
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: 'customColors.customHeadingTextColor',
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  {option.label}
+                                </Typography>
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: 'customColors.neutralSecondary'
+                                  }}
+                                >
+                                  Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
+                                </Typography>
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: 'primary.main'
+                                  }}
+                                >
+                                  Availability: {option?.qty}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          )
                         }}
                       />
                       {errors.batch_no && (
@@ -1131,7 +1253,7 @@ function ProductForm({
                 />
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='multiplier'
@@ -1156,7 +1278,7 @@ function ProductForm({
                 </Controller>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={4}>
+            <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='qty'
@@ -1183,7 +1305,7 @@ function ProductForm({
                   )}
                 />
               </FormControl>
-              <Typography sx={{ fontSize: 12, ml: 2 }}>
+              {/* <Typography sx={{ fontSize: 12, ml: 2 }}>
                 {` ${
                   getValues('batch_no')?.value === '' ||
                   getValues('batch_no')?.value === null ||
@@ -1194,17 +1316,24 @@ function ProductForm({
                     ? ''
                     : 'Available Batch Quantity: ' + editBatchQty
                 }`}
-              </Typography>
+              </Typography> */}
             </Grid>
           </Grid>
         )}
-        {errors?.product_batches?.some(batch => batch?.qty) && (
-          <FormHelperText sx={{ color: 'error.main', fontSize: 16 }} id='validation-basic-first-name'>
+        {/* {errors?.product_batches?.some(batch => batch?.qty) && (
+          <FormHelperText sx={{ color: 'error.main', fontSize: 16 }}>
             {errors.product_batches.find(batch => batch?.qty)?.qty?.message || 'Quantity should be greater than 0'}
           </FormHelperText>
-        )}
-        <Grid item xs={12} sm={12} sx={{ mt: '40px' }}>
-          <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
+        )} */}
+        <Grid item size={{ xs: 12, sm: 12 }} sx={{ mt: '40px' }}>
+          <Grid
+            container
+            sx={{
+              alignItems: 'flex-end',
+              justifyContent: 'flex-end',
+              height: '100%'
+            }}
+          >
             {editMode ? (
               <Button type='submit' variant='contained'>
                 Update

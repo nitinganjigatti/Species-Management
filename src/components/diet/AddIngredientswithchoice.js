@@ -267,7 +267,6 @@ const AddIngredientswithChoice = props => {
         setSelectedDays(daysOfWeek)
       } else {
         const allDayIds = Day.map(day => day.id)
-        console.log(allDayIds, 'allDayIds')
         setShowDays(true)
         setSelectedDays(allDayIds)
       }
@@ -540,12 +539,14 @@ const AddIngredientswithChoice = props => {
       setSelectFeed(prev => {
         const newFeed = { ...prev }
         delete newFeed[itemId]
+
         return newFeed
       })
 
       setSize(prev => {
         const newSize = { ...prev }
         delete newSize[itemId]
+
         return newSize
       })
     }
@@ -690,6 +691,7 @@ const AddIngredientswithChoice = props => {
         if (hasDayOverlap) {
           // Get names of all duplicate ingredients
           console.log(duplicateIngredients, 'duplicateIngredients')
+
           const duplicateNames = duplicateIngredients
             .map(ing => ing.ingredient_name)
             .filter((name, index, self) => self.indexOf(name) === index) // Remove duplicates
@@ -773,18 +775,23 @@ const AddIngredientswithChoice = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <Icon
-                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                      icon={'ion:search-outline'}
-                    />
-                  ),
-                  endAdornment: searchValue && (
-                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                    </IconButton>
-                  )
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <Icon
+                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                        icon={'ion:search-outline'}
+                      />
+                    ),
+                    endAdornment: searchValue && (
+                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                        <Icon
+                          icon={'ion:close-outline'}
+                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                        />
+                      </IconButton>
+                    )
+                  }
                 }}
                 placeholder='Search item'
                 onChange={handleSearchChange}
@@ -1167,9 +1174,9 @@ const AddIngredientswithChoice = props => {
                 Enter minimum choice
               </Typography>
               <Box
-                display='flex'
-                alignItems='center'
                 sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   width: '22%',
                   borderRadius: '5px',
@@ -1191,7 +1198,13 @@ const AddIngredientswithChoice = props => {
               <Box sx={{ mt: 12, mb: 8 }}>
                 <Typography sx={{ py: 4 }}>Feeding Days</Typography>
 
-                <Stack direction='row' gap={3} mb={2}>
+                <Stack
+                  direction='row'
+                  sx={{
+                    gap: 3,
+                    mb: 2
+                  }}
+                >
                   {Day?.map(day => (
                     <Box
                       key={day.id}
@@ -1224,7 +1237,11 @@ const AddIngredientswithChoice = props => {
                       id='demo-simple-select-label'
                       placeholder='Add Remarks (optional)'
                       variant='standard'
-                      InputProps={{ disableUnderline: true }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: true
+                        }
+                      }}
                       value={remarks}
                       onChange={handleAddRemarks}
                     />

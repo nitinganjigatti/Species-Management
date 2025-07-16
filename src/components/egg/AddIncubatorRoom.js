@@ -23,18 +23,16 @@ import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
-import { AddRoom, EditRoom, GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
+import { AddRoom, EditRoom } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled, callTableApi }) => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
+  const id = editParams?.room_id
 
   const [loader, setLoader] = useState(false)
-  const authData = useContext(AuthContext)
   const [nurseryList, setNurseryList] = useState([])
-
-  const id = editParams?.room_id
-  const [siteDetails, setSiteDetails] = useState({ site_id: '', site_name: '' })
   const [defaultNursery, setDefaultNursery] = useState(null)
 
   const defaultValues = {
@@ -65,7 +63,9 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
     reValidateMode: 'onChange'
   })
 
-  const NurseryList = async q => {
+  const nurseryId = watch('nursery')
+
+  const fetchNurseryList = async (q = '') => {
     try {
       const params = {
         type: 'only_active',
@@ -73,34 +73,72 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
         page: 1,
         limit: 50
       }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
+      const { data } = await GetNurseryList({ params: params })
+      setNurseryList(data?.result || [])
     } catch (e) {
-      console.log(e)
+      console.error('Failed to fetch nursery list', e)
     }
   }
 
-  useEffect(() => {
-    NurseryList()
-  }, [])
+  const searchNursery = useCallback(debounce(fetchNurseryList, 1000), [])
 
-  const nurseryId = watch('nursery')
+  const handleFormSuccess = response => {
+    reset()
+    setLoader(false)
+    Toaster({ type: 'success', message: response.message })
+    if (callApi) callApi()
+    if (callTableApi) callTableApi()
+    handleClose()
+  }
+
+  const onSubmit = async values => {
+    setLoader(true)
+    const payload = {
+      room_name: values.room_name,
+      site_id: values.site_id,
+      nursery_id: defaultNursery?.nursery_id || nurseryId
+    }
+
+    try {
+      const response = editParams?.nursery_id ? await EditRoom(id, payload) : await AddRoom(payload)
+
+      if (response.success) {
+        handleFormSuccess(response)
+      } else {
+        setLoader(false)
+        Toaster({ type: 'error', message: response.message })
+      }
+    } catch (error) {
+      setLoader(false)
+      console.error('Error while submitting form:', error)
+      Toaster({ type: 'error', message: 'An error occurred while submitting' })
+    }
+  }
+
+  const handleClose = () => {
+    setIsOpen(false)
+    setDefaultNursery(null)
+    setValue('site_id', '')
+    setValue('nursery', '')
+    reset()
+  }
+
+  useEffect(() => {
+    fetchNurseryList()
+  }, [])
 
   useEffect(() => {
     if (nurseryId) {
       const selectedNursery = nurseryList.find(nursery => nursery.nursery_id === nurseryId)
-
-      // setSiteDetails({ site_id: selectedNursery.site_id, site_name: selectedNursery.site_name })
-      setValue('site_id', selectedNursery?.site_id)
+      setValue('site_id', selectedNursery?.site_id || '')
       clearErrors('site_id')
     }
-  }, [nurseryId])
+    // }, [nurseryId])
+  }, [nurseryId, nurseryList])
 
   useEffect(() => {
-    if (isPreFilled) {
+    if (isPreFilled?.nursery_id && isPreFilled?.site_id) {
       setDefaultNursery({ nursery_id: isPreFilled?.nursery_id, nursery_name: isPreFilled?.nursery_name })
-
       setValue('site_id', isPreFilled?.site_id)
       setValue('nursery_id', isPreFilled?.nursery_id)
     }
@@ -110,85 +148,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
       setDefaultNursery({ nursery_id: editParams?.nursery_id, nursery_name: editParams?.nursery_name })
     }
   }, [isOpen])
-
-  const onSubmit = async values => {
-    setLoader(true)
-    try {
-      const payload = {
-        room_name: values?.room_name,
-        site_id: values?.site_id,
-
-        nursery_id: defaultNursery?.nursery_id ? defaultNursery?.nursery_id : nurseryId
-      }
-
-      if (editParams?.nursery_id) {
-        const response = await EditRoom(id, payload)
-
-        if (response.success) {
-          setLoader(false)
-
-          reset()
-          if (callApi) {
-            callApi()
-          }
-          if (callTableApi) {
-            callTableApi()
-          }
-
-          Toaster({ type: 'success', message: response.message })
-          handleClose()
-        } else {
-          setLoader(false)
-          // reset()
-          Toaster({ type: 'error', message: response.message })
-        }
-      } else {
-        const response = await AddRoom(payload)
-
-        if (response.success) {
-          setLoader(false)
-          reset()
-          Toaster({ type: 'success', message: response.message })
-          if (callApi) {
-            callApi()
-          }
-          if (callTableApi) {
-            callTableApi()
-          }
-          handleClose()
-        } else {
-          setLoader(false)
-          // reset()
-          Toaster({ type: 'error', message: response.message })
-        }
-      }
-    } catch (error) {
-      setLoader(false)
-      console.error('Error while adding room:', error)
-      reset()
-      Toaster({ type: 'error', message: 'An error occurred while adding room' })
-    }
-  }
-
-  const handleClose = () => {
-    setIsOpen(false)
-    setDefaultNursery(null)
-    setValue('site_id', '')
-    setValue('nursery', '')
-
-    reset()
-  }
-
-  const searchNursery = useCallback(
-    debounce(async q => {
-      try {
-        await NurseryList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
 
   return (
     <>
@@ -212,7 +171,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
               justifyContent: 'space-between',
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px',
-
               bgcolor: theme.palette.customColors.lightBg
             }}
           >
@@ -255,7 +213,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                     <Autocomplete
                       name='nursery'
                       value={defaultNursery}
-                      // value={value}
                       disablePortal
                       disabled={isPreFilled?.nursery_id}
                       id='nursery'
@@ -265,18 +222,10 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultNursery(null)
-
                           return onChange('')
                         } else {
                           setDefaultNursery(val)
-
-                          // console.log('val', val)
-
-                          // setValue('nursery', e.target.value)
                           setValue('room', '')
-
-                          // RoomList(val.nursery_id)
-
                           return onChange(val.nursery_id)
                         }
                       }}
@@ -298,39 +247,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                   <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery?.message}</FormHelperText>
                 )}
               </FormControl>
-
-              {/* <FormControl fullWidth>
-                <InputLabel error={Boolean(errors?.nursery_id)} id='nursery_id'>
-                  Nursery*
-                </InputLabel>
-                <Controller
-                  name='nursery_id'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      name='nursery_id'
-                      value={value}
-                      label='Nursery*'
-                      onChange={onChange}
-                      error={Boolean(errors?.nursery_id)}
-                      labelId='nursery_id'
-                      disabled={isPreFilled?.nursery_id}
-                    >
-                      {nurseryList?.map((item, index) => {
-                        return (
-                          <MenuItem key={index} value={item?.nursery_id}>
-                            {item?.nursery_name}
-                          </MenuItem>
-                        )
-                      })}
-                    </Select>
-                  )}
-                />
-                {errors?.nursery_id && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.nursery_id?.message}</FormHelperText>
-                )}
-              </FormControl> */}
 
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                 <FormControl fullWidth>
@@ -380,7 +296,9 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                       placeholder='Room Name'
                       error={Boolean(errors.room_name)}
                       name='room_name'
-                      inputProps={{ autoComplete: 'off' }}
+                      slotProps={{
+                        htmlInput: { autoComplete: 'off' }
+                      }}
                     />
                   )}
                 />

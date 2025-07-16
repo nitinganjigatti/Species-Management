@@ -139,7 +139,8 @@ const LabTest = () => {
     setResetForm(true)
     setEditParams(params)
     setOpenDrawer(true)
-    console.log('params >>', params)
+
+    // console.log('params >>', params)
   }
 
   const confirmDeleteAction = async () => {
@@ -321,12 +322,17 @@ const LabTest = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab Tests
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Lab Tests' action={headerAction} />
+            <CardHeader title='Lab Tests' sx={{ paddingX: 5 }} action={headerAction} />
 
             <DataGrid
               sx={{

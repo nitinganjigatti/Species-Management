@@ -32,8 +32,9 @@ const dropdownOptions = [
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Yearly' },
-  { value: 'custom', label: 'Custom Range' }
+  { value: 'yearly', label: 'Yearly' }
+
+  // { value: 'custom', label: 'Custom Range' }
 ]
 
 const ReceivedMedicinesReport = () => {
@@ -678,11 +679,13 @@ const ReceivedMedicinesReport = () => {
         inputRef={ref}
         {...props}
         sx={{ width: '100%' }}
-        InputProps={{
-          autoComplete: 'off'
+        slotProps={{
+          input: {
+            autoComplete: 'off'
+          }
         }}
       />
-    )
+    );
   })
 
   return (
@@ -705,7 +708,9 @@ const ReceivedMedicinesReport = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='text.primary'>Received medicines</Typography>
+                    <Typography sx={{
+                      color: 'text.primary'
+                    }}>Received medicines</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -719,7 +724,7 @@ const ReceivedMedicinesReport = () => {
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 5, pt: 2 }}
                   >
                     {/* Search toolbar aligned to the left */}
-                    <Grid item xs={12} sm={6} md={6} sx={{ justifyContent: 'flex-start' }}>
+                    <Grid item size={{ xs: 12, sm: 6, md: 6 }} sx={{ justifyContent: 'flex-start' }}>
                       <ServerSideToolbar
                         value={searchValue}
                         clearSearch={() => handleSearch('')}
@@ -732,7 +737,7 @@ const ReceivedMedicinesReport = () => {
                     </Grid>
 
                     {/* Right-aligned container for Select Days and Filter button */}
-                    <Grid item xs={12} sm={4} md={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Grid item size={{ xs: 12, sm: 4, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <FormControl size='small' sx={{ mr: 2 }}>
                         <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>
                         <Select
@@ -896,7 +901,7 @@ const ReceivedMedicinesReport = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ReceivedMedicinesReport

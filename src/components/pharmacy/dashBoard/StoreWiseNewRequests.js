@@ -12,6 +12,8 @@ import OptionsMenu from 'src/@core/components/option-menu'
 import { getNewRequestsList } from 'src/lib/api/pharmacy/dashboard'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
+import { Box } from '@mui/material'
+import RenderUtility from 'src/utility/render'
 
 const StoreWiseNewRequests = () => {
   const [requestList, setRequestList] = useState([])
@@ -70,12 +72,9 @@ const StoreWiseNewRequests = () => {
       minWidth: 20,
       field: 'priority',
       headerName: 'Priority',
+      headerAlign: 'center',
       align: 'center',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {priorityBadge(params?.row?.priority)}
-        </Typography>
-      )
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
     },
     {
       flex: 0.2,
@@ -119,10 +118,12 @@ const StoreWiseNewRequests = () => {
     <Card>
       <CardHeader
         title='Recent requests'
-        titleTypographyProps={{ sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }}
         action={
           <OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
         }
+        slotProps={{
+          title: { sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }
+        }}
       />
       <CardContent>
         {requestList?.length > 0 ? (
@@ -144,7 +145,7 @@ const StoreWiseNewRequests = () => {
         ) : null}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default StoreWiseNewRequests

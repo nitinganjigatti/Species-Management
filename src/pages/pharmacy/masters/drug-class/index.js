@@ -192,7 +192,6 @@ const ListOfDrugs = () => {
         }
 
         await getDrugClass({ params: params }).then(res => {
-          console.log('rez????', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })

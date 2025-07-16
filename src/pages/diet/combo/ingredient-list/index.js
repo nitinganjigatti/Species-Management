@@ -234,6 +234,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
         </Typography>
       )
     }
+
     // {
     //   flex: 0.4,
     //   minWidth: 20,
@@ -278,7 +279,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ boxShadow: 'none' }}>
-            <CardHeader title='Item by percentage' />
+            <CardHeader title='Item by percentage' sx={{ pl: 0 }} />
 
             <DataGrid
               sx={{
@@ -358,17 +359,19 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
             value={searchValue}
             onChange={e => handleSearch(e.target.value)}
             sx={{ width: '250px', height: '20px' }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-              endAdornment: searchValue && (
-                <IconButton onClick={handleClearSearch}>
-                  <ClearIcon />
-                </IconButton>
-              )
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: searchValue && (
+                  <IconButton onClick={handleClearSearch}>
+                    <ClearIcon />
+                  </IconButton>
+                )
+              }
             }}
           />
         </Grid>

@@ -30,22 +30,23 @@ const CommonDrawerBox = ({
       anchor='right'
       open={drawerStatus}
       onClose={() => close()}
-      PaperProps={{
-        sx: {
-          width: {
-            xs: '100%',
-            sm: '80%',
-            md: width || 560
-          },
-          backgroundColor: style ? style : 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%'
+      slotProps={{
+        paper: {
+          sx: {
+            width: {
+              xs: '100%',
+              sm: '80%',
+              md: width || 560
+            },
+            backgroundColor: style ? style : 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }
         }
       }}
     >
       {/* Header Section */}
-
       <Box
         sx={{
           p: 4,
@@ -56,13 +57,30 @@ const CommonDrawerBox = ({
           borderBottom: '1px solid #e0e0e0'
         }}
       >
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          <Box display='flex' alignItems='center' gap={2}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}
+          >
             {imageUrl && (
               <Box component='img' src={imageUrl} alt='' sx={{ width: 40, height: 40, borderRadius: '8px' }} />
             )}
             {title && (
-              <Typography variant='h6' fontWeight='bold'>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: 'bold'
+                }}
+              >
                 {title}
               </Typography>
             )}
@@ -116,7 +134,6 @@ const CommonDrawerBox = ({
           </Box>
         )}
       </Box>
-
       {/* Content Section */}
       <Box sx={{ p: 4, overflowY: 'auto', flexGrow: 1 }}>{contentComponent ? contentComponent : null}</Box>
     </Drawer>

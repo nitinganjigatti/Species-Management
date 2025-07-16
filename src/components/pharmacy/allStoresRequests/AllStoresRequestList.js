@@ -32,6 +32,7 @@ import MedicineCard from 'src/views/utility/MedicineCard'
 import Utility from 'src/utility'
 import RequestDetailsScreen from './RequestDetailsScreen'
 import RequestByProduct from 'src/pages/pharmacy/requests-by-product'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const AllStoresRequestList = () => {
   const theme = useTheme()
@@ -186,7 +187,7 @@ const AllStoresRequestList = () => {
   const [loading, setLoading] = useState(false)
   const [excelLoader, setExcelLoader] = useState(false)
   const [uniquePendingItems, setUniquePendingItems] = useState(0)
-  const [activeTab, setActiveTab] = useState('1')
+  const [activeTab, setActiveTab] = useState('Available')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const [page, setPage] = useState(1)
@@ -293,7 +294,7 @@ const AllStoresRequestList = () => {
 
   const handleDrawerClose = () => {
     setIsDrawerOpen(false)
-    setActiveTab('1')
+    setActiveTab('Available')
     setDrawerSearchValue('')
 
     // Resetting page and data when drawer is closed
@@ -324,7 +325,8 @@ const AllStoresRequestList = () => {
       setIsLoadingMore(true)
       try {
         const params = {
-          stock_status,
+          stock_status: stock_status === 'All' ? '' : stock_status,
+
           sort: 'asc',
           column: 'stock_name',
           page,
@@ -332,7 +334,6 @@ const AllStoresRequestList = () => {
           q
         }
         const res = await getAllUniquePendingList({ params })
-        console.log(res, 'res')
 
         if (res?.success && res?.data?.list_items?.length > 0) {
           const transformedData = res?.data?.list_items.map(item => ({
@@ -409,20 +410,8 @@ const AllStoresRequestList = () => {
       setActiveTab(newValue)
       setDrawerSearchValue('')
 
-      let stockStatus = ''
-      switch (newValue) {
-        case '2':
-          stockStatus = 'Available'
-          break
-        case '3':
-          stockStatus = 'NotAvailable'
-          break
-        default:
-          stockStatus = ''
-      }
-
       fetchUniquePendingData({
-        stock_status: stockStatus,
+        stock_status: newValue,
         page: 1,
         limit: 10
       })
@@ -441,22 +430,12 @@ const AllStoresRequestList = () => {
 
       if (isNearBottom) {
         const nextPage = currentPageRef.current + 1
-        let stockStatus = ''
-
-        switch (activeTab) {
-          case '2':
-            stockStatus = 'Available'
-            break
-          case '3':
-            stockStatus = 'NotAvailable'
-            break
-        }
 
         currentPageRef.current = nextPage
         setPage(nextPage)
 
         fetchUniquePendingData({
-          stock_status: stockStatus,
+          stock_status: activeTab,
           page: nextPage,
           limit: 10
         })
@@ -467,22 +446,11 @@ const AllStoresRequestList = () => {
 
   const handleButtonClick = useCallback(() => {
     setIsDrawerOpen(true)
-    setActiveTab('1')
-    let stockStatus = ''
-    switch (activeTab) {
-      case '2':
-        stockStatus = 'Available'
-        break
-      case '3':
-        stockStatus = 'NotAvailable'
-        break
-      default:
-        stockStatus = ''
-    }
+    setActiveTab('Available')
 
     resetStates()
     fetchUniquePendingData({
-      stock_status: stockStatus,
+      stock_status: activeTab,
       page: 1,
       limit: 10
     })
@@ -498,21 +466,8 @@ const AllStoresRequestList = () => {
   const handleExcelExport = async title => {
     setExcelLoader(true)
     try {
-      let stockStatus = ''
-      switch (title) {
-        case 'Available items':
-          stockStatus = 'Available'
-          break
-        case 'Not available items':
-          stockStatus = 'NotAvailable'
-          break
-        case 'All items':
-        default:
-          stockStatus = ''
-      }
-
       const params = {
-        stock_status: stockStatus,
+        stock_status: activeTab === 'All' ? '' : activeTab,
         response_type: 'csv'
       }
 
@@ -545,7 +500,7 @@ const AllStoresRequestList = () => {
           {totalUniqueItems}
         </Typography>
       </Typography>
-      <ExcelExportButton
+      {/* <ExcelExportButton
         action={() => handleExcelExport(title)}
         loader={excelLoader}
         title='Download'
@@ -553,7 +508,7 @@ const AllStoresRequestList = () => {
           width: { xs: '100%', sm: 'auto' },
           textAlign: 'center'
         }}
-      />
+      /> */}
     </Box>
   )
 
@@ -570,47 +525,6 @@ const AllStoresRequestList = () => {
     return (
       <>
         {renderHeader(title)}
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'end' }}>
-          <TextField
-            variant='outlined'
-            size='small'
-            placeholder='Search...'
-            value={drawerSearchValue}
-            onChange={e => {
-              const value = e.target.value
-              setDrawerSearchValue(value)
-
-              // Get stock status based on active tab
-              let stockStatus = ''
-              switch (activeTab) {
-                case '2':
-                  stockStatus = 'Available'
-                  break
-                case '3':
-                  stockStatus = 'NotAvailable'
-                  break
-                default:
-                  stockStatus = ''
-              }
-
-              // Use the debounced search function
-              searchDrawerData({
-                stock_status: stockStatus,
-                q: value
-              })
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                </InputAdornment>
-              )
-            }}
-            sx={{
-              borderRadius: '8px'
-            }}
-          />
-        </Box>
 
         {isLoadingMore && isInitialLoadRef.current ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -618,9 +532,15 @@ const AllStoresRequestList = () => {
           </Box>
         ) : (
           <Box sx={{ flexGrow: 1 }}>
-            <Grid container direction='column' gap={1}>
+            <Grid
+              container
+              direction='column'
+              sx={{
+                gap: 1
+              }}
+            >
               {uniquePendingData.map((med, index) => (
-                <Grid item xs={12} key={index} sx={{ padding: 0, margin: 0 }}>
+                <Grid item size={{ xs: 12 }} key={index} sx={{ padding: 0, margin: 0 }}>
                   <MedicineCard
                     {...med}
                     pendingColor={activeTab === '2' ? 'customColors.Error' : 'customColors.Tertiary'}
@@ -683,16 +603,18 @@ const AllStoresRequestList = () => {
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  )
-                }}
                 sx={{
                   borderRadius: '8px',
                   width: { xs: '100%', md: '290px' }
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
               />
             }
@@ -731,17 +653,19 @@ const AllStoresRequestList = () => {
             anchor='right'
             open={isDrawerOpen}
             onClose={handleDrawerClose}
-            PaperProps={{
-              sx: {
-                width: {
-                  xs: '80%', // Full width on extra small screens
-                  sm: '80%',
-                  md: 560
-                },
-                backgroundColor: 'customColors.Background',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
+            slotProps={{
+              paper: {
+                sx: {
+                  width: {
+                    xs: '80%', // Full width on extra small screens
+                    sm: '80%',
+                    md: 560
+                  },
+                  backgroundColor: 'customColors.Background',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }
               }
             }}
           >
@@ -760,8 +684,20 @@ const AllStoresRequestList = () => {
                 mb: 0.5
               }}
             >
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                <Box display='flex' alignItems='center' gap={2}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2
+                  }}
+                >
                   <Typography sx={{ fontSize: '20px', fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}>
                     Unique Pending items
                   </Typography>
@@ -801,11 +737,55 @@ const AllStoresRequestList = () => {
                     }
                   }}
                 >
-                  <Tab value='1' label='All items' sx={{ width: '30%' }} />
-                  <Tab value='2' label='Available items' />
-                  <Tab value='3' label='Not Available items' />
+                  <Tab value='Available' label='Available items' />
+                  <Tab value='NotAvailable' label='Not Available items' />
+                  <Tab value='All' label='All items' sx={{ width: '30%' }} />
                 </TabList>
               </TabContext>
+              <Box
+                sx={{
+                  mx: 'auto',
+                  my: 4,
+                  display: 'flex',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  width: '90%'
+                }}
+              >
+                <TextField
+                  variant='outlined'
+                  size='small'
+                  placeholder='Search...'
+                  value={drawerSearchValue}
+                  onChange={e => {
+                    const value = e.target.value
+                    setDrawerSearchValue(value)
+
+                    // Use the debounced search function
+                    searchDrawerData({
+                      stock_status: activeTab,
+                      q: value
+                    })
+                  }}
+                  sx={{
+                    borderRadius: '8px',
+                    width: '90%'
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                />
+                <Box sx={{ ml: 'auto' }}>
+                  <ExportButton loading={excelLoader} onClick={() => handleExcelExport(activeTab)} />
+                </Box>
+              </Box>
             </Box>
 
             {/* Content Section - Allow scrolling here */}
@@ -820,14 +800,14 @@ const AllStoresRequestList = () => {
               onScroll={handleScroll}
             >
               <TabContext value={activeTab}>
-                <TabPanel value='1' sx={{ px: '24px' }}>
-                  {renderContent('All items')}
-                </TabPanel>
-                <TabPanel value='2' sx={{ px: '24px' }}>
+                <TabPanel value='Available' sx={{ px: '24px' }}>
                   {renderContent('Available items')}
                 </TabPanel>
-                <TabPanel value='3' sx={{ px: '24px' }}>
+                <TabPanel value='NotAvailable' sx={{ px: '24px' }}>
                   {renderContent('Not available items')}
+                </TabPanel>
+                <TabPanel value='All' sx={{ px: '24px' }}>
+                  {renderContent('All items')}
                 </TabPanel>
               </TabContext>
             </Box>

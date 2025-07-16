@@ -7,6 +7,7 @@ const DeathForm = ({ control, errors }) => {
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
   })
+
   return (
     <>
       <FormControl fullWidth sx={{ mb: 6 }}>

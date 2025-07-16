@@ -10,7 +10,6 @@ const AddGallery = ({ galleryList }) => {
     <Box
       sx={{
         display: 'flex',
-
         flexDirection: 'row',
         gap: '12px',
         m: 4,
@@ -46,7 +45,6 @@ const AddGallery = ({ galleryList }) => {
             <Avatar
               variant='square'
               alt='Medicine Image'
-              className={status === 'eggs_received' ? 'hideField' : ''}
               sx={{
                 width: 30,
                 height: 30,
@@ -76,7 +74,7 @@ const AddGallery = ({ galleryList }) => {
                   lineHeight: '16.94px'
                 }}
               >
-                {imgList.user_full_name ? imgList.user_full_name : '-'}
+                {imgList.user_full_name || '-'}
               </Typography>
               <Typography
                 noWrap

@@ -130,7 +130,7 @@ const ListOfMedicine = () => {
       minWidth: 20,
       width: 250,
       field: 'package',
-      headerName: 'PACKAGE',
+      headerName: 'PRESENTATION',
       renderCell: params => (
         <Tooltip
           title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
@@ -317,7 +317,7 @@ const ListOfMedicine = () => {
       headerName: 'Action',
 
       renderCell: params => (
-        <>
+        (<>
           {selectedPharmacy.type === 'central' &&
             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
               <Box>
@@ -332,7 +332,7 @@ const ListOfMedicine = () => {
                 </IconButton>
               </Box>
             )}
-        </>
+        </>)
 
         //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
         //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
@@ -656,7 +656,7 @@ const ListOfMedicine = () => {
                     </TabList>
                   </TabContext>
                   {/* Search Field */}
-                  <Grid item xs={12} sm={8} md={7}>
+                  <Grid item size={{ xs: 12, sm: 8, md: 7 }}>
                     <Box
                       sx={{
                         display: 'flex',

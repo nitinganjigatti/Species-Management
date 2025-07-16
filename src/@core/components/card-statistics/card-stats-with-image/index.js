@@ -16,7 +16,7 @@ const CardStatsCharacter = ({ data }) => {
     <Card sx={{ overflow: 'visible', position: 'relative' }}>
       <CardContent sx={{ pb: '0 !important' }}>
         <Grid container>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }} item>
             <Typography sx={{ mb: 1.5, fontWeight: 600, whiteSpace: 'nowrap' }}>{title}</Typography>
             <CustomChip
               skin='light'
@@ -34,7 +34,7 @@ const CardStatsCharacter = ({ data }) => {
               </Typography>
             </Box>
           </Grid>
-          <Grid item xs={6} sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+          <Grid item size={{ xs: 6 }} sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
             <img src={src} alt={title} height={134} />
           </Grid>
         </Grid>

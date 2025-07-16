@@ -25,7 +25,7 @@ const EggImageGallery = ({ galleryList }) => {
           </Typography>
           <Grid container spacing={6} sx={{ justifyContent: 'start' }}>
             {galleryList?.map((item, index) => (
-              <Grid key={index} item xs={12} sm={6} md={4} xl={4} xxl={4}>
+              <Grid key={index} item size={{ xs: 12, sm: 6, md: 4, xl: 4, xxl: 4 }}>
                 <Card>
                   <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <Typography

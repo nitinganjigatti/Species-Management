@@ -42,10 +42,12 @@ const diagnosisOpt = [
 const DiagnosisAddComponents = props => {
   const { openDrawer, setOpenDrawer, editParams, resetForm, handleSubmitData, loading } = props
   const theme = useTheme()
+
   const defaultValues = {
     label_name: '',
     type: null
   }
+
   const {
     control,
     handleSubmit,

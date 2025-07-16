@@ -66,16 +66,37 @@ const schema = yup.object().shape({
 
   expiry_date: yup.string().required('Expiry Date is required'),
 
+  // reason:
+  //  yup
+  //   .string()
+  //   .required('Reason is required')
+  //   .test('check-expiry', 'Expired must be selected for expired batches', function (value) {
+  //     const { expiry_date } = this.parent
+
+  //     if (expiry_date) {
+  //       const isExpired = dayjs(expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
+  //       if (isExpired) {
+  //         return value === 'Product Expired'
+  //       }
+  //     }
+
+  //     return true
+  //   }),
   reason: yup
     .string()
     .required('Reason is required')
     .test('check-expiry', 'Expired must be selected for expired batches', function (value) {
       const { expiry_date } = this.parent
+      const { stock_type } = this.parent || {}
+
+      if (stock_type === 'non_medical') {
+        return true
+      }
 
       if (expiry_date) {
         const isExpired = dayjs(expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
         if (isExpired) {
-          return value === 'Expired'
+          return value === 'Product Expired'
         }
       }
 
@@ -161,7 +182,8 @@ export const AddItemsForm = ({
       reason,
       variant_id,
       multiplier,
-      control_substance
+      control_substance,
+      unit_price
     } = {
       ...params
     }
@@ -207,7 +229,8 @@ export const AddItemsForm = ({
         reason,
         control_substance,
         variant_id,
-        multiplier
+        multiplier,
+        unit_price
       },
       type
     )
@@ -241,42 +264,45 @@ export const AddItemsForm = ({
     setTotalAvailableCount(available_qty)
   }
 
-  const handleProductChange = (value) => {
-    setValue('request_item', value, { shouldValidate: true });
-    setValue('batch_no', '', { shouldValidate: true });
-    setValue('expiry_date', '', { shouldValidate: true });
-    setValue('available_item_qty', '', { shouldValidate: true });
-    setValue('reason', '', { shouldValidate: true });
-    setValue('stock_type', '');
-    setValue('packageDetails', '');
-    setValue('manufacture', '');
-  
-    if (!value?.expiry_date) {
-      setError('expiry_date', {
-        type: 'manual',
-        message: 'Expiry Date is required',
-      });
-    } else {
-      clearErrors('expiry_date');
-    }
-  
-    if (value !== '' && value !== null) {
-      setQuantityError(false);
-      searchBatchData(value?.value, value?.stock_type);
-      setValue('stock_type', value?.stock_type);
-      setValue('packageDetails', value?.packageDetails);
-      setValue('manufacture', value?.manufacture);
-      setValue('control_substance', value?.control_substance);
-    }
-  
-    checkTotalCount();
-  };
+  const handleProductChange = value => {
+    if (!value) {
+      setValue('request_item', value, { shouldValidate: true })
+      setValue('batch_no', '', { shouldValidate: true })
+      setValue('expiry_date', '', { shouldValidate: true })
+      setValue('available_item_qty', '', { shouldValidate: true })
+      setValue('reason', '', { shouldValidate: true })
+      setValue('stock_type', '')
+      setValue('packageDetails', '')
+      setValue('manufacture', '')
+      setValue('unit_price', '')
 
-  const handleBatchChange = (value) => {
+      if (!value?.expiry_date) {
+        setError('expiry_date', {
+          type: 'manual',
+          message: 'Expiry Date is required'
+        })
+      } else {
+        clearErrors('expiry_date')
+      }
+    }
+    if (value !== '' && value !== null) {
+      setQuantityError(false)
+      searchBatchData(value?.value, value?.stock_type)
+      setValue('stock_type', value?.stock_type)
+      setValue('packageDetails', value?.packageDetails)
+      setValue('manufacture', value?.manufacture)
+      setValue('control_substance', value?.control_substance)
+      setValue('unit_price', value.unit_price)
+    }
+
+    checkTotalCount()
+  }
+
+  const handleBatchChange = value => {
     const isExpired = dayjs(value?.expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
 
-    if (isExpired) {
-      setValue('reason', 'Expired', { shouldValidate: true })
+    if (isExpired && value?.stock_type !== 'non_medical') {
+      setValue('reason', 'Product Expired', { shouldValidate: true })
     } else {
       setValue('reason', '', { shouldValidate: true })
     }
@@ -298,7 +324,7 @@ export const AddItemsForm = ({
     setQuantityError(false)
     checkTotalCount()
   }
-  
+
   useEffect(() => {
     checkTotalCount()
   }, [totalQuantity])
@@ -324,7 +350,8 @@ export const AddItemsForm = ({
         comments: nestedMedicine?.comments,
         reason: nestedMedicine?.reason,
         variant_id: nestedMedicine?.variant_id,
-        multiplier: nestedMedicine?.multiplier
+        multiplier: nestedMedicine?.multiplier,
+        unit_price: nestedMedicine?.unit_price
       })
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.stock_id, nestedMedicine.stock_type)
@@ -349,7 +376,7 @@ export const AddItemsForm = ({
       style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
     >
       <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <ControlledAutocomplete
             name='request_item'
             label='Product Name*'
@@ -360,7 +387,12 @@ export const AddItemsForm = ({
             onKeyUp={e => searchMedicineData(e.target.value)}
             onChangeOverride={handleProductChange}
             onBlur={() => searchMedicineData(nestedMedicine?.stock_id, nestedMedicine?.stock_type)}
-            renderOption={(props, option) => <ProductOption option={option} {...props} />}
+            // renderOption={(props, option) => <ProductOption option={option} {...props} />}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props
+
+              return <ProductOption key={key} option={option} {...otherProps} />
+            }}
           />
 
           {watch('packageDetails') && (
@@ -373,11 +405,11 @@ export const AddItemsForm = ({
           )}
         </Grid>
 
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormFieldLabel text={getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'} />
         </Grid>
 
-        <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+        <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
           <ControlledAutocomplete
             name='batch_no'
             label='Batch No*'
@@ -388,7 +420,12 @@ export const AddItemsForm = ({
             getOptionLabel={option => option.label || ''}
             isOptionEqualToValue={(option, value) => option.value === value?.value}
             onChangeOverride={handleBatchChange}
-            renderOption={(props, option) => <BatchOption option={option} {...props} />}
+            // renderOption={(props, option) => <BatchOption option={option} {...props} />}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props
+
+              return <BatchOption key={key} option={option} {...otherProps} />
+            }}
             PaperProps={{
               elevation: 3,
               sx: {
@@ -409,7 +446,7 @@ export const AddItemsForm = ({
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+        <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
           <ControlledTextField
             name='multiplier'
             label='Product Variant'
@@ -418,8 +455,8 @@ export const AddItemsForm = ({
             disabled={true}
           />
         </Grid>
-        {getValues('stock_type') === 'non_medical' ? null : (
-          <Grid item xs={12} sm={4}>
+        {getValues('stock_type') != 'non_medical' && (
+          <Grid item size={{ xs: 12, sm: 4 }}>
             <ControlledTextField
               name='expiry_date'
               label='Expiry Date*'
@@ -431,10 +468,10 @@ export const AddItemsForm = ({
           </Grid>
         )}
 
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormFieldLabel text='Quantity' />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <ControlledTextField
             name='quantity'
             label='Quantity*'
@@ -448,10 +485,10 @@ export const AddItemsForm = ({
             onInput={checkTotalCount}
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormFieldLabel text='Reason for Discard' />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <ControlledSelect
             name='reason'
             label='Select reason*'
@@ -464,15 +501,24 @@ export const AddItemsForm = ({
             }
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <ControlledTextField name='comments' label='Comments' control={control} errors={errors} required />
         </Grid>
         {quantityError && (
-          <Grid item xs={12}>
-            <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+          <Grid item size={{ xs: 12 }}>
+            <Typography sx={{
+              color: 'error.main'
+            }}>Quantity should be lesser than available Quantity.</Typography>
           </Grid>
         )}
-        <Grid item xs={12} display={'flex'} justifyContent={'flex-end'} gap={3}>
+        <Grid
+          item
+          size={{ xs: 12 }}
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 3
+          }}>
           <Button variant='outlined' onClick={closeDialog}>
             Cancel
           </Button>
@@ -482,5 +528,5 @@ export const AddItemsForm = ({
         </Grid>
       </Grid>
     </form>
-  )
+  );
 }

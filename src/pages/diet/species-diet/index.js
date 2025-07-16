@@ -1,7 +1,5 @@
-/* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback, useContext, useRef } from 'react'
 
-import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import {
@@ -16,25 +14,22 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-  Badge
+  Typography,
+  Card
 } from '@mui/material'
-
-// ** MUI Imports
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 
 import { AuthContext } from 'src/context/AuthContext'
+import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
+import Error404 from 'src/pages/404'
+
 import SpeciesDetails from '../../../components/diet/species-diet/speciesDetails'
 import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
-import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
-import Error404 from 'src/pages/404'
 import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
 import { FilterButton } from '../../../views/utility/render-snippets'
+
+import { getSpeciesList } from 'src/lib/api/diet/speciesDiet'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -43,7 +38,7 @@ const SpeciesDietList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortModel, setSortModel] = useState([{ field: 'scientific_name', sort: 'asc' }])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
@@ -56,6 +51,7 @@ const SpeciesDietList = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
   const [filterCount, setFilterCount] = useState(0)
+
   const [selectedOptions, setSelectedOptions] = useState({
     Class: []
   })
@@ -245,11 +241,30 @@ const SpeciesDietList = () => {
               height: 40,
               borderRadius: '50%',
               background: '#E8F4F2',
-              padding: '5px'
+              padding:
+                params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
+                  ? '2px'
+                  : '0px'
             }}
           >
             {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+              <img
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius:
+                    params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
+                      ? ''
+                      : '50%',
+
+                  objectFit:
+                    params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
+                      ? 'fill'
+                      : 'cover'
+                }}
+                src={params.row.default_icon}
+                alt='Profile'
+              />
             ) : (
               <Icon icon='mdi:user' />
             )}
@@ -686,13 +701,6 @@ const SpeciesDietList = () => {
     try {
       setExportLoading(true)
 
-      // const now = new Date()
-
-      // const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
-      //   2,
-      //   '0'
-      // )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
-
       const params = {
         // sort: sort,
         q: searchValue,
@@ -720,6 +728,7 @@ const SpeciesDietList = () => {
     setSpeciesData({ default_icon, scientific_name, common_name })
     setspeciesId(e.row.species_id)
   }
+
   useEffect(() => {
     const totalColumnsWidth = colWidths.reduce((sum, col) => sum + (col || 0), 0)
     const newAttachmentWidth = gridWidth - (totalColumnsWidth + 30)
@@ -732,8 +741,12 @@ const SpeciesDietList = () => {
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography color='inherit'>Diet</Typography>
-
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Species Diet List
             </Typography>
           </Breadcrumbs>
@@ -748,7 +761,7 @@ const SpeciesDietList = () => {
                 rowGap: 4
               }}
             >
-              <Grid item xs={12} sm={3.5}>
+              <Grid item size={{ xs: 12, sm: 3.5 }}>
                 <Typography
                   sx={{
                     marginLeft: 4,
@@ -761,9 +774,9 @@ const SpeciesDietList = () => {
                   Species Diet
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={8}>
+              <Grid item size={{ xs: 12, sm: 8 }}>
                 <Grid container sx={{ justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
-                  <Grid item xs={12} sm={12} md={'auto'} xl={'auto'}>
+                  <Grid item size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginRight: { xs: 4, md: 0 } }}>
                       <FormControl sx={{ minWidth: 250 }}>
                         <InputLabel id='controlled-select-label'>Filter Species</InputLabel>
@@ -788,10 +801,7 @@ const SpeciesDietList = () => {
 
                   <Grid
                     item
-                    xs={12}
-                    sm={12}
-                    md={'auto'}
-                    xl={'auto'}
+                    size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}
                     sx={{ display: 'flex', justifyContent: 'flex-end', marginLeft: { xs: 4, md: 0 }, marginRight: 4 }}
                   >
                     <Box
@@ -819,11 +829,6 @@ const SpeciesDietList = () => {
                           onChange={event => handleSearch(event.target.value)}
                           variant='outlined'
                           placeholder='Search...'
-                          InputProps={
-                            {
-                              // disableUnderline: true
-                            }
-                          }
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               border: 'none',
@@ -831,6 +836,11 @@ const SpeciesDietList = () => {
                               '& fieldset': {
                                 border: 'none'
                               }
+                            }
+                          }}
+                          slotProps={{
+                            input: {
+                              // disableUnderline: true
                             }
                           }}
                         />
@@ -960,7 +970,7 @@ const SpeciesDietList = () => {
               columns={columns}
               sortingMode='server'
               paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[7, 10, 25, 50, 100]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               sortModel={sortModel}
@@ -1003,6 +1013,7 @@ const SpeciesDietList = () => {
               speciesData={speciesData}
               setspeciesId={setspeciesId}
               uploadDietDrawer={uploadDietDrawer}
+              handleSearch={handleSearch}
               setUploadDietDrawer={setUploadDietDrawer}
             />
           )}
