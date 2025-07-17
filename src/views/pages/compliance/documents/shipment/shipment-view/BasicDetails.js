@@ -46,37 +46,52 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
           </Grid>
 
           {/* File Section */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '8px 12px',
-              border: '1px solid #E0E0E0',
-              borderRadius: '10px',
-              backgroundColor: '#FFF',
-              minWidth: '280px'
-            }}
-          >
-            <img
-              src='/icons/pdf_icon2.svg'
-              alt='PDF Icon'
-              width='18%'
-              style={{ marginRight: '8px', background: '#FFBDA84D', borderRadius: '6px', padding: '10px' }}
-            />
-            <Typography
-              sx={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '180px',
-                height: '40px',
-                pt: 2
-              }}
+          {uploadedFile?.file_path && (
+            <a
+              href={uploadedFile.file_path}
+              target='_blank'
+              rel='noopener noreferrer'
+              style={{ textDecoration: 'none' }}
             >
-              {uploadedFile?.file_original_name}
-            </Typography>
-            <IconButton size='small'>{/* <MoreVertIcon /> */}</IconButton>
-          </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '8px 12px',
+                  border: '1px solid #E0E0E0',
+                  borderRadius: '10px',
+                  backgroundColor: '#FFF',
+                  minWidth: '280px',
+                  cursor: 'pointer'
+                }}
+              >
+                <img
+                  src='/icons/pdf_icon2.svg'
+                  alt='PDF Icon'
+                  width='18%'
+                  style={{
+                    marginRight: '8px',
+                    background: '#FFBDA84D',
+                    borderRadius: '6px',
+                    padding: '10px'
+                  }}
+                />
+                <Typography
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '180px',
+                    height: '40px',
+                    pt: 2
+                  }}
+                >
+                  {uploadedFile?.file_original_name}
+                </Typography>
+                <IconButton size='small'>{/* Optional: Add an icon here if needed */}</IconButton>
+              </Box>
+            </a>
+          )}
         </Box>
       ) : (
         <CardContent>

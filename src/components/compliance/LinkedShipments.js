@@ -105,12 +105,19 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
             <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.Antz_Minor_Medium }}>
               Shipped Animals: {totalShipped} / {totalAllowed}
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {shipment?.file_original_name && (
-                <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
-              )}
-              <Typography sx={{ fontWeight: 500, fontSize: '1rem' }}>{shipment?.file_original_name || ''}</Typography>
-            </Box>
+            {shipment?.file_original_name && shipment?.file_path && (
+              <a
+                href={shipment.file_path}
+                target='_blank'
+                rel='noopener noreferrer'
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
+                  <Typography sx={{ fontWeight: 500, fontSize: '1rem' }}>{shipment.file_original_name}</Typography>
+                </Box>
+              </a>
+            )}
           </Box>
           {/* Animals List */}
           {shipment.species.map((specie, specieIndex) => (

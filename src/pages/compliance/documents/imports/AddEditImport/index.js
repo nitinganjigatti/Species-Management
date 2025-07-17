@@ -61,6 +61,7 @@ const AddEditImport = () => {
   const handleAddEditSuccess = data => {
     const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
     setDocumentList(updatedList)
+    fetchDocumentTypeList()
   }
 
   useEffect(() => {
@@ -85,7 +86,7 @@ const AddEditImport = () => {
     }
   }
 
-  const isAnimalsEditable = showEditAnimals && expanded === 'animals-details' && id && action === 'details'
+  const isAnimalsEditable = showEditAnimals && expanded.includes('animals-details') && id && action === 'details'
 
   // Accordion toggle handler
   const handleAccordionChange = panelId => {
@@ -124,7 +125,11 @@ const AddEditImport = () => {
             title={
               action === 'edit' ? 'Edit Import Permit' : action === 'details' ? 'Import Details' : 'CITES Import Permit'
             }
-            titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+            slotProps={{
+              title: {
+                sx: { fontSize: '1.5rem !important', fontWeight: 'bold' }
+              }
+            }}
             sx={{ paddingLeft: 2, py: 0, pr: 0 }}
           />
         </Box>
@@ -133,7 +138,7 @@ const AddEditImport = () => {
       <CustomAccordion
         id='animals-details'
         docsCount={
-          !isAnimalsEditable && expanded !== 'animals-details' && (totalAnimals || totalSpecies) ? (
+          !isAnimalsEditable && !expanded.includes('animals-details') && (totalAnimals || totalSpecies) ? (
             <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
               <strong>{totalSpecies}</strong> Species&nbsp;|&nbsp;
               <strong>{totalAnimals}</strong> Animals
@@ -143,7 +148,7 @@ const AddEditImport = () => {
         title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Details</Typography>}
         expanded={expanded.includes('animals-details')}
         onChange={handleAccordionChange}
-        editable={showEditAnimals && expanded === 'animals-details' && id && action === 'details'}
+        editable={showEditAnimals && expanded.includes('animals-details') && id && action === 'details'}
         handleEditClick={() => {
           animalsEditRef.current?.()
           router.push(`/compliance/documents/imports/AddEditImport/?id=${id}&action=edit`)

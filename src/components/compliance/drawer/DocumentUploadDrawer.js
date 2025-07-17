@@ -20,6 +20,7 @@ const documentSchema = yup.object().shape({
     .max(50, 'Reference number must be less than 50 characters'),
   document_file: yup
     .mixed()
+    .required('File is required')
     .test('fileRequired', 'File is required', function (value) {
       if (!this.parent.documentData && !value) return false
 

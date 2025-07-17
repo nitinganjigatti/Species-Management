@@ -12,8 +12,7 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  TextField,
-  InputAdornment
+  TextField
 } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ExportPermitDrawer from '../drawer/ExportPermitDrawer'
@@ -21,10 +20,12 @@ import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
 import Router, { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
-import SingleDatePicker from 'src/components/SingleDatePicker'
-import { CalendarMonth } from '@mui/icons-material'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import dayjs from 'dayjs'
 
 const SpeciesAddEdit = ({
   setexportPermitDrawerOpen,
@@ -143,50 +144,28 @@ const SpeciesAddEdit = ({
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <SingleDatePicker
-            selected={startDate}
-            onChange={handleDateChange}
-            maxDate={new Date()}
-            showMonthDropdown
-            showYearDropdown
-            customInput={
-              <TextField
-                label='Date of Issue*'
-                placeholder={!startDate ? 'Date of Issue' : ''}
-                value={startDate ? startDate?.toLocaleDateString() : ''}
-                error={Boolean(errors.startDate)}
-                helperText={errors.startDate}
-                slotProps={{
-                  inputLabel: {
-                    shrink: true
-                  },
-                  input: {
-                    sx: {
-                      height: '55px',
-                      padding: '0 14px',
-                      alignItems: 'center'
-                    },
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <CalendarMonth style={{ cursor: 'pointer' }} />
-                      </InputAdornment>
-                    )
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label='Date of Issue*'
+              value={startDate ? dayjs(startDate) : null}
+              onChange={handleDateChange}
+              maxDate={dayjs(new Date())}
+              views={['year', 'month', 'day']}
+              format='Do MMM YY'
+              slotProps={{
+                textField: {
+                  error: Boolean(errors.startDate),
+                  helperText: errors.startDate,
+                  sx: {
+                    '& .MuiInputBase-input': { padding: '14px' },
+                    '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#44544a82' } },
+                    width: '100%',
+                    height: '55px'
                   }
-                }}
-                sx={{
-                  '& .MuiInputBase-input': {
-                    padding: '14px'
-                  },
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: '#44544a82'
-                    }
-                  },
-                  width: '100%'
-                }}
-              />
-            }
-          />
+                }
+              }}
+            />
+          </LocalizationProvider>
         </Grid>
       </Grid>
 
@@ -348,7 +327,7 @@ const SpeciesAddEdit = ({
                               display='flex'
                               justifyContent='space-between'
                               // py={2}
-                              sx={{ borderBottom: '1px solid #0000000D', px: 4, py: 2 }}
+                              sx={{ borderBottom: '1px solid #0000000D', px: 4, py: 2, cursor: 'pointer' }}
                               onClick={() => handleAnimalClick(speciesdata, 'export')}
                             >
                               <Box className='export_dtl_list'>
