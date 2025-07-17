@@ -197,7 +197,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       export_date: null,
       issued_date: dayjs(),
       valid_until: null,
-      export_purpose: null,
+      export_purpose: '',
       destination_country: null,
       exporting_country: null,
       importer_name: null,
@@ -256,7 +256,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       setValue('export_number', exportData.export_number)
       setValue('issued_date', exportData.issued_date !== '0000-00-00' ? dayjs(exportData.issued_date) : null)
       setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
-      setValue('export_purpose', exportData.export_purpose)
+      setValue('export_purpose', exportData.export_purpose || '')
       setValue('origin_country', {
         label: countryOptions.find(country => country.value === exportData.origin_country)?.label || '',
         value: exportData.origin_country || null
@@ -265,8 +265,8 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         label: countryOptions.find(country => country.value === exportData.exporting_country)?.label || '',
         value: exportData.exporting_country || null
       })
-      setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_name })
-      setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_name })
+      setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_id })
+      setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_id })
       setValue(
         'certificate_file',
         exportData?.documents?.document_type_id
@@ -364,8 +364,10 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       export_number: data.export_number,
       origin_country: data.origin_country?.value || '',
       exporting_country: data.exporting_country?.value || '',
-      exporter_name: data.exporter_name?.value || '',
-      importer_name: data.importer_name?.value || '',
+      exporter_name: data.exporter_name?.label || '',
+      importer_name: data.importer_name?.label || '',
+      exporter_id: data.exporter_name?.value || '',
+      importer_id: data.importer_name?.value || '',
       export_purpose: data.export_purpose || '',
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
