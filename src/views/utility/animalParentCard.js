@@ -183,6 +183,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                     borderRadius: '5px',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
+
                     // width: 'fit-content'
                   }}
                 >
@@ -276,7 +277,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  <span style={{ fontWeight: 400, fontSize: animal && '14px' }}>Sec: </span> {data?.section_name}
+                  <span style={{ fontWeight: 400, fontSize: '14px' }}>Sec: </span> {data?.section_name}
                 </Typography>
               </Tooltip>
             )}
