@@ -1,18 +1,9 @@
-import { useTheme } from '@emotion/react'
-import { Box, Grid } from '@mui/system'
-import { useRouter } from 'next/router'
 import React from 'react'
-import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
+import GroupedTimeline from 'src/views/pages/hospital/inpatient/GroupedTimeline'
 
 const InpatientMedicalSummary = () => {
-  const router = useRouter()
-  const theme = useTheme()
 
-  return (
-    <>
-      <Box></Box>
-    </>
-  )
+  return <GroupedTimeline />
 }
 
 export default InpatientMedicalSummary
