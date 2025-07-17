@@ -62,10 +62,29 @@ const composeComplianceNavigation = () => {
     path: '/compliance/masters/exports'
   }
 
+  const reportsParent = {
+    title: 'reports',
+    path: '/compliance/documents/reports',
+    icon: '',
+    children: []
+  }
+
+  const observation = {
+    title: 'Observation',
+    path: '/compliance/reports/observation'
+  }
+
+  const keeperDiary = {
+    title: 'Keepers Diary ',
+    path: '/compliance/reports/keeperDiary'
+  }
+
   // Add all items under Documents
-  documentsParent.children.push(exports, imports, shipments, mastersParent)
+  documentsParent.children.push(exports, imports, shipments, mastersParent, reportsParent)
 
   mastersParent.children.push(masterdocuments, masterimports, masterexports)
+
+  reportsParent.children.push(observation, keeperDiary)
 
   const complianceNavigation = [complianceTitle, documentsParent]
 

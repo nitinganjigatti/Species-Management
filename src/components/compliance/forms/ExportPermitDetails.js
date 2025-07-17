@@ -26,7 +26,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
       }
       const res = await getMasterImports(params)
       if (res) {
-        const exportersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
+        const exportersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.id }))
         setExportersOptions(exportersOptions)
       }
     } catch (e) {
@@ -44,7 +44,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
       }
       const res = await getMasterImports(params)
       if (res) {
-        const importersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
+        const importersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.id }))
         setImportersOptions(importersOptions)
       }
     } catch (e) {
