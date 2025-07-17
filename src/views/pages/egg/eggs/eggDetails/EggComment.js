@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Avatar, Button, Card, CardContent, LinearProgress, TextField, Typography } from '@mui/material'
+import { Avatar, Button, Card, CardContent, LinearProgress, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { styled } from '@mui/material/styles'
 import { useTheme } from '@mui/material/styles'
@@ -35,6 +35,7 @@ const EggComment = ({ eggDetails, eggId }) => {
   const [reachedEnd, setReachedEnd] = useState(false)
   let [commentsPage, setCommentsPage] = useState(1)
   const [commentList, setCommentList] = useState([])
+  const [commentListCount, setCommentListCount] = useState(0)
   const [commentLoader, setCommentLoader] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [commentBtnLoader, setCommentBtnLoader] = useState(false)
@@ -55,8 +56,9 @@ const EggComment = ({ eggDetails, eggId }) => {
           if (res?.data?.result?.length > 0) {
             setCommentList(prevArray => [...prevArray, ...res?.data?.result])
             setReachedEnd(false)
-          } else {
           }
+          setCommentListCount(res?.data?.total_count)
+          setCommentsPage(prev => prev + 1)
         } else {
           setCommentList(prevArray => [...prevArray])
           setShouldCallList(false)
@@ -75,11 +77,11 @@ const EggComment = ({ eggDetails, eggId }) => {
 
   const handleScroll = async e => {
     const container = e.target
-
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight && shouldCallList) {
-      // User has reached the bottom, perform your action here
-      setCommentsPage(++commentsPage)
+    const hasReachedBottom = container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight
+    const allCommentsLoaded = Number(commentList?.length) >= Number(commentListCount)
+
+    if (hasReachedBottom && shouldCallList && !allCommentsLoaded) {
       setReachedEnd(true)
       try {
         getEggCommentsFunc()
@@ -346,16 +348,19 @@ const EggComment = ({ eggDetails, eggId }) => {
                         )}
                       </Box>
                       <Box sx={{ display: 'flex', gap: '12px', justifyContent: { xs: 'end' } }}>
-                        <Icon
-                          color={theme.palette.customColors.secondaryBg}
-                          icon='material-symbols:delete-outline'
-                          fontSize={20}
-                          onClick={() => {
-                            setCommentId(item?.id)
-                            setDeleteDialogBox(true)
-                          }}
-                          style={{ cursor: 'pointer' }}
-                        />
+                        <IconButton>
+                          {' '}
+                          <Icon
+                            color={theme.palette.customColors.secondaryBg}
+                            icon='material-symbols:delete-outline'
+                            fontSize={20}
+                            onClick={() => {
+                              setCommentId(item?.id)
+                              setDeleteDialogBox(true)
+                            }}
+                            style={{ cursor: 'pointer' }}
+                          />
+                        </IconButton>
                       </Box>
                     </Box>
                     <Typography

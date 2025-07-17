@@ -452,148 +452,142 @@ const RoomsList = () => {
                   Incubator Room
                 </Typography>
               </Breadcrumbs>
-              <Grid container spacing={6}>
-                <Grid item xs={12}>
-                  <Card>
-                    <CardHeader title='Incubator Rooms' action={headerAction} />
+              <Card>
+                <CardHeader title='Incubator Rooms' action={headerAction} />
 
-                    <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
-                      <Grid item xs={3}>
-                        <Box
+                <Box sx={{ px: 4, gap: 4, display: 'flex', flexWrap: 'wrap', mb: 6 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px'
+                    }}
+                  >
+                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      InputProps={
+                        {
+                          // disableUnderline: true
+                        }
+                      }
+                      onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+
+                  <FormControl>
+                    <Autocomplete
+                      name='nursery'
+                      value={defaultNursery}
+                      disablePortal
+                      sx={{ width: 220 }}
+                      id='nursery'
+                      options={nurseryList?.length > 0 ? nurseryList : []}
+                      getOptionLabel={option => option.nursery_name}
+                      isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultNursery(null)
+                          fetchTableData(searchValue, '', defaultStatus?.key)
+                        } else {
+                          setDefaultNursery(val)
+                          fetchTableData(searchValue, val?.nursery_id, defaultStatus?.key)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            borderRadius: '4px',
-                            padding: '0 8px',
-                            height: '40px'
-                          }}
-                        >
-                          <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                          <TextField
-                            variant='outlined'
-                            placeholder='Search...'
-                            InputProps={
-                              {
-                                // disableUnderline: true
-                              }
+                            backgroundColor: theme.palette.primary.contrastText,
+                            borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                            width: '100%',
+                            '& .MuiOutlinedInput-root': {
+                              height: 40,
+                              borderRadius: '4px'
+                            },
+                            '& .MuiInputLabel-root': {
+                              top: -7
+                            },
+                            '& input': {
+                              position: 'relative',
+                              top: -7
                             }
-                            onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                border: 'none',
-                                padding: '0',
-                                '& fieldset': {
-                                  border: 'none'
-                                }
-                              }
-                            }}
-                          />
-                        </Box>
-                      </Grid>
+                          }}
+                          onChange={e => {
+                            searchNursery(e.target.value)
+                          }}
+                          {...params}
+                          label='Nursery'
+                          placeholder='Search & Select'
+                        />
+                      )}
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <Autocomplete
+                      name='status'
+                      value={defaultStatus}
+                      disablePortal
+                      id='status'
+                      sx={{ width: 220 }}
+                      options={[
+                        { label: 'Active', key: 'active' },
+                        { label: 'Inactive', key: 'inactive' }
+                      ]}
+                      getOptionLabel={option => option.label}
+                      isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultStatus(null)
+                          fetchTableData(searchValue, defaultNursery?.nursery_id, '')
+                        } else {
+                          setDefaultStatus(val)
+                          fetchTableData(searchValue, defaultNursery?.nursery_id, val?.key)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          sx={{
+                            backgroundColor: theme.palette.primary.contrastText,
+                            borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                            width: '100%',
+                            '& .MuiOutlinedInput-root': {
+                              height: 40,
+                              borderRadius: '4px'
+                            },
+                            '& .MuiInputLabel-root': {
+                              top: -7
+                            },
+                            '& input': {
+                              position: 'relative',
+                              top: -7
+                            }
+                          }}
+                          onChange={e => {
+                            // searchSite(e.target.value)
+                          }}
+                          {...params}
+                          label='Status'
+                          placeholder='Search & Select'
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Box>
 
-                      <Grid item xs={3}>
-                        <FormControl fullWidth>
-                          <Autocomplete
-                            name='nursery'
-                            value={defaultNursery}
-                            disablePortal
-                            id='nursery'
-                            options={nurseryList?.length > 0 ? nurseryList : []}
-                            getOptionLabel={option => option.nursery_name}
-                            isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
-                            onChange={(e, val) => {
-                              if (val === null) {
-                                setDefaultNursery(null)
-                                fetchTableData(searchValue, '', defaultStatus?.key)
-                              } else {
-                                setDefaultNursery(val)
-                                fetchTableData(searchValue, val?.nursery_id, defaultStatus?.key)
-                              }
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                sx={{
-                                  backgroundColor: theme.palette.primary.contrastText,
-                                  borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                  width: '100%',
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 40,
-                                    borderRadius: '4px'
-                                  },
-                                  '& .MuiInputLabel-root': {
-                                    top: -7
-                                  },
-                                  '& input': {
-                                    position: 'relative',
-                                    top: -7
-                                  }
-                                }}
-                                onChange={e => {
-                                  searchNursery(e.target.value)
-                                }}
-                                {...params}
-                                label='Nursery'
-                                placeholder='Search & Select'
-                              />
-                            )}
-                          />
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <FormControl fullWidth>
-                          <Autocomplete
-                            name='status'
-                            value={defaultStatus}
-                            disablePortal
-                            id='status'
-                            options={[
-                              { label: 'Active', key: 'active' },
-                              { label: 'Inactive', key: 'inactive' }
-                            ]}
-                            getOptionLabel={option => option.label}
-                            isOptionEqualToValue={(option, value) => option?.key === value?.key}
-                            onChange={(e, val) => {
-                              if (val === null) {
-                                setDefaultStatus(null)
-                                fetchTableData(searchValue, defaultNursery?.nursery_id, '')
-                              } else {
-                                setDefaultStatus(val)
-                                fetchTableData(searchValue, defaultNursery?.nursery_id, val?.key)
-                              }
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                sx={{
-                                  backgroundColor: theme.palette.primary.contrastText,
-                                  borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                  width: '100%',
-                                  '& .MuiOutlinedInput-root': {
-                                    height: 40,
-                                    borderRadius: '4px'
-                                  },
-                                  '& .MuiInputLabel-root': {
-                                    top: -7
-                                  },
-                                  '& input': {
-                                    position: 'relative',
-                                    top: -7
-                                  }
-                                }}
-                                onChange={e => {
-                                  // searchSite(e.target.value)
-                                }}
-                                {...params}
-                                label='Status'
-                                placeholder='Search & Select'
-                              />
-                            )}
-                          />
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-
-                    {/* <Box sx={{ py: 4, px: 4 }}>
+                {/* <Box sx={{ py: 4, px: 4 }}>
                       <Stack direction='row' gap={3}>
                         <Typography variant='h6'>Legends : </Typography>
                         <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
@@ -629,41 +623,39 @@ const RoomsList = () => {
                       </Stack>
                     </Box> */}
 
-                    <Box>
-                      <DataGrid
-                        sx={{
-                          '.MuiDataGrid-cell:focus': {
-                            outline: 'none'
-                          },
+                <Box>
+                  <DataGrid
+                    sx={{
+                      '.MuiDataGrid-cell:focus': {
+                        outline: 'none'
+                      },
 
-                          '& .MuiDataGrid-row:hover': {
-                            cursor: 'pointer'
-                          }
-                        }}
-                        columnVisibilityModel={{
-                          sl_no: false
-                        }}
-                        hideFooterSelectedRowCount
-                        disableColumnSelector={true}
-                        autoHeight
-                        pagination
-                        rows={indexedRows === undefined ? [] : indexedRows}
-                        rowCount={total}
-                        columns={columns}
-                        sortingMode='server'
-                        paginationMode='server'
-                        pageSizeOptions={[7, 10, 25, 50]}
-                        paginationModel={paginationModel}
-                        onSortModelChange={handleSortModel}
-                        onPaginationModelChange={setPaginationModel}
-                        rowHeight={64}
-                        loading={loading}
-                        onCellClick={onCellClick}
-                      />
-                    </Box>
-                  </Card>
-                </Grid>
-              </Grid>
+                      '& .MuiDataGrid-row:hover': {
+                        cursor: 'pointer'
+                      }
+                    }}
+                    columnVisibilityModel={{
+                      sl_no: false
+                    }}
+                    hideFooterSelectedRowCount
+                    disableColumnSelector={true}
+                    autoHeight
+                    pagination
+                    rows={indexedRows === undefined ? [] : indexedRows}
+                    rowCount={total}
+                    columns={columns}
+                    sortingMode='server'
+                    paginationMode='server'
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onSortModelChange={handleSortModel}
+                    onPaginationModelChange={setPaginationModel}
+                    rowHeight={64}
+                    loading={loading}
+                    onCellClick={onCellClick}
+                  />
+                </Box>
+              </Card>
             </Box>
             {isOpen && (
               <AddIncubatorRoom
