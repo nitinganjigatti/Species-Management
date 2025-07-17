@@ -13,7 +13,8 @@ import {
   Home as HomeIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material'
-import { VisitType } from 'src/views/utility/render-snippets'
+import { StatusCard, VisitType } from 'src/views/utility/render-snippets'
+import { rgbaToHex } from 'src/@core/utils/rgba-to-hex'
 
 const PatientCard = ({ patientData }) => {
   const theme = useTheme()
@@ -128,168 +129,60 @@ const PatientCard = ({ patientData }) => {
         <Grid size={{ sm: 7 }}>
           <Grid container spacing={6}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Box
-                  sx={{
-                    width: 45,
-                    height: 45,
-                    borderRadius: 0.4,
-                    backgroundColor: '#e8f5e8',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    p: 1.5
-                  }}
-                >
-                  <CalendarIcon sx={{ fontSize: 24, color: '#4caf50' }} />
-                </Box>
-                <Box>
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      color: '#666',
-                      display: 'block',
-                      fontSize: '0.75rem',
-                      fontWeight: 400
-                    }}
-                  >
-                    Admitted on
-                  </Typography>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      fontWeight: 500,
-                      color: '#333',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    12 Aug 2024 • 2:30 pm
-                  </Typography>
-                </Box>
-              </Box>
+              <StatusCard
+                icon={PersonIcon}
+                title={'Admitted on'}
+                subtitle={'12 Aug 2024'}
+                iconColor={theme.palette.primary.dark}
+                iconBgColor={theme.palette.customColors.OnBackground}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Box
-                  sx={{
-                    width: 45,
-                    height: 45,
-                    borderRadius: 0.4,
-                    backgroundColor: '#e8f5e8',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    p: 1.5
-                  }}
-                >
-                  <PersonIcon sx={{ fontSize: 24, color: '#4caf50' }} />
-                </Box>
-                <Box>
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      color: '#666',
-                      display: 'block',
-                      fontSize: '0.75rem',
-                      fontWeight: 400
-                    }}
-                  >
-                    Admitted by
-                  </Typography>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      fontWeight: 500,
-                      color: '#333',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    Nihal Mehta
-                  </Typography>
-                </Box>
-              </Box>
+              <StatusCard
+                icon={PersonIcon}
+                title={'Admitted By'}
+                subtitle={'Nihal Kishor'}
+                iconColor={theme.palette.primary.dark}
+                iconBgColor={theme.palette.customColors.OnBackground}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Box
-                  sx={{
-                    width: 45,
-                    height: 45,
-                    borderRadius: 0.4,
-                    backgroundColor: '#fff3e0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    p: 1.5
-                  }}
-                >
-                  <ScheduleIcon sx={{ fontSize: 24, color: '#ff9800' }} />
-                </Box>
-                <Box>
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      color: '#666',
-                      display: 'block',
-                      fontSize: '0.75rem',
-                      fontWeight: 400
-                    }}
-                  >
-                    Admitted for
-                  </Typography>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      fontWeight: 600,
-                      color: '#333',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    4 days
-                  </Typography>
-                </Box>
-              </Box>
+              <StatusCard
+                icon={ScheduleIcon}
+                title={'Admitted For'}
+                subtitle={'4 days'}
+                iconColor={theme.palette.customColors.moderateSecondary}
+                iconBgColor={'#FCF4AE99'}
+                subtitleSx={{ fontWeight: 600 }}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Box
-                  sx={{
-                    width: 45,
-                    height: 45,
-                    borderRadius: 0.4,
-                    backgroundColor: '#fff3e0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    p: 1.5
-                  }}
-                >
-                  <HomeIcon sx={{ fontSize: 24, color: '#ff9800' }} />
-                </Box>
-                <Box>
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      color: '#666',
-                      display: 'block',
-                      fontSize: '0.75rem',
-                      fontWeight: 400
-                    }}
-                  >
-                    Holding Location
-                  </Typography>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      fontWeight: 600,
-                      color: '#333',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    Cage 1, Patient Wing 2
-                  </Typography>
-                </Box>
-              </Box>
+              <StatusCard
+                icon={HomeIcon}
+                title={'Holding Location'}
+                subtitle={'Cage 1, Patient Wing 2'}
+                iconColor={theme.palette.customColors.moderateSecondary}
+                iconBgColor={'#FCF4AE99'}
+                subtitleSx={{ fontWeight: 600 }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <StatusCard
+                icon={HomeIcon}
+                title={'Discharged On'}
+                subtitle={'12 Aug 2024'}
+                iconColor={'#FA6140'}
+                iconBgColor={'#FFBDA866'}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <StatusCard
+                icon={HomeIcon}
+                title={'Discharged By'}
+                subtitle={'Nihal Mehta'}
+                iconColor={'#FA6140'}
+                iconBgColor={'#FFBDA866'}
+              />
             </Grid>
           </Grid>
         </Grid>

@@ -1,92 +1,6 @@
 import { Button, styled, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useState } from 'react'
-
-const ScrollContainer = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-
-  px: theme.spacing(1),
-  height: '60px',
-  backgroundColor: '#E8F4F2',
-  borderRadius: theme.spacing(1),
-  overflowX: 'auto',
-  whiteSpace: 'nowrap',
-  width: '100%',
-  '&::-webkit-scrollbar': {
-    display: 'none'
-  }
-}))
-
-const YearLabel = styled(Typography)(({ theme }) => ({
-  fontSize: '18px',
-  fontWeight: 600,
-  color: theme.palette.text.secondary,
-
-  padding: theme.spacing(1.25, 2),
-  borderRadius: theme.spacing(0.75),
-  minWidth: '70px',
-  textAlign: 'center',
-  flexShrink: 0
-}))
-
-const DateButton = styled(Button, {
-  shouldForwardProp: prop => !['isSelected', 'hasIndicator', 'indicatorColor'].includes(prop)
-})(({ theme, isSelected, hasIndicator, indicatorColor }) => {
-  const baseStyles = {
-    position: 'relative',
-    width: 120,
-    minWidth: 120,
-    height: '100%',
-    marginLeft: theme.spacing(0.5),
-    px: 1,
-    py: 0.5,
-    borderRadius: theme.spacing(0.75),
-    backgroundColor: isSelected ? '#37474f' : 'transparent',
-    color: isSelected ? '#FFF' : theme.palette.text.primary,
-    fontSize: '14px',
-    fontWeight: 500,
-    textTransform: 'none',
-    transition: 'all 0.2s ease',
-    flexShrink: 0,
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    lineHeight: 1.2,
-    gap: theme.spacing(0.5),
-    '&:disabled': {
-      backgroundColor: 'transparent',
-      color: theme.palette.text.disabled,
-      cursor: 'not-allowed',
-      '&:hover': {
-        transform: 'none'
-      }
-    },
-    '& .date-content': {
-      display: 'flex',
-      alignItems: 'center',
-      gap: theme.spacing(0.5)
-    },
-    '& .dot': {
-      width: 8,
-      height: 8,
-      borderRadius: '50%',
-      backgroundColor: indicatorColor || '#ff5722',
-      opacity: hasIndicator ? 1 : 0,
-      transition: 'opacity 0.2s ease'
-    }
-  }
-
-  if (!isSelected) {
-    baseStyles['&:hover'] = {
-      backgroundColor: 'rgba(0, 0, 0, 0.04)',
-      transform: 'translateY(-1px)'
-    }
-  }
-
-  return baseStyles
-})
+import React, { useState, useEffect, useRef } from 'react'
 
 const HorizontalDateNav = ({
   dates = null,
@@ -102,6 +16,8 @@ const HorizontalDateNav = ({
   dateButtonStyle = {}
 }) => {
   const [internalSelectedDate, setInternalSelectedDate] = useState(selectedDate)
+  const scrollAreaRef = useRef(null)
+  const dateButtonRefs = useRef({})
 
   const generateDates = () => {
     if (dates) return dates
@@ -169,39 +85,77 @@ const HorizontalDateNav = ({
   })
   const currentSelectedDate = selectedDate || internalSelectedDate || currentDateStr
 
+  // Auto-scroll to current date on component mount
+  useEffect(() => {
+    const scrollToCurrentDate = () => {
+      const currentDateButton = dateButtonRefs.current[currentSelectedDate]
+      const scrollArea = scrollAreaRef.current
+
+      if (currentDateButton && scrollArea) {
+        const buttonRect = currentDateButton.getBoundingClientRect()
+        const scrollAreaRect = scrollArea.getBoundingClientRect()
+
+        const scrollLeft =
+          currentDateButton.offsetLeft - scrollArea.offsetLeft - scrollAreaRect.width / 2 + buttonRect.width / 2
+
+        scrollArea.scrollTo({
+          left: Math.max(0, scrollLeft),
+          behavior: 'smooth'
+        })
+      }
+    }
+
+    // Small delay to ensure DOM is fully rendered
+    const timeoutId = setTimeout(scrollToCurrentDate, 100)
+
+    return () => clearTimeout(timeoutId)
+  }, [currentSelectedDate, dateItems])
+
   return (
     <ScrollContainer style={containerStyle}>
       <YearLabel>{displayYear}</YearLabel>
-      {dateItems.map((dateItem, index) => (
-        <DateButton
-          key={`${dateItem.date}-${index}`}
-          isSelected={currentSelectedDate === dateItem.date}
-          hasIndicator={dateItem.hasIndicator}
-          indicatorColor={dateItem.indicatorColor || indicatorColor}
-          disabled={dateItem.isDisabled}
-          onClick={() => handleDateClick(dateItem)}
-          style={dateButtonStyle}
-          sx={{
-            '&:hover':
-              currentSelectedDate === dateItem.date
-                ? {}
-                : {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                    transform: 'translateY(-1px)'
-                  }
-          }}
-        >
-          <Box display='flex' alignItems='center' gap={2}>
-            {dateItem.hasIndicator && (
-              <Box
+      <DateScrollArea ref={scrollAreaRef}>
+        {dateItems.map((dateItem, index) => (
+          <DateButton
+            key={`${dateItem.date}-${index}`}
+            ref={el => (dateButtonRefs.current[dateItem.date] = el)}
+            isSelected={currentSelectedDate === dateItem.date}
+            hasIndicator={dateItem.hasIndicator}
+            indicatorColor={dateItem.indicatorColor || indicatorColor}
+            disabled={dateItem.isDisabled}
+            onClick={() => handleDateClick(dateItem)}
+            style={dateButtonStyle}
+            sx={{
+              '&:hover':
+                currentSelectedDate === dateItem.date
+                  ? {}
+                  : {
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      transform: 'translateY(-1px)'
+                    }
+            }}
+          >
+            <Box display='flex' alignItems='center' gap={2}>
+              {dateItem.hasIndicator && (
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: dateItem.indicatorColor || indicatorColor
+                  }}
+                />
+              )}
+              <Typography
+                variant='body2'
+                fontWeight={400}
                 sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: dateItem.indicatorColor || indicatorColor
+                  color: currentSelectedDate === dateItem.date ? '#FFF' : '#44544A'
                 }}
-              />
-            )}
+              >
+                {dateItem.date}
+              </Typography>
+            </Box>
             <Typography
               variant='body2'
               fontWeight={400}
@@ -209,22 +163,122 @@ const HorizontalDateNav = ({
                 color: currentSelectedDate === dateItem.date ? '#FFF' : '#44544A'
               }}
             >
-              {dateItem.date}
+              {dateItem.day}
             </Typography>
-          </Box>
-          <Typography
-            variant='body2'
-            fontWeight={400}
-            sx={{
-              color: currentSelectedDate === dateItem.date ? '#FFF' : '#44544A'
-            }}
-          >
-            {dateItem.day}
-          </Typography>
-        </DateButton>
-      ))}
+          </DateButton>
+        ))}
+      </DateScrollArea>
     </ScrollContainer>
   )
 }
 
 export default HorizontalDateNav
+
+const ScrollContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  position: 'relative',
+  px: theme.spacing(1),
+  height: '40px',
+  backgroundColor: '#E8F4F2',
+  borderRadius: theme.spacing(1),
+  width: '100%'
+}))
+
+const DateScrollArea = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  overflowX: 'auto',
+  whiteSpace: 'nowrap',
+  flex: 1,
+  height: '100%',
+  paddingLeft: theme.spacing(10), // Space for fixed year
+  '&::-webkit-scrollbar': {
+    display: 'none'
+  },
+  '-ms-overflow-style': 'none',
+  'scrollbar-width': 'none',
+  [theme.breakpoints.up('md')]: {
+    paddingLeft: 0,
+    overflowX: 'visible'
+  }
+}))
+
+const YearLabel = styled(Typography)(({ theme }) => ({
+  fontSize: '18px',
+  fontWeight: 600,
+  color: theme.palette.text.secondary,
+  padding: theme.spacing(1.25, 2),
+  borderRadius: theme.spacing(0.75),
+  minWidth: '70px',
+  textAlign: 'center',
+  flexShrink: 0,
+  position: 'absolute',
+  left: theme.spacing(1),
+  top: '50%',
+  transform: 'translateY(-50%)',
+  backgroundColor: '#E8F4F2',
+  zIndex: 1,
+  [theme.breakpoints.up('md')]: {
+    position: 'static',
+    transform: 'none',
+    backgroundColor: 'transparent'
+  }
+}))
+
+const DateButton = styled(Button, {
+  shouldForwardProp: prop => !['isSelected', 'hasIndicator', 'indicatorColor'].includes(prop)
+})(({ theme, isSelected, hasIndicator, indicatorColor }) => {
+  const baseStyles = {
+    position: 'relative',
+    width: 120,
+    minWidth: 120,
+    height: 'calc(100% - 8px)', // Account for container padding
+    marginLeft: theme.spacing(0.5),
+    px: 1,
+    py: 0,
+    borderRadius: theme.spacing(0.75),
+    backgroundColor: isSelected ? '#37474f' : 'transparent',
+    color: isSelected ? '#FFF' : theme.palette.text.primary,
+    fontSize: '14px',
+    fontWeight: 500,
+    textTransform: 'none',
+    transition: 'all 0.2s ease',
+    flexShrink: 0,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    lineHeight: 1.2,
+    gap: theme.spacing(0.5),
+    minHeight: 0, // Override MUI button default minHeight
+    '&.MuiButton-root': {
+      minHeight: 0 // Ensure MUI doesn't override
+    },
+    '&:disabled': {
+      backgroundColor: 'transparent',
+      color: theme.palette.text.disabled,
+      cursor: 'not-allowed',
+      '&:hover': {
+        transform: 'none'
+      }
+    },
+    '& .date-content': {
+      display: 'flex',
+      alignItems: 'center',
+      gap: theme.spacing(0.5)
+    },
+    '& .dot': {
+      width: 8,
+      height: 8,
+      borderRadius: '50%',
+      backgroundColor: indicatorColor || '#ff5722',
+      opacity: hasIndicator ? 1 : 0,
+      transition: 'opacity 0.2s ease'
+    }
+  }
+
+  // Hover effect is handled in the sx prop to ensure proper selected state logic
+
+  return baseStyles
+})

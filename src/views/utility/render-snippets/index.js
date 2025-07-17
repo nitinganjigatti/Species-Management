@@ -1,7 +1,8 @@
-import { Badge, Box, CircularProgress, Tooltip, Typography } from '@mui/material'
+import { Avatar, Badge, Box, CircularProgress, Paper, Tooltip, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { bgcolor } from '@mui/system'
+import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 export const ExportButton = ({
   loading = false,
@@ -109,7 +110,11 @@ export const VisitType = ({ title }) => {
     INPATIENT: { background: theme.palette.customColors.OnBackground, color: theme.palette.primary.main },
     'Follow-up': { background: theme.palette.customColors.OnBackground, color: theme.palette.primary.OnSurface },
     Emergency: { background: theme.palette.customColors.Tertiary30, color: theme.palette.customColors.Tertiary },
-    Planned: { background: '#FFD3D366', color: theme.palette.customColors.Error }
+    Planned: {
+      background: hexToRGBA(theme.palette.customColors.AntzTertiary, 0.4),
+      color: theme.palette.customColors.Error
+    },
+    OUTPATIENT: { background: hexToRGBA(theme.palette.customColors.antzNotes, 0.3), color: '#E4B819' }
   }
 
   const allowedTitles = Object.keys(typeStyles)
@@ -146,5 +151,74 @@ export const VisitType = ({ title }) => {
         </Typography>
       </Box>
     </>
+  )
+}
+
+export const StatusCard = ({
+  icon: Icon,
+  iconColor,
+  iconBgColor,
+  title,
+  subtitle,
+  titleSx = {},
+  subtitleSx = {},
+  containerSx = {},
+  iconSize = 24
+}) => {
+  const theme = useTheme()
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 3,
+        borderRadius: 2,
+        ...containerSx
+      }}
+    >
+      <Avatar
+        sx={{
+          width: 45,
+          height: 45,
+          backgroundColor: iconBgColor,
+          borderRadius: 0.4,
+          p: 1.4
+        }}
+      >
+        <Icon
+          sx={{
+            fontSize: iconSize,
+            color: iconColor
+          }}
+        />
+      </Avatar>
+
+      <Box sx={{ flex: 1 }}>
+        <Typography
+          variant='caption'
+          sx={{
+            color: theme.palette.customColors.secondaryBg,
+            fontWeight: 400,
+            fontSize: '0.75rem',
+            ...titleSx
+          }}
+        >
+          {title}
+        </Typography>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontWeight: 500,
+            fontSize: '0.875rem',
+            ...subtitleSx
+          }}
+        >
+          {subtitle}
+        </Typography>
+      </Box>
+    </Box>
   )
 }
