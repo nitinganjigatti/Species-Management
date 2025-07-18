@@ -25,6 +25,8 @@ import toast from 'react-hot-toast'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 import Error404 from 'src/pages/404'
+import Toaster from 'src/components/Toaster'
+
 // import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesList = () => {
@@ -46,6 +48,7 @@ const SpeciesList = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const authData = useContext(AuthContext)
+
   // const { selectedParivesh } = usePariveshContext()
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
@@ -176,6 +179,7 @@ const SpeciesList = () => {
         field: 'sl_no',
         headerName: 'S.NO',
         headerAlign: 'left',
+
         // headerAlign: 'center',
         renderCell: params => (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -185,11 +189,13 @@ const SpeciesList = () => {
       },
       {
         flex: 0.3,
+
         // minWidth: 30,
         minWidth: 80,
         field: 'species_image',
         headerName: 'IMAGE',
         headerAlign: 'left',
+
         // headerAlign: 'center',
         sortable: false,
         renderCell: params => (
@@ -201,6 +207,7 @@ const SpeciesList = () => {
           </>
         )
       },
+
       // {
       //   flex: 0.5,
       //   // minWidth: 30,
@@ -241,6 +248,7 @@ const SpeciesList = () => {
         field: 'SPECIES NAME',
         headerName: 'SPECIES NAME',
         headerAlign: 'left',
+
         // headerAlign: 'center',
         sortable: false,
         renderCell: params => {
@@ -342,6 +350,7 @@ const SpeciesList = () => {
       headerAlign: 'left',
       renderCell: params => {
         const org = params.row.organizations.find(org => org.organization_name === orgName)
+
         // const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
 
         // Define the onClick handler for individual organization cells
@@ -416,11 +425,13 @@ const SpeciesList = () => {
     //   return
     // }
   }
+
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
     setOpenDrawer(true)
   }
+
   const handleSidebarClose = () => {
     setOpenDrawer(false)
   }
@@ -470,6 +481,7 @@ const SpeciesList = () => {
     // console.log(payload, 'payload')
     try {
       setSubmitLoader(true)
+
       // var response
       // if (editParams?.id !== null) {
       //   response = await updateSpecies(editParams?.id, payload)
@@ -487,16 +499,22 @@ const SpeciesList = () => {
         setSubmitLoader(false)
 
         if (typeof response?.message === 'object') {
-          toast.error(response.message?.cover_image || response.message?.species_image)
+          //toast.error(response.message?.cover_image || response.message?.species_image)
+          Toaster({ type: 'success', message: response.message?.cover_image || response.message?.species_image })
+
           // Utility.errorMessageExtractorFromObject(response.message?.cover_image)
         } else {
-          toast.error(response.message)
+          Toaster({ type: 'error', message: response.message })
+
+          //toast.error(response.message)
         }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      toast.error(JSON.stringify(e))
+      Toaster({ type: 'error', message: JSON.stringify(e) })
+
+      // toast.error(JSON.stringify(e))
     }
   }
 
@@ -511,6 +529,7 @@ const SpeciesList = () => {
     }, 1000),
     []
   )
+
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSortBy(newModel[0].sort)
@@ -633,6 +652,7 @@ const SpeciesList = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
+
               // onCellClick={onCellClick}
             />
           </Card>

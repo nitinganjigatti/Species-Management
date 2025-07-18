@@ -24,6 +24,7 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { getSearchLMasterListSpecies } from 'src/lib/api/parivesh/addSpecies'
+import Toaster from 'src/components/Toaster'
 
 // ** Styled Components
 
@@ -37,6 +38,7 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
+
   // species: yup.object().nullable().required('Species is Required')
   species: yup
     .mixed() // Allow any type
@@ -127,18 +129,36 @@ const AddSpecies = props => {
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+      'image/*': ['.png', '.jpg', '.jpeg']
     },
     onDrop: acceptedFiles => {
-      const reader = new FileReader()
+      // Allowed extensions
+      const allowedExtensions = ['.png', '.jpg', '.jpeg']
       const files = acceptedFiles
       if (files && files.length !== 0) {
+        const file = files[0]
+        const fileName = file.name.toLowerCase()
+        const isValid = allowedExtensions.some(ext => fileName.endsWith(ext))
+        debugger
+        if (!isValid) {
+          // Show error or notification here as per your UI framework
+          Toaster({
+            type: 'error',
+            message: 'Please upload images in either JPG or PNG format. Other file types are not supported'
+          })
+
+          // alert('Only PNG, JPG, JPEG, and GIF files are allowed.')
+
+          return
+        }
+        const reader = new FileReader()
+
         reader.onload = () => {
           setImgSrc(reader?.result)
         }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setValue('speciesImg', files[0])
+        setDisplayFile(file.name)
+        reader?.readAsDataURL(file)
+        setValue('speciesImg', file)
         clearErrors('speciesImg')
       }
     }
@@ -244,6 +264,7 @@ const AddSpecies = props => {
           const params = { q }
           const res = await getSearchLMasterListSpecies({ params: params })
           console.log('responseSearch', res?.data?.data)
+
           const speciesData = res?.data?.data?.map(item => ({
             label: item.scientific_name,
             value: item.scientific_name,
@@ -261,6 +282,7 @@ const AddSpecies = props => {
   useEffect(() => {
     if (addEventSidebarOpen) {
       setIsOpen(true)
+
       // Only fetch initial list if searchValue is empty
       if (searchValue === '') {
         fetchSpeciesMasterList('')
@@ -273,9 +295,11 @@ const AddSpecies = props => {
   const handleScientificNameChange = async (event, newValue) => {
     // console.log('Selected Scientific Name:', newValue)
     clearErrors('species')
+
     // setValue('scientificName', newValue ? newValue.value || newValue : '')
 
     setValue('scientificName', newValue ? newValue.value || newValue : '')
+
     // Enable or disable the scientificName field based on the selected value
     if (newValue && newValue.value === 'Others') {
       setIsScientificNameDisabled(false)
