@@ -605,3 +605,7 @@ export const CREATE_IMPORTS_SPECIES = 'v1/trade/imports'
 export const UPDATE_IMPORTS_SPECIES = 'v1/trade/imports/update'
 
 export const GET_LINKED_DOCUMENTS_IMPORTS = 'v1/trade/imports/linked-shipments'
+
+export const GET_ALL_USERS = 'zoo/users/listing'
+
+export const GET_KEEPER_REPORT = 'v1/keepers/dairy/report'
