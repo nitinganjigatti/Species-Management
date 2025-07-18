@@ -388,7 +388,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
             shipment_id: el?.shipment_id,
             total_deny_comments: el?.total_deny_comments,
             expiry_date: el?.expiry,
-            request_number: response?.data?.request_number
+            request_number: response?.data?.request_number ? response?.data?.request_number : el?.ro_no
           }
 
           return data
