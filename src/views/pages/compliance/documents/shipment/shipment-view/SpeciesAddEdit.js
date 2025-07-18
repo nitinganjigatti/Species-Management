@@ -314,7 +314,7 @@ const SpeciesAddEdit = ({
                               display='flex'
                               justifyContent='space-between'
                               // py={2}
-                              sx={{ borderBottom: '1px solid #0000000D', px: 4, py: 2 }}
+                              sx={{ borderBottom: '1px solid #0000000D', px: 4, py: 2, cursor: 'pointer' }}
                               onClick={() => handleAnimalClick(speciesdata, 'export')}
                             >
                               <Box className='export_dtl_list'>
@@ -442,7 +442,8 @@ const SpeciesAddEdit = ({
                             // pb: 4,
                             borderRadius: '8px',
                             border: '1px solid #C3CEC7',
-                            mb: 3
+                            mb: 3,
+                            cursor: 'pointer'
                           }}
                           onClick={() => handleAnimalClick(species, 'others')}
                         >
@@ -617,6 +618,7 @@ const SpeciesAddEdit = ({
           draftData={draftData}
           loader={loader}
           setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+          setSearchValue={setSearchValue}
         />
 
         <AddAnimalsDrawer
@@ -633,6 +635,7 @@ const SpeciesAddEdit = ({
           setDraftData={setDraftData}
           draftData={draftData}
           setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+          setSearchValue={setSearchValue}
         />
 
         <LinkedShipmentsDrawer
@@ -674,7 +677,7 @@ const SpeciesAddEdit = ({
           variant='contained'
           onClick={onSave}
           disabled={
-            loader ||
+            loading ||
             ((!selectedExportData?.export || selectedExportData.export.length === 0) &&
               (!selectedExportData?.others || selectedExportData.others.length === 0))
           }
@@ -688,7 +691,7 @@ const SpeciesAddEdit = ({
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             Save Details
-            {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
+            {loading && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
           </span>
         </Button>
       </Box>

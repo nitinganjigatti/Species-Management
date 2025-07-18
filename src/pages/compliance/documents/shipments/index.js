@@ -10,7 +10,7 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { getShipmentList } from 'src/lib/api/compliance/shipment'
-import { formatDate } from 'src/@core/utils/format'
+import moment from 'moment'
 
 const ShipmentPage = () => {
   const router = useRouter()
@@ -30,7 +30,7 @@ const ShipmentPage = () => {
     setLoading(true)
     try {
       const params = {
-        q: searchValue,
+        q: searchValue.replace(/[\s-]+/g, ''),
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
         sort: sortModel?.[0]?.sort,
@@ -139,7 +139,11 @@ const ShipmentPage = () => {
       minWidth: 150,
       field: 'shipment_date',
       headerName: 'Shipment Date',
-      renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{formatDate(params.value)}</Typography>
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%' }}>
+          {params.value !== null ? moment(params.value).format('DD MMM YYYY') : '-'}
+        </Typography>
+      )
     },
     {
       flex: 0.08,

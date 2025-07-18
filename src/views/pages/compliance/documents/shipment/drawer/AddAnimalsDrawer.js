@@ -19,7 +19,8 @@ const AddAnimalsDrawer = ({
   shipments,
   setexportPermitDrawerOpen,
   setDraftData,
-  draftData
+  draftData,
+  setSearchValue
 }) => {
   const theme = useTheme()
 
@@ -117,6 +118,7 @@ const AddAnimalsDrawer = ({
             shipment_count={shipment_count}
             shipments={shipments}
             setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+            setSearchValue={setSearchValue}
           />
         </Box>
       </Box>

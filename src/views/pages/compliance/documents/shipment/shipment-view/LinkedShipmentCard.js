@@ -32,7 +32,7 @@ const ShipmentCard = ({ shipment }) => {
             <Box mb={4}>
               <Typography sx={{ fontSize: '16px', color: '#7A8684', fontWeight: 400 }}>Shipment Date</Typography>
               <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                {moment(shipment.shipment_date).format('DD/MM/yyyy')}
+                {moment(shipment.shipment_date).format('DD/MM/YYYY')}
               </Typography>
             </Box>
             <Box>

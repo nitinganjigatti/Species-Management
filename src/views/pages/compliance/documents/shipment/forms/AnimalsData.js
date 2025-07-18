@@ -295,7 +295,7 @@ const AnimalsData = ({
     if (!shipmentId) return
 
     const payload = {}
-    setLoader(true)
+    setLoading(true)
     // Handle export data
     selectedExportData.export.forEach((exp, index) => {
       // species as JSON string
@@ -356,17 +356,17 @@ const AnimalsData = ({
           : await createShipmentSpecies(shipmentId, payload)
       if (response?.success) {
         setShowEditAnimals(true)
-        setLoader(false)
+        setLoading(false)
         router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=details&export=1`)
         Toaster({ type: 'success', message: response?.message })
         fetchShipmentspeciesDetails()
       } else {
-        setLoader(false)
+        setLoading(false)
         Toaster({ type: 'error', message: response?.message })
         console.error('API Error:', response?.message)
       }
     } catch (error) {
-      setLoader(false)
+      setLoading(false)
       console.error('Exception:', error)
     }
   }

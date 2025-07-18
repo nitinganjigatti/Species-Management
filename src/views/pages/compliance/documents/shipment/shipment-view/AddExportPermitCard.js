@@ -18,7 +18,8 @@ const ExportCard = ({
   setSelectedExportData,
   setexportPermitDrawerOpen,
   draftData,
-  setDraftData
+  setDraftData,
+  setSearchValue
 }) => {
   const [addAnimalsDrawerOpen, setAddAnimalsDrawerOpen] = useState(false)
   const [exportID, setexportID] = useState('')
@@ -148,6 +149,7 @@ const ExportCard = ({
         setDraftData={setDraftData}
         draftData={draftData}
         setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+        setSearchValue={setSearchValue}
       />
     </>
   )

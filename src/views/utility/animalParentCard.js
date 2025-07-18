@@ -1,9 +1,9 @@
-import { Avatar, Skeleton, Tooltip, Typography } from '@mui/material'
+import { Avatar, Radio, Skeleton, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 
-const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
+const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio }) => {
   const theme = useTheme()
 
   const [imageLoading, setImageLoading] = useState(true)
@@ -48,12 +48,15 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
         <Box
           sx={{
             width: '100%',
-            backgroundColor: backgroundColor ? backgroundColor : theme.palette.primary.contrastText,
+            backgroundColor: radio?.checked ? '#F2FFF8' : backgroundColor || theme.palette.primary.contrastText,
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
             display: 'flex',
-            gap: '10px'
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '10px',
+            border: radio?.checked ? `1px solid #37BD69` : '1px solid #C3CEC7'
           }}
         >
           <Box

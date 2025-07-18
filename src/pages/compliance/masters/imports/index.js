@@ -203,12 +203,9 @@ const Imports = () => {
             <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row)} aria-label='Edit'>
               <Icon icon='mdi:pencil-outline' />
             </IconButton>
-            <Avatar
-              sx={{ width: '40%', height: '40%', borderRadius: '8px', cursor: 'pointer', mt: 1 }}
-              src={'/icons/delete_outlined.svg'}
-              variant='square'
-              onClick={() => handledelete(params.row)}
-            />
+            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handledelete(params.row)} aria-label='Delete'>
+              <Icon icon='mdi:delete-outline' />
+            </IconButton>
           </>
         )}
       </Box>
@@ -318,8 +315,7 @@ const Imports = () => {
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Importer'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Importer</Typography>}
           action={headerAction}
           sx={{ px: 5, display: 'flex', flexWrap: 'wrap', gap: 2 }}
         />

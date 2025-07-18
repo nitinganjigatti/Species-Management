@@ -266,8 +266,7 @@ const CitesExportPermitIndex = () => {
 
       <Card>
         <CardHeader
-          title='Export Documents'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Export Documents</Typography>}
           action={
             <AddButtonContained
               title='ADD NEW'

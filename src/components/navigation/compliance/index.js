@@ -25,20 +25,20 @@ const composeComplianceNavigation = () => {
     path: '/compliance/documents/shipments'
   }
 
-  const files = {
-    title: 'Files',
-    path: '/compliance/documents/files'
-  }
+  // const files = {
+  //   title: 'Files',
+  //   path: '/compliance/documents/files'
+  // }
 
-  const species = {
-    title: 'Species',
-    path: '/compliance/documents/species'
-  }
+  // const species = {
+  //   title: 'Species',
+  //   path: '/compliance/documents/species'
+  // }
 
-  const animals = {
-    title: 'Animals',
-    path: '/compliance/documents/animals'
-  }
+  // const animals = {
+  //   title: 'Animals',
+  //   path: '/compliance/documents/animals'
+  // }
 
   const mastersParent = {
     title: 'masters',
@@ -62,10 +62,29 @@ const composeComplianceNavigation = () => {
     path: '/compliance/masters/exports'
   }
 
+  const reportsParent = {
+    title: 'reports',
+    path: '/compliance/documents/reports',
+    icon: '',
+    children: []
+  }
+
+  const observation = {
+    title: 'Observation',
+    path: '/compliance/reports/observation'
+  }
+
+  const keeperDiary = {
+    title: 'Keepers Diary ',
+    path: '/compliance/reports/keeperDiary'
+  }
+
   // Add all items under Documents
-  documentsParent.children.push(exports, imports, shipments, files, species, animals, mastersParent)
+  documentsParent.children.push(exports, imports, shipments, mastersParent, reportsParent)
 
   mastersParent.children.push(masterdocuments, masterimports, masterexports)
+
+  reportsParent.children.push(observation, keeperDiary)
 
   const complianceNavigation = [complianceTitle, documentsParent]
 

@@ -15,7 +15,7 @@ const CustomAccordion = ({
   type
 }) => {
   const theme = useTheme()
-  const isExpanded = expanded === id
+  const isExpanded = expanded
   const accordionRef = useRef(null)
 
   useEffect(() => {
