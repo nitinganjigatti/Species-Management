@@ -609,3 +609,7 @@ export const GET_LINKED_DOCUMENTS_IMPORTS = 'v1/trade/imports/linked-shipments'
 export const GET_ALL_USERS = 'zoo/users/listing'
 
 export const GET_KEEPER_REPORT = 'v1/keepers/dairy/report'
+
+export const GET_ANIMAL_LIST_FOR_OBSERVATION_REPORT = `v1/collection/animal/list`
+
+export const GET_OBSERVATION_REPORT = `v1/notes/observation`

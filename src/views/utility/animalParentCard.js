@@ -52,14 +52,15 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
         <Box
           sx={{
             width: '100%',
-            backgroundColor: backgroundColor || theme.palette.primary.contrastText,
+            backgroundColor: radio?.checked ? '#F2FFF8' : backgroundColor || theme.palette.primary.contrastText,
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
             display: 'flex',
-            justifyContent: 'space-between', // Push content and radio to ends
-            alignItems: 'center', // Vertically center content and radio
-            gap: '10px'
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '10px',
+            border: radio?.checked ? `1px solid #37BD69` : '1px solid #C3CEC7'
           }}
         >
           {/* Left content (image + text info) */}

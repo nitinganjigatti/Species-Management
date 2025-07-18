@@ -1,152 +1,181 @@
-
 import { useTheme } from '@emotion/react'
 import { Box, Card, CardHeader, Grid, InputAdornment, TextField, Typography } from '@mui/material'
+import { format, subMonths } from 'date-fns'
+import { debounce } from 'lodash'
+import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { getAnimalListing } from 'src/lib/api/report'
+import { getObservationReport } from 'src/lib/api/compliance/reports'
+import Utility from 'src/utility'
 import AnimalDrawer from 'src/views/pages/report/AnimalDrawer'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import Search from 'src/views/utility/Search'
 
 const ObservationReport = () => {
   const theme = useTheme()
+  const router = useRouter()
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
   const [animalDrawer, setAnimalDrawer] = useState(false)
-  const [showDelete, setShowDelete] = useState(false)
-  const [animalList, setAnimalList] = useState([])
-  const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(0)
-  //   const [showListing, setShowListing] = useState(true)
+  const [selectedAnimal, setSelectedAnimal] = useState(null)
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || '')
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [exportLoading, setExportLoading] = useState(false)
+  const [animalData, setAnimalData] = useState(null)
 
-  // const fetchAnimalListing = async page => {
-  //   const params = {
-  //     page: page + 1,
-  //     page_no: 10
-  //   }
-  //   const response = await getAnimalListing(params)
-  //   if (response?.success) {
-  //     // Append to existing list for infinite scroll
-  //     setAnimalList(prev => [...prev, ...response.data])
-  //   } else {
-  //     console.log('something is wrong', response?.error)
-  //   }
-  // }
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  })
 
-  // useEffect(() => {
-  //   fetchAnimalListing(page)
-  // }, [])
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 50
+  })
 
-  // const loadMore = useCallback(() => {
-  //   if (hasMore) {
-  //     debugger
-  //     const nextPage = page + 1
-  //     setPage(nextPage)
-  //     fetchAnimalListing(nextPage)
-  //   }
-  // }, [hasMore, page])
-
-  // const loaderRef = useInfiniteScroll(loadMore, hasMore)
+  console.log(selectedAnimal, 'AnimaliD')
 
   const eventHandler = () => {
-    setAnimalDrawer(true)
+    setAnimalDrawer(!animalDrawer)
   }
 
-  const handleClose = () => {
-    setAnimalDrawer(false)
+  function loadServerRows(currentPage, data) {
+    return data
   }
 
-  const handleToggleDeleteView = () => {
-    setShowDelete(prev => !prev)
-  }
+  const fetchObservationReport = useCallback(
+    async ({ q, page, limit }) => {
+      try {
+        setLoading(true)
 
-  const AnimalCardWrapper = ({ data }) => {
-    // const [showDelete, setShowDelete] = useState(false)
+        const params = {
+          animal_id: selectedAnimal?.animal_id,
+          page_no: page + 1,
+          limit: limit,
+          q: q,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+        }
 
-    // const handleToggle = () => setShowDelete(prev => !prev)
+        console.log(params, 'params')
 
-    return (
-      <div>
-        <AnimalParentCard
-          data={data}
-          style={true}
-          ondelete={handleToggleDeleteView}
-          onradio={''}
-          backgroundColor={theme.palette.customColors.bodyBg}
-        />
-      </div>
-    )
-  }
-
-  const animal = {
-    id: 1,
-    sex: 'female',
-    default_icon: '/images/cat-swimming.png',
-    animal_id: 'BI23000123',
-    common_name: 'Peach Fronted Conure',
-    scientific_name: 'Psittacus vibrans',
-    user_enclosure_name: 'DT 2',
-    section_name: 'Dain Tree',
-    site_name: 'Gagava'
-  }
-
-  const headerAction = (
-    <Typography
-      onClick={''}
-      sx={{
-        fontSize: '20px',
-        fontWeight: '400',
-        fontFamily: 'Inter',
-        color: '#006D35',
-        display: 'flex',
-        alignItems: 'center',
-        cursor: 'pointer',
-        mr: 4
-      }}
-    >
-      Download report
-      <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
-    </Typography>
+        await getObservationReport({ params }).then(res => {
+          if (res?.success === true) {
+            setTotal(parseInt(res?.data?.total))
+            setRows(loadServerRows(paginationModel?.page, res?.observationData))
+            setAnimalData(res?.data?.animalData)
+          } else {
+            setTotal(parseInt(res?.data?.total))
+            setRows([])
+          }
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel, filterDates]
   )
 
-  const columns = [
-    {
-      width: 200,
-      headerName: 'SL.NO',
-      renderCell: params => <></>
-    },
-
-    {
-      width: 200,
-      field: 'Date',
-      headerName: 'Date',
-      hide: true,
-      renderCell: params => <></>
-    },
-    {
-      minWidth: 200,
-      field: 'from_store',
-      headerName: 'Observation Type',
-      renderCell: params => <></>
-    },
-
-    {
-      minWidth: 200,
-      field: 'pending_count',
-      headerName: 'Details',
-      headerAlign: 'left',
-      type: 'number',
-      align: 'left',
-      renderCell: params => <></>
-    },
-
-    {
-      minWidth: 200,
-      field: 'Reported By',
-      headerName: 'Reported By',
-      renderCell: params => <></>
+  useEffect(() => {
+    if (selectedAnimal) {
+      fetchObservationReport({
+        q: searchValue,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
+      updateUrlParams({
+        q: searchValue,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize,
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
+      })
     }
-  ]
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, selectedAnimal])
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    id: getSlNo(index)
+  }))
+
+  const column = []
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+
+      updateUrlParams({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      updateUrlParams({
+        startDate: '',
+        endDate: ''
+      })
+
+      console.log('Empty date range selected,', { startDate, endDate })
+    }
+  }
+
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column, expired, page, limit) => {
+      setSearchValue(q)
+      try {
+        await getObservationReport({
+          q,
+          expired,
+          page,
+          limit
+        })
+
+        updateUrlParams({
+          q: q,
+          page,
+          limit,
+          startDate: filterDates?.startDate,
+          endDate: filterDates?.endDate
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [filterDates]
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn, paginationModel.page, paginationModel.pageSize)
+  }
+
+  console.log(animalData)
 
   const title = (
     <Typography
@@ -164,89 +193,66 @@ const ObservationReport = () => {
 
   return (
     <>
-      {showDelete ? (
-        <Card>
-          <CardHeader title='Observation Report' action={headerAction} />
-          <Box sx={{ p: 5 }}>
-            <AnimalCardWrapper key={animal.id} data={animal} />
-          </Box>
-
-          {/* Search field */}
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0 }}>
-            {/* Search Box */}
-            <Box sx={{ ml: 2 }}>
-              <TextField
-                variant='outlined'
-                size='small'
-                value={''}
-                onChange={''}
-                placeholder='Search'
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-                sx={{
-                  width: '320px',
-                  backgroundColor: '#fff',
-                  ml: 4,
-                  mt: 1,
-                  borderRadius: '4px', // Applies to the container
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '4px' // Applies to the input field
-                  }
-                }}
-              />
-            </Box>
-            <Box sx={{ mr: 5 }}>
-              <CommonDateRangePickers onChange={''} filterDates={''} />
-            </Box>
-          </Box>
-          <Grid
-            sx={{
-              margin: '0px 1.375rem 0px 1.375rem'
-            }}
-          >
-            <CommonTable
-              onRowClick={''}
-              indexedRows={''}
-              total={''}
-              columns={columns}
-              paginationModel={''}
-              handleSortModel={''}
-              setPaginationModel={''}
-              loading={''}
-              searchValue={''}
-            />
-          </Grid>
-        </Card>
-      ) : (
-        <Card sx={{ p: 6 }}>
-          <CardHeader title={title} />
+      <Card sx={{ p: 6 }}>
+        <CardHeader
+          title={title}
+          action={selectedAnimal !== null && <ExportButton />}
+          sx={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            [theme.breakpoints.down('sm')]: {
+              flexDirection: 'row',
+              justifyContent: 'space-between'
+            }
+          }}
+        />
+        {selectedAnimal === null ? (
           <ReportCard
             subtitle=' No animal selected'
             description=' Select any animal to view its observation report'
             buttonText='SELECT ANIMAL'
             addHandler={eventHandler}
           />
-        </Card>
-      )}
+        ) : (
+          <>
+            <Box>
+              <AnimalParentCard data={animalData} />
+            </Box>
+            <Grid container gap={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Grid size={{ xs: 12, sm: 12, md: 5 }}>
+                <Search
+                  onChange={e => handleSearch(e)}
+                  value={searchValue}
+                  placeholder='Search by date or observation type'
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 12, md: 6 }}>
+                <Grid container gap={2} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Grid size={{ xs: 12, sm: 3, md: 3 }}></Grid>
+                  <Grid size={{ xs: 12, sm: 8, md: 8 }}>
+                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          </>
+        )}
+      </Card>
 
       {animalDrawer && (
         <AnimalDrawer
           open={animalDrawer}
-          onClose={handleClose}
-          // animalList={animalList}
-          // onLoad={loaderRef}
-          // hasMore={hasMore}
+          onClose={() => setAnimalDrawer(false)}
+          selectedAnimal={selectedAnimal}
+          setSelectedAnimal={setSelectedAnimal}
         />
       )}
     </>
   )
 }
+
 export default ObservationReport
