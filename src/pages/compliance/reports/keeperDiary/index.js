@@ -20,6 +20,8 @@ import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { format, subDays, subMonths } from 'date-fns'
 import { getDiaryReportList } from 'src/lib/api/compliance/reports'
+import ObservationCard from 'src/views/utility/ObservationCard'
+import { debounce } from 'lodash'
 
 const KeeperDiaryReport = () => {
   const theme = useTheme()
@@ -29,9 +31,10 @@ const KeeperDiaryReport = () => {
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [filterDates, setFilterDates] = useState({
-    startDate: Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
+  const [searchText, setSearchText] = useState('')
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
@@ -50,7 +53,8 @@ const KeeperDiaryReport = () => {
       user_id: userDetail?.user_id,
       page_no: paginationModel.page + 1,
       limit: paginationModel.pageSize,
-      report_type: 'json'
+      report_type: 'json',
+      ...(searchText?.trim() !== '' && { q: searchText.trim() }) // ← added
     }
 
     const response = await getDiaryReportList(params)
@@ -66,7 +70,12 @@ const KeeperDiaryReport = () => {
 
   useEffect(() => {
     getUserKeeperReport()
-  }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize])
+  }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize, searchText])
+
+  const handleSearchChange = debounce(value => {
+    setSearchText(value)
+    setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to page 1 on new search
+  }, 300)
 
   const UserSelectionCard = ({ user }) => {
     return (
@@ -156,7 +165,7 @@ const KeeperDiaryReport = () => {
 
   const columns = [
     {
-      width: 90,
+      width: 120,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -179,29 +188,22 @@ const KeeperDiaryReport = () => {
     },
 
     {
-      width: 200,
-      field: 'scientific_name',
-      headerName: 'Scientific Name',
-      hide: true,
+      width: 350,
+      field: 'ObservationType',
+      headerName: 'ObservationType',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', ml: 2 }}>
-          {params.row.scientific_name ? params.row.scientific_name : '-'}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 200,
-      field: 'enclosure',
-      headerName: 'enclosure',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', ml: 5 }}>
-          {params.row.enclosure ? params.row.enclosure : '-'}
-        </Typography>
+        <>
+          <ObservationCard
+            title={params.row.master_enrichment_type}
+            description={params.row.child_enrichment_type}
+            dateTime={params.row.date_time}
+          />
+        </>
       )
     },
 
     {
-      minWidth: 300,
+      minWidth: 350,
       field: 'details',
       headerName: 'Details',
       headerAlign: 'left',
@@ -209,9 +211,10 @@ const KeeperDiaryReport = () => {
       renderCell: params => (
         <Tooltip title={params.row.details || ''} arrow placement='bottom'>
           <Typography
-            variant='body2'
             sx={{
-              color: 'text.primary',
+              fontSize: '16px',
+              fontWeight: 400,
+              color: theme.palette.customColors.OnSurfaceVariant,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -226,11 +229,11 @@ const KeeperDiaryReport = () => {
     },
 
     {
-      minWidth: 200,
+      minWidth: 270,
       field: 'sex',
       headerName: 'Sex',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.sex ? params.row.sex : '-'}
         </Typography>
       )
@@ -241,30 +244,8 @@ const KeeperDiaryReport = () => {
       field: 'taxonomy',
       headerName: 'Taxonomy',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.taxonomy ? params.row.taxonomy : '-'}
-        </Typography>
-      )
-    },
-
-    {
-      minWidth: 200,
-      field: 'master_enrichment_type',
-      headerName: 'Master Type',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.master_enrichment_type ? params.row.master_enrichment_type : '-'}
-        </Typography>
-      )
-    },
-
-    {
-      minWidth: 200,
-      field: 'child_enrichment_type',
-      headerName: 'Child Type',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.child_enrichment_type ? params.row.child_enrichment_type : '-'}
         </Typography>
       )
     }
@@ -327,9 +308,9 @@ const KeeperDiaryReport = () => {
               <TextField
                 variant='outlined'
                 size='small'
-                value={''}
-                onChange={''}
-                placeholder='Search'
+                value={searchText}
+                onChange={e => handleSearchChange(e.target.value)}
+                placeholder='Search by Animal ID, Site, Enclosure, Section, Scientific/Common Name'
                 slotProps={{
                   input: {
                     startAdornment: (
@@ -344,9 +325,9 @@ const KeeperDiaryReport = () => {
                   backgroundColor: '#fff',
                   ml: 4,
                   mt: 1,
-                  borderRadius: '4px', // Applies to the container
+                  borderRadius: '4px',
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: '4px' // Applies to the input field
+                    borderRadius: '4px'
                   }
                 }}
               />
@@ -363,6 +344,7 @@ const KeeperDiaryReport = () => {
           >
             <CommonTable
               onRowClick={''}
+              rowHeight={130}
               indexedRows={indexedRows}
               total={total}
               columns={columns}
