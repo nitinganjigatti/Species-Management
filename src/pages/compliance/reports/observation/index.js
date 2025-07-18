@@ -8,7 +8,7 @@ import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getObservationReport } from 'src/lib/api/compliance/reports'
 import Utility from 'src/utility'
-import AnimalDrawer from 'src/views/pages/report/AnimalDrawer'
+import AnimalDrawer from 'src/views/pages/compliance/reports/observation/AnimalDrawer'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
@@ -44,8 +44,6 @@ const ObservationReport = () => {
     pageSize: parseInt(router.query.limit) || 50
   })
 
-  console.log(selectedAnimal, 'AnimaliD')
-
   const eventHandler = () => {
     setAnimalDrawer(!animalDrawer)
   }
@@ -65,10 +63,9 @@ const ObservationReport = () => {
           limit: limit,
           q: q,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+          report_type: 'json'
         }
-
-        console.log(params, 'params')
 
         await getObservationReport({ params }).then(res => {
           if (res?.success === true) {
@@ -105,15 +102,6 @@ const ObservationReport = () => {
       })
     }
   }, [paginationModel.page, paginationModel.pageSize, filterDates, selectedAnimal])
-
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    id: getSlNo(index)
-  }))
-
-  const column = []
 
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {

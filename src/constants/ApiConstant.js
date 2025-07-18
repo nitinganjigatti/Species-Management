@@ -613,3 +613,5 @@ export const GET_KEEPER_REPORT = 'v1/keepers/dairy/report'
 export const GET_ANIMAL_LIST_FOR_OBSERVATION_REPORT = `v1/collection/animal/list`
 
 export const GET_OBSERVATION_REPORT = `v1/notes/observation`
+
+export const GET_ANIMAL_FILTERS_LISTS = `/v1/collection/animal/stats`
