@@ -28,7 +28,15 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 
-const UserDrawer = ({ open, onClose, setUserDetail }) => {
+const UserDrawer = ({
+  open,
+  onClose,
+  setUserDetail,
+  roleFilter = 'all_users',
+  queryKey = 'user-keeper-Report',
+  headerText = 'Select the Keeper',
+  footerText = 'generate keeper’s Diary REPORT'
+}) => {
   const theme = useTheme()
   const PAGE_SIZE = 10
   const [loading, setLoading] = useState(false)
@@ -50,14 +58,14 @@ const UserDrawer = ({ open, onClose, setUserDetail }) => {
   }, [debouncedSearch])
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['user-keeper-Report', search],
+    queryKey: [queryKey, search],
     queryFn: async ({ pageParam = 1 }) => {
       const params = {
         page_no: pageParam,
         limit: PAGE_SIZE,
         q: search,
         ref_type: 'total_user',
-        role_key: 'all_users'
+        role_key: roleFilter
       }
 
       const res = await getUserListing(params)
@@ -154,7 +162,7 @@ const UserDrawer = ({ open, onClose, setUserDetail }) => {
           size='large'
           loading={loading}
         >
-          generate keeper’s Diary REPORT
+          {footerText}
         </LoadingButton>
       </Box>
     )
@@ -185,7 +193,7 @@ const UserDrawer = ({ open, onClose, setUserDetail }) => {
               ml: 2
             }}
           >
-            Select the Keeper
+            {headerText}
           </Typography>
           <IconButton onClick={onClose}>
             <Icon icon='mdi:close' />
@@ -204,11 +212,8 @@ const UserDrawer = ({ open, onClose, setUserDetail }) => {
             justifyContent: 'space-between'
           }}
         >
-          <Grid size={{ xs: 12, sm: 10.5, md: 10.5 }}>
+          <Grid size={{ xs: 12 }}>
             <Search width={'100%'} onChange={handleSearchChange} onClear={handleSearchClear} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 1, md: 1 }}>
-            <FilterButton />
           </Grid>
         </Grid>
 
@@ -235,6 +240,7 @@ const UserDrawer = ({ open, onClose, setUserDetail }) => {
               <UserCard
                 name={user?.user_name}
                 uid={user?.user_id}
+                role={user?.role_name}
                 image={user?.user_profile_pic} // example image
                 radio={{
                   checked: selected === user.user_id,

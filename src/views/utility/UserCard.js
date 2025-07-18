@@ -2,8 +2,9 @@ import React from 'react'
 import { Box, Avatar, Typography, Radio, Card } from '@mui/material'
 import { useTheme } from '@emotion/react'
 
-const UserCard = ({ name, uid, image, radio }) => {
+const UserCard = ({ name, uid, image, radio, role }) => {
   const theme = useTheme()
+
   return (
     <Card
       sx={{
@@ -19,7 +20,7 @@ const UserCard = ({ name, uid, image, radio }) => {
         pb: 7
       }}
     >
-      <Box display='flex' alignItems='center' gap={2}>
+      <Box display='flex' alignItems='center' gap={4}>
         <Avatar
           alt={name}
           src={image || '/default-avatar.png'} // use a default image if none provided
@@ -28,17 +29,21 @@ const UserCard = ({ name, uid, image, radio }) => {
         <Box>
           <Typography
             sx={{
-              fontFamily: 'Inter',
-              fontWeight: 400,
-              fontSize: '14px',
+              fontSize: '20px',
+              fontWeight: 500,
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            UID: {uid}
+            {name || '-'}
           </Typography>
-          <Typography variant='subtitle1' fontWeight={600}>
-            {name}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Role :
+            </Typography>
+            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+              {role || '-'}
+            </Typography>
+          </Box>
         </Box>
       </Box>
       <Radio
