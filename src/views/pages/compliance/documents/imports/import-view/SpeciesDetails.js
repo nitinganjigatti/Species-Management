@@ -47,7 +47,16 @@ const SpeciesDetailsContainer = ({
       display='flex'
       justifyContent='space-between'
       // py={2}
-      sx={{ borderBottom: '1px solid #0000000D', px: 4, pb: 4, pt: 3 }}
+      sx={{
+        borderBottom: '1px solid #0000000D',
+        px: 4,
+        pb: 4,
+        pt: 3,
+        cursor: 'pointer',
+        '&:last-child': {
+          borderBottom: 'none'
+        }
+      }}
       onClick={() => handleAnimalClick(species, type)}
     >
       <Box className='export_dtl_list'>
@@ -103,7 +112,7 @@ const SpeciesDetailsContainer = ({
     </Box>
   )
 
-  const ExportSection = ({ data, isCollapsed }) => {
+  const ExportSection = ({ data, isCollapsed, isLast }) => {
     const totalAnimals = data?.species?.reduce((sum, species) => {
       const totalCount = parseInt(species?.total_count)
       const male = parseInt(species?.male_count) || 0
@@ -121,7 +130,13 @@ const SpeciesDetailsContainer = ({
             justifyContent='space-between'
             alignItems='center'
             bgcolor={isCollapsed ? '#fff' : '#EFF5F2'}
-            sx={{ px: 4, py: 4 }}
+            sx={{
+              px: 4,
+              py: 4,
+
+              borderBottomLeftRadius: isLast ? '8px' : '0px',
+              borderBottomRightRadius: isLast ? '8px' : '0px'
+            }}
           >
             <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '14px' }}>
               <Box component='span' fontWeight={600} sx={{ color: '#006D35', fontWeight: 500, fontSize: '14px' }}>
@@ -133,14 +148,21 @@ const SpeciesDetailsContainer = ({
 
           {/* Collapsible Species */}
           <Collapse in={!isCollapsed}>
-            <Paper elevation={0} sx={{ borderRadius: 0 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0,
+                borderBottomLeftRadius: isLast ? '8px' : '0px',
+                borderBottomRightRadius: isLast ? '8px' : '0px'
+              }}
+            >
               {data.species.map((s, i) => (
                 <SpeciesRow key={i} species={s} type={'export'} />
               ))}
             </Paper>
           </Collapse>
         </Box>
-        <Divider />
+        {!isLast && <Divider />}
       </>
     )
   }
@@ -185,37 +207,53 @@ const SpeciesDetailsContainer = ({
             </Grid>
 
             {/* File Section */}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '8px 12px',
-                border: '1px solid #E0E0E0',
-                borderRadius: '10px',
-                backgroundColor: '#FFF',
-                minWidth: '280px'
-              }}
-            >
-              <img
-                src='/icons/pdf_icon2.svg'
-                alt='PDF Icon'
-                width='18%'
-                style={{ marginRight: '8px', background: '#FFBDA84D', borderRadius: '6px', padding: '10px' }}
-              />
-              <Typography
-                sx={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '180px',
-                  height: '40px',
-                  pt: 2
-                }}
+            {uploadedFile?.file_path && (
+              <a
+                href={uploadedFile.file_path}
+                target='_blank'
+                rel='noopener noreferrer'
+                style={{ textDecoration: 'none' }}
               >
-                {uploadedFile?.file_original_name}
-              </Typography>
-              <IconButton size='small'>{/* <MoreVertIcon /> */}</IconButton>
-            </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    border: '1px solid #E0E0E0',
+                    borderRadius: '10px',
+                    backgroundColor: '#FFF',
+                    minWidth: '280px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <img
+                    src='/icons/pdf_icon2.svg'
+                    alt='PDF Icon'
+                    width='18%'
+                    style={{
+                      marginRight: '8px',
+                      background: '#FFBDA84D',
+                      borderRadius: '6px',
+                      padding: '10px'
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '180px',
+                      height: '40px',
+                      pt: 2
+                      // color: 'inherit'
+                    }}
+                  >
+                    {uploadedFile?.file_original_name}
+                  </Typography>
+                  <IconButton size='small'>{/* Optional: Add an icon here if needed */}</IconButton>
+                </Box>
+              </a>
+            )}
           </Box>
 
           <Box
@@ -223,8 +261,8 @@ const SpeciesDetailsContainer = ({
               background: '#E8F4F2',
               borderRadius: '8px',
               border: '1px solid #C3CEC7',
-              borderBottomLeftRadius: '4px',
-              borderBottomRightRadius: '4px'
+              borderBottomLeftRadius: '8px',
+              borderBottomRightRadius: '8px'
             }}
           >
             {/* Header with Toggle */}
@@ -260,7 +298,12 @@ const SpeciesDetailsContainer = ({
             </Box>
 
             {selectedExportData?.export?.map((exp, idx) => (
-              <ExportSection key={idx} data={exp} isCollapsed={collapsed} />
+              <ExportSection
+                key={idx}
+                data={exp}
+                isCollapsed={collapsed}
+                isLast={idx === selectedExportData?.export?.length - 1}
+              />
             ))}
           </Box>
         </>

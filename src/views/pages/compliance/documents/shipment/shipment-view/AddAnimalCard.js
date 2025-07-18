@@ -296,7 +296,12 @@ const AnimalCardLayout = ({
                       <Grid size={{ xs: 4 }}>
                         <Typography
                           variant='caption'
-                          sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
+                          sx={{
+                            display: 'block',
+                            color: card.total_balance_male_animal === '0' ? '#7A8684' : '#44544A',
+                            marginBottom: '4px',
+                            fontWeight: 400
+                          }}
                         >
                           Male <span style={{ fontWeight: '500' }}>({card.total_balance_male_animal})</span>
                         </Typography>
@@ -333,7 +338,12 @@ const AnimalCardLayout = ({
                       <Grid size={{ xs: 4 }}>
                         <Typography
                           variant='caption'
-                          sx={{ display: 'block', color: '#44544A', marginBottom: '4px', fontWeight: 400 }}
+                          sx={{
+                            display: 'block',
+                            color: card.total_balance_female_animal === '0' ? '#7A8684' : '#44544A',
+                            marginBottom: '4px',
+                            fontWeight: 400
+                          }}
                         >
                           Female <span style={{ fontWeight: '500' }}>({card.total_balance_female_animal})</span>
                         </Typography>
@@ -368,7 +378,14 @@ const AnimalCardLayout = ({
                         />
                       </Grid>
                       <Grid size={{ xs: 4 }}>
-                        <Typography variant='caption' sx={{ display: 'block', color: '#7A8684', marginBottom: '4px' }}>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            display: 'block',
+                            color: card.total_balance_undeterminate_animal === '0' ? '#7A8684' : '#44544A',
+                            marginBottom: '4px'
+                          }}
+                        >
                           Unknown ({card.total_balance_undeterminate_animal})
                         </Typography>
                         <TextField

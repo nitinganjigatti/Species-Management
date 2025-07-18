@@ -25,20 +25,20 @@ const composeComplianceNavigation = () => {
     path: '/compliance/documents/shipments'
   }
 
-  const files = {
-    title: 'Files',
-    path: '/compliance/documents/files'
-  }
+  // const files = {
+  //   title: 'Files',
+  //   path: '/compliance/documents/files'
+  // }
 
-  const species = {
-    title: 'Species',
-    path: '/compliance/documents/species'
-  }
+  // const species = {
+  //   title: 'Species',
+  //   path: '/compliance/documents/species'
+  // }
 
-  const animals = {
-    title: 'Animals',
-    path: '/compliance/documents/animals'
-  }
+  // const animals = {
+  //   title: 'Animals',
+  //   path: '/compliance/documents/animals'
+  // }
 
   const mastersParent = {
     title: 'masters',
@@ -80,7 +80,7 @@ const composeComplianceNavigation = () => {
   }
 
   // Add all items under Documents
-  documentsParent.children.push(exports, imports, shipments, files, species, animals, mastersParent, reportsParent)
+  documentsParent.children.push(exports, imports, shipments, mastersParent, reportsParent)
 
   mastersParent.children.push(masterdocuments, masterimports, masterexports)
 

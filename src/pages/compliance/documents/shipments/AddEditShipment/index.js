@@ -28,6 +28,7 @@ const AddEditShipment = () => {
   const [totalSpecies, setTotalSpecies] = useState(0)
   const [airwaybillvalue, setAirwaybillvalue] = useState('')
   const [linkedDocumentsData, setlinkedDocumentsData] = useState({})
+  const [shipmentIdval, setshipmentIdVal] = useState('')
   const animalsEditRef = useRef()
   const basicDetailsEditRef = useRef()
 
@@ -69,6 +70,7 @@ const AddEditShipment = () => {
   const handleAddEditSuccess = data => {
     const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
     setDocumentList(updatedList)
+    fetchDocumentTypeList()
   }
 
   useEffect(() => {
@@ -91,9 +93,9 @@ const AddEditShipment = () => {
     }
   }
 
-  const isBasicEditable = showEdit && expanded === 'permit-details' && id && action === 'details'
+  const isBasicEditable = showEdit && expanded.includes('permit-details') && id && action === 'details'
   const isAnimalsEditable =
-    showEditAnimals && expanded === 'animals-details' && id && action === 'details' && exportCount > 0
+    showEditAnimals && expanded.includes('animals-details') && id && action === 'details' && exportCount > 0
 
   // Accordion toggle handler
   const handleAccordionChange = panelId => {
@@ -189,11 +191,11 @@ const AddEditShipment = () => {
 
       <CustomAccordion
         id='permit-details'
-        docsCount={!isBasicEditable && expanded !== 'permit-details' && id ? `ID: ${formattedValue}` : null}
+        docsCount={!isBasicEditable && !expanded.includes('permit-details') && id ? `ID: ${formattedValue}` : null}
         title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>}
         expanded={expanded.includes('permit-details')}
         onChange={handleAccordionChange}
-        editable={showEdit && expanded === 'permit-details' && id && action === 'details'}
+        editable={showEdit && expanded.includes('permit-details') && id && action === 'details'}
         handleEditClick={() => {
           basicDetailsEditRef.current?.()
           router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
@@ -208,6 +210,8 @@ const AddEditShipment = () => {
           setStatus={setStatus}
           airwaybillvalue={airwaybillvalue}
           setAirwaybillvalue={setAirwaybillvalue}
+          setshipmentIdVal={setshipmentIdVal}
+          shipmentIdval={shipmentIdval}
         />
       </CustomAccordion>
 
@@ -215,7 +219,7 @@ const AddEditShipment = () => {
         <CustomAccordion
           id='animals-details'
           docsCount={
-            !isAnimalsEditable && expanded !== 'animals-details' && (totalAnimals || totalSpecies) ? (
+            !isAnimalsEditable && !expanded.includes('animals-details') && (totalAnimals || totalSpecies) ? (
               <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
                 <strong>{totalSpecies}</strong> Species&nbsp;|&nbsp;
                 <strong>{totalAnimals}</strong> Animals
@@ -225,7 +229,9 @@ const AddEditShipment = () => {
           title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>}
           expanded={expanded.includes('animals-details')}
           onChange={handleAccordionChange}
-          editable={showEditAnimals && expanded === 'animals-details' && id && action === 'details' && exportCount > 0}
+          editable={
+            showEditAnimals && expanded.includes('animals-details') && id && action === 'details' && exportCount > 0
+          }
           handleEditClick={() => {
             animalsEditRef.current?.()
             router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=${exportCount}`)

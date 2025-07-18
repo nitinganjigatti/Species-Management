@@ -50,7 +50,16 @@ const SpeciesDetailsContainer = ({
       display='flex'
       justifyContent='space-between'
       // py={2}
-      sx={{ borderBottom: '1px solid #0000000D', px: 4, pb: 4, pt: 3 }}
+      sx={{
+        borderBottom: '1px solid #0000000D',
+        px: 4,
+        pb: 4,
+        pt: 3,
+        cursor: 'pointer',
+        '&:last-child': {
+          borderBottom: 'none'
+        }
+      }}
       onClick={() => handleAnimalClick(species, type)}
     >
       <Box className='export_dtl_list'>
@@ -127,10 +136,23 @@ const SpeciesDetailsContainer = ({
             justifyContent='space-between'
             alignItems='center'
             bgcolor={isCollapsed ? '#fff' : '#EFF5F2'}
-            sx={{ px: 4, py: 4 }}
+            sx={{
+              px: 4,
+              py: 4,
+
+              borderBottomLeftRadius: '8px',
+              borderBottomRightRadius: '8px'
+            }}
           >
             <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '14px' }}>
-              <Box component='span' fontWeight={600} sx={{ color: '#006D35', fontSize: '14px' }}>
+              <Box
+                component='span'
+                fontWeight={600}
+                sx={{
+                  color: '#006D35',
+                  fontSize: '14px'
+                }}
+              >
                 Other Animals
               </Box>{' '}
               ({totalAnimals} Animals)
@@ -138,7 +160,16 @@ const SpeciesDetailsContainer = ({
           </Box>
 
           <Collapse in={!isCollapsed}>
-            <Paper elevation={0} sx={{ borderRadius: 0 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0,
+                '&:last-child': {
+                  borderBottomLeftRadius: '8px',
+                  borderBottomRightRadius: '8px'
+                }
+              }}
+            >
               {data?.map((item, index) => {
                 const species = item.species
                 return (
@@ -164,12 +195,12 @@ const SpeciesDetailsContainer = ({
             </Paper>
           </Collapse>
         </Box>
-        <Divider />
+        {/* <Divider /> */}
       </>
     )
   }
 
-  const ExportSection = ({ data, isCollapsed }) => {
+  const ExportSection = ({ data, isCollapsed, isLast }) => {
     const totalAnimals = data?.species?.reduce((sum, species) => {
       const totalCount = parseInt(species?.total_count)
       const male = parseInt(species?.male_count) || 0
@@ -187,7 +218,12 @@ const SpeciesDetailsContainer = ({
             justifyContent='space-between'
             alignItems='center'
             bgcolor={isCollapsed ? '#fff' : '#EFF5F2'}
-            sx={{ px: 4, py: 4 }}
+            sx={{
+              px: 4,
+              py: 4,
+              borderBottomLeftRadius: isLast ? '8px' : '0px',
+              borderBottomRightRadius: isLast ? '8px' : '0px'
+            }}
           >
             <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '14px' }}>
               <Box component='span' fontWeight={600} sx={{ color: '#006D35', fontWeight: 500, fontSize: '14px' }}>
@@ -240,14 +276,21 @@ const SpeciesDetailsContainer = ({
 
           {/* Collapsible Species */}
           <Collapse in={!isCollapsed}>
-            <Paper elevation={0} sx={{ borderRadius: 0 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0,
+                borderBottomLeftRadius: isLast && selectedExportData?.others?.length <= 0 ? '8px' : '0px',
+                borderBottomRightRadius: isLast && selectedExportData?.others?.length <= 0 ? '8px' : '0px'
+              }}
+            >
               {data.species.map((s, i) => (
                 <SpeciesRow key={i} species={s} type={'export'} />
               ))}
             </Paper>
           </Collapse>
         </Box>
-        <Divider />
+        {!isLast || selectedExportData?.others?.length > 0 ? <Divider /> : ''}
       </>
     )
   }
@@ -259,8 +302,8 @@ const SpeciesDetailsContainer = ({
           background: '#E8F4F2',
           borderRadius: '8px',
           border: '1px solid #C3CEC7',
-          borderBottomLeftRadius: '4px',
-          borderBottomRightRadius: '4px'
+          borderBottomLeftRadius: '8px',
+          borderBottomRightRadius: '8px'
         }}
       >
         {/* Header with Toggle */}
@@ -293,7 +336,12 @@ const SpeciesDetailsContainer = ({
         </Box>
 
         {selectedExportData?.export?.map((exp, idx) => (
-          <ExportSection key={idx} data={exp} isCollapsed={collapsed} />
+          <ExportSection
+            key={idx}
+            data={exp}
+            isCollapsed={collapsed}
+            isLast={idx === selectedExportData?.export?.length - 1}
+          />
         ))}
 
         {selectedExportData?.others?.length > 0 && (

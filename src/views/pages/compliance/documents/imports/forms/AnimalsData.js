@@ -70,38 +70,6 @@ const AnimalsData = ({
   const [uploadedFile, setUploadedFile] = useState(null)
   const [errors, setErrors] = useState({})
 
-  const validateFields = async () => {
-    try {
-      await validationSchema.validate({ airwaybillvalue, startDate, uploadedFile }, { abortEarly: false })
-      // Now validate selectedExportData
-      const hasExports = selectedExportData?.export?.length > 0 || selectedExportData?.others?.length > 0
-
-      if (!hasExports) {
-        setErrors(prev => ({
-          ...prev,
-          selectedExportData: 'At least one species must be selected'
-        }))
-        return false
-      }
-
-      setErrors({})
-      return true
-    } catch (validationErrors) {
-      const formattedErrors = {}
-      validationErrors.inner.forEach(error => {
-        formattedErrors[error.path] = error.message
-      })
-      // Also check for selectedExportData even when Yup fails
-      const hasExports = selectedExportData?.export?.length > 0 || selectedExportData?.others?.length > 0
-
-      if (!hasExports) {
-        formattedErrors.selectedExportData = 'At least one species must be selected'
-      }
-      setErrors(formattedErrors)
-      return false
-    }
-  }
-
   const handleRemoveExportDataAtIndex = exportIdToRemove => {
     const filterFn = item => item.id !== exportIdToRemove
 
@@ -210,36 +178,102 @@ const AnimalsData = ({
     debouncedSearch(val)
   }
 
-  const handleSave = async () => {
-    const isValid = await validateFields()
-    if (isValid) {
-      setLoading(true)
-      const exportIds = selectedExportData?.export?.map(e => Number(e.id))
-      let payload = {
-        import_number: airwaybillvalue,
-        import_date: dayjs(startDate).format('YYYY-MM-DD'),
-        document_type_id: 5,
-        attachment: uploadedFile,
-        exports: exportIds
+  const scrollToFirstError = () => {
+    // Get all elements with errors
+    const errorElements = document.querySelectorAll('[data-error="true"]')
+
+    if (errorElements.length > 0) {
+      // Scroll to the first error element
+      errorElements[0].scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
+
+      // Focus the first error element if it's an input
+      const firstInput = errorElements[0].querySelector('input, select, textarea')
+      if (firstInput) {
+        firstInput.focus()
+      }
+    } else {
+      // If no specific error elements found, scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const validateFields = async () => {
+    try {
+      await validationSchema.validate({ airwaybillvalue, startDate, uploadedFile }, { abortEarly: false })
+      // Now validate selectedExportData
+      const hasExports = selectedExportData?.export?.length > 0 || selectedExportData?.others?.length > 0
+
+      if (!hasExports) {
+        setErrors(prev => ({
+          ...prev,
+          selectedExportData: 'At least one species must be selected'
+        }))
+        return { isValid: false, firstError: 'selectedExportData' }
       }
 
-      try {
-        const response = importId ? await updateImportSpecies(importId, payload) : await createImportSpecies(payload)
-        if (response?.success) {
-          setShowEditAnimals(true)
-          setLoading(false)
-          router.push(`/compliance/documents/imports`)
-          Toaster({ type: 'success', message: response?.message })
-          //fetchImportspeciesDetails()
-        } else {
-          setLoading(false)
-          Toaster({ type: 'error', message: response?.message })
-          console.error('API Error:', response?.message)
-        }
-      } catch (error) {
-        setLoading(false)
-        console.error('Exception:', error)
+      setErrors({})
+      return { isValid: true }
+    } catch (validationErrors) {
+      const formattedErrors = {}
+      let firstErrorPath = null
+      validationErrors.inner.forEach(error => {
+        formattedErrors[error.path] = error.message
+        if (!firstErrorPath) firstErrorPath = error.path
+      })
+      // Also check for selectedExportData even when Yup fails
+      const hasExports = selectedExportData?.export?.length > 0 || selectedExportData?.others?.length > 0
+
+      if (!hasExports) {
+        formattedErrors.selectedExportData = 'At least one species must be selected'
+        if (!firstErrorPath) firstErrorPath = 'selectedExportData'
       }
+      setErrors(formattedErrors)
+      return { isValid: false, firstError: firstErrorPath }
+    }
+  }
+
+  const handleSave = async () => {
+    const { isValid, firstError } = await validateFields()
+    if (!isValid) {
+      Object.keys(errors).forEach(key => {
+        const element = document.querySelector(`[name="${key}"]`)
+        if (element) {
+          element.closest('.MuiFormControl-root')?.setAttribute('data-error', 'true')
+        }
+      })
+
+      scrollToFirstError()
+      return
+    }
+
+    setLoading(true)
+    const exportIds = selectedExportData?.export?.map(e => Number(e.id))
+    let payload = {
+      import_number: airwaybillvalue,
+      import_date: dayjs(startDate).format('YYYY-MM-DD'),
+      document_type_id: 5,
+      attachment: uploadedFile,
+      exports: exportIds
+    }
+
+    try {
+      const response = importId ? await updateImportSpecies(importId, payload) : await createImportSpecies(payload)
+      if (response?.success) {
+        setShowEditAnimals(true)
+        setLoading(false)
+        router.push(`/compliance/documents/imports`)
+        Toaster({ type: 'success', message: response?.message })
+        //fetchImportspeciesDetails()
+      } else {
+        setLoading(false)
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      setLoading(false)
+      console.error('Exception:', error)
     }
   }
 
@@ -271,7 +305,7 @@ const AnimalsData = ({
         setSelectedExportData({ export: rawExports })
         setDraftData({ export: rawExports })
         setAirwaybillvalue(others.import_number)
-        setStartDate(dayjs(others.import_date).toDate())
+        setStartDate(dayjs(others.import_date))
         setUploadedFile(others.documents)
         setLoader(false)
       } else {

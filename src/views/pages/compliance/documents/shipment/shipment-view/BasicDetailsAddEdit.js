@@ -9,13 +9,14 @@ import {
   Select,
   InputLabel,
   FormControl,
-  InputAdornment,
   CircularProgress
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import SingleDatePicker from 'src/components/SingleDatePicker'
-import { CalendarMonth } from '@mui/icons-material'
 import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import dayjs from 'dayjs'
 
 const BasicDetailsAddEdit = ({
   airwaybillvalue,
@@ -67,7 +68,21 @@ const BasicDetailsAddEdit = ({
               value={transportType}
               onChange={handleChange}
               label=''
-              sx={{ background: '#0000000D', border: 'none' }}
+              sx={{
+                background: '#0000000D',
+                border: 'none',
+                color: '#839D8D',
+                '& .MuiSelect-select': {
+                  color: '#839D8D'
+                },
+                '&.Mui-disabled .MuiSelect-select': {
+                  color: '#839D8D'
+                },
+                '& fieldset': {
+                  border: '1px solid #C3CEC7'
+                }
+              }}
+              disabled
             >
               <MenuItem value='airCargo'>Air Cargo</MenuItem>
               <MenuItem value='airCargo1'>Air Cargo 1</MenuItem>
@@ -95,54 +110,32 @@ const BasicDetailsAddEdit = ({
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <SingleDatePicker
-            selected={startDate}
-            onChange={handleDateChange}
-            maxDate={new Date()}
-            showMonthDropdown
-            showYearDropdown
-            customInput={
-              <TextField
-                label='Shipment Date'
-                placeholder={!startDate ? 'Shipment Date' : ''}
-                value={startDate ? startDate.toLocaleDateString() : ''}
-                error={Boolean(errors.startDate)}
-                helperText={errors.startDate}
-                slotProps={{
-                  inputLabel: {
-                    shrink: true
-                  },
-                  input: {
-                    sx: {
-                      height: '55px',
-                      padding: '0 14px',
-                      alignItems: 'center'
-                    },
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <CalendarMonth style={{ cursor: 'pointer' }} />
-                      </InputAdornment>
-                    )
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label='Shipment Date*'
+              value={startDate ? dayjs(startDate) : null}
+              onChange={handleDateChange}
+              maxDate={dayjs(new Date())}
+              views={['year', 'month', 'day']}
+              format='Do MMM YY'
+              slotProps={{
+                textField: {
+                  error: Boolean(errors.startDate),
+                  helperText: errors.startDate,
+                  sx: {
+                    '& .MuiInputBase-input': { padding: '14px' },
+                    '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#44544a82' } },
+                    width: '100%',
+                    height: '55px'
                   }
-                }}
-                sx={{
-                  '& .MuiInputBase-input': {
-                    padding: '14px'
-                  },
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: '#44544a82'
-                    }
-                  },
-                  width: '100%'
-                }}
-              />
-            }
-          />
+                }
+              }}
+            />
+          </LocalizationProvider>
         </Grid>
       </Grid>
 
-      <Grid container spacing={2} sx={{ mt: 2 }}>
+      <Grid container spacing={2} sx={{ mt: 4 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
           {errors.uploadedFile && (

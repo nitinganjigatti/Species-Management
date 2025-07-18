@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import * as yup from 'yup'
 import BasicDetails from '../shipment-view/BasicDetails'
 import BasicDetailsAddEdit from '../shipment-view/BasicDetailsAddEdit'
@@ -50,7 +50,9 @@ const ShipmentBasicDetails = ({
   status,
   setStatus,
   setAirwaybillvalue,
-  airwaybillvalue
+  airwaybillvalue,
+  shipmentIdval,
+  setshipmentIdVal
 }) => {
   const [startDate, setStartDate] = useState(null)
   const [uploadedFile, setUploadedFile] = useState(null)
@@ -87,14 +89,28 @@ const ShipmentBasicDetails = ({
     }
   }, [onEditClick, id])
 
+  useEffect(() => {
+    if (shipmentIdval && status !== 'completed') {
+      router.push(`/compliance/documents/shipments/AddEditShipment/?id=${shipmentIdval}&action=edit`)
+    }
+  }, [shipmentIdval])
+
   const fetchbasicDetails = async () => {
     try {
       setLoader(true)
       const response = await getShipmentBasicDetails(id)
       if (response?.success) {
+        const formatAirwayBill = (value = '') => {
+          const inputValue = value.replace(/\D/g, '').slice(0, 11)
+          return inputValue
+            .split('')
+            .map((digit, index) => (index === 2 ? digit + '    ' : digit + '  '))
+            .join('')
+            .trim()
+        }
         setLoader(false)
-        setAirwaybillvalue(response?.data?.shipment_number)
-        setStartDate(dayjs(response?.data?.shipment_date).toDate())
+        setAirwaybillvalue(formatAirwayBill(response?.data?.shipment_number))
+        setStartDate(dayjs(response?.data?.shipment_date))
         setTransportType(response?.data?.transport_type)
         setUploadedFile(response?.data?.documents[0])
         setStatus(response?.data?.shipment_state)
@@ -112,7 +128,7 @@ const ShipmentBasicDetails = ({
     if (isValid) {
       const isFileObject = uploadedFile instanceof File
       const transformedData = {
-        shipment_number: airwaybillvalue || '',
+        shipment_number: airwaybillvalue.replace(/\s+/g, '') || '',
         shipment_date: dayjs(startDate).format('YYYY-MM-DD') || '',
         transport_type: transportType || '',
         shipment_state: status || '',
@@ -135,11 +151,11 @@ const ShipmentBasicDetails = ({
           ? await updateShipmentBasicDetails(id, transformedData)
           : await addShipmentBasicDetails(transformedData)
         if (response?.success) {
-          Toaster({ type: 'success', message: 'Document type ' + response?.message })
+          setshipmentIdVal(response?.data?.id)
+          Toaster({ type: 'success', message: response?.message })
           setLoader(false)
-
           setShowEdit(false)
-          router.push(`/compliance/documents/shipments`)
+          status === 'completed' ? router.push(`/compliance/documents/shipments`) : ''
         } else {
           setLoader(false)
           Toaster({ type: 'error', message: response?.message })
