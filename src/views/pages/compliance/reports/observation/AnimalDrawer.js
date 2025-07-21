@@ -14,7 +14,7 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 
 const PAGE_SIZE = 10
 
-const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
+const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -129,12 +129,10 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
 
   const handleTabClick = tabValue => {
     setActiveTab(tabValue)
-    setSearch('')
   }
 
   const onGenerateClick = () => {
-    const selectedAnimal = list.find(animal => animal.animal_id === internalSelected)
-    setSelectedAnimal(selectedAnimal)
+    handleAnimalClick(internalSelected)
     onClose()
   }
 
@@ -166,7 +164,6 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
           </Typography>
           <IconButton
             onClick={() => {
-              setSelectedAnimal(null)
               setInternalSelected(null)
               onClose()
             }}
@@ -216,7 +213,16 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
           }}
         >
           {horizontalLoading ? (
-            <CircularProgress size={'small'} />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: 48
+              }}
+            >
+              <CircularProgress size={24} />
+            </Box>
           ) : (
             <Box
               sx={{
@@ -250,7 +256,7 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
                     color: activeTab === item.type ? '#FFFFFF' : '#666666'
                   }}
                 >
-                  {item.label} {total ? ` (${total})` : ''}
+                  {item.label} {activeTab === item.type && total ? ` (${total})` : ''}
                 </Button>
               ))}
             </Box>

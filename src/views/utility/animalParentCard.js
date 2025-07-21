@@ -3,7 +3,7 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 
-const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio }) => {
+const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, sx }) => {
   const theme = useTheme()
 
   const [imageLoading, setImageLoading] = useState(true)
@@ -60,7 +60,8 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '10px',
-            border: radio?.checked ? `1px solid #37BD69` : '1px solid #C3CEC7'
+            border: radio?.checked ? `1px solid #37BD69` : '1px solid #C3CEC7',
+            ...sx
           }}
         >
           {/* Left content (image + text info) */}
@@ -278,20 +279,22 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
           </Box>
 
           {/* Right-aligned Radio Button */}
-          <Box>
-            <Radio
-              checked={radio?.checked}
-              onChange={radio?.onChange}
-              sx={{
-                width: 24,
-                height: 24,
-                p: 0,
-                '& .MuiSvgIcon-root': {
-                  fontSize: 24
-                }
-              }}
-            />
-          </Box>
+          {radio && (
+            <Box>
+              <Radio
+                checked={radio?.checked}
+                onChange={radio?.onChange}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  p: 0,
+                  '& .MuiSvgIcon-root': {
+                    fontSize: 24
+                  }
+                }}
+              />
+            </Box>
+          )}
         </Box>
       )}
     </>
