@@ -104,7 +104,8 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
           section_name: animal?.section_name,
           site_name: animal?.site_name,
           type: animal?.type,
-          sex: animal?.sex
+          sex: animal?.sex,
+          default_icon: animal?.default_icon
         }))
       ) || [],
     [data]

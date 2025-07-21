@@ -276,7 +276,7 @@ const ObservationReport = () => {
   const headerAction = (
     <>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadObservationReport} />
-    </> 
+    </>
   )
 
   const handleSearchChange = e => {
@@ -433,7 +433,8 @@ const ObservationReport = () => {
               section_name: animal?.section_name,
               site_name: animal?.site_name,
               type: animal?.type,
-              sex: animal?.sex
+              sex: animal?.sex,
+              default_icon: animal?.default_icon
             })
           }
         />
