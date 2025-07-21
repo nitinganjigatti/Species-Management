@@ -36,7 +36,7 @@ const BiologistDiaryReport = () => {
   const [isDownloading, setIsDownloading] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
-    startDate: Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 

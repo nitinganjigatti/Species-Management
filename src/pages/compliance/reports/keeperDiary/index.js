@@ -14,7 +14,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import UserDrawer from 'src/views/pages/compliance/reports/keepers/UserDrawer'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -22,6 +22,7 @@ import { format, subDays, subMonths } from 'date-fns'
 import { getDiaryReportList } from 'src/lib/api/compliance/reports'
 import ObservationCard from 'src/views/utility/ObservationCard'
 import { debounce } from 'lodash'
+import { DownloadReport } from 'src/views/pages/compliance/utility'
 
 const KeeperDiaryReport = () => {
   const theme = useTheme()
@@ -30,12 +31,12 @@ const KeeperDiaryReport = () => {
   const [keeperList, setKeeperList] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
-
+  const [isDownloading, setIsDownloading] = useState(false)
   const [filterDates, setFilterDates] = useState({
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
-  const [searchText, setSearchText] = useState('')
+  const [searchValue, setSearchValue] = useState('')
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
@@ -71,19 +72,27 @@ const KeeperDiaryReport = () => {
   }
 
   useEffect(() => {
-    getUserKeeperReport(searchText)
+    getUserKeeperReport(searchValue)
   }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize])
 
   const debouncedSearch = useCallback(
     debounce(q => {
       setPaginationModel({ page: 0, pageSize: 10 }) // reset page on search
       getUserKeeperReport(q)
-    }, 1000),
+    }, 500),
     [] // dependency array should be stable
   )
 
-  const handleSearchChange = value => {
-    setSearchText(value)
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value) // Update input immediately for UI responsiveness
+
+    // Reset to first page when searching
+    if (paginationModel.page !== 0) {
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    }
+
+    // Call debounced API function
     debouncedSearch(value)
   }
 
@@ -93,8 +102,6 @@ const KeeperDiaryReport = () => {
         sx={{
           backgroundColor: '#eef6f4',
           borderRadius: '8px',
-
-          // p: 5,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -147,23 +154,56 @@ const KeeperDiaryReport = () => {
     setUserDrawer(false)
   }
 
+  // const downloadKeeperDiaryReport = ()=>{
+
+  // }
+
+  const downloadKeeperDiaryReport = async () => {
+    console.log('Selected >>', userDetail)
+
+    const params = {
+      user_id: userDetail?.user_id,
+      page_no: 1,
+      limit: total,
+      q: searchValue,
+      ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+      ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+      report_type: 'pdf'
+    }
+    try {
+      setIsDownloading(true)
+      await downloadPDF({
+        apiCall: getDiaryReportList,
+        params,
+        fileName: `Keeper_Diary_Report_${Date.now()}.pdf`
+      })
+    } catch (error) {
+      console.error('Error downloading report:', error)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   const headerAction = (
-    <Typography
-      onClick={''}
-      sx={{
-        fontSize: '20px',
-        fontWeight: '400',
-        fontFamily: 'Inter',
-        color: '#006D35',
-        display: 'flex',
-        alignItems: 'center',
-        cursor: 'pointer',
-        mr: 4
-      }}
-    >
-      Download report
-      <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
-    </Typography>
+    // <Typography
+    //   onClick={''}
+    //   sx={{
+    //     fontSize: '20px',
+    //     fontWeight: '400',
+    //     fontFamily: 'Inter',
+    //     color: '#006D35',
+    //     display: 'flex',
+    //     alignItems: 'center',
+    //     cursor: 'pointer',
+    //     mr: 4
+    //   }}
+    // >
+    //   Download report
+    //   <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+    // </Typography>
+    <>
+      <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadKeeperDiaryReport} />
+    </>
   )
 
   const columns = [
@@ -195,13 +235,13 @@ const KeeperDiaryReport = () => {
       field: 'ObservationType',
       headerName: 'Observation Type',
       renderCell: params => (
-        <>
+        <Box sx={{ p: '0.5rem' }}>
           <ObservationCard
             title={params.row.master_enrichment_type}
             description={params.row.child_enrichment_type}
             dateTime={params.row.date_time}
           />
-        </>
+        </Box>
       )
     },
 
@@ -216,15 +256,8 @@ const KeeperDiaryReport = () => {
           <Typography
             sx={{
               fontSize: '16px',
-              fontWeight: 400,
-              color: theme.palette.customColors.OnSurfaceVariant,
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 4,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'normal',
-              maxWidth: '100%'
+              p: '0.5rem',
+              color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
             {params.row.details}
@@ -307,14 +340,23 @@ const KeeperDiaryReport = () => {
 
           {/* Search field */}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 2, sm: 0 },
+              p: 4
+            }}
+          >
             {/* Search Box */}
-            <Box sx={{ ml: 2, borderRadius: '4px' }}>
+            <Box sx={{ borderRadius: '4px', width: { xs: '100%', sm: 'auto' } }}>
               <TextField
                 variant='outlined'
                 size='small'
-                value={searchText}
-                onChange={e => handleSearchChange(e.target.value)}
+                value={searchValue}
+                onChange={e => handleSearchChange(e)}
                 placeholder='Search by Animal ID, Site, Enclosure, Section, Scientific/Common Name'
                 slotProps={{
                   input: {
@@ -326,10 +368,8 @@ const KeeperDiaryReport = () => {
                   }
                 }}
                 sx={{
-                  width: '320px',
+                  width: { xs: '100%', sm: '320px' },
                   backgroundColor: '#fff',
-                  ml: 4,
-                  mt: 1,
                   borderRadius: '4px',
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '4px'
@@ -338,7 +378,7 @@ const KeeperDiaryReport = () => {
               />
             </Box>
 
-            <Box sx={{ mr: 5 }}>
+            <Box sx={{ mt: { xs: 1, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
               <CommonDateRangePickers
                 filterDates={filterDates}
                 onChange={handleDateRangeChange}
@@ -347,6 +387,7 @@ const KeeperDiaryReport = () => {
               />
             </Box>
           </Box>
+
           <Grid
             sx={{
               margin: '0px 1.375rem 0px 1.375rem'
@@ -354,7 +395,7 @@ const KeeperDiaryReport = () => {
           >
             <CommonTable
               onRowClick={''}
-              rowHeight={90}
+              getRowHeight={() => 'auto'}
               indexedRows={indexedRows}
               total={total}
               columns={columns}

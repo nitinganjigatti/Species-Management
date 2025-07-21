@@ -313,7 +313,7 @@ const ObservationReport = () => {
   const haederAction = (
     <>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadObservationReport} />
-    </>
+    </> 
   )
 
   return (
