@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, Card, CardHeader, Grid, InputAdornment, TextField, Typography } from '@mui/material'
+import { Box, Card, CardHeader, Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -28,11 +28,7 @@ const ObservationReport = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || '')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [exportLoading, setExportLoading] = useState(false)
-  const [animalData, setAnimalData] = useState(null)
 
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
@@ -53,12 +49,12 @@ const ObservationReport = () => {
   }
 
   const fetchObservationReport = useCallback(
-    async ({ q, page, limit }) => {
+    async ({ q, page, limit, animalId }) => {
       try {
         setLoading(true)
 
         const params = {
-          animal_id: selectedAnimal?.animal_id,
+          animal_id: animalId,
           page_no: page + 1,
           limit: limit,
           q: q,
@@ -68,10 +64,11 @@ const ObservationReport = () => {
         }
 
         await getObservationReport({ params }).then(res => {
+          console.log(res)
           if (res?.success === true) {
+            console.log(res, 'res')
             setTotal(parseInt(res?.data?.total))
-            setRows(loadServerRows(paginationModel?.page, res?.observationData))
-            setAnimalData(res?.data?.animalData)
+            setRows(loadServerRows(paginationModel?.page, res?.data?.observationData))
           } else {
             setTotal(parseInt(res?.data?.total))
             setRows([])
@@ -87,11 +84,12 @@ const ObservationReport = () => {
   )
 
   useEffect(() => {
-    if (selectedAnimal) {
+    if (selectedAnimal !== null) {
       fetchObservationReport({
         q: searchValue,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        animalId: selectedAnimal?.animal_id
       })
       updateUrlParams({
         q: searchValue,
@@ -102,6 +100,84 @@ const ObservationReport = () => {
       })
     }
   }, [paginationModel.page, paginationModel.pageSize, filterDates, selectedAnimal])
+
+  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    id: row.id || index,
+    sl_no: getSlNo(index)
+  }))
+
+  console.log(indexedRows, 'indexedRows')
+
+  const columns = [
+    {
+      width: 90,
+      field: 'id',
+      headerName: 'SL.NO',
+      sortable: false,
+      align: 'left',
+      headerAlign: 'left',
+      renderCell: params => (
+        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left' }}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'default'
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: 'date',
+      headerName: 'DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.date}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'master_enrichment_type',
+      headerName: 'Observation Type',
+      sortable: false,
+      renderCell: params => <></>
+    },
+    {
+      minWidth: 20,
+      width: 400,
+      field: 'details',
+      headerName: 'Details',
+      sortable: false,
+      renderCell: params => <></>
+    },
+    {
+      minWidth: 250,
+      field: 'reported_by',
+      sortable: false,
+      headerName: 'Reported By ',
+      renderCell: params => <></>
+    }
+  ]
 
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
@@ -116,8 +192,6 @@ const ObservationReport = () => {
         startDate: formattedStartDate,
         endDate: formattedEndDate
       })
-
-      console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
         startDate: '',
@@ -128,20 +202,19 @@ const ObservationReport = () => {
         startDate: '',
         endDate: ''
       })
-
-      console.log('Empty date range selected,', { startDate, endDate })
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column, expired, page, limit) => {
+    debounce(async (q, page, limit, animalId) => {
+      console.log(animalId, 'animalId')
       setSearchValue(q)
       try {
-        await getObservationReport({
+        await fetchObservationReport({
           q,
-          expired,
           page,
-          limit
+          limit,
+          animalId
         })
 
         updateUrlParams({
@@ -160,10 +233,13 @@ const ObservationReport = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn, paginationModel.page, paginationModel.pageSize)
+    searchTableData(value, paginationModel.page, paginationModel.pageSize, selectedAnimal?.animal_id)
   }
 
-  console.log(animalData)
+  const handleSearchClear = () => {
+    setSearchValue('')
+    searchTableData('', paginationModel.page, paginationModel.pageSize, selectedAnimal?.animal_id)
+  }
 
   const title = (
     <Typography
@@ -207,25 +283,70 @@ const ObservationReport = () => {
           />
         ) : (
           <>
-            <Box>
-              <AnimalParentCard data={animalData} />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 5,
+                border: '1px solid #C3CEC7',
+                borderRadius: '8px',
+                background: '#E8F4F2'
+              }}
+            >
+              <AnimalParentCard data={selectedAnimal} sx={{ border: 'none', background: 'none' }} />
+              <Box
+                sx={{
+                  backgroundColor: '#0000000D',
+                  height: { sm: '210px', xs: '280px' },
+                  width: '70px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderTopRightRadius: '8px',
+                  borderBottomRightRadius: '8px'
+                }}
+              >
+                <IconButton onClick={() => setSelectedAnimal(null)}>
+                  <Icon icon='mdi:close' color='red' fontSize={30} />
+                </IconButton>
+              </Box>
             </Box>
             <Grid container gap={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Grid size={{ xs: 12, sm: 12, md: 5 }}>
+              <Grid size={{ xs: 12, sm: 5, md: 5 }}>
                 <Search
-                  onChange={e => handleSearch(e)}
+                  onChange={e => handleSearch(e.target.value)}
                   value={searchValue}
                   placeholder='Search by date or observation type'
+                  onClear={handleSearchClear}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 12, md: 6 }}>
-                <Grid container gap={2} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Grid size={{ xs: 12, sm: 3, md: 3 }}></Grid>
-                  <Grid size={{ xs: 12, sm: 8, md: 8 }}>
-                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-                  </Grid>
-                </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
               </Grid>
+            </Grid>
+            <Grid>
+              <CommonTable
+                columns={columns}
+                indexedRows={indexedRows}
+                loading={loading}
+                total={total}
+                paginationModel={paginationModel}
+                setPaginationModel={setPaginationModel}
+                searchValue={searchValue}
+                onPaginationModelChange={model => {
+                  setPaginationModel(model)
+                  router.replace({
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      page: model.page + 1,
+                      pageSize: model.pageSize,
+                      searchValue
+                    }
+                  })
+                }}
+              />
             </Grid>
           </>
         )}
@@ -237,6 +358,7 @@ const ObservationReport = () => {
           onClose={() => setAnimalDrawer(false)}
           selectedAnimal={selectedAnimal}
           setSelectedAnimal={setSelectedAnimal}
+          handleAnimalClick={animal => setSelectedAnimal(animal)}
         />
       )}
     </>
