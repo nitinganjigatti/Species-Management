@@ -20,7 +20,7 @@ export const DownloadReport = ({
         {isDownloading ? (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <CircularProgress size={24} />
-            <Typography sx={{ ml: 2, color: theme.palette.customColors.OnSurfaceVariant }}>
+            <Typography sx={{ ml: 2, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}>
               {customDownloadingText}
             </Typography>
           </Box>
@@ -28,7 +28,7 @@ export const DownloadReport = ({
           <Typography
             onClick={handleDownloadReport}
             sx={{
-              fontSize: '20px',
+              fontSize: '16px',
               fontWeight: '400',
               fontFamily: 'Inter',
               color: theme.palette.primary.dark,
@@ -38,7 +38,7 @@ export const DownloadReport = ({
             }}
           >
             {customeMainText}
-            <img src={imgSrc} alt={imgAlt} style={{ marginLeft: 8, width: 30, height: 30, ...imgStyle }} />
+            <img src={imgSrc} alt={imgAlt} style={{ marginLeft: 8, width: 24, height: 24, ...imgStyle }} />
           </Typography>
         )}
       </Box>
