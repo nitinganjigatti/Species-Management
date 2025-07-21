@@ -23,6 +23,7 @@ import { getDiaryReportList } from 'src/lib/api/compliance/reports'
 import ObservationView from 'src/views/pages/compliance/reports/biologists/Observation'
 import debounce from 'lodash/debounce'
 import { downloadPDF } from 'src/utility'
+import { DownloadReport } from 'src/views/pages/compliance/utility'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
@@ -184,47 +185,23 @@ const BiologistDiaryReport = () => {
       type: 'biologist'
     }
     try {
-        setIsDownloading(true)
-        await downloadPDF({
-          apiCall: getDiaryReportList,
-          params,
-          fileName: `biologist_report_${Date.now()}.pdf`
-        })
-
+      setIsDownloading(true)
+      await downloadPDF({
+        apiCall: getDiaryReportList,
+        params,
+        fileName: `biologist_report_${Date.now()}.pdf`
+      })
     } catch (error) {
       console.error('Error downloading report:', error)
     } finally {
-        setIsDownloading(false)
+      setIsDownloading(false)
     }
   }
 
   const headerAction = (
-    <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
-      {isDownloading ? (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <CircularProgress size={24} />
-          <Typography sx={{ ml: 2, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Preparing download...
-          </Typography>
-        </Box>
-      ) : (
-        <Typography
-          onClick={handleDownloadReport}
-          sx={{
-            fontSize: '20px',
-            fontWeight: '400',
-            fontFamily: 'Inter',
-            color: '#006D35',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer'
-          }}
-        >
-          Download report
-          <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
-        </Typography>
-      )}
-    </Box>
+    <>
+      <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
+    </>
   )
 
   const columns = [
@@ -384,7 +361,12 @@ const BiologistDiaryReport = () => {
             </Box>
 
             <Box sx={{ mr: 5 }}>
-              <CommonDateRangePickers filterDates={filterDates} onChange={handleDateRangeChange} />
+              <CommonDateRangePickers
+                filterDates={filterDates}
+                onChange={handleDateRangeChange}
+                useCustomText={true}
+                customText='Select a Date Range'
+              />
             </Box>
           </Box>
           <Grid

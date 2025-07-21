@@ -3,15 +3,17 @@ import { Box, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import moment from 'moment'
 
-const ObservationCard = ({ title, description, dateTime }) => {
+const ObservationCard = ({ title, description, dateTime, containerStyle }) => {
   const theme = useTheme()
 
   const formatDateTime = dateTimeStr => {
     if (!dateTimeStr) return ''
+
     return moment(dateTimeStr).format('D MMM YYYY • h:mm A')
   }
+
   return (
-    <Box>
+    <Box sx={{ ...containerStyle }}>
       <Typography
         sx={{
           fontSize: '16px',

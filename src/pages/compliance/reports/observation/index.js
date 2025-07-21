@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, Card, CardHeader, Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
+import { Box, Card, CardHeader, Grid, IconButton, InputAdornment, TextField, Tooltip, Typography } from '@mui/material'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -7,11 +7,13 @@ import { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getObservationReport } from 'src/lib/api/compliance/reports'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import AnimalDrawer from 'src/views/pages/compliance/reports/observation/AnimalDrawer'
+import { DownloadReport } from 'src/views/pages/compliance/utility'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
+import ObservationCard from 'src/views/utility/ObservationCard'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 
@@ -29,6 +31,7 @@ const ObservationReport = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
@@ -63,7 +66,7 @@ const ObservationReport = () => {
           report_type: 'json'
         }
 
-        await getObservationReport({ params }).then(res => {
+        await getObservationReport(params).then(res => {
           console.log(res)
           if (res?.success === true) {
             console.log(res, 'res')
@@ -123,7 +126,7 @@ const ObservationReport = () => {
         <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left' }}>
           <Typography
             sx={{
-              color: theme.palette.customColors.neutralSecondary,
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
               fontWeight: 500,
               cursor: 'default'
@@ -144,7 +147,7 @@ const ObservationReport = () => {
         <Typography
           variant='body2'
           sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
             fontWeight: 500,
             fontFamily: 'Inter'
@@ -156,26 +159,66 @@ const ObservationReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
+      width: 300,
       field: 'master_enrichment_type',
       headerName: 'Observation Type',
       sortable: false,
-      renderCell: params => <></>
+      renderCell: params => (
+        <>
+          <ObservationCard
+            title={params.row.master_enrichment_type}
+            description={params.row.child_enrichment_type}
+            containerStyle={{ my: 2 }}
+          />
+        </>
+      )
     },
     {
       minWidth: 20,
-      width: 400,
+      width: 350,
       field: 'details',
       headerName: 'Details',
       sortable: false,
-      renderCell: params => <></>
+      renderCell: params => (
+        <>
+          <Tooltip title={params.row.details || ''} arrow placement='bottom'>
+            <Typography
+              sx={{
+                fontSize: '16px',
+                fontWeight: 400,
+                color: theme.palette.customColors.OnSurfaceVariant,
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: 4,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal',
+                maxWidth: '100%'
+              }}
+            >
+              {params.row.details}
+            </Typography>
+          </Tooltip>
+        </>
+      )
     },
     {
       minWidth: 250,
       field: 'reported_by',
       sortable: false,
       headerName: 'Reported By ',
-      renderCell: params => <></>
+      renderCell: params => (
+        <>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+              {params?.row?.reported_by}
+            </Typography>
+            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+              {params?.row?.time}
+            </Typography>
+          </Box>
+        </>
+      )
     }
   ]
 
@@ -241,96 +284,126 @@ const ObservationReport = () => {
     searchTableData('', paginationModel.page, paginationModel.pageSize, selectedAnimal?.animal_id)
   }
 
-  const title = (
-    <Typography
-      sx={{
-        fontSize: '24px',
-        fontWeight: 500,
-        fontFamily: 'Inter',
-        ml: '-12px',
-        color: theme.palette.customColors.OnSurfaceVariant
-      }}
-    >
-      Observation Report
-    </Typography>
+  const downloadObservationReport = async () => {
+    console.log(selectedAnimal, 'selectedAnimal')
+
+    const params = {
+      animal_id: selectedAnimal?.animal_id,
+      page_no: 1,
+      limit: total,
+      q: searchValue,
+      ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+      ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+      report_type: 'pdf'
+    }
+    try {
+      setIsDownloading(true)
+      await downloadPDF({
+        apiCall: getObservationReport,
+        params,
+        fileName: `Observation_report_${Date.now()}.pdf`
+      })
+    } catch (error) {
+      console.error('Error downloading report:', error)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const haederAction = (
+    <>
+      <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadObservationReport} />
+    </>
   )
 
   return (
     <>
-      <Card sx={{ p: 6 }}>
-        <CardHeader
-          title={title}
-          action={selectedAnimal !== null && <ExportButton />}
-          sx={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 2,
-            [theme.breakpoints.down('sm')]: {
-              flexDirection: 'row',
-              justifyContent: 'space-between'
-            }
-          }}
-        />
-        {selectedAnimal === null ? (
-          <ReportCard
-            subtitle=' No animal selected'
-            description=' Select any animal to view its observation report'
-            buttonText='SELECT ANIMAL'
-            addHandler={eventHandler}
-          />
-        ) : (
-          <>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 5,
-                border: '1px solid #C3CEC7',
-                borderRadius: '8px',
-                background: '#E8F4F2'
-              }}
-            >
-              <AnimalParentCard data={selectedAnimal} sx={{ border: 'none', background: 'none' }} />
+      {selectedAnimal ? (
+        <>
+          <Card>
+            <CardHeader title="Biologist's Diary Report" action={haederAction} />
+            <Box sx={{ p: 5 }}>
               <Box
                 sx={{
-                  backgroundColor: '#0000000D',
-                  height: { sm: '210px', xs: '280px' },
-                  width: '70px',
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  borderTopRightRadius: '8px',
-                  borderBottomRightRadius: '8px'
+                  mb: 2,
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  background: '#E8F4F2'
                 }}
               >
-                <IconButton onClick={() => setSelectedAnimal(null)}>
-                  <Icon icon='mdi:close' color='red' fontSize={30} />
-                </IconButton>
+                <AnimalParentCard data={selectedAnimal} sx={{ border: 'none', background: 'none' }} />
+                <Box
+                  sx={{
+                    backgroundColor: '#0000000D',
+                    height: { sm: '210px', xs: '280px' },
+                    width: '70px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderTopRightRadius: '8px',
+                    borderBottomRightRadius: '8px'
+                  }}
+                >
+                  <IconButton onClick={() => setSelectedAnimal(null)}>
+                    <Icon icon='mdi:close' color='red' fontSize={30} />
+                  </IconButton>
+                </Box>
               </Box>
             </Box>
-            <Grid container gap={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Grid size={{ xs: 12, sm: 5, md: 5 }}>
-                <Search
-                  onChange={e => handleSearch(e.target.value)}
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0 }}>
+              <Box sx={{ ml: 2 }}>
+                <TextField
+                  variant='outlined'
+                  size='small'
                   value={searchValue}
-                  placeholder='Search by date or observation type'
-                  onClear={handleSearchClear}
+                  onChange={e => handleSearch(e.target.value)}
+                  placeholder='Search'
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                  sx={{
+                    width: '320px',
+                    backgroundColor: '#fff',
+                    ml: 4,
+                    mt: 1,
+                    borderRadius: '4px',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px'
+                    }
+                  }}
                 />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-              </Grid>
-            </Grid>
-            <Grid>
+              </Box>
+
+              <Box sx={{ mr: 5 }}>
+                <CommonDateRangePickers
+                  filterDates={filterDates}
+                  onChange={handleDateRangeChange}
+                  useCustomText={true}
+                  customText='Select a Date Range'
+                />
+              </Box>
+            </Box>
+            <Grid
+              sx={{
+                margin: '0px 1.375rem 0px 1.375rem'
+              }}
+            >
               <CommonTable
                 columns={columns}
                 indexedRows={indexedRows}
                 loading={loading}
                 total={total}
+                getRowHeight={() => 'auto'}
                 paginationModel={paginationModel}
                 setPaginationModel={setPaginationModel}
                 searchValue={searchValue}
@@ -348,9 +421,18 @@ const ObservationReport = () => {
                 }}
               />
             </Grid>
-          </>
-        )}
-      </Card>
+          </Card>
+        </>
+      ) : (
+        <>
+          <ReportCard
+            subtitle=' No animal selected'
+            description=' Select any animal to view its observation report'
+            buttonText='SELECT ANIMAL'
+            addHandler={eventHandler}
+          />
+        </>
+      )}
 
       {animalDrawer && (
         <AnimalDrawer

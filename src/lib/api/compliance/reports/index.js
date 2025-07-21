@@ -25,7 +25,8 @@ export async function getAnimalListForObservationReport(body) {
   return response?.data
 }
 
-export async function getObservationReport({ params }) {
+export async function getObservationReport(params) {
+  console.log(params, 'params from api')
   const response = await axiosGet({ url: `${GET_OBSERVATION_REPORT}`, params })
 
   return response?.data

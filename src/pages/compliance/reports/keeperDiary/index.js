@@ -30,6 +30,7 @@ const KeeperDiaryReport = () => {
   const [keeperList, setKeeperList] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
+
   const [filterDates, setFilterDates] = useState({
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
@@ -47,6 +48,7 @@ const KeeperDiaryReport = () => {
 
   const getUserKeeperReport = async q => {
     setLoading(true)
+
     const params = {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -91,6 +93,7 @@ const KeeperDiaryReport = () => {
         sx={{
           backgroundColor: '#eef6f4',
           borderRadius: '8px',
+
           // p: 5,
           display: 'flex',
           alignItems: 'center',
@@ -336,7 +339,12 @@ const KeeperDiaryReport = () => {
             </Box>
 
             <Box sx={{ mr: 5 }}>
-              <CommonDateRangePickers filterDates={filterDates} onChange={handleDateRangeChange} />
+              <CommonDateRangePickers
+                filterDates={filterDates}
+                onChange={handleDateRangeChange}
+                useCustomText={true}
+                customText='Select a Date Range'
+              />
             </Box>
           </Box>
           <Grid
@@ -374,4 +382,5 @@ const KeeperDiaryReport = () => {
     </>
   )
 }
+
 export default KeeperDiaryReport
