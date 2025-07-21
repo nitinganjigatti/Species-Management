@@ -563,6 +563,7 @@ const PurchaseItemForm = props => {
 
       searchMedicineData('')
     }
+    searchMedicineData('')
   }, [])
 
   const purchaseCgst = useWatch({ control, name: 'purchase_cgst' })
@@ -570,8 +571,6 @@ const PurchaseItemForm = props => {
   const purchaseIgst = useWatch({ control, name: 'purchase_igst' })
 
   useEffect(() => {
-    // alert('3')
-
     if (purchaseCgst > 0 || purchaseSgst > 0) {
       setValue('purchase_igst', 0)
     }

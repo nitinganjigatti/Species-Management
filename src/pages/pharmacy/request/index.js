@@ -284,6 +284,16 @@ const RequestList = () => {
     })
   }
 
+  const routeToShipmentPage = params => {
+    Router.push({
+      pathname: `/pharmacy/request/${params.row?.id}`,
+      query: {
+        detailsTab: 'Shipped',
+        shipmentTab: 'Shipped'
+      }
+    })
+  }
+
   const headerAction = (
     <div>
       {selectedPharmacy.type === 'local' &&
@@ -584,7 +594,13 @@ const RequestList = () => {
       field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Box variant='body2' sx={{ color: 'text.primary' }}>
+        <Box
+          onClick={() => {
+            routeToShipmentPage(params)
+          }}
+          variant='body2'
+          sx={{ color: 'text.primary' }}
+        >
           <Box style={{ display: 'flex', alignItems: 'center' }}>
             {params.row.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>

@@ -321,8 +321,7 @@ const PurchaseInvoiceUpload = ({
 
       const response = await invoiceProcessForPurchase(base64Images).then(async response => {
         setInvoiceSubmitLoader(false)
-        console.log('response,', response)
-        closeDialog()
+        // console.log('response,', response)
         let responseData = response?.data
 
         const payLoad = responseData?.product_details
@@ -352,6 +351,8 @@ const PurchaseInvoiceUpload = ({
           console.error('Error in variant mapping:', error)
         }
         if (responseData) {
+          closeDialog()
+
           const purchase_details = responseData?.product_details?.map((el, index) => {
             // Get GST values from invoice data
             const purchase_gst = el.purchase_gst || 0
@@ -494,10 +495,13 @@ const PurchaseInvoiceUpload = ({
             purchase_created_by: 'invoice_upload'
           })
           handleInputImageChange(file)
+
           toast.success('Invoice processed successfully')
+        } else {
+          toast.error('Retry')
+          setInvoiceSubmitLoader(false)
         }
       })
-      console.log('Upload success:', response?.data)
     } catch (error) {
       console.error('Error uploading images:', error)
 

@@ -776,7 +776,6 @@ const AddPurchaseForm = () => {
         q: searchText,
         limit: 20
       }
-
       const searchResults = await getMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
         setOptionsMedicineList(

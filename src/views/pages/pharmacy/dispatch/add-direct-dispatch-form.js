@@ -348,7 +348,6 @@ export const AddItemsForm = ({
   //   )
   // }
   useEffect(() => {
-    console.log('available_item_qty in nested ', nestedMedicine)
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {
