@@ -498,7 +498,7 @@ const PurchaseInvoiceUpload = ({
 
           toast.success('Invoice processed successfully')
         } else {
-          toast.error('Retry')
+          toast.error('Invoice processed failed try again')
           setInvoiceSubmitLoader(false)
         }
       })
