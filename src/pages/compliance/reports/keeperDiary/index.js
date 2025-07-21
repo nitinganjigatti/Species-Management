@@ -45,16 +45,16 @@ const KeeperDiaryReport = () => {
     setUserDrawer(true)
   }
 
-  const getUserKeeperReport = async () => {
+  const getUserKeeperReport = async q => {
     setLoading(true)
     const params = {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+      ...(q?.trim() !== '' && { q: q.trim() }),
       user_id: userDetail?.user_id,
       page_no: paginationModel.page + 1,
       limit: paginationModel.pageSize,
-      report_type: 'json',
-      ...(searchText?.trim() !== '' && { q: searchText.trim() }) // ← added
+      report_type: 'json'
     }
 
     const response = await getDiaryReportList(params)
@@ -69,13 +69,21 @@ const KeeperDiaryReport = () => {
   }
 
   useEffect(() => {
-    getUserKeeperReport()
-  }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize, searchText])
+    getUserKeeperReport(searchText)
+  }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize])
 
-  const handleSearchChange = debounce(value => {
+  const debouncedSearch = useCallback(
+    debounce(q => {
+      setPaginationModel({ page: 0, pageSize: 10 }) // reset page on search
+      getUserKeeperReport(q)
+    }, 1000),
+    [] // dependency array should be stable
+  )
+
+  const handleSearchChange = value => {
     setSearchText(value)
-    setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to page 1 on new search
-  }, 300)
+    debouncedSearch(value)
+  }
 
   const UserSelectionCard = ({ user }) => {
     return (
@@ -115,8 +123,8 @@ const KeeperDiaryReport = () => {
         <Box
           sx={{
             backgroundColor: '#e6f0ee',
-            height: '120px',
-            width: '70px',
+            height: '130px',
+            width: '60px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center', // ✅ Center horizontally
@@ -134,14 +142,6 @@ const KeeperDiaryReport = () => {
 
   const handleClose = () => {
     setUserDrawer(false)
-  }
-
-  const CardWrapper = ({ data }) => {
-    return (
-      <>
-        <UserSelectionCard user={data} />
-      </>
-    )
   }
 
   const headerAction = (
@@ -190,7 +190,7 @@ const KeeperDiaryReport = () => {
     {
       width: 350,
       field: 'ObservationType',
-      headerName: 'ObservationType',
+      headerName: 'Observation Type',
       renderCell: params => (
         <>
           <ObservationCard
@@ -215,11 +215,13 @@ const KeeperDiaryReport = () => {
               fontSize: '16px',
               fontWeight: 400,
               color: theme.palette.customColors.OnSurfaceVariant,
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 4,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: '100%',
-              display: 'block' // ensure ellipsis works properly
+              whiteSpace: 'normal',
+              maxWidth: '100%'
             }}
           >
             {params.row.details}
@@ -297,14 +299,14 @@ const KeeperDiaryReport = () => {
         <Card>
           <CardHeader title='Keepers Diary Report' action={headerAction} />
           <Box sx={{ p: 5 }}>
-            <CardWrapper key={userDetail.user_id} data={userDetail} />
+            <UserSelectionCard user={userDetail} />
           </Box>
 
           {/* Search field */}
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0 }}>
             {/* Search Box */}
-            <Box sx={{ ml: 2 }}>
+            <Box sx={{ ml: 2, borderRadius: '4px' }}>
               <TextField
                 variant='outlined'
                 size='small'
@@ -344,7 +346,7 @@ const KeeperDiaryReport = () => {
           >
             <CommonTable
               onRowClick={''}
-              rowHeight={130}
+              rowHeight={90}
               indexedRows={indexedRows}
               total={total}
               columns={columns}

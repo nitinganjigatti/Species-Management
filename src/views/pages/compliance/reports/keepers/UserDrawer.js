@@ -233,7 +233,7 @@ const UserDrawer = ({
               display: 'flex',
               flexDirection: 'column',
               gap: 4,
-              maxHeight: '548px'
+              maxHeight: '650px'
             }}
           >
             {list.map(user => (

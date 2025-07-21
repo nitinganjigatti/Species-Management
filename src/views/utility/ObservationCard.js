@@ -12,7 +12,14 @@ const ObservationCard = ({ title, description, dateTime }) => {
   }
   return (
     <Box>
-      <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant , mt:2}}>
+      <Typography
+        sx={{
+          fontSize: '16px',
+          fontFamily: 'Inter',
+          fontWeight: 500,
+          color: theme.palette.customColors.OnSurfaceVariant
+        }}
+      >
         {title}
       </Typography>
 
@@ -32,11 +39,18 @@ const ObservationCard = ({ title, description, dateTime }) => {
             mb: 0.5
           }}
         >
-          {description}
+          {'• ' + `${description}`.split(',').join(' • ')}
         </Typography>
       </Tooltip>
 
-      <Typography sx={{ fontSize: '12px', fontFamily: 'Inter', color: theme.palette.customColors.OnSurfaceVariant }}>
+      <Typography
+        sx={{
+          fontSize: '12px',
+          fontWeight: 400,
+          fontFamily: 'Inter',
+          color: theme.palette.customColors.OnSurfaceVariant
+        }}
+      >
         {formatDateTime(dateTime)}
       </Typography>
     </Box>
