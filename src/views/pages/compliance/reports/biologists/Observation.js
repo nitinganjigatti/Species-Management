@@ -55,7 +55,8 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
         dense
         sx={{
           display: 'flex',
-          flexDirection: 'column',
+          flexWrap: 'wrap', // Arrange items in a row with wrapping
+          columnGap: 5, // Add spacing between items
           padding: 0,
           listStyleType: 'disc', // Set list style to 'disc' for visible dots
           pl: 3 // Add padding-left for proper alignment of dots
@@ -70,7 +71,9 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
               color: theme.palette.customColors.OnSurfaceVariant,
               width: 'auto',
               p: 0,
-              display: 'list-item' // Ensure the list item displays as a list item
+              display: 'list-item', // Ensure the list item displays as a list item
+              alignItems: 'flex-start', // Align text properly with the dot
+              pl: 0 // Remove extra padding to avoid overlap
             }}
             component='li'
           >
@@ -84,12 +87,8 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
         <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>
           {Utility.formatDisplayDate(date_time)}
         </Typography>
-        <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          •
-        </Typography>
-        <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {time}
-        </Typography>
+        <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>•</Typography>
+        <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>{time}</Typography>
       </Box>
     </Box>
   )

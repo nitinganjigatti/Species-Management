@@ -24,6 +24,7 @@ import ObservationView from 'src/views/pages/compliance/reports/biologists/Obser
 import debounce from 'lodash/debounce'
 import { downloadPDF } from 'src/utility'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
+import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
@@ -63,7 +64,7 @@ const BiologistDiaryReport = () => {
         limit: paginationModel.pageSize,
         report_type: 'json',
         type: 'biologist',
-        ...(search && { search })
+        ...(search && { q: search })
       }
 
       try {
@@ -182,7 +183,8 @@ const BiologistDiaryReport = () => {
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
       user_id: userDetail?.user_id,
       report_type: 'pdf',
-      type: 'biologist'
+      type: 'biologist',
+      ...(searchValue && { q: searchValue })
     }
     try {
       setIsDownloading(true)
@@ -241,9 +243,7 @@ const BiologistDiaryReport = () => {
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
       sortable: false,
-      renderCell: params => '-'
-
-      //   renderCell: params => <AnimalView data={params.row} />
+      renderCell: params => <AnimalView data={params.row} />
     },
     {
       flex: 0.3,
