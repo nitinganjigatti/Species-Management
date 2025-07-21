@@ -1,5 +1,16 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Card, CardHeader, Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Card,
+  CardHeader,
+  CircularProgress,
+  Grid,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography
+} from '@mui/material'
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
@@ -10,8 +21,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { format, subMonths } from 'date-fns'
 import { getDiaryReportList } from 'src/lib/api/compliance/reports'
 import ObservationView from 'src/views/pages/compliance/reports/biologists/Observation'
-import AnimalView from 'src/views/pages/compliance/reports/biologists/AnimalView'
 import debounce from 'lodash/debounce'
+import { downloadPDF } from 'src/utility'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
@@ -20,6 +31,7 @@ const BiologistDiaryReport = () => {
   const [biologistList, setBiologistList] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
     startDate: Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
@@ -171,39 +183,48 @@ const BiologistDiaryReport = () => {
       report_type: 'pdf',
       type: 'biologist'
     }
-
     try {
-      const response = await getDiaryReportList(params)
-      if (response?.success && response?.data?.download_url) {
-        const link = document.createElement('a')
-        link.href = response.data.download_url
-        link.download = 'Biologist_Diary_Report.pdf'
-        link.click()
-      } else {
-        console.error('Failed to download the report')
-      }
+        setIsDownloading(true)
+        await downloadPDF({
+          apiCall: getDiaryReportList,
+          params,
+          fileName: `biologist_report_${Date.now()}.pdf`
+        })
+
     } catch (error) {
-      console.error('Error while downloading the report:', error)
+      console.error('Error downloading report:', error)
+    } finally {
+        setIsDownloading(false)
     }
   }
 
   const headerAction = (
-    <Typography
-      onClick={handleDownloadReport}
-      sx={{
-        fontSize: '20px',
-        fontWeight: '400',
-        fontFamily: 'Inter',
-        color: '#006D35',
-        display: 'flex',
-        alignItems: 'center',
-        cursor: 'pointer',
-        mr: 4
-      }}
-    >
-      Download report
-      <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
-    </Typography>
+    <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
+      {isDownloading ? (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <CircularProgress size={24} />
+          <Typography sx={{ ml: 2, color: theme.palette.customColors.OnSurfaceVariant }}>
+            Preparing download...
+          </Typography>
+        </Box>
+      ) : (
+        <Typography
+          onClick={handleDownloadReport}
+          sx={{
+            fontSize: '20px',
+            fontWeight: '400',
+            fontFamily: 'Inter',
+            color: '#006D35',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          Download report
+          <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+        </Typography>
+      )}
+    </Box>
   )
 
   const columns = [
@@ -245,7 +266,7 @@ const BiologistDiaryReport = () => {
       sortable: false,
       renderCell: params => '-'
 
-    //   renderCell: params => <AnimalView data={params.row} />
+      //   renderCell: params => <AnimalView data={params.row} />
     },
     {
       flex: 0.3,

@@ -286,6 +286,45 @@ function hexToHex8(hex, opacity) {
   return `#${hex}${alpha}`
 }
 
+export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) => {
+  try {
+    // Call the API to get the download URL
+    const response = await apiCall(params)
+
+    if (response?.success && response?.data?.download_url) {
+      // Fetch the file as a blob
+      const fileResponse = await fetch(response.data.download_url, {
+        method: 'GET',
+        headers
+      })
+
+      if (!fileResponse.ok) {
+        throw new Error(`HTTP error! status: ${fileResponse.status}`)
+      }
+
+      const blob = await fileResponse.blob()
+      const url = window.URL.createObjectURL(blob)
+
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName || `download_${Date.now()}.pdf` // Default filename if not provided
+      document.body.appendChild(link)
+
+      // Trigger the download
+      link.click()
+
+      // Clean up
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } else {
+      console.error('Failed to download the file')
+    }
+  } catch (error) {
+    console.error('Error while downloading the file:', error)
+  }
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -311,7 +350,8 @@ const Utility = {
   encryptData,
   decryptData,
   formatIdentifierType,
-  hexToHex8
+  hexToHex8,
+  downloadPDF
 }
 
 export default Utility
