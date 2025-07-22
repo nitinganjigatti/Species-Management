@@ -64,10 +64,15 @@
   width: 580px;
 }
 .export_dtl_list {
-  min-width: 420px;
+  width: 45%;
+  padding-right: 10px;
 }
 .other_dtl_list {
-  min-width: 400px;
+  width: 45%;
+  padding-right: 10px;
+}
+.MuiBox-root:has(.animl_dt) {
+  padding-top: 15px !important;
 }
 @media (min-width: 768px) and (max-width: 1023px) {
   .item_cls {
@@ -201,10 +206,12 @@
     margin-left: 2px;
   }
   .export_dtl_list {
-    min-width: 220px;
+    width: 45%;
+    padding-right: 10px;
   }
   .other_dtl_list {
-    min-width: 200px;
+    width: 45%;
+    padding-right: 10px;
   }
 }
 

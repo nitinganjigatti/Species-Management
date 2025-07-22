@@ -489,6 +489,7 @@ const AnimalsData = ({
           setCurrentSpeciesId={setCurrentSpeciesId}
           setSelectedSpeciesData={setSelectedSpeciesData}
           setSearchValue={setSearchValue}
+          shipmentId={shipmentId}
         />
       ) : shipmentId && action === 'details' ? (
         <SpeciesDetailsContainer
@@ -551,6 +552,7 @@ const AnimalsData = ({
           setSelectedSpeciesData={setSelectedSpeciesData}
           setSearchValue={setSearchValue}
           loader={loader}
+          shipmentId={shipmentId}
         />
       )}
       <AddAnimalCountDrawer

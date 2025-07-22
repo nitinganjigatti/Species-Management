@@ -22,7 +22,8 @@ const ExportPermitDrawer = ({
   loader,
   draftData,
   setDraftData,
-  setSearchValue
+  setSearchValue,
+  shipmentId
 }) => {
   const theme = useTheme()
 
@@ -80,7 +81,7 @@ const ExportPermitDrawer = ({
 
           <Box
             sx={{
-              padding: 2,
+              // padding: 2,
               gap: 2,
               display: 'flex',
               flexDirection: 'column'
@@ -116,6 +117,7 @@ const ExportPermitDrawer = ({
                       draftData={draftData}
                       setexportPermitDrawerOpen={setexportPermitDrawerOpen}
                       setSearchValue={setSearchValue}
+                      shipmentId={shipmentId}
                     />
                   ))}
 

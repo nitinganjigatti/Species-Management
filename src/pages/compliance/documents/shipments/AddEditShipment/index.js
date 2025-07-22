@@ -238,16 +238,18 @@ const AddEditShipment = () => {
           }}
           type='shipment'
         >
-          <AnimalsData
-            onEditClick={animalsEditRef}
-            showEditAnimals={showEditAnimals}
-            setShowEditAnimals={setShowEditAnimals}
-            shipmentId={id}
-            setTotalAnimals={setTotalAnimals}
-            setTotalSpecies={setTotalSpecies}
-            totalAnimals={totalAnimals}
-            totalSpecies={totalSpecies}
-          />
+          <Box className={expanded.includes('animals-details') && action !== 'details' ? 'animl_dt' : ''}>
+            <AnimalsData
+              onEditClick={animalsEditRef}
+              showEditAnimals={showEditAnimals}
+              setShowEditAnimals={setShowEditAnimals}
+              shipmentId={id}
+              setTotalAnimals={setTotalAnimals}
+              setTotalSpecies={setTotalSpecies}
+              totalAnimals={totalAnimals}
+              totalSpecies={totalSpecies}
+            />
+          </Box>
         </CustomAccordion>
       )}
 

@@ -3,6 +3,7 @@ import { Box, Typography, Paper, Chip, Collapse, Divider, Icon } from '@mui/mate
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ShippedAnimalsDrawer from '../drawer/ShippedAnimals'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
+import { useAuth } from 'src/hooks/useAuth'
 
 const SpeciesDetailsContainer = ({
   totalSpecies,
@@ -18,6 +19,8 @@ const SpeciesDetailsContainer = ({
 }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [shippedAnimalsDrawerOpen, setshippedAnimalsDrawerOpen] = useState(false)
+  const auth = useAuth()
+  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER // Get image paths from user data
 
   const handleShippedClick = () => {
     setshippedAnimalsDrawerOpen(true)
@@ -111,7 +114,10 @@ const SpeciesDetailsContainer = ({
           }}
         />
       </Box>
-      <ChevronRightIcon sx={{ fontSize: '30px', mt: 2 }} />
+
+      <Box display='flex' alignItems='center'>
+        <ChevronRightIcon sx={{ fontSize: '30px' }} />
+      </Box>
     </Box>
   )
 
@@ -209,6 +215,34 @@ const SpeciesDetailsContainer = ({
 
       return sum + (isNaN(totalCount) ? male + female + undetermined : totalCount)
     }, 0)
+    const getFileIcon = () => {
+      const fileName = (data?.attachment?.name || data?.attachment?.file_original_name || '').toLowerCase()
+      const ext = fileName?.split('.')?.pop()?.toLowerCase()
+
+      if (!ext) return imgPath?.default // Fallback if no extension found
+
+      if (['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'].includes(ext)) {
+        return imgPath?.image
+      }
+
+      if (['pdf'].includes(ext)) {
+        return imgPath?.pdf
+      }
+
+      if (['xls', 'xlsx'].includes(ext)) {
+        return imgPath?.xls
+      }
+
+      if (['doc', 'docx'].includes(ext)) {
+        return imgPath?.document
+      }
+
+      if (['mp3', 'wav', 'ogg'].includes(ext)) {
+        return imgPath?.audio
+      }
+
+      return imgPath?.default
+    }
     return (
       <>
         <Box>
@@ -231,7 +265,6 @@ const SpeciesDetailsContainer = ({
               </Box>{' '}
               ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
             </Typography>
-            {console.log(data, 'data')}
             {data?.attachment?.file_original_name ? (
               <Box display='flex' alignItems='center' gap={1}>
                 <Typography
@@ -245,7 +278,7 @@ const SpeciesDetailsContainer = ({
                     maxWidth: '200px'
                   }}
                 >
-                  <img src='/icons/pdf_icon2.svg' width='18px' />
+                  <img src={getFileIcon()?.image_path} width='18px' />
                 </Typography>
                 {/* <Typography
                   variant='body2'

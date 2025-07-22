@@ -157,10 +157,10 @@ const SpeciesAddEdit = ({
                   error: Boolean(errors.startDate),
                   helperText: errors.startDate,
                   sx: {
-                    '& .MuiInputBase-input': { padding: '14px' },
+                    '& .MuiInputBase-input': { padding: '17px' },
                     '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#44544a82' } },
                     width: '100%',
-                    height: '55px'
+                    height: '56px'
                   }
                 }
               }}
@@ -263,7 +263,7 @@ const SpeciesAddEdit = ({
                         }}
                       >
                         {/* Exporter Section */}
-                        <Box>
+                        <Box sx={{ width: '45%' }}>
                           <Typography sx={{ color: '#7A8684', fontWeight: '400' }}>Exporter</Typography>
                           <Typography sx={{ color: '#44544A', fontWeight: '500' }}>
                             {all?.exporter_name || 'N/A'}, {all.origin_country || 'N/A'}
@@ -274,7 +274,7 @@ const SpeciesAddEdit = ({
                         <ArrowForwardIcon sx={{ color: '#757575' }} />
 
                         {/* Importer Section */}
-                        <Box textAlign='right'>
+                        <Box sx={{ width: '45%' }}>
                           <Typography sx={{ color: '#7A8684', fontWeight: '400' }}>Importer</Typography>
                           <Typography sx={{ color: '#44544A', fontWeight: 500 }}>
                             {all?.importer_name
@@ -388,7 +388,9 @@ const SpeciesAddEdit = ({
                                   }}
                                 />
                               </Box>
-                              <ChevronRightIcon sx={{ fontSize: '30px', mt: 2 }} />
+                              <Box display='flex' alignItems='center'>
+                                <ChevronRightIcon sx={{ fontSize: '30px' }} />
+                              </Box>
                             </Box>
                           ))}
                         </Box>

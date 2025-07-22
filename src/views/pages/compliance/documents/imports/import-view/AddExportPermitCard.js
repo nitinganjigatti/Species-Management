@@ -49,10 +49,10 @@ const ExportCard = ({
       >
         {/* Left Section */}
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
-          <Typography variant='subtitle2' color='#7A8684' fontWeight='400'>
+          <Typography variant='subtitle2' color='#7A8684' fontWeight='400' sx={{ mb: 1 }}>
             Export ID : <span style={{ color: '#44544A', fontWeight: '500' }}>{exportNumber}</span>
           </Typography>
-          <Typography variant='body2' color='#7A8684' fontWeight='400'>
+          <Typography variant='body2' color='#7A8684' fontWeight='400' sx={{ mb: 3 }}>
             Exporter :{' '}
             <span style={{ color: '#44544A', fontWeight: '500' }}>
               {exporter},{exporterCountry}
@@ -102,7 +102,7 @@ const ExportCard = ({
         <Box
           sx={{
             background: '#F2FFF8',
-            height: '117px',
+            height: '121px',
             width: '45px',
             display: 'flex',
             alignItems: 'center',
