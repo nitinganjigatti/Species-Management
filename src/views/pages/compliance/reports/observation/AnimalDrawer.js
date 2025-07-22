@@ -107,7 +107,7 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
           default_icon: animal?.default_icon,
           total_animal: animal?.total_animal,
           local_identifier_name: animal?.local_identifier_name,
-          local_identifier_value: animal?.local_identifier_name
+          local_identifier_value: animal?.local_identifier_value
         }))
       ) || [],
     [data]

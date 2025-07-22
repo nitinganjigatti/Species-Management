@@ -341,13 +341,13 @@ const BiologistDiaryReport = () => {
     <>
       {userDetail ? (
         <Card>
-          <CardHeader title="Biologist's Diary Report" action={headerAction} />
-          <Box sx={{ py: '16px', px: '24px' }}>
+          <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
+          <Box sx={{ py: '16px', px: '22px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0 }}>
-            <Box sx={{ ml: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0, px: 4 }}>
+            <Box>
               <TextField
                 variant='outlined'
                 size='small'
@@ -366,7 +366,7 @@ const BiologistDiaryReport = () => {
                 sx={{
                   width: '320px',
                   backgroundColor: '#fff',
-                  ml: 4,
+                  ml: 2,
                   mt: 1,
                   borderRadius: '4px',
                   '& .MuiOutlinedInput-root': {
@@ -376,7 +376,7 @@ const BiologistDiaryReport = () => {
               />
             </Box>
 
-            <Box sx={{ mr: 5 }}>
+            <Box sx={{ mr: 1.5 }}>
               <CommonDateRangePickers
                 filterDates={filterDates}
                 onChange={handleDateRangeChange}

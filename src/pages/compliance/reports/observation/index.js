@@ -223,7 +223,7 @@ const ObservationReport = () => {
             <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
               {params?.row?.reported_by}
             </Typography>
-            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
               {Utility.convertUTCToLocaltime(params?.row?.date_time)}
             </Typography>
           </Box>
@@ -301,7 +301,6 @@ const ObservationReport = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  mb: 2,
                   borderRadius: '8px',
                   background: '#E8F4F2',
                   pl: 4
@@ -418,7 +417,7 @@ const ObservationReport = () => {
               default_icon: animal?.default_icon,
               total_animal: animal?.total_animal,
               local_identifier_name: animal?.local_identifier_name,
-              local_identifier_value: animal?.local_identifier_name
+              local_identifier_value: animal?.local_identifier_value
             })
           }
         />

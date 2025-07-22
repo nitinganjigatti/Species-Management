@@ -345,8 +345,8 @@ const KeeperDiaryReport = () => {
     <>
       {userDetail ? (
         <Card>
-          <CardHeader title='Keepers Diary Report' action={headerAction} />
-          <Box sx={{ py: '16px', px: '24px' }}>
+          <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
+          <Box sx={{ py: '16px', px: '22px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
 
@@ -359,8 +359,9 @@ const KeeperDiaryReport = () => {
               alignItems: 'center',
               flexDirection: { xs: 'column', sm: 'row' },
               gap: { xs: 2, sm: 0 },
-              p: 1,
-              ml: 3
+              px: 4
+
+              // ml: 3
             }}
           >
             {/* Search Box */}
@@ -392,7 +393,7 @@ const KeeperDiaryReport = () => {
               />
             </Box>
 
-            <Box sx={{ mr: 5 }}>
+            <Box sx={{ mr: 1.5 }}>
               <CommonDateRangePickers
                 filterDates={filterDates}
                 onChange={handleDateRangeChange}
