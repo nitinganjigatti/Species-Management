@@ -1,4 +1,4 @@
-import { Button, Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextField, Typography } from '@mui/material'
+import { Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
@@ -31,13 +31,25 @@ const SiteSheet = ({
     }
   }, [openSiteDrawer, selectedSites]) // Add selectedSites as a dependency
 
+  // const handleSelectAll = event => {
+  //   if (event.target.checked) {
+  //     setTempSelectedSites(sites.map(site => site.site_id))
+  //   } else {
+  //     setTempSelectedSites([])
+  //   }
+  // }
+
   const handleSelectAll = event => {
+    const filteredSiteIds = filteredSites.map(site => site.site_id)
     if (event.target.checked) {
-      setTempSelectedSites(sites.map(site => site.site_id))
+      // Add only filteredSiteIds (merge with previous)
+      setTempSelectedSites(prev => [...new Set([...prev, ...filteredSiteIds])])
     } else {
-      setTempSelectedSites([])
+      // Remove only filteredSiteIds from current selection
+      setTempSelectedSites(prev => prev.filter(site_id => !filteredSiteIds.includes(site_id)))
     }
   }
+
 
   const handleToggleSite = siteId => {
     if (tempSelectedSites.includes(siteId)) {
@@ -50,7 +62,7 @@ const SiteSheet = ({
   const filteredSites = sites.filter(site => site.site_name.toLowerCase().includes(searchValue.toLowerCase()))
 
   const handleConfirmSelection = () => {
-   
+
     const totalSites = [...sites] // Assuming sites is an array of objects
     const selectedArr = [...tempSelectedSites] // Array of selected site IDs
 
@@ -118,12 +130,16 @@ const SiteSheet = ({
       </Box>
 
       {/* Drawer Content */}
-      <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto' }}>
+      <Box sx={{
+        p: 5, pt: 0, backgroundColor: 'background.default', overflowY: 'auto', height: 'calc(100% - 50px)',
+      }}>
         <Box
           sx={{
             p: 3,
             flex: 1,
             width: '100%',
+            // maxHeight: ' 100vh',
+            height: 'calc(100% - 100px)',
             display: 'flex',
             backgroundColor: '#FFFF !important',
             flexDirection: 'column',
@@ -145,9 +161,15 @@ const SiteSheet = ({
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={tempSelectedSites.length === sites.length}
+                  // checked={tempSelectedSites.length === sites.length}
                   onChange={handleSelectAll}
-                  indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
+                  // indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
+                  checked={filteredSites.every(site => tempSelectedSites.includes(site.site_id))}
+                  indeterminate={
+                    filteredSites.some(site => tempSelectedSites.includes(site.site_id)) &&
+                    !filteredSites.every(site => tempSelectedSites.includes(site.site_id))
+                  }
+
                 />
               }
               label={
