@@ -23,6 +23,7 @@ import { getDiaryReportList } from 'src/lib/api/compliance/reports'
 import ObservationCard from 'src/views/utility/ObservationCard'
 import { debounce } from 'lodash'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
+import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 
 const KeeperDiaryReport = () => {
   const theme = useTheme()
@@ -112,7 +113,6 @@ const KeeperDiaryReport = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, p: 5 }}>
           <Avatar src={user?.user_profile_pic} sx={{ width: 56, height: 56 }} />
           <Box>
-           
             <Typography
               sx={{
                 fontFamily: 'Inter',
@@ -208,32 +208,41 @@ const KeeperDiaryReport = () => {
 
   const columns = [
     {
-      width: 120,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left' }}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.neutralSecondary,
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'default'
-            }}
-          >
-            {parseInt(params.row.sl_no) + '.'}
-          </Typography>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.neutralSecondary,
+            fontSize: '14px',
+            fontWeight: 500
+          }}
+        >
+          {parseInt(params.row.sl_no)}.
+        </Typography>
+      )
+    },
+    {
+      field: 'animal_name',
+      headerName: 'ANIMAL NAME',
+      flex: 2,
+      minWidth: 400,
+      sortable: false,
+      renderCell: params => (
+        <Box sx={{ p: '0.5rem', mt:2 }}>
+          <AnimalView data={params.row} />
         </Box>
       )
     },
-
     {
-      width: 350,
       field: 'ObservationType',
       headerName: 'Observation Type',
+      flex: 1,
+      minWidth: 250,
       renderCell: params => (
         <Box sx={{ p: '0.5rem' }}>
           <ObservationCard
@@ -244,11 +253,11 @@ const KeeperDiaryReport = () => {
         </Box>
       )
     },
-
     {
-      minWidth: 350,
       field: 'details',
       headerName: 'Details',
+      flex: 2,
+      minWidth: 300,
       headerAlign: 'left',
       align: 'left',
       renderCell: params => (
@@ -257,7 +266,10 @@ const KeeperDiaryReport = () => {
             sx={{
               fontSize: '16px',
               p: '0.5rem',
-              color: theme.palette.customColors.OnSurfaceVariant
+              color: theme.palette.customColors.OnSurfaceVariant,
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis'
             }}
           >
             {params.row.details}
@@ -265,25 +277,25 @@ const KeeperDiaryReport = () => {
         </Tooltip>
       )
     },
-
     {
-      minWidth: 270,
       field: 'sex',
       headerName: 'Sex',
+      flex: 0.5,
+      minWidth: 120,
       renderCell: params => (
         <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.sex ? params.row.sex : '-'}
+          {params.row.sex || '-'}
         </Typography>
       )
     },
-
     {
-      minWidth: 200,
       field: 'taxonomy',
       headerName: 'Taxonomy',
+      flex: 1,
+      minWidth: 160,
       renderCell: params => (
         <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.taxonomy ? params.row.taxonomy : '-'}
+          {params.row.taxonomy || '-'}
         </Typography>
       )
     }
@@ -369,6 +381,8 @@ const KeeperDiaryReport = () => {
                 }}
                 sx={{
                   width: { xs: '100%', sm: '320px' },
+                  ml: 2,
+                  mt: 1,
                   backgroundColor: '#fff',
                   borderRadius: '4px',
                   '& .MuiOutlinedInput-root': {
