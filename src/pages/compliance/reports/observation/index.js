@@ -15,6 +15,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import ObservationCard from 'src/views/utility/ObservationCard'
+import Search from 'src/views/utility/Search'
 
 const ObservationReport = () => {
   const theme = useTheme()
@@ -61,7 +62,7 @@ const ObservationReport = () => {
   )
 
   const fetchObservationReport = useCallback(
-    async (search = '') => {
+    async (q = '') => {
       try {
         setLoading(true)
 
@@ -72,7 +73,7 @@ const ObservationReport = () => {
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           report_type: 'json',
-          ...(search && { search })
+          ...(q && { q })
         }
 
         await getObservationReport(params).then(res => {
@@ -129,10 +130,10 @@ const ObservationReport = () => {
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
-      align: 'left',
-      headerAlign: 'left',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left' }}>
+        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -151,7 +152,7 @@ const ObservationReport = () => {
       width: 160,
       field: 'date',
       headerName: 'DATE',
-      sortable: true,
+      sortable: false,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -162,7 +163,7 @@ const ObservationReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.date}
+          {Utility.formatDisplayDate(params.row.date_time)}
         </Typography>
       )
     },
@@ -222,7 +223,7 @@ const ObservationReport = () => {
             <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
               {params?.row?.reported_by}
             </Typography>
-            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+            <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
               {params?.row?.time}
             </Typography>
           </Box>
@@ -252,8 +253,9 @@ const ObservationReport = () => {
 
     const params = {
       animal_id: selectedAnimal?.animal_id,
-      page_no: 1,
-      limit: total,
+
+      // page_no: 1,
+      // limit: total,
       q: searchValue,
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -295,7 +297,7 @@ const ObservationReport = () => {
       {selectedAnimal ? (
         <>
           <Card>
-            <CardHeader title="Biologist's Diary Report" action={headerAction} sx={{ px: 5 }} />
+            <CardHeader title='Observation Report' action={headerAction} sx={{ px: 5, pb: 0 }} />
             <Box sx={{ p: 5 }}>
               <Box
                 sx={{
@@ -305,14 +307,14 @@ const ObservationReport = () => {
                   mb: 2,
                   borderRadius: '8px',
                   background: '#E8F4F2',
-                  pl: 6
+                  pl: 4
                 }}
               >
                 <AnimalCard data={selectedAnimal} sx={{ border: 'none', background: 'none' }} animal={true} />
                 <Box
                   sx={{
                     backgroundColor: '#0000000D',
-                    height: { sm: '165px', xs: '190px' },
+                    height: { sm: '175px', xs: '190px' },
                     width: '70px',
                     display: 'flex',
                     alignItems: 'center',
@@ -338,30 +340,12 @@ const ObservationReport = () => {
               }}
             >
               <Box sx={{ width: '100%', px: 6 }}>
-                <TextField
-                  variant='outlined'
-                  size='small'
-                  value={searchValue}
+                <Search
                   onChange={handleSearchChange}
-                  placeholder='Search'
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }
-                  }}
-                  sx={{
-                    width: { xs: '100%', sm: '320px' },
-                    backgroundColor: '#fff',
-                    my: 0.5,
-                    borderRadius: '4px',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px'
-                    }
-                  }}
+                  placeholder='Search by date or observation type'
+                  value={searchValue}
+                  inputStyle={{ py: '10px', px: '12px' }}
+                  width='50%'
                 />
               </Box>
 
@@ -409,7 +393,7 @@ const ObservationReport = () => {
           <Card sx={{ p: 6 }}>
             <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
             <ReportCard
-              subtitle='No Animal selected'
+              subtitle='No Animal Selected'
               description='Select any animal to view its observation report'
               buttonText='SELECT ANIMAL'
               addHandler={reportCardEventHandler}
@@ -434,7 +418,10 @@ const ObservationReport = () => {
               site_name: animal?.site_name,
               type: animal?.type,
               sex: animal?.sex,
-              default_icon: animal?.default_icon
+              default_icon: animal?.default_icon,
+              total_animal: animal?.total_animal,
+              local_identifier_name: animal?.local_identifier_name,
+              local_identifier_value: animal?.local_identifier_name
             })
           }
         />

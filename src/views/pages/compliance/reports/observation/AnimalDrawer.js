@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Drawer, Typography, IconButton, CircularProgress, Button } from '@mui/material'
+import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Skeleton } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
@@ -22,7 +22,7 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
   const [localSearch, setLocalSearch] = useState('')
   const [internalSelected, setInternalSelected] = useState(null)
   const [activeTab, setActiveTab] = useState('all_animals')
-  const [horizontalLoading, setHorizontalLoading] = useState(false)
+  const [horizontalLoading, setHorizontalLoading] = useState(true)
   const [horizontalNavList, setHorizontalNavList] = useState([])
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
@@ -31,7 +31,6 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
   useEffect(() => {
     const getAnimalsHorizontalNavigation = async () => {
       try {
-        setHorizontalLoading(true)
         const params = {}
         const response = await getAnimalFilterList({ params })
         if (response?.success) {
@@ -105,7 +104,10 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
           site_name: animal?.site_name,
           type: animal?.type,
           sex: animal?.sex,
-          default_icon: animal?.default_icon
+          default_icon: animal?.default_icon,
+          total_animal: animal?.total_animal,
+          local_identifier_name: animal?.local_identifier_name,
+          local_identifier_value: animal?.local_identifier_name
         }))
       ) || [],
     [data]
@@ -167,7 +169,7 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
       }}
     >
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF' }}>
+        <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF' }}>
           <Typography
             sx={{
               fontSize: '24px',
@@ -199,45 +201,54 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
             pb: 4
           }}
         >
-          <Grid item size={{ xs: 12, sm: 10.5 }}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Search
               width='100%'
               placeholder='Search by Animal name, AID or Identifier'
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
+              inputStyle={{ py: '18px', px: '12px' }}
             />
           </Grid>
-          <Grid
+          {/* <Grid
             item
             size={{ xs: 12, sm: 1.5 }}
             sx={{
-              display: 'flex',
+              display: 'none',
               justifyContent: { xs: 'flex-end', sm: 'center' },
               mt: { xs: 2, sm: 0 }
             }}
           >
             <FilterButton />
-          </Grid>
+          </Grid> */}
         </Grid>
 
         <Box
           sx={{
             background: theme.palette.customColors.bodyBg,
             px: 4,
-            py: 3
+            pt: 3,
+            pb: 3
           }}
         >
           {horizontalLoading ? (
             <Box
               sx={{
                 display: 'flex',
-                justifyContent: 'center',
+                gap: 2,
+                pb: 1,
+                height: 48,
                 alignItems: 'center',
-                height: 48
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
+                '-ms-overflow-style': 'none'
               }}
             >
-              <CircularProgress size={24} />
+              {Array.from(new Array(4)).map((_, idx) => (
+                <Skeleton key={idx} variant='rectangular' width={150} height={40} sx={{ borderRadius: 1 }} />
+              ))}
             </Box>
           ) : (
             <Box
@@ -269,7 +280,15 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
                     flexShrink: 0,
                     border: 'none',
                     backgroundColor: activeTab === item.type ? '#1F515B' : '#0000000D',
-                    color: activeTab === item.type ? '#FFFFFF' : '#666666'
+                    color: activeTab === item.type ? '#FFFFFF' : '#666666',
+                    '&:hover':
+                      activeTab === item.type
+                        ? {
+                            backgroundColor: '#1F515B !important'
+                          }
+                        : {
+                            backgroundColor: '#e0ecee'
+                          }
                   }}
                 >
                   {item.label} {activeTab === item.type && total ? ` (${total})` : ''}
@@ -283,16 +302,16 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
           sx={{
             flex: 1,
             overflowY: 'auto',
-            px: 2,
+            px: 4,
             bgcolor: theme.palette.customColors.bodyBg,
-            p: 5,
             display: 'flex',
             flexDirection: 'column',
             gap: 4,
             minHeight: 0,
             '&::-webkit-scrollbar': { display: 'none' },
             scrollbarWidth: 'none',
-            '-ms-overflow-style': 'none'
+            '-ms-overflow-style': 'none',
+            py: 1
           }}
         >
           {isFetching && list.length === 0 ? (

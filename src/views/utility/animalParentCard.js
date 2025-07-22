@@ -21,7 +21,7 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '10px',
-            border: radio?.checked ? `1px solid #37BD69` : '1px solid #C3CEC7',
+            border: radio?.checked ? `1px solid #37BD69` : 'none',
             ...sx
           }}
         >

@@ -31,8 +31,9 @@ const AnimalCard = ({ data, size }) => {
         },
         padding: data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 0.4 : 0,
         width: 44,
-        height: 44,
-        border: '1px solid #C3CEC7'
+        height: 44
+
+        // border: '1px solid #C3CEC7'
       }}
       alt={data?.default_icon}
       src={data?.default_icon}
@@ -42,7 +43,7 @@ const AnimalCard = ({ data, size }) => {
   )
 
   return (
-    <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+    <Box sx={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
       {/* Avatar section */}
       <Box
         sx={{
