@@ -1,4 +1,4 @@
-import { Avatar, CircularProgress, Tooltip, Typography } from '@mui/material'
+import { Avatar, Skeleton, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -6,6 +6,7 @@ import { useTheme } from '@mui/material/styles'
 function SpeciesCard({ species }) {
   const theme = useTheme()
   const [loading, setLoading] = useState(true)
+  const [imgSrc, setImgSrc] = useState(species?.default_icon)
 
   const handleImageLoad = () => {
     setLoading(false)
@@ -13,114 +14,86 @@ function SpeciesCard({ species }) {
 
   const handleImageError = () => {
     setLoading(false)
+    setImgSrc('/images/housing/species-icon-colored.svg')
   }
 
   return (
-    // <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-    //   {species?.default_icon && (
-    //     <Avatar
-    //       sx={{
-    //         '& img': {
-    //           objectFit: 'inherit'
-    //         },
-    //         borderRadius:
-    //           species?.default_icon && species.default_icon.includes('.svg')
-    //             ? '50%'
-    //             : species?.default_icon
-    //             ? '50%'
-    //             : 'unset'
-    //       }}
-    //       src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-    //       alt={species.scientific_name}
-    //     />
-    //   )}
-    //   <Box>
-    //     <Tooltip title={species.common_name}>
-    //       <Typography
-    //         sx={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '16px',
-    //           fontWeight: 600
-    //         }}
-    //       >
-    //         {species.common_name ? species.common_name : '-'}
-    //       </Typography>
-    //     </Tooltip>
-    //     <Tooltip title={species.scientific_name}>
-    //       <Typography
-    //         sx={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '16px',
-    //           fontWeight: 400,
-    //           fontStyle: 'italic'
-    //         }}
-    //       >
-    //         {species.scientific_name ? species.scientific_name : '-'}
-    //       </Typography>
-    //     </Tooltip>
-    //   </Box>
-    // </Box>
-
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      {species?.default_icon && (
-        <Box sx={{ position: 'relative', width: 40, height: 40 }}>
-          {loading && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)'
-              }}
-            >
-              <CircularProgress size={20} />
-            </Box>
-          )}
-          <Avatar
-            sx={{
-              width: 40,
-              height: 40,
-              '& img': {
-                objectFit: 'inherit'
-              },
-              borderRadius:
-                species?.default_icon && species.default_icon.includes('.svg')
-                  ? '50%'
-                  : species?.default_icon
+
+      {loading ? <Skeleton variant='circular' width={40} height={40} animation='wave' /> :
+
+        <Avatar
+          sx={{
+            width: 40,
+            height: 40,
+            '& > img': {
+              objectFit:
+                species?.default_icon?.includes('class_images') && species?.default_icon?.endsWith('.svg') ? 'contain' : 'cover'
+            },
+            padding: species?.default_icon?.includes('class_images') && species?.default_icon?.endsWith('.svg') ? 0.4 : 0,
+            borderRadius:
+              species?.default_icon && species.default_icon.includes('.svg')
+                ? '50%'
+                : species?.default_icon
                   ? '50%'
                   : 'unset'
-            }}
-            src={species.default_icon || '/icons/species.svg'}
-            alt={species.scientific_name}
-            imgProps={{
+          }}
+          src={imgSrc}
+          alt={species.scientific_name}
+          slotProps={{
+            img: {
               onLoad: handleImageLoad,
               onError: handleImageError
-            }}
-          />
-        </Box>
-      )}
+            }
+          }}
+        />}
       <Box>
+
+        {/* {(species.primary_identifier_type && species.primary_identifier_value) && <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter',
+            color: theme.palette.primary.OnSurface
+          }}
+        >
+          {species.primary_identifier_type}: {species.primary_identifier_value}
+        </Typography>} */}
         <Tooltip title={species.common_name}>
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
-              fontWeight: 600
+              fontWeight: 600,
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}
           >
             {species.common_name ? species.common_name : '-'}
           </Typography>
         </Tooltip>
-        <Tooltip title={species.scientific_name}>
+        <Tooltip
+          title={
+            species.scientific_name ? species.scientific_name : species.complete_name ? species.complete_name : '-'
+          }
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: 400,
-              fontStyle: 'italic'
+              fontStyle: 'italic',
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}
           >
-            {species.scientific_name ? species.scientific_name : '-'}
+            {species.scientific_name ? species.scientific_name : species.complete_name ? species.complete_name : '-'}
           </Typography>
         </Tooltip>
       </Box>

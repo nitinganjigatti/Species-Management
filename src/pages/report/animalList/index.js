@@ -14,6 +14,7 @@ import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import Error404 from 'src/pages/404'
 import StickyTable from 'src/views/table/sticky-table'
 import { getAllAnimalReport, getAnimalReportById, getSpeciesListing } from 'src/lib/api/report'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const AnimalList = () => {
   const router = useRouter()
@@ -244,9 +245,6 @@ const AnimalList = () => {
     }))
   }
 
-  const getTotalSelectedFilters = selectedOptions => {
-    return Object.values(selectedOptions).filter(selected => selected.length > 0).length
-  }
 
   const fetchAndSetDataList = async (params, options = {}) => {
     const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
@@ -425,12 +423,26 @@ const AnimalList = () => {
     }
     return text
   }
+
   const getSpecificTotalSelectedFilters = selectedOptions => {
     return Object.values(selectedOptions).filter(items => {
       const filtered = items.filter(item => item !== 'All Sites' && item !== 'All Organizations')
       return filtered.length > 0
     }).length
   }
+
+  // const getTotalSelectedFilters = selectedOptions => {
+  //   return Object.values(selectedOptions).filter(selected => selected.length > 0).length
+  // }
+
+  const getTotalSelectedFilters = selectedOptions => {
+    return Object.values(selectedOptions)
+      .filter(selected => selected.length > 0)
+      .flat()
+      .length;
+  }
+
+
   const columns = headerList.map(header => {
     // Convert the key array to a string for field identification
     const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
@@ -445,78 +457,79 @@ const AnimalList = () => {
         disableColumnMenu: true,
         width: 300,
         renderCell: params => (
-          <CardHeader
-            avatar={
-              <img
-                src={params.row.default_icon}
-                alt={params.row.common_name}
-                style={{ width: 40, height: 40, borderRadius: '50%' }}
-              />
-            }
-            title={
-              params.row.primary_identifier_value ? (
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    fontFamily: 'Inter',
-                    color: theme.palette.primary.OnSurface
-                  }}
-                >
-                  {params.row.primary_identifier_type}: {params.row.primary_identifier_value}
-                </Typography>
-              ) : null
-            }
-            subheader={
-              <>
-                <Tooltip
-                  title={params.row.scientific_name.length > 25 ? params.row.scientific_name : null}
-                  placement='bottom'
-                >
-                  <Typography
-                    sx={{
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      fontFamily: 'Inter',
-                      color: theme.palette.customColors.customHeadingTextColor,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      textAlign: 'left',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis'
-                    }}
-                    variant='body2'
-                  >
-                    {truncateText(params.row.scientific_name, 25)}
-                  </Typography>
-                </Tooltip>
-                <Tooltip title={params.row.common_name.length > 25 ? params.row.common_name : null} placement='bottom'>
-                  <Typography
-                    sx={{
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      fontFamily: 'Inter',
-                      color: theme.palette.customColors.customHeadingTextColor,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      textAlign: 'left',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis'
-                    }}
-                    variant='body2'
-                  >
-                    {truncateText(params.row.common_name, 25)}
-                  </Typography>
-                </Tooltip>
-              </>
-            }
-          />
+          // <CardHeader
+          //   avatar={
+          //     <img
+          //       src={params.row.default_icon}
+          //       alt={params.row.common_name}
+          //       style={{ width: 40, height: 40, borderRadius: '50%' }}
+          //     />
+          //   }
+          //   title={
+          //     params.row.primary_identifier_value ? (
+          //       <Typography
+          //         sx={{
+          //           fontSize: '14px',
+          //           fontWeight: 500,
+          //           fontFamily: 'Inter',
+          //           color: theme.palette.primary.OnSurface
+          //         }}
+          //       >
+          //         {params.row.primary_identifier_type}: {params.row.primary_identifier_value}
+          //       </Typography>
+          //     ) : null
+          //   }
+          //   subheader={
+          //     <>
+          //       <Tooltip
+          //         title={params.row.scientific_name.length > 25 ? params.row.scientific_name : null}
+          //         placement='bottom'
+          //       >
+          //         <Typography
+          //           sx={{
+          //             cursor: 'pointer',
+          //             fontSize: '14px',
+          //             fontWeight: 500,
+          //             fontFamily: 'Inter',
+          //             color: theme.palette.customColors.customHeadingTextColor,
+          //             whiteSpace: 'nowrap',
+          //             overflow: 'hidden',
+          //             textOverflow: 'ellipsis',
+          //             textAlign: 'left',
+          //             overflow: 'hidden',
+          //             whiteSpace: 'nowrap',
+          //             textOverflow: 'ellipsis'
+          //           }}
+          //           variant='body2'
+          //         >
+          //           {truncateText(params.row.scientific_name, 25)}
+          //         </Typography>
+          //       </Tooltip>
+          //       <Tooltip title={params.row.common_name.length > 25 ? params.row.common_name : null} placement='bottom'>
+          //         <Typography
+          //           sx={{
+          //             cursor: 'pointer',
+          //             fontSize: '14px',
+          //             fontWeight: 500,
+          //             fontFamily: 'Inter',
+          //             color: theme.palette.customColors.customHeadingTextColor,
+          //             whiteSpace: 'nowrap',
+          //             overflow: 'hidden',
+          //             textOverflow: 'ellipsis',
+          //             textAlign: 'left',
+          //             overflow: 'hidden',
+          //             whiteSpace: 'nowrap',
+          //             textOverflow: 'ellipsis'
+          //           }}
+          //           variant='body2'
+          //         >
+          //           {truncateText(params.row.common_name, 25)}
+          //         </Typography>
+          //       </Tooltip>
+          //     </>
+          //   }
+          // />
+          <SpeciesCard species={params.row} />
         )
       }
     }
@@ -851,28 +864,50 @@ const AnimalList = () => {
                         Filter
                       </Typography>
 
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '6px',
-                          width: '29px',
-                          height: '27px',
-                          borderRadius: '69%',
-                          backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-                          color: theme.palette.customColors.OnPrimary,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {animalId
-                          ? getSpecificTotalSelectedFilters(selectedOptions)
-                          : getTotalSelectedFilters(selectedOptions)}
-                        {/* Replace this with the actual count from your state */}
-                      </Box>
+
+                      {animalId && getSpecificTotalSelectedFilters(selectedOptions) > 0
+                        ? <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '5px',
+                            right: '6px',
+                            width: '29px',
+                            height: '27px',
+                            borderRadius: '69%',
+                            backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                            color: theme.palette.customColors.OnPrimary,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 500
+                          }}
+                        >
+
+                          {getSpecificTotalSelectedFilters(selectedOptions)}
+                        </Box>
+                        : getTotalSelectedFilters(selectedOptions) > 0 &&
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '5px',
+                            right: '6px',
+                            width: '29px',
+                            height: '27px',
+                            borderRadius: '69%',
+                            backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                            color: theme.palette.customColors.OnPrimary,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 500
+                          }}
+                        >
+
+                          {getTotalSelectedFilters(selectedOptions)}
+                        </Box>}
+
                     </Button>
                     {
                       <FilterSheet
