@@ -252,13 +252,13 @@ const KeeperDiaryReport = () => {
               p: '0.5rem',
               color: theme.palette.customColors.OnSurfaceVariant,
               display: '-webkit-box',
-              WebkitLineClamp: 4, // Max 4 lines
+              WebkitLineClamp: 3, // Max 4 lines
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'normal',
               lineHeight: '2rem',
-              maxHeight: '7rem' // 4 lines * 1.5rem line-height
+              maxHeight: 'rem' // 4 lines * 1.5rem line-height
             }}
           >
             {params.row.details}

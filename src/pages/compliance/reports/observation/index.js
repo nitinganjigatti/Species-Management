@@ -194,16 +194,17 @@ const ObservationReport = () => {
           <Tooltip title={params.row.details || ''} arrow placement='bottom'>
             <Typography
               sx={{
-                fontSize: '14px',
-                fontWeight: 400,
+                fontSize: '16px',
+                p: '0.5rem',
                 color: theme.palette.customColors.OnSurfaceVariant,
                 display: '-webkit-box',
+                WebkitLineClamp: 3, // Max 4 lines
                 WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: 4,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'normal',
-                maxWidth: '100%'
+                lineHeight: '2rem',
+                maxHeight: 'rem' // 4 lines * 1.5rem line-height
               }}
             >
               {params.row.details}

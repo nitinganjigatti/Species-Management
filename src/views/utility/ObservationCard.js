@@ -34,7 +34,7 @@ const ObservationCard = ({ title, description, dateTime, containerStyle }) => {
       </Typography>
 
       <Tooltip title={description} arrow>
-        <Box sx={{ maxWidth: 300 }}>
+        <Box sx={{ maxWidth: 300, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {`${description}`.split(',').map((item, index) => (
             <Typography
               key={index}

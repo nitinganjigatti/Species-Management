@@ -260,18 +260,17 @@ const BiologistDiaryReport = () => {
             <Typography
               variant='body2'
               sx={{
+                fontSize: '16px',
+                p: '0.5rem',
                 color: theme.palette.customColors.OnSurfaceVariant,
-                px: '0.5rem',
-                py: '1rem',
                 display: '-webkit-box',
+                WebkitLineClamp: 3, // Max 4 lines
                 WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: 3, // Show ellipsis after 3 lines
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'normal',
-                lineHeight: '1.5', // 1.5 times font size
-                maxHeight: '4.5em', // 3 lines * 1.5 line-height
-                minHeight: '4.5em' // Prevent height fluctuation
+                lineHeight: '2rem',
+                maxHeight: 'rem' // 4 lines * 1.5rem line-height
               }}
             >
               {text}
