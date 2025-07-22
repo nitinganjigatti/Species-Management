@@ -2,12 +2,44 @@ import React, { useState } from 'react'
 import { Box, Typography, TextField, Button, Grid, CircularProgress, CardContent } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import moment from 'moment'
+import { useAuth } from 'src/hooks/useAuth'
 
 const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, loader }) => {
   const rawValue = airwaybillvalue || ''
   const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
   const formattedValue =
     removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
+  const auth = useAuth()
+  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER // Get image paths from user data
+
+  const getFileIcon = () => {
+    const fileName = (uploadedFile?.name || uploadedFile?.file_original_name || '').toLowerCase()
+    const ext = fileName?.split('.')?.pop()?.toLowerCase()
+
+    if (!ext) return imgPath?.default // Fallback if no extension found
+
+    if (['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'].includes(ext)) {
+      return imgPath?.image
+    }
+
+    if (['pdf'].includes(ext)) {
+      return imgPath?.pdf
+    }
+
+    if (['xls', 'xlsx'].includes(ext)) {
+      return imgPath?.xls
+    }
+
+    if (['doc', 'docx'].includes(ext)) {
+      return imgPath?.document
+    }
+
+    if (['mp3', 'wav', 'ogg'].includes(ext)) {
+      return imgPath?.audio
+    }
+
+    return imgPath?.default
+  }
   return (
     <>
       {!loader ? (
@@ -66,7 +98,7 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
                 }}
               >
                 <img
-                  src='/icons/pdf_icon2.svg'
+                  src={getFileIcon()?.image_path}
                   alt='PDF Icon'
                   width='18%'
                   style={{

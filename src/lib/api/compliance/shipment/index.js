@@ -65,9 +65,9 @@ export const getShipmentBasicDetails = async (id, params) => {
   return response.data
 }
 
-export const getExportAnimalList = async id => {
+export const getExportAnimalList = async (id, shipmentId) => {
   const response = await axiosGet({
-    url: `${GET_EXPORT_ANIMAL_LIST}/${id}`
+    url: `${GET_EXPORT_ANIMAL_LIST}/${id}/${shipmentId}`
   })
 
   return response.data

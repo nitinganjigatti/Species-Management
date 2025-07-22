@@ -2,15 +2,23 @@ import React from 'react'
 import { Box, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import moment from 'moment'
+import Utility from 'src/utility'
 
 const ObservationCard = ({ title, description, dateTime, containerStyle }) => {
   const theme = useTheme()
 
-  const formatDateTime = dateTimeStr => {
-    if (!dateTimeStr) return ''
+  const formatDateTime = dateTime => {
+    const formattedDateStr = Utility.convertUTCToLocalDateTime(dateTime)
 
-    return moment(dateTimeStr).format('D MMM YYYY • h:mm A')
+    // Split into date and time
+    const [date, time] = formattedDateStr.split(/(?<=^.{11})\s/) // Split after the first 11 chars (date part)
+
+    // Convert to IST using Intl.DateTimeFormat
+
+    return { date, time }
   }
+
+  const { date, time } = formatDateTime(dateTime)
 
   return (
     <Box sx={{ ...containerStyle }}>
@@ -26,35 +34,35 @@ const ObservationCard = ({ title, description, dateTime, containerStyle }) => {
       </Typography>
 
       <Tooltip title={description} arrow>
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontFamily: 'Inter',
-            color: theme.palette.customColors.OnSurfaceVariant,
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            maxWidth: 300, // Adjust as needed
-            whiteSpace: 'normal',
-            mb: 0.5
-          }}
-        >
-          {'• ' + `${description}`.split(',').join(' • ')}
-        </Typography>
+        <Box sx={{ maxWidth: 300, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          {`${description}`.split(',').map((item, index) => (
+            <Typography
+              key={index}
+              sx={{
+                fontSize: '14px',
+                fontFamily: 'Inter',
+                color: theme.palette.customColors.OnSurfaceVariant,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                whiteSpace: 'normal',
+                mb: 0.5
+              }}
+            >
+              • {item.trim()}
+            </Typography>
+          ))}
+        </Box>
       </Tooltip>
-
-      <Typography
-        sx={{
-          fontSize: '12px',
-          fontWeight: 400,
-          fontFamily: 'Inter',
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        {formatDateTime(dateTime)}
-      </Typography>
+      {dateTime && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>{date}</Typography>
+          <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>•</Typography>
+          <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>{time}</Typography>
+        </Box>
+      )}
     </Box>
   )
 }

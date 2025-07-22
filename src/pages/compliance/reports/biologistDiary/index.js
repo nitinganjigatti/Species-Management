@@ -4,11 +4,11 @@ import {
   Box,
   Card,
   CardHeader,
-  CircularProgress,
   Grid,
   IconButton,
   InputAdornment,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material'
 import { useEffect, useState, useCallback, useMemo } from 'react'
@@ -42,7 +42,7 @@ const BiologistDiaryReport = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 10
+    pageSize: 50
   })
 
   const [searchValue, setSearchValue] = useState('')
@@ -143,7 +143,7 @@ const BiologistDiaryReport = () => {
         <Box
           sx={{
             backgroundColor: '#e6f0ee',
-            height: '120px',
+            height: '98px',
             width: '70px',
             display: 'flex',
             alignItems: 'center',
@@ -252,11 +252,32 @@ const BiologistDiaryReport = () => {
       field: 'details',
       headerName: 'DETAILS',
       sortable: false,
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, p: '0.5rem' }}>
-          {params.row.details ? params.row.details : '-'}
-        </Typography>
-      )
+      renderCell: params => {
+        const text = params.row.details ? params.row.details : '-'
+
+        return (
+          <Tooltip title={text} enterDelay={500} arrow>
+            <Typography
+              variant='body2'
+              sx={{
+                fontSize: '16px',
+                p: '0.5rem',
+                color: theme.palette.customColors.OnSurfaceVariant,
+                display: '-webkit-box',
+                WebkitLineClamp: 3, // Max 4 lines
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal',
+                lineHeight: '2rem',
+                maxHeight: 'rem' // 4 lines * 1.5rem line-height
+              }}
+            >
+              {text}
+            </Typography>
+          </Tooltip>
+        )
+      }
     }
   ]
 
@@ -265,7 +286,6 @@ const BiologistDiaryReport = () => {
       sx={{
         fontSize: '24px',
         fontWeight: 500,
-        fontFamily: 'Inter',
         ml: '-12px',
         color: theme.palette.customColors.OnSurfaceVariant
       }}
@@ -320,19 +340,19 @@ const BiologistDiaryReport = () => {
     <>
       {userDetail ? (
         <Card>
-          <CardHeader title="Biologist's Diary Report" action={headerAction} />
-          <Box sx={{ p: 5 }}>
+          <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
+          <Box sx={{ py: '16px', px: '22px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0 }}>
-            <Box sx={{ ml: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0, px: 4 }}>
+            <Box>
               <TextField
                 variant='outlined'
                 size='small'
                 value={searchValue}
                 onChange={handleSearchChange}
-                placeholder='Search'
+                placeholder='Search by Entity or date'
                 slotProps={{
                   input: {
                     startAdornment: (
@@ -345,7 +365,7 @@ const BiologistDiaryReport = () => {
                 sx={{
                   width: '320px',
                   backgroundColor: '#fff',
-                  ml: 4,
+                  ml: 2,
                   mt: 1,
                   borderRadius: '4px',
                   '& .MuiOutlinedInput-root': {
@@ -355,7 +375,7 @@ const BiologistDiaryReport = () => {
               />
             </Box>
 
-            <Box sx={{ mr: 5 }}>
+            <Box sx={{ mr: 1.5 }}>
               <CommonDateRangePickers
                 filterDates={filterDates}
                 onChange={handleDateRangeChange}

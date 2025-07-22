@@ -42,7 +42,7 @@ const KeeperDiaryReport = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 10
+    pageSize: 50
   })
 
   const eventHandler = () => {
@@ -74,7 +74,9 @@ const KeeperDiaryReport = () => {
   }
 
   useEffect(() => {
-    getUserKeeperReport(searchValue)
+    if (userDetail) {
+      getUserKeeperReport(searchValue)
+    }
   }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize])
 
   const debouncedSearch = useCallback(
@@ -134,8 +136,8 @@ const KeeperDiaryReport = () => {
         <Box
           sx={{
             backgroundColor: '#e6f0ee',
-            height: '130px',
-            width: '60px',
+            height: '98px',
+            width: '70px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center', // ✅ Center horizontally
@@ -155,17 +157,11 @@ const KeeperDiaryReport = () => {
     setUserDrawer(false)
   }
 
-  // const downloadKeeperDiaryReport = ()=>{
-
-  // }
-
   const downloadKeeperDiaryReport = async () => {
     console.log('Selected >>', userDetail)
 
     const params = {
       user_id: userDetail?.user_id,
-      page_no: 1,
-      limit: total,
       q: searchValue,
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -186,22 +182,6 @@ const KeeperDiaryReport = () => {
   }
 
   const headerAction = (
-    // <Typography
-    //   onClick={''}
-    //   sx={{
-    //     fontSize: '20px',
-    //     fontWeight: '400',
-    //     fontFamily: 'Inter',
-    //     color: '#006D35',
-    //     display: 'flex',
-    //     alignItems: 'center',
-    //     cursor: 'pointer',
-    //     mr: 4
-    //   }}
-    // >
-    //   Download report
-    //   <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
-    // </Typography>
     <>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadKeeperDiaryReport} />
     </>
@@ -220,7 +200,8 @@ const KeeperDiaryReport = () => {
           sx={{
             color: theme.palette.customColors.neutralSecondary,
             fontSize: '14px',
-            fontWeight: 500
+            fontWeight: 500,
+            p: '16px'
           }}
         >
           {parseInt(params.row.sl_no)}.
@@ -229,12 +210,12 @@ const KeeperDiaryReport = () => {
     },
     {
       field: 'animal_name',
-      headerName: 'ANIMAL NAME',
+      headerName: 'Entity',
       flex: 2,
       minWidth: 400,
       sortable: false,
       renderCell: params => (
-        <Box sx={{ p: '0.5rem', mt:2 }}>
+        <Box sx={{ p: '0.5rem', mt: 2 }}>
           <AnimalView data={params.row} />
         </Box>
       )
@@ -243,9 +224,10 @@ const KeeperDiaryReport = () => {
       field: 'ObservationType',
       headerName: 'Observation Type',
       flex: 1,
+      sortable: false,
       minWidth: 250,
       renderCell: params => (
-        <Box sx={{ p: '0.5rem' }}>
+        <Box sx={{ p: 2 }}>
           <ObservationCard
             title={params.row.master_enrichment_type}
             description={params.row.child_enrichment_type}
@@ -257,8 +239,9 @@ const KeeperDiaryReport = () => {
     {
       field: 'details',
       headerName: 'Details',
+      sortable: false,
       flex: 2,
-      minWidth: 300,
+      minWidth: 350,
       headerAlign: 'left',
       align: 'left',
       renderCell: params => (
@@ -268,9 +251,14 @@ const KeeperDiaryReport = () => {
               fontSize: '16px',
               p: '0.5rem',
               color: theme.palette.customColors.OnSurfaceVariant,
+              display: '-webkit-box',
+              WebkitLineClamp: 3, // Max 4 lines
+              WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis'
+              textOverflow: 'ellipsis',
+              whiteSpace: 'normal',
+              lineHeight: '2rem',
+              maxHeight: 'rem' // 4 lines * 1.5rem line-height
             }}
           >
             {params.row.details}
@@ -281,21 +269,33 @@ const KeeperDiaryReport = () => {
     {
       field: 'sex',
       headerName: 'Sex',
+      sortable: false,
       flex: 0.5,
-      minWidth: 120,
-      renderCell: params => (
-        <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.sex || '-'}
-        </Typography>
-      )
+      minWidth: 160,
+
+      renderCell: params => {
+        const sex = params.row.sex
+        const capitalizedSex = sex ? sex.charAt(0).toUpperCase() + sex.slice(1).toLowerCase() : '-'
+
+        return (
+          <Typography
+            sx={{ fontSize: '16px', fontWeight: 400, pl: 2, color: theme.palette.customColors.OnSurfaceVariant }}
+          >
+            {capitalizedSex}
+          </Typography>
+        )
+      }
     },
     {
       field: 'taxonomy',
       headerName: 'Taxonomy',
+      sortable: false,
       flex: 1,
       minWidth: 160,
       renderCell: params => (
-        <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+        <Typography
+          sx={{ fontSize: '16px', fontWeight: 400, pl: 2, color: theme.palette.customColors.OnSurfaceVariant }}
+        >
           {params.row.taxonomy || '-'}
         </Typography>
       )
@@ -307,7 +307,6 @@ const KeeperDiaryReport = () => {
       sx={{
         fontSize: '24px',
         fontWeight: 500,
-        fontFamily: 'Inter',
         ml: '-12px',
         color: theme.palette.customColors.OnSurfaceVariant
       }}
@@ -346,8 +345,8 @@ const KeeperDiaryReport = () => {
     <>
       {userDetail ? (
         <Card>
-          <CardHeader title='Keepers Diary Report' action={headerAction} />
-          <Box sx={{ p: 5 }}>
+          <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
+          <Box sx={{ py: '16px', px: '22px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
 
@@ -360,7 +359,9 @@ const KeeperDiaryReport = () => {
               alignItems: 'center',
               flexDirection: { xs: 'column', sm: 'row' },
               gap: { xs: 2, sm: 0 },
-              p: 4
+              px: 4
+
+              // ml: 3
             }}
           >
             {/* Search Box */}
@@ -370,7 +371,7 @@ const KeeperDiaryReport = () => {
                 size='small'
                 value={searchValue}
                 onChange={e => handleSearchChange(e)}
-                placeholder='Search by Animal ID, Site, Enclosure, Section, Scientific/Common Name'
+                placeholder='Search by Entity or observation type'
                 slotProps={{
                   input: {
                     startAdornment: (
@@ -381,9 +382,8 @@ const KeeperDiaryReport = () => {
                   }
                 }}
                 sx={{
-                  width: { xs: '100%', sm: '320px' },
+                  width: { xs: '100%', sm: '350px' },
                   ml: 2,
-                  mt: 1,
                   backgroundColor: '#fff',
                   borderRadius: '4px',
                   '& .MuiOutlinedInput-root': {
@@ -393,7 +393,7 @@ const KeeperDiaryReport = () => {
               />
             </Box>
 
-            <Box sx={{ mt: { xs: 1, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
+            <Box sx={{ mr: 1.5 }}>
               <CommonDateRangePickers
                 filterDates={filterDates}
                 onChange={handleDateRangeChange}

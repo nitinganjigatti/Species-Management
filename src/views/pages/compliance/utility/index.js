@@ -16,7 +16,7 @@ export const DownloadReport = ({
 
   return (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center', mr: 4, ...containerStyles }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, ...containerStyles }}>
         {isDownloading ? (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <CircularProgress size={24} />

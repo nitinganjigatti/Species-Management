@@ -3,7 +3,7 @@ import { Box, Typography, IconButton } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
 
-const FileUpload = ({ name, file, onFileUpload }) => {
+const UploadDocument = ({ name, file, onFileUpload }) => {
   const auth = useAuth()
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER // Get image paths from user data
 
@@ -47,7 +47,7 @@ const FileUpload = ({ name, file, onFileUpload }) => {
   return (
     <Box
       sx={{
-        border: file?.file_original_name || file?.name ? '1px solid #C3CEC7' : '1px dashed #C3CEC7',
+        border: '1px solid #C3CEC7',
         padding: '13px',
         display: 'flex',
         alignItems: 'center',
@@ -56,7 +56,7 @@ const FileUpload = ({ name, file, onFileUpload }) => {
         borderRadius: '10px',
         position: 'relative',
         width: '100%',
-        maxWidth: '215px',
+        maxWidth: '255px',
         height: '51px',
         background: file?.file_original_name || file?.name ? '#F2FFF8' : '#fff'
       }}
@@ -64,12 +64,12 @@ const FileUpload = ({ name, file, onFileUpload }) => {
       {file?.file_original_name === null || file === null ? (
         <>
           <img
-            src='/icons/attach_file_add.svg'
+            src='/icons/attach_file_add_dark.svg'
             alt='Grocery Icon'
             width='20px'
-            style={{ marginRight: '15px', marginLeft: '10px' }}
+            style={{ marginRight: '15px', marginLeft: '5px', color: '#006D35' }}
           />
-          <Typography sx={{ color: '#839D8D', fontWeight: 400 }}> {name}</Typography>
+          <Typography sx={{ color: '#006D35', fontWeight: 500 }}> {name}</Typography>
           <input
             type='file'
             onChange={handleFileChange}
@@ -129,4 +129,4 @@ const FileUpload = ({ name, file, onFileUpload }) => {
   )
 }
 
-export default FileUpload
+export default UploadDocument

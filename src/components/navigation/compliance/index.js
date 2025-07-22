@@ -12,17 +12,20 @@ const composeComplianceNavigation = () => {
 
   const exports = {
     title: 'Export',
-    path: '/compliance/documents/exports'
+    path: '/compliance/documents/exports',
+    activeWhen: ['/compliance/documents/exports', '/compliance/documents/exports/AddEditExportPermit']
   }
 
   const imports = {
     title: 'Import',
-    path: '/compliance/documents/imports'
+    path: '/compliance/documents/imports',
+    activeWhen: ['/compliance/documents/imports', '/compliance/documents/imports/AddEditImport']
   }
 
   const shipments = {
     title: 'Shipment',
-    path: '/compliance/documents/shipments'
+    path: '/compliance/documents/shipments',
+    activeWhen: ['/compliance/documents/shipments', '/compliance/documents/shipments/AddEditShipment']
   }
 
   // const files = {
@@ -41,7 +44,7 @@ const composeComplianceNavigation = () => {
   // }
 
   const mastersParent = {
-    title: 'masters',
+    title: 'Masters',
     path: '/compliance/documents/masters',
     icon: '',
     children: []
@@ -63,7 +66,7 @@ const composeComplianceNavigation = () => {
   }
 
   const reportsParent = {
-    title: 'reports',
+    title: 'Reports',
     path: '/compliance/documents/reports',
     icon: '',
     children: []

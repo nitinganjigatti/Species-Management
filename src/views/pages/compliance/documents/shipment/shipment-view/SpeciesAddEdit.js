@@ -20,11 +20,11 @@ import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import LinkedShipmentsDrawer from '../drawer/LinkedShipmentsDrawer'
-import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
 import SpeciesDrawer from 'src/components/compliance/drawer/SpeciesDrawer'
 import AddAnimalsDrawer from '../drawer/AddAnimalsDrawer'
 import { getExportAnimalList } from 'src/lib/api/compliance/shipment'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
+import UploadDocument from 'src/views/forms/form-elements/file-uploader/UploadDocument'
 
 const SpeciesAddEdit = ({
   handleLinkedshipmentClick,
@@ -72,6 +72,7 @@ const SpeciesAddEdit = ({
   setSelectedSpeciesData,
   setSearchValue,
   setLoading,
+  shipmentId,
   loading,
   loader
 }) => {
@@ -136,7 +137,7 @@ const SpeciesAddEdit = ({
     try {
       setLoading(true)
       if (exportID) {
-        const response = await getExportAnimalList(exportID)
+        const response = await getExportAnimalList(exportID, shipmentId)
 
         setLoading(false)
         setexportAnimalData(response.data)
@@ -161,9 +162,9 @@ const SpeciesAddEdit = ({
   }
 
   return (
-    <Box component='form' sx={{ pt: 0 }}>
+    <Box sx={{ pt: 0 }}>
       <Box sx={{ mt: 0 }}>
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 5 }}>
           <Typography
             sx={{
               fontSize: '18px',
@@ -171,7 +172,7 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            Species count: <strong>{totalSpeciesCount > 0 ? totalSpeciesCount : '0'}</strong>
+            Species : <strong>{totalSpeciesCount > 0 ? totalSpeciesCount : '0'}</strong>
           </Typography>
           <Typography
             sx={{
@@ -180,7 +181,7 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            Animal count: <strong>{selectedExportData?.others?.length}</strong>
+            Animals : <strong>{selectedExportData?.others?.length}</strong>
           </Typography>
         </Box>
 
@@ -236,11 +237,11 @@ const SpeciesAddEdit = ({
                           </Typography>
                         </Box>
                         <Box display='flex' alignItems='center' gap={1} key={`export-${all.export_id}`}>
-                          <FileUpload
+                          <UploadDocument
                             key={`uploader-${all.export_id}`}
-                            name='(AWB) Airway Bill'
+                            name='Upload Export Permit'
                             onFileUpload={file => handleFileUpload(all.export_id, file)}
-                            file={all.attachment}
+                            file={all.attachment ? all.attachment : null}
                           />
                           <IconButton onClick={() => handleRemoveExportDataAtIndex(all.export_id)}>
                             <CloseIcon />
@@ -375,7 +376,9 @@ const SpeciesAddEdit = ({
                                   }}
                                 />
                               </Box>
-                              <ChevronRightIcon sx={{ fontSize: '30px', mt: 2 }} />
+                              <Box display='flex' alignItems='center'>
+                                <ChevronRightIcon sx={{ fontSize: '30px' }} />
+                              </Box>
                             </Box>
                           ))}
                         </Box>
@@ -504,7 +507,9 @@ const SpeciesAddEdit = ({
                               />
                             </Box>
 
-                            <ChevronRightIcon sx={{ fontSize: '30px', mt: 5, mr: 5 }} />
+                            <Box display='flex' alignItems='center'>
+                              <ChevronRightIcon sx={{ fontSize: '30px', mr: 5 }} />
+                            </Box>
                             <Box
                               display='flex'
                               alignItems='center'
@@ -619,6 +624,7 @@ const SpeciesAddEdit = ({
           loader={loader}
           setexportPermitDrawerOpen={setexportPermitDrawerOpen}
           setSearchValue={setSearchValue}
+          shipmentId={shipmentId}
         />
 
         <AddAnimalsDrawer

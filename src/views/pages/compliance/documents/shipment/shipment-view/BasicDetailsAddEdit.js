@@ -60,7 +60,7 @@ const BasicDetailsAddEdit = ({
 
   return (
     <>
-      <Grid container spacing={3}>
+      <Grid container spacing={2.8}>
         <Grid size={{ xs: 12, md: 2 }}>
           <FormControl fullWidth>
             {/* <InputLabel>Transport Type</InputLabel> */}
@@ -72,6 +72,8 @@ const BasicDetailsAddEdit = ({
                 background: '#0000000D',
                 border: 'none',
                 color: '#839D8D',
+                borderBottomRightRadius: '0px',
+                borderTopRightRadius: '0px',
                 '& .MuiSelect-select': {
                   color: '#839D8D'
                 },
@@ -92,24 +94,26 @@ const BasicDetailsAddEdit = ({
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
-          <TextField
-            fullWidth
-            label='Enter 11 digit (AWB) airway bill no.*'
-            variant='outlined'
-            value={airwaybillvalue}
-            onChange={handleAirwaybillChange}
-            error={Boolean(errors.airwaybillvalue)}
-            helperText={errors.airwaybillvalue}
-            slotProps={{
-              input: {
-                maxLength: 31,
-                style: { borderRadius: 6 }
-              }
-            }}
-          />
+          <Grid container spacing={3}>
+            <TextField
+              fullWidth
+              label='Enter 11 digit (AWB) airway bill no.*'
+              variant='outlined'
+              value={airwaybillvalue}
+              onChange={handleAirwaybillChange}
+              error={Boolean(errors.airwaybillvalue)}
+              helperText={errors.airwaybillvalue}
+              slotProps={{
+                input: {
+                  maxLength: 31,
+                  style: { borderRadius: 6, borderBottomLeftRadius: '0px', borderTopLeftRadius: '0px' }
+                }
+              }}
+            />
+          </Grid>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 6 }} sx={{ ml: 0 }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               label='Shipment Date*'
@@ -123,10 +127,10 @@ const BasicDetailsAddEdit = ({
                   error: Boolean(errors.startDate),
                   helperText: errors.startDate,
                   sx: {
-                    '& .MuiInputBase-input': { padding: '14px' },
+                    '& .MuiInputBase-input': { padding: '17px' },
                     '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#44544a82' } },
                     width: '100%',
-                    height: '55px'
+                    height: '56px'
                   }
                 }
               }}

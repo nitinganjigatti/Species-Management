@@ -5,14 +5,15 @@ import SiteSectionEnclosureCard from 'src/views/utility/SiteSectionEnclosureCard
 
 const ReportAnimalView = ({ data }) => {
   return (
-    <Box sx={{ py: '8px' }}>
+    <Box sx={{ py: '16px' }}>
       {data?.ref_type === 'animal' && (
         <AnimalCard
           data={{
             default_icon: data?.default_icon,
             sex: data.sex,
-
-            // animal_id: data.animal_id,
+            local_identifier_name: data.local_identifier_name,
+            local_identifier_value: data.local_identifier_value,
+            animal_id: data.animal_id,
             common_name: data.common_name,
             scientific_name: data.scientific_name,
             user_enclosure_name: data.enclosure,
