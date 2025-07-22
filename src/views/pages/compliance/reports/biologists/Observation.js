@@ -9,9 +9,9 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
 
   // Parse child enrichment types from comma-separated string
   const childEnrichmentTypes = child_enrichment_type
-    .split(',')
-    .map(item => item.trim())
-    .filter(item => item.length > 0)
+    ?.split(',')
+    ?.map(item => item.trim())
+    ?.filter(item => item.length > 0)
 
   // Format date and time
   const formatDateTime = dateTime => {
