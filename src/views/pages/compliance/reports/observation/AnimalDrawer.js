@@ -93,7 +93,23 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
     }
   }, [open, search, queryClient, remove])
 
-  const list = useMemo(() => data?.pages?.flatMap(page => page.animals) || [], [data])
+  const list = useMemo(
+    () =>
+      data?.pages?.flatMap(page =>
+        page.animals.map(animal => ({
+          animal_id: animal?.animal_id,
+          default_common_name: animal?.default_common_name,
+          scientific_name: animal?.complete_name,
+          user_enclosure_name: animal?.user_enclosure_name,
+          section_name: animal?.section_name,
+          site_name: animal?.site_name,
+          type: animal?.type,
+          sex: animal?.sex,
+          default_icon: animal?.default_icon
+        }))
+      ) || [],
+    [data]
+  )
   const total = useMemo(() => data?.pages?.[0]?.total_animal_count || 0, [data])
 
   const cooldownRef = useRef(false)

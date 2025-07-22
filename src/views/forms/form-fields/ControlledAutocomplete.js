@@ -21,6 +21,7 @@ const ControlledAutocomplete = ({
   renderOption = null,
   textFieldProps = {},
   autocompleteProps = {},
+  formHelperTextBackgroundColor = 'inherit',
   sx = {}
 }) => {
   if (!options) return
@@ -62,20 +63,33 @@ const ControlledAutocomplete = ({
                 error={Boolean(fieldError)}
                 helperText={fieldError?.value?.message || fieldError?.label?.message || fieldError?.message}
                 {...textFieldProps}
-                InputProps={{
-                  ...params.InputProps, // ensures dropdown arrow and anchor remain
-                  ...(textFieldProps?.InputProps || {}),
-                  sx: {
-                    ...params.InputProps?.sx,
-                    ...textFieldProps?.InputProps?.sx
-                  }
-                }}
-                InputLabelProps={{
-                  ...params.InputLabelProps,
-                  ...(textFieldProps?.InputLabelProps || {}),
-                  sx: {
-                    ...params.InputLabelProps?.sx,
-                    ...textFieldProps?.InputLabelProps?.sx
+                slotProps={{
+                  ...textFieldProps.slotProps,
+                  formHelperText: {
+                    sx: {
+                      backgroundColor: formHelperTextBackgroundColor, // Inherit background color from parent
+                      margin: 0,
+                      px: '14px',
+                      pt: '3px',
+                      ...textFieldProps.slotProps?.formHelperText?.sx
+                    },
+                    ...textFieldProps.slotProps?.formHelperText
+                  },
+                  input: {
+                    ...params.InputProps, // ensures dropdown arrow and anchor remain
+                    ...(textFieldProps?.slotProps?.input || {}),
+                    sx: {
+                      ...params.InputProps?.sx,
+                      ...textFieldProps?.slotProps?.input?.sx
+                    }
+                  },
+                  inputLabel: {
+                    ...params.InputLabelProps,
+                    ...(textFieldProps?.slotProps?.inputLabel || {}),
+                    sx: {
+                      ...params.InputLabelProps?.sx,
+                      ...textFieldProps?.slotProps?.inputLabel?.sx
+                    }
                   }
                 }}
               />

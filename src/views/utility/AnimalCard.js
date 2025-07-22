@@ -131,7 +131,7 @@ const AnimalCard = ({ data, size }) => {
           </Typography>
         )}
 
-        {data?.common_name && (
+        {(data?.common_name || data?.default_common_name) && (
           <Typography
             sx={{
               fontSize: '16px',
@@ -182,7 +182,7 @@ const AnimalCard = ({ data, size }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            <span>Breed: </span>
+            <span>Breed : </span>
             {data?.breed_name || '-'}
           </Typography>
         )}
@@ -195,7 +195,7 @@ const AnimalCard = ({ data, size }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            <span>Variant: </span>
+            <span>Variant : </span>
             {data?.morph_name || '-'}
           </Typography>
         )}
@@ -209,7 +209,7 @@ const AnimalCard = ({ data, size }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            <span> Encl: </span>
+            <span> Encl : </span>
             {data?.user_enclosure_name}
           </Typography>
         )}
@@ -223,7 +223,7 @@ const AnimalCard = ({ data, size }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            <span>Sec: </span> {data?.section_name}
+            <span>Sec : </span> {data?.section_name}
           </Typography>
         )}
 
@@ -236,7 +236,7 @@ const AnimalCard = ({ data, size }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            <span>Site: </span>
+            <span>Site : </span>
             {data?.site_name}
           </Typography>
         )}
