@@ -9,8 +9,9 @@ const UserCard = ({ name, uid, image, radio, role }) => {
     <Card
       sx={{
         boxShadow: 'none',
-        backgroundColor: 'white', // slightly off-white greenish tone
+        backgroundColor: radio?.checked ? '#F2FFF8' : 'white', // slightly off-white greenish tone
         display: 'flex',
+        border: radio?.checked ? '1px solid #37BD69' : 'white',
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',

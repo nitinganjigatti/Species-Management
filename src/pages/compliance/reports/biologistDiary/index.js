@@ -169,13 +169,13 @@ const BiologistDiaryReport = () => {
     setUserDrawer(false)
   }
 
-  const CardWrapper = ({ data }) => {
-    return (
-      <>
-        <UserSelectionCard user={data} />
-      </>
-    )
-  }
+  // const CardWrapper = ({ data }) => {
+  //   return (
+  //     <>
+  //       <UserSelectionCard user={data} />
+  //     </>
+  //   )
+  // }
 
   const handleDownloadReport = async () => {
     const params = {
@@ -327,7 +327,8 @@ const BiologistDiaryReport = () => {
         <Card>
           <CardHeader title="Biologist's Diary Report" action={headerAction} />
           <Box sx={{ p: 5 }}>
-            <CardWrapper key={userDetail.user_id} data={userDetail} />
+            <UserSelectionCard user={userDetail} />
+            {/* <CardWrapper key={userDetail.user_id} data={userDetail} /> */}
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0 }}>
