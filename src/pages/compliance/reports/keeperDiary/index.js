@@ -112,7 +112,7 @@ const KeeperDiaryReport = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, p: 5 }}>
           <Avatar src={user?.user_profile_pic} sx={{ width: 56, height: 56 }} />
           <Box>
-            {/* <Typography sx={{ fontSize: 12, color: '#555' }}>User ID: {user?.user_id}</Typography> */}
+           
             <Typography
               sx={{
                 fontFamily: 'Inter',
@@ -123,8 +123,8 @@ const KeeperDiaryReport = () => {
             >
               {user?.user_name}
             </Typography>
-            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-              Role: {user?.role_name || 'N/A'}
+            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              {user?.role_name || 'N/A'}
             </Typography>
           </Box>
         </Box>

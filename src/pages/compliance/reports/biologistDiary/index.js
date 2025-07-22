@@ -134,11 +134,6 @@ const BiologistDiaryReport = () => {
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                Role :
-              </Typography>
-              <Typography
-                sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-              >
                 {user?.role_name || '-'}
               </Typography>
             </Box>
@@ -328,7 +323,6 @@ const BiologistDiaryReport = () => {
           <CardHeader title="Biologist's Diary Report" action={headerAction} />
           <Box sx={{ p: 5 }}>
             <UserSelectionCard user={userDetail} />
-            {/* <CardWrapper key={userDetail.user_id} data={userDetail} /> */}
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0 }}>
