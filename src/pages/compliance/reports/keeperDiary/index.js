@@ -33,6 +33,7 @@ const KeeperDiaryReport = () => {
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [isDownloading, setIsDownloading] = useState(false)
+
   const [filterDates, setFilterDates] = useState({
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
@@ -423,7 +424,7 @@ const KeeperDiaryReport = () => {
         </Card>
       ) : (
         <Card sx={{ p: 6 }}>
-          <CardHeader title={title} />
+          <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
           <ReportCard
             subtitle='No Keeper selected'
             description=' Select any keeper to view report'

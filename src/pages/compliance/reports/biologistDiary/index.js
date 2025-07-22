@@ -385,7 +385,7 @@ const BiologistDiaryReport = () => {
         </Card>
       ) : (
         <Card sx={{ p: 6 }}>
-          <CardHeader title={title} />
+          <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
           <ReportCard
             subtitle='No Biologist selected'
             description='Select any biologist to view report'
