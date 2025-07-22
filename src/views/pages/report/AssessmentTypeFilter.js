@@ -188,7 +188,7 @@ function AssessmentTypeFilter({
       </Box>
 
       {/* Content */}
-      {assessmentcategoryLoading && assessmenttypeLoading ? (
+      {assessmentcategoryLoading || assessmenttypeLoading ? (
         <Box
           sx={{
             backgroundColor: 'background.default',
@@ -276,9 +276,8 @@ function AssessmentTypeFilter({
                               display: 'flex',
                               justifyContent: 'center',
                               alignItems: 'center',
-                              border: `1.5px solid ${
-                                isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
-                              }`
+                              border: `1.5px solid ${isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
+                                }`
                             }}
                           >
                             {isSelected && (
@@ -287,11 +286,10 @@ function AssessmentTypeFilter({
                                   height: '10px',
                                   width: '10px',
                                   borderRadius: '50%',
-                                  border: `1.5px solid ${
-                                    isSelected
+                                  border: `1.5px solid ${isSelected
                                       ? theme.palette.primary.main
                                       : theme.palette.customColors.neutralSecondary
-                                  }`,
+                                    }`,
                                   bgcolor: isSelected ? theme.palette.primary.main : 'transparent'
                                 }}
                               ></Box>
