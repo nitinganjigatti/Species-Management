@@ -26,23 +26,27 @@ const ObservationCard = ({ title, description, dateTime, containerStyle }) => {
       </Typography>
 
       <Tooltip title={description} arrow>
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontFamily: 'Inter',
-            color: theme.palette.customColors.OnSurfaceVariant,
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            maxWidth: 300, // Adjust as needed
-            whiteSpace: 'normal',
-            mb: 0.5
-          }}
-        >
-          {'• ' + `${description}`.split(',').join(' • ')}
-        </Typography>
+        <Box sx={{ maxWidth: 300 }}>
+          {`${description}`.split(',').map((item, index) => (
+            <Typography
+              key={index}
+              sx={{
+                fontSize: '14px',
+                fontFamily: 'Inter',
+                color: theme.palette.customColors.OnSurfaceVariant,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                whiteSpace: 'normal',
+                mb: 0.5
+              }}
+            >
+              • {item.trim()}
+            </Typography>
+          ))}
+        </Box>
       </Tooltip>
 
       <Typography

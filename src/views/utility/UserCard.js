@@ -16,8 +16,8 @@ const UserCard = ({ name, uid, image, radio, role }) => {
         justifyContent: 'space-between',
         width: '100%',
         minHeight: 80, // to increase overall height
-        px: 3,
-        py: 9,
+        px: 4,
+        py: 7,
         pb: 7
       }}
     >

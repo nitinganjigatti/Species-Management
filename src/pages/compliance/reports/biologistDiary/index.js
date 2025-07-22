@@ -42,7 +42,7 @@ const BiologistDiaryReport = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 10
+    pageSize: 50
   })
 
   const [searchValue, setSearchValue] = useState('')
@@ -265,7 +265,6 @@ const BiologistDiaryReport = () => {
       sx={{
         fontSize: '24px',
         fontWeight: 500,
-        fontFamily: 'Inter',
         ml: '-12px',
         color: theme.palette.customColors.OnSurfaceVariant
       }}
@@ -320,7 +319,7 @@ const BiologistDiaryReport = () => {
     <>
       {userDetail ? (
         <Card>
-          <CardHeader title="Biologist's Diary Report" action={headerAction} />
+          <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
           <Box sx={{ p: 5 }}>
             <UserSelectionCard user={userDetail} />
           </Box>
