@@ -357,14 +357,17 @@ const CommonDateRangePickers = ({
           <Box key={range.label}>
             <MenuItem
               key={range.label}
-              onClick={() => handleSelect(range)}
-              // eslint-disable-next-line lines-around-comment
-              // divider={index < dateRanges.length - 1}
+              onClick={() => {
+                if (!(useCustomText && range.label === customText)) {
+                  handleSelect(range)
+                }
+              }}
+              disabled={useCustomText && range.label === customText}
               sx={{
                 py: 3,
                 px: 6,
                 '&:hover': {
-                  backgroundColor: '#F8FAFB'
+                  backgroundColor: useCustomText && range.label === customText ? 'none' : '#F8FAFB'
                 }
               }}
             >

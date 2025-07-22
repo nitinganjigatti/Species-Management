@@ -75,8 +75,13 @@ const composeComplianceNavigation = () => {
   }
 
   const keeperDiary = {
-    title: 'Keepers Diary ',
+    title: 'Keepers Diary',
     path: '/compliance/reports/keeperDiary'
+  }
+
+  const biologistDiary = {
+    title: 'Biologist Diary',
+    path: '/compliance/reports/biologistDiary'
   }
 
   // Add all items under Documents
@@ -84,7 +89,7 @@ const composeComplianceNavigation = () => {
 
   mastersParent.children.push(masterdocuments, masterimports, masterexports)
 
-  reportsParent.children.push(observation, keeperDiary)
+  reportsParent.children.push(observation, keeperDiary, biologistDiary)
 
   const complianceNavigation = [complianceTitle, documentsParent]
 

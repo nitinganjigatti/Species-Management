@@ -1,5 +1,6 @@
 import {
   GET_ALL_USERS,
+  GET_ANIMAL_FILTERS_LISTS,
   GET_ANIMAL_LIST_FOR_OBSERVATION_REPORT,
   GET_KEEPER_REPORT,
   GET_OBSERVATION_REPORT
@@ -24,8 +25,15 @@ export async function getAnimalListForObservationReport(body) {
   return response?.data
 }
 
-export async function getObservationReport({ params }) {
+export async function getObservationReport(params) {
+  console.log(params, 'params from api')
   const response = await axiosGet({ url: `${GET_OBSERVATION_REPORT}`, params })
+
+  return response?.data
+}
+
+export async function getAnimalFilterList({ params }) {
+  const response = await axiosGet({ url: `${GET_ANIMAL_FILTERS_LISTS}`, params })
 
   return response?.data
 }

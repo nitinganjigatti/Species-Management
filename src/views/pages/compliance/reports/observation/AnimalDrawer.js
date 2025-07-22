@@ -9,29 +9,43 @@ import { Grid } from '@mui/system'
 import { debounce } from 'lodash'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import { getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
+import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
-
-const horizontalNav = [
-  { label: 'All', value: 'all' },
-  { label: 'Recently Added', value: 'recentlyAdded' },
-  { label: 'Under Treatment', value: 'underTreatment' },
-  { label: 'Recently Transported', value: 'recentlyTransported' }
-]
 
 const PAGE_SIZE = 10
 
-const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
+const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
   const [search, setSearch] = useState('')
   const [localSearch, setLocalSearch] = useState('')
   const [internalSelected, setInternalSelected] = useState(null)
-  const [activeTab, setActiveTab] = useState('all')
+  const [activeTab, setActiveTab] = useState('all_animals')
+  const [horizontalLoading, setHorizontalLoading] = useState(false)
+  const [horizontalNavList, setHorizontalNavList] = useState([])
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
+
+  useEffect(() => {
+    const getAnimalsHorizontalNavigation = async () => {
+      try {
+        setHorizontalLoading(true)
+        const params = {}
+        const response = await getAnimalFilterList({ params })
+        if (response?.success) {
+          setHorizontalNavList(response?.data)
+          setHorizontalLoading(false)
+        }
+      } catch (error) {
+        console.log('Error getting horizontal navigation list')
+        console.error(error)
+      }
+    }
+
+    getAnimalsHorizontalNavigation()
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -44,13 +58,13 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
   }
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Observation-Report', search],
+    queryKey: ['animal-List-Observation-Report', search, activeTab],
     queryFn: async ({ pageParam = 1 }) => {
       const params = {
         page_no: pageParam,
         limit: PAGE_SIZE,
         q: search,
-        type: 'all_animals',
+        type: activeTab,
         end_date: formatDate(new Date())
       }
       const res = await getAnimalListForObservationReport(params)
@@ -79,7 +93,23 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
     }
   }, [open, search, queryClient, remove])
 
-  const list = useMemo(() => data?.pages?.flatMap(page => page.animals) || [], [data])
+  const list = useMemo(
+    () =>
+      data?.pages?.flatMap(page =>
+        page.animals.map(animal => ({
+          animal_id: animal?.animal_id,
+          default_common_name: animal?.default_common_name,
+          scientific_name: animal?.complete_name,
+          user_enclosure_name: animal?.user_enclosure_name,
+          section_name: animal?.section_name,
+          site_name: animal?.site_name,
+          type: animal?.type,
+          sex: animal?.sex,
+          default_icon: animal?.default_icon
+        }))
+      ) || [],
+    [data]
+  )
   const total = useMemo(() => data?.pages?.[0]?.total_animal_count || 0, [data])
 
   const cooldownRef = useRef(false)
@@ -115,11 +145,10 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
 
   const handleTabClick = tabValue => {
     setActiveTab(tabValue)
-    setSearch('')
   }
 
   const onGenerateClick = () => {
-    setSelectedAnimal(internalSelected)
+    handleAnimalClick(internalSelected)
     onClose()
   }
 
@@ -151,7 +180,6 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
           </Typography>
           <IconButton
             onClick={() => {
-              setSelectedAnimal(null)
               setInternalSelected(null)
               onClose()
             }}
@@ -200,42 +228,55 @@ const AnimalDrawer = ({ open, onClose, selectedAnimal, setSelectedAnimal }) => {
             py: 3
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 2,
-              overflowX: 'auto',
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': {
-                display: 'none'
-              },
-              '-ms-overflow-style': 'none',
-              pb: 1
-            }}
-          >
-            {horizontalNav.map(item => (
-              <Button
-                key={item.value}
-                onClick={() => handleTabClick(item.value)}
-                sx={{
-                  textTransform: 'none',
-                  borderRadius: '2',
-                  px: 3,
-                  py: 1.5,
-                  fontWeight: 500,
-                  fontSize: '14px',
-                  whiteSpace: 'nowrap',
-                  minWidth: 'auto',
-                  flexShrink: 0,
-                  border: 'none',
-                  backgroundColor: activeTab === item.value ? '#1F515B' : '#0000000D',
-                  color: activeTab === item.value ? '#FFFFFF' : '#666666'
-                }}
-              >
-                {item.label} {typeof item.count === 'number' ? ` (${item.count})` : ''}
-              </Button>
-            ))}
-          </Box>
+          {horizontalLoading ? (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: 48
+              }}
+            >
+              <CircularProgress size={24} />
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': {
+                  display: 'none'
+                },
+                '-ms-overflow-style': 'none',
+                pb: 1
+              }}
+            >
+              {horizontalNavList.map((item, index) => (
+                <Button
+                  key={index}
+                  onClick={() => handleTabClick(item.type)}
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: '2',
+                    px: 3,
+                    py: 1.5,
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    whiteSpace: 'nowrap',
+                    minWidth: 'auto',
+                    flexShrink: 0,
+                    border: 'none',
+                    backgroundColor: activeTab === item.type ? '#1F515B' : '#0000000D',
+                    color: activeTab === item.type ? '#FFFFFF' : '#666666'
+                  }}
+                >
+                  {item.label} {activeTab === item.type && total ? ` (${total})` : ''}
+                </Button>
+              ))}
+            </Box>
+          )}
         </Box>
 
         <Box

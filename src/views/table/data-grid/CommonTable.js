@@ -21,7 +21,8 @@ const CommonTable = ({
   disablePagination = false, // New prop to control pagination
   maxHeight,
   rowHeight = 52,
-  externalTableStyle
+  externalTableStyle,
+  getRowHeight
 }) => {
   const theme = useTheme()
 
@@ -109,6 +110,7 @@ const CommonTable = ({
       checkboxSelection={checkBoxOption ? true : false}
       onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
       rowSelectionModel={selectedRows ? selectedRows : []}
+      getRowHeight={getRowHeight ? getRowHeight : null}
     />
   )
 }
