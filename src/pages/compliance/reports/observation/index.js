@@ -178,7 +178,7 @@ const ObservationReport = () => {
           <ObservationCard
             title={params.row.master_enrichment_type}
             description={params.row.child_enrichment_type}
-            containerStyle={{ my: 2 }}
+            containerStyle={{ my: 4 }}
           />
         </>
       )
@@ -297,7 +297,7 @@ const ObservationReport = () => {
       {selectedAnimal ? (
         <>
           <Card>
-            <CardHeader title='Observation Report' action={headerAction} sx={{ px: 5, pb: 0 }} />
+            <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
             <Box sx={{ p: 5 }}>
               <Box
                 sx={{
