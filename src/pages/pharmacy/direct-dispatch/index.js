@@ -64,7 +64,7 @@ const DirectDispatchList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
@@ -99,7 +99,7 @@ const DirectDispatchList = () => {
     setTotal(0)
     setFilterSwitch(false)
 
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
     setStatus(newValue)
   }
@@ -180,7 +180,7 @@ const DirectDispatchList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       const currentStatus = filterSwitch === true ? 'completed' : status
 
@@ -203,7 +203,7 @@ const DirectDispatchList = () => {
 
   const handleSwitchChange = event => {
     setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
 
     setFilterSwitch(prev => event.target.checked)

@@ -71,7 +71,7 @@ const ListOfPurchase = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [excelLoader, setExcelLoader] = useState(false)
@@ -188,7 +188,7 @@ const ListOfPurchase = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, filterDates) => {
       setSearchValue(q)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       try {
         await fetchTableData({ sort, q, column, filterDates })
         updateUrlParams({
@@ -221,7 +221,7 @@ const ListOfPurchase = () => {
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     if (startDate && endDate) {
       setFilterDates({
         startDate: Utility.formatDate(startDate),

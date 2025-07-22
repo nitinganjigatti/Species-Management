@@ -274,7 +274,7 @@ const ListOfStores = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -468,6 +468,7 @@ const ListOfStores = () => {
         // setTempPayload(null)
       } catch (error) {
         console.error(error)
+
         // handleResponse(response)
       }
     }

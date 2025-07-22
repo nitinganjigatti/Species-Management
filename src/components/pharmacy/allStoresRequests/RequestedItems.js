@@ -208,7 +208,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 25
+    pageSize: parseInt(router.query.limit) || 50
   })
   function loadServerRows(currentPage, data) {
     return data
@@ -947,13 +947,13 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           setRequestedItemsSubTab(newValue)
           setPaginationModel({
             page: 0,
-            pageSize: 25
+            pageSize: 50
           })
 
           updateUrlParams({
             requestedItemsSubTab: newValue,
             page: 0,
-            limit: 25
+            limit: 50
           })
         }}
         sx={{

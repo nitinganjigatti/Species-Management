@@ -317,7 +317,7 @@ const ListOfMedicine = () => {
       headerName: 'Action',
 
       renderCell: params => (
-        (<>
+        <>
           {selectedPharmacy.type === 'central' &&
             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
               <Box>
@@ -332,7 +332,7 @@ const ListOfMedicine = () => {
                 </IconButton>
               </Box>
             )}
-        </>)
+        </>
 
         //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
         //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
@@ -370,7 +370,7 @@ const ListOfMedicine = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
@@ -519,7 +519,7 @@ const ListOfMedicine = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
     setStatusFilter(newValue)
   }

@@ -882,6 +882,15 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     }
   }
 
+  const getStatusLabel = status =>
+    status === 'Broken' || status === 'Expired'
+      ? `Received (${status})`
+      : status === 'Missing'
+      ? `Dispute (${status})`
+      : status === 'Wrong Count'
+      ? `Dispute (Wrong Qty)`
+      : status
+
   const columns = [
     {
       width: 100,
@@ -1014,8 +1023,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                       ? `${
                           params?.row?.dispute_status === 'Dispute Resolved' ? 'Missing - Accepted' : 'Missing - Denied'
                         }`
-                      : params?.row?.status}
-                    {/* : params.row.status} */}
+                      : getStatusLabel(params?.row?.status)}
+
+                    {/* : params.row.status}  */}
                   </Typography>
                   {((params?.row?.dispute_status === 'Not Resolved' ||
                     params?.row?.dispute_status === 'Dispute Pending') &&
@@ -1472,7 +1482,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                 ? 'Missing - Accepted'
                                 : 'Missing - Denied'
                             }`
-                          : params?.row?.status}
+                          : getStatusLabel(params?.row?.status)}
                       </Typography>
                     )}
                   </Grid>

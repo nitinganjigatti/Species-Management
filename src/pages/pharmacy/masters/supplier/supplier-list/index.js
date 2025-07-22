@@ -32,7 +32,7 @@ const Supplier = () => {
   const [loader, setLoader] = useState(false)
   const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [searchText, setSearchText] = useState('')
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -266,7 +266,7 @@ const Supplier = () => {
           {loader ? (
             <FallbackSpinner />
           ) : (
-            (<Card>
+            <Card>
               <CardHeader
                 sx={{
                   display: 'flex',
@@ -331,7 +331,7 @@ const Supplier = () => {
                   setPaginationModel={setPaginationModel}
                 />
               </Grid>
-            </Card>)
+            </Card>
 
             // <TableWithFilter
             //   TableTitle={title}
@@ -356,7 +356,7 @@ const Supplier = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default Supplier

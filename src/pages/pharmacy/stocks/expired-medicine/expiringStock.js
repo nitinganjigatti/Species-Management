@@ -43,7 +43,7 @@ const ExpiringMedicine = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [searchTriggered, setSearchTriggered] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
@@ -685,7 +685,7 @@ const ExpiringMedicine = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default ExpiringMedicine

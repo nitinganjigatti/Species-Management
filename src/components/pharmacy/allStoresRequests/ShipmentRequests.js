@@ -70,7 +70,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [priority, setPriority] = useState(router.query.priority || 'all')
 
@@ -502,7 +502,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
                   label='Priority'
                   onChange={e => {
                     setPriority(e.target.value)
-                    setPaginationModel({ page: parseInt(0), pageSize: parseInt(10) })
+                    setPaginationModel({ page: 0, pageSize: 50 })
                   }}
                 >
                   <MenuItem value='all'>All</MenuItem>

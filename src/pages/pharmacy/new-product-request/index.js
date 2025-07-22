@@ -90,8 +90,6 @@ export default function NewProductList() {
 
   const authData = useContext(AuthContext)
 
-  console.log('Selected Pharmacy', authData.userData.modules.pharmacy_data.pharmacy)
-
   const handleRequestStatus = async (status, id, productDetails) => {
     const payload = {
       status: status,

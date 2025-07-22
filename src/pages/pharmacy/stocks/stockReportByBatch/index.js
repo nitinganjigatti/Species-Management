@@ -34,7 +34,7 @@ const ListOfStocksByBatch = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [total, setTotal] = useState(0)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
 
   const [stockId, setStockId] = useState('')
   const [loader, setLoader] = useState(false)

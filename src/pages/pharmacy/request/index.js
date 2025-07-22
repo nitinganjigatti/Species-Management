@@ -62,7 +62,7 @@ const RequestList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
@@ -84,7 +84,7 @@ const RequestList = () => {
     setTotal(0)
     setFilterSwitch(false)
     setFilterByStoreId('all')
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
     setSearchValue('')
@@ -254,7 +254,7 @@ const RequestList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate, filterByStoreId)
@@ -285,6 +285,7 @@ const RequestList = () => {
   }
 
   const routeToShipmentPage = params => {
+    debugger
     Router.push({
       pathname: `/pharmacy/request/${params.row?.id}`,
       query: {
@@ -327,10 +328,9 @@ const RequestList = () => {
   }
 
   const handleSwitchChange = event => {
-    console.log('event', event.target.checked)
     setTotal(0)
     setSearchValue('')
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterSwitch(prev => event.target.checked)
 
     if (event.target.checked === false) {
@@ -354,7 +354,7 @@ const RequestList = () => {
     setSearchValue('')
     if (days !== 'all') {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       const currentDate = new Date()
       const selectedDays = parseInt(days)
       let startDate
@@ -800,7 +800,7 @@ const RequestList = () => {
                         label='Filter by Stores'
                         onChange={e => {
                           setTotal(0)
-                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setPaginationModel({ page: 0, pageSize: 50 })
                           setFilterByStoreId(e.target.value)
                           setSearchValue('')
                         }}

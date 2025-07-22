@@ -75,7 +75,7 @@ const ReturnRequestList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
@@ -139,7 +139,7 @@ const ReturnRequestList = () => {
   useEffect(() => {
     if (router.query.status !== status) {
       // debugger
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       updateUrlParams({
         status: status,
         page: 0,
@@ -158,7 +158,7 @@ const ReturnRequestList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
@@ -279,7 +279,7 @@ const ReturnRequestList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       const currentStatus = filterSwitch === true ? 'completed' : status
       try {
@@ -310,7 +310,7 @@ const ReturnRequestList = () => {
 
   const handleSwitchChange = event => {
     setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterSwitch(prev => event.target.checked)
     if (event.target.checked === false) {
       setStatus(prev => 'all')
@@ -605,7 +605,7 @@ const ReturnRequestList = () => {
 
     if (days !== 'all') {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       const currentDate = new Date()
       const selectedDays = parseInt(days)
       let startDate
@@ -730,7 +730,7 @@ const ReturnRequestList = () => {
                         label='Filter by Stores'
                         onChange={e => {
                           setTotal(0)
-                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setPaginationModel({ page: 0, pageSize: 50 })
                           setFilterByStoreId(e.target.value)
                           setSearchValue('')
                         }}

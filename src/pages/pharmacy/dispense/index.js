@@ -50,7 +50,7 @@ function Dispense() {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -286,7 +286,7 @@ function Dispense() {
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       try {
         await getDipsense({ sort, q, column })

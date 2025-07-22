@@ -35,7 +35,7 @@ function Escrow({ value }) {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10
+    pageSize: parseInt(router.query.pageSize, 10) || 50
   })
 
   // const [stockType, setStockType] = useState( 'dispute')

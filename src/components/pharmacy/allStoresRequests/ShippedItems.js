@@ -26,7 +26,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   function loadServerRows(currentPage, data) {
