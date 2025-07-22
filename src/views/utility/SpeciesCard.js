@@ -49,16 +49,22 @@ function SpeciesCard({ species }) {
         />}
       <Box>
 
-        {/* {(species.primary_identifier_type && species.primary_identifier_value) && <Typography
-          sx={{
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter',
-            color: theme.palette.primary.OnSurface
-          }}
-        >
-          {species.primary_identifier_type}: {species.primary_identifier_value}
-        </Typography>} */}
+        {(species.primary_identifier_type && species.primary_identifier_value) &&
+          <Tooltip title={`${species.primary_identifier_type}: ${species.primary_identifier_value}`}><Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              color: theme.palette.primary.OnSurface,
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {species.primary_identifier_type}: {species.primary_identifier_value}
+          </Typography></Tooltip>}
         <Tooltip title={species.common_name}>
           <Typography
             sx={{
