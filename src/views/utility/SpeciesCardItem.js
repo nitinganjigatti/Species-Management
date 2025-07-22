@@ -47,7 +47,7 @@ const SpeciesCardItem = ({ species, children, theme, tempSelectedSpecies, select
                 ? '50%'
                 : 'unset'
           }}
-          src={species.default_icon ? species.default_icon : '/icons/species.svg'}
+          src={species.default_icon ? species.default_icon : '/icons/antz.svg'}
           alt={species.scientific_name}
         />
       </ListItemAvatar>
@@ -62,11 +62,14 @@ const SpeciesCardItem = ({ species, children, theme, tempSelectedSpecies, select
                   fontSize: '14px',
                   fontWeight: 400,
                   background: '#37bd6924',
-                  width: '24%',
+                  width: 'auto',
                   pl: '5px',
-                  py: '1px',
+                  pt: '1px',
+                  pb: '2px',
+                  pr: '6px',
                   borderRadius: '4px',
-                  mb: '2px'
+                  mb: '2px',
+                  display: 'inline-block'
                 }}
               >
                 Primary Diet
