@@ -41,7 +41,7 @@ const composeComplianceNavigation = () => {
   // }
 
   const mastersParent = {
-    title: 'masters',
+    title: 'Masters',
     path: '/compliance/documents/masters',
     icon: '',
     children: []
@@ -63,7 +63,7 @@ const composeComplianceNavigation = () => {
   }
 
   const reportsParent = {
-    title: 'reports',
+    title: 'Reports',
     path: '/compliance/documents/reports',
     icon: '',
     children: []

@@ -135,36 +135,42 @@ const UserDrawer = ({
 
   const RenderSidebarFooter = () => {
     return (
-      <Box
-        sx={{
-          position: 'relative',
-          right: 0,
-          height: '122px',
-          width: '100%',
-          maxWidth: '562px',
-          position: 'fixed',
-          bottom: 0,
-          px: 4,
-          py: '24px',
-          bgcolor: 'white',
-          alignItems: 'center',
-          justifyContent: 'center',
-          display: 'flex',
-          zIndex: 1234
-        }}
-      >
-        <LoadingButton
-          sx={{ height: '58px' }}
-          fullWidth
-          onClick={handleGenerateUser}
-          variant='contained'
-          type='submit'
-          size='large'
-          loading={loading}
-        >
-          {footerText}
-        </LoadingButton>
-      </Box>
+      <>
+        {selected && (
+          <>
+            <Box
+              sx={{
+                position: 'relative',
+                right: 0,
+                height: '122px',
+                width: '100%',
+                maxWidth: '562px',
+                position: 'fixed',
+                bottom: 0,
+                px: 4,
+                py: '24px',
+                bgcolor: 'white',
+                alignItems: 'center',
+                justifyContent: 'center',
+                display: 'flex',
+                zIndex: 1234
+              }}
+            >
+              <LoadingButton
+                sx={{ height: '58px' }}
+                fullWidth
+                onClick={handleGenerateUser}
+                variant='contained'
+                type='submit'
+                size='large'
+                loading={loading}
+              >
+                {footerText}
+              </LoadingButton>
+            </Box>
+          </>
+        )}
+      </>
     )
   }
 
@@ -183,7 +189,7 @@ const UserDrawer = ({
       }}
     >
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography
             sx={{
               fontSize: '24px',
@@ -204,16 +210,21 @@ const UserDrawer = ({
           container
           gap={1}
           sx={{
-            px: 5,
-            pt: 2,
-            pb: 1,
+            px: 4,
+            pt: 0,
+            pb: 4,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
           }}
         >
           <Grid size={{ xs: 12 }}>
-            <Search width={'100%'} onChange={handleSearchChange} onClear={handleSearchClear} />
+            <Search
+              width={'100%'}
+              onChange={handleSearchChange}
+              onClear={handleSearchClear}
+              inputStyle={{ py: '18px', px: '12px' }}
+            />
           </Grid>
         </Grid>
 
@@ -226,14 +237,16 @@ const UserDrawer = ({
             sx={{
               flex: 1,
               overflowY: 'auto',
-              px: 2,
+              px: 4,
               bgcolor: theme.palette.customColors.bodyBg,
-              mt: 6,
-              p: 5,
               display: 'flex',
               flexDirection: 'column',
               gap: 4,
-              maxHeight: '650px'
+              minHeight: 0,
+              '&::-webkit-scrollbar': { display: 'none' },
+              scrollbarWidth: 'none',
+              '-ms-overflow-style': 'none',
+              py: 4
             }}
           >
             {list.map(user => (

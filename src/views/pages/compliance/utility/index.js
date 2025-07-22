@@ -16,11 +16,11 @@ export const DownloadReport = ({
 
   return (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center', mr: 4, ...containerStyles }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mr: 1, ...containerStyles }}>
         {isDownloading ? (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <CircularProgress size={24} />
-            <Typography sx={{ ml: 2, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}>
+            <Typography sx={{ ml: 2, color: theme.palette.primary.dark, fontSize: '16px' }}>
               {customDownloadingText}
             </Typography>
           </Box>
