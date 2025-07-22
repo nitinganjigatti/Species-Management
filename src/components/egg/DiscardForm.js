@@ -194,7 +194,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
         setImgSrc('')
         setIsOpen(false)
         setLoader(false)
-        Toaster({ type: 'success', message: res?.message })
+        Toaster({ type: 'success', message: res?.message || 'Egg discarded successfully' })
 
         if (callApi) callApi('')
         if (getDetails) getDetails(eggID)

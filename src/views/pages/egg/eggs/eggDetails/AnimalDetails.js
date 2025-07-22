@@ -113,9 +113,8 @@ const AnimalDetails = ({ eggDetails }) => {
                       >
                         {(eggDetails?.animal_data?.local_identifier_name &&
                           eggDetails?.animal_data?.local_identifier_value &&
-                          `${eggDetails?.animal_data?.local_identifier_name}:${eggDetails?.animal_data?.local_identifier_value}`) ||
-                          '-'}
-                      </Typography>
+                          `${eggDetails?.animal_data?.local_identifier_name} : ${eggDetails?.animal_data?.local_identifier_value}`)}
+                      </Typography> 
                     )}
                 </Box>
               </Box>
