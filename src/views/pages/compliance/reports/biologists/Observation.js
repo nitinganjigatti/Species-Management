@@ -15,30 +15,20 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
 
   // Format date and time
   const formatDateTime = dateTime => {
-    const date = new Date(dateTime)
+    const formattedDateStr = Utility.convertUTCToLocalDateTime(dateTime)
+
+    // Split into date and time
+    const [date, time] = formattedDateStr.split(/(?<=^.{11})\s/) // Split after the first 11 chars (date part)
 
     // Convert to IST using Intl.DateTimeFormat
-    const options = {
-      timeZone: 'Asia/Kolkata', // Set time zone to IST
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }
 
-    const formatter = new Intl.DateTimeFormat('en-US', options)
-    const parts = formatter.formatToParts(date)
-    const time = `${parts.find(part => part.type === 'hour')?.value}:${parts.find(part => part.type === 'minute')?.value} ${parts.find(part => part.type === 'dayPeriod')?.value}`
-
-    return { time }
+    return { date, time }
   }
 
-  const { time } = formatDateTime(date_time)
+  const { date, time } = formatDateTime(date_time)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', p: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', px: 2, py: '16px' }}>
       {/* Header */}
       <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Enrichment
@@ -84,9 +74,7 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
 
       {/* Date and Time */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {Utility.formatDisplayDate(date_time)}
-        </Typography>
+        <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>{date}</Typography>
         <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>•</Typography>
         <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant }}>{time}</Typography>
       </Box>

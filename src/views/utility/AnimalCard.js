@@ -43,7 +43,7 @@ const AnimalCard = ({ data, size }) => {
   )
 
   return (
-    <Box sx={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+    <Box sx={{ display: 'flex', gap: '16px' }}>
       {/* Avatar section */}
       <Box
         sx={{

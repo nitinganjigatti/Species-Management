@@ -4,11 +4,11 @@ import {
   Box,
   Card,
   CardHeader,
-  CircularProgress,
   Grid,
   IconButton,
   InputAdornment,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material'
 import { useEffect, useState, useCallback, useMemo } from 'react'
@@ -143,7 +143,7 @@ const BiologistDiaryReport = () => {
         <Box
           sx={{
             backgroundColor: '#e6f0ee',
-            height: '120px',
+            height: '98px',
             width: '70px',
             display: 'flex',
             alignItems: 'center',
@@ -252,11 +252,33 @@ const BiologistDiaryReport = () => {
       field: 'details',
       headerName: 'DETAILS',
       sortable: false,
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, p: '0.5rem' }}>
-          {params.row.details ? params.row.details : '-'}
-        </Typography>
-      )
+      renderCell: params => {
+        const text = params.row.details ? params.row.details : '-'
+
+        return (
+          <Tooltip title={text} enterDelay={500} arrow>
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                px: '0.5rem',
+                py: '1rem',
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: 3, // Show ellipsis after 3 lines
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal',
+                lineHeight: '1.5', // 1.5 times font size
+                maxHeight: '4.5em', // 3 lines * 1.5 line-height
+                minHeight: '4.5em' // Prevent height fluctuation
+              }}
+            >
+              {text}
+            </Typography>
+          </Tooltip>
+        )
+      }
     }
   ]
 
@@ -319,8 +341,8 @@ const BiologistDiaryReport = () => {
     <>
       {userDetail ? (
         <Card>
-          <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
-          <Box sx={{ p: 5 }}>
+          <CardHeader title="Biologist's Diary Report" action={headerAction} />
+          <Box sx={{ py: '16px', px: '24px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
 
@@ -331,7 +353,7 @@ const BiologistDiaryReport = () => {
                 size='small'
                 value={searchValue}
                 onChange={handleSearchChange}
-                placeholder='Search'
+                placeholder='Search by Entity or date'
                 slotProps={{
                   input: {
                     startAdornment: (

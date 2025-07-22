@@ -136,8 +136,8 @@ const KeeperDiaryReport = () => {
         <Box
           sx={{
             backgroundColor: '#e6f0ee',
-            height: '130px',
-            width: '60px',
+            height: '98px',
+            width: '70px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center', // ✅ Center horizontally
@@ -345,8 +345,8 @@ const KeeperDiaryReport = () => {
     <>
       {userDetail ? (
         <Card>
-          <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
-          <Box sx={{ p: 5 }}>
+          <CardHeader title='Keepers Diary Report' action={headerAction} />
+          <Box sx={{ py: '16px', px: '24px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
 

@@ -163,7 +163,7 @@ const ObservationReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatDisplayDate(params.row.date_time)}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocalDateTime(params.row.date_time))}
         </Typography>
       )
     },
@@ -223,8 +223,8 @@ const ObservationReport = () => {
             <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
               {params?.row?.reported_by}
             </Typography>
-            <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-              {params?.row?.time}
+            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+              {Utility.convertUTCToLocaltime(params?.row?.date_time)}
             </Typography>
           </Box>
         </>
@@ -253,9 +253,6 @@ const ObservationReport = () => {
 
     const params = {
       animal_id: selectedAnimal?.animal_id,
-
-      // page_no: 1,
-      // limit: total,
       q: searchValue,
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
