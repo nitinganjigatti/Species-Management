@@ -4,6 +4,7 @@ import { useTheme } from '@emotion/react'
 
 const ReportCard = ({ subtitle, description, buttonText, addHandler }) => {
   const theme = useTheme()
+
   return (
     <Box
       sx={{
@@ -32,19 +33,23 @@ const ReportCard = ({ subtitle, description, buttonText, addHandler }) => {
       >
         {subtitle}
       </Typography>
-      <Typography
-        sx={{
-          fontSize: '14px',
-          color: theme.palette.customColors.secondaryBg,
-          fontWeight: 400,
-          fontFamily: 'Inter',
-          mt: 1
-        }}
-      >
-        {description}
-      </Typography>
+      <Box sx={{ width: '100%', maxWidth: 350, textAlign: 'center' }}>
+        <Typography
+          sx={{
+            fontSize: '14px',
+            color: theme.palette.customColors.secondaryBg,
+            fontWeight: 400,
+            fontFamily: 'Inter',
+            mt: 1,
+            wordBreak: 'break-word',
+            whiteSpace: 'pre-line'
+          }}
+        >
+          {description}
+        </Typography>
+      </Box>
       <Box sx={{ mt: 6 }}>
-        <Button variant='contained' onClick={addHandler}>
+        <Button variant='contained' onClick={addHandler} size='large'>
           {buttonText}
         </Button>
       </Box>

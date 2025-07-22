@@ -407,7 +407,7 @@ const ObservationReport = () => {
       ) : (
         <>
           <Card sx={{ p: 6 }}>
-            <CardHeader title={title} />
+            <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
             <ReportCard
               subtitle='No Animal selected'
               description='Select any animal to view its observation report'
