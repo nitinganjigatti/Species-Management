@@ -55,7 +55,7 @@ const AnimalCard = ({ data, size }) => {
         {avatarContent}
         <Avatar
           sx={{
-            width: 24,
+            width: data?.sex === 'undetermined' || data?.sex === 'indeterminate' ? 32 : 24,
             height: 24,
             bgcolor:
               data?.type === 'group'
