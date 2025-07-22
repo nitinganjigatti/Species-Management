@@ -198,7 +198,7 @@ const AnimalAssessment = () => {
           value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${
             // Number(assessment?.assessment_value) > 1 && assessment?.uom_abbr ? 's' : ''
             ''
-          }`,
+            }`,
           date: moment(
             Utility.convertUTCToLocalDate(
               assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time
@@ -272,7 +272,7 @@ const AnimalAssessment = () => {
         },
         disableColumnMenu: true,
         renderCell: params => {
-          return <AnimalParentCard data={params?.row} />
+          return <AnimalParentCard sx={{ border: 'none' }} data={params?.row} />
         }
       }
     }
