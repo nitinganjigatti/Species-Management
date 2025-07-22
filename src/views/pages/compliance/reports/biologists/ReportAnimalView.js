@@ -5,7 +5,7 @@ import SiteSectionEnclosureCard from 'src/views/utility/SiteSectionEnclosureCard
 
 const ReportAnimalView = ({ data }) => {
   return (
-    <Box>
+    <Box sx={{ py: '8px' }}>
       {data?.ref_type === 'animal' && (
         <AnimalCard
           data={{
@@ -13,8 +13,7 @@ const ReportAnimalView = ({ data }) => {
             sex: data.sex,
 
             // animal_id: data.animal_id,
-            animal_name: data.common_name,
-            animal_number: data.animal_number,
+            common_name: data.common_name,
             scientific_name: data.scientific_name,
             user_enclosure_name: data.enclosure,
             section_name: data.section,
