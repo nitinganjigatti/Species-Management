@@ -540,6 +540,20 @@ export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 
 export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
 
+export const GET_SITES_LIST_CLUSTER_WISE = `cluster/get-site-list-for-cluster-assign`
+
+export const ADD_CLUSTER = `cluster/add-cluster`
+
+export const ADD_SECTION = `/zoos/createsection`
+
+export const ADD_ENCLOSURE_TO_HOUSING = `/enclosure/create-enclosure`
+
+export const GET_ENCLOSURE_SETTINGS = `/enclosure/settings`
+
+export const GET_SECTION_FOR_ENCLOSURE = `zoos/getsections`
+
+export const GET_PARENT_ENCLOSURE = `/enclosures`
+
 // Compliance  module
 
 export const GET_DOCUMENT_TYPE_LIST = 'v1/document-types'

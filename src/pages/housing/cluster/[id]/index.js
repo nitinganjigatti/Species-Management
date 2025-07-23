@@ -100,10 +100,10 @@ const ClusterDetails = () => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleHousingClick}>
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
             Cluster
           </Typography>
-          <Typography sx={{ color: 'text.primary' }}>Cluster Details</Typography>
+          <Typography color='text.primary'>Cluster Details</Typography>
         </Breadcrumbs>
         {/* <InsightsCard
         data={data?.data}

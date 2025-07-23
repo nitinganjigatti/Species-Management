@@ -107,6 +107,7 @@ const MediaListing = () => {
           <Tab value='video' label={getTabLabel('video', 'Videos')} />
         </Tabs>
       </Box>
+
       {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
         <Search
           value={localSearch}
@@ -115,23 +116,18 @@ const MediaListing = () => {
           placeholder='Search media…'
         />
       </Box> */}
+
       <Box sx={{ mt: 6 }}>
         <Grid container spacing={6}>
           {media.map(file => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.id}>
+            <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.id}>
               <MediaCard media={file} isBorderedCard />
             </Grid>
           ))}
         </Grid>
 
         {isFetching && media.length === 0 && (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              p: 2
-            }}
-          >
+          <Box display='flex' justifyContent='center' p={2}>
             <CircularProgress />
           </Box>
         )}
@@ -143,14 +139,7 @@ const MediaListing = () => {
         )}
 
         {(isFetchingNextPage || hasNextPage) && media.length > 0 && (
-          <Box
-            ref={loaderRef}
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              p: 2
-            }}
-          >
+          <Box ref={loaderRef} display='flex' justifyContent='center' p={2}>
             <CircularProgress />
           </Box>
         )}

@@ -15,6 +15,7 @@ import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
+import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
 
 const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing },
@@ -38,6 +39,8 @@ const SiteDetails = () => {
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
+  const [showAddSectionDrawer, setShowAddSectionDrawer] = useState(false)
+  const [addSuccessCheck, setAddSuccessCheck] = useState(false)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['site-detail', id],
@@ -131,64 +134,79 @@ const SiteDetails = () => {
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
   return (
-    <Box>
-      {/* Breadcrumb */}
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleHousingClick}>
-          Site
-        </Typography>
-        <Typography sx={{ color: 'text.primary' }}>Site Details</Typography>
-      </Breadcrumbs>
+    <>
+      <Box>
+        {/* Breadcrumb */}
+        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
+            Site
+          </Typography>
+          <Typography color='text.primary'>Site Details</Typography>
+        </Breadcrumbs>
 
-      {/* Insights */}
-      <InsightsCard
-        data={data?.data}
-        loading={isLoading}
-        zooName={data?.data?.site_name}
-        subtitle={data?.data?.site_description}
-        userName={data?.data?.incharges?.[0]?.full_name}
-        description={data?.data?.incharges?.[0]?.role_name}
-        userImage={data?.data?.incharges?.[0]?.user_profile_pic}
-        onCallClick={() => {
-          const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
-          if (phoneNumber) {
-            // window.location.href = `tel:${phoneNumber}`
-          } else {
-            return
-          }
-        }}
-        // onMessageClick={() => console.log('Message clicked')}
-        error={error}
-        statsData={statsData}
-      />
+        {/* Insights */}
+        <InsightsCard
+          data={data?.data}
+          loading={isLoading}
+          zooName={data?.data?.site_name}
+          subtitle={data?.data?.site_description}
+          userName={data?.data?.incharges?.[0]?.full_name}
+          description={data?.data?.incharges?.[0]?.role_name}
+          userImage={data?.data?.incharges?.[0]?.user_profile_pic}
+          actions={{
+            onAddNew: () => setShowAddSectionDrawer(true)
+          }}
+          onCallClick={() => {
+            const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
+            if (phoneNumber) {
+              // window.location.href = `tel:${phoneNumber}`
+            } else {
+              return
+            }
+          }}
+          // onMessageClick={() => console.log('Message clicked')}
+          error={error}
+          statsData={statsData}
+        />
 
-      {/* Tabs */}
-      <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-            {tabConfig.map(tab => (
-              <Tab key={tab.value} label={tab.label} value={tab.value} />
-            ))}
-          </Tabs>
-        </Box>
+        {/* Tabs */}
+        <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
+              {tabConfig.map(tab => (
+                <Tab key={tab.value} label={tab.label} value={tab.value} />
+              ))}
+            </Tabs>
+          </Box>
 
-        {/* Selected Tab Content */}
-        <Box>
-          <SelectedComponent
-            selectedTab={selectedTab}
-            setSelectedTab={setSelectedTab}
-            drawerType={drawerType}
-            setDrawerType={setDrawerType}
-            drawerData={drawerData}
-            setDrawerData={setDrawerData}
-          />
-        </Box>
-      </Card>
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'enclosures' && (
-        <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+          {/* Selected Tab Content */}
+          <Box>
+            <SelectedComponent
+              selectedTab={selectedTab}
+              setSelectedTab={setSelectedTab}
+              drawerType={drawerType}
+              setDrawerType={setDrawerType}
+              drawerData={drawerData}
+              setDrawerData={setDrawerData}
+              addSuccessCheck={addSuccessCheck}
+            />
+          </Box>
+        </Card>
+        {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+        {drawerType === 'enclosures' && (
+          <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+        )}
+      </Box>
+      {showAddSectionDrawer && (
+        <AddSectionDrawer
+          open={showAddSectionDrawer}
+          setShowAddSectionDrawer={setShowAddSectionDrawer}
+          selectedSiteId={id}
+          addSuccessCheck={addSuccessCheck}
+          setAddSuccessCheck={setAddSuccessCheck}
+        />
       )}
-    </Box>
+    </>
   )
 }
 

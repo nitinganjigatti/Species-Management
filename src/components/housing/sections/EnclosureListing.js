@@ -15,7 +15,15 @@ import AnimalDrawer from '../utils/AnimalDrawer'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 
-const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const EnclosureListing = ({
+  selectedTab,
+  setSelectedTab,
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData,
+  refetchEnclosure
+}) => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
@@ -34,8 +42,8 @@ const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerTy
     sortOrder: 'asc'
   })
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['enclosures', id, filters],
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['enclosures', id, filters, refetchEnclosure],
     queryFn: () =>
       getEnclosureListSectionWise({
         section_id: id,
@@ -48,6 +56,12 @@ const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerTy
     enabled: !!id,
     keepPreviousData: true
   })
+
+  useEffect(() => {
+    if (refetchEnclosure) {
+      refetch()
+    }
+  }, [refetchEnclosure, refetch])
 
   const listing = data?.data?.list_items || []
   const total = data?.data?.total_count || 0

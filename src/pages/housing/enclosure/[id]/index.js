@@ -78,10 +78,10 @@ const EnclsouerDetails = () => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={() => router.back()}>
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
             Enclosures
           </Typography>
-          <Typography sx={{ color: 'text.primary' }}>Enclosure Details</Typography>
+          <Typography color='text.primary'>Enclosure Details</Typography>
         </Breadcrumbs>
         <InsightsCard
           data={data?.data}

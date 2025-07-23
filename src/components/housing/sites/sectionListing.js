@@ -15,7 +15,15 @@ import EnclosureDrawer from '../utils/EnclosureDrawer'
 import SpeciesDrawer from '../utils/SpeciesDrawer'
 import AnimalDrawer from '../utils/AnimalDrawer'
 
-const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const SectionListing = ({
+  selectedTab,
+  setSelectedTab,
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData,
+  addSuccessCheck
+}) => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
@@ -33,7 +41,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
     sortOrder: 'asc'
   })
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, refetch } = useQuery({
     queryKey: ['sections', id, filters],
     queryFn: () =>
       getAllSections({
@@ -211,6 +219,12 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
     setDrawerData(null)
   }
 
+  useEffect(() => {
+    if (addSuccessCheck) {
+      refetch()
+    }
+  }, [addSuccessCheck, refetch])
+
   const columns = [
     {
       width: 90,
@@ -252,7 +266,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
           value={params.row.section_name}
           subtitle={''}
           imgUrl={params.row.images?.[0]?.file}
-          defaultImage={'/images/housing/sections.svg'}
+          defaultImage={'/images/housing/section-icon-colored.png'}
           defaultImageAlt={'Section'}
           avatarUrl={''}
           inchagename={''}
@@ -274,7 +288,8 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             display: 'flex',
             alignItems: 'center',
             cursor: 'pointer',
-            justifyContent: 'left'
+            justifyContent: 'left',
+            pl: 2
           }}
           onClick={e => {
             e.stopPropagation()
@@ -318,7 +333,8 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             display: 'flex',
             alignItems: 'center',
             cursor: 'pointer',
-            justifyContent: 'left'
+            justifyContent: 'left',
+            pl: 2
           }}
           onClick={e => {
             e.stopPropagation()
@@ -361,7 +377,8 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             display: 'flex',
             alignItems: 'center',
             cursor: 'default',
-            justifyContent: 'left'
+            justifyContent: 'left',
+            pl: 2
           }}
           onClick={e => {
             e.stopPropagation()
@@ -436,9 +453,9 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
         return isSmallScreen ? (
           phoneNumber ? (
             <Box
+              display='flex'
+              gap={4}
               sx={{
-                display: 'flex',
-                gap: 4,
                 width: '100%',
                 height: '100%',
                 display: 'flex',

@@ -1,13 +1,15 @@
 import React from 'react'
 import HeaderCard from './InsightsHeaderCard'
 import InfoStatCard from './InfoStatCard'
-import { alpha, Box, Card, Grid, IconButton, Typography } from '@mui/material'
+import { alpha, Box, Button, Card, Grid, IconButton, Typography } from '@mui/material'
 import UserInfoCard from './UserInfoCard'
 import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
 import InsertCommentOutlinedIcon from '@mui/icons-material/InsertCommentOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import InsightsCardSkeleton from './InsightsCardSkeleton'
+import Icon from 'src/@core/components/icon'
+import { AddBoxOutlined } from '@mui/icons-material'
 
 const InsightsCard = ({
   data,
@@ -32,8 +34,8 @@ const InsightsCard = ({
 
   if (error) {
     return (
-      <Card sx={{ p: 3, bgcolor: 'error' }}>
-        <Typography sx={{ color: 'error' }} variant='body1'>
+      <Card sx={{ p: 3, bgcolor: '#ffe6e6' }}>
+        <Typography color='error' variant='body1'>
           {error}
         </Typography>
       </Card>
@@ -76,10 +78,11 @@ const InsightsCard = ({
           }}
         />
       )}
+
       {/* Foreground content */}
       <Box sx={{ position: 'relative', zIndex: 2, p: 6 }}>
         {isListingPage && (
-          <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
             {/* <Box
               sx={{
                 p: 2,
@@ -94,29 +97,40 @@ const InsightsCard = ({
               }}
             >
               <InsightsOutlinedIcon />
-            </Box> */}
-            <Typography
-              sx={{
-                fontWeight: 600,
-                color: theme => theme.palette.common.white,
-                fontSize: '1.5rem'
-              }}
-            >
+            </Box>
+            <Typography sx={{ color: theme => theme.palette.common.white, fontSize: '1.5rem' }} fontWeight={600}>
               {pageTitle || ''}
             </Typography>
+            {/* {onAddNewClick && ( */}
+            {/* <Box>
+              <Button
+                variant='text'
+                onClick={onAddNewClick}
+                endIcon={
+                  <Icon icon='mdi-plus' width={25} height={25} color={theme.palette.customColors.PrimaryContainer} />
+                }
+                sx={{
+                  color: theme.palette.customColors.PrimaryContainer,
+                  fontWeight: 400,
+                  fontSize: '1.1rem',
+                  textTransform: 'none'
+                }}
+              >
+                {addNewLabel}
+              </Button>
+            </Box> */}
           </Box>
         )}
-        {showHeader && <HeaderCard title={zooName || ''} subtitle={subtitle || ''} {...actions} />}
-
+        <HeaderCard
+          title={isListingPage ? pageTitle : zooName}
+          isListingPage={isListingPage}
+          subtitle={subtitle || ''}
+          {...actions}
+        />
         {showUserInfo && (
           <Box sx={{ mt: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <UserInfoCard avatarUrl={userImage || ''} name={userName || ''} description={description || ''} />
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 2
-              }}
-            >
+            <Box display='flex' gap={2}>
               {onCallClick && (
                 <IconButton
                   onClick={onCallClick}
@@ -146,7 +160,6 @@ const InsightsCard = ({
             </Box>
           </Box>
         )}
-
         {Array.isArray(statsData) && statsData.length > 0 && (
           <Box
             sx={{
@@ -159,13 +172,7 @@ const InsightsCard = ({
               WebkitBackdropFilter: 'blur(0.5rem)'
             }}
           >
-            <Grid
-              container
-              spacing={3}
-              sx={{
-                justifyContent: 'flex-start'
-              }}
-            >
+            <Grid container spacing={3} justifyContent='flex-start'>
               {statsData.map((item, index) => {
                 const length = statsData.length
 
@@ -186,14 +193,7 @@ const InsightsCard = ({
                 }
 
                 return (
-                  <Grid
-                    size={{ xs: xs, sm: sm, md: md }}
-                    key={index}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-start'
-                    }}
-                  >
+                  <Grid item size={{ xs: xs, sm: sm, md: md }} key={index} display='flex' justifyContent='flex-start'>
                     <InfoStatCard
                       imagePath={item.imagePath}
                       value={item.value}

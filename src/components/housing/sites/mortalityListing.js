@@ -161,7 +161,7 @@ const MortalityListing = () => {
         />
       )
     },
-   {
+    {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',

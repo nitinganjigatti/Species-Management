@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { axiosGet, axiosPost } from '../utility'
+import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 import {
   GET_ALL_SECTIONS,
   GET_SITES,
@@ -18,11 +18,25 @@ import {
   GET_ENCLOSURE_WISE_SPECIES,
   SECTION_INSIGHTS,
   SECTION_GET_ANIMAL_TREATMENT,
-  GET_ALL_ENCLOSURES
+  GET_ALL_ENCLOSURES,
+  GET_SITES_LIST_CLUSTER_WISE,
+  ADD_CLUSTER,
+  ADD_SECTION,
+  CREATE_SITE,
+  ADD_ENCLOSURE_TO_HOUSING,
+  GET_ENCLOSURE_SETTINGS,
+  GET_SECTION_FOR_ENCLOSURE,
+  GET_PARENT_ENCLOSURE
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
   const response = await axiosGet({ url: `${HOUSING_SITE_ANALYTICS}/${id}` })
+
+  return response.data
+}
+
+export async function AddNewSite(params) {
+  const response = await axiosFormPost({ url: `${CREATE_SITE}`, body: params })
 
   return response.data
 }
@@ -127,4 +141,46 @@ export async function getEnclosureWiseSpecies(params = {}, id) {
   const response = await axiosGet({ url: `${GET_ENCLOSURE_WISE_SPECIES}/${id}`, params })
 
   return response?.data
+}
+
+export async function getSiteListClusterWise(params) {
+  const response = await axiosGet({ url: `${GET_SITES_LIST_CLUSTER_WISE}`, params })
+
+  return response?.data
+}
+
+export async function addCluster(params) {
+  const response = await axiosFormPost({ url: `${ADD_CLUSTER}`, body: params })
+
+  return response?.data
+}
+
+export async function addSection(params) {
+  const response = await axiosFormPost({ url: `${ADD_SECTION}`, body: params })
+
+  return response?.data
+}
+
+export async function addEnclosureToHousing(params) {
+  const response = await axiosFormPost({ url: `${ADD_ENCLOSURE_TO_HOUSING}`, body: params })
+
+  return response?.data
+}
+
+export async function getEnclosureSetting(params) {
+  const response = await axiosGet({ url: `${GET_ENCLOSURE_SETTINGS}`, params })
+
+  return response?.data
+}
+
+export async function getSectionsListingForEnclosure(params) {
+  const response = await axiosPost({ url: `${GET_SECTION_FOR_ENCLOSURE}`, body: params })
+
+  return response?.data
+}
+
+export async function getParentEnclosureList(params) {
+  const respponse = await axiosPost({ url: `${GET_PARENT_ENCLOSURE}`, body: params })
+
+  return respponse?.data
 }

@@ -90,14 +90,7 @@ const NotesListng = () => {
       headerName: 'Observation Name',
       renderCell: params => {
         return (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              width: '100%',
-              gap: 2
-            }}
-          >
+          <Box display='flex' alignItems='center' width='100%' gap={2}>
             <Typography
               sx={{
                 overflow: 'hidden',
@@ -159,14 +152,7 @@ const NotesListng = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: () => (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 3
-          }}
-        >
+        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
           <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
           <Box
             component='img'
