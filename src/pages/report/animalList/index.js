@@ -92,19 +92,6 @@ const AnimalList = () => {
     include_genus: 0
   })
 
-  // const [apiFilterParams, setApiFilterParams] = useState({
-  //   include_housing: 0,
-  //   include_enclosure: 0,
-  //   include_section: 0,
-  //   include_cluster: 0,
-  //   include_class: 0,
-  //   include_organization: 0,
-  //   include_order: 0,
-  //   include_family: 0,
-  //   include_genus: 0,
-  //   include_site: 0,
-  //   include_genus: 0
-  // })
 
   const handleClick = event => {
     if (animalId) {
@@ -545,7 +532,8 @@ const AnimalList = () => {
         let truncatedValue
         truncatedValue = params?.row[header?.key]
           ? String(header?.key) === 'accession_date'
-            ? moment(params?.row[header?.key]).format('DD-MMM-YYYY').toLocaleLowerCase()
+            // ? moment(params?.row[header?.key]).format('DD-MMM-YYYY').toLocaleLowerCase()
+            ? moment(params?.row[header?.key]).format('DD-MMM-YYYY')
             : truncateText(params?.row[header?.key], 20)
           : ''
 
