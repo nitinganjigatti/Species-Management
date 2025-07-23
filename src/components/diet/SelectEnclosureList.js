@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useCallback } from 'react'
+
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -9,16 +11,16 @@ import {
   ListItemText,
   ListItemAvatar,
   Checkbox,
-  Avatar,
   InputAdornment,
   IconButton,
   debounce,
   CardContent,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import React, { useState, useEffect, useCallback } from 'react'
+
 import Icon from 'src/@core/components/icon'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getEnclosureList } from 'src/lib/api/diet/dietList'
 
 const SelectEnclosureList = ({
@@ -289,56 +291,69 @@ const SelectEnclosureList = ({
         >
           {!loading ? (
             enclosuresData.length > 0 ? (
-              enclosuresData.map(enclosure => (
-                <ListItem
-                  key={enclosure.enclosure_id}
-                  sx={{
-                    pr: 1.5,
-                    pl: 3,
-                    mb: 4,
-                    height: '70px',
-                    border: '1px solid',
-                    borderColor: selectedEnclosures.includes(enclosure.enclosure_id)
-                      ? '#80E0A3'
-                      : theme.palette.customColors.OutlineVariant,
-                    borderRadius: '8px',
-                    bgcolor: selectedEnclosures.includes(enclosure.enclosure_id)
-                      ? theme.palette.customColors.OnBackground
-                      : 'transparent'
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar src={enclosure.image || '/default-site.jpg'} variant='rounded' />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={enclosure.user_enclosure_name}
-                    //secondary={enclosure.location || '-'}
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontWeight: 'bold',
-                          color: theme.palette.customColors.OnPrimaryContainer
-                        }
-                      },
-                      secondary: {
-                        sx: {
-                          color: theme.palette.customColors.OnSurfaceVariant
-                        }
-                      }
+              enclosuresData.map(enclosure => {
+                return (
+                  <ListItem
+                    key={enclosure.enclosure_id}
+                    sx={{
+                      pr: 1.5,
+                      pl: 3,
+                      mb: 4,
+                      height: '70px',
+                      border: '1px solid',
+                      borderColor: selectedEnclosures.includes(enclosure.enclosure_id)
+                        ? '#80E0A3'
+                        : theme.palette.customColors.OutlineVariant,
+                      borderRadius: '8px',
+                      bgcolor: selectedEnclosures.includes(enclosure.enclosure_id)
+                        ? theme.palette.customColors.OnBackground
+                        : 'transparent'
                     }}
+                  >
+                    <ListItemAvatar>
+                      {/* <Avatar sx={{ backgroundColor: theme.palette.customColors.displaybgPrimary, p: enclosure?.default_icon ? 0 : 2 }} src={enclosure?.default_icon || '/images/housing/site-icon-colored.svg'} variant='rounded'
+                      /> */}
+                      <FallbackAvatar
+                        src={enclosure?.default_icon}
+                        fallback='/images/housing/site-icon-colored.svg'
+                        variant='rounded'
+                        sx={{
+                          backgroundColor: theme.palette.customColors.displaybgPrimary,
+                          p: enclosure?.default_icon ? 0 : 2
+                        }}
+                      />
+
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={enclosure.user_enclosure_name}
+                      //secondary={enclosure.location || '-'}
+                      slotProps={{
+                        primary: {
+                          sx: {
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.OnPrimaryContainer
+                          }
+                        },
+                        secondary: {
+                          sx: {
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }
+                        }
+                      }}
 
                     // primaryTypographyProps={{
                     //   fontWeight: 'bold',
                     //   color: theme.palette.customColors.OnPrimaryContainer
                     // }}
                     // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
-                  />
-                  <Checkbox
-                    checked={selectedEnclosures.includes(enclosure.enclosure_id)}
-                    onChange={() => handleSiteCheckboxChange(enclosure.enclosure_id)}
-                  />
-                </ListItem>
-              ))
+                    />
+                    <Checkbox
+                      checked={selectedEnclosures.includes(enclosure.enclosure_id)}
+                      onChange={() => handleSiteCheckboxChange(enclosure.enclosure_id)}
+                    />
+                  </ListItem>
+                )
+              })
             ) : (
               <Typography sx={{ textAlign: 'center', mt: 15 }}>No Enclosure's found</Typography>
             )

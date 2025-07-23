@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useCallback } from 'react'
+
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -9,16 +11,15 @@ import {
   ListItemText,
   ListItemAvatar,
   Checkbox,
-  Avatar,
   InputAdornment,
   IconButton,
   debounce,
   CardContent,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import React, { useState, useEffect, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getSectionsList } from 'src/lib/api/diet/dietList'
 
 const SelectSectionList = ({
@@ -306,7 +307,16 @@ const SelectSectionList = ({
                   }}
                 >
                   <ListItemAvatar>
-                    <Avatar src={section.image || '/default-site.jpg'} variant='rounded' />
+                    {/* <Avatar sx={{ backgroundColor: theme.palette.customColors.displaybgPrimary, p: section?.default_icon ? 0 : 2 }} src={section.default_icon || '/images/housing/site-icon-colored.svg'} variant='rounded' /> */}
+                    <FallbackAvatar
+                      src={section.default_icon}
+                      fallback='/images/housing/site-icon-colored.svg'
+                      variant='rounded'
+                      sx={{
+                        backgroundColor: theme.palette.customColors.displaybgPrimary,
+                        p: section?.default_icon ? 0 : 2
+                      }}
+                    />
                   </ListItemAvatar>
                   <ListItemText
                     primary={section.section_name}
@@ -325,11 +335,11 @@ const SelectSectionList = ({
                       }
                     }}
 
-                    // primaryTypographyProps={{
-                    //   fontWeight: 'bold',
-                    //   color: theme.palette.customColors.OnPrimaryContainer
-                    // }}
-                    // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                  // primaryTypographyProps={{
+                  //   fontWeight: 'bold',
+                  //   color: theme.palette.customColors.OnPrimaryContainer
+                  // }}
+                  // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
                     checked={selectedSections.includes(section.section_id)}
