@@ -802,7 +802,6 @@ const AnimalAssessment = () => {
                         }}
                         sx={{
                           backgroundColor: theme.palette.primary.contrastText,
-
                           // borderRadius: '40px', // Applies to the container
                           '& .MuiOutlinedInput-root': {
                             width: '240px',
@@ -912,7 +911,7 @@ const AnimalAssessment = () => {
             </Box>
           </Card>
 
-          {!dataList?.length > 0 && (
+          {(!dataList?.length > 0 && !isLoading) && (
             <Box
               sx={{
                 mt: 4,
@@ -999,68 +998,3 @@ const AnimalAssessment = () => {
 }
 
 export default AnimalAssessment
-
-{
-  /* {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      alignItems: 'center',
-                      borderRadius: '8px',
-                      mr: 1
-                    }}
-                  >
-                    <Button
-                      onClick={() => setOpenFilterDrawer(true)}
-                      variant='outlined'
-                      sx={{
-                        width: '129px',
-                        height: '40px',
-                        display: 'flex',
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        borderRadius: '4px',
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        fontFamily: 'Inter',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 2,
-                        minWidth: '100px'
-                      }}
-                    >
-                      <img
-                        src='/images/filterIcon.png'
-                        style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
-                        alt='Filter Icon'
-                      />
-
-                      <Typography
-                        sx={{ color: theme.palette.primary.light, textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
-                      >
-                        Filter
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '6px',
-                          width: '29px',
-                          height: '27px',
-                          borderRadius: '69%',
-                          backgroundColor: theme.palette.primary.light,
-                          color: theme.palette.primary.contrastText,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {filterCount}
-                      </Box>
-                    </Button>
-                  </Box>
-                )} */
-}
