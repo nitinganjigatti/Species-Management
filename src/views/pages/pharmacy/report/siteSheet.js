@@ -50,6 +50,11 @@ const SiteSheet = ({
     }
   }
 
+  const handleClearFilter = () => {
+    setTempSelectedSites([]) // Clear temporary selection
+    setSearchValue('') // Clear search input
+    // setSelectedSites([]) // Clear selected sites in context
+  }
 
   const handleToggleSite = siteId => {
     if (tempSelectedSites.includes(siteId)) {
@@ -255,10 +260,15 @@ const SiteSheet = ({
           zIndex: 123
         }}
       >
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearFilter}>
+          CLEAR ALL
+        </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={() => handleConfirmSelection()}>
           Confirm
         </LoadingButton>
       </Box>
+
+
     </Drawer>
   )
 }

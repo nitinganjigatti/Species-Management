@@ -687,6 +687,7 @@ const SpeciesReport = () => {
                     <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
                       <Button
                         variant='outlined'
+                        disabled={isLoading}
                         onClick={() => setOpenSiteDrawer(true)}
                         sx={{
                           height: '40px',
@@ -860,28 +861,28 @@ const SpeciesReport = () => {
 
               <Box sx={{ width: '98%', margin: 4 }}>
                 <Box sx={{ borderRadius: '8px' }}>
-                  {columns.length > 0 ? (
-                    <StickyTable
-                      rows={reportRows}
-                      rowCount={total}
-                      rowHeight={70}
-                      headerHeight={47}
-                      pagination={true}
-                      columns={columns.length && columns}
-                      pageSizeOptions={[7, 10, 25, 50]}
-                      rowsInView={10}
-                      rowsInViewOptions={[5, 7, 10, 25, 50]}
-                      paginationModel={paginationModel}
-                      onPaginationModelChange={setPaginationModel}
-                      loading={isLoading}
-                      onRowClick={handleRowClick}
-                      downloadExcel
-                      headerName='Species'
-                      searchMode='server'
-                    />
-                  ) : <Box sx={{ py: 4, textAlign: 'center' }}>
+                  {/* {columns.length > 0 ? ( */}
+                  <StickyTable
+                    rows={reportRows}
+                    rowCount={total}
+                    rowHeight={70}
+                    headerHeight={47}
+                    pagination={true}
+                    columns={columns.length && columns}
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    rowsInView={10}
+                    rowsInViewOptions={[5, 7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={isLoading}
+                    onRowClick={handleRowClick}
+                    downloadExcel
+                    headerName='Species'
+                    searchMode='server'
+                  />
+                  {/* ) : <Box sx={{ py: 4, textAlign: 'center' }}>
                     <CircularProgress />
-                  </Box>}
+                  </Box>} */}
                 </Box>
               </Box>
             </TabContext>
