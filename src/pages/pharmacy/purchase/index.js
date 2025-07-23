@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
+import { getPurchaseList, printPurchaseInvoice } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
@@ -38,8 +38,9 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { ExportButton } from 'src/views/utility/render-snippets'
+import { ExportButton, FileDownloadButton } from 'src/views/utility/render-snippets'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import toast from 'react-hot-toast'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -77,6 +78,7 @@ const ListOfPurchase = () => {
   const [excelLoader, setExcelLoader] = useState(false)
   const [suppliers, setSuppliers] = useState([])
   const [selectedSupplier, setSelectedSupplier] = useState(router.query.supplier || 'All')
+  const [invoicePrintLoaderId, setInvoicePrintLoaderId] = useState(null)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -248,6 +250,26 @@ const ListOfPurchase = () => {
     }
   }
 
+  const printInventory = async purchaseId => {
+    try {
+      setInvoicePrintLoaderId(purchaseId)
+      const printInvoice = await printPurchaseInvoice(purchaseId)
+      if (printInvoice?.success && printInvoice?.data) {
+        window.open(printInvoice?.data, '_blank')
+        toast.success(printInvoice?.message)
+        setInvoicePrintLoaderId(null)
+      } else {
+        toast.error(printInvoice?.message)
+        setInvoicePrintLoaderId(null)
+      }
+    } catch (error) {
+      toast.error(error?.message)
+      setInvoicePrintLoaderId(null)
+    } finally {
+      setInvoicePrintLoaderId(null)
+    }
+  }
+
   const columns = [
     {
       width: 80,
@@ -364,19 +386,6 @@ const ListOfPurchase = () => {
             params?.row?.created_at
           )}
         </>
-
-        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-        //     </Typography>
-        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-        //       {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-        //       {Utility.formatDisplayDate(params.row.created_at)}
-        //     </Typography>
-        //   </Box>
-        // </Box>
       )
     },
     {
@@ -391,19 +400,24 @@ const ListOfPurchase = () => {
             params?.row?.updated_at
           )}
         </>
-
-        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        //   {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
-        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-        //       {params?.row?.updated_by_user_name ? params?.row?.updated_by_user_name : 'NA'}
-        //     </Typography>
-        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-        //       {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-        //       {params?.row?.updated_at ? Utility.formatDisplayDate(params.row.updated_at) : 'NA'}
-        //     </Typography>
-        //   </Box>
-        // </Box>
+      )
+    },
+    {
+      minWidth: 150,
+      headerName: 'Action',
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: params => (
+        <>
+          <FileDownloadButton
+            tooltip='Download  Invoice'
+            loading={invoicePrintLoaderId === params.row.id}
+            onClick={event => {
+              event.stopPropagation()
+              printInventory(params.row.id)
+            }}
+          />
+        </>
       )
     }
   ]
@@ -653,16 +667,6 @@ const ListOfPurchase = () => {
                       onClick={getInventoryDataToExport}
                       disabled={total === 0 ? true : false}
                     />
-
-                    <Grid
-                      item
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 2,
-                        justifyContent: { sm: 'flex-end', xs: 'flex-end' }
-                      }}
-                    ></Grid>
                   </Grid>
                 </Grid>
               </Box>

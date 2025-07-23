@@ -56,6 +56,8 @@ export const STATES = 'state'
 
 export const PURCHASE = 'purchase'
 
+export const INVOICE_PRINT = 'print'
+
 export const PAYMENT_LIST = 'supplier-ledger'
 
 export const STORE = 'store'
