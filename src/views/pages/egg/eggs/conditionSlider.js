@@ -384,6 +384,12 @@ const ConditionSlider = ({
   }
 
   const onSubmit = values => {
+    const combinedDateTime = dayjs(values.hatched_date)
+      .hour(dayjs().hour())
+      .minute(dayjs().minute())
+      .second(dayjs().second())
+      .format('YYYY-MM-DD HH:mm:ss')
+
     if (Number(getValues('current_state')) === 4 && values.hatched_date === null) {
       setError('hatched_date', {
         type: 'manual',
@@ -428,7 +434,8 @@ const ConditionSlider = ({
           comment: getValues('comment'),
           egg_assisted_by: getValues('assisted_by'),
           egg_attachment: imgArr,
-          hatched_date: values.hatched_date ? dayjs(values.hatched_date).format('YYYY-MM-DD') : null
+          // hatched_date: values.hatched_date ? dayjs(values.hatched_date).format('YYYY-MM-DD') : null
+          hatched_date: values.hatched_date ? combinedDateTime : null
         }
       }
 
@@ -554,6 +561,8 @@ const ConditionSlider = ({
   useEffect(() => {
     setValue('current_state', eggDetails?.egg_status_id)
     setValue('select_stage', eggDetails?.egg_state_id)
+    setValue('necropsy_Btn', eggDetails?.is_necropsy_needed)
+    setValue('hatched_date', eggDetails?.hatched_date ? dayjs(eggDetails.hatched_date) : undefined)
   }, [eggDetails])
 
   useEffect(() => {
@@ -940,6 +949,7 @@ const ConditionSlider = ({
                                 value={value || null}
                                 onChange={onChange}
                                 maxDate={dayjs()}
+                                minDate={eggDetails?.lay_date ? dayjs(eggDetails.lay_date) : undefined}
                                 format='DD/MM/YYYY'
                                 slotProps={{
                                   textField: {
@@ -1050,49 +1060,48 @@ const ConditionSlider = ({
                     </Grid>
                     {/* )} */}
                     <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                      <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                      <Stack direction='row' sx={{ px: 0, display: 'flex', flexWrap: 'wrap', gap: 3, mt: 3 }}>
                         {imgSrc?.length > 0 &&
                           imgSrc?.map((img, index) => (
-                            <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                            <Box
+                              key={index}
+                              sx={{
+                                position: 'relative',
+                                backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                borderRadius: '10px',
+                                height: 121,
+                                padding: '10.5px',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <img
+                                style={{
+                                  aspectRatio: 2 / 2,
+                                  height: '100%',
+                                  borderRadius: '5%'
+                                }}
+                                alt='Uploaded image'
+                                src={typeof img === 'string' ? img : img}
+                              />
                               <Box
                                 sx={{
-                                  position: 'relative',
-                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                  borderRadius: '10px',
-                                  height: 121,
-                                  padding: '10.5px',
-                                  boxSizing: 'border-box'
+                                  cursor: 'pointer',
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10,
+                                  height: '24px',
+                                  borderRadius: 0.4,
+                                  backgroundColor: theme.palette.customColors.secondaryBg
                                 }}
                               >
-                                <img
-                                  style={{
-                                    aspectRatio: 2 / 2,
-                                    height: '100%',
-                                    borderRadius: '5%'
-                                  }}
-                                  alt='Uploaded image'
-                                  src={typeof img === 'string' ? img : img}
-                                />
-                                <Box
-                                  sx={{
-                                    cursor: 'pointer',
-                                    position: 'absolute',
-                                    top: 0,
-                                    right: 0,
-                                    zIndex: 10,
-                                    height: '24px',
-                                    borderRadius: 0.4,
-                                    backgroundColor: theme.palette.customColors.secondaryBg
-                                  }}
+                                <Icon
+                                  icon='material-symbols-light:close'
+                                  color={theme.palette.primary.contrastText}
+                                  onClick={() => removeSelectedImage(index)}
                                 >
-                                  <Icon
-                                    icon='material-symbols-light:close'
-                                    color={theme.palette.primary.contrastText}
-                                    onClick={() => removeSelectedImage(index)}
-                                  >
-                                    {' '}
-                                  </Icon>
-                                </Box>
+                                  {' '}
+                                </Icon>
                               </Box>
                             </Box>
                           ))}

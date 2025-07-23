@@ -9,7 +9,6 @@ import {
   Card,
   CardHeader,
   Typography,
-  Grid,
   TextField,
   Autocomplete,
   FormControl,
@@ -49,6 +48,7 @@ const RoomsList = () => {
   const [status, setStatus] = useState('')
   const [isOpen, setIsOpen] = useState(false)
 
+  const [nurseryLoading, setNurseryLoading] = useState(false)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [defaultStatus, setDefaultStatus] = useState(null)
@@ -137,13 +137,16 @@ const RoomsList = () => {
 
   // 📌 Fetch Nursery List
   const NurseryList = async (q = '') => {
+    setNurseryLoading(true)
     try {
-      console.log('q', q)
+      // console.log('q', q)
       const params = { search: q, page: 1, limit: 50 }
       const res = await GetNurseryList({ params })
       setNurseryList(res?.data?.result ?? [])
     } catch (error) {
       console.error('Error fetching nursery list:', error)
+    } finally {
+      setNurseryLoading(false)
     }
   }
 
@@ -468,6 +471,7 @@ const RoomsList = () => {
                         name='nursery'
                         value={defaultNursery}
                         disablePortal
+                        loading={nurseryLoading}
                         sx={{ width: 220 }}
                         id='nursery'
                         options={nurseryList?.length > 0 ? nurseryList : []}
@@ -633,14 +637,7 @@ const RoomsList = () => {
                 />
               </Card>
             </Box>
-            {isOpen && (
-              <AddIncubatorRoom
-                callTableApi={fetchTableData}
-                callApi={fetchTableData}
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-              />
-            )}
+            {isOpen && <AddIncubatorRoom callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} />}
           </>
         )
       ) : (

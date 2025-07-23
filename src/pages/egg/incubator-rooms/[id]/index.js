@@ -765,7 +765,7 @@ const RoomDetails = () => {
               setOpenStatusDialog={setOpenStatusDialog}
               elements={total}
               statusLoading={statusLoading}
-              hatcheryStatusFunc={hatcheryStatusFunc}
+              toggleHatcheryStatus={hatcheryStatusFunc}
             />
             <EditRedirectionDialog
               refType={'incubator room'}

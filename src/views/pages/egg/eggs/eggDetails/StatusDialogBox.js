@@ -61,7 +61,13 @@ const StatusDialogBox = ({
         </Box>
 
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: 6, p: 4 }}>
-          <Button variant='outlined' fullWidth sx={{ p: 4 }} onClick={() => setOpenStatusDialog(false)}>
+          <Button
+            disabled={statusLoading}
+            variant='outlined'
+            fullWidth
+            sx={{ p: 4 }}
+            onClick={() => setOpenStatusDialog(false)}
+          >
             CANCEL
           </Button>
 
