@@ -420,6 +420,7 @@ const BiologistDiaryReport = () => {
           open={userDrawer}
           onClose={handleClose}
           setUserDetail={setUserDetail}
+          placeholder='Search by Biologist name or ID'
           queryKey='user-biologist-Report'
           headerText='Select the Biologist'
           footerText='generate biologist Diary REPORT'

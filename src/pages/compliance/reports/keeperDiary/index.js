@@ -434,7 +434,15 @@ const KeeperDiaryReport = () => {
         </Card>
       )}
 
-      {userDrawer && <UserDrawer open={userDrawer} onClose={handleClose} setUserDetail={setUserDetail} />}
+      {userDrawer && (
+        <UserDrawer
+          open={userDrawer}
+          onClose={handleClose}
+          setUserDetail={setUserDetail}
+          placeholder='Search by Keeper name or ID'
+          title='Keepers'
+        />
+      )}
     </>
   )
 }
