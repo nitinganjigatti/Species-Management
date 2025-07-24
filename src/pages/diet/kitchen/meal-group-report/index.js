@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Button, Card, CardContent, CardHeader, CircularProgress, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { format, subDays } from 'date-fns'
+import { addDays, format, subDays } from 'date-fns'
 import React, { useContext, useState } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import RenderUtility from 'src/utility/render'
@@ -205,9 +205,9 @@ const MealGroupReport = () => {
                   <SingleDatePicker
                     date={selectedDate}
                     onChangeHandler={handleDateChange}
-                    maxDate={new Date()}
+                    maxDate={addDays(new Date(), 6)}
                     name='Select Date'
-                    minDate={subDays(new Date(), 7)}
+                    minDate={new Date()}
                     dateFormat='dd-MM-yyyy'
                   />
                 </Grid>
