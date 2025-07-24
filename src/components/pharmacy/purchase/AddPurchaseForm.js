@@ -48,7 +48,8 @@ import {
   getBatchExpiry,
   validatePurchaseProducts,
   postDeleteInvoiceById,
-  productMappingForMlTraining
+  productMappingForMlTraining,
+  printPurchaseInvoice
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -69,6 +70,7 @@ import { borderRadius, getValue } from '@mui/system'
 import { getVariantFOrProduct, getVariants } from 'src/lib/api/pharmacy/variant'
 import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
 import { v4 as uuidv4 } from 'uuid'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -202,6 +204,7 @@ const AddPurchaseForm = () => {
   const [showAmount, setShowAmount] = useState(false)
   const [invoiceSubmitLoader, setInvoiceSubmitLoader] = useState(false)
   const [variantLists, setVariantLists] = useState([])
+  const [invoicePrintLoader, setInvoicePrintLoader] = useState(false)
 
   const resetFelids = () => {
     reset(editParamsInitialState)
@@ -298,9 +301,9 @@ const AddPurchaseForm = () => {
   const grandTotalAmount = useMemo(() => {
     let roundUp = 0
     if (roundup_select === '-') {
-      roundUp = -parseFloat(roundUpValue) || 0 // Subtract the exact value when '-' is selected
+      roundUp = -parseFloat(roundUpValue) || 0
     } else {
-      roundUp = parseFloat(roundUpValue) || 0 // Add the exact value when '+' is selected
+      roundUp = parseFloat(roundUpValue) || 0
     }
 
     const totalFreight = parseFloat(totalFreightCharges) || 0
@@ -1489,10 +1492,30 @@ const AddPurchaseForm = () => {
     }
   }
 
+  const printInventory = async purchaseId => {
+    try {
+      setInvoicePrintLoader(true)
+      const printInvoice = await printPurchaseInvoice(purchaseId)
+      if (printInvoice?.success && printInvoice?.data) {
+        window.open(printInvoice?.data, '_blank')
+        toast.success(printInvoice?.message)
+        setInvoicePrintLoader(false)
+      } else {
+        toast.error(printInvoice?.message)
+        setInvoicePrintLoader(false)
+      }
+    } catch (error) {
+      toast.error(error?.message)
+      setInvoicePrintLoader(false)
+    } finally {
+      setInvoicePrintLoader(false)
+    }
+  }
+
   return (
     <Card>
       <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Grid item size={{ xs: 12, sm: 4 }}>
+        <Grid item size={{ xs: 12, sm: 5 }}>
           <CardHeader
             sx={{
               display: 'flex',
@@ -1513,19 +1536,19 @@ const AddPurchaseForm = () => {
                 icon='ep:back'
               />
             }
-            title={id ? 'Edit Inventory List' : 'Add Inventory'}
+            title={id ? 'Edit Inventory ' : 'Add Inventory'}
           />
         </Grid>
         <Grid
           item
-          size={{ xs: 12, sm: 7 }}
+          size={{ xs: 12, sm: 6 }}
           sx={{
             display: 'flex',
-            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
-            justifyContent: 'flex-end',
+            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'row' },
+            justifyContent: { xs: 'space-between', md: 'flex-end', xl: 'flex-end', sm: 'flex-end' },
             alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'start' },
             columnGap: 2,
-            mx: { xs: 2, lg: 3, md: 3, xl: 3, sm: 3 },
+            mx: { xs: 2, lg: 5, md: 5, xl: 5, sm: 5 },
             mb: { xs: 2, lg: 0, md: 0, xl: 0, sm: 0 },
             mr: 2,
             rowGap: { xs: 3, lg: 0, md: 0, xl: 0, sm: 0 }
@@ -1541,12 +1564,21 @@ const AddPurchaseForm = () => {
             />
           )}
           {authData?.userData?.roles?.settings?.add_pharmacy && (
-            <AddButton
-              title='Add Supplier'
-              action={() => {
-                setSupplierDialog(true)
-              }}
-            />
+            <>
+              <AddButton
+                title='Add Supplier'
+                action={() => {
+                  setSupplierDialog(true)
+                }}
+              />
+              {id && (
+                <ExportButton
+                  tooltip='Download  Invoice'
+                  loading={invoicePrintLoader}
+                  onClick={() => printInventory(id)}
+                />
+              )}
+            </>
           )}
         </Grid>
       </Grid>

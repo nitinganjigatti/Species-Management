@@ -38,7 +38,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { ExportButton, FileDownloadButton } from 'src/views/utility/render-snippets'
+import { ExportButton } from 'src/views/utility/render-snippets'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import toast from 'react-hot-toast'
 
@@ -274,6 +274,8 @@ const ListOfPurchase = () => {
     {
       width: 80,
       headerName: 'SL.NO',
+      sortable: false,
+      field: 'id',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl + '.'}
@@ -402,22 +404,24 @@ const ListOfPurchase = () => {
         </>
       )
     },
+
     {
-      minWidth: 150,
+      minWidth: 80,
       headerName: 'Action',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
+      field: 'action',
       renderCell: params => (
-        <>
-          <FileDownloadButton
-            tooltip='Download  Invoice'
-            loading={invoicePrintLoaderId === params.row.id}
-            onClick={event => {
-              event.stopPropagation()
-              printInventory(params.row.id)
-            }}
-          />
-        </>
+        <ExportButton
+          bgcolor='transparent'
+          tooltip='Download  Invoice'
+          loading={invoicePrintLoaderId === params.row.id}
+          onClick={event => {
+            event.stopPropagation()
+            printInventory(params.row.id)
+          }}
+        />
       )
     }
   ]
@@ -527,47 +531,23 @@ const ListOfPurchase = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            {/* <CardHeader
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'column' }, // Stack items in sm screens
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 3, sm: 1 },
-                mx: { xs: -1, sm: 1 },
-                width: '100%', // Ensure the header takes full width
-                '& .MuiCardHeader-content': {
-                  flexGrow: 1, // Allows the title to take full width
-                  width: '100%'
-                },
-
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' },
-                  justifyContent: 'flex-end',
-                },
-                mx: { xs: -1, sm: 1 }
-              }}
-              title={RenderUtility.pageTitle('Inventory List')}
-              action={headerAction}
-            /> */}
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Stack title and actions in xs, row in sm+
-                justifyContent: 'space-between', // Push title left and actions right on larger screens
-                alignItems: { xs: 'flex-start', sm: 'center' }, // Align items properly
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'flex-start', sm: 'center' },
                 width: '100%',
                 '& .MuiCardHeader-content': {
-                  flexGrow: 1 // Allows title to take available space
+                  flexGrow: 1
                 },
                 '& .MuiCardHeader-action': {
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons in xs, row in sm+
-                  alignItems: 'stretch', // Ensures full width in column mode
-                  justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Left align in xs, right align in sm+
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: 'stretch',
+                  justifyContent: { xs: 'flex-start', sm: 'flex-end' },
                   gap: 1,
-                  width: { xs: '100%', sm: 'auto' } // Full width for small screens
-                  // mt: { xs: 1, sm: 0 } // Add spacing between title and buttons in xs
+                  width: { xs: '100%', sm: 'auto' }
                 }
               }}
               title={RenderUtility.pageTitle('Inventory List')}

@@ -35,36 +35,6 @@ export const ExportButton = ({
   )
 }
 
-export const FileDownloadButton = ({
-  loading = false,
-  onClick,
-  tooltip = 'Download',
-  icon = 'ic:round-download',
-  iconSize = 20,
-  disabled = false
-}) => {
-  const theme = useTheme()
-
-  return (
-    <Tooltip placement='bottom' title={tooltip}>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          width: '20px',
-          height: '20px',
-          alignItems: 'center',
-          cursor: disabled ? '' : 'pointer',
-          opacity: disabled ? 0.5 : 1
-        }}
-        onClick={disabled ? undefined : onClick}
-      >
-        {loading ? <CircularProgress color='success' size={20} /> : <Icon icon={icon} fontSize={iconSize} />}
-      </Box>
-    </Tooltip>
-  )
-}
-
 export const ImportButton = ({
   loading = false,
   onClick,
