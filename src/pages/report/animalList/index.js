@@ -1025,31 +1025,31 @@ const AnimalList = () => {
                   </Box>
                 )}
               </Box>
-              <Box sx={{ width: '100%', px: 5, mt: 4 }}>
-                {columns.length > 0 ? (
-                  <StickyTable
-                    rows={reportRows.length && reportRows}
-                    rowCount={total}
-                    rowHeight={86}
-                    headerHeight={47}
-                    pagination={true}
-                    columns={columns.length && columns}
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    rowsInView={10}
-                    rowsInViewOptions={[5, 7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={isLoading}
-                    downloadExcel
-                    headerName='Species'
-                    searchMode='server'
-                    disableColumnSorting={true}
-                  />
-                ) : (
+              <Box sx={{ width: '100%', p: 5, }}>
+                {/* {columns.length > 0 ? ( */}
+                <StickyTable
+                  rows={reportRows.length && reportRows}
+                  rowCount={total}
+                  rowHeight={86}
+                  headerHeight={47}
+                  pagination={true}
+                  columns={columns.length && columns}
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  rowsInView={10}
+                  rowsInViewOptions={[5, 7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={isLoading}
+                  downloadExcel
+                  headerName='Species'
+                  searchMode='server'
+                  disableColumnSorting={true}
+                />
+                {/* ) : (
                   <Box sx={{ py: 4, textAlign: 'center' }}>
                     <CircularProgress />
                   </Box>
-                )}
+                )} */}
               </Box>
             </TabContext>
           </Card>
