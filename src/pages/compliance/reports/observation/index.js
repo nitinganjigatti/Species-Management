@@ -1,5 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Box, Card, CardHeader, Grid, IconButton, InputAdornment, TextField, Tooltip, Typography } from '@mui/material'
+import { fontSize, fontWeight } from '@mui/system'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -343,6 +344,12 @@ const ObservationReport = () => {
                   value={searchValue}
                   inputStyle={{ py: '10px', px: '12px' }}
                   width='50%'
+                  sx={{
+                    '& .MuiInputBase-input::placeholder': {
+                      fontSize: '14px',
+                      fontWeight: 400
+                    }
+                  }}
                 />
               </Box>
 
