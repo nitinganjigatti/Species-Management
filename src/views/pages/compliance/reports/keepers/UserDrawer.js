@@ -32,6 +32,8 @@ const UserDrawer = ({
   open,
   onClose,
   setUserDetail,
+  placeholder,
+  title,
   roleFilter = 'all_users',
   queryKey = 'user-keeper-Report',
   headerText = 'Select the Keeper',
@@ -222,6 +224,7 @@ const UserDrawer = ({
             <Search
               width={'100%'}
               onChange={handleSearchChange}
+              placeholder={placeholder}
               onClear={handleSearchClear}
               inputStyle={{ py: '18px', px: '12px' }}
             />
@@ -249,6 +252,15 @@ const UserDrawer = ({
               py: 4
             }}
           >
+            {title && (
+              <Typography
+                sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                {' '}
+                {`${title}(${total})`}
+              </Typography>
+            )}
+
             {list.map(user => (
               <UserCard
                 name={user?.user_name}
