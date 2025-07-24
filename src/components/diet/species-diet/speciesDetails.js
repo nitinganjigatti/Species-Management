@@ -1,14 +1,17 @@
-import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
-import { Avatar, CircularProgress, Drawer, IconButton, Switch, Tab, Tooltip, Typography } from '@mui/material'
-import { Box } from '@mui/system'
 import React, { useEffect, useRef, useState } from 'react'
-import Icon from 'src/@core/components/icon'
+
+import { Avatar, CircularProgress, Drawer, IconButton, Switch, Tab, Tooltip, Typography } from '@mui/material'
+import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
+import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-import { getSpecieDetailById, speciesAttachmentActive } from 'src/lib/api/diet/speciesDiet'
+import moment from 'moment'
+
+import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
-import moment from 'moment'
 import UploadDiet from './uploadDiet'
+
+import { getSpecieDetailById, speciesAttachmentActive } from 'src/lib/api/diet/speciesDiet'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
@@ -72,8 +75,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           attachment_id: `${attachmentId}`
         })
 
-        // Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
-        Toaster({ type: 'success', message: 'Diet Activated Successfully' })
+        Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+        // Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
         await getSpecieDetail()
       } catch (error) {
@@ -555,8 +558,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             setspeciesId(specieDetails.species_id)
             setUploadDietDrawer(true)
           }}
-
-          // loading={loader}
+        // loading={loader}
         >
           UPLOAD NEW
         </LoadingButton>

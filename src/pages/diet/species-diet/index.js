@@ -55,27 +55,6 @@ const SpeciesDietList = () => {
   const [selectedOptions, setSelectedOptions] = useState({
     Class: []
   })
-
-  ///////////////////////Filter-Code////////////////////////////
-  // const [isSearchOpen, setIsSearchOpen] = useState(false)
-  // const [search, setSearch] = useState('')
-  // const [isFilterOpen, setIsFilterOpen] = useState(false)
-  // const [showFilters, setShowFilters] = useState(false)
-
-  // const [applyFilters, setApplyFilters] = useState({
-  //   Site: [],
-  //   Section: [],
-  //   Enclosure: []
-  // })
-
-  // const [selectedOptions, setSelectedOptions] = useState({
-  //   Site: [],
-  //   Section: [],
-  //   Enclosure: []
-  // })
-  // const [filterList, setFilterList] = useState([])
-  ///////////////////////////////////////////////////
-
   const [attachmentWidth, setAttachmentWidth] = useState(0)
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [speciesId, setspeciesId] = useState(null)
@@ -106,13 +85,6 @@ const SpeciesDietList = () => {
       window.removeEventListener('resize', updateGridWidth)
     }
   }, [])
-  ///////////////////////////////////////////////////
-
-  // const closeattachmentUploadConfirmDialog = () => {
-  //   setAttachmentUploadConfirmDialog(false)
-  // }
-
-  // const fileInputRef = useRef(null)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -126,18 +98,9 @@ const SpeciesDietList = () => {
     async (q, newModel) => {
       try {
         const classIds = selectedFiltersOptions?.Class?.map(option => option.id) || []
-        ///////////////////////Filter-Code////////////////////////////
-        // console.log('applyFilters', applyFilters)
-        // const siteIds = applyFilters.Site?.map(option => option.id)
-        // const sectionIds = applyFilters.Section?.map(option => option.id)
-        // const enclosureIds = applyFilters.Enclosure?.map(option => option.id)
         setLoading(true)
 
         const params = {
-          ///////////////////////Filter-Code////////////////////////////
-          // site_ids: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
-          // section_ids: sectionIds.length > 0 ? JSON.stringify(ids.sectionIds) : '',
-          // enclosure_ids: enclosureIds.length > 0 ? JSON.stringify(ids.enclosureIds) : '',
           q: q?.q ? q?.q : searchValue,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
@@ -154,8 +117,6 @@ const SpeciesDietList = () => {
 
           setTotal(parseInt(res?.data?.count))
           setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
       } catch (e) {

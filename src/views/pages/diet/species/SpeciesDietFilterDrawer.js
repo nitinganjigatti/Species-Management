@@ -37,22 +37,6 @@ const SpeciesDietFilterDrawer = ({
   const [limit, setLimit] = useState(10)
   const [selectAll, setSelectAll] = useState(false)
 
-  //   const getClassListData = async q => {
-  //     try {
-  //       setLoading(true)
-  //       await getClassList({ type: 'class', page_no, limit, q }).then(res => {
-  //         if (res.success) {
-  //           setClassListData(res?.data?.result)
-  //           setClassListCount(res?.data?.count)
-  //         }
-  //       })
-  //     } catch (e) {
-  //       console.log(e)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
   const getClassListData = async (q = '') => {
     try {
       setLoading(true)
@@ -80,10 +64,6 @@ const SpeciesDietFilterDrawer = ({
       }
     }
   }
-
-  //   useEffect(() => {
-  //     getClassListData()
-  //   }, [openFilterDrawer])
 
   useEffect(() => {
     if (openFilterDrawer) {
@@ -126,13 +106,6 @@ const SpeciesDietFilterDrawer = ({
       setSelectedOptions(newSelectedOptions)
     }
   }
-
-  //   const debouncedGetClassListData = useCallback(
-  //     debounce(query => {
-  //       getClassListData(query)
-  //     }, 1000),
-  //     []
-  //   )
 
   const debouncedGetClassListData = useCallback(
     debounce(query => {
@@ -252,7 +225,7 @@ const SpeciesDietFilterDrawer = ({
                   borderBottomLeftRadius: '8px'
                 }}
 
-                // onClick={() => handleMenuClick(menu)}
+              // onClick={() => handleMenuClick(menu)}
               >
                 <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
                   {menu.name}
