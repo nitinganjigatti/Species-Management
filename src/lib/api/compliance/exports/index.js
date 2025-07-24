@@ -15,17 +15,6 @@ import {
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
 
-export const getExportCountries = async () => {
-  return {
-    success: true,
-    data: [
-      { label: 'Country 1', value: 'report' },
-      { label: 'Country 2', value: 'invoice' },
-      { label: 'Country 3', value: 'manifest' }
-    ]
-  }
-}
-
 export const getSpecies = async () => {
   return {
     success: true,

@@ -167,12 +167,12 @@ const ImportsPage = () => {
               onClear={() => handleSearch('')}
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 2 }} />
+          <Grid size={{ xs: 12, md: 3.5 }}></Grid>
           <Grid size={{ xs: 12, md: 4.5 }}>
-            {/* <CommonDateRangePickers
+            <CommonDateRangePickers
               filterDates={filterDate}
               onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
-            /> */}
+            />
           </Grid>
 
           {/* <Grid item xs={12} md={1.5}>

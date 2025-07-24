@@ -100,7 +100,7 @@ const AddEditExportPermit = () => {
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
   const handleAddEditSuccess = data => {
-    const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
+    const updatedList = documentList.map(item => (item.id === data?.id ? { ...item, ...data } : item))
     setDocumentList(updatedList)
   }
 
