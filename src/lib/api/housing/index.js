@@ -28,7 +28,7 @@ export async function getSiteAnalytics(id) {
 }
 
 export async function getAllSites(params) {
-  const response = await axiosGet({ url: `${GET_SITES}`, params })
+  const response = await axiosGet({ url: `${GET_SITES}`, params }) 
 
   return response.data
 }
