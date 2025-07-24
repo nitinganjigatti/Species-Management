@@ -21,9 +21,10 @@ export const exportPermitValidationSchema = yup.object().shape({
   issued_date: yup.date().required('Issued date is required'),
 
   valid_until: yup
-    .date()
-    .required('Valid until date is required')
-    .min(yup.ref('issued_date'), 'Valid until date must be after issued date'),
+  .date()
+  .typeError('Must be a valid date')
+  .required('Valid until date is required')
+  .min(yup.ref('issued_date'), 'Valid until date must be after issued date'),
 
   origin_country: yup
     .object()

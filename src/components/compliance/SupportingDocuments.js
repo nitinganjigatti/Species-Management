@@ -58,7 +58,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
       }
 
       const response = currentDocumentData?.document_id
-        ? await updateDocument(currentDocumentData?.id, payload)
+        ? await updateDocument(currentDocumentData?.document_id, payload)
         : await addDocument(payload)
 
       if (response?.success) {

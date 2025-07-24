@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react'
-import { Card, CardHeader, Grid, Box, Breadcrumbs, Typography, IconButton } from '@mui/material'
+import { Card, CardHeader, Grid, Box, Breadcrumbs, Typography, IconButton, Tooltip } from '@mui/material'
 
 // import { AddButton } from 'src/components/Buttons'
 import Search from 'src/views/utility/Search'
@@ -17,6 +17,8 @@ import { getExportCountries, getSpecies, getExportList } from 'src/lib/api/compl
 import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
 import countryList from 'react-select-country-list'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 const CitesExportPermitIndex = () => {
   const { userData } = useContext(AuthContext)
@@ -32,6 +34,7 @@ const CitesExportPermitIndex = () => {
   const [filterDate, setFilterDate] = useState({})
   const [countryOptions, setCountryOptions] = useState([])
   const [statusOptions, setStatusOptions] = useState([])
+  const [selectedExportingCountry, setSelectedExportingCountry] = useState(null)
 
   const { control, watch } = useForm({
     defaultValues: {
@@ -41,20 +44,10 @@ const CitesExportPermitIndex = () => {
     }
   })
 
-  const selectedExportingCountry = watch('exportingCountry')
   const selectedCountryOfOrigin = watch('countryOfOrigin')
   const selectedStatus = watch('status')
 
   const countryListOptions = useMemo(() => countryList().getData(), [])
-
-  const fetchCountries = async () => {
-    try {
-      const res = await getExportCountries()
-      if (res.success) setCountryOptions(res.data)
-    } catch (error) {
-      console.error('Error fetching countries:', error)
-    }
-  }
 
   const fetchStatuses = async () => {
     try {
@@ -76,9 +69,10 @@ const CitesExportPermitIndex = () => {
         sortBy: sortModel?.[0]?.field,
         from_date: filterDate.startDate,
         to_date: filterDate.endDate,
-        exporting_country: selectedExportingCountry?.value,
-        country_of_origin: selectedCountryOfOrigin?.value,
-        status: selectedStatus?.value
+        exporting_country: selectedExportingCountry?.value
+
+        // country_of_origin: selectedCountryOfOrigin?.value,
+        // status: selectedStatus?.value
       }
       const res = await getExportList(params)
       const start = paginationModel.page * paginationModel.pageSize
@@ -114,11 +108,6 @@ const CitesExportPermitIndex = () => {
   ])
 
   useEffect(() => {
-    fetchCountries()
-    fetchStatuses()
-  }, [])
-
-  useEffect(() => {
     fetchExportPermits()
   }, [fetchExportPermits])
 
@@ -146,7 +135,6 @@ const CitesExportPermitIndex = () => {
             px: 2,
             width: '100%'
           }}
-          onClick={() => router.push(`/compliance/documents/exports/${params.row.id}?id=${params.row.id}`)}
         >
           {params.value}
         </Typography>
@@ -157,7 +145,22 @@ const CitesExportPermitIndex = () => {
       minWidth: 180,
       field: 'exporter_name',
       headerName: 'EXPORTER',
-      renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
+      renderCell: params => (
+        <Tooltip title={params.value || ''}>
+          <Typography
+            sx={{
+              px: 2,
+              width: '100%',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              cursor: 'default'
+            }}
+          >
+            {params.value}
+          </Typography>
+        </Tooltip>
+      )
     },
     {
       flex: 0.15,
@@ -165,9 +168,20 @@ const CitesExportPermitIndex = () => {
       field: 'exporting_country',
       headerName: 'EXPORTING COUNTRY',
       renderCell: params => (
-        <Typography sx={{ px: 2, width: '100%' }}>
-          {countryListOptions.find(country => country.value === params.value)?.label || '-'}
-        </Typography>
+        <Tooltip title={countryListOptions.find(country => country.value === params.value)?.label || ''}>
+          <Typography
+            sx={{
+              px: 2,
+              width: '100%',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              cursor: 'default'
+            }}
+          >
+            {countryListOptions.find(country => country.value === params.value)?.label || '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -176,9 +190,20 @@ const CitesExportPermitIndex = () => {
       field: 'origin_country',
       headerName: 'COUNTRY OF ORIGIN',
       renderCell: params => (
-        <Typography sx={{ px: 2, width: '100%' }}>
-          {countryListOptions.find(country => country.value === params.value)?.label || '-'}
-        </Typography>
+        <Tooltip title={countryListOptions.find(country => country.value === params.value)?.label || ''}>
+          <Typography
+            sx={{
+              px: 2,
+              width: '100%',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              cursor: 'default'
+            }}
+          >
+            {countryListOptions.find(country => country.value === params.value)?.label || '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -283,21 +308,26 @@ const CitesExportPermitIndex = () => {
               onClear={() => handleSearch('')}
             />
           </Grid>
+          <Grid size={{ xs: 12, md: 1 }}></Grid>
 
-          {/* <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={{ xs: 12, md: 4.5 }}>
             <CommonDateRangePickers
               filterDates={filterDate}
               onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
             />
           </Grid>
-          
+
           <Grid size={{ xs: 12, md: 2.5 }}>
             <ControlledAutocomplete
               name='exportingCountry'
               label='Exporting Country'
               control={control}
               errors={{}}
-              options={countryOptions}
+              options={countryListOptions}
+              onChangeOverride={value => {
+                if (value) setSelectedExportingCountry(value)
+                else setSelectedExportingCountry(null)
+              }}
               getOptionLabel={o => o.label}
               isOptionEqualToValue={(o, v) => o.value === v.value}
               textFieldProps={{
@@ -311,8 +341,8 @@ const CitesExportPermitIndex = () => {
               }}
             />
           </Grid>
-          
-          <Grid size={{ xs: 12, md: 2.5 }}>
+
+          {/* <Grid size={{ xs: 12, md: 2.5 }}>
             <ControlledAutocomplete
               name='countryOfOrigin'
               label='Country of Origin'
@@ -335,6 +365,7 @@ const CitesExportPermitIndex = () => {
 
           <Grid size={{ xs: 12 }}>
             <CommonTable
+              onRowClick={row => router.push(`/compliance/documents/exports/${row.id}?id=${row.id}`)}
               columns={columns}
               indexedRows={rows}
               total={total}

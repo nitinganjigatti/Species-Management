@@ -58,7 +58,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
   const fileValue = watch('document_file')
 
   useEffect(() => {
-    if (documentData?.reference_number && documentData?.issued_date) {
+    if (documentData?.file_original_name) {
       setValue('reference_number', documentData.reference_number || '')
       setValue('issued_date', dayjs(documentData?.issued_date))
       setValue(
