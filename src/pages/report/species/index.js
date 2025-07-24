@@ -8,8 +8,6 @@ import {
   Button,
   Box,
   Checkbox,
-  CircularProgress,
-  debounce,
   Tooltip,
   FormControl,
 } from '@mui/material'
@@ -47,13 +45,10 @@ const SpeciesReport = () => {
   } = useAnimalContext()
   const [status, setStatus] = useState('statistics')
 
-  // const [selectedSites, setSelectedSites] = useState([])
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
-  // const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
-  const [isLoader, setIsLoader] = useState(false)
   const [searchValue, setSearchValue] = useState('')
 
   const [sites, setSites] = useState(
@@ -79,14 +74,6 @@ const SpeciesReport = () => {
       { label: 'Organisation', key: 'include_organization', checked: false }
     ]
   })
-
-  const options = {
-    Site:
-      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
-      [] ||
-      [],
-    Species: speciesList
-  }
 
   const initialFilterParams = {
     include_housing: 0,
@@ -118,11 +105,8 @@ const SpeciesReport = () => {
 
   useEffect(() => {
     const fetchSpeciesList = async () => {
-      setIsLoader(true)
       const response = await getSpeciesListing()
       if (response.success) {
-        // console.log('Response >', response.data)
-        setIsLoader(false)
         setSpeciesList(response.data.result)
       } else {
         console.error('Error something went wrong')
@@ -130,7 +114,6 @@ const SpeciesReport = () => {
     }
     fetchSpeciesList()
   }, [])
-  // debugger
 
   const title = (
     <>
@@ -248,25 +231,11 @@ const SpeciesReport = () => {
 
       // Reset site filtering ONLY when switching from "Detail" back to "Listing"
       setIsLoading(true)
-
       await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
-
       initialLoad.current = false
     },
     []
   )
-
-  // useEffect(() => {
-  //   if (router.pathname === '/report/species') {
-  //     // console.log('Before apiFilterParams', apiFilterParams)
-  //     setSelectedSites([])
-  //     setSelectedOptions({})
-  //     setApiFilterParams(() => initialFilterParams) // Ensures the update happens correctly
-  //     if (reports_module && enable_specie_report) {
-  //       fetchData(apiFilterParams, paginationModel)
-  //     }
-  //   }
-  // }, [router.pathname])
 
   useEffect(() => {
     if (router.pathname === '/report/species' && reports_module && enable_specie_report && initialLoad.current) {
@@ -297,37 +266,6 @@ const SpeciesReport = () => {
         disableColumnMenu: true,
         width: 320,
         renderCell: params => (
-          // <CardHeader
-          //   sx={{ paddingX: 0 }}
-          //   avatar={
-          //     <img
-          //       src={params.row.default_icon || '/placeholder-image.png'}
-          //       alt={params.row.common_name || 'Species'}
-          //       style={{ width: 40, height: 40, borderRadius: '50%' }}
-          //     />
-          //   }
-          //   title={
-          //     <Typography
-          //       sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: theme.palette.primary.onSurface }}
-          //     >
-          //       {params.row.common_name || ''}
-          //     </Typography>
-          //   }
-          //   subheader={
-          //     <Typography
-          //       sx={{
-          //         fontSize: '14px',
-          //         fontWeight: 400,
-          //         fontFamily: 'Inter',
-          //         fontStyle: 'italic',
-          //         color: theme.palette.primary.onSurface
-          //       }}
-          //       variant='body2'
-          //     >
-          //       {params.row.scientific_name || ''}
-          //     </Typography>
-          //   }
-          // />
           <SpeciesCard species={params.row} />
         )
       }
@@ -463,132 +401,6 @@ const SpeciesReport = () => {
     router.push(`/report/animalList?animalId=${params?.tsn_id}`)
   }
 
-  // const handleSelection = async (selectedIDs, category) => {
-  //   let params = {}
-  //   const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
-  //   const key = category === 'Site' ? 'sids' : 'oids'
-  //   const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
-
-  //   if (selectedIDs.includes(isAllSelected)) {
-  //     // "All Sites/All Organizations" selected
-  //     if (category === 'Site' && !selectedSites.includes(isAllSelected)) {
-  //       stateSetter(['All Sites'])
-  //       params[key] = '' // Reset to empty for all sites
-  //     } else if (category === 'Organization' && !selectedOptions.Organization.includes(isAllSelected)) {
-  //       stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
-  //       params[key] = '' // Reset to empty for all organizations
-  //     } else {
-  //       // If "All Sites/All Organizations" is re-selected, use filtered IDs
-  //       const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
-  //       params[key] = filteredIDs.toString()
-  //       stateSetter(filteredIDs)
-  //     }
-  //   } else if (selectedIDs.length === 0) {
-  //     // No items selected, reset the parameter
-  //     params[key] = ''
-  //   } else {
-  //     // Specific IDs selected
-  //     params[key] = selectedIDs.toString()
-  //     if (category === 'Site') {
-  //       stateSetter(selectedIDs)
-  //     } else {
-  //       stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
-  //     }
-  //   }
-
-  //   // Reset pagination and update filter parameters
-  //   setPaginationModel(prev => ({ ...prev, page: 0 }))
-  //   setApiFilterParams(prev => ({
-  //     ...prev,
-  //     [key]: params[key] // Update only the relevant key
-  //   }))
-  // }
-
-  // const handleSpeciesSelection = async (selectedIDs, category) => {
-  //   let params = {}
-  //   const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
-  //   const key = category === 'Site' ? 'site_ids' : 'oids'
-  //   const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
-
-  //   if (selectedIDs.includes(isAllSelected)) {
-  //     // "All Sites/All Organizations" selected
-  //     if (category === 'Site') {
-  //       if (!selectedSites.includes(isAllSelected)) {
-  //         stateSetter(['All Sites']) // Store the selection
-  //         params[key] = '' // Reset filter
-  //       } else {
-  //         const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
-  //         stateSetter(filteredIDs)
-  //         params[key] = filteredIDs.toString()
-  //       }
-  //     } else {
-  //       if (!selectedOptions.Organization.includes(isAllSelected)) {
-  //         stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
-  //         params[key] = ''
-  //       } else {
-  //         const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
-  //         stateSetter(prev => ({ ...prev, Organization: filteredIDs }))
-  //         params[key] = filteredIDs.toString()
-  //       }
-  //     }
-  //   } else {
-  //     if (selectedIDs.length === 0) {
-  //       // If no sites/orgs are selected, reset
-  //       params[key] = ''
-  //       if (category === 'Site') {
-  //         stateSetter([]) // Clear selection
-  //       } else {
-  //         stateSetter(prev => ({ ...prev, Organization: [] }))
-  //       }
-  //     } else {
-  //       // Normal selection of specific sites/orgs
-  //       params[key] = selectedIDs.toString()
-  //       if (category === 'Site') {
-  //         stateSetter(selectedIDs)
-  //       } else {
-  //         stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
-  //       }
-  //     }
-  //   }
-
-  //   // Reset pagination and update API filter parameters
-  //   setPaginationModel(prev => ({ ...prev, page: 0 }))
-  //   setApiFilterParams(prev => ({
-  //     ...prev,
-  //     [key]: params[key] // Update only the relevant key
-  //   }))
-  // }
-
-  // const getTotalSelectedFilters = selectedOptions => {
-  //   // console.log('selectedOptions', selectedOptions)
-  //   // Use Object.values to extract arrays of selected items
-  //   return Object.values(selectedOptions)
-  //     .flat() // Flatten to combine all selected items into a single array
-  //     .filter(item => item !== 'All Sites' && item !== 'All Organizations').length // Exclude "All" selections if needed // Count the total number of items
-  // }
-
-  // const handleFilterSection = () => {
-  //   setOpenFilterDrawer(true)
-  // }
-
-  // const searchTableData = useCallback(
-  //   debounce(async q => {
-  //     setSearchValue(q)
-  //     setPaginationModel({ ...paginationModel, page: 0 })
-  //     try {
-  //       await fetchData(apiFilterParams, q, paginationModel)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   []
-  // )
-
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   searchTableData(value)
-  // }
-
   const handleSelectedSite = async selectedSiteIDs => {
     let params = {}
 
@@ -667,12 +479,7 @@ const SpeciesReport = () => {
             </Box>
 
             <TabContext value={status}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                  {/* Tabs */}
-                  <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
-                </Box>
-
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', px: 2, pt: 2 }}>
                 {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                   <Box
                     sx={{
@@ -861,7 +668,6 @@ const SpeciesReport = () => {
 
               <Box sx={{ width: '98%', margin: 4 }}>
                 <Box sx={{ borderRadius: '8px' }}>
-                  {/* {columns.length > 0 ? ( */}
                   <StickyTable
                     rows={reportRows}
                     rowCount={total}
@@ -880,9 +686,6 @@ const SpeciesReport = () => {
                     headerName='Species'
                     searchMode='server'
                   />
-                  {/* ) : <Box sx={{ py: 4, textAlign: 'center' }}>
-                    <CircularProgress />
-                  </Box>} */}
                 </Box>
               </Box>
             </TabContext>

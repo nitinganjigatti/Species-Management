@@ -1,8 +1,8 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Box, Button, Card, CardHeader, Checkbox, CircularProgress, Popover, Typography, Tooltip } from '@mui/material'
-import { TabContext, TabList } from '@mui/lab'
+import { Box, Button, Card, CardHeader, Checkbox, Popover, Typography, Tooltip } from '@mui/material'
+import { TabContext } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 import toast from 'react-hot-toast'
 import moment from 'moment'
@@ -10,11 +10,13 @@ import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
 import { useAnimalContext } from 'src/context/AnimalContext'
 import { usePariveshContext } from 'src/context/PariveshContext'
-import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
+
 import Error404 from 'src/pages/404'
-import StickyTable from 'src/views/table/sticky-table'
-import { getAllAnimalReport, getAnimalReportById, getSpeciesListing } from 'src/lib/api/report'
+import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import StickyTable from 'src/views/table/sticky-table'
+
+import { getAllAnimalReport, getAnimalReportById, getSpeciesListing } from 'src/lib/api/report'
 
 const AnimalList = () => {
   const router = useRouter()
@@ -28,7 +30,6 @@ const AnimalList = () => {
   const categories = ['Site', 'Organization']
   const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
 
-  // console.log('Animal Id >>', animalId)
   const [status, setStatus] = useState('statistics')
   const [animalList, setAnimalList] = useState([])
 
@@ -47,15 +48,12 @@ const AnimalList = () => {
     setSelectedOptions
   } = useAnimalContext()
 
-  // console.log('selected >', selectedAnimal)
-
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
-  // const [selectedOptions, setSelectedOptions] = useState([])
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -145,7 +143,6 @@ const AnimalList = () => {
         const response = await getSpeciesListing()
         if (response.success) {
           setIsLoader(false)
-          // console.log('Response >', response.data)
           setSpeciesList(response.data.result)
         } else {
           console.error('Error: Something went wrong')
@@ -158,47 +155,6 @@ const AnimalList = () => {
     }
     fetchSpeciesList()
   }, [])
-
-  // const handleSelection = async (selectedIDs, category) => {
-  //   let params = {}
-  //   const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
-  //   const key = category === 'Site' ? 'sids' : 'oids'
-  //   const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
-
-  //   if (selectedIDs.includes(isAllSelected)) {
-  //     // "All Sites/All Organizations" selected
-  //     if (category === 'Site' && !selectedSites.includes(isAllSelected)) {
-  //       stateSetter(['All Sites'])
-  //       params[key] = '' // Reset to empty for all sites
-  //     } else if (category === 'Organization' && !selectedOptions.Organization.includes(isAllSelected)) {
-  //       stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
-  //       params[key] = '' // Reset to empty for all organizations
-  //     } else {
-  //       // If "All Sites/All Organizations" is re-selected, use filtered IDs
-  //       const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
-  //       params[key] = filteredIDs.toString()
-  //       stateSetter(filteredIDs)
-  //     }
-  //   } else if (selectedIDs.length === 0) {
-  //     // No items selected, reset the parameter
-  //     params[key] = ''
-  //   } else {
-  //     // Specific IDs selected
-  //     params[key] = selectedIDs.toString()
-  //     if (category === 'Site') {
-  //       stateSetter(selectedIDs)
-  //     } else {
-  //       stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
-  //     }
-  //   }
-
-  //   // Reset pagination and update filter parameters
-  //   setPaginationModel(prev => ({ ...prev, page: 0 }))
-  //   setApiFilterParams(prev => ({
-  //     ...prev,
-  //     [key]: params[key] // Update only the relevant key
-  //   }))
-  // }
 
   const handleSelection = async (selectedIDs, category) => {
     let params = {}
@@ -385,8 +341,6 @@ const AnimalList = () => {
       setIsLoading(false) // Only affects table, not CSV
     }
   }
-
-  // console.log('List >>', headerList, animalList)
 
   useEffect(() => {
     if (animalId) {
@@ -712,39 +666,7 @@ const AnimalList = () => {
             </Box>
 
             <TabContext value={status}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, mt: 3 }}>
-                {/* Search box and Tabs */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                  {/* Search Box */}
-                  {/* <TextField
-                    variant='outlined'
-                    size='small'
-                    placeholder='Search'
-                    slotProps={
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    }
-                    // InputProps={{
-                    //   startAdornment: (
-
-                    //   )
-                    // }}
-                    sx={{
-                      width: '320px',
-                      backgroundColor: '#fff',
-                      ml: 4,
-                      mt: 3,
-                      borderRadius: '4px', // Applies to the container
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '4px' // Applies to the input field
-                      }
-                    }}
-                  /> */}
-                  {/* Tabs */}
-                  <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
-                </Box>
-
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', px: 2, mt: 3 }}>
                 {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                   <Box
                     sx={{
@@ -752,67 +674,9 @@ const AnimalList = () => {
                       flexDirection: { xs: 'column', sm: 'row' },
                       alignItems: 'center',
                       borderRadius: '8px',
-
                       mr: 2
                     }}
                   >
-                    {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
-                  <Button
-                    variant='outlined'
-                    onClick={() => setOpenSiteDrawer(true)}
-                    sx={{
-                      height: '40px',
-                      width: '200px',
-                      borderRadius: '8px',
-                      textTransform: 'none',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '0 12px' // Ensure space for text and icon
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        textOverflow: 'ellipsis',
-                        flex: 1, // Ensures it uses remaining space
-                        textAlign: 'left', // Align text to the left
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }}
-                    >
-                      {selectedSites.length > 0 && selectedSites[0] !== 'All Sites' ? (
-                        <>
-                          {
-                            authData?.userData?.user?.zoos[0].sites?.find(site => site.site_id === selectedSites[0])
-                              ?.site_name
-                          }
-                          {selectedSites.length > 1 && ` ...+${selectedSites.length - 1}`}
-                        </>
-                      ) : (
-                        `Select Site (${sites.length})`
-                      )}
-                    </Box>
-                    <Box component='span' sx={{ ml: 1, color: 'black' }}>
-                      <img
-                        src='/images/All.png'
-                        style={{ width: '20px', height: '20px', marginTop: 7 }}
-                        alt='Filter Icon'
-                      />
-                    </Box>
-                  </Button>
-                </FormControl>
-
-                <SiteSheet
-                  openSiteDrawer={openSiteDrawer}
-                  setOpenSiteDrawer={setOpenSiteDrawer}
-                  sites={sites}
-                  setSites={setSites}
-                  selectedSites={selectedSites}
-                  setSelectedSites={setSelectedSites}
-                  handleSelectedSite={handleSelectedSite}
-                /> */}
 
                     <Button
                       onClick={() => handleFilterSection()}
@@ -851,7 +715,6 @@ const AnimalList = () => {
                       >
                         Filter
                       </Typography>
-
 
                       {animalId && getSpecificTotalSelectedFilters(selectedOptions) > 0
                         ? <Box
@@ -892,7 +755,6 @@ const AnimalList = () => {
                             fontWeight: 500
                           }}
                         >
-
                           {getTotalSelectedFilters(selectedOptions)}
                         </Box>}
 
@@ -1026,7 +888,6 @@ const AnimalList = () => {
                 )}
               </Box>
               <Box sx={{ width: '100%', p: 5, }}>
-                {/* {columns.length > 0 ? ( */}
                 <StickyTable
                   rows={reportRows.length && reportRows}
                   rowCount={total}
@@ -1045,11 +906,6 @@ const AnimalList = () => {
                   searchMode='server'
                   disableColumnSorting={true}
                 />
-                {/* ) : (
-                  <Box sx={{ py: 4, textAlign: 'center' }}>
-                    <CircularProgress />
-                  </Box>
-                )} */}
               </Box>
             </TabContext>
           </Card>

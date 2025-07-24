@@ -135,12 +135,6 @@ const AnimalAssessment = () => {
     }
   }
 
-  // const debouncedSearch = useCallback(
-  //   debounce(searchValue => {
-  //     animalAssessmentReport(searchValue)
-  //   }, 500),
-  //   []
-  // )
   const debouncedSearch = useCallback(
     debounce(value => {
       animalAssessmentReport(value)
@@ -160,12 +154,7 @@ const AnimalAssessment = () => {
     }
   }, [paginationModel, filterDates, selectedItems])
 
-  useEffect(() => {
-    // if (assessmentData?.length) {
-    transformAnimalData()
-
-    // }
-  }, [assessmentData])
+  useEffect(() => transformAnimalData(), [assessmentData])
 
   // Transform raw animal data
   const transformAnimalData = () => {
@@ -191,14 +180,10 @@ const AnimalAssessment = () => {
         return parts.join(' ')
       })()
 
-      // need to check here time is right or wrong according to ISO
       const recordMap = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
-          value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${
-            // Number(assessment?.assessment_value) > 1 && assessment?.uom_abbr ? 's' : ''
-            ''
-            }`,
+          value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${''}`,
           date: moment(
             Utility.convertUTCToLocalDate(
               assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time
@@ -231,8 +216,6 @@ const AnimalAssessment = () => {
     })
 
     setDataList(transformed)
-
-    // setTotal(transformed.length)
     const headers = [
       { key: 'default_icon', label: 'ANIMAL DETAILS' },
       ...Array.from({ length: maxAssessmentCount }, (_, i) => ({
@@ -493,15 +476,10 @@ const AnimalAssessment = () => {
           >
             <Box
               sx={{
-                // minHeight: '121px',
                 bgcolor: theme.palette.customColors.lightBg,
                 borderRadius: '8px'
-
-                // padding: '10px',
-                // paddingLeft: '20px'
               }}
             >
-              {/* <AnimalCard animalData={animalDetailsData} /> */}
               <AnimalParentCard backgroundColor={theme.palette.customColors.lightBg} data={animalDetailsData} />
             </Box>
 
