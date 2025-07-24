@@ -149,11 +149,11 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
       const response = await AddNewSite(params)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message })
+        Toaster({ type: 'success', message: 'New Site Is Created Successfully' })
         setSiteDrawer(false)
         refetch()
       } else {
-        Toaster({ type: 'error', message: response?.message })
+        Toaster({ type: 'error', message: 'Oops! Something went wrong' })
 
         // setSiteDrawer(false)
       }

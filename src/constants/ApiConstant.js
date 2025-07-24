@@ -542,9 +542,11 @@ export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
 
 export const GET_SITES_LIST_CLUSTER_WISE = `cluster/get-site-list-for-cluster-assign`
 
-export const ADD_CLUSTER = `cluster/add-cluster`
+export const ADD_CLUSTER = `cluster/add-cluster` 
 
 export const ADD_SECTION = `/zoos/createsection`
+
+export const CREATE_SITE = '/zoos/createZooSite'
 
 export const ADD_ENCLOSURE_TO_HOUSING = `/enclosure/create-enclosure`
 
