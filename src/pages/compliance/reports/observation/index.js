@@ -343,7 +343,7 @@ const ObservationReport = () => {
                   placeholder='Search by date or observation type'
                   value={searchValue}
                   inputStyle={{ py: '10px', px: '12px' }}
-                  width='50%'
+                  width={{ xs: '100%', sm: '60%', md: '50%' }}
                   sx={{
                     '& .MuiInputBase-input::placeholder': {
                       fontSize: '14px',
@@ -353,7 +353,7 @@ const ObservationReport = () => {
                 />
               </Box>
 
-              <Box sx={{ px: 6, width: { xs: '100%', sm: '60%' } }}>
+              <Box sx={{ px: 6, width: { xs: '100%', sm: '70%' } }}>
                 <CommonDateRangePickers
                   filterDates={filterDates}
                   onChange={handleDateRangeChange}
