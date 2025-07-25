@@ -1,24 +1,24 @@
-import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
-import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { useRouter } from 'next/router'
+import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import Router from 'next/router'
-import toast from 'react-hot-toast'
-import Toaster from 'src/components/Toaster'
-import { addLabSample, deleteLabSample, getLabSampleList, updateLabSample } from 'src/lib/api/lab/master'
+import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
-import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
-import AddSample from 'src/views/pages/lab/sample/addSample'
-import SampleDetails from 'src/views/pages/lab/sample/sampleDetails'
+import toast from 'react-hot-toast'
+
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 
+import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
+import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import AddSample from 'src/views/pages/lab/sample/addSample'
+import SampleDetails from 'src/views/pages/lab/sample/sampleDetails'
+
+import { addLabSample, deleteLabSample, getLabSampleList, updateLabSample } from 'src/lib/api/lab/master'
+
 const LabSamples = () => {
   const theme = useTheme()
-  const router = useRouter()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
@@ -186,7 +186,6 @@ const LabSamples = () => {
         </Box>
       )
     },
-
     // {
     //   flex: 0.3,
     //   Width: 30,
@@ -266,13 +265,10 @@ const LabSamples = () => {
       field: 'Action',
       headerName: 'Action',
       sortable: false,
-
-      // headerAlign: 'center',
       renderCell: params => (
         <>
           <Box>
             {/* <FormControlLabel control={<Switch defaultChecked size='small' />} /> */}
-
             {params?.row?.zoo_id !== '0' ? (
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
@@ -314,9 +310,6 @@ const LabSamples = () => {
       {medical_add_samples ? (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-      Lab
-    </Typography> */}
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
