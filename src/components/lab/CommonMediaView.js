@@ -14,9 +14,11 @@ import {
   Typography
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+// import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
 import { LoadingButton } from '@mui/lab'
+import Utility from 'src/utility'
 
 const CommonMediaView = ({
   type,
@@ -33,18 +35,15 @@ const CommonMediaView = ({
   const [error, setError] = useState(false)
   const [uploadAnotherDialog, setUploadAnotherDialog] = useState(false)
 
-  function extractHoursAndMinutes(date) {
-    return moment(date).format('hh:mm A')
-  }
+  // function extractHoursAndMinutes(date) {
+  //   return moment(date).format('hh:mm A')
+  // }
 
-  function convertUTCToLocal(date) {
-    var stillUtc = moment.utc(date).toDate()
-
-    // var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
-    var local = moment(stillUtc).local(true).format('DD-MMM-YYY')
-
-    return local
-  }
+  // function convertUTCToLocal(date) {
+  //   var stillUtc = moment.utc(date).toDate()
+  //   var local = moment(stillUtc).local(true).format('DD-MMM-YYY')
+  //   return local
+  // }
 
   const handleConfirmDialog = (e, item) => {
     e.preventDefault()
@@ -185,7 +184,7 @@ const CommonMediaView = ({
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {convertUTCToLocal(item?.user_profile?.created_at)}
+                    {Utility.convertUTCToLocalDate(item?.user_profile?.created_at)}
                   </Typography>
                   <Typography
                     sx={{
@@ -196,7 +195,7 @@ const CommonMediaView = ({
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                    {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item?.user_profile?.created_at))}
                   </Typography>
                 </Box>
               </Card>
@@ -265,12 +264,12 @@ const CommonMediaView = ({
                       item?.file_type === 'application/pdf'
                         ? fileViews?.pdf?.bg_color
                         : item?.file_type == 'text/csv'
-                        ? fileViews?.xls?.bg_color
-                        : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-                        ? fileViews?.document?.bg_color
-                        : item?.file_type == 'audio/mpeg'
-                        ? fileViews?.audio?.bg_color
-                        : theme.palette.customColors.antzSecondaryBg,
+                          ? fileViews?.xls?.bg_color
+                          : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                            ? fileViews?.document?.bg_color
+                            : item?.file_type == 'audio/mpeg'
+                              ? fileViews?.audio?.bg_color
+                              : theme.palette.customColors.antzSecondaryBg,
                     mt: -2
                   }}
                 >
@@ -279,12 +278,12 @@ const CommonMediaView = ({
                       item?.file_type === 'application/pdf'
                         ? fileViews?.pdf?.image_path
                         : item?.file_type == 'text/csv'
-                        ? fileViews?.xls?.image_path
-                        : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-                        ? fileViews?.document?.image_path
-                        : item?.file_type == 'audio/mpeg'
-                        ? fileViews?.audio?.image_path
-                        : '/icons/document_icon.png'
+                          ? fileViews?.xls?.image_path
+                          : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                            ? fileViews?.document?.image_path
+                            : item?.file_type == 'audio/mpeg'
+                              ? fileViews?.audio?.image_path
+                              : '/icons/document_icon.png'
                     }
                     alt='Icon'
                     style={{ width: '56px', height: '60px', objectFit: 'contain' }}
@@ -317,7 +316,7 @@ const CommonMediaView = ({
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {convertUTCToLocal(item?.user_profile?.created_at)}
+                    {Utility.convertUTCToLocalDate(item?.user_profile?.created_at)}
                   </Typography>
                   <Typography
                     sx={{
@@ -328,7 +327,7 @@ const CommonMediaView = ({
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                    {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item?.user_profile?.created_at))}
                   </Typography>
                 </Box>
               </Card>
