@@ -91,14 +91,13 @@ const StockOut = () => {
       const sortOrder = newModel[0]?.sort || 'asc' // Fallback to 'asc' if undefined
       const sortField = newModel[0]?.field || ''
 
-      // Update state
       setSort(sortOrder)
       setSortColumn(sortField)
 
-      // Reset pagination to the first page
+     
       setPaginationModel(prev => ({ ...prev, page: 0 }))
 
-      // Fetch updated data with new sort
+     
       fetchTableData(sortOrder, searchValue, sortField, status)
     } else {
       console.log('No sort model applied')
@@ -353,9 +352,9 @@ const StockOut = () => {
           <CardHeader
             sx={{
               display: 'flex',
-              justifyContent: 'space-between', // Space between title and button
+              justifyContent: 'space-between', 
               alignItems: 'center',
-              px: { xs: 2, md: 5 }, // Responsive padding
+              px: { xs: 2, md: 5 }, 
               py: 2
             }}
             title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
@@ -369,7 +368,7 @@ const StockOut = () => {
               gap: 2
             }}
           >
-            {/* Left Box (Search Field) */}
+        
             <Grid item size={{ xs: 12, sm: 6 }}>
               <Box
                 sx={{

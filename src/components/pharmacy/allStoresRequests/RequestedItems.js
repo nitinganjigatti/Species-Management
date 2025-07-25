@@ -42,7 +42,6 @@ import TabContext from '@mui/lab/TabContext'
 import { alpha } from '@mui/material'
 import { ExportButton } from 'src/views/utility/render-snippets'
 
-// import Drawer from '@mui/material/Drawer'
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
@@ -651,7 +650,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     updateUrlParams({
       requestedItemsSubTab: requestedItemsSubTab
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [requestedItemsSubTab])
 
   const handleExport = async () => {

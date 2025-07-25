@@ -17,12 +17,6 @@ const ShipAllItems = () => {
   const [requestItems, setRequestItems] = useState([])
   const [permissionView, setPermissionView] = useState(false)
 
-  //   console.log(id, 'idesssss')
-  //   console.log(storeDetails, 'idesssss')
-  //   console.log(dispatchedItems, 'idesssss')
-
-  //   console.log(selectedPharmacy, 'selectedPharmacy')
-
   const getDispatchedItems = async id => {
     setLoader(true)
     const response = await getDispatchItemsByBatchId(id)
@@ -77,7 +71,6 @@ const ShipAllItems = () => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
     if (response.success) {
-      // console.log('Request', response.data)
       const responseData = response.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
@@ -87,7 +80,6 @@ const ShipAllItems = () => {
 
       responseData['request_item_details'] = mappedWithUid
 
-      // setRequestItems(response.data)
       setRequestItems(responseData)
       setLoader(false)
       setPermissionView(true)
@@ -137,7 +129,6 @@ const ShipAllItems = () => {
               >
                 Back to list
               </Button>
-              {/* <strong>check it out!</strong> */}
             </Alert>
           )}
         </Card>

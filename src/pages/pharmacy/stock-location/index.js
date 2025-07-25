@@ -490,8 +490,6 @@ const StockLocation = () => {
                     border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     height: '40px',
-
-                    // textTransform: 'none',
                     width: { xs: '100%', md: 'auto' },
                     color: 'customColors.OnSurfaceVariant'
                   }}

@@ -27,7 +27,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
   const { data, updateMultipleStates } = useDynamicStateContext()
 
-  // Styled TabList component
+ 
   const TabLists = styled(MuiTabList)(({ theme }) => ({
     '& .MuiTabs-indicator': {
       display: 'none'

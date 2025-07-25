@@ -319,7 +319,6 @@ const AllStoresRequestList = () => {
 
   const fetchUniquePendingData = useCallback(
     async ({ stock_status, page, limit, q }) => {
-      // Prevent API calls there's no data
       if (isLoadingMore || noDataRef.current) return
 
       setIsLoadingMore(true)
@@ -347,7 +346,6 @@ const AllStoresRequestList = () => {
           }))
 
           setUniquePendingData(prevMedicines => {
-            //  append new data
             return page === 1 ? transformedData : [...prevMedicines, ...transformedData]
           })
 
@@ -391,7 +389,6 @@ const AllStoresRequestList = () => {
 
   const searchDrawerData = useCallback(
     debounce(async ({ stock_status, q }) => {
-      // Reset states but keep search value
       resetStates()
 
       fetchUniquePendingData({
