@@ -499,3 +499,7 @@ export const GET_SPECIES = '/diet/species'
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 
 export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
+
+export const GET_MEAL_GROUP_WISE_REPORT = `diet-report/meal-group-report`
+
+export const GET_MEAL_GROUP_SUMMARY_REPORT = `diet-report/meal-group-type-time-wise`

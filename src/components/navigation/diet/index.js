@@ -86,7 +86,12 @@ const composeDietNavigation = () => {
     path: '/diet/kitchen/diet-report'
   }
 
-  kitchenParent.children.push(dietReport)
+  const mealGroupReport = {
+    title: 'Meal Group Report',
+    path: '/diet/kitchen/meal-group-report'
+  }
+
+  kitchenParent.children.push(dietReport, mealGroupReport)
   settingsParent.children.push(preparationTypes, cutSize, dietCategory)
 
   const dietNavigation = [
