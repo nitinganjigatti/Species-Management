@@ -37,20 +37,18 @@ import {
   getProductExpiredBatchesList,
   getProductQuantityInStoresList
 } from 'src/lib/api/pharmacy/getMedicineList'
+
+// getAvailableMedicineByMedicineId
+import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 import FallbackSpinner from 'src/@core/components/spinner'
 import Utility from 'src/utility'
-import MonthlyChart from 'src/views/utility/monthlychart'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import {
   addNewAlternativeMedicineProducts,
   editNewAlternativeMedicineProducts,
   getAlternativeMedicineProducts
 } from 'src/lib/api/pharmacy/alternateMedicines'
-import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { debounce } from 'lodash'
-import ProductOption from 'src/views/pages/pharmacy/utility/ProductOption'
-import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import AlternativeMedicinesList from './AlternativeMedicinesList'
 import EditIcon from '@mui/icons-material/Edit'
 import EditAlternativeMedicineDrawer from './EditAlternativeMedicineDrawer'
 import AddAlternativeMedicineDrawer from './AddAlternativeMedicineDrawer'
@@ -544,6 +542,73 @@ const Overview = props => {
     </>
   )
 
+  const BatchQuantitiesContent = ({ data, isLoading }) => (
+    <>
+      {isLoading ? (
+        <FallbackSpinner />
+      ) : (
+        <Card
+          sx={{
+            border: '1px solid',
+            borderColor: 'customColors.customTableBorderBg',
+            boxShadow: 'none'
+          }}
+        >
+          <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ p: '6px' }}>BATCH ID</TableCell>
+                  <TableCell sx={{ p: '6px' }}>EXPIRY DATE</TableCell>
+                  <TableCell sx={{ p: '6px' }}>QUANTITY</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                {data.length === 0 ? (
+                  <TableRow
+                    sx={{
+                      '&:last-child td, &:last-child th': {
+                        border: 0
+                      }
+                    }}
+                  >
+                    <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
+                      No data found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.map((item, index) => {
+                    const value = (parseFloat(item.qty) * parseFloat(item.unit_price)).toFixed(2)
+
+                    const formattedValue = Number(value).toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })
+
+                    return (
+                      <TableRow
+                        key={index}
+                        sx={{
+                          '&:last-child td, &:last-child th': {
+                            border: 0
+                          }
+                        }}
+                      >
+                        <TableCell>{item.batch_no}</TableCell>
+                        <TableCell>{Utility.formatDisplayDate(Utility.convertUTCToLocal(item.expiry_date))}</TableCell>
+                        <TableCell>{item.qty}</TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+    </>
+  )
+
   const [activeDrawer, setActiveDrawer] = useState(null)
   const [drawerDataArray, setDrawerDataArray] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -566,6 +631,18 @@ const Overview = props => {
       description: 'Quantity in Store',
       totalStores: totalValue?.totalStores,
       totalQuantity: totalValue?.totalQuantity
+    },
+    {
+      name: 'batchQuantities',
+      title: 'Batch Details',
+      style: 'customColors.Background',
+      bgColor: theme.palette.customColors.neutral05,
+      icon: '/images/batchIcon.svg',
+      value: productDashboardData?.batch_count,
+      description: 'Batch Details',
+      totalBatches: productDashboardData?.batch_count
+
+      // totalQuantity: totalValue?.totalQuantity
     },
     {
       name: 'aboutToExpire',
@@ -620,12 +697,18 @@ const Overview = props => {
         result = await getProductExpiredBatchesList(id)
       } else if (name === 'quantityInStores') {
         result = await getProductQuantityInStoresList(id)
+      } else if (name === 'batchQuantities') {
+        result = await getAvailableMedicineByMedicineId(id)
       }
-
       if (result?.success && result?.data) {
         setIsLoading(false)
-        setDrawerDataArray(result?.data)
-        if (name === 'quantityInStores') {
+
+        // setDrawerDataArray(result?.data)
+        if (name === 'batchQuantities') {
+          setDrawerDataArray(result?.data.items)
+        } else if (name === 'quantityInStores') {
+          setDrawerDataArray(result?.data)
+
           const allStores = [...(result?.data?.central || []), ...(result?.data?.local || [])]
 
           const totalQuantity = allStores.reduce((sum, store) => sum + Number(store.total_qty), 0)
@@ -639,6 +722,8 @@ const Overview = props => {
             totalValue: 0
           })
         } else {
+          setDrawerDataArray(result?.data)
+
           const totalValue = result.data.reduce((acc, item) => {
             return acc + parseInt(item.qty) * parseInt(item.unit_price)
           }, 0)
@@ -679,6 +764,10 @@ const Overview = props => {
           <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
         )
       )
+    }
+
+    if (activeDrawer === 'batchQuantities') {
+      return <BatchQuantitiesContent data={drawerDataArray} isLoading={isLoading} />
     }
 
     return null
@@ -859,21 +948,25 @@ const Overview = props => {
     <>
       <Grid
         container
-        spacing={4}
+        spacing={2}
         sx={{
-          pt: 5
+          pt: 5,
+          display: 'flex',
+          justifyContent: 'space-between'
         }}
       >
         {drawerData.map(card => (
-          <StyleWithIconCardComponent
-            key={card.name}
-            value={card.value}
-            description={card.description}
-            icon={card.icon}
-            bgColor={card.bgColor}
-            onClick={() => openDrawer(card.name)}
-            showIcon={true}
-          />
+          <Grid key={card.name} item size={{ xs: 6, md: 6, sm: 6, lg: 3 }}>
+            <StyleWithIconCardComponent
+              key={card.name}
+              value={card.value}
+              description={card.description}
+              icon={card.icon}
+              bgColor={card.bgColor}
+              onClick={() => openDrawer(card.name)}
+              showIcon={true}
+            />
+          </Grid>
         ))}
       </Grid>
       <Divider sx={{ my: 5 }} />

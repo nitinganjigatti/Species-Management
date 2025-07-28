@@ -10,7 +10,7 @@ import TableBody from '@mui/material/TableBody'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import { Button, CardHeader } from '@mui/material'
@@ -21,7 +21,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import Autocomplete from '@mui/material/Autocomplete'
+
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
@@ -29,14 +29,8 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import CustomChip from 'src/@core/components/mui/chip'
-
 import { v4 as uuidv4 } from 'uuid'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -254,22 +248,6 @@ const AddReturnRequest = () => {
   }
 
   const submitItems = params => {
-    // const HasErrors =
-    //   !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
-    // // || !nestedRowMedicine.control_substance
-    // if (HasErrors) {
-    //   setItemErrors(validate(nestedRowMedicine))
-
-    //   return
-    // }
-    // if (params.control_substance === true) {
-    //   if (nestedRowMedicine.control_substance_file.length === 0) {
-    //     setItemErrors(validate(nestedRowMedicine))
-
-    //     return
-    //   }
-    // }
-
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
@@ -684,7 +662,6 @@ const AddReturnRequest = () => {
         batchLoading={batchLoading}
         onSubmitData={submitItems}
         batchList={optionsBatchList}
-        setBatchList={setOptionsBatchList}
         nestedMedicine={nestedRowMedicine}
         error={duplicateMedError}
         totalQuantity={totalBatchQuantity}

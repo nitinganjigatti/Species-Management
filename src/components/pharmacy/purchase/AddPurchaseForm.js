@@ -1634,7 +1634,6 @@ const AddPurchaseForm = () => {
                       width={'100%'}
                       onChangeHandler={date => {
                         let formatted = formatDate(date)
-
                         onChange(formatted)
                       }}
                       customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}

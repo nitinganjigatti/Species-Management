@@ -563,6 +563,7 @@ export const AddItemsForm = ({
                 errors={errors}
                 required={true}
                 readOnly={true}
+                dateReader={true}
               />
             </Grid>
           )}

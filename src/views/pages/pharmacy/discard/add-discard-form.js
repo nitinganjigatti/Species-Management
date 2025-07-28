@@ -387,7 +387,6 @@ export const AddItemsForm = ({
             onKeyUp={e => searchMedicineData(e.target.value)}
             onChangeOverride={handleProductChange}
             onBlur={() => searchMedicineData(nestedMedicine?.stock_id, nestedMedicine?.stock_type)}
-            // renderOption={(props, option) => <ProductOption option={option} {...props} />}
             renderOption={(props, option) => {
               const { key, ...otherProps } = props
 
@@ -420,7 +419,6 @@ export const AddItemsForm = ({
             getOptionLabel={option => option.label || ''}
             isOptionEqualToValue={(option, value) => option.value === value?.value}
             onChangeOverride={handleBatchChange}
-            // renderOption={(props, option) => <BatchOption option={option} {...props} />}
             renderOption={(props, option) => {
               const { key, ...otherProps } = props
 
@@ -464,6 +462,7 @@ export const AddItemsForm = ({
               errors={errors}
               required={true}
               readOnly={true}
+              dateReader={true}
             />
           </Grid>
         )}
@@ -506,9 +505,13 @@ export const AddItemsForm = ({
         </Grid>
         {quantityError && (
           <Grid item size={{ xs: 12 }}>
-            <Typography sx={{
-              color: 'error.main'
-            }}>Quantity should be lesser than available Quantity.</Typography>
+            <Typography
+              sx={{
+                color: 'error.main'
+              }}
+            >
+              Quantity should be lesser than available Quantity.
+            </Typography>
           </Grid>
         )}
         <Grid
@@ -518,7 +521,8 @@ export const AddItemsForm = ({
             display: 'flex',
             justifyContent: 'flex-end',
             gap: 3
-          }}>
+          }}
+        >
           <Button variant='outlined' onClick={closeDialog}>
             Cancel
           </Button>
@@ -528,5 +532,5 @@ export const AddItemsForm = ({
         </Grid>
       </Grid>
     </form>
-  );
+  )
 }

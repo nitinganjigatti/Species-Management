@@ -803,7 +803,6 @@ const ProductDetailsList = () => {
             addEventSidebarOpen={variantDrawer}
             handleSidebarClose={handleSidebarClose}
             handleSubmitData={handleSubmitData}
-            // resetForm={resetForm}
             submitLoader={submitLoader}
             editParams={editParams}
           />

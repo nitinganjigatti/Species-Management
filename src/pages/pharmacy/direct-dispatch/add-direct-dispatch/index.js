@@ -748,7 +748,6 @@ const AddDirectDispatch = () => {
     return total + item.request_item_qty * parseFloat(item.unit_price)
   }, 0)
 
-
   return (
     <>
       {selectedPharmacy.type === 'central' &&

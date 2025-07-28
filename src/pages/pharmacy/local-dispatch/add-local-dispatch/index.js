@@ -630,7 +630,6 @@ const AddLocalDispatch = () => {
       }
     } else {
       try {
-
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {
           toast.success(response?.message)
@@ -944,7 +943,6 @@ const AddLocalDispatch = () => {
                         <TableCell>Product Name</TableCell>
                         <TableCell>Batch No</TableCell>
                         <TableCell>Expiry Date</TableCell>
-                        <TableCell>Priority</TableCell>
                         <TableCell>Quantity</TableCell>
                         <TableCell>Unit Price</TableCell>
                         <TableCell>Total Value</TableCell>
@@ -1000,7 +998,6 @@ const AddLocalDispatch = () => {
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
                                 </TableCell>
-                                <TableCell>{el.priority_item}</TableCell>
                                 <TableCell>{el.request_item_qty}</TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.unit_price)}

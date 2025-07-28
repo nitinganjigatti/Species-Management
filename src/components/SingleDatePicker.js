@@ -17,6 +17,7 @@ const SingleDatePicker = ({
   maxDate,
   onChangeHandler,
   name,
+  dateFormat = 'dd-MMM-yyyy',
   disabled = false,
   size,
   ...rest
@@ -35,6 +36,7 @@ const SingleDatePicker = ({
         disabled={disabled ? disabled : null}
         showIcon
         selected={date}
+        dateFormat={dateFormat}
         id='form-layouts-separator-date'
         popperPlacement={popperPlacement}
         onChange={handleDateChange}
