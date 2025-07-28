@@ -1,20 +1,4 @@
-import {
-  Card,
-  CardHeader,
-  Typography,
-  Button,
-  Box,
-  Checkbox,
-  CircularProgress,
-  TextField,
-  debounce,
-  InputAdornment,
-  Tooltip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
-} from '@mui/material'
+import { Card, CardHeader, Typography, Button, Box, Checkbox, debounce, Tooltip, FormControl } from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { TabContext, TabList } from '@mui/lab'
 import { useTheme } from '@emotion/react'
@@ -95,10 +79,6 @@ const SpeciesReport = () => {
       [],
     Species: speciesList
 
-    // Section: ['North', 'South', 'East', 'West'],
-    // Enclosure: ['Enclosure 1', 'Enclosure 2'],
-    // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
-    // Breed: ['Breed A', 'Breed B']
   }
 
   const initialFilterParams = {
@@ -182,8 +162,8 @@ const SpeciesReport = () => {
         let updatedParams = { ...parsedParams }
         delete updatedParams.site_ids
 
-        // Update context with the modified params (without site_ids)
-        setApiFilterParams(updatedParams) // Update context instead of sessionStorage
+        
+        setApiFilterParams(updatedParams)
         setSelectedSites([])
       }
 
@@ -198,7 +178,7 @@ const SpeciesReport = () => {
       } else if (response.success) {
         const { header, datalist, total_count } = response.data || {}
 
-        // console.log(response)
+      
 
         // setDataList(datalist || [])
         // if (setHeaders) setHeaderList(header)
@@ -280,7 +260,6 @@ const SpeciesReport = () => {
         ...param
       }
 
-      // Reset site filtering ONLY when switching from "Detail" back to "Listing"
 
       setIsLoading(true)
 
@@ -293,10 +272,9 @@ const SpeciesReport = () => {
 
   useEffect(() => {
     if (router.pathname === '/report/species') {
-      // console.log('Before apiFilterParams', apiFilterParams)
       setSelectedSites([])
       setSelectedOptions({})
-      setApiFilterParams(() => initialFilterParams) // Ensures the update happens correctly
+      setApiFilterParams(() => initialFilterParams) 
       if (reports_module && enable_specie_report) {
         fetchData(apiFilterParams, paginationModel)
       }
@@ -310,10 +288,9 @@ const SpeciesReport = () => {
   }, [fetchData, apiFilterParams])
 
   const columns = headerList.map((header, index) => {
-    // Check if this is the species column (contains default_icon)
     if (header.key.includes('default_icon')) {
       return {
-        field: 'speciesAndCommonName', // Use a custom field name
+        field: 'speciesAndCommonName', 
         headerName: header.label,
         isAvatar: true,
         pinned: 'left',
@@ -356,7 +333,7 @@ const SpeciesReport = () => {
       }
     }
 
-    // For other columns, use the first key from the array
+  
     const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
 
     return {
@@ -379,17 +356,10 @@ const SpeciesReport = () => {
         >
           <Box
             sx={{
-              // width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '140px',
               width: '140px',
               height: '25px',
               display: 'flex',
               alignItems: 'center',
-              // justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              // ? 'center'
-              // : header.label === 'total'
-              // ? 'flex-end'
-              // : 'flex-start',
-
               position: 'relative',
               cursor: 'pointer'
             }}
@@ -399,13 +369,8 @@ const SpeciesReport = () => {
                 color: getCellTextColor(header.label),
                 backgroundColor: getCellBackgroundColor(header.label),
                 borderRadius: '4px',
-                padding: '4px 16px', // Thoda padding de diya better UX ke liye
+                padding: '4px 16px', 
                 fontWeight: 400,
-                // textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-                //   ? 'center'
-                //   : header.label === 'total'
-                //   ? 'right'
-                //   : 'left',
                 textAlign: 'left',
                 overflow: 'hidden',
                 whiteSpace: 'nowrap',
@@ -465,14 +430,13 @@ const SpeciesReport = () => {
   const handleConfirm = async () => {
     let updatedApiParams = { ...apiFilterParams }
 
-    // Process `popoverData` to extract selected options
     Object.keys(popoverData).forEach(category => {
       popoverData[category].forEach(option => {
-        updatedApiParams[option.key] = option.checked ? 1 : 0 // Add only selected options
+        updatedApiParams[option.key] = option.checked ? 1 : 0 
       })
     })
 
-    // Update API parameters and reset pagination
+    
     setApiFilterParams(updatedApiParams)
     setPaginationModel({ ...paginationModel, page: 0 })
   }
@@ -550,10 +514,10 @@ const SpeciesReport = () => {
         stateSetter(filteredIDs)
       }
     } else if (selectedIDs.length === 0) {
-      // No items selected, reset the parameter
+     
       params[key] = ''
     } else {
-      // Specific IDs selected
+     
       params[key] = selectedIDs.toString()
       if (category === 'Site') {
         stateSetter(selectedIDs)
@@ -562,11 +526,10 @@ const SpeciesReport = () => {
       }
     }
 
-    // Reset pagination and update filter parameters
     setPaginationModel(prev => ({ ...prev, page: 0 }))
     setApiFilterParams(prev => ({
       ...prev,
-      [key]: params[key] // Update only the relevant key
+      [key]: params[key] 
     }))
   }
 
@@ -577,11 +540,11 @@ const SpeciesReport = () => {
     const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
 
     if (selectedIDs.includes(isAllSelected)) {
-      // "All Sites/All Organizations" selected
+    
       if (category === 'Site') {
         if (!selectedSites.includes(isAllSelected)) {
-          stateSetter(['All Sites']) // Store the selection
-          params[key] = '' // Reset filter
+          stateSetter(['All Sites']) 
+          params[key] = '' 
         } else {
           const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
           stateSetter(filteredIDs)
@@ -599,15 +562,14 @@ const SpeciesReport = () => {
       }
     } else {
       if (selectedIDs.length === 0) {
-        // If no sites/orgs are selected, reset
+       
         params[key] = ''
         if (category === 'Site') {
-          stateSetter([]) // Clear selection
+          stateSetter([]) 
         } else {
           stateSetter(prev => ({ ...prev, Organization: [] }))
         }
       } else {
-        // Normal selection of specific sites/orgs
         params[key] = selectedIDs.toString()
         if (category === 'Site') {
           stateSetter(selectedIDs)
@@ -617,20 +579,18 @@ const SpeciesReport = () => {
       }
     }
 
-    // Reset pagination and update API filter parameters
     setPaginationModel(prev => ({ ...prev, page: 0 }))
     setApiFilterParams(prev => ({
       ...prev,
-      [key]: params[key] // Update only the relevant key
+      [key]: params[key] 
     }))
   }
 
   const getTotalSelectedFilters = selectedOptions => {
-    // console.log('selectedOptions', selectedOptions)
-    // Use Object.values to extract arrays of selected items
+    
     return Object.values(selectedOptions)
-      .flat() // Flatten to combine all selected items into a single array
-      .filter(item => item !== 'All Sites' && item !== 'All Organizations').length // Exclude "All" selections if needed // Count the total number of items
+      .flat() 
+      .filter(item => item !== 'All Sites' && item !== 'All Organizations').length 
   }
 
   const handleFilterSection = () => {
@@ -708,7 +668,7 @@ const SpeciesReport = () => {
     let params = {}
 
     if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
-      // "All Sites" selected and was not already selected
+    
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
@@ -718,7 +678,6 @@ const SpeciesReport = () => {
       }
       setSelectedSites(['All Sites'])
     } else if (selectedSiteIDs.includes('All Sites')) {
-      // Remove "All Sites" and use specific site IDs
       const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
       params = {
         site_ids: filteredSiteIDs.toString(),
@@ -730,7 +689,6 @@ const SpeciesReport = () => {
       }
       setSelectedSites(filteredSiteIDs)
     } else if (selectedSiteIDs.length === 0) {
-      // No sites selected, fallback to "All Sites"
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
@@ -740,7 +698,6 @@ const SpeciesReport = () => {
       }
       setSelectedSites(['All Sites'])
     } else {
-      // Specific site IDs selected
       params = {
         site_ids: selectedSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
@@ -856,7 +813,7 @@ const SpeciesReport = () => {
                     }}
                   /> */}
                   {/* Tabs */}
-                  <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
+                  <TabList onChange={''}></TabList> 
                 </Box>
 
                 {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
@@ -884,7 +841,7 @@ const SpeciesReport = () => {
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          padding: '0 12px' // Ensure space for text and icon
+                          padding: '0 12px' 
                         }}
                       >
                         <Box
@@ -893,8 +850,8 @@ const SpeciesReport = () => {
                             borderRadius: '8px',
                             whiteSpace: 'nowrap',
                             textOverflow: 'ellipsis',
-                            flex: 1, // Ensures it uses remaining space
-                            textAlign: 'left', // Align text to the left
+                            flex: 1, 
+                            textAlign: 'left', 
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
@@ -904,8 +861,8 @@ const SpeciesReport = () => {
                               borderRadius: '8px',
                               whiteSpace: 'nowrap',
                               textOverflow: 'ellipsis',
-                              flex: 1, // Ensures it uses remaining space
-                              textAlign: 'left', // Align text to the left
+                              flex: 1, 
+                              textAlign: 'left', 
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
@@ -1089,3 +1046,4 @@ const SpeciesReport = () => {
 }
 
 export default SpeciesReport
+

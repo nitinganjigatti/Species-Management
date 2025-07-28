@@ -49,7 +49,7 @@ const StockOut = () => {
         setLoading(true)
 
         const params = {
-          sort: sort || 'asc', // Default to 'asc'
+          sort: sort || 'asc', 
           q,
           column,
           page: paginationModel.page + 1,
@@ -76,7 +76,6 @@ const StockOut = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, changeSwitch])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -88,7 +87,7 @@ const StockOut = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const sortOrder = newModel[0]?.sort || 'asc' // Fallback to 'asc' if undefined
+      const sortOrder = newModel[0]?.sort || 'asc' 
       const sortField = newModel[0]?.field || ''
 
       setSort(sortOrder)

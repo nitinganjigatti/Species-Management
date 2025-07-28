@@ -379,7 +379,6 @@ const ListOfStocks = () => {
 
       // setStockId(selectedPharmacy?.id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, value, dialogCheck])
 
   const getBatchWiseDataToExport = async () => {
@@ -825,18 +824,18 @@ const ListOfStocks = () => {
           batchQ: searchValue, 
           batchColumn: sortField,
           id: stockId, 
-          batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize } // Start from the first page
+          batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize } 
         })
       } else {
        
         setPaginationModel(prev => ({ ...prev, page: 0 }))
         getStocksReport({
           sort: sortOrder,
-          q: searchValue, // Use the current search value
+          q: searchValue, 
           column: sortField,
-          id: stockId, // Use the current stock ID
-          type: stockType, // Use the current stock type
-          paginationModel: { page: 0, pageSize: paginationModel.pageSize } // Start from the first page
+          id: stockId, 
+          type: stockType, 
+          paginationModel: { page: 0, pageSize: paginationModel.pageSize } 
         })
       }
     }
@@ -1007,9 +1006,6 @@ const ListOfStocks = () => {
       <Grid>
         <TabContext value={value}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* <Box sx={{ m: 1 }}>
-
-            </Box> */}
             <TabList
               variant='scrollable'
               allowScrollButtonsMobile
@@ -1262,7 +1258,6 @@ const ListOfStocks = () => {
                           event.stopPropagation()
                           event.preventDefault()
 
-                          // Custom logic for cell clicks
                           if (selectedPharmacy.type === 'central' && params.field === 'stock_items_name') {
                             // addEventSidebarOpen()
                             // setPurchaseByStockId({
