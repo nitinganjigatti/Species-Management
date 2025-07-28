@@ -1237,11 +1237,12 @@ const RequestDetails = () => {
           <Card sx={{ p: 5 }}>
             <CardHeader sx={{ py: 0, ml: -4 }} title='Request Details Page' />
             {request?.map((item, index) => (
-              <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <Box key={index} sx={{ display: 'flex', gap: 3, justifyContent: 'space-between', flexWrap: 'wrap' }}>
                 <HeaderCard key={index} item={item} handleClickOpen={handleClickOpen} />
                 <Box
                   sx={{
-                    minWidth: '400px',
+                    width: '400px',
+                    // maxWidth: '400px',
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'center',

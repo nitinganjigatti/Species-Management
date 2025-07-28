@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
+import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Tooltip, Typography, debounce } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
@@ -16,9 +16,16 @@ import AddSample from 'src/views/pages/lab/sample/addSample'
 import SampleDetails from 'src/views/pages/lab/sample/sampleDetails'
 
 import { addLabSample, deleteLabSample, getLabSampleList, updateLabSample } from 'src/lib/api/lab/master'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const LabSamples = () => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
+  const editParamsInitialState = { id: null, label: null }
+
+  const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
+  const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
+
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
@@ -27,7 +34,6 @@ const LabSamples = () => {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const editParamsInitialState = { id: null, label: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -35,10 +41,7 @@ const LabSamples = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
-  const authData = useContext(AuthContext)
 
-  const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
-  const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
 
   function loadServerRows(currentPage, data) {
     return data
@@ -174,16 +177,21 @@ const LabSamples = () => {
   const columns = [
     {
       flex: 0.3,
-      minWidth: 30,
+      minWidth: 200,
       sortable: false,
       field: 'LAB SAMPLE NAME',
       headerName: 'LAB SAMPLE NAME',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+        <Tooltip title={params.row.label ? params.row.label : '-'}>
+          <Typography noWrap variant='body2' sx={{
+            color: 'text.primary', pl: 2,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
             {params.row.label ? params.row.label : '-'}
           </Typography>
-        </Box>
+        </Tooltip>
       )
     },
     // {
@@ -202,27 +210,25 @@ const LabSamples = () => {
     // },
     {
       flex: 0.3,
-      Width: 30,
+      minWidth: 170,
       field: 'NO OF LAB TESTS ',
       headerName: 'NO OF LAB TESTS ',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-            {params.row.lab_test_count ? params.row.lab_test_count : '-'}
-          </Typography>
-        </Box>
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+          {params.row.lab_test_count ? params.row.lab_test_count : '-'}
+        </Typography>
       )
     },
     {
       flex: 0.4,
-      minWidth: 40,
+      minWidth: 200,
       field: 'user_name',
       headerName: 'CREATED BY',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
@@ -243,41 +249,59 @@ const LabSamples = () => {
             ) : (
               <Icon icon='mdi:user' />
             )}
-          </Avatar>
+          </Avatar> */}
+          <FallbackAvatar
+            variant='square'
+            alt='Medicine Image'
+            sx={{
+              width: 30,
+              height: 30,
+              borderRadius: '50%',
+              background: theme.palette.customColors.displaybgPrimary,
+              // overflow: 'hidden'
+            }}
+            src={params?.row.created_by_user?.profile_pic}
+          />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
-            </Typography>
-            <Typography
-              noWrap
-              variant='body2'
-              sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}
-            >
-              {params.row.created_at ? moment(params.row.created_at).format('DD/MMM/YYYY') : '-'}
-            </Typography>
+            <Tooltip title={params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}>
+              <Typography noWrap variant='body2' sx={{
+                color: 'text.primary', fontSize: 14, overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+              </Typography>
+            </Tooltip>
+            <Tooltip title={params.row.created_at ? moment(params.row.created_at).format('DD/MMM/YYYY') : '-'}>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary, fontSize: 12, overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {params.row.created_at ? moment(params.row.created_at).format('DD/MMM/YYYY') : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )
     },
     {
       flex: 0.2,
-      minWidth: 30,
+      minWidth: 100,
       field: 'Action',
       headerName: 'Action',
       sortable: false,
       renderCell: params => (
         <>
-          <Box>
-            {/* <FormControlLabel control={<Switch defaultChecked size='small' />} /> */}
-            {params?.row?.zoo_id !== '0' ? (
-              <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
-                <Icon icon='mdi:pencil-outline' />
-              </IconButton>
-            ) : null}
-            {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleDelete(e, params.row)} aria-label='delete'>
-              <Icon icon='mdi:delete-outline' />
-            </IconButton> */}
-          </Box>
+          {params?.row?.zoo_id !== '0' ? (
+            <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          ) : null}
         </>
       )
     }

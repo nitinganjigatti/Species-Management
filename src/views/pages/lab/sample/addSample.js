@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
@@ -10,12 +9,12 @@ import {
   TextField,
   Typography,
   Button,
-  debounce
 } from '@mui/material'
-import { useForm, Controller } from 'react-hook-form'
-import * as yup from 'yup'
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm, Controller } from 'react-hook-form'
+import Icon from 'src/@core/components/icon'
 import { getLabSampleListById } from 'src/lib/api/lab/master'
 
 const schema = yup.object().shape({
@@ -37,8 +36,6 @@ const AddSample = props => {
   const [subTests, setSubTests] = useState([])
   const [sampleTypes, setSampleTypes] = useState([])
   const [searchValue, setSearchValue] = useState('')
-
-  // console.log('editParams', editParams)
 
   const {
     control,
@@ -94,40 +91,22 @@ const AddSample = props => {
     await handleSubmitData(payload)
   }
 
-  // const addSubTest = value => {
-  //   if (value && value.trim() !== '') {
-  //     // Add new sub-test to array
-  //     setSubTests(prevSubTests => [...prevSubTests, value.trim()])
-  //     setValue('sub_tests', '')
-  //   }
-  // }
-  // const handleRemoveSubTest = index => {
-  //   setSubTests(subTests.filter((_, i) => i !== index))
-  // }
+  // const searchSampleData = useCallback(
+  //   debounce(async q => {
+  //     setSearchValue(q)
+  //     try {
+  //       await fetchSampleTypesData(q)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
 
-  // const handleRemoveSampleType = sampleToRemove => {
-  //   setValue(
-  //     'sample_ids',
-  //     selectedSampleIds?.filter(sample => sample?.id !== sampleToRemove?.id)
-  //   )
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchSampleData(value)
   // }
-
-  const searchSampleData = useCallback(
-    debounce(async q => {
-      setSearchValue(q)
-      try {
-        await fetchSampleTypesData(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchSampleData(value)
-  }
 
   // Inside your component
   const inputRef = useRef()
@@ -138,21 +117,14 @@ const AddSample = props => {
     }
   }, [control._formValues.test_name])
 
-  // const fetchSampleTypesData = useCallback(async q => {
-  //   try {
-  //     const params = { q }
-  //     await getLabSampleList({ params: params }).then(res => {
-  //       console.log('response123', res?.data?.result)
-  //       setSampleTypes(res?.data?.result)
-  //     })
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }, [])
-
-  // useEffect(() => {
-  //   fetchSampleTypesData()
-  // }, [fetchSampleTypesData, searchValue])
+  useEffect(() => {
+    if (addEventSidebarOpen) {
+      // Focus the input field when drawer opens
+      setTimeout(() => {
+        inputRef.current.focus()
+      }, 200);
+    }
+  }, [addEventSidebarOpen])
 
   return (
     <>
