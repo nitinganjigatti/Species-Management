@@ -30,6 +30,9 @@ const FallbackAvatar = ({ src = '', fallback = '/branding/antz/Antz_logomark_h_c
           variant='rounded'
           animation='wave'
           sx={{
+            height: 25,
+            width: 25,
+            borderRadius: '50%',
             ...sx
           }}
         />
@@ -41,7 +44,8 @@ const FallbackAvatar = ({ src = '', fallback = '/branding/antz/Antz_logomark_h_c
         onError={handleError}
         sx={{
           display: isLoading ? 'none' : 'flex',
-          ...style
+          ...style,
+          padding: !src && 1
         }}
       />
     </>
