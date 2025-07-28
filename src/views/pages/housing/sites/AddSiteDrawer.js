@@ -185,7 +185,9 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
           alignItems: 'center',
           justifyContent: 'space-between',
           bgcolor: theme.palette.customColors.lightBg,
-          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          px: '1.2rem',
+          py: '1rem',
+          borderBottom: `1px solid ${theme.palette.divider}`
         }}
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
@@ -203,7 +205,7 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
           sx={{ px: 4, flexGrow: 1, height: '700px', bgcolor: theme.palette.customColors.lightBg }}
         >
           {/* Site Name & Image */}
-          <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, ml: 1 }}>
+          <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, pt: '1rem' }}>
             Site Name & Image
           </Typography>
 
