@@ -157,9 +157,8 @@ const ImportsPage = () => {
               action={() => router.push('/compliance/documents/imports/AddEditImport')}
             />
           }
-          sx={{ px: 5, pb: 0 }}
         />
-        <Grid container spacing={4} sx={{ px: 5, py: 2, mt: 2 }} alignItems='center'>
+        <Grid container columnSpacing={4} rowSpacing={1} sx={{ px: 5, pt: 2 }} alignItems='center'>
           <Grid size={{ xs: 12, md: 4 }}>
             <Search
               placeholder='Search'
