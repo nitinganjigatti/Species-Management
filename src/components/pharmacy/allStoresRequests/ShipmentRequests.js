@@ -21,13 +21,11 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import toast from 'react-hot-toast'
 import { LoadingButton } from '@mui/lab'
-import { ExportButton } from 'src/views/utility/render-snippets'
 
 export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
   const { data, updateMultipleStates } = useDynamicStateContext()
 
- 
   const TabLists = styled(MuiTabList)(({ theme }) => ({
     '& .MuiTabs-indicator': {
       display: 'none'
@@ -82,7 +80,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [deleteFullFillId, setDeleteFullFillId] = useState(null)
   const [deleteItemLoader, setDeleteItemLoader] = useState(false)
-  const [exportLoading, setExportLoading] = useState(false)
   const [handleExport, setHandleExport] = useState(null)
 
   const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
@@ -529,20 +526,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
               </Button>
             </Grid>
           ) : null}
-          {shipmentTab === 'Shipped' && (
-            <Grid
-              item
-              xs={12}
-              md={6}
-              sx={{
-                display: 'flex',
-                justifyContent: { xs: 'flex-end', sm: 'flex-end' },
-                mt: { xs: 2, sm: 0 }
-              }}
-            >
-              <ExportButton loading={exportLoading} disabled={totalShippedCounts === 0} />
-            </Grid>
-          )}
         </Grid>
       </Grid>
       <TabPanel
@@ -649,21 +632,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
         }}
       >
         <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
-          <ShippedItems
-            updateUrlParams={updateUrlParams}
-            setTotalShippedCounts={setTotalShippedCounts}
-            onExportClick={exportHandler => {
-              setHandleExport(() => async () => {
-                setExportLoading(true)
-                try {
-                  await exportHandler()
-                } finally {
-                  setExportLoading(false)
-                }
-              })
-            }}
-            exportLoading={exportLoading}
-          />
+          <ShippedItems updateUrlParams={updateUrlParams} setTotalShippedCounts={setTotalShippedCounts} />
         </Card>
       </TabPanel>
     </TabContext>

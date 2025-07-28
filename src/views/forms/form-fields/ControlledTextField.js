@@ -2,6 +2,7 @@ import React from 'react'
 import { Controller } from 'react-hook-form'
 import get from 'lodash/get'
 import { TextField } from '@mui/material'
+import Utility from 'src/utility'
 
 const ControlledTextField = ({
   name,
@@ -18,6 +19,7 @@ const ControlledTextField = ({
   onKeyDown,
   onPaste,
   onInput,
+  dateReader = false, // for reading date in field
   sx = {}
 }) => {
   const error = get(errors, name) //  safely access nested error
@@ -32,7 +34,7 @@ const ControlledTextField = ({
         <TextField
           {...field}
           fullWidth={fullWidth}
-          value={field.value}
+          value={dateReader && field.value ? Utility?.formatDisplayDate(field.value) : field.value}
           type={type}
           label={label}
           onWheel={event => event.target.blur()}

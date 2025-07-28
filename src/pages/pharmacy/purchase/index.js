@@ -428,7 +428,6 @@ const ListOfPurchase = () => {
   useEffect(() => {
     getSuppliersLists()
   }, [])
-  const handleHeaderAction = () => {}
 
   const getInventoryDataToExport = async () => {
     try {

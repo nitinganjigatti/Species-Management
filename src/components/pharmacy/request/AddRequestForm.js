@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, ButtonBase, CardHeader } from '@mui/material'
+import { Button, CardHeader } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -22,8 +22,6 @@ import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
-import Radio from '@mui/material/Radio'
-import RadioGroup from '@mui/material/RadioGroup'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
@@ -36,10 +34,7 @@ import Image from 'next/image'
 import { forwardRef, useState, useEffect, useCallback, useRef } from 'react'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
-import SingleDatePicker from '../../SingleDatePicker'
 import { debounce } from 'lodash'
-import InputAdornment from '@mui/material'
-import { Search } from '@mui/icons-material'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList, getGenericMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
@@ -56,19 +51,9 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { useTheme } from '@emotion/react'
 
-const CalcWrapper = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  '&:not(:last-of-type)': {
-    marginBottom: theme.spacing(2)
-  }
-}))
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { AddButton, RequestCancelButton } from 'src/components/Buttons'
-import { alpha, borderRadius, color, padding } from '@mui/system'
+import { RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
@@ -102,10 +87,6 @@ const initialNestedRowMedicine = {
   genericName: '',
   notes: ''
 }
-
-const CustomInput = forwardRef(({ ...props }, ref) => {
-  return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
-})
 
 const AddRequestForm = () => {
   const theme = useTheme()
@@ -1577,8 +1558,8 @@ const AddRequestForm = () => {
               </Grid>
             )
           ) : null} */}
-          {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
-            nestedRowMedicine.prescription_required_file ? (
+          {nestedRowMedicine?.control_substance === true || nestedRowMedicine?.prescription_required === true ? (
+            nestedRowMedicine?.prescription_required_file ? (
               <Grid item size={{ xs: 12, sm: 12 }} sx={{ mr: 'auto' }}>
                 <Typography
                   sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
@@ -1586,8 +1567,12 @@ const AddRequestForm = () => {
                   Add prescription*
                 </Typography>
 
-                {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
+                {nestedRowMedicine?.prescription_required_file?.type === 'application/pdf' ? (
                   <Chip
+                    onClick={() => {
+                      const previewUrl = URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                      window.open(previewUrl, '_blank')
+                    }}
                     sx={{
                       backgroundColor: 'customColors.lightBg',
                       height: '56px',
@@ -1595,7 +1580,10 @@ const AddRequestForm = () => {
                       borderRadius: '8px',
                       fontSize: '14px',
                       fontWeight: '400',
-                      position: 'relative'
+                      position: 'relative',
+                      ':hover': {
+                        backgroundColor: 'customColors.lightBg'
+                      }
                     }}
                     label={
                       <Typography
@@ -1720,6 +1708,9 @@ const AddRequestForm = () => {
                   //   }}
                   // />
                   <Chip
+                    onClick={() => {
+                      window.open(nestedRowMedicine.prescription_required_file, '_blank')
+                    }}
                     sx={{
                       backgroundColor: 'customColors.lightBg',
                       height: '56px',
@@ -1748,7 +1739,6 @@ const AddRequestForm = () => {
                           alt={nestedRowMedicine.prescription_required_file?.name}
                           src={nestedRowMedicine.prescription_required_file}
                         />
-
                         {nestedRowMedicine.prescription_required_file}
                       </Typography>
                     }
