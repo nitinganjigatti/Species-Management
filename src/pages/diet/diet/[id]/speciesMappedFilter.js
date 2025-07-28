@@ -125,23 +125,15 @@ const SpeciesMappedtoDietFilter = ({
     setSelectedSpeciesIds([])
     setSelectedTaxonomyIds([])
     setSearchQuery('')
+    setPageNo(1)
 
-    //setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
-    // setTempSelectedItems({
-    //   Site: [],
-    //   Section: [],
-    //   Enclosure: [],
-    //   Taxonomy: [],
-    //   Species: []
-    // })
-    //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     setapplyfilterCheck(true)
     const allSectionIds = tempSelectedItems?.Section.map(section_id => section_id)
     const allEnclosureIds = tempSelectedItems?.Enclosure.map(enclosure_id => enclosure_id)
 
     const allSpeciesIds = selectedSpeciesIds.map(id => Number(id))
     const allTaxonomyIds = selectedTaxonomyIds.map(id => Number(id))
-    console.log(allSectionIds, 'allSectionIds')
+
     setSelectedItems({
       ...tempSelectedItems,
       Section: allSectionIds,
@@ -150,7 +142,6 @@ const SpeciesMappedtoDietFilter = ({
       Taxonomy: allTaxonomyIds
     })
 
-    //handleCloseDrawer()
     setOpenFilterDrawer(false)
   }
 

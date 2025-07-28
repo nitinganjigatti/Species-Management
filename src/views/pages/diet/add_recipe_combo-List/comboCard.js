@@ -725,9 +725,9 @@ const ComboCard = ({
                               height: '100%',
                               objectFit: 'cover'
                             }}
-                            onError={e => {
-                              e.target.src = '/icons/icon_ingredient.svg' // Fallback to default icon
-                            }}
+                            // onError={e => {
+                            //   e.target.src = '/icons/icon_ingredient.svg' // Fallback to default icon
+                            // }}
                           />
                         </Avatar>
 

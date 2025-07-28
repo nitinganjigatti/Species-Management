@@ -13,7 +13,7 @@ const AnimalCardItem = ({ species, children, theme, tempSelectedSpecies, selecti
             backgroundColor: children ? (species.mapped_to_diet ? '' : '#F2FFF8') : '',
             pl: 3,
             pr: 4,
-            py: 9.4,
+            py: 14.3,
             borderTopRightRadius: 8,
             borderBottomRightRadius: 8,
             display: 'flex',
@@ -130,7 +130,27 @@ const AnimalCardItem = ({ species, children, theme, tempSelectedSpecies, selecti
                 fontWeight: 500
               }}
             >
-              Site: {species.site_name ? species.site_name : '-'}
+              Encl: {species?.user_enclosure_name ? species?.user_enclosure_name : '-'}
+            </Typography>
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.secondaryBg,
+                fontSize: '14px',
+                fontWeight: 500
+              }}
+            >
+              Sec: {species?.section_name ? species?.section_name : '-'}
+            </Typography>
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.secondaryBg,
+                fontSize: '14px',
+                fontWeight: 500
+              }}
+            >
+              Site: {species?.site_name ? species?.site_name : '-'}
             </Typography>
             {speciesview === 'details' ? (
               <Box sx={{ display: 'flex', alignItems: 'center', pt: 1 }}>

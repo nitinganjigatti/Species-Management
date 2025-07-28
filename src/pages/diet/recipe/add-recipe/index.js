@@ -89,7 +89,7 @@ const AddRecipe = () => {
   useEffect(() => {
     getUnitsList()
     getCutsizeListdata()
-    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
+    callIngredientTypeList({ status: 1, page: 1, limit: 50 })
   }, [activeStep == 0])
 
   const getUnitsList = async () => {
@@ -177,7 +177,7 @@ const AddRecipe = () => {
         feed_type_label: ''
       }))
     }))
-    callIngredientTypeList({ status: 1, page: 1, limit: 10, q: '' })
+    callIngredientTypeList({ status: 1, page: 1, limit: 50, q: '' })
   }
 
   const getIngredientsDetailval = async id => {
