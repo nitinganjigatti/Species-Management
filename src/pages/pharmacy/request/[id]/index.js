@@ -68,7 +68,6 @@ const Transition = forwardRef(function Transition(props, ref) {
 })
 
 const IndividualRequest = () => {
-  // Styled TabList component
   const TabLists = styled(MuiTabList)(({ theme }) => ({
     '& .MuiTabs-indicator': {
       display: 'none'
@@ -224,7 +223,6 @@ const IndividualRequest = () => {
       }))
       responseData['request_item_details'] = mappedWithUid
 
-      // setRequestItems(response.data)
       setRequestItems(responseData)
       setLoader(false)
       setPermissionView(true)
@@ -856,7 +854,6 @@ const IndividualRequest = () => {
 
       renderCell: params => (
         <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.alternate_comments}>
-          {/* <Icon icon='uil:comments' style={{ color: 'primary.error' }} /> */}
           <Typography
             sx={{
               minWidth: 30,
@@ -867,8 +864,6 @@ const IndividualRequest = () => {
               textOverflow: 'ellipsis',
               WebkitLineClamp: 6,
               whiteSpace: 'nowrap'
-
-              // ...strikeOutTextStyle(params.row.request_status)
             }}
             onClick={() => {
               if (params.row?.alternate_comments) {
@@ -1071,7 +1066,6 @@ const IndividualRequest = () => {
       headerName: 'Action',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
-          {/* <Box sx={{ mr: 2 }}> */}
           <Button
             sx={{
               mr: 2,
@@ -1092,7 +1086,6 @@ const IndividualRequest = () => {
           >
             <Icon icon='mdi:delete-outline' />
           </Button>
-          {/* </Box> */}
         </Typography>
       )
     }
@@ -1185,7 +1178,6 @@ const IndividualRequest = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-            {/* /* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
               (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (
@@ -1682,10 +1674,6 @@ const IndividualRequest = () => {
                           sx={{
                             display: 'flex',
                             alignItems: 'center'
-
-                            // marginLeft: { xs: 0, md: 0, sm: '47px' }
-
-                            // overflow: 'hidden' // optional, if you want to clip long content
                           }}
                         >
                           <Typography
@@ -1695,8 +1683,7 @@ const IndividualRequest = () => {
                               fontWeight: '400',
                               lineHeight: '16.94px',
                               color: 'customColors.neutralSecondary',
-                              whiteSpace: 'nowrap' // optional if this label might wrap
-                              // ml: { xs: 0, sm: 0 }
+                              whiteSpace: 'nowrap'
                             }}
                           >
                             Total Requested Value:
@@ -1841,7 +1828,6 @@ const IndividualRequest = () => {
                               display: 'flex',
                               flexDirection: 'column',
 
-                              // height: '36px',
                               gap: '10px'
                             }}
                           >
@@ -1952,7 +1938,6 @@ const IndividualRequest = () => {
                             {shippedItems?.length > 0 && (
                               <>
                                 <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
-                                  {/* <CardHeader title={`Shipments`}></CardHeader> */}
                                   <TableBasic
                                     columns={shippedColumns}
                                     rows={shippedItems}
@@ -2437,8 +2422,6 @@ const IndividualRequest = () => {
                             fontWeight: 500
                           }}
                         >
-                          {/* {shippedItems[0]?.shipment_item_details?.value || '0'}
-                           */}
                           {requestItems?.shipped_amount}
                         </Box>
                       </Typography>
@@ -2703,7 +2686,7 @@ const IndividualRequest = () => {
                   </>
                 }
               /> */}
-              {/* Fulfill Request Dialog */}
+             
               <Dialog
                 fullWidth
                 open={show}
@@ -2737,7 +2720,6 @@ const IndividualRequest = () => {
                   close={closeFulfillDialog}
                 />
               </Dialog>
-              {/* Ship Request Dialog */}
               <Dialog
                 fullWidth
                 open={showShipDialog}
@@ -2787,7 +2769,6 @@ const IndividualRequest = () => {
               >
                 Back to list
               </Button>
-              {/* <strong>check it out!</strong> */}
             </Alert>
           )}
         </>

@@ -35,8 +35,6 @@ const ExpiredMedicine = () => {
 
   const [loader, setLoader] = useState(false)
 
-  /***** Server side pagination */
-
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
@@ -119,7 +117,6 @@ const ExpiredMedicine = () => {
     if (stores?.length === 0) {
       getStoresLists()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -326,9 +323,7 @@ const ExpiredMedicine = () => {
     return <FallbackSpinner />
   }
 
-  // if (isError) {
-  //   return <h1>{error.message}</h1>
-  // }
+ 
 
   return (
     <>
@@ -355,9 +350,7 @@ const ExpiredMedicine = () => {
               }}
               title={RenderUtility.pageTitle('Expired Products')}
 
-              // action={
-
-              // }
+              
             />
 
             <Grid

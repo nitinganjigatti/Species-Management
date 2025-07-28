@@ -307,7 +307,7 @@ function OrderReceiveForm({ shipmentId }) {
         item.id === itemId ? { ...item, [name]: value } : item
       )
     }
-    // console.log('updatedData', updatedData)
+ 
     setDisputeItemDetails(updatedData)
   }
 
@@ -629,7 +629,6 @@ function OrderReceiveForm({ shipmentId }) {
     return result
   }
 
-  console.log(listComments, 'listComments')
 
   async function markAsReceived(itemId) {
     if (!itemId) {
@@ -1386,7 +1385,7 @@ function OrderReceiveForm({ shipmentId }) {
                             </Select>
                           </FormControl>
                         )}
-                        {/* in dispute wrong count case after denied end */}
+                    
 
                         {params.row.status === 'Wrong Count - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Closed' ||
@@ -1431,7 +1430,7 @@ function OrderReceiveForm({ shipmentId }) {
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>
-                        {/* {params.row.status} */}
+                      
                         {params.row.status === 'Wrong Count' ||
                         params.row.status === 'Shortage - Accepted' ||
                         params.row.status === 'Excess - Accepted'
@@ -1541,14 +1540,14 @@ function OrderReceiveForm({ shipmentId }) {
     setChecked(isChecked)
 
     if (isChecked) {
-      setSubmitLoader(true) // Disable checkbox during submission
+      setSubmitLoader(true) 
       try {
-        await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(shipmentId) // Refresh the data only after updating status
+        await bulkStatusUpdate() 
+        await getOrderDetails(shipmentId) 
       } catch (error) {
         console.error('Error in bulk status update: ', error)
       } finally {
-        setSubmitLoader(false) // Re-enable checkbox after submission
+        setSubmitLoader(false) 
       }
     }
   }

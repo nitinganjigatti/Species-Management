@@ -21,7 +21,6 @@ import Utility from 'src/utility'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import Icon from 'src/@core/components/icon'
@@ -91,7 +90,6 @@ const ListOfStockAdjusted = () => {
         }
 
         await stocksAdjustedList({ params: params }).then(res => {
-          // console.log('stocksAdjustedList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -120,7 +118,6 @@ const ListOfStockAdjusted = () => {
       limit: paginationModel.pageSize,
       reason: status
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, status, paginationModel.page, paginationModel.pageSize])
 
   // useEffect(() => {

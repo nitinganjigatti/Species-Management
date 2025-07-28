@@ -15,7 +15,6 @@ import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
-import Router from 'next/router'
 
 const ListOfShipments = () => {
   const [shipmentList, setShipmentList] = useState([])
@@ -27,7 +26,6 @@ const ListOfShipments = () => {
     if (response?.length > 0) {
       console.log('list', response)
 
-      // response.sort((a, b) => a.id - b.id)
       let listWithId = response
         ? response.map((el, i) => {
             return { ...el, uid: i + 1 }

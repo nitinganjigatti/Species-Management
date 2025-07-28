@@ -707,7 +707,7 @@ const RequestList = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                justifyContent: 'space-between', // Space between title and button
+                justifyContent: 'space-between', 
                 alignItems: 'center'
 
                 // px: { xs: 2, md: 5 }, // Responsive padding
@@ -730,21 +730,6 @@ const RequestList = () => {
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px',
-
-                  // ml: { sm: 4.5},
-                  width: { xs: '100%', md: '290px' },
-                  marginBottom: { xs: 2, md: 0 }
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
               <TextField
                 variant='outlined'
                 size='small'
@@ -890,7 +875,7 @@ const RequestList = () => {
             </Grid>
           </Card>
         )}
-      </>
+      </> 
     )
   }
 

@@ -138,7 +138,7 @@ const ReturnRequestList = () => {
 
   useEffect(() => {
     if (router.query.status !== status) {
-      // debugger
+     
       setPaginationModel({ page: 0, pageSize: 50 })
       updateUrlParams({
         status: status,
@@ -335,8 +335,7 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-    // debugger
-    // if (router.query.status === status) {
+  
     const currentStatus = filterSwitch === true ? 'completed' : status
     const tabStatus = status === 'all' ? currentStatus : status
     fetchTableData(
@@ -361,10 +360,7 @@ const ReturnRequestList = () => {
       store: filterByStoreId
     })
 
-    // }
-
-    // }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [
     status,
     filterSwitch,
@@ -374,7 +370,6 @@ const ReturnRequestList = () => {
     paginationModel.page,
     paginationModel.pageSize
 
-    // router.query.status
   ])
 
   const onRowClick = params => {
@@ -411,8 +406,6 @@ const ReturnRequestList = () => {
   const columns = [
     {
       width: 80,
-
-      // field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography
@@ -677,7 +670,6 @@ const ReturnRequestList = () => {
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
               <TextField
                 variant='outlined'
                 size='small'

@@ -15,7 +15,6 @@ import {
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import {
   Box,
@@ -32,14 +31,10 @@ import {
   Typography
 } from '@mui/material'
 
-import CommonDialogBox from 'src/components/CommonDialogBox'
-import StockMedicineConfigure from 'src/components/pharmacy/stock/StockMedicineConfigure'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import { AddButton } from 'src/components/Buttons'
 
-import ListOfStocksByBatch from '../stockReportByBatch'
 import StockOut from '../out-of-stock'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
@@ -582,7 +577,7 @@ const ListOfStocks = () => {
       ? [
           {
             width: 150,
-            field: 'action', // replace with your field name
+            field: 'action', 
             headerName: 'Actions',
             renderCell: params => (
               <Tooltip title='More Options' placement='top'>
@@ -818,22 +813,22 @@ const ListOfStocks = () => {
       const sortOrder = newModel[0].sort
       const sortField = newModel[0].field
 
-      // Update sorting state
+    
       setSort(sortOrder)
       setSortColumn(sortField)
 
       if (changeSwitch) {
-        // Reset batch pagination and call batch API
+
         setBatchPaginationModel(prev => ({ ...prev, page: 0 }))
         getStocksReportBatchWise({
           batchSort: sortOrder,
-          batchQ: searchValue, // Use the current search value
+          batchQ: searchValue, 
           batchColumn: sortField,
-          id: stockId, // Use the current stock ID
+          id: stockId, 
           batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize } // Start from the first page
         })
       } else {
-        // Reset main pagination and call main API
+       
         setPaginationModel(prev => ({ ...prev, page: 0 }))
         getStocksReport({
           sort: sortOrder,
@@ -852,11 +847,10 @@ const ListOfStocks = () => {
       setSearchValue(value)
 
       try {
-        // Reset the page to 0 for new search queries
+     
 
         setPaginationModel(prev => ({ ...prev, page: 0 }))
 
-        // Call the API with the updated page index (0)
         await getStocksReport({
           sort,
           q: value,
@@ -865,7 +859,6 @@ const ListOfStocks = () => {
           type: stockType,
           paginationModel: { page: 0, paginationModel: paginationModel.pageSize }
 
-          // page: 0 // Explicitly pass page 0 for a search
         })
       } catch (error) {
         console.error(error)
@@ -961,7 +954,6 @@ const ListOfStocks = () => {
       setPurchaseLoading(true)
       const result = await getPurchaseListByProduct(params)
       if (result !== undefined) {
-        // console.log(result, 'res')
         setPurchaseByStockIdList(result.data)
         setPurchaseLoading(false)
       }
@@ -1074,7 +1066,6 @@ const ListOfStocks = () => {
                     }}
                     title={RenderUtility.pageTitle('Stock Report')}
 
-                    // action={headerAction}
                   />
 
                   <Grid

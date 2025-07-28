@@ -35,7 +35,6 @@ const ExpiringMedicine = () => {
 
   const [loader, setLoader] = useState(false)
 
-  /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -135,7 +134,7 @@ const ExpiringMedicine = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, startDate, endDate, id) => {
-      if (!searchTriggered && q) return // Prevent searching unless explicitly triggered
+      if (!searchTriggered && q) return 
       try {
         setLoading(true)
         let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy?.id : id
@@ -176,7 +175,6 @@ const ExpiringMedicine = () => {
       getStoresLists()
     }
     fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, storeId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, filterDates, storeId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -221,7 +219,7 @@ const ExpiringMedicine = () => {
 
   const debouncedSearch = useCallback(
     debounce(value => {
-      setSearchTriggered(true) // Trigger the search explicitly
+      setSearchTriggered(true) 
       fetchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, storeId)
     }, 1000),
     [fetchTableData, sort, sortColumn, filterDates, selectedPharmacy]
@@ -457,7 +455,6 @@ const ExpiringMedicine = () => {
         endDate: formattedEndDate
       })
     } else {
-      // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
       setFilterDates({
         startDate: '',
         endDate: ''
@@ -487,7 +484,6 @@ const ExpiringMedicine = () => {
               }}
               title={RenderUtility.pageTitle('About To Expire')}
 
-              // action={headerAction}
             />
             <Grid
               sx={{

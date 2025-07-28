@@ -93,7 +93,7 @@ const ListOfStocksByBatch = () => {
         setLoading(false)
       }
 
-      // }
+   
     },
     [paginationModel]
   )
@@ -303,7 +303,7 @@ const ListOfStocksByBatch = () => {
           my: 4
         }}
       > */}
-        {/* <Grid item lg={2}> */}
+       
         <FormControl sx={{ width: 250 }}>
           <InputLabel id='controlled-select-label'>Stores</InputLabel>
           <Select
@@ -333,7 +333,7 @@ const ListOfStocksByBatch = () => {
           </Select>
           <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
         </FormControl>
-        {/* </Grid> */}
+     
 
         {/* <Grid item lg={2}>
           <Button
@@ -380,7 +380,7 @@ const ListOfStocksByBatch = () => {
                     </Box>
                   }
 
-                  // action={createForm}
+               
                 />
                 {indexedRows.length > 0 ? (
                   <DataGrid
@@ -414,7 +414,7 @@ const ListOfStocksByBatch = () => {
                       }
                     }}
 
-                    // onRowClick={onRowClick}
+                    
                   />
                 ) : loading ? (
                   <LinearProgress />
