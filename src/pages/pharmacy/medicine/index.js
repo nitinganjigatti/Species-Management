@@ -29,7 +29,6 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import { fontSize, height, width } from '@mui/system'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
-import { right } from '@popperjs/core'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
@@ -58,8 +57,6 @@ const ListOfMedicine = () => {
 
   const handleEdit = async row => {
     const id = row?.id
-
-    // console.log('id', id)
 
     if (
       selectedPharmacy.type === 'central' &&
@@ -359,8 +356,6 @@ const ListOfMedicine = () => {
     }
   ]
 
-  // /***** Serverside pagination */
-
   const [total, setTotal] = useState(0)
 
   const [sort, setSort] = useState(router.query.sort || 'asc')
@@ -373,7 +368,6 @@ const ListOfMedicine = () => {
     pageSize: parseInt(router.query.limit) || 50
   })
 
-  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
   const [statusFilter, setStatusFilter] = useState(router.query.status || true)
@@ -655,7 +649,6 @@ const ListOfMedicine = () => {
                       <Tab label='In-Active' value='false' />
                     </TabList>
                   </TabContext>
-                  {/* Search Field */}
                   <Grid item size={{ xs: 12, sm: 8, md: 7 }}>
                     <Box
                       sx={{
@@ -686,12 +679,9 @@ const ListOfMedicine = () => {
                       />
                     </Box>
                   </Grid>
-
-                  {/* Tabs */}
                 </Box>
 
                 <TabContext value={tabValue}>
-                  {/* Tab Panels */}
                   <TabPanel value='all' sx={{ p: 0 }}>
                     {RenderTable()}
                   </TabPanel>

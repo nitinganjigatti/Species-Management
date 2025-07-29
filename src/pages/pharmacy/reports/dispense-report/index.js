@@ -482,7 +482,7 @@ const DispenseReport = () => {
         endDate: formattedEndDate
       })
 
-      console.log('Date range selected:', { startDate, endDate })
+     
     } else {
       setFilterDates({
         startDate: '',
@@ -494,7 +494,7 @@ const DispenseReport = () => {
         endDate: ''
       })
 
-      console.log('Empty date range selected,', { startDate, endDate })
+      
     }
   }
 

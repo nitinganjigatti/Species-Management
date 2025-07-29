@@ -92,7 +92,6 @@ const Dashboard = () => {
 
   console.log('selected', selectedPharmacy.type)
 
-  // {selectedPharmacy.type === 'central' &&
   return (
     <ApexChartWrapper>
       <Grid container spacing={6} className='match-height'>

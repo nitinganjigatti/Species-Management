@@ -85,13 +85,11 @@ const ProductDetailsList = () => {
       const query = { ...router.query, ...params }
       router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
     },
-    [router.query.tab] // Only depend on router.query
+    [router.query.tab]
   )
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
-
-    // updateUrlParams({ tab: newValue })
   }
 
   const handleEdit = async row => {
@@ -171,14 +169,14 @@ const ProductDetailsList = () => {
       } catch (error) {
         console.error(error)
       }
-    }, 1000), // 1000ms delay
+    }, 1000),
     []
   )
 
   const handleSearchChange = event => {
     const query = event.target.value
     setSearchQuery(query)
-    searchVariant(query) // Trigger debounced function
+    searchVariant(query)
   }
 
   useEffect(() => {
@@ -200,10 +198,8 @@ const ProductDetailsList = () => {
   const handleToggle = variant => {
     setSelectedVariants(prev => {
       if (prev.some(item => item.id === variant.id)) {
-        // If the variant is already selected, remove it
         return prev.filter(item => item.id !== variant.id)
       } else {
-        // Otherwise, add it
         return [...prev, variant]
       }
     })
@@ -269,7 +265,7 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWisePurchaseList(id)
       if (result?.success === true && result?.data) {
-        // console.log(result.data, 'purchase')
+       
 
         const adjustedData = {
           purchase_count: result.data.purchase_count,
@@ -286,7 +282,7 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWiseDispatchList(id)
       if (result?.success === true && result?.data) {
-        // console.log(result.data, 'dispatch')
+       
 
         const adjustedData = {
           dispatch_count: result.data.dispatch_count,
@@ -407,7 +403,7 @@ const ProductDetailsList = () => {
                 </Grid>
 
                 <Grid container spacing={4}>
-                  {/* Image Section */}
+                
                   <Grid
                     item
                     size={{ xs: 12, sm: 3 }}
@@ -429,7 +425,7 @@ const ProductDetailsList = () => {
                     />
                   </Grid>
 
-                  {/* Details Section */}
+                 
                   <Grid item size={{ xs: 12, sm: 9 }}>
                     <Grid
                       container
@@ -536,7 +532,7 @@ const ProductDetailsList = () => {
                                 </Button>
                               )}
                           </Box>
-                          {/* Chips for Variant List */}
+                         
                           <Box
                             sx={{
                               mt: 1,
@@ -566,7 +562,7 @@ const ProductDetailsList = () => {
                       </Grid>
                     </Grid>
 
-                    {/* Additional Info */}
+                 
                     <Box
                       sx={{
                         display: 'flex',
@@ -618,7 +614,7 @@ const ProductDetailsList = () => {
                             variant='body2'
                             sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
                           >
-                            {/* Below 25°C */}
+                          
                             {productDetails?.storage_value || 'NA'}
                           </Typography>
                         </Grid>
@@ -628,7 +624,6 @@ const ProductDetailsList = () => {
                 </Grid>
               </Card>
               <Card sx={{ p: 6 }}>
-                {/* <TabsSimple productDetails={productDetails} /> */}
                 <TabContext value={value}>
                   <TabList
                     onChange={handleChange}
@@ -683,7 +678,6 @@ const ProductDetailsList = () => {
               }
             }}
           >
-            {/* Sticky Header */}
             <Box
               sx={{
                 position: 'sticky',
@@ -726,7 +720,6 @@ const ProductDetailsList = () => {
                 />
               </Box>
             </Box>
-            {/* Scrollable Content */}
             <Box sx={{ p: 4, overflowY: 'auto', height: 'calc(100vh - 80px)' }}>
               <Card sx={{ p: 4 }}>
                 {mainLoader ? (

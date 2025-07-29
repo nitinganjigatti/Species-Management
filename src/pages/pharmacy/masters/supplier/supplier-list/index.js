@@ -245,8 +245,7 @@ const Supplier = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-          (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+    
       {pharmacyRole && (
         <Grid item>
           <AddButtonContained
@@ -271,8 +270,8 @@ const Supplier = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', // Align content to the left
-                  alignItems: 'flex-start', // Align items to the top left
+                  justifyContent: 'flex-start', 
+                  alignItems: 'flex-start', 
                   gap: { xs: 3, sm: 0 },
                   '& .MuiCardHeader-action': {
                     width: { xs: '100% ', sm: 'auto' }

@@ -165,8 +165,7 @@ const ListOfUOM = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' ||
-          selectedPharmacy.permission.key === 'ADD') && */}
+         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -188,8 +187,7 @@ const ListOfUOM = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+     
       {pharmacyRole && (
         <Grid item>
           <AddButtonContained title='Add UOM ' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
@@ -198,7 +196,6 @@ const ListOfUOM = () => {
     </div>
   )
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
@@ -275,7 +272,6 @@ const ListOfUOM = () => {
         response = await addUnits(payload)
       }
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
 
         setSubmitLoader(false)
@@ -286,7 +282,6 @@ const ListOfUOM = () => {
       } else {
         setSubmitLoader(false)
 
-        // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -297,7 +292,6 @@ const ListOfUOM = () => {
       console.log(e)
       setSubmitLoader(false)
 
-      // setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
       toast.error(JSON.stringify(e))
     }
   }
@@ -311,7 +305,6 @@ const ListOfUOM = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -323,8 +316,8 @@ const ListOfUOM = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
+                    justifyContent: 'flex-start', 
+                    alignItems: 'flex-start', 
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }
@@ -415,12 +408,7 @@ const ListOfUOM = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              {/* <UserSnackbar
-                status={openSnackbar}
-                message={snackbarMessage}
-                severity={severity}
-                handleClose={handleClose}
-              /> */}
+           
             </>
           )}
         </>
