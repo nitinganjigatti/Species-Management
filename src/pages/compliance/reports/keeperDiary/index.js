@@ -24,6 +24,7 @@ import ObservationCard from 'src/views/utility/ObservationCard'
 import { debounce } from 'lodash'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
+import Search from 'src/views/utility/Search'
 
 const KeeperDiaryReport = () => {
   const theme = useTheme()
@@ -135,12 +136,12 @@ const KeeperDiaryReport = () => {
         {/* Right box with light background and red close icon */}
         <Box
           sx={{
-            backgroundColor: '#e6f0ee',
-            height: '98px',
+            backgroundColor: '#0000000D',
+            height: { sm: '98px', xs: '120px' },
             width: '70px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center', // ✅ Center horizontally
+            justifyContent: 'center',
             borderTopRightRadius: '8px',
             borderBottomRightRadius: '8px'
           }}
@@ -352,7 +353,7 @@ const KeeperDiaryReport = () => {
 
           {/* Search field */}
 
-          <Box
+          {/* <Box
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -364,36 +365,47 @@ const KeeperDiaryReport = () => {
               // ml: 3
             }}
           >
-            {/* Search Box */}
-            <Box sx={{ borderRadius: '4px', width: { xs: '100%', sm: 'auto' } }}>
-              <TextField
-                variant='outlined'
-                size='small'
-                value={searchValue}
-                onChange={e => handleSearchChange(e)}
+
+            <Box sx={{ width: '100%', px: 2 }}>
+              <Search
+                onChange={handleSearchChange}
                 placeholder='Search by Entity or observation type'
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-                sx={{
-                  width: { xs: '100%', sm: '350px' },
-                  ml: 2,
-                  backgroundColor: '#fff',
-                  borderRadius: '4px',
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '4px'
-                  }
-                }}
+                value={searchValue}
+                inputStyle={{ py: '10px', px: '12px' }}
+                width={{ xs: '100%', sm: '50%' }}
               />
             </Box>
 
             <Box sx={{ mr: 1.5 }}>
+              <CommonDateRangePickers
+                filterDates={filterDates}
+                onChange={handleDateRangeChange}
+                useCustomText={true}
+                customText='Select a Date Range'
+              />
+            </Box>
+          </Box> */}
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { sm: 'row', xs: 'column' },
+              justifyContent: { sm: 'space-between', xs: 'flex-start' },
+              alignItems: 'center',
+              gap: 4
+            }}
+          >
+            <Box sx={{ width: '100%', px: 6 }}>
+              <Search
+                onChange={handleSearchChange}
+                placeholder='Search by Entity or observation type'
+                value={searchValue}
+                inputStyle={{ py: '10px', px: '12px' }}
+                width={{ xs: '100%', sm: '70%' }}
+              />
+            </Box>
+
+            <Box sx={{ px: 6, width: { xs: '100%', sm: '70%' } }}>
               <CommonDateRangePickers
                 filterDates={filterDates}
                 onChange={handleDateRangeChange}

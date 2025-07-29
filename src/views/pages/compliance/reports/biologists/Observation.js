@@ -3,7 +3,6 @@ import { Typography, Box, ListItem, List } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 
-// Reusable Enrichment Card Component
 const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type, date_time } }) => {
   const theme = useTheme()
 
@@ -29,27 +28,21 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', px: 2, py: '16px' }}>
-      {/* Header */}
       <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Enrichment
-      </Typography>
-
-      {/* Master Enrichment Type with Dashed Border */}
-      <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
         {master_enrichment_type}
       </Typography>
-      <Typography variant='body2' color='text.secondary'>
+      {/* <Typography variant='body2' color='text.secondary'>
         -
-      </Typography>
+      </Typography> */}
       <List
         dense
         sx={{
           display: 'flex',
-          flexWrap: 'wrap', // Arrange items in a row with wrapping
-          columnGap: 5, // Add spacing between items
+          flexWrap: 'wrap',
+          columnGap: 5,
           padding: 0,
-          listStyleType: 'disc', // Set list style to 'disc' for visible dots
-          pl: 3 // Add padding-left for proper alignment of dots
+          listStyleType: 'disc',
+          pl: 3
         }}
         component='ul'
       >
@@ -61,9 +54,9 @@ const ObservationView = ({ data: { child_enrichment_type, master_enrichment_type
               color: theme.palette.customColors.OnSurfaceVariant,
               width: 'auto',
               p: 0,
-              display: 'list-item', // Ensure the list item displays as a list item
-              alignItems: 'flex-start', // Align text properly with the dot
-              pl: 0 // Remove extra padding to avoid overlap
+              display: 'list-item',
+              alignItems: 'flex-start',
+              pl: 0
             }}
             component='li'
           >

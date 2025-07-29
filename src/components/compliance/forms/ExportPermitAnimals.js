@@ -331,7 +331,7 @@ const ExportPermitAnimals = ({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <ControlledAutocomplete
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].gender`}
-                            label='Gender'
+                            label='Gender*'
                             control={control}
                             errors={errors}
                             options={filteredGenderOptions}

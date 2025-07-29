@@ -25,6 +25,7 @@ import debounce from 'lodash/debounce'
 import { downloadPDF } from 'src/utility'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
+import Search from 'src/views/utility/Search'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
@@ -234,21 +235,24 @@ const BiologistDiaryReport = () => {
       )
     },
     {
-      flex: 0.3,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
+      flex: 2,
+      minWidth: 400,
       sortable: false,
       renderCell: params => <AnimalView data={params.row} />
     },
     {
-      flex: 0.3,
+      flex: 1,
+      minWidth: 250,
       field: 'observation',
       headerName: 'OBSERVATION',
       sortable: false,
       renderCell: params => <ObservationView data={params.row} />
     },
     {
-      flex: 0.3,
+      flex: 2,
+      minWidth: 350,
       field: 'details',
       headerName: 'DETAILS',
       sortable: false,
@@ -325,7 +329,7 @@ const BiologistDiaryReport = () => {
   // Handle search input change
   const handleSearchChange = e => {
     const value = e.target.value
-    setSearchValue(value) // Update input immediately for UI responsiveness
+    setSearchValue(value) // Update input immediately for UI responsiveness 
 
     // Reset to first page when searching
     if (paginationModel.page !== 0) {
@@ -345,7 +349,7 @@ const BiologistDiaryReport = () => {
             <UserSelectionCard user={userDetail} />
           </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0, px: 4 }}>
+          {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0, px: 4 }}>
             <Box>
               <TextField
                 variant='outlined'
@@ -383,7 +387,37 @@ const BiologistDiaryReport = () => {
                 customText='Select a Date Range'
               />
             </Box>
+          </Box> */}
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { sm: 'row', xs: 'column' },
+              justifyContent: { sm: 'space-between', xs: 'flex-start' },
+              alignItems: 'center',
+              gap: 4
+            }}
+          >
+            <Box sx={{ width: '100%', px: 6 }}>
+              <Search
+                onChange={handleSearchChange}
+                placeholder='Search by Entity or observation type'
+                value={searchValue}
+                inputStyle={{ py: '10px', px: '12px' }}
+                width={{ xs: '100%', sm: '70%' }}
+              />
+            </Box>
+
+            <Box sx={{ px: 6, width: { xs: '100%', sm: '70%' } }}>
+              <CommonDateRangePickers
+                filterDates={filterDates}
+                onChange={handleDateRangeChange}
+                useCustomText={true}
+                customText='Select a Date Range'
+              />
+            </Box>
           </Box>
+
           <Grid
             sx={{
               margin: '0px 1.375rem 0px 1.375rem'

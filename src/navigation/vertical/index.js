@@ -22,6 +22,7 @@ const ComposeNavigation = () => {
   const userSettings = authData?.userData?.permission?.user_settings
 
   const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const complianceModule = authData?.userData?.roles?.settings?.compliance_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const egg_nursery = authData?.userData?.permission?.user_settings?.add_nursery_permisson
@@ -88,8 +89,10 @@ const ComposeNavigation = () => {
   })
   navigationArray.push(...medicalNav)
 
-  const complianceNav = complianceNavigation()
-  navigationArray.push(...complianceNav)
+  if (complianceModule) {
+    const complianceNav = complianceNavigation()
+    navigationArray.push(...complianceNav)
+  }
 
   return navigationArray
 }

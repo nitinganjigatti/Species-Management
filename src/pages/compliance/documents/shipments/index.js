@@ -93,12 +93,12 @@ const ShipmentPage = () => {
       renderCell: params => {
         const rawValue = params.value || ''
         const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+
         const formattedValue =
           removeSpaceValue.length > 3
             ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}`
             : removeSpaceValue
 
-        console.log(formattedValue)
         return (
           <Typography
             sx={{
@@ -106,6 +106,7 @@ const ShipmentPage = () => {
               px: 3,
               width: '100%'
             }}
+
             //onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
           >
             {formattedValue}
@@ -196,9 +197,8 @@ const ShipmentPage = () => {
               action={() => router.push('/compliance/documents/shipments/AddEditShipment')}
             />
           }
-          sx={{ px: 5, pb: 0 }}
         />
-        <Grid container spacing={4} sx={{ px: 5, py: 2, mt: 2 }} alignItems='center'>
+        <Grid container columnSpacing={4} rowSpacing={1} sx={{ px: 5, pt: 2 }} alignItems='center'>
           <Grid size={{ xs: 12, md: 4 }}>
             <Search
               placeholder='Search'
@@ -206,12 +206,12 @@ const ShipmentPage = () => {
               onClear={() => handleSearch('')}
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 2 }} />
+          <Grid size={{ xs: 12, md: 3.5 }} />
           <Grid size={{ xs: 12, md: 4.5 }}>
-            {/* <CommonDateRangePickers
+            <CommonDateRangePickers
               filterDates={filterDate}
               onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
-            /> */}
+            />
           </Grid>
 
           {/* <Grid item xs={12} md={1.5}>

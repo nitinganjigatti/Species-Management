@@ -157,9 +157,8 @@ const ImportsPage = () => {
               action={() => router.push('/compliance/documents/imports/AddEditImport')}
             />
           }
-          sx={{ px: 5, pb: 0 }}
         />
-        <Grid container spacing={4} sx={{ px: 5, py: 2, mt: 2 }} alignItems='center'>
+        <Grid container columnSpacing={4} rowSpacing={1} sx={{ px: 5, pt: 2 }} alignItems='center'>
           <Grid size={{ xs: 12, md: 4 }}>
             <Search
               placeholder='Search'
@@ -167,12 +166,12 @@ const ImportsPage = () => {
               onClear={() => handleSearch('')}
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 2 }} />
+          <Grid size={{ xs: 12, md: 3.5 }}></Grid>
           <Grid size={{ xs: 12, md: 4.5 }}>
-            {/* <CommonDateRangePickers
+            <CommonDateRangePickers
               filterDates={filterDate}
               onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
-            /> */}
+            />
           </Grid>
 
           {/* <Grid item xs={12} md={1.5}>

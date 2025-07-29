@@ -11,28 +11,34 @@ const SiteSectionEnclosureCard = ({ enclosureName, siteName, sectionName }) => {
         display: 'flex',
         flexDirection: 'column',
         gap: 1,
-        p: 2,
+        p: 2
       }}
     >
-      {enclosureName && <Typography
-        sx={{
-          fontSize: '14px',
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        <span>Encl: </span>
-        {enclosureName || '-'}
-      </Typography>}
+      {enclosureName && (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 600,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          <span>Encl: </span>
+          {enclosureName || '-'}
+        </Typography>
+      )}
 
-      {sectionName && <Typography
-        sx={{
-          fontSize: '14px',
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        <span>Sec: </span>
-        {sectionName || '-'}
-      </Typography>}
+      {sectionName && (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 600,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          <span>Sec: </span>
+          {sectionName || '-'}
+        </Typography>
+      )}
 
       {siteName && (
         <Typography
