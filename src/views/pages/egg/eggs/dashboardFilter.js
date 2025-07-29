@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useCallback } from 'react'
 
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
-import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
+import { Box, Checkbox, debounce, Divider, Drawer, FormControlLabel, Grid, IconButton, TextField, Tooltip, Typography } from '@mui/material'
 
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
@@ -88,18 +88,18 @@ const DashboardFilter = ({
   // }
 
   const handleMenuClick = menu => {
-  setSelectedMenu(menu)
+    setSelectedMenu(menu)
 
-  setTimeout(() => {
-    setTempSelectedOptions(prev => ({
-      ...prev,
-      selecteMenu: menu
-    }))
-  }, 100)
+    setTimeout(() => {
+      setTempSelectedOptions(prev => ({
+        ...prev,
+        selecteMenu: menu
+      }))
+    }, 100)
 
-  setSearchQuery('')
-  searchData('')
-}
+    setSearchQuery('')
+    searchData('')
+  }
 
 
   const NurseryList = async q => {
@@ -163,18 +163,18 @@ const DashboardFilter = ({
   }
 
   useEffect(() => {
-  if (isFilterOpen) {
-    setTempSelectedOptions(selectedOptions)
-    NurseryList()
-    getEggMasterData()
-    getTaxonomyListFunc()
-    getBatchList()
+    if (isFilterOpen) {
+      setTempSelectedOptions(selectedOptions)
+      NurseryList()
+      getEggMasterData()
+      getTaxonomyListFunc()
+      getBatchList()
 
-    if (authData?.userData?.user?.zoos[0]?.sites.length > 0) {
-      setSiteList(authData?.userData?.user?.zoos[0].sites)
+      if (authData?.userData?.user?.zoos[0]?.sites.length > 0) {
+        setSiteList(authData?.userData?.user?.zoos[0].sites)
+      }
     }
-  }
-}, [isFilterOpen])
+  }, [isFilterOpen])
 
 
   // const handleCheckboxChange = (id, name) => {
@@ -197,22 +197,22 @@ const DashboardFilter = ({
   //   setSelectAll(areAllSelected)
   // }
   const handleCheckboxChange = (id, name) => {
-  const currentSelected = tempSelectedOptions[selectedMenu.name] || []
-  const isChecked = currentSelected.some(option => option.id === id)
+    const currentSelected = tempSelectedOptions[selectedMenu.name] || []
+    const isChecked = currentSelected.some(option => option.id === id)
 
-  const newSelected = isChecked
-    ? currentSelected.filter(option => option.id !== id)
-    : [...currentSelected, { id, name }]
+    const newSelected = isChecked
+      ? currentSelected.filter(option => option.id !== id)
+      : [...currentSelected, { id, name }]
 
-  const allOptions = getOptionsForMenu(selectedMenu)
-  const areAllSelected = newSelected.length === allOptions.length
+    const allOptions = getOptionsForMenu(selectedMenu)
+    const areAllSelected = newSelected.length === allOptions.length
 
-  setTempSelectedOptions({
-    ...tempSelectedOptions,
-    [selectedMenu.name]: newSelected
-  })
-  setSelectAll(areAllSelected)
-}
+    setTempSelectedOptions({
+      ...tempSelectedOptions,
+      [selectedMenu.name]: newSelected
+    })
+    setSelectAll(areAllSelected)
+  }
 
 
   // const handleSelectAllChange = event => {
@@ -237,17 +237,17 @@ const DashboardFilter = ({
   // }
 
   const handleSelectAllChange = event => {
-  const isChecked = event.target.checked
-  setSelectAll(isChecked)
+    const isChecked = event.target.checked
+    setSelectAll(isChecked)
 
-  const options = getOptionsForMenu(selectedMenu)
-  const newSelected = isChecked ? options.map(opt => ({ id: opt.id, name: opt.name })) : []
+    const options = getOptionsForMenu(selectedMenu)
+    const newSelected = isChecked ? options.map(opt => ({ id: opt.id, name: opt.name })) : []
 
-  setTempSelectedOptions({
-    ...tempSelectedOptions,
-    [selectedMenu.name]: newSelected
-  })
-}
+    setTempSelectedOptions({
+      ...tempSelectedOptions,
+      [selectedMenu.name]: newSelected
+    })
+  }
 
 
   const getOptionsForMenu = menu => {
@@ -354,27 +354,27 @@ const DashboardFilter = ({
     }, 1000),
     [selectedMenu]
   )
-  
-useEffect(() => {
-  if (!isFilterOpen || !selectedMenu) return
 
-  const allOptions = getOptionsForMenu(selectedMenu)
-  const selectedItems = selectedOptions[selectedMenu.name] || []
+  useEffect(() => {
+    if (!isFilterOpen || !selectedMenu) return
 
-  if (Array.isArray(allOptions) && allOptions.length > 0) {
-    const allSelected = selectedItems.length === allOptions.length
-    setSelectAll(allSelected)
-  }
-}, [
-  isFilterOpen,
-  selectedMenu,
-  taxonomyList,
-  batchList,
-  nurseryList,
-  eggMaster,
-  siteList,
-  selectedOptions
-])
+    const allOptions = getOptionsForMenu(selectedMenu)
+    const selectedItems = selectedOptions[selectedMenu.name] || []
+
+    if (Array.isArray(allOptions) && allOptions.length > 0) {
+      const allSelected = selectedItems.length === allOptions.length
+      setSelectAll(allSelected)
+    }
+  }, [
+    isFilterOpen,
+    selectedMenu,
+    taxonomyList,
+    batchList,
+    nurseryList,
+    eggMaster,
+    siteList,
+    selectedOptions
+  ])
 
 
 
@@ -427,7 +427,7 @@ useEffect(() => {
               <Box
                 key={menu.id}
                 sx={{
-                  width: '190px',
+                  maxWidth: '190px',
                   bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
                   cursor: 'pointer',
                   p: 4,
@@ -436,9 +436,19 @@ useEffect(() => {
                 }}
                 onClick={() => handleMenuClick(menu)}
               >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                  {menu.name}
-                </Typography>
+                <Tooltip title={menu.name}>
+                  <Typography sx={{
+                    color: theme.palette.primary.dark,
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    lineHeight: '19.36px',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {menu.name}
+                  </Typography>
+                </Tooltip>
               </Box>
             ))}
           </Grid>
@@ -448,7 +458,7 @@ useEffect(() => {
                 bgcolor: theme.palette.primary.contrastText,
                 p: '16px',
                 borderRadius: '8px',
-                width: '345px',
+                maxWidth: '345px',
                 height: 'calc(100vh - 185px)',
                 overflowY: 'auto', // Enable vertical scrolling
                 '&::-webkit-scrollbar': {
@@ -463,41 +473,41 @@ useEffect(() => {
                 {(selectedMenu.name === 'Species' ||
                   selectedMenu.name === 'Nursery' ||
                   selectedMenu.name === 'Batch') && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '40px',
-                      mb: 4,
-                      marginLeft: 3
-                    }}
-                  >
-                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search'
-                      value={searchQuery}
-                      onChange={handleSearchChange}
+                    <Box
                       sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRadius: '4px',
+                        padding: '0 8px',
+                        height: '40px',
+                        mb: 4,
+                        marginLeft: 3
+                      }}
+                    >
+                      <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search'
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
                           }
-                        }
-                      }}
-                      slotProps={{
-                        input: {
-                          disableunderline: false
-                        }
-                      }}
-                    />
-                  </Box>
-                )}
+                        }}
+                        slotProps={{
+                          input: {
+                            disableunderline: false
+                          }
+                        }}
+                      />
+                    </Box>
+                  )}
 
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
@@ -523,16 +533,23 @@ useEffect(() => {
                         onChange={() => handleCheckboxChange(option.id, option.name)}
                         inputProps={{ 'aria-label': 'controlled' }}
                       />
-                      <Typography
-                        sx={{
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          color: theme.palette.customColors.Outline,
-                          textTransform: 'capitalize'
-                        }}
-                      >
-                        {option.name}
-                      </Typography>
+                      <Tooltip title={option.name}>
+                        <Typography
+                          onClick={() => handleCheckboxChange(option.id, option.name)}
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            cursor: 'pointer',
+                            color: theme.palette.customColors.Outline,
+                            textTransform: 'capitalize',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {option.name}
+                        </Typography>
+                      </Tooltip>
                     </Box>
                   ))}
                 </Box>
