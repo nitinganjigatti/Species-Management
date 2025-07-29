@@ -60,7 +60,7 @@ const Exports = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [tradeContextTypes, setTradeContextTypes] = useState([])
