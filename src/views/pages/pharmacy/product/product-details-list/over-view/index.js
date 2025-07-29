@@ -956,7 +956,16 @@ const Overview = props => {
         }}
       >
         {drawerData.map(card => (
-          <Grid key={card.name} item size={{ xs: 6, md: 6, sm: 6, lg: 3 }}>
+          <Grid
+            key={card.name}
+            item
+            size={{
+              xs: 6,
+              md: productDetails?.stock_type !== 'non_medical' ? 6 : 4,
+              sm: 6,
+              lg: productDetails?.stock_type !== 'non_medical' ? 3 : 4
+            }}
+          >
             <StyleWithIconCardComponent
               key={card.name}
               value={card.value}
