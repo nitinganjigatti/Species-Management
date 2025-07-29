@@ -14,7 +14,6 @@ import { Box, Drawer, Grid, TextField } from '@mui/material'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 import { debounce } from 'lodash'
 import { useTheme } from '@emotion/react'
 import toast from 'react-hot-toast'
@@ -36,7 +35,6 @@ const Salts = () => {
   const [driversList, setDriversList] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -81,7 +79,6 @@ const Salts = () => {
     setOpenDrawer(true)
   }
 
-  /***** Drawer  */
 
   const columns = [
     {
@@ -190,7 +187,6 @@ const Salts = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
@@ -276,7 +272,6 @@ const Salts = () => {
         response = await addDriver(payload)
       }
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
@@ -286,7 +281,6 @@ const Salts = () => {
       } else {
         setSubmitLoader(false)
 
-        // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -297,7 +291,6 @@ const Salts = () => {
       console.log(e)
       setSubmitLoader(false)
 
-      // setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
       toast.error(JSON.stringify(e))
     }
   }
@@ -311,7 +304,6 @@ const Salts = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (

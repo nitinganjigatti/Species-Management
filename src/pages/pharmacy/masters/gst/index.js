@@ -244,7 +244,7 @@ const ListOfGst = () => {
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
-      //console.log(e)
+    
       setSubmitLoader(false)
       setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }
@@ -299,7 +299,6 @@ const ListOfGst = () => {
                   }}
                 />
               </Card>
-              {/* sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }} */}
               <AddGstSlabs
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}

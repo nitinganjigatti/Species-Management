@@ -23,7 +23,6 @@ import toast from 'react-hot-toast'
 
 import AddProductForm from 'src/views/pages/pharmacy/medicine/dosageForm/addProductForm'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -43,7 +42,6 @@ const ListOfDosageForms = () => {
   const [dosageForms, setDosageForms] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -143,9 +141,7 @@ const ListOfDosageForms = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* {
-           selectedPharmacy.type === 'central' &&
-             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+        
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -164,7 +160,6 @@ const ListOfDosageForms = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
@@ -233,8 +228,7 @@ const ListOfDosageForms = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+   
 
       {pharmacyRole && (
         <Grid item>
@@ -255,7 +249,6 @@ const ListOfDosageForms = () => {
       }
 
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
 
         setSubmitLoader(false)
@@ -271,12 +264,10 @@ const ListOfDosageForms = () => {
           toast.error(response.message)
         }
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       setSubmitLoader(false)
 
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
       toast.error(JSON.stringify(e))
     }
   }
@@ -290,7 +281,6 @@ const ListOfDosageForms = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -313,7 +303,6 @@ const ListOfDosageForms = () => {
                   action={headerAction}
                 />
 
-                {/* Left Box (Search Field) */}
                 <Grid
                   item
                   sx={{

@@ -76,7 +76,7 @@ const ListOfDiscardProducts = () => {
           q,
           column,
           ...(isEmptyDates
-            ? { from_date: '', to_date: '' } // Explicitly send empty values
+            ? { from_date: '', to_date: '' } 
             : filterDates?.startDate && filterDates?.endDate
             ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
             : {}),
@@ -429,9 +429,9 @@ const ListOfDiscardProducts = () => {
     <Grid
       sx={{
         display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons vertically
-        gap: 2, // Add spacing between buttons
-        width: '100%' // Ensure full width
+        flexDirection: { xs: 'column', sm: 'row' }, 
+        gap: 2, 
+        width: '100%' 
       }}
     >
       {/* <ExcelExportButton
@@ -585,7 +585,7 @@ const ListOfDiscardProducts = () => {
                   mx: { xs: 3, md: 5 }
                 }}
               >
-                {/* Left Box (Search Field) */}
+              
                 <Grid
                   container
                   spacing={4}
