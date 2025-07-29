@@ -227,11 +227,10 @@ const ExpiringMedicine = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    setSearchTriggered(false) // Ensure no search is triggered while typing
-    setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
-
+    setSearchTriggered(false)
+    setPaginationModel(prev => ({ ...prev, page: 0 })) 
     if (value.trim()) {
-      debouncedSearch(value) // Trigger the debounced search
+      debouncedSearch(value)
     }
   }
 

@@ -8,12 +8,10 @@ import {
   CircularProgress,
   FormControl,
   FormHelperText,
-  Grid,
   Popover,
   TextField,
   Typography
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { forwardRef, useState, useRef } from 'react'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import {
@@ -48,19 +46,15 @@ const Animal = () => {
   const endDateRef = useRef()
 
   useEffect(() => {
-    // Calculate yesterday's date
     const yesterday = new Date()
 
-    // yesterday.setDate(yesterday.getDate() - 1)
 
-    // Format the date as YYYY-MM-DD
     const year = yesterday.getFullYear()
     const month = String(yesterday.getMonth() + 1).padStart(2, '0') // Months are zero-based
     const day = String(yesterday.getDate()).padStart(2, '0')
 
     const formattedDate = `${year}-${month}-${day}`
 
-    // Set the formatted date
     setStartDate(formattedDate)
     setEndDate(formattedDate)
   }, [])
@@ -88,7 +82,6 @@ const Animal = () => {
   const jsonToCsv = jsonData => {
     if (!jsonData || jsonData.length === 0) return 'No data available'
 
-    // Extract keys from the first object to use as headers
     const keys = Object.keys(jsonData[0])
     const header = keys.join(',')
 
@@ -118,7 +111,6 @@ const Animal = () => {
 
   const downloadNewCSVFile = csvContent => {
     try {
-      // const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
       const url = csvContent
       const link = document.createElement('a')
       link.href = url
@@ -196,7 +188,6 @@ const Animal = () => {
     const day = String(date.getDate()).padStart(2, '0')
     const formattedDate = `${year}-${month}-${day}`
 
-    // Update end date
     setEndDate(formattedDate)
 
     if (startDate && new Date(formattedDate) < new Date(startDate)) {
@@ -209,14 +200,12 @@ const Animal = () => {
   const handleConfirm = async () => {
     let updatedApiParams = { ...apiFilterParams }
 
-    // Process `popoverData` to extract selected options
     Object.keys(popoverData).forEach(category => {
       popoverData[category].forEach(option => {
-        updatedApiParams[option.key] = option.checked ? 1 : 0 // Add only selected options
+        updatedApiParams[option.key] = option.checked ? 1 : 0 
       })
     })
 
-    // Update API parameters and reset pagination
     setApiFilterParams(updatedApiParams)
     setPaginationModel({ ...paginationModel, page: 0 })
     setAnchorEl(null)
@@ -378,8 +367,8 @@ const Animal = () => {
                   variant='outlined'
                   aria-describedby={'popoverButton'}
                   sx={{
-                    width: '140px', // Width of Show/Hide button
-                    height: '45px', // Height of Show/Hide button
+                    width: '140px',
+                    height: '45px', 
                     display: 'flex',
                     borderRadius: '8px',
                     color: theme.palette.customColors.OnSurfaceVariant,

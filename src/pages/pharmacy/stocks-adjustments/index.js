@@ -64,8 +64,6 @@ const ListOfStockAdjusted = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setSearchValue('')
-
-    // Update status state and URL query
     setStatus(newValue)
   }
 
@@ -308,8 +306,8 @@ const ListOfStockAdjusted = () => {
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start', // Align content to the left
-            alignItems: 'flex-start', // Align items to the top left
+            justifyContent: 'flex-start', 
+            alignItems: 'flex-start',
             gap: { xs: 3, sm: 0 },
             '& .MuiCardHeader-action': {
               width: { xs: '100% ', sm: 'auto' }
@@ -336,7 +334,7 @@ const ListOfStockAdjusted = () => {
         <Box
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+            flexDirection: { xs: 'column', sm: 'row' }, 
             justifyContent: 'space-between',
             alignItems: 'center',
             mx: { xs: 3, md: 5 }

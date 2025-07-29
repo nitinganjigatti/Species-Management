@@ -428,7 +428,7 @@ function Escrow({ value }) {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      setPaginationModel(prevModel => ({ ...prevModel, page: 0 })) // Reset to the first page
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 })) 
     }
   }, [])
 
