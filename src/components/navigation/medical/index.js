@@ -11,12 +11,12 @@ const composeMedicalNavigation = ({ userSettings }) => {
   }
 
   const complaints = {
-    title: 'Complaints',
+    title: 'Symptoms',
     path: '/medical/masters/complaints'
   }
 
   const diagnosis = {
-    title: 'Diagnosis',
+    title: 'Clinical assessment',
     path: '/medical/masters/diagnosis'
   }
 

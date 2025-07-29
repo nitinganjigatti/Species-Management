@@ -200,7 +200,10 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
         </Box>
       )}
 
-      <Dialog open={iseOpen} onClose={() => setOpenDiscardDialog(false)}>
+      <Dialog open={iseOpen} 
+      // onClose={() => setOpenDiscardDialog(false)}
+      onClose={() => setIsOpen(false)}
+      >
         <Card
           sx={{
             display: 'flex',
@@ -228,7 +231,8 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
             <Typography
               sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 400, mt: 2 }}
             >
-              You are removing the egg from this discarded batch
+              {/* You are removing the egg from this discarded batch */}
+              The egg will be removed from the discarded batch
             </Typography>
           </Box>
           <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: 6, p: 4 }}>

@@ -265,6 +265,16 @@ const decryptData = cipherText => {
   return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
 }
 
+function formatIdentifierType(type) {
+  if (!type) return '' // handle empty/undefined cases
+
+  return type
+    .replace(/_/g, ' ') // Replace underscores with spaces
+    .split(' ') // Split into words
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
+    .join(' ') // Join back with spaces
+}
+
 function hexToHex8(hex, opacity) {
   debugger
   hex = hex.replace('#', '')
@@ -274,6 +284,45 @@ function hexToHex8(hex, opacity) {
     .padStart(2, '0')
 
   return `#${hex}${alpha}`
+}
+
+export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) => {
+  try {
+    // Call the API to get the download URL
+    const response = await apiCall(params)
+
+    if (response?.success && response?.data?.download_url) {
+      // Fetch the file as a blob
+      const fileResponse = await fetch(response.data.download_url, {
+        method: 'GET',
+        headers
+      })
+
+      if (!fileResponse.ok) {
+        throw new Error(`HTTP error! status: ${fileResponse.status}`)
+      }
+
+      const blob = await fileResponse.blob()
+      const url = window.URL.createObjectURL(blob)
+
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName || `download_${Date.now()}.pdf` // Default filename if not provided
+      document.body.appendChild(link)
+
+      // Trigger the download
+      link.click()
+
+      // Clean up
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } else {
+      console.error('Failed to download the file')
+    }
+  } catch (error) {
+    console.error('Error while downloading the file:', error)
+  }
 }
 
 const Utility = {
@@ -300,7 +349,9 @@ const Utility = {
   formatAmountCompactDisplay,
   encryptData,
   decryptData,
-  hexToHex8
+  formatIdentifierType,
+  hexToHex8,
+  downloadPDF
 }
 
 export default Utility

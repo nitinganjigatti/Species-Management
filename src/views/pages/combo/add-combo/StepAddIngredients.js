@@ -693,7 +693,7 @@ const StepAddIngredients = ({
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', borderRadius: 0.5, mx: 0 }}>
               {ingredients.map((ingredient, index) => (
-                <Grid size={{ xs: 12, sm: 4 }} key={index} sx={{ py: 4 }}>
+                <Grid size={{ xs: 12, sm: 3.7, md: 4 }} key={index} sx={{ py: 4 }}>
                   <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                     <span style={{ display: 'flex', alignItems: 'center' }}>
                       {ingredient.label}{' '}

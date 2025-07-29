@@ -5,6 +5,7 @@ import pharmacyNavigation from 'src/components/navigation/pharmacy'
 import labNavigation from 'src/components/navigation/lab'
 import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
+import complianceNavigation from 'src/components/navigation/compliance'
 import mastersNavigation from 'src/components/navigation/masters'
 import eggNavigation from 'src/components/navigation/egg'
 import pariveshNavigation from 'src/components/navigation/parivesh/index'
@@ -21,6 +22,7 @@ const ComposeNavigation = () => {
   const userSettings = authData?.userData?.permission?.user_settings
 
   const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const complianceModule = authData?.userData?.roles?.settings?.compliance_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const egg_nursery = authData?.userData?.permission?.user_settings?.add_nursery_permisson
@@ -30,6 +32,7 @@ const ComposeNavigation = () => {
   const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
   const enable_daily_report = authData?.userData?.permission?.user_settings?.enable_daily_report
   const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
+  const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
@@ -45,7 +48,8 @@ const ComposeNavigation = () => {
       reports_module,
       enable_specie_report,
       enable_daily_report,
-      enable_animal_report
+      enable_animal_report,
+      enable_animal_assessment_report
     })
     navigationArray.push(...reportNav)
   }
@@ -84,6 +88,11 @@ const ComposeNavigation = () => {
     userSettings
   })
   navigationArray.push(...medicalNav)
+
+  if (complianceModule) {
+    const complianceNav = complianceNavigation()
+    navigationArray.push(...complianceNav)
+  }
 
   return navigationArray
 }

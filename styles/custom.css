@@ -63,12 +63,29 @@
 .meal_dtl_hd {
   width: 580px;
 }
+.export_dtl_list {
+  width: 45%;
+  padding-right: 10px;
+}
+.other_dtl_list {
+  width: 45%;
+  padding-right: 10px;
+}
+.MuiBox-root:has(.animl_dt) {
+  padding-top: 15px !important;
+}
 @media (min-width: 768px) and (max-width: 1023px) {
   .item_cls {
     margin-right: 25px !important;
   }
   .recipe_name {
     width: 100px;
+  }
+  .edit_contxt {
+    gap: 400px !important;
+  }
+  .editanimals_contxt {
+    gap: 450px !important;
   }
   .pencil_diet {
     position: absolute !important;
@@ -187,6 +204,14 @@
   }
   .ing_byquan {
     margin-left: 2px;
+  }
+  .export_dtl_list {
+    width: 45%;
+    padding-right: 10px;
+  }
+  .other_dtl_list {
+    width: 45%;
+    padding-right: 10px;
   }
 }
 

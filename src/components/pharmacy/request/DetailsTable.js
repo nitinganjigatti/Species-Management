@@ -151,7 +151,7 @@ export default function DetailsTable({ ...props }) {
               >
                 SL.NO
               </TableCell>
-              <TableCell sx={{ textAlign: 'center', maxWidth: 10 }}>Priority</TableCell>
+              <TableCell sx={{ textAlign: 'center', padding: 2, width: 40, minWidth: 40 }}>Priority</TableCell>
               <TableCell>PRODUCT NAME</TableCell>
 
               <TableCell>QUANTITY</TableCell>

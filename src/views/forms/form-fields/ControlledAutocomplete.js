@@ -14,10 +14,15 @@ const ControlledAutocomplete = ({
   fullWidth = true,
   onChangeOverride = () => {},
   onKeyUp = () => {},
+  onItemClear = () => {},
   onBlur = () => {},
   getOptionLabel = option => option.label || '',
   isOptionEqualToValue = (option, value) => option.value === value?.value,
-  renderOption = null
+  renderOption = null,
+  textFieldProps = {},
+  autocompleteProps = {},
+  formHelperTextBackgroundColor = 'inherit',
+  sx = {}
 }) => {
   if (!options) return
 
@@ -34,16 +39,22 @@ const ControlledAutocomplete = ({
             {...field}
             options={options}
             getOptionLabel={getOptionLabel}
-            value={field.value}
+            value={field.value ?? null} // ensures Autocomplete is always controlled
             isOptionEqualToValue={isOptionEqualToValue}
-            onChange={(e, value) => {
+            onChange={(e, value, reason) => {
               field.onChange(value)
               onChangeOverride(value)
+              if (reason === 'clear') {
+                onItemClear()
+              }
             }}
-            onKeyUp={e => onKeyUp(e)}
+            onKeyUp={onKeyUp}
             onBlur={onBlur}
             loading={loading}
             noOptionsText='Type to search'
+            renderOption={renderOption}
+            sx={sx}
+            {...autocompleteProps}
             renderInput={params => (
               <TextField
                 {...params}
@@ -51,9 +62,38 @@ const ControlledAutocomplete = ({
                 placeholder='Search & Select'
                 error={Boolean(fieldError)}
                 helperText={fieldError?.value?.message || fieldError?.label?.message || fieldError?.message}
+                {...textFieldProps}
+                slotProps={{
+                  ...textFieldProps.slotProps,
+                  formHelperText: {
+                    sx: {
+                      backgroundColor: formHelperTextBackgroundColor, // Inherit background color from parent
+                      margin: 0,
+                      px: '14px',
+                      pt: '3px',
+                      ...textFieldProps.slotProps?.formHelperText?.sx
+                    },
+                    ...textFieldProps.slotProps?.formHelperText
+                  },
+                  input: {
+                    ...params.InputProps, // ensures dropdown arrow and anchor remain
+                    ...(textFieldProps?.slotProps?.input || {}),
+                    sx: {
+                      ...params.InputProps?.sx,
+                      ...textFieldProps?.slotProps?.input?.sx
+                    }
+                  },
+                  inputLabel: {
+                    ...params.InputLabelProps,
+                    ...(textFieldProps?.slotProps?.inputLabel || {}),
+                    sx: {
+                      ...params.InputLabelProps?.sx,
+                      ...textFieldProps?.slotProps?.inputLabel?.sx
+                    }
+                  }
+                }}
               />
             )}
-            renderOption={renderOption}
           />
         )}
       />

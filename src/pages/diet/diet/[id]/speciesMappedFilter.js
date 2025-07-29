@@ -361,7 +361,14 @@ const SpeciesMappedtoDietFilter = ({
                       borderBottomLeftRadius: '6px'
                     }}
                   >
-                    {tab}
+                    {tab}{' '}
+                    {tab === 'Taxonomy' && selectedItems?.Taxonomy?.length > 0
+                      ? `(${selectedItems?.Taxonomy?.length})`
+                      : tab === 'Site' && selectedItems?.Site?.length > 0
+                      ? `(${selectedItems?.Site?.length})`
+                      : tab === 'Species' && selectedItems?.Species?.length > 0
+                      ? `(${selectedItems?.Species?.length})`
+                      : ''}
                   </Box>
                 ))}
             </Grid>

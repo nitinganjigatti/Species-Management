@@ -6,7 +6,22 @@ import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 
 // ** MUI Imports
-import { Card, CardHeader, Typography, Grid, TextField, CardContent, InputAdornment, Tooltip } from '@mui/material'
+import {
+  Card,
+  CardHeader,
+  Typography,
+  Grid,
+  TextField,
+  CardContent,
+  InputAdornment,
+  Autocomplete,
+  MenuItem,
+  Switch,
+  FormControl,
+  InputLabel,
+  Tooltip,
+  Select
+} from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
@@ -24,6 +39,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -59,6 +75,8 @@ const ListOfPurchase = () => {
   })
   const [loading, setLoading] = useState(false)
   const [excelLoader, setExcelLoader] = useState(false)
+  const [suppliers, setSuppliers] = useState([])
+  const [selectedSupplier, setSelectedSupplier] = useState(router.query.supplier || 'All')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -78,12 +96,13 @@ const ListOfPurchase = () => {
           q,
           column,
           ...(isEmptyDates
-            ? { from_date: '', to_date: '' } // Explicitly send empty values
+            ? { from_date: '', to_date: '' }
             : filterDates?.startDate && filterDates?.endDate
             ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
             : {}),
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          ...(selectedSupplier !== 'All' && { supplier_id: selectedSupplier })
         }
 
         await getPurchaseList({ params }).then(res => {
@@ -96,15 +115,13 @@ const ListOfPurchase = () => {
               q,
               column,
               page: paginationModel?.page,
-              limit: paginationModel?.pageSize
-            }
-
-            if (isEmptyDates) {
-              urlParams.from_date = ''
-              urlParams.to_date = ''
-            } else if (filterDates?.startDate && filterDates?.endDate) {
-              urlParams.from_date = filterDates.startDate
-              urlParams.to_date = filterDates.endDate
+              limit: paginationModel?.pageSize,
+              ...(isEmptyDates
+                ? { from_date: '', to_date: '' }
+                : filterDates?.startDate && filterDates?.endDate
+                ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
+                : {}),
+              supplier: selectedSupplier
             }
 
             updateUrlParams(urlParams)
@@ -122,7 +139,7 @@ const ListOfPurchase = () => {
         setRows([])
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, selectedSupplier]
   )
   useEffect(() => {
     if (filterDates?.startDate !== undefined && filterDates?.endDate !== undefined) {
@@ -135,11 +152,12 @@ const ListOfPurchase = () => {
         page: paginationModel?.page,
         limit: paginationModel?.pageSize,
         from_date: filterDates?.startDate || '',
-        to_date: filterDates?.endDate || ''
+        to_date: filterDates?.endDate || '',
+        supplier: selectedSupplier
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates])
+  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates, selectedSupplier])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -160,7 +178,8 @@ const ListOfPurchase = () => {
         page: paginationModel?.page,
         limit: paginationModel?.pageSize,
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+        supplier: selectedSupplier
       })
     } else {
     }
@@ -179,7 +198,8 @@ const ListOfPurchase = () => {
           page: paginationModel?.page,
           limit: paginationModel?.pageSize,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+          supplier: selectedSupplier
         })
       } catch (error) {
         console.error(error)
@@ -212,6 +232,19 @@ const ListOfPurchase = () => {
         startDate: '',
         endDate: ''
       })
+    }
+  }
+
+  const getSuppliersLists = async () => {
+    try {
+      const response = await getSuppliers({})
+
+      if (response.data.data.list_items?.length > 0) {
+        const options = [{ id: 'All', company_name: 'All' }, ...response.data.data.list_items]
+        setSuppliers(options)
+      }
+    } catch (error) {
+      console.log('supplier error', error)
     }
   }
 
@@ -374,7 +407,9 @@ const ListOfPurchase = () => {
       )
     }
   ]
-
+  useEffect(() => {
+    getSuppliersLists()
+  }, [])
   const handleHeaderAction = () => {}
 
   const getInventoryDataToExport = async () => {
@@ -542,113 +577,97 @@ const ListOfPurchase = () => {
                   spacing={4}
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Grid item size={{ xs: 12, sm: 6, md: 5 }}>
+                  <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
                     <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                   </Grid>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 7 / 2, md: 7 / 2, lg: 7 / 2 }}
+                    sx={{
+                      my: 0
+                    }}
+                  >
+                    <FormControl fullWidth>
+                      <InputLabel id='controlled-select-label'>Supplier</InputLabel>
+                      <Select
+                        fullWidth
+                        onChange={e => {
+                          let id = e.target.value
 
-                  <Grid item size={{ xs: 12, sm: 6 }}>
-                    <Grid
-                      container
-                      spacing={2}
-                      sx={{
-                        justifyContent: { xs: 'flex-end' }
-                      }}
-                    >
-                      <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
-                        <TextField
-                          variant='outlined'
-                          size='small'
-                          placeholder='Search...'
-                          value={searchValue}
-                          onChange={e => handleSearch(e.target.value)}
-                          fullWidth
-                          sx={{
-                            borderRadius: '8px'
-                          }}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position='start'>
-                                  <Icon
-                                    icon='mi:search'
-                                    fontSize={24}
-                                    color={theme.palette.customColors.neutralSecondary}
-                                  />
-                                </InputAdornment>
-                              )
-                            }
-                          }}
-                        />
-                      </Grid>
-
-                      <Grid
-                        item
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                          justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                          setSelectedSupplier(id)
                         }}
+                        label='Supplier'
+                        value={selectedSupplier}
+                        id='controlled-select'
+                        labelId='controlled-select-label'
+                        sx={{ width: '100%' }}
+                        size='small'
                       >
-                        <ExportButton
-                          loading={excelLoader}
-                          onClick={getInventoryDataToExport}
-                          disabled={total === 0 ? true : false}
-                        />
-                        {/* <Tooltip title='Export'>
-                          <>
-                            {excelLoader ? (
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '4px',
-                                  bgcolor: theme?.palette.customColors?.lightBg,
-                                  alignItems: 'center',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <CircularProgress color='success' size={30} />
-                              </Box>
-                            ) : (
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '4px',
-                                  bgcolor: theme?.palette.customColors?.lightBg,
-                                  alignItems: 'center',
-                                  cursor: 'pointer'
-                                }}
-                                onClick={getInventoryDataToExport}
-                              >
-                                <Icon icon='ic:round-download' fontSize={20} />
-                              </Box>
-                            )}
-                          </>
-                        </Tooltip> */}
-                      </Grid>
-                    </Grid>
+                        {suppliers.length > 0 &&
+                          suppliers.map(el => {
+                            return (
+                              <MenuItem key={el.id} value={el.id}>
+                                {el.company_name}
+                              </MenuItem>
+                            )
+                          })}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 7 / 2, md: 7 / 2 }}
+                    sx={{
+                      display: 'flex',
+                      gap: 2,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      variant='outlined'
+                      size='small'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      sx={{
+                        borderRadius: '8px'
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon
+                                icon='mi:search'
+                                fontSize={24}
+                                color={theme.palette.customColors.neutralSecondary}
+                              />
+                            </InputAdornment>
+                          )
+                        }
+                      }}
+                    />
+                    <ExportButton
+                      loading={excelLoader}
+                      onClick={getInventoryDataToExport}
+                      disabled={total === 0 ? true : false}
+                    />
+
+                    <Grid
+                      item
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                      }}
+                    ></Grid>
                   </Grid>
                 </Grid>
-                {/* Left Box (Search Field) */}
-
-                {/* Right Box (Date Range Picker) */}
               </Box>
 
-              <Grid
-                sx={
-                  {
-                    // px: { xs: 2, sm: 4 },
-                    // py: { xs: 2, sm: 4 },
-                    // mx: { xs: 3, sm: 4 }
-                  }
-                }
-              >
+              <Grid>
                 <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}

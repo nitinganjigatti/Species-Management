@@ -7,7 +7,8 @@ const composeDietNavigation = () => {
     title: 'Feed Types',
     path: '/diet/feed',
     icon: <img src='/icons/feedtypes_dark.svg' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/feedtypes_white.svg' alt='Grocery Icon' />
+    activeIcon: <img src='/icons/feedtypes_white.svg' alt='Grocery Icon' />,
+    activeWhen: ['/diet/feed', '/diet/feed/add-feed']
   }
 
   const ingredientsList = {

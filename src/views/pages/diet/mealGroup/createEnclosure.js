@@ -47,6 +47,7 @@ const CreateEnclosure = ({
   const [groupList, setGroupList] = useState([])
   const [mealGroupError, setMealGroupError] = useState(false)
   const [selectedEnclosureDrawer, setSelectedEnclosureDrawer] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module

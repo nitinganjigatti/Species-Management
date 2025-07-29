@@ -160,8 +160,7 @@ const IndividualDispense = () => {
     sl_no: index + 1
   }))
 
-
-  const totalDispenseQuantity = dispenseRows?.reduce((sum, item) => {
+  const totalDispenseQuantityAmount = dispenseRows?.reduce((sum, item) => {
     return sum + Number(item.qty) * Number(item.unit_price)
   }, 0)
 
@@ -176,7 +175,8 @@ const IndividualDispense = () => {
               gap: 3,
               justifyContent: 'space-between',
               alignItems: 'stretch'
-            }}>
+            }}
+          >
             <Grid item size={{ xs: 12, md: 6.4 }}>
               <Card>
                 <CardHeader
@@ -284,7 +284,8 @@ const IndividualDispense = () => {
                   sx={{
                     px: 4,
                     pt: 4
-                  }}>
+                  }}
+                >
                   <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                     Dispense List
                   </Typography>
@@ -294,16 +295,18 @@ const IndividualDispense = () => {
                       variant='body2'
                       sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                     >
-                      Total Dispense Quantity:{' '}
+                      Total Dispense Value:
                       <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                        {totalDispenseQuantity ? totalDispenseQuantity : '0'}
+                        {totalDispenseQuantityAmount ? totalDispenseQuantityAmount : '0'}
                       </Typography>
                     </Typography>
                   </Stack>
                 </Box>
-                <Box sx={{
-                  p: 4
-                }}>
+                <Box
+                  sx={{
+                    p: 4
+                  }}
+                >
                   <TableBasic rows={dispenseRows} columns={dispenseColumns} />
                 </Box>
 
@@ -318,9 +321,11 @@ const IndividualDispense = () => {
             {dispenseData?.animal_details?.length > 0 ? (
               <>
                 <CardHeader title='Animal List' />
-                <Box sx={{
-                  px: 4
-                }}>
+                <Box
+                  sx={{
+                    px: 4
+                  }}
+                >
                   <TableBasic rows={animalDispenseRows} columns={animalsColumns} />
                 </Box>
                 {/* <DataGrid
@@ -339,7 +344,7 @@ const IndividualDispense = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default IndividualDispense

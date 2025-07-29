@@ -24,6 +24,7 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { getSearchLMasterListSpecies } from 'src/lib/api/parivesh/addSpecies'
+import Toaster from 'src/components/Toaster'
 
 // ** Styled Components
 
@@ -128,18 +129,35 @@ const AddSpecies = props => {
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+      'image/*': ['.png', '.jpg', '.jpeg']
     },
     onDrop: acceptedFiles => {
-      const reader = new FileReader()
+      // Allowed extensions
+      const allowedExtensions = ['.png', '.jpg', '.jpeg']
       const files = acceptedFiles
       if (files && files.length !== 0) {
+        const file = files[0]
+        const fileName = file.name.toLowerCase()
+        const isValid = allowedExtensions.some(ext => fileName.endsWith(ext))
+        debugger
+        if (!isValid) {
+          // Show error or notification here as per your UI framework
+          Toaster({
+            type: 'error',
+            message: 'Please upload images in either JPG or PNG format. Other file types are not supported'
+          })
+
+          // alert('Only PNG, JPG, JPEG, and GIF files are allowed.')
+
+          return
+        }
+        const reader = new FileReader()
         reader.onload = () => {
           setImgSrc(reader?.result)
         }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setValue('speciesImg', files[0])
+        setDisplayFile(file.name)
+        reader?.readAsDataURL(file)
+        setValue('speciesImg', file)
         clearErrors('speciesImg')
       }
     }

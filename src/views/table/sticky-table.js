@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import {
   Table,
   TableHead,
@@ -53,6 +53,8 @@ const StickyTable = ({
   modifyColumnPinning = false
 }) => {
   const theme = useTheme()
+  const rowRefs = useRef([])
+
   const [defaultRowsInView, setDefaultRowsInView] = useState(rowsInView)
   const [defaultRowsInViewOption, setDefaultRowsInViewOption] = useState(rowsInViewOptions)
   const [rowPerPageCount, setRowPerPageCount] = useState(paginationModel?.pageSize || 10)
@@ -69,6 +71,20 @@ const StickyTable = ({
   const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
 
   // const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + subHeaderHeight
+
+  const [dynamicTableHeight, setDynamicTableHeight] = useState(
+    defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+  )
+
+  useEffect(() => {
+    if (filteredRows.length > 0) {
+      const totalVisibleHeight = rowRefs.current
+        .slice(0, defaultRowsInView)
+        .reduce((sum, ref) => sum + (ref?.offsetHeight || rowHeight), 0)
+
+      setDynamicTableHeight(totalVisibleHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0))
+    }
+  }, [filteredRows, defaultRowsInView])
 
   useEffect(() => {
     const leftPinnedColumns = columns.filter(col => col.pinned === 'left')
@@ -91,6 +107,10 @@ const StickyTable = ({
       setFilteredRows(rows)
     }
   }, [rows])
+
+  useEffect(() => {
+    rowRefs.current = []
+  }, [filteredRows])
 
   useEffect(() => {
     if (searchMode === 'server') {
@@ -379,21 +399,47 @@ const StickyTable = ({
               {isGrouped ? (
                 transformText(col?.headerName, col?.textTransform)
               ) : (
-                <TableSortLabel
-                  onClick={() => {
-                    setSortStates(prevState => {
-                      const newStates = { ...prevState, [col.field]: prevState[col.field] === 'asc' ? 'desc' : 'asc' }
-                      onSortChange({
-                        field: col.field,
-                        direction: newStates[col.field]
-                      })
+                // <TableSortLabel
+                //   onClick={() => {
+                //     setSortStates(prevState => {
+                //       const newStates = { ...prevState, [col.field]: prevState[col.field] === 'asc' ? 'desc' : 'asc' }
+                //       onSortChange({
+                //         field: col.field,
+                //         direction: newStates[col.field]
+                //       })
 
-                      return newStates
-                    })
-                  }}
-                >
-                  {transformText(col?.headerName, col?.textTransform)}
-                </TableSortLabel>
+                //       return newStates
+                //     })
+                //   }}
+                // >
+                //   {transformText(col?.headerName, col?.textTransform)}
+                // </TableSortLabel>
+                <>
+                  {col.sortable === false ? (
+                    transformText(col?.headerName, col?.textTransform)
+                  ) : (
+                    <TableSortLabel
+                      active={!!sortStates[col.field]}
+                      direction={sortStates[col.field] || 'asc'}
+                      onClick={() => {
+                        setSortStates(prevState => {
+                          const newStates = {
+                            ...prevState,
+                            [col.field]: prevState[col.field] === 'asc' ? 'desc' : 'asc'
+                          }
+                          onSortChange({
+                            field: col.field,
+                            direction: newStates[col.field]
+                          })
+
+                          return newStates
+                        })
+                      }}
+                    >
+                      {transformText(col?.headerName, col?.textTransform)}
+                    </TableSortLabel>
+                  )}
+                </>
               )}
               {/* Three-dot menu */}
               {modifyColumnPinning && (
@@ -651,6 +697,7 @@ const StickyTable = ({
 
       return (
         <TableRow
+          ref={el => (rowRefs.current[rowIndex] = el)}
           key={rowIndex}
           onClick={e => {
             if (onRowClick) {
@@ -890,7 +937,10 @@ const StickyTable = ({
                 minWidth: '0px !important',
                 width: '40px !important',
                 '& .MuiSelect-icon': {
-                  color: 'text.secondary'
+                  color: 'text.secondary',
+                  boxShadow: 'none !important', // ✅ forcefully remove any shadow
+                  overflow: 'hidden',
+                  maxHeight: 200 // optional: keeps menu compact
                 },
                 '& .MuiSelect-select': {
                   minWidth: '0px !important',
@@ -900,7 +950,7 @@ const StickyTable = ({
               }}
               MenuProps={{
                 anchorOrigin: {
-                  vertical: 'top',
+                  vertical: 'bottom',
                   horizontal: 'left'
                 },
                 transformOrigin: {
@@ -908,9 +958,7 @@ const StickyTable = ({
                   horizontal: 'left'
                 },
                 PaperProps: {
-                  sx: {
-                    mt: 0.5 // slight vertical adjustment (optional)
-                  }
+                  elevation: 0 // ✅ fully disables the default shadow
                 }
               }}
             >
@@ -988,15 +1036,8 @@ const StickyTable = ({
           component={Paper}
           sx={{
             borderRadius: 2,
-            // height: rowSelection
-            //   ? Math.max(5 * (rowHeight + 0.88), defaultRowsInView * (rowHeight + 0.88)) +
-            //     headerHeight +
-            //     subHeaderHeight +
-            //     16
-            //   : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + -0.1)) +
-            //     headerHeight +
-            //     subHeaderHeight,
-            height: tableTotalHeight,
+            // height: tableTotalHeight,
+            height: dynamicTableHeight,
             // maxHeight: tableTotalHeight,
             overflowY: 'auto',
             position: 'relative',

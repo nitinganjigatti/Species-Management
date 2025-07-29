@@ -13,7 +13,8 @@ const Search = ({
   sx = {},
   textFielsSX = {},
   backgroundColor,
-  borderRadius
+  borderRadius,
+  inputStyle
 }) => {
   const theme = useTheme()
   const iconColor = theme.palette.customColors.neutralSecondary
@@ -38,7 +39,6 @@ const Search = ({
         fullWidth
         sx={{
           width: width,
-          ...textFielsSX,
           '& .MuiBox-root': {
             backgroundColor: 'transparent'
           },
@@ -52,8 +52,10 @@ const Search = ({
           '& .MuiInputBase-input': {
             height: '100%',
             boxSizing: 'border-box',
-            padding: '10px 8px'
-          }
+            padding: '10px 8px',
+            ...inputStyle
+          },
+          ...textFielsSX
         }}
         slotProps={{
           input: {
@@ -73,7 +75,7 @@ const Search = ({
         }}
       />
     </Box>
-  );
+  )
 }
 
 export default React.memo(Search)

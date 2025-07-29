@@ -184,12 +184,12 @@ const ComboCard = ({
 
       // Merge updatedSelectedDays with the existing selectedDays state
       const finalSelectedDays = rows.map(row => {
-        const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
+        const updatedDay = updatedSelectedDays?.find(updated => updated.cardId === row.id)
 
         if (updatedDay) {
           return updatedDay // Use the updated selection if available
         } else {
-          const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+          const existingDay = selectedDays?.find(existing => existing.cardId === row.id)
 
           return existingDay || { cardId: row.id, days: Day }
         }
@@ -212,7 +212,7 @@ const ComboCard = ({
       searchValue
     ) {
       const finalSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         // If no match with checkid, enable all days
         const enabledAllDays = Day.map(day => ({
@@ -246,7 +246,7 @@ const ComboCard = ({
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -271,7 +271,7 @@ const ComboCard = ({
 
       // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
           // If the card has previously selected days, retain them
@@ -412,14 +412,14 @@ const ComboCard = ({
     const filteredItems = selectedCardCombo.map(item => {
       // Find the selected days for the current item
 
-      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
+      const selectedDaysForItem = selectedDays?.find(selectedDay => selectedDay.cardId === item.id)
 
       // Extract the selected day names and ids
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
       // Find the remarks for the current item
-      const cardRemarks = selectedCardCombo.find(card => card.id === item.id)?.remarks || ''
+      const cardRemarks = selectedCardCombo?.find(card => card.id === item.id)?.remarks || ''
 
       // Extract ingredient details
       const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
@@ -433,7 +433,7 @@ const ComboCard = ({
       }))
 
       // Find the existing card in selectedCardCombo to preserve previous data
-      const existingCard = selectedCardCombo.find(card => card.id === item.id)
+      const existingCard = selectedCardCombo?.find(card => card.id === item.id)
 
       // Preserve the previous days_of_week if new ones are not selected
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
@@ -441,7 +441,7 @@ const ComboCard = ({
       // Update ingredients with cut_size information
       const updatedIngredients = item.ingredients.map(ingredient => {
         const cutSizeId = size[item.id]?.[ingredient.ingredient_id]?.id || null
-        const cutSize = cutsizelist.find(cs => cs.id === cutSizeId)?.cut_size || null
+        const cutSize = cutsizelist?.find(cs => cs.id === cutSizeId)?.cut_size || null
 
         return {
           ...ingredient,
@@ -838,10 +838,10 @@ const ComboCard = ({
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            bgcolor: selectedDays.find(
+                            bgcolor: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? '#203e56'
                               : '#dedede',
@@ -851,10 +851,10 @@ const ComboCard = ({
                             alignItems: 'center',
                             cursor: 'pointer',
 
-                            color: selectedDays.find(
+                            color: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? 'white'
                               : 'black'
