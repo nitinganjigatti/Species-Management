@@ -517,7 +517,14 @@ const ListOfSpeciesMapped = ({
                       pb: 1
                     }}
                   >
-                    {tempSelectedSpecies?.length} Species Selected
+                    {tempSelectedSpecies?.length}{' '}
+                    {selectionType === 'species'
+                      ? tempSelectedSpecies?.length === 1
+                        ? 'Specie Selected'
+                        : 'Species Selected'
+                      : tempSelectedSpecies?.length === 1
+                      ? 'Animal Selected'
+                      : 'Animals Selected'}
                   </Typography>
                 ) : (
                   <Typography
@@ -578,7 +585,7 @@ const ListOfSpeciesMapped = ({
                             pl: 3
                           }}
                         >
-                          Species
+                          {selectionType === 'species' ? 'Species' : 'Animals'}
                         </Typography>
                         <Typography
                           variant='body1'
@@ -781,6 +788,26 @@ const ListOfSpeciesMapped = ({
                                       }}
                                     >
                                       {species.scientific_name ? species.scientific_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
+                                      Encl: {species.user_enclosure_name ? species.user_enclosure_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
+                                      Sec: {species.section_name ? species.section_name : '-'}
                                     </Typography>
                                     <Typography
                                       variant='body2'

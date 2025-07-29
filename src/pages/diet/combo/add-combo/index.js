@@ -90,8 +90,8 @@ const AddCombo = () => {
   useEffect(() => {
     getUnitsList()
     getCutsizeListdata()
-    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
-  }, [activeStep == 0])
+    callIngredientTypeList({ status: 1, page: 1, limit: 50 })
+  }, [activeStep])
 
   const getUnitsList = async () => {
     try {
@@ -178,7 +178,7 @@ const AddCombo = () => {
         feed_type_label: ''
       }))
     }))
-    callIngredientTypeList({ status: 1, page: 1, limit: 10, q: '' })
+    callIngredientTypeList({ status: 1, page: 1, limit: 50, q: '' })
   }
 
   const getIngredientsDetailval = async id => {
@@ -230,18 +230,21 @@ const AddCombo = () => {
           ...data.by_percentage.map(item => ({
             id: item.ingredient_id,
             ingredient_name: item.ingredient_name
-          })),
-          ...data.by_quantity.map(item => ({
-            id: item.ingredient_id,
-            ingredient_name: item.ingredient_name
           }))
+          // ...data.by_quantity.map(item => ({
+          //   id: item.ingredient_id,
+          //   ingredient_name: item.ingredient_name
+          // }))
         ]
 
         const uniqueIngredientList = combinedIngredients.filter(
           (item, index, self) => index === self.findIndex(i => i.id === item.id)
         )
         setLoader(false)
-        setFullIngredientList(uniqueIngredientList)
+        setFullIngredientList(prevList => [
+          ...prevList,
+          ...uniqueIngredientList.filter(newItem => !prevList.some(item => item.id === newItem.id))
+        ])
       }
     } catch (error) {
       console.log('Feed list', error)

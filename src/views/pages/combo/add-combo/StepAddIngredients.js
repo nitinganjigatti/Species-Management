@@ -371,6 +371,25 @@ const StepAddIngredients = ({
       item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
     )
 
+    // Check for duplicate ingredients with same preparation type
+    const checkRepeated = new Set()
+    const hasDuplicates = data.by_percentage.some(item => {
+      const key = `${item.ingredient_id}_${item.preparation_type_id}`
+      if (checkRepeated.has(key)) {
+        return true
+      }
+      checkRepeated.add(key)
+      return false
+    })
+
+    if (hasDuplicates) {
+      window.scrollTo(0, 0)
+      return Toaster({
+        type: 'error',
+        message: 'The same ingredient with the same preparation type is not allowed'
+      })
+    }
+
     // Function to find the first incomplete index
     const findFirstIncompleteIndex = (array, keys) => {
       return array.findIndex(item => keys.some(key => !item[key]))
@@ -390,7 +409,6 @@ const StepAddIngredients = ({
     if (data.by_percentage.length === 0) {
       window.scrollTo(0, 0)
 
-      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
       return Toaster({
         type: 'error',
         message: 'Please fill in all fields for By Percentage'
@@ -402,8 +420,6 @@ const StepAddIngredients = ({
         'ingredient_id',
         'quantity',
         'preparation_type_id'
-
-        //'cut_size_id'
       ])
       window.scrollTo(0, 0)
 

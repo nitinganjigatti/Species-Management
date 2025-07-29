@@ -730,7 +730,11 @@ const StepBasicDetails = ({
   }
 
   const cancelBack = () => {
-    Router.push(`/diet/diet/${id}`)
+    if (id !== undefined) {
+      Router.push(`/diet/diet/${id}`)
+    } else {
+      Router.push(`/diet/diet`)
+    }
   }
 
   const addIngredientsButton = () => {

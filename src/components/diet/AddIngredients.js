@@ -362,6 +362,7 @@ const AddIngredients = props => {
         duration: 1000
       })
     } else if (selectedCard?.length > 0) {
+      debouncedSearch('')
       handleSidebarClose()
       setSelectedCard(selectedCard)
       setSearchValue('')

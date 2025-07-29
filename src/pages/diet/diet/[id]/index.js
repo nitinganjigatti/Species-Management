@@ -36,7 +36,6 @@ import { useMediaQuery } from '@mui/material'
 import SpeciesAnimalsMapped from 'src/components/diet/Species_Animals_mapped'
 import EditAnimalSpeciesMapped from 'src/components/diet/EditAnimalsSpecies'
 import SelectSiteList from 'src/components/diet/SelectSiteList'
-import { getSectionList } from 'src/lib/api/egg/egg/createAnimal'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -215,19 +214,39 @@ const DietDetail = () => {
         res = await getAnimalsList(params)
       }
 
-      console.log(res, 'res')
-
       if (res) {
         const resultData = res?.data?.result
         const totalCount = res?.data?.count
 
         if (resultData) {
+          // Handle search query case - always reset speciesDataforFilter when searching
+          if (searchQuery && filterState === 'species') {
+            if (pageNo === 1) {
+              setspeciesDataforFilter(resultData)
+            } else {
+              setspeciesDataforFilter(prevData => {
+                const combinedData = [...prevData, ...resultData]
+                const uniqueData = combinedData.filter(
+                  (item, index, self) =>
+                    index ===
+                    self.findIndex(t =>
+                      selectionType === 'species' ? t.species_id === item.species_id : t.species_id === item.species_id
+                    )
+                )
+                return uniqueData
+              })
+            }
+            setsepeciescountforFilter(totalCount)
+          }
+
           if (pageNo === 1 && tempSelectedSpecies.length <= 0) {
             setspeciesData(resultData)
             setAllFetchedData(resultData)
-            if (filterState === 'species') {
+            if (filterState === 'species' && !searchQuery) {
               setspeciesDataforFilter(resultData)
             }
+          } else if (filterState === '' && tempSelectedSpecies.length > 0) {
+            setspeciesData(resultData)
           } else if (filterState === '') {
             setspeciesData(prevData => {
               const combinedData = [...prevData, ...resultData]
@@ -293,7 +312,6 @@ const DietDetail = () => {
 
   const debouncedSearch = useCallback(
     debounce(async (search, type) => {
-      console.log(selectionType, 'selectionType')
       try {
         if (pageNo === 1) {
           setLoading(true)
@@ -316,18 +334,11 @@ const DietDetail = () => {
           res = await getAnimalsList(params)
         }
 
-        console.log(res, 'res')
-
         if (res) {
           const resultData = res?.data?.result
           const totalCount = res?.data?.count
 
           if (resultData) {
-            // if (pageNo === 1) {
-            //   setspeciesData(resultData)
-            //   setAllFetchedData(resultData)
-            // }
-
             setspeciesData(prevData => {
               const combinedData = [...prevData, ...resultData]
 
@@ -610,7 +621,6 @@ const DietDetail = () => {
 
   return (
     <>
-      {console.log(authData, 'authData')}
       {dietModule ? (
         <>
           {loader ? (
@@ -1873,23 +1883,6 @@ const DietDetail = () => {
                                                                           </Typography>
                                                                         </>
                                                                       )}
-                                                                      {/* {console.log(item, 'klkl')}
-                                                                      {item?.ingredients.map(all => {
-                                                                        return (
-                                                                          <Typography
-                                                                            sx={{
-                                                                              color: theme.palette. primary. light,
-                                                                              lineHeight: '16.94px',
-                                                                              fontWeight: 400,
-                                                                              fontSize: '14px'
-                                                                            }}
-                                                                          >
-                                                                            &nbsp;-&nbsp; {all?.preparation_type}
-                                                                            &nbsp;-&nbsp;
-                                                                              {item?.master_cut_size}
-                                                                          </Typography>
-                                                                        )
-                                                                      })} */}
                                                                     </Box>
                                                                     <Divider />
                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>

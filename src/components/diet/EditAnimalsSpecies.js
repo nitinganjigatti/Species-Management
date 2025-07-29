@@ -883,6 +883,26 @@ const EditAnimalSpeciesMapped = ({
                                             fontWeight: 500
                                           }}
                                         >
+                                          Encl: {species.user_enclosure_name ? species.user_enclosure_name : '-'}
+                                        </Typography>
+                                        <Typography
+                                          variant='body2'
+                                          sx={{
+                                            color: theme.palette.customColors.secondaryBg,
+                                            fontSize: '14px',
+                                            fontWeight: 500
+                                          }}
+                                        >
+                                          Sec: {species.section_name ? species.section_name : '-'}
+                                        </Typography>
+                                        <Typography
+                                          variant='body2'
+                                          sx={{
+                                            color: theme.palette.customColors.secondaryBg,
+                                            fontSize: '14px',
+                                            fontWeight: 500
+                                          }}
+                                        >
                                           Site: {species.site_name ? species.site_name : '-'}
                                         </Typography>
                                       </>

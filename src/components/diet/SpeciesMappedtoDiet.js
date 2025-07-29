@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -10,15 +10,12 @@ import {
   Typography,
   Button,
   List,
-  ListItem,
-  ListItemAvatar,
-  Avatar,
   CardContent,
   CircularProgress,
   ListItemText
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
-import Toaster from 'src/components/Toaster'
+
 import Icon from 'src/@core/components/icon'
 import { useMediaQuery } from '@mui/material'
 import SpeciesCardItem from 'src/views/utility/SpeciesCardItem'
@@ -163,9 +160,24 @@ const SpeciesMappedtoDiet = ({
     }
     setSelectedEnclosures([])
     setSelectedSections([])
-
-    //refreshSpeciesData('')
   }
+
+  useEffect(() => {
+    if (speciesData.length > 0 && tempSelectedSpecies.length > 0) {
+      const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+
+      // Create a Set of all valid IDs from speciesData
+      const validIds = new Set(speciesData.map(item => item[idField]))
+
+      // Filter tempSelectedSpecies to only keep IDs that exist in speciesData
+      const filteredSelectedSpecies = tempSelectedSpecies.filter(id => validIds.has(id))
+
+      // Only update state if there were invalid IDs that needed to be removed
+      if (filteredSelectedSpecies.length !== tempSelectedSpecies.length) {
+        setTempSelectedSpecies(filteredSelectedSpecies)
+      }
+    }
+  }, [speciesData])
 
   return (
     <Drawer
@@ -394,7 +406,7 @@ const SpeciesMappedtoDiet = ({
               fontWeight: 600
             }}
           >
-            {tempSelectedSpecies.length > 0 && speciesData.length > 0
+            {tempSelectedSpecies.length > 0 && speciesData.length > 0 && !loading
               ? `Selected ${tempSelectedSpecies.length} / ${speciestotalcount}`
               : selectionType === 'species'
               ? `All species${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`
@@ -543,29 +555,37 @@ const SpeciesMappedtoDiet = ({
                   tempSelectedSpecies={tempSelectedSpecies}
                   selectionType={selectionType}
                 >
-                  <Checkbox
-                    disabled={species.mapped_to_diet}
-                    edge='end'
-                    checked={
-                      selectionType === 'species'
-                        ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
-                        : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
-                    }
-                    onChange={() => handleToggle(species)}
+                  <Box
                     sx={{
-                      '&.Mui-checked': {
-                        color: theme.palette.primary.main
-                      },
-                      '& .MuiSvgIcon-root': {
-                        borderRadius: '4px',
-                        width: '22px',
-                        height: '22px',
-                        color: species.mapped_to_diet
-                          ? theme.palette.customColors.secondaryBg
-                          : theme.palette.primary.main
-                      }
+                      display: 'flex',
+                      alignItems: 'center',
+                      height: '100%'
                     }}
-                  />
+                  >
+                    <Checkbox
+                      disabled={species.mapped_to_diet}
+                      edge='end'
+                      checked={
+                        selectionType === 'species'
+                          ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
+                          : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
+                      }
+                      onChange={() => handleToggle(species)}
+                      sx={{
+                        '&.Mui-checked': {
+                          color: theme.palette.primary.main
+                        },
+                        '& .MuiSvgIcon-root': {
+                          borderRadius: '4px',
+                          width: '22px',
+                          height: '22px',
+                          color: species.mapped_to_diet
+                            ? theme.palette.customColors.secondaryBg
+                            : theme.palette.primary.main
+                        }
+                      }}
+                    />
+                  </Box>
                 </AnimalCardItem>
               ))
             ) : (
