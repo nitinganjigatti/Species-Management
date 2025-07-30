@@ -16,6 +16,7 @@ import { useAuth } from 'src/hooks/useAuth'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
+import withModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
@@ -219,4 +220,4 @@ const SectionDetails = () => {
   )
 }
 
-export default SectionDetails
+export default withModuleAccess(SectionDetails, 'enable_housing_in_web')

@@ -9,6 +9,7 @@ import AnimalIdentifier from 'src/components/housing/animals/AnimalIdentifier'
 import AnimalIncidents from 'src/components/housing/animals/AnimalIncidents'
 import AnimalJournals from 'src/components/housing/animals/AnimalJournals'
 import AnimalOverview from 'src/components/housing/animals/AnimalOverview'
+import withModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 
 const tabConfig = [
@@ -78,4 +79,4 @@ const AnimalDetais = () => {
   )
 }
 
-export default AnimalDetais
+export default withModuleAccess(AnimalDetais, 'enable_housing_in_web')
