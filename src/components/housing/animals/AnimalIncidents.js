@@ -24,6 +24,9 @@ import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline from '@mui/lab/Timeline'
 import { styled } from '@mui/material/styles'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
+import ReportMissingIncidentForm from './ReportMissingIncidentForm'
+import MissReportIncidentForm from './MissReportIncidentForm'
+import ReportFoundForm from './ReportFoundForm'
 // import {  TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from '@mui/lab'
 
 const AnimalIncidents = () => {
@@ -34,6 +37,12 @@ const AnimalIncidents = () => {
   // Inside your component
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
+
+  const [animalId, setAnimalId] = useState('')
+  const [animalIncidentForm, setAnimalIncidentForm] = useState(false)
+  const [missReportIncidence, setMissReportIncidence] = useState('')
+  const [missReportIncidentForm, setMissReportIncidentForm] = useState(false)
+  const [reportFoundForm, setReportFoundForm] = useState(false)
 
   const handleMenuOpen = event => {
     setAnchorEl(event.currentTarget)
@@ -391,7 +400,18 @@ const AnimalIncidents = () => {
                           '& span': {
                             ml: '1px',
                             background: 'transparent',
-                            borderLeft: `1px dashed ${theme.palette.customColors.OutlineVariant}`
+                            width: '1px',
+                            height: '100%',
+                            backgroundImage: `repeating-linear-gradient(
+                            to bottom,
+                            ${theme.palette.customColors.OutlineVariant},
+                            ${theme.palette.customColors.OutlineVariant} 5px,
+                            transparent 8px,
+                            transparent 13px
+                            )`,
+                            opacity: 1
+                            // strokeDashoffset: '5 8',
+                            // borderLeft: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
                           }
                         }}
                       >
@@ -399,9 +419,9 @@ const AnimalIncidents = () => {
                           sx={{
                             // border: '2px solid ',
                             backgroundColor:
-                              item.color === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
+                              item.type === 'Animal Missing' || item.status === 'Discard' || item.status === 'Rotten'
                                 ? theme.palette.formContent.tertiary
-                                : theme.palette.primary.light,
+                                : theme.palette.primary.dark,
                             boxSizing: 'border-box',
                             width: '16px',
                             height: '16px',
@@ -544,7 +564,7 @@ const AnimalIncidents = () => {
             >
               Incidents (2)
             </Typography>
-            <Button onClick={() => setActivtyLogSideBar(true)} variant='contained' sx={{ height: '40px' }}>
+            <Button onClick={() => setAnimalIncidentForm(true)} variant='contained' sx={{ height: '40px' }}>
               <Icon icon='mdi:plus' />
               Report incident
             </Button>
@@ -617,7 +637,7 @@ const AnimalIncidents = () => {
             </Box>
             <Box>
               <IconButton size='small' onClick={handleMenuOpen}>
-                <Icon icon='mdi:dots-vertical' />
+                <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:dots-vertical' />
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
@@ -626,10 +646,27 @@ const AnimalIncidents = () => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
-                <MenuItem onClick={handleMenuClose}>View Details</MenuItem>
+                <MenuItem onClick={() => {
+                  setActivtyLogSideBar(true)
+                  handleMenuClose()
+                }}>View Details</MenuItem>
                 <MenuItem onClick={handleMenuClose}>Edit Incident</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Misreport Found</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Misreport Missing</MenuItem>
+                <MenuItem onClick={
+                  () => {
+                    setMissReportIncidence('Found')
+                    setMissReportIncidentForm(true)
+                    handleMenuClose()
+                  }
+                }>Misreport Found</MenuItem>
+                <MenuItem onClick={() => {
+                  setMissReportIncidence('Missing')
+                  setMissReportIncidentForm(true)
+                  handleMenuClose()
+                }}>Misreport Missing</MenuItem>
+                <MenuItem onClick={() => {
+                  setReportFoundForm(true)
+                  handleMenuClose()
+                }}>Report Found</MenuItem>
               </Menu>
             </Box>
           </Box>
@@ -637,6 +674,20 @@ const AnimalIncidents = () => {
       </Box>
 
       <IncidentTimeline />
+      <ReportMissingIncidentForm
+        animalId={animalId}
+        animalIncidentForm={animalIncidentForm}
+        setAnimalIncidentForm={setAnimalIncidentForm}
+      />
+      <MissReportIncidentForm
+        animalId={animalId}
+        missReportIncidentForm={missReportIncidentForm}
+        missReportIncidence={missReportIncidence}
+        setMissReportIncidentForm={setMissReportIncidentForm} />
+      <ReportFoundForm
+        animalId={animalId}
+        reportFoundForm={reportFoundForm}
+        setReportFoundForm={setReportFoundForm} />
     </>
   )
 }

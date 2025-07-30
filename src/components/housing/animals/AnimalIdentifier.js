@@ -1,10 +1,12 @@
 import { Avatar, Button, Card, IconButton, Menu, MenuItem, TextField, Typography } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import StickyTable from 'src/views/table/sticky-table'
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/system'
+import AddIdentifier from './AddIdentifierForm'
+import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 
 const AnimalIdentifier = () => {
   const theme = useTheme()
@@ -14,6 +16,11 @@ const AnimalIdentifier = () => {
   // Inside your component
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
+
+  const [addIdentifierDrawer, setAddIdentifierDrawer] = useState(false)
+  const [animalId, setAnimalId] = useState('')
+
+  const [deleteDialog, setDeleteDialog] = useState(false)
 
   const handleMenuOpen = event => {
     setAnchorEl(event.currentTarget)
@@ -37,6 +44,7 @@ const AnimalIdentifier = () => {
           sx={{
             fontSize: '12px',
             fontWeight: 400,
+            letterSpacing: 0,
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
@@ -72,6 +80,7 @@ const AnimalIdentifier = () => {
             sx={{
               fontSize: '16px',
               fontWeight: 500,
+              letterSpacing: 0,
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
@@ -109,7 +118,7 @@ const AnimalIdentifier = () => {
       renderCell: params => (
         <Typography
           sx={{
-            fontWeight: 400,
+            fontWeight: 500,
             fontSize: 16,
             color: params.row.primary === 'Yes' ? theme.palette.primary.dark : ''
           }}
@@ -145,6 +154,7 @@ const AnimalIdentifier = () => {
               sx={{
                 fontSize: '14px',
                 fontWeight: 500,
+                letterSpacing: '0.1px',
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
@@ -154,6 +164,7 @@ const AnimalIdentifier = () => {
               sx={{
                 fontSize: '12px',
                 fontWeight: 400,
+                letterSpacing: 0,
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
@@ -172,7 +183,7 @@ const AnimalIdentifier = () => {
       renderCell: params => (
         <Box>
           <IconButton size='small' onClick={handleMenuOpen}>
-            <Icon icon='mdi:dots-vertical' />
+            <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:dots-vertical' />
           </IconButton>
           <Menu
             anchorEl={anchorEl}
@@ -183,13 +194,21 @@ const AnimalIdentifier = () => {
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
             <MenuItem onClick={handleMenuClose}>View Details</MenuItem>
-            <MenuItem onClick={handleMenuClose}>Edit Identifier</MenuItem>
-            <MenuItem onClick={handleMenuClose}>Delete Identifier</MenuItem>
+            <MenuItem onClick={() => {
+              setAnimalId('123')
+              handleMenuClose()
+              setAddIdentifierDrawer(true)
+            }}>Edit Identifier</MenuItem>
+            <MenuItem onClick={() => {
+              setDeleteDialog(true)
+              handleMenuClose()
+            }}>Delete Identifier</MenuItem>
           </Menu>
         </Box>
       )
     }
   ]
+
   const rows = [
     {
       sl_no: 1,
@@ -266,7 +285,7 @@ const AnimalIdentifier = () => {
               }}
             />
           </Box>
-          <Button sx={{ height: '38px' }} variant='contained'>
+          <Button onClick={() => setAddIdentifierDrawer(true)} sx={{ height: '38px', padding: '8px' }} variant='contained'>
             <Icon icon='mdi:plus' /> Add Identifier
           </Button>
         </Box>
@@ -280,7 +299,6 @@ const AnimalIdentifier = () => {
           columns={columns}
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
-          // rowHeight={127.5}
           headerHeight={50}
           pagination={true}
           downloadExcel
@@ -288,6 +306,15 @@ const AnimalIdentifier = () => {
           disableColumnSorting={true}
         />
       </Box>
+      <AddIdentifier
+        animalId={animalId}
+        addIdentifierDrawer={addIdentifierDrawer}
+        setAddIdentifierDrawer={setAddIdentifierDrawer} />
+      <DialogConfirmationDialog
+        open={deleteDialog}
+        message={'Are you sure you want to delete this local identifier?'}
+        handleClose={() => setDeleteDialog(false)}
+        action={() => setDeleteDialog(false)} />
     </Box>
   )
 }

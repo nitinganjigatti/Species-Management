@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 import { useTheme } from '@mui/material/styles'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import { styled } from '@mui/material/styles'
+import UploadAnimalDiet from './UploadAnimalDiet'
 
 const GreenSwitch = styled(Switch)(({ theme }) => ({
   width: 45.5,
@@ -129,6 +130,98 @@ const inActiveDietData = [
 const AnimalDiet = () => {
   const theme = useTheme()
   const [selectedTab, setSelectedTab] = useState('active') // or 'inactive'
+  const [animalId, setAnimalId] = useState(123) // or 'inactive'
+
+
+  const [activeDietData, setActiveDietData] = useState(
+    [
+      {
+        id: 1,
+        fileName: 'Diet_Ringneck Parakeet.pdf',
+        uploadedBy: 'Sourav',
+        role: 'Dietitian',
+        createdBy: {
+          name: 'Jordan Stevenson',
+          timestamp: '14 Apr 2024 | 12 : 35 PM',
+          avatarUrl: ''
+        },
+        isActive: true,
+        notes:
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam'
+      },
+      {
+        id: 2,
+        fileName: 'Diet_Sun Conure.pdf',
+        uploadedBy: 'Amit',
+        role: 'Dietitian',
+        createdBy: {
+          name: 'Sarah Mills',
+          timestamp: '12 Apr 2024 | 03 : 20 PM',
+          avatarUrl: ''
+        },
+        isActive: true,
+        notes: 'No significant changes in diet this week.'
+      },
+      {
+        id: 3,
+        fileName: 'Diet_Cockatoo.pdf',
+        uploadedBy: 'Rhea',
+        role: 'Assistant',
+        createdBy: {
+          name: 'Daniel Costa',
+          timestamp: '10 Apr 2024 | 08 : 15 AM',
+          avatarUrl: ''
+        },
+        isActive: true,
+        notes: 'Include extra sunflower seeds for feather growth.'
+      }
+    ])
+  const [inActiveDietData, setInActiveDietData] = useState([
+    {
+      id: 1,
+      fileName: 'Diet_Ringneck Parakeet.pdf',
+      uploadedBy: 'Sourav',
+      role: 'Dietitian',
+      createdBy: {
+        name: 'Jordan Stevenson',
+        timestamp: '14 Apr 2024 | 12 : 35 PM',
+        avatarUrl: ''
+      },
+      isActive: false,
+      notes: 'Lorem ipsum dolordunt ut labore et dolore magna aliqua. Ut enim ad minim veniam'
+    },
+    {
+      id: 2,
+      fileName: 'Diet_Sun Conure.pdf',
+      uploadedBy: 'Amit',
+      role: 'Dietitian',
+      createdBy: {
+        name: 'Sarah Mills',
+        timestamp: '12 Apr 2024 | 03 : 20 PM',
+        avatarUrl: ''
+      },
+      isActive: false,
+      notes: 'No significant changes in diet this week.'
+    },
+    {
+      id: 3,
+      fileName: 'Diet_Cockatoo.pdf',
+      uploadedBy: 'Rhea',
+      role: 'Assistant',
+      createdBy: {
+        name: 'Daniel Costa',
+        timestamp: '10 Apr 2024 | 08 : 15 AM',
+        avatarUrl: ''
+      },
+      isActive: false,
+      notes: 'Include extra sunflower seeds for feather growth.'
+    }
+  ])
+  const [dietStates, setDietStates] = useState(
+    (selectedTab === 'active' ? activeDietData : inActiveDietData).map(d => d.isActive)
+  )
+
+  const [uploadAnimalDietDrawer, setUploadAnimalDietDrawer] = useState(false) // or 'inactive'
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -225,7 +318,7 @@ const AnimalDiet = () => {
                 }}
               />
             </Box>
-            <Button sx={{ height: '38px' }} variant='contained'>
+            <Button onClick={() => setUploadAnimalDietDrawer(true)} sx={{ height: '38px' }} variant='contained'>
               <Icon icon='mdi:plus' /> Upload
             </Button>
           </Box>
@@ -241,7 +334,11 @@ const AnimalDiet = () => {
             display: 'flex',
             flexDirection: 'column',
             backgroundColor: selectedTab === 'active' ? 'transparent' : theme.palette.customColors.mdAntzNeutral,
-            border: selectedTab === 'active' ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
+            // border: selectedTab === 'active' ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
+            border: `1px solid ${selectedTab === 'active'
+                ? theme.palette.customColors.OutlineVariant
+                : 'transparent' // or use a light transparent color
+              }`,
             borderRadius: '8px',
             gap: '24px',
             p: '16px',
@@ -310,7 +407,21 @@ const AnimalDiet = () => {
                 textColor={theme.palette.customColors.OnSurfaceVariant}
                 fontWeight={500}
               />
-              <GreenSwitch defaultChecked={diet.isActive} />
+              {/* <GreenSwitch defaultChecked={diet.isActive} /> */}
+              <GreenSwitch
+                checked={diet.isActive}
+                onChange={() => {
+                  if (selectedTab === 'active') {
+                    const updated = [...activeDietData]
+                    updated[index].isActive = !updated[index].isActive
+                    setActiveDietData(updated)
+                  } else {
+                    const updated = [...inActiveDietData]
+                    updated[index].isActive = !updated[index].isActive
+                    setInActiveDietData(updated)
+                  }
+                }}
+              />
               <IconButton>
                 <Icon icon='mdi:trash-can-outline' color={theme.palette.customColors.OnSurfaceVariant} />
               </IconButton>
@@ -340,6 +451,12 @@ const AnimalDiet = () => {
           </Box>
         </Box>
       ))}
+
+      <UploadAnimalDiet
+        animalId={animalId}
+        setAnimalId={setAnimalId}
+        uploadAnimalDietDrawer={uploadAnimalDietDrawer}
+        setUploadAnimalDietDrawer={setUploadAnimalDietDrawer} />
     </Box>
   )
 }
