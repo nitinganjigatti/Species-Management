@@ -403,7 +403,6 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       // transformedData.document_type_id = data?.documents?.[0]?.document_type_id
     }
 
-    console.log('transformedData', transformedData)
     try {
       setSubmitLoader(true)
 

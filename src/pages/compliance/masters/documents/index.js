@@ -26,6 +26,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import { AuthContext } from 'src/context/AuthContext'
 import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Export', value: 'exports', context_id: 1 },
@@ -49,7 +50,7 @@ const DocumentTypes = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('asc')
   const [sortColumn, setSortColumn] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [selectedTab, setSelectedTab] = useState('exports')
 
@@ -350,4 +351,4 @@ const DocumentTypes = () => {
   )
 }
 
-export default DocumentTypes
+export default enforceModuleAccess(DocumentTypes, 'compliance_module')

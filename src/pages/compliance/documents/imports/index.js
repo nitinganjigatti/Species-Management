@@ -11,6 +11,9 @@ import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { getImportsList } from 'src/lib/api/compliance/imports'
 import moment from 'moment'
+import RenderUtility from 'src/utility/render'
+import Utility from 'src/utility'
+import { useTheme } from '@mui/material/styles'
 
 const ImportsPage = () => {
   const router = useRouter()
@@ -18,11 +21,13 @@ const ImportsPage = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [selectedId, setSelectedId] = useState(null)
   const [sortModel, setSortModel] = useState([])
   const [filterDate, setFilterDate] = useState({})
   const filterCount = 0
+
+  const theme = useTheme()
 
   const handleFilterDrawer = () => {}
 
@@ -139,6 +144,44 @@ const ImportsPage = () => {
       field: 'documents_count',
       headerName: 'DOCUMENTS',
       renderCell: params => <Typography sx={{ width: '100%', pl: 4 }}>{params.value}</Typography>
+    },
+    {
+      flex: 0.3,
+      minWidth: 180,
+      field: 'created_by_user_name',
+      headerName: 'Created By',
+      renderCell: params => (
+        <Box sx={{ px: 2 }}>
+          {params.row.created_by_user_name
+            ? RenderUtility.renderUserAvatarDetails(
+                params.row.created_user_profile_pic,
+                params.row.created_by_user_name,
+                Utility.formatDisplayDate(params.row.created_at),
+                theme.palette.customColors.OnSurfaceVariant,
+                '14px'
+              )
+            : null}
+        </Box>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 180,
+      field: 'updated_by_user_name',
+      headerName: 'Updated By',
+      renderCell: params => (
+        <Box sx={{ px: 2 }}>
+          {params.row.updated_by_user_name
+            ? RenderUtility.renderUserAvatarDetails(
+                params.row.updated_user_profile_pic,
+                params.row.updated_by_user_name,
+                Utility.formatDisplayDate(params.row.updated_at),
+                theme.palette.customColors.OnSurfaceVariant,
+                '14px'
+              )
+            : null}
+        </Box>
+      )
     }
   ]
 

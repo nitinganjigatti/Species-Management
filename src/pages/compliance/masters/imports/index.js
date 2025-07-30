@@ -37,6 +37,7 @@ import Search from 'src/views/utility/Search'
 import { AuthContext } from 'src/context/AuthContext'
 import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
 import AddImportSlider from 'src/views/pages/compliance/documents/masters/AddImportSlider'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Export', value: 'exports', component: '' },
@@ -60,7 +61,7 @@ const Imports = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [tradeContextTypes, setTradeContextTypes] = useState([])
@@ -375,4 +376,4 @@ const Imports = () => {
   )
 }
 
-export default Imports
+export default enforceModuleAccess(Imports, 'compliance_module')

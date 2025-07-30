@@ -25,6 +25,7 @@ import { debounce } from 'lodash'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 import Search from 'src/views/utility/Search'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const KeeperDiaryReport = () => {
   const theme = useTheme()
@@ -459,4 +460,4 @@ const KeeperDiaryReport = () => {
   )
 }
 
-export default KeeperDiaryReport
+export default enforceModuleAccess(KeeperDiaryReport, 'compliance_module')

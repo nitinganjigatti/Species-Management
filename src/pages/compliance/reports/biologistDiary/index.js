@@ -26,6 +26,7 @@ import { downloadPDF } from 'src/utility'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 import Search from 'src/views/utility/Search'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
@@ -329,7 +330,7 @@ const BiologistDiaryReport = () => {
   // Handle search input change
   const handleSearchChange = e => {
     const value = e.target.value
-    setSearchValue(value) // Update input immediately for UI responsiveness 
+    setSearchValue(value) // Update input immediately for UI responsiveness
 
     // Reset to first page when searching
     if (paginationModel.page !== 0) {
@@ -464,4 +465,4 @@ const BiologistDiaryReport = () => {
   )
 }
 
-export default BiologistDiaryReport
+export default enforceModuleAccess(BiologistDiaryReport, 'compliance_module')
