@@ -24,6 +24,7 @@ import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline from '@mui/lab/Timeline'
 import { styled } from '@mui/material/styles'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
+
 // import {  TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from '@mui/lab'
 
 const AnimalIncidents = () => {
@@ -224,6 +225,7 @@ const AnimalIncidents = () => {
         }
       }
     })
+
     return (
       <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
         <Drawer
@@ -245,6 +247,7 @@ const AnimalIncidents = () => {
               px: 4,
               position: 'sticky',
               top: 0,
+
               // backgroundColor: theme.palette.primary.contrastText,
               backgroundColor: theme.palette.customColors.Background,
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
@@ -267,6 +270,7 @@ const AnimalIncidents = () => {
                   borderRadius: '4px',
                   height: '32px',
                   width: '32px'
+
                   // backgroundColor: theme.palette.customColors.mdAntzNeutral
                 }}
               >

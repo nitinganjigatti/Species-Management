@@ -15,7 +15,11 @@ const ConfirmationDialog = ({
   onClose,
   formComponent,
   ConfirmationText,
-  confirmAction
+  confirmAction,
+  cancelText,
+  confirmBtnStyle,
+  cancelBtnStyle,
+  imgStyle
 }) => {
   const theme = useTheme()
 
@@ -63,7 +67,8 @@ const ConfirmationDialog = ({
             sx={{
               padding: '16px',
               borderRadius: '12px',
-              backgroundColor: theme.palette.customColors.mdAntzNeutral
+              backgroundColor: theme.palette.customColors.mdAntzNeutral,
+              ...imgStyle
             }}
           >
             <Avatar
@@ -96,14 +101,16 @@ const ConfirmationDialog = ({
             variant='outlined'
             sx={{
               color: 'gray',
-              width: '45%'
+              width: '45%',
+              ...cancelBtnStyle
             }}
           >
-            Cancel
+            {cancelText ? cancelText : 'Cancel'}
           </Button>
           <Button
             sx={{
-              width: '45%'
+              width: '45%',
+              ...confirmBtnStyle
             }}
             disabled={loading}
             variant='contained'

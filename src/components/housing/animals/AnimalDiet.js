@@ -84,6 +84,7 @@ const activeDietData = [
     notes: 'Include extra sunflower seeds for feather growth.'
   }
 ]
+
 const inActiveDietData = [
   {
     id: 1,
@@ -129,6 +130,8 @@ const inActiveDietData = [
 const AnimalDiet = () => {
   const theme = useTheme()
   const [selectedTab, setSelectedTab] = useState('active') // or 'inactive'
+  const [searchValue, setSearchValue] = useState('')
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
