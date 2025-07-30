@@ -7,6 +7,7 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { getObservationReport } from 'src/lib/api/compliance/reports'
 import Utility, { downloadPDF } from 'src/utility'
 import AnimalDrawer from 'src/views/pages/compliance/reports/observation/AnimalDrawer'
@@ -434,4 +435,4 @@ const ObservationReport = () => {
   )
 }
 
-export default ObservationReport
+export default enforceModuleAccess(ObservationReport, 'compliance_module')

@@ -18,7 +18,7 @@ import LinkedShipments from 'src/components/compliance/LinkedShipments'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
 import countryList from 'react-select-country-list'
-import withModuleAccess from 'src/components/ProtectedRoute'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const ExportPermitDetails = () => {
   const router = useRouter()
@@ -258,4 +258,4 @@ const ExportPermitDetails = () => {
   )
 }
 
-export default withModuleAccess(ExportPermitDetails, 'compliance_module')
+export default enforceModuleAccess(ExportPermitDetails, 'compliance_module')

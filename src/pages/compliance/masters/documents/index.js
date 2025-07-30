@@ -26,6 +26,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import { AuthContext } from 'src/context/AuthContext'
 import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Export', value: 'exports', context_id: 1 },
@@ -350,4 +351,4 @@ const DocumentTypes = () => {
   )
 }
 
-export default DocumentTypes
+export default enforceModuleAccess(DocumentTypes, 'compliance_module')

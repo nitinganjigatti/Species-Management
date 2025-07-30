@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { AuthContext } from 'src/context/AuthContext';
 import { useAuth } from 'src/hooks/useAuth';
 
-export default function withModuleAccess(PageComponent, moduleKey) {
+export default function enforceModuleAccess(PageComponent, moduleKey) {
   return function Wrapper(props) {
 
     const authData = useAuth(AuthContext)

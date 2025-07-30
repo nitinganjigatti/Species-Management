@@ -37,6 +37,7 @@ import Search from 'src/views/utility/Search'
 import { AuthContext } from 'src/context/AuthContext'
 import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
 import AddImportSlider from 'src/views/pages/compliance/documents/masters/AddImportSlider'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Export', value: 'exports', component: '' },
@@ -380,4 +381,4 @@ const Exports = () => {
   )
 }
 
-export default Exports
+export default enforceModuleAccess(Exports, 'compliance_module')

@@ -21,7 +21,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import RenderUtility from 'src/utility/render'
 import { useTheme } from '@mui/material/styles'
-import withModuleAccess from 'src/components/ProtectedRoute'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const CitesExportPermitIndex = () => {
   const { userData } = useContext(AuthContext)
@@ -249,38 +249,41 @@ const CitesExportPermitIndex = () => {
       )
     },
     {
-      flex: 0.1,
-      minWidth: 120,
-      field: 'updated_by_user_name',
-      headerName: 'Updated By',
+      flex: 0.3,
+      minWidth: 180,
+      field: 'created_by_user_name',
+      headerName: 'Created By',
       renderCell: params => (
-        <Box sx={{ px: 2, width: '100%' }}>
-          {RenderUtility.renderUserAvatarDetails(
-            params.row.updated_user_profile_pic,
-            params.row.updated_by_user_name,
-            '',
-            theme.palette.customColors.OnSurfaceVariant,
-            '14px'
-          )}
+        <Box sx={{ px: 2 }}>
+          {params.row.created_by_user_name
+            ? RenderUtility.renderUserAvatarDetails(
+                params.row.created_user_profile_pic,
+                params.row.created_by_user_name,
+                Utility.formatDisplayDate(params.row.created_at),
+                theme.palette.customColors.OnSurfaceVariant,
+                '14px'
+              )
+            : null}
         </Box>
       )
     },
     {
-      flex: 0.1,
-      minWidth: 120,
-      field: 'created_at',
-      headerName: 'Created At',
+      flex: 0.3,
+      minWidth: 180,
+      field: 'updated_by_user_name',
+      headerName: 'Updated By',
       renderCell: params => (
-        <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
-      )
-    },
-    {
-      flex: 0.1,
-      minWidth: 120,
-      field: 'updated_at',
-      headerName: 'Updated At',
-      renderCell: params => (
-        <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
+        <Box sx={{ px: 2 }}>
+          {params.row.updated_by_user_name
+            ? RenderUtility.renderUserAvatarDetails(
+                params.row.updated_user_profile_pic,
+                params.row.updated_by_user_name,
+                Utility.formatDisplayDate(params.row.updated_at),
+                theme.palette.customColors.OnSurfaceVariant,
+                '14px'
+              )
+            : null}
+        </Box>
       )
     }
   ]
@@ -421,4 +424,4 @@ const CitesExportPermitIndex = () => {
   )
 }
 
-export default withModuleAccess(CitesExportPermitIndex, 'compliance_module')
+export default enforceModuleAccess(CitesExportPermitIndex, 'compliance_module')
