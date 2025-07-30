@@ -24,7 +24,6 @@ const AddAnimalsDrawer = ({
   const theme = useTheme()
 
   const handleCancel = () => {
-    // Discard draft without saving
     setDraftData({ export: [], others: [] })
     onClose()
   }
@@ -45,7 +44,6 @@ const AddAnimalsDrawer = ({
           backgroundColor: theme.palette.customColors.Background
         }}
       >
-        {/* Header */}
         <Box sx={{ px: 5, pt: 4, pb: 2, background: '#fff' }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
@@ -69,7 +67,6 @@ const AddAnimalsDrawer = ({
                 width: '100%'
               }}
             >
-              {/* Export ID */}
               <Typography
                 sx={{
                   fontWeight: '500',
@@ -85,7 +82,7 @@ const AddAnimalsDrawer = ({
               {/* Animals Available */}
               <Typography
                 sx={{
-                  color: '#44544A', // Golden-yellow color for emphasis
+                  color: '#44544A', 
                   fontWeight: '500',
                   fontSize: '14px'
                 }}

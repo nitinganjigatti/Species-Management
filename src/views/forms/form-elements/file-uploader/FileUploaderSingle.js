@@ -14,7 +14,6 @@ import CloseIcon from '@mui/icons-material/Close'
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
 
-// Styled component for the upload image inside the dropzone area
 const Img = styled('img')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
     marginRight: theme.spacing(10)
@@ -27,7 +26,6 @@ const Img = styled('img')(({ theme }) => ({
   }
 }))
 
-// Styled component for the heading inside the dropzone area
 const HeadingTypography = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(5),
   [theme.breakpoints.down('sm')]: {
@@ -36,10 +34,8 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 }))
 
 const FileUploaderSingle = ({ files: availableFiles, onImageUpload, image, onRemoveImage = null }) => {
-  // ** State
   const [files, setFiles] = useState([])
 
-  // ** Hook
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {

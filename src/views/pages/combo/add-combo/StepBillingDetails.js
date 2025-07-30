@@ -168,7 +168,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
         </Box>
 
         <Grid container spacing={5}>
-          {console.log(formData, 'formData')}
+         
           <Grid item size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>

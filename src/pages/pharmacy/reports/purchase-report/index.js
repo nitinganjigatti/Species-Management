@@ -629,7 +629,7 @@ const PurchaseReport = () => {
         endDate: formattedEndDate
       })
 
-      console.log('Date range selected:', { startDate, endDate })
+   
     } else {
       setFilterDates({
         startDate: '',
@@ -641,7 +641,7 @@ const PurchaseReport = () => {
         endDate: ''
       })
 
-      console.log('Empty date range selected,', { startDate, endDate })
+     
     }
   }
 
@@ -762,7 +762,7 @@ const PurchaseReport = () => {
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
 
-  console.log(filteredData)
+ 
 
   return (
     <>

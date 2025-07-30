@@ -18,7 +18,6 @@ import AddIcon from '@mui/icons-material/Add'
 import Toaster from 'src/components/Toaster'
 
 const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesList, mastersData, counts, animals }) => {
-  // Get the current identifier type object
 
   const rawGenders = mastersData?.genders?.flat() || []
 
@@ -134,7 +133,6 @@ const AddanimalCountDrawer = ({
 
   const [animals, setAnimals] = useState(
     currentSpecies?.animals?.map(animal => {
-      // Extract gender from nested array if needed
       let gender = animal.gender
       if (Array.isArray(gender)) {
         gender = gender[0] || 'unknown'
@@ -148,15 +146,12 @@ const AddanimalCountDrawer = ({
     }) || []
   )
 
-  // Reset states when currentSpeciesId changes
   useEffect(() => {
     if (currentSpeciesId) {
-      // Find the current species data
       const currentSpecies =
         selectedExportData.others.find(item => item.species?.tsn_id === currentSpeciesId)?.species ||
         selectedExportData.export.flatMap(exp => exp.species.filter(s => s.tsn_id === currentSpeciesId))[0]
 
-      // Reset to empty or populate with current species data
       setCounts({
         male: currentSpecies?.male_count || 0,
         female: currentSpecies?.female_count || 0,
@@ -175,10 +170,9 @@ const AddanimalCountDrawer = ({
             identifierType: animal.identifier_type || '',
             identifier: animal.identifier_value || ''
           }
-        }) || [] // Fallback to empty array if no animals
+        }) || [] 
       )
     } else {
-      // Clear everything if no species selected
       setCounts({ male: 0, female: 0, unknown: 0 })
       setAnimals([])
     }
@@ -209,7 +203,7 @@ const AddanimalCountDrawer = ({
   const getValidGender = gender => {
     if (typeof gender === 'string') return gender.toLowerCase()
     if (Array.isArray(gender) && gender.length > 0) return gender[0].toLowerCase()
-    return 'unknown' // Default fallback
+    return 'unknown' 
   }
 
   // const handleChange = (index, field, value) => {
@@ -304,7 +298,7 @@ const AddanimalCountDrawer = ({
           backgroundColor: theme.palette.customColors.Background
         }}
       >
-        {/* Header */}
+     
         <Box sx={{ px: 5, pt: 4, pb: 2, background: '#fff' }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
@@ -347,7 +341,6 @@ const AddanimalCountDrawer = ({
         </Box>
 
         <Box sx={{ px: 5, overflowY: 'auto', flexGrow: 1, height: '100vh' }}>
-          {/* Total Animal Count */}
           <Typography fontWeight={600} color='#44544A' sx={{ mb: 2, mt: 4 }}>
             Total Animal Count
           </Typography>
@@ -431,7 +424,6 @@ const AddanimalCountDrawer = ({
             </Grid>
           </Paper>
 
-          {/* Animals with Identifier */}
           <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
             <Typography fontWeight={600} color='#44544A'>
               Animals with identifier
@@ -468,7 +460,6 @@ const AddanimalCountDrawer = ({
             </Typography>
           )}
         </Box>
-        {/* Sticky footer */}
         <Box
           sx={{
             position: 'sticky',

@@ -204,7 +204,7 @@ const StepAddIngredients = ({
     const byPercentageValues = getValues('by_percentage')
     const totalQuantity = byPercentageValues.reduce((acc, curr) => acc + parseFloat(curr.quantity || 0), 0)
 
-    // Round to 2 decimal places
+   
     return parseFloat(totalQuantity.toFixed(2))
   }
 
@@ -363,7 +363,6 @@ const StepAddIngredients = ({
   }, [])
 
   const onSubmit = async data => {
-    // Filter out incomplete entries
     data.by_percentage = data.by_percentage.filter(
       item => item.ingredient_id || item.quantity || item.preparation_type_id
     )
@@ -371,22 +370,18 @@ const StepAddIngredients = ({
       item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
     )
 
-    // Function to find the first incomplete index
     const findFirstIncompleteIndex = (array, keys) => {
       return array.findIndex(item => keys.some(key => !item[key]))
     }
 
-    // Check if all entries in by_percentage have all required fields
     const isByPercentageValid = data.by_percentage.every(
       item => item.ingredient_id && item.quantity && item.preparation_type_id
     )
 
-    // Check if all entries in by_quantity have all required fields
     const isByQuantityValid = data.by_quantity.every(
       item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id
     )
 
-    // If both arrays are empty or have incomplete entries, show an error
     if (data.by_percentage.length === 0) {
       window.scrollTo(0, 0)
 
@@ -510,7 +505,7 @@ const StepAddIngredients = ({
     } else {
       window.scrollTo(0, 0)
 
-      // Clear any existing errors
+     
       Object.keys(defaultValues).forEach(field => {
         clearErrors(field)
       })
@@ -520,7 +515,7 @@ const StepAddIngredients = ({
         const imageData = await handleImageUpload()
         console.log(imageData, 'imageData')
 
-        // Merge the image data with other form data
+      
         const formDataWithImage = {
           ...data,
           recipe_image: uploadedImage
@@ -540,7 +535,6 @@ const StepAddIngredients = ({
       if (response.success === true) {
         const ingredient = fullIngredientList.find(item => item.id === ingredientId)
         if (ingredient) {
-          // Update the preparationTypeList array based on the section
           if (section === 'by_percentage') {
             setPreparationTypeListPercentage(prevList => {
               const newList = [...prevList]
@@ -580,7 +574,6 @@ const StepAddIngredients = ({
   }, [formData])
 
   useEffect(() => {
-    // Initialize fieldsByQuantity and fieldsIngredients with at least one empty object if empty
     if (fieldsByQuantity.length === 0) {
       appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '' })
     }
