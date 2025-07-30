@@ -35,7 +35,6 @@ import SpeciesMappedtoDietFilter from './speciesMappedFilter'
 import { useMediaQuery } from '@mui/material'
 import SpeciesAnimalsMapped from 'src/components/diet/Species_Animals_mapped'
 import EditAnimalSpeciesMapped from 'src/components/diet/EditAnimalsSpecies'
-import SelectSiteList from 'src/components/diet/SelectSiteList'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -96,11 +95,9 @@ const DietDetail = () => {
   const [sepeciescountforFilter, setsepeciescountforFilter] = useState('')
   const [filteredTaxonomyList, setFilteredTaxonomyList] = useState([])
   const [taxonomySearchQuery, setTaxonomySearchQuery] = useState('')
-  const [speciesSearchQuery, setSpeciesSearchQuery] = useState('')
   const [applyfilterCheck, setapplyfilterCheck] = useState(false)
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
   const [selectedSections, setSelectedSections] = useState([])
-  let startArry = []
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -134,7 +131,6 @@ const DietDetail = () => {
 
       const filteredSites = q ? sites.filter(site => site.site_name.toLowerCase().includes(q.toLowerCase())) : sites
 
-      // Update items state with filtered sites
       setItems(prev => ({
         ...prev,
         Site: filteredSites.map(site => ({
@@ -149,7 +145,6 @@ const DietDetail = () => {
   }
 
   useEffect(() => {
-    // Check if Site has values
     if (selectedItems.Site && selectedItems.Site.length > 0) {
       const sectionIds = tempSelectedItems.Section.map(section_id => section_id)
 
@@ -219,7 +214,6 @@ const DietDetail = () => {
         const totalCount = res?.data?.count
 
         if (resultData) {
-          // Handle search query case - always reset speciesDataforFilter when searching
           if (searchQuery && filterState === 'species') {
             if (pageNo === 1) {
               setspeciesDataforFilter(resultData)
@@ -503,8 +497,6 @@ const DietDetail = () => {
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
 
     if (isBottom && !loading && speciesData.length < speciestotalcount) {
-      //setLoading(true)
-
       setPageNo(prevPageNo => prevPageNo + 1)
     }
   }
@@ -515,8 +507,6 @@ const DietDetail = () => {
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
 
     if (isBottom && !loading && speciesDataforFilter.length < sepeciescountforFilter) {
-      //setLoading(true)
-
       setPageNo(prevPageNo => prevPageNo + 1)
     }
   }
@@ -527,8 +517,6 @@ const DietDetail = () => {
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
 
     if (isBottom && !loading && taxonomyList.length < taxonomyCount) {
-      //setLoading(true)
-
       setPageNoTaxonomy(prevPageNo => prevPageNo + 1)
     }
   }
@@ -566,17 +554,17 @@ const DietDetail = () => {
   })
 
   const CustomScrollbar = styled('div')({
-    overflowX: 'auto', // or 'scroll'
+    overflowX: 'auto',
     '&::-webkit-scrollbar': {
-      width: 10, // specify your desired width
-      height: 4 // specify your desired height
+      width: 10,
+      height: 4
     },
     '&::-webkit-scrollbar-track': {
-      backgroundColor: 'transparent' // customize track color if needed
+      backgroundColor: 'transparent'
     },
     '&::-webkit-scrollbar-thumb': {
-      backgroundColor: 'lightgray', // customize thumb color if needed
-      borderRadius: 5 // specify border radius
+      backgroundColor: 'lightgray',
+      borderRadius: 5
     }
   })
   const classes = useStyles()
@@ -1500,8 +1488,6 @@ const DietDetail = () => {
                                                                 maxHeight: '100%',
                                                                 border: 'none'
                                                               }}
-
-                                                              // onClick={() => handleClickOpen(index, item, 'Generic', 'recipe')}
                                                             >
                                                               <Box
                                                                 sx={{
@@ -3099,7 +3085,6 @@ const DietDetail = () => {
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
 
-                                                                //backgroundColor: theme.palette. background.OnBackground,
                                                                 backgroundColor: '#00d6c957',
                                                                 borderRadius: '8px',
                                                                 p: '12px',
@@ -3695,21 +3680,14 @@ const DietDetail = () => {
           <SpeciesMappedtoDiet
             isOpen={isOpen}
             setIsOpen={setIsOpen}
-            dietname={dietDetails?.diet_name}
-            dietid={dietDetails?.id}
             speciesData={speciesData}
-            dietDetails={dietDetails}
             selectedSpecies={selectedSpecies}
-            onSelectedSpeciesChange={handleSelectedSpeciesChange}
             setIsOpennew={setIsOpennew}
             setspeciesview={setspeciesview}
+            speciesview={speciesview}
             setOpenFilterDrawer={setOpenFilterDrawer}
-            openFilterDrawer={openFilterDrawer}
             selectedItems={selectedItems}
-            dietId={id}
             speciestotalcount={speciestotalcount}
-            refreshSpeciesData={refreshSpeciesData}
-            refreshDietDetails={getDietDetailsCallback}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             handleScroll={handleScroll}
@@ -3726,17 +3704,10 @@ const DietDetail = () => {
             setSelectedItems={setSelectedItems}
             debouncedSearch={debouncedSearch}
             setFilterState={setFilterState}
-            setspeciesDataforFilter={setspeciesDataforFilter}
-            setsepeciescountforFilter={setsepeciescountforFilter}
             setActiveTab={setActiveTab}
-            setspeciesData={setspeciesData}
-            setspeciestotalcount={setspeciestotalcount}
-            setItems={setItems}
             applyfilterCheck={applyfilterCheck}
             setSelectedEnclosures={setSelectedEnclosures}
-            selectedEnclosures={selectedEnclosures}
             setSelectedSections={setSelectedSections}
-            selectedSections={selectedSections}
             setSelectedSpeciesIds={setSelectedSpeciesIds}
             setSelectedTaxonomyIds={setSelectedTaxonomyIds}
           />
@@ -3744,7 +3715,6 @@ const DietDetail = () => {
             isOpennew={isOpennew}
             setIsOpennew={setIsOpennew}
             setIsOpen={setIsOpen}
-            dietname={dietDetails?.diet_name}
             dietid={dietDetails?.id}
             speciesData={speciesData}
             onSelectedSpeciesChange={handleSelectedSpeciesChange}
@@ -3771,40 +3741,26 @@ const DietDetail = () => {
             setapplyfilterCheck={setapplyfilterCheck}
           />
           <SpeciesAnimalsMapped
-            isOpennew={isOpennew}
-            setIsOpennew={setIsOpennew}
             setIsOpenTabs={setIsOpenTabs}
             isOpentab={isOpentab}
-            setIsOpen={setIsOpen}
             setIsOpenTabsEdit={setIsOpenTabsEdit}
-            isOpentabEdit={isOpentabEdit}
-            dietname={dietDetails?.diet_name}
-            dietid={dietDetails?.id}
             speciesData={speciesData}
-            onSelectedSpeciesChange={handleSelectedSpeciesChange}
-            selectedSpecies={selectedSpecies}
             speciesview={speciesview}
             dietDetails={dietDetails}
-            dietId={id}
-            refreshSpeciesData={refreshSpeciesData}
             refreshDietDetails={getDietDetailsCallback}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             speciestotalcount={speciestotalcount}
             setspeciesview={setspeciesview}
             handleScroll={handleScroll}
-            setLoading={setLoading}
             loading={loading}
             setPageNo={setPageNo}
             isLoadingMore={isLoadingMore}
             pageNo={pageNo}
             tempSelectedSpecies={tempSelectedSpecies}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            setSelectedSpecies={setSelectedSpecies}
             selectionType={selectionType}
             setSelectionType={setSelectionType}
             setPrimaryStatus={setPrimaryStatus}
-            primaryStatus={primaryStatus}
             debouncedFetchList={debouncedFetchList}
             selectedItems={selectedItems}
             setTempSelectedItems={setTempSelectedItems}
@@ -3819,36 +3775,24 @@ const DietDetail = () => {
             authData={authData}
           />
           <EditAnimalSpeciesMapped
-            isOpennew={isOpennew}
-            setIsOpennew={setIsOpennew}
             setIsOpenTabs={setIsOpenTabs}
-            isOpentab={isOpentab}
-            setIsOpen={setIsOpen}
             setIsOpenTabsEdit={setIsOpenTabsEdit}
             isOpentabEdit={isOpentabEdit}
-            dietname={dietDetails?.diet_name}
-            dietid={dietDetails?.id}
             speciesData={speciesData}
-            onSelectedSpeciesChange={handleSelectedSpeciesChange}
-            selectedSpecies={selectedSpecies}
             speciesview={speciesview}
             dietDetails={dietDetails}
-            dietId={id}
-            refreshSpeciesData={refreshSpeciesData}
             refreshDietDetails={getDietDetailsCallback}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             speciestotalcount={speciestotalcount}
             setspeciesview={setspeciesview}
             handleScroll={handleScroll}
-            setLoading={setLoading}
             loading={loading}
             setPageNo={setPageNo}
             isLoadingMore={isLoadingMore}
             pageNo={pageNo}
             tempSelectedSpecies={tempSelectedSpecies}
             setTempSelectedSpecies={setTempSelectedSpecies}
-            setSelectedSpecies={setSelectedSpecies}
             setspeciesData={setspeciesData}
             setSelectionType={setSelectionType}
             selectionType={selectionType}
@@ -3864,7 +3808,6 @@ const DietDetail = () => {
             openFilterDrawer={openFilterDrawer}
             tabsforfilter={tabsforfilter}
             setActiveTab={setActiveTab}
-            tabs={tabs}
             activeTab={activeTab}
             setSearchTerm={setSearchTerm}
             searchTerm={searchTerm}
@@ -3879,19 +3822,16 @@ const DietDetail = () => {
             setSectionsData={setSectionsData}
             enclosuresData={enclosuresData}
             setEnclosuresData={setEnclosuresData}
-            speciesData={speciesData}
             setSelectedSpeciesIds={setSelectedSpeciesIds}
             selectedSpeciesIds={selectedSpeciesIds}
             setSelectedTaxonomyIds={setSelectedTaxonomyIds}
             selectedTaxonomyIds={selectedTaxonomyIds}
-            handleScroll={handleScroll}
             taxonomyList={taxonomyList}
             selectionType={selectionType}
             debouncedSearch={debouncedSearch}
             setSearchQuery={setSearchQuery}
             searchQuery={searchQuery}
             speciesDataforFilter={speciesDataforFilter}
-            sepeciescountforFilter={sepeciescountforFilter}
             handleScrollforFilter={handleScrollforFilter}
             handleScrollforTaxonomy={handleScrollforTaxonomy}
             setFilterState={setFilterState}
@@ -3901,8 +3841,6 @@ const DietDetail = () => {
             setFilteredTaxonomyList={setFilteredTaxonomyList}
             filteredTaxonomyList={filteredTaxonomyList}
             setTaxonomySearchQuery={setTaxonomySearchQuery}
-            setSpeciesSearchQuery={setSpeciesSearchQuery}
-            speciesSearchQuery={speciesSearchQuery}
             taxonomySearchQuery={taxonomySearchQuery}
             setItems={setItems}
             debouncedFetchTaxonomyList={debouncedFetchTaxonomyList}

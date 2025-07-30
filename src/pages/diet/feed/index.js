@@ -148,7 +148,19 @@ const FeedTypes = () => {
       headerName: 'FEEDS',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
+          <Avatar
+            variant='square'
+            alt='Feed Image'
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
+            src={params?.row?.image ? params?.row?.image : '/icons/feedtypes_dark.svg'}
+          ></Avatar>
           <Tooltip title={params.row.feed_type_name} placement='right'>
             <Typography
               variant='body2'

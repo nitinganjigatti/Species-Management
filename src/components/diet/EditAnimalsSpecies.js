@@ -20,7 +20,6 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
-import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
 import Toaster from 'src/components/Toaster'
 import { useMediaQuery } from '@mui/material'
 import { editAssigntoDiet } from 'src/lib/api/diet/dietList'
@@ -75,12 +74,10 @@ const EditAnimalSpeciesMapped = ({
     setPageNo(1)
   }, [isOpentabEdit])
 
-  // Update your remove function to work with the new state
   const handleRemovenew = species => {
     const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
     const id = species[idField]
 
-    // Add to removedIds
     setRemovedIds(prev => [...prev, species.assign_id])
 
     // Filter out from both displayed data and all fetched data
@@ -90,11 +87,9 @@ const EditAnimalSpeciesMapped = ({
     setspeciesData(updatedSpeciesData)
     setAllFetchedData(updatedAllData)
 
-    // Update tempSelectedSpecies
     const updatedTempSelectedSpecies = tempSelectedSpecies.filter(itemId => itemId !== id)
     setTempSelectedSpecies(updatedTempSelectedSpecies)
 
-    // Update primaryStatus
     setPrimaryStatus(prev => {
       const newStatus = { ...prev }
       delete newStatus[id]
@@ -102,7 +97,6 @@ const EditAnimalSpeciesMapped = ({
       return newStatus
     })
 
-    // Update total count since we removed an item
     setspeciestotalcount(prev => prev - 1)
   }
 
@@ -166,7 +160,6 @@ const EditAnimalSpeciesMapped = ({
   const handleAdd = async () => {
     const editData = getChangedRecords()
 
-    // Convert string IDs to numbers
     const numericRemovedIds = removedIds.map(id => Number(id))
 
     const payload = {
@@ -186,8 +179,6 @@ const EditAnimalSpeciesMapped = ({
         Toaster({
           type: 'success',
           message: 'Primary diet successfully updated'
-
-          //message: response.message
         })
       } else {
         Toaster({
@@ -207,7 +198,6 @@ const EditAnimalSpeciesMapped = ({
     setIsOpenTabsEdit(false)
     refreshDietDetails()
 
-    //setspeciesview('')
     setSearchQuery('')
   }
 
@@ -222,7 +212,7 @@ const EditAnimalSpeciesMapped = ({
 
     setPrimaryStatus(prev => ({
       ...prev,
-      [id]: prev[id] === '1' ? '0' : '1' // Toggle between '1' and '0'
+      [id]: prev[id] === '1' ? '0' : '1'
     }))
   }
 
@@ -544,13 +534,11 @@ const EditAnimalSpeciesMapped = ({
                                   px: 2,
                                   py: 1.5,
 
-                                  // height: '70px',
                                   borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                                   borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
                                   borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                                 }}
                               >
-                                {/* Species Image and Name */}
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
                                   <Avatar
                                     src={species.default_icon ? species.default_icon : '/icons/species.svg'}
@@ -597,10 +585,8 @@ const EditAnimalSpeciesMapped = ({
                                   />
                                 </Box>
 
-                                {/* Toggle for Mark as Primary */}
                                 <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                                   <Switch
-                                    //checked={!!primaryStatus[species.species_id]}
                                     checked={
                                       primaryStatus[
                                         selectionType === 'species' ? species.species_id : species.animal_id
@@ -612,7 +598,6 @@ const EditAnimalSpeciesMapped = ({
                                   />
                                 </Box>
 
-                                {/* Remove Icon */}
                                 <Box sx={{ width: '12%', textAlign: 'right' }}>
                                   <IconButton
                                     edge='end'
@@ -804,7 +789,6 @@ const EditAnimalSpeciesMapped = ({
                                   borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                                 }}
                               >
-                                {/* Species Image and Name */}
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
                                   <Avatar
                                     src={species.default_icon ? species.default_icon : '/icons/species.svg'}
@@ -833,7 +817,6 @@ const EditAnimalSpeciesMapped = ({
                                             fontWeight: 600
                                           }}
                                         >
-                                          {/* {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'} */}
                                           {species.primary_identifier_type && species.identifier
                                             ? `${species.primary_identifier_type}: ${species.identifier}`
                                             : species.animal_id
@@ -910,10 +893,8 @@ const EditAnimalSpeciesMapped = ({
                                   />
                                 </Box>
 
-                                {/* Toggle for Mark as Primary */}
                                 <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                                   <Switch
-                                    //checked={!!primaryStatus[species.species_id]}
                                     checked={
                                       primaryStatus[
                                         selectionType === 'species' ? species.species_id : species.animal_id
@@ -925,7 +906,6 @@ const EditAnimalSpeciesMapped = ({
                                   />
                                 </Box>
 
-                                {/* Remove Icon */}
                                 <Box sx={{ width: '12%', textAlign: 'right' }}>
                                   <IconButton
                                     edge='end'
