@@ -123,7 +123,7 @@ function convertUTCToLocal(date) {
 
 function convertUTCToLocalDateTime(date) {
   var stillUtc = moment.utc(date).toDate()
-  var local = moment(stillUtc).local(true).format('DD MMM YYYY hh:mm A')
+  var local = moment(stillUtc).local(true).format('DD MMM YYYY | hh:mm A')
 
   return local
 }
@@ -221,7 +221,7 @@ const downloadFileFromURL = async (fileUrl, title = '') => {
 }
 
 const formatText = text => {
-  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }
 
 function toPascalSentenceCase(str) {
@@ -231,7 +231,7 @@ function toPascalSentenceCase(str) {
     .trim()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
-    .join(' ');
+    .join(' ')
 }
 
 function formatAmountCompactDisplay(value) {

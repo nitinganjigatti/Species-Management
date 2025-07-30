@@ -18,7 +18,6 @@ import {
   FormControl,
   FormHelperText,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   DialogContentText
@@ -102,7 +101,7 @@ const ListOfSpeciesMapped = ({
       }
       try {
         const response = await deleteSpeciesFromDiet(payload)
-        console.log(response, 'response')
+
         if (response.success === true) {
           await refreshSpeciesData()
           setPageNo(1)
@@ -127,13 +126,9 @@ const ListOfSpeciesMapped = ({
   const handelClose = () => {
     setIsOpennew(false)
 
-    //refreshDietDetails()
     setspeciesview('')
     setStartDate(null)
     setEndDate(null)
-
-    //setSearchQuery('')
-    // setPrimaryStatus({}) // Reset primary status when closing
   }
 
   const searchClose = () => {
@@ -151,7 +146,6 @@ const ListOfSpeciesMapped = ({
   }
 
   const handleAdd = async () => {
-    // Prepare payload based on selection type
     const payloadData = tempSelectedSpecies.map(id => ({
       [selectionType === 'species' ? 'species_id' : 'animal_id']: id,
       is_primary: primaryStatus[id] ? '1' : '0'
@@ -169,7 +163,7 @@ const ListOfSpeciesMapped = ({
 
     try {
       const response = await addAssigntoDiet(payload, selectionType)
-      console.log('API Response:', response)
+
       if (response.success === true) {
         Toaster({
           type: 'success',
@@ -202,7 +196,6 @@ const ListOfSpeciesMapped = ({
     }
   }
 
-  // Handle date changes
   const handleStartDateChange = date => {
     setStartDate(date)
     if (endDate && date > endDate) {
@@ -221,7 +214,6 @@ const ListOfSpeciesMapped = ({
     }
   }
 
-  // Format date for display in TextField
   const formatDisplayDate = date => {
     return date ? format(date, 'yyyy-MM-dd') : ''
   }
@@ -384,9 +376,6 @@ const ListOfSpeciesMapped = ({
                       sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
                     }
                   }}
-                  // primaryTypographyProps={{
-                  //   sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
-                  // }}
                   secondary={
                     <Typography
                       variant='body2'
@@ -827,7 +816,6 @@ const ListOfSpeciesMapped = ({
                             {/* Toggle for Mark as Primary */}
                             <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                               <Switch
-                                //checked={!!primaryStatus[species.species_id]}
                                 checked={
                                   primaryStatus[
                                     selectionType === 'species' ? species.species_id : species.animal_id
@@ -839,7 +827,6 @@ const ListOfSpeciesMapped = ({
                               />
                             </Box>
 
-                            {/* Remove Icon */}
                             <Box sx={{ width: '12%', textAlign: 'right' }}>
                               <IconButton
                                 edge='end'
@@ -895,9 +882,6 @@ const ListOfSpeciesMapped = ({
           py: 9
         }}
       >
-        {/* Informational Text */}
-
-        {/* Buttons Container */}
         <Box
           sx={{
             display: 'flex',
@@ -905,7 +889,6 @@ const ListOfSpeciesMapped = ({
             gap: 2
           }}
         >
-          {/* Cancel Button */}
           <Button
             variant='outlined'
             size='large'
@@ -920,12 +903,10 @@ const ListOfSpeciesMapped = ({
             CANCEL
           </Button>
 
-          {/* Assign Diet Button */}
           <LoadingButton
             variant='contained'
             size='large'
             disabled={tempSelectedSpecies?.length === 0 || (startDate && !endDate)}
-            //onClick={handleAdd}
             onClick={handleClickOpen}
             sx={{ flex: 1, height: '45px' }}
           >
@@ -945,7 +926,6 @@ const ListOfSpeciesMapped = ({
             }
           }}
         >
-          {/* <DialogTitle id='alert-dialog-title'></DialogTitle> */}
           <DialogContent style={{ paddingBottom: '5px' }}>
             <DialogContentText id='alert-dialog-description'>
               <Box
@@ -967,7 +947,6 @@ const ListOfSpeciesMapped = ({
                   px: 2
                 }}
               >
-                {/* Icon */}
                 <Icon
                   icon='material-symbols:warning-outline-rounded'
                   fontSize={24}
@@ -975,7 +954,6 @@ const ListOfSpeciesMapped = ({
                   style={{ marginRight: '4px', position: 'relative', top: '-12px' }}
                 />
 
-                {/* Text */}
                 <Typography
                   sx={{
                     fontSize: '16px',
@@ -988,10 +966,7 @@ const ListOfSpeciesMapped = ({
               </Box>
             </DialogContentText>
           </DialogContent>
-          <DialogActions
-            //className='dialog-actions-dense'
-            style={{ paddingBottom: '25px', justifyContent: 'center' }}
-          >
+          <DialogActions style={{ paddingBottom: '25px', justifyContent: 'center' }}>
             <LoadingButton
               variant='outlined'
               onClick={handleClose}

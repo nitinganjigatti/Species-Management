@@ -11,8 +11,7 @@ import {
   Button,
   List,
   CardContent,
-  CircularProgress,
-  ListItemText
+  CircularProgress
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
@@ -31,7 +30,6 @@ const SpeciesMappedtoDiet = ({
   speciestotalcount,
   setOpenFilterDrawer,
   selectedItems,
-  refreshSpeciesData,
   searchQuery,
   setSearchQuery,
   handleScroll,
@@ -127,11 +125,9 @@ const SpeciesMappedtoDiet = ({
       setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     }
 
-    //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     if (selectionType === 'animals') {
       setFilterState('species')
 
-      // refreshSpeciesData('')
       setPageNo(1)
     } else {
       setFilterState('')
@@ -444,7 +440,7 @@ const SpeciesMappedtoDiet = ({
                   tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                 }
                 onChange={handleSelectAll}
-                inputProps={{ 'aria-label': 'Select all species' }}
+                slotProps={{ input: { 'aria-label': 'Select all species' } }}
                 sx={{
                   '&.Mui-checked': {
                     color: theme.palette.primary.main

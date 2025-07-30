@@ -3,10 +3,6 @@ import {
   Box,
   Drawer,
   List,
-  ListItem,
-  ListItemAvatar,
-  Avatar,
-  ListItemText,
   Typography,
   IconButton,
   Grid,
@@ -18,9 +14,6 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
-import moment from 'moment'
-import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
-import Toaster from 'src/components/Toaster'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import Utility from 'src/utility'
 import SpeciesCardItem from 'src/views/utility/SpeciesCardItem'
@@ -32,7 +25,6 @@ const SpeciesAnimalsMapped = ({
   setIsOpenTabsEdit,
   speciesData,
   speciesview,
-  refreshSpeciesData,
   refreshDietDetails,
   searchQuery,
   setSearchQuery,
@@ -100,9 +92,11 @@ const SpeciesAnimalsMapped = ({
   const handleEditclick = () => {
     setIsOpenTabsEdit(true)
     setPrimaryStatus({})
-
-    //setspeciesview('')
   }
+
+  useEffect(() => {
+    debouncedFetchList('')
+  }, [searchQuery])
 
   const searchClose = () => {
     setSearchQuery('')
@@ -286,7 +280,6 @@ const SpeciesAnimalsMapped = ({
                         pr: '6px',
                         mt: '10px',
 
-                        // lineHeight: '2.2',
                         border:
                           selectedItems && Object.values(selectedItems).some(array => array.length > 0)
                             ? `1px solid ${theme.palette.primary.main}`
@@ -294,7 +287,6 @@ const SpeciesAnimalsMapped = ({
                         mr: '10px'
                       }}
                     >
-                      {/* Conditional rendering of count */}
                       {selectedItems && Object.values(selectedItems).some(array => array.length > 0) && (
                         <span
                           style={{
@@ -405,7 +397,7 @@ const SpeciesAnimalsMapped = ({
                           <CircularProgress />
                         </Box>
                       </CardContent>
-                    ) : (
+                    ) : mappedSpecies?.length > 0 ? (
                       mappedSpecies.map(species => (
                         <SpeciesCardItem
                           key={species.id}
@@ -416,6 +408,20 @@ const SpeciesAnimalsMapped = ({
                           speciesview={speciesview}
                         />
                       ))
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          height: '70%',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+                      </Box>
                     )}
                     {!loading && isLoadingMore && (
                       <Box
@@ -600,7 +606,6 @@ const SpeciesAnimalsMapped = ({
                 <>
                   {!loading ? (
                     speciesview === 'select' ? (
-                      // <Typography>You have selected {speciestotalcount || ''} species</Typography>
                       <Typography
                         sx={{
                           color: theme.palette.customColors.OnSurfaceVariant,
@@ -637,7 +642,7 @@ const SpeciesAnimalsMapped = ({
                           <CircularProgress />
                         </Box>
                       </CardContent>
-                    ) : (
+                    ) : mappedSpecies?.length > 0 ? (
                       mappedSpecies.map(species => (
                         <AnimalCardItem
                           species={species}
@@ -647,6 +652,20 @@ const SpeciesAnimalsMapped = ({
                           speciesview={speciesview}
                         />
                       ))
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          height: '70%',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Animals Found</Typography>
+                      </Box>
                     )}
                     {!loading && isLoadingMore && (
                       <Box
@@ -669,7 +688,6 @@ const SpeciesAnimalsMapped = ({
           </TabPanel>
         </TabContext>
       </Grid>
-      {/* bottom buttons */}
     </Drawer>
   )
 }

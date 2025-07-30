@@ -3,7 +3,6 @@ import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Checkbox,
-  debounce,
   Divider,
   Drawer,
   Grid,
@@ -13,7 +12,8 @@ import {
   Card,
   Collapse,
   CardHeader,
-  CardContent
+  CardContent,
+  Tooltip
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -146,14 +146,12 @@ const SpeciesMappedtoDietFilter = ({
   }
 
   const handleCancelAll = () => {
-    // Clear all tabs in tempSelectedItems
     const clearedTempSelectedItems = Object.keys(tempSelectedItems).reduce((acc, key) => {
       acc[key] = []
 
       return acc
     }, {})
 
-    // Clear all tabs in selectedItems
     const clearedSelectedItems = Object.keys(selectedItems).reduce((acc, key) => {
       acc[key] = []
 
@@ -194,17 +192,6 @@ const SpeciesMappedtoDietFilter = ({
     }
   }
 
-  // const handleCheckboxChange = item => {
-  //   console.log(item, 'item')
-  //   const itemId = activeTab === 'Site' ? Number(item.site_id) : Number(item.id)
-  //   const isSelected = tempSelectedItems[activeTab].includes(itemId)
-  //   const updatedSelection = isSelected
-  //     ? tempSelectedItems[activeTab].filter(id => id !== itemId)
-  //     : [...tempSelectedItems[activeTab], itemId]
-
-  //   setTempSelectedItems({ ...tempSelectedItems, [activeTab]: updatedSelection })
-  // }
-
   const filteredItems = items[activeTab].filter(item => {
     const itemName = activeTab === 'Site' ? item.site_name : item.name
 
@@ -226,7 +213,6 @@ const SpeciesMappedtoDietFilter = ({
 
     setSectionsData(prev => prev.filter(section => section.section_id !== sectionId.toString()))
 
-    // Also update selectedSections state
     if (setSelectedSections) {
       setSelectedSections(prev => prev.filter(id => id !== sectionId))
     }
@@ -240,7 +226,6 @@ const SpeciesMappedtoDietFilter = ({
 
     setEnclosuresData(prev => prev.filter(enclosure => enclosure.enclosure_id !== enclosureId.toString()))
 
-    // Also update selectedSections state
     if (setSelectedEnclosures) {
       setSelectedEnclosures(prev => prev.filter(id => id !== enclosureId))
     }
@@ -393,11 +378,7 @@ const SpeciesMappedtoDietFilter = ({
                         mb: 4
                       }}
                     >
-                      <Icon
-                        icon='mi:search'
-
-                        //color={theme.palette.customColors.OnSurfaceVariant}
-                      />
+                      <Icon icon='mi:search' />
                       <TextField
                         variant='outlined'
                         placeholder='Search'
@@ -717,7 +698,19 @@ const SpeciesMappedtoDietFilter = ({
                                     checked={selectedSpeciesIds.includes(itemId)}
                                     onChange={() => handleSpeciesCheckboxChange(itemId)}
                                   />
-                                  <span>{itemName}</span>
+
+                                  <Tooltip title={itemName}>
+                                    <span
+                                      style={{
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        width: '85%',
+                                        overflow: 'hidden'
+                                      }}
+                                    >
+                                      {itemName}
+                                    </span>
+                                  </Tooltip>
                                 </div>
                               )
                             })
@@ -777,7 +770,18 @@ const SpeciesMappedtoDietFilter = ({
                                     checked={selectedTaxonomyIds.includes(itemId)}
                                     onChange={() => handleTaxonomyCheckboxChange(itemId)}
                                   />
-                                  <span>{itemName}</span>
+                                  <Tooltip title={itemName}>
+                                    <span
+                                      style={{
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        width: '85%',
+                                        overflow: 'hidden'
+                                      }}
+                                    >
+                                      {itemName}
+                                    </span>
+                                  </Tooltip>
                                 </div>
                               )
                             })
@@ -874,7 +878,7 @@ const SpeciesMappedtoDietFilter = ({
         onClose={() => setOpenEnclosureListDrawer(false)}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        sectionId={tempSelectedItems?.Section?.[0]} // Pass the single selected section
+        sectionId={tempSelectedItems?.Section?.[0]}
         setSelectedEnclosures={setSelectedEnclosures}
         selectedEnclosures={selectedEnclosures}
         tempSelectedItems={tempSelectedItems}

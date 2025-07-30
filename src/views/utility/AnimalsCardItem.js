@@ -31,10 +31,11 @@ const AnimalCardItem = ({ species, children, theme, tempSelectedSpecies, selecti
         mb: 3,
         '& .MuiListItemSecondaryAction-root': {
           right: 0
-        }
+        },
+        alignItems: 'flex-start'
       }}
     >
-      <ListItemAvatar>
+      <ListItemAvatar sx={{ mt: 3 }}>
         <Avatar
           sx={{
             '& img': {
