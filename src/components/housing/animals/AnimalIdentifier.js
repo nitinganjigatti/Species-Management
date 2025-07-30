@@ -7,12 +7,15 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/system'
 import AddIdentifier from './AddIdentifierForm'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
+import AddIdentifierDrawer from 'src/views/pages/housing/animals/AddIdentifierDrawer'
 
 const AnimalIdentifier = () => {
   const theme = useTheme()
 
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
+  const [openAddIdentifierDrawer, setOpenAddIdentifierDrawer] = useState(false)
+
   // Inside your component
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
@@ -177,6 +180,7 @@ const AnimalIdentifier = () => {
     {
       field: 'action',
       headerName: '',
+
       // minWidth: 200,
       flex: 0.5,
       sortable: false,
@@ -241,49 +245,20 @@ const AnimalIdentifier = () => {
   ]
 
   return (
-    <Box sx={{ py: '24px' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' }}>
-        <Box>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: 20,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Local Identifiers (3)
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: '8px' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              padding: '0 8px',
-              height: '40px'
-            }}
-          >
-            <Icon icon='mi:search' color={theme.palette.customColors.neutralSecondary} />
-            <TextField
-              variant='outlined'
-              placeholder='Search...'
-              onChange={e => {
-                setSearchValue(e.target.value)
-              }}
+    <>
+      <Box sx={{ py: '24px' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' }}>
+          <Box>
+            <Typography
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  borderRadius: '90px',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
+                fontWeight: 500,
+                fontSize: 20,
+                letterSpacing: 0,
+                color: theme.palette.customColors.OnSurfaceVariant
               }}
-            />
+            >
+              Local Identifiers (3)
+            </Typography>
           </Box>
           <Button onClick={() => setAddIdentifierDrawer(true)} sx={{ height: '38px', padding: '8px' }} variant='contained'>
             <Icon icon='mdi:plus' /> Add Identifier
@@ -315,7 +290,67 @@ const AnimalIdentifier = () => {
         message={'Are you sure you want to delete this local identifier?'}
         handleClose={() => setDeleteDialog(false)}
         action={() => setDeleteDialog(false)} />
-    </Box>
+
+      <Box sx={{ display: 'flex', gap: '8px' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            borderRadius: '8px',
+            padding: '0 8px',
+            height: '40px'
+          }}
+        >
+          <Icon icon='mi:search' color={theme.palette.customColors.neutralSecondary} />
+          <TextField
+            variant='outlined'
+            placeholder='Search...'
+            onChange={e => {
+              setSearchValue(e.target.value)
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                border: 'none',
+                borderRadius: '90px',
+                padding: '0',
+                '& fieldset': {
+                  border: 'none'
+                }
+              }
+            }}
+          />
+        </Box>
+        <Button
+          sx={{ height: '38px' }}
+          variant='contained'
+          onClick={() => {
+            setOpenAddIdentifierDrawer(true)
+          }}
+        >
+          <Icon icon='mdi:plus' /> Add Identifier
+        </Button>
+      </Box>
+      <Box>
+        <StickyTable
+          rows={rows}
+          pageSizeOptions={[5, 10, 25, 50]}
+          rowsInView={10}
+          rowsInViewOptions={[5, 10, 25]}
+          columns={columns}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          headerHeight={50}
+          pagination={true}
+          downloadExcel
+          searchMode='server'
+          disableColumnSorting={true}
+        />
+      </Box>
+      {openAddIdentifierDrawer && (
+        <AddIdentifierDrawer open={openAddIdentifierDrawer} setOpen={setOpenAddIdentifierDrawer} />
+      )}
+    </>
   )
 }
 

@@ -16,6 +16,7 @@ import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
+import withModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing },
@@ -210,4 +211,4 @@ const SiteDetails = () => {
   )
 }
 
-export default SiteDetails
+export default withModuleAccess(SiteDetails, 'enable_housing_in_web')

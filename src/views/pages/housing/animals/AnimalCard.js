@@ -2,7 +2,7 @@ import { Box, Card } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 
-const AnimalCard = ({ data }) => {
+const AnimalCard = ({ data, animalParentCardStyle }) => {
   const theme = useTheme()
 
   return (
@@ -15,7 +15,7 @@ const AnimalCard = ({ data }) => {
           flexWrap: 'wrap'
         }}
       >
-        <AnimalParentCard data={data} size={14} animal={true} />
+        <AnimalParentCard data={data} size={14} animal={true} sx={animalParentCardStyle} />
       </Box>
     </Card>
   )

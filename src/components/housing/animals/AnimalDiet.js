@@ -85,6 +85,7 @@ const activeDietData = [
     notes: 'Include extra sunflower seeds for feather growth.'
   }
 ]
+
 const inActiveDietData = [
   {
     id: 1,
@@ -222,6 +223,8 @@ const AnimalDiet = () => {
   )
 
   const [uploadAnimalDietDrawer, setUploadAnimalDietDrawer] = useState(false) // or 'inactive'
+  const [searchValue, setSearchValue] = useState('')
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -336,8 +339,8 @@ const AnimalDiet = () => {
             backgroundColor: selectedTab === 'active' ? 'transparent' : theme.palette.customColors.mdAntzNeutral,
             // border: selectedTab === 'active' ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
             border: `1px solid ${selectedTab === 'active'
-                ? theme.palette.customColors.OutlineVariant
-                : 'transparent' // or use a light transparent color
+              ? theme.palette.customColors.OutlineVariant
+              : 'transparent' // or use a light transparent color
               }`,
             borderRadius: '8px',
             gap: '24px',

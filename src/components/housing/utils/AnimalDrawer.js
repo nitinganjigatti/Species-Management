@@ -11,10 +11,12 @@ import { getAllAnimalList } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
+import { useRouter } from 'next/router'
 
 const AnimalsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const [localSearch, setLocalSearch] = useState('')
   const [search, setSearch] = useState('')
@@ -110,6 +112,10 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
     debouncedSearch('')
   }
 
+  const handleAnimalClick = animalId => {
+    router.push(`/housing/animals/${animalId}`)
+  }
+
   return (
     <CustomDrawer
       open={open}
@@ -173,7 +179,20 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(animal => (
-          <AnimalCard key={animal?.animal_id} data={animal} textColor={theme.palette.customColors.OnSurfaceVariant} />
+          <Box key={animal?.animal_id} onClick={() => handleAnimalClick(animal?.animal_id)}>
+            <AnimalCard
+              data={animal}
+              textColor={theme.palette.customColors.OnSurfaceVariant}
+              animalParentCardStyle={{
+                border: `1px solid transparent`,
+                cursor: 'pointer',
+                '&:hover': {
+                  borderColor: '#37BD69',
+                  background: '#F2FFF8'
+                }
+              }}
+            />
+          </Box>
         ))}
 
         {isFetching && list.length === 0 && (

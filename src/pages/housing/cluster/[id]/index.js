@@ -6,6 +6,7 @@ import React, { useState } from 'react'
 import ClusterSites from 'src/components/housing/clusters/ClusterSites'
 import ClusterSpecies from 'src/components/housing/clusters/ClusterSpecies'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
+import withModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
 import { getSpecificClusterAnalytics } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -171,4 +172,4 @@ const ClusterDetails = () => {
   )
 }
 
-export default ClusterDetails
+export default withModuleAccess(ClusterDetails, 'enable_housing_in_web')
