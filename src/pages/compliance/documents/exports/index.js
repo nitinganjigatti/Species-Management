@@ -19,6 +19,9 @@ import Utility from 'src/utility'
 import countryList from 'react-select-country-list'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import RenderUtility from 'src/utility/render'
+import { useTheme } from '@mui/material/styles'
+import withModuleAccess from 'src/components/ProtectedRoute'
 
 const CitesExportPermitIndex = () => {
   const { userData } = useContext(AuthContext)
@@ -35,6 +38,8 @@ const CitesExportPermitIndex = () => {
   const [countryOptions, setCountryOptions] = useState([])
   const [statusOptions, setStatusOptions] = useState([])
   const [selectedExportingCountry, setSelectedExportingCountry] = useState(null)
+
+  const theme = useTheme()
 
   const { control, watch } = useForm({
     defaultValues: {
@@ -242,6 +247,41 @@ const CitesExportPermitIndex = () => {
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
       )
+    },
+    {
+      flex: 0.1,
+      minWidth: 120,
+      field: 'updated_by_user_name',
+      headerName: 'Updated By',
+      renderCell: params => (
+        <Box sx={{ px: 2, width: '100%' }}>
+          {RenderUtility.renderUserAvatarDetails(
+            params.row.updated_user_profile_pic,
+            params.row.updated_by_user_name,
+            '',
+            theme.palette.customColors.OnSurfaceVariant,
+            '14px'
+          )}
+        </Box>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 120,
+      field: 'created_at',
+      headerName: 'Created At',
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 120,
+      field: 'updated_at',
+      headerName: 'Updated At',
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
+      )
     }
   ]
 
@@ -381,4 +421,4 @@ const CitesExportPermitIndex = () => {
   )
 }
 
-export default CitesExportPermitIndex
+export default withModuleAccess(CitesExportPermitIndex, 'compliance_module')

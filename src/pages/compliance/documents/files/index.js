@@ -7,6 +7,7 @@ import { debounce } from 'lodash'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import FilterListIcon from '@mui/icons-material/FilterList'
+import withModuleAccess from 'src/components/ProtectedRoute'
 
 // Mock API
 const getFilesList = async params => ({
@@ -180,4 +181,4 @@ const FilesPage = () => {
   )
 }
 
-export default FilesPage
+export default withModuleAccess(FilesPage, 'compliance_module')

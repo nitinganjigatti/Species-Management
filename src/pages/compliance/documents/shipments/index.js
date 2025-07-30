@@ -11,6 +11,9 @@ import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { getShipmentList } from 'src/lib/api/compliance/shipment'
 import moment from 'moment'
+import RenderUtility from 'src/utility/render'
+import Utility from 'src/utility'
+import { useTheme } from '@mui/material/styles'
 
 const ShipmentPage = () => {
   const router = useRouter()
@@ -23,6 +26,8 @@ const ShipmentPage = () => {
   const [sortModel, setSortModel] = useState([])
   const [filterDate, setFilterDate] = useState({})
   const filterCount = 0
+
+  const theme = useTheme()
 
   const handleFilterDrawer = () => {}
 
@@ -174,6 +179,43 @@ const ShipmentPage = () => {
       field: 'documents_count',
       headerName: 'DOCUMENTS',
       renderCell: params => <Typography sx={{ px: 3, width: '100%', pl: 3 }}>{params.value}</Typography>
+    },
+    {
+      flex: 0.1,
+      minWidth: 120,
+      field: 'updated_by_user_name',
+      headerName: 'Updated By',
+      renderCell: params => (
+        <Box sx={{ px: 2, width: '100%' }}>
+          {RenderUtility.renderUserAvatarDetails(
+            params.row.updated_user_profile_pic,
+            params.row.updated_by_user_name,
+            '',
+            theme.palette.customColors.OnSurfaceVariant,
+            '14px'
+          )}
+        </Box>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 120,
+      field: 'created_at',
+      headerName: 'Created At',
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 120,
+      field: 'updated_at',
+      headerName: 'Updated At',
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%' }}>
+          {params.value ? Utility.formatDisplayDate(params.value) : '-'}
+        </Typography>
+      )
     }
   ]
 

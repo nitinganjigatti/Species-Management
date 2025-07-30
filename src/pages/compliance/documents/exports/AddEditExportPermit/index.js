@@ -10,6 +10,7 @@ import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/ex
 import Toaster from 'src/components/Toaster'
 import { useTheme } from '@mui/material/styles'
 import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
+import withModuleAccess from 'src/components/ProtectedRoute'
 
 const AddEditExportPermit = () => {
   const router = useRouter()
@@ -170,4 +171,4 @@ const AddEditExportPermit = () => {
   )
 }
 
-export default AddEditExportPermit
+export default withModuleAccess(AddEditExportPermit, 'compliance_module')
