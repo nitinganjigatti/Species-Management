@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, IconButton, Menu, MenuItem, TextField, Typography } from '@mui/material'
+import { Avatar, Button, Card, IconButton, Menu, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
@@ -58,7 +58,7 @@ const AnimalIdentifier = () => {
     {
       field: 'identifier_type',
       headerName: 'LOCAL IDENTIFIER TYPE',
-      minWidth: 150,
+      width: 220,
       flex: 0.4,
       sortable: false,
       renderCell: params => (
@@ -79,61 +79,76 @@ const AnimalIdentifier = () => {
               <Icon icon='mdi:tag-outline' />
             )}
           </Avatar>
-          <Typography
-            sx={{
-              fontSize: '16px',
-              fontWeight: 500,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {params.row.identifier_type}
-          </Typography>
+          <Tooltip title={params.row.identifier_type}>
+            <Typography
+              sx={{
+                fontSize: '16px',
+                fontWeight: 500,
+                letterSpacing: 0,
+                color: theme.palette.customColors.OnSurfaceVariant,
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden'
+              }}
+            >
+              {params.row.identifier_type}
+            </Typography>
+          </Tooltip>
         </Box>
       )
     },
     {
       field: 'identifier',
       headerName: 'LOCAL IDENTIFIER',
-      minWidth: 120,
+      width: 160,
       flex: 0.3,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontWeight: 500,
-            fontSize: 16,
-            letterSpacing: 0,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          {params.row.identifier}
-        </Typography>
+        <Tooltip title={params.row.identifier}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: 16,
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant,
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.identifier}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       field: 'primary',
       headerName: 'PRIMARY',
-      minWidth: 80,
+      width: 100,
       flex: 0.2,
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography
-          sx={{
-            fontWeight: 500,
-            fontSize: 16,
-            color: params.row.primary === 'Yes' ? theme.palette.primary.dark : ''
-          }}
-        >
-          {params.row.primary}
-        </Typography>
+        <Tooltip title={params.row.primary}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: 16,
+              color: params.row.primary === 'Yes' ? theme.palette.primary.dark : '',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.primary}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       field: 'added_by',
       headerName: 'ADDED BY',
-      minWidth: 200,
+      width: 220,
       flex: 0.5,
       sortable: false,
       renderCell: params => (
@@ -180,8 +195,7 @@ const AnimalIdentifier = () => {
     {
       field: 'action',
       headerName: '',
-
-      // minWidth: 200,
+      width: 50,
       flex: 0.5,
       sortable: false,
       renderCell: params => (
@@ -212,7 +226,6 @@ const AnimalIdentifier = () => {
       )
     }
   ]
-
 
   const rows = [
     {
@@ -247,20 +260,18 @@ const AnimalIdentifier = () => {
 
   return (
     <Box sx={{ py: '24px' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '24px' }}>
-        <Box>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: 20,
-              letterSpacing: 0,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            Local Identifiers (3)
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: '8px' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: '24px', flexWrap: 'wrap' }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: 20,
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Local Identifiers (3)
+        </Typography>
+        <Box sx={{ display: 'flex', columnGap: '8px', rowGap: '12px', flexWrap: 'wrap' }}>
           <Box
             sx={{
               display: 'flex',

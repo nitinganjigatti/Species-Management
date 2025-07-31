@@ -10,7 +10,8 @@ import {
   IconButton,
   MenuItem,
   Menu,
-  Drawer
+  Drawer,
+  Tooltip
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useState } from 'react'
@@ -27,6 +28,7 @@ import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import ReportMissingIncidentForm from './ReportMissingIncidentForm'
 import MissReportIncidentForm from './MissReportIncidentForm'
 import ReportFoundForm from './ReportFoundForm'
+import { Grid } from '@mui/system'
 
 // import {  TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from '@mui/lab'
 
@@ -557,7 +559,7 @@ const AnimalIncidents = () => {
     <>
       <Box sx={{ mt: 4, p: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
             <Typography
               sx={{
                 fontSize: 20,
@@ -573,23 +575,26 @@ const AnimalIncidents = () => {
               Report incident
             </Button>
           </Box>
-          <Box
+
+          <Grid container
             sx={{
               padding: '8px 12px 8px 8px',
               backgroundColor: theme.palette.customColors.OnBackground,
               borderRadius: '8px',
-              display: 'flex',
+              // display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gp: 4
+              flexWrap: 'wrap',
             }}
+            spacing={4}
           >
-            <Box sx={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+            <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', gap: '24px', alignItems: 'center', }}>
               <Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '6px',
+                  minWidth: '120px',
                   backgroundColor: theme.palette.customColors.Tertiary,
                   borderRadius: '8px',
                   padding: '12px'
@@ -606,40 +611,56 @@ const AnimalIncidents = () => {
                   03:20 PM
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 20, fontWeight: 500 }}>
-                  INC00410
-                </Typography>
-                <Typography sx={{ color: theme.palette.customColors.Tertiary, fontSize: 16, fontWeight: 500 }}>
-                  Animal Missing
-                </Typography>
+              <Box sx={{ display: 'flex', minWidth: '100px', maxWidth: '1000px', flexDirection: 'column', gap: '6px' }}>
+                <Tooltip title={'INC00410'}>
+                  <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 20, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    INC00410
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={'INC00410'}>
+                  <Typography sx={{ color: theme.palette.customColors.Tertiary, fontSize: 16, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    Animal Missing
+                  </Typography>
+                </Tooltip>
               </Box>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400 }}>
-                Site
-              </Typography>
-              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500 }}>
-                Bannerghatta East 12A
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400 }}>
-                Section
-              </Typography>
-              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500 }}>
-                Hillcrest Wildlife Center
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400 }}>
-                Enclosure
-              </Typography>
-              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500 }}>
-                Enclosure-234
-              </Typography>
-            </Box>
-            <Box>
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <Tooltip title={'INC00410'}>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  Site
+                </Typography>
+              </Tooltip>
+              <Tooltip title={'INC00410'}>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  Bannerghatta East 12A
+                </Typography>
+              </Tooltip>
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <Tooltip title={'INC00410'}>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  Section
+                </Typography>
+              </Tooltip>
+              <Tooltip title={'INC00410'}>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  Hillcrest Wildlife Center
+                </Typography>
+              </Tooltip>
+            </Grid>
+            <Grid item size={{ xs: 10, sm: 5, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <Tooltip title={'INC00410'}>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  Enclosure
+                </Typography>
+              </Tooltip>
+              <Tooltip title={'INC00410'}>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  Enclosure-234
+                </Typography>
+              </Tooltip>
+            </Grid>
+            <Grid item size={{ xs: 2, sm: 1, md: 0.5 }}>
               <IconButton size='small' onClick={handleMenuOpen}>
                 <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:dots-vertical' />
               </IconButton>
@@ -672,8 +693,8 @@ const AnimalIncidents = () => {
                   handleMenuClose()
                 }}>Report Found</MenuItem>
               </Menu>
-            </Box>
-          </Box>
+            </Grid>
+          </Grid>
         </Box>
       </Box>
 
