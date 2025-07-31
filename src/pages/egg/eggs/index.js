@@ -246,14 +246,14 @@ const EggList = () => {
                 params.row.egg_condition === 'Intact'
                   ? theme.palette.primary.dark
                   : params.row.egg_condition === 'Thin-Shelled'
-                  ? theme.palette.primary.light
-                  : params.row.egg_condition === 'Broken'
-                  ? theme.palette.customColors.Error
-                  : params.row.egg_condition === 'Rotten'
-                  ? theme.palette.customColors.Tertiary
-                  : params.row.egg_condition === 'Cracked'
-                  ? theme.palette.customColors.moderateSecondary
-                  : theme.palette.primary.dark
+                    ? theme.palette.primary.light
+                    : params.row.egg_condition === 'Broken'
+                      ? theme.palette.customColors.Error
+                      : params.row.egg_condition === 'Rotten'
+                        ? theme.palette.customColors.Tertiary
+                        : params.row.egg_condition === 'Cracked'
+                          ? theme.palette.customColors.moderateSecondary
+                          : theme.palette.primary.dark
             }}
           >
             {' '}
@@ -365,7 +365,7 @@ const EggList = () => {
                   setAllocationValues={setAllocationValues}
                   condition={params.row.egg_condition}
 
-                  // hover={hover} setHover={setHover}
+                // hover={hover} setHover={setHover}
                 />
               </div>
             </>
@@ -605,7 +605,7 @@ const EggList = () => {
                   handleAction={handleAction}
                   setAllocationValues={setAllocationValues}
 
-                  // hover={hover} setHover={setHover}
+                // hover={hover} setHover={setHover}
                 />
               </div>
             </>
@@ -732,7 +732,6 @@ const EggList = () => {
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
-
                 fontSize: '12px',
                 fontWeight: 400,
                 lineHeight: '19.36px',
@@ -746,6 +745,25 @@ const EggList = () => {
       )
     },
     {
+      width: 140,
+      sortable: false,
+      field: 'animal_sex',
+      headerName: 'GENDER',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: 500,
+            lineHeight: '19.36px',
+            textTransform: 'capitalize'
+          }}
+        >
+          {params.row?.animal_sex}
+        </Typography>
+      )
+    },
+    {
       width: 200,
       sortable: false,
       field: 'identifier',
@@ -755,7 +773,6 @@ const EggList = () => {
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
-
               fontSize: '16px',
               fontWeight: 500,
               lineHeight: '19.36px'
@@ -1967,8 +1984,8 @@ const EggList = () => {
           tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
             ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
             : tab_Value === 'eggs_discarded'
-            ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
-            : selectedFiltersOptions['Collected By']?.map(option => option.id) || []
+              ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
+              : selectedFiltersOptions['Collected By']?.map(option => option.id) || []
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || []
         const statusId = selectedFiltersOptions.status?.id ? [selectedFiltersOptions.status?.id] : ''
 
@@ -2016,8 +2033,8 @@ const EggList = () => {
                 ? isDiscarded
                 : status
               : statusRecived === 'eggs_discarded'
-              ? discardedTab
-              : statusRecived
+                ? discardedTab
+                : statusRecived
         }
 
         if (
@@ -2239,9 +2256,9 @@ const EggList = () => {
         ) : (
           <>
             {status === 'eggs_received' ||
-            status === 'eggs_incubation' ||
-            status === 'eggs_hatched' ||
-            status === 'all' ? (
+              status === 'eggs_incubation' ||
+              status === 'eggs_hatched' ||
+              status === 'all' ? (
               <>
                 <EggTableHeader
                   totalCount={total}
