@@ -7,7 +7,7 @@ import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import { getSiteAnalytics } from 'src/lib/api/housing'
 import { useQuery } from '@tanstack/react-query'
 import { on } from 'geolocation'
-import withModuleAccess from 'src/components/ProtectedRoute'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { AuthContext } from 'src/context/AuthContext'
 
 const Sites = () => {
@@ -17,8 +17,9 @@ const Sites = () => {
   const [drawerData, setDrawerData] = useState(null)
   const [siteDrawer, setSiteDrawer] = useState(false)
 
-  const authData = useAuth(AuthContext)
+  const authData = useAuth()
   const insightsViewAccess = authData?.userData?.roles?.settings?.housing_view_insights
+  const addSiteAccess = authData?.userData?.permission?.user_settings?.add_sites
 
   const handleEnclosureInsightClick = () => {
     setDrawerType('enclosures')
@@ -127,7 +128,7 @@ const Sites = () => {
           haveInsightsViewAccess={insightsViewAccess}
           statsData={statsData}
           actions={{
-            onAddNew: handleButtonClick
+            onAddNew: addSiteAccess ? handleButtonClick : null
           }}
 
           // onAddNewClick={handleButtonClick}
@@ -149,4 +150,4 @@ const Sites = () => {
   )
 }
 
-export default withModuleAccess(Sites, 'enable_housing_in_web')
+export default enforceModuleAccess(Sites, 'enable_housing_in_web')

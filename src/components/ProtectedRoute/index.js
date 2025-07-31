@@ -3,23 +3,21 @@ import { useEffect } from 'react';
 import { AuthContext } from 'src/context/AuthContext';
 import { useAuth } from 'src/hooks/useAuth';
 
-export default function withModuleAccess(PageComponent, moduleKey) {
+export default function enforceModuleAccess(PageComponent, moduleKey) {
   return function Wrapper(props) {
-
     const authData = useAuth(AuthContext)
-    const router = useRouter();
+    const router = useRouter()
 
-    const accessAllowed = authData?.userData?.roles?.settings?.[moduleKey];
-    console.log("authData?.userData?.roles?.settings", authData?.userData?.roles?.settings)
+    const accessAllowed = authData?.userData?.roles?.settings?.[moduleKey]
 
     useEffect(() => {
       if (!accessAllowed) {
-        router.replace('/404'); // Custom 404 page
+        router.replace('/404') // Custom 404 page
       }
-    }, [accessAllowed]);
+    }, [accessAllowed])
 
-    if (!accessAllowed) return null; // Don't flash the page
+    if (!accessAllowed) return null // Don't flash the page
 
-    return <PageComponent {...props} />;
-  };
+    return <PageComponent {...props} />
+  }
 }

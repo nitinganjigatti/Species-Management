@@ -12,6 +12,7 @@ import AnimalMortality from 'src/components/housing/animals/AnimalMortality'
 import AnimalOverview from 'src/components/housing/animals/AnimalOverview'
 import withModuleAccess from 'src/components/ProtectedRoute'
 import AnimalQRCard from 'src/views/pages/housing/animals/AnimalQRCard'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 
 const tabConfig = [
@@ -103,4 +104,4 @@ const AnimalDetais = () => {
   )
 }
 
-export default withModuleAccess(AnimalDetais, 'enable_housing_in_web')
+export default enforceModuleAccess(AnimalDetais, 'enable_housing_in_web')

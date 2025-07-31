@@ -12,6 +12,7 @@ import Search from 'src/views/utility/Search'
 import SpeciesDrawer from '../utils/SpeciesDrawer'
 import AnimalDrawer from '../utils/AnimalDrawer'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
+import { useAuth } from 'src/hooks/useAuth'
 
 const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
   const router = useRouter()
@@ -29,6 +30,9 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
     sortBy: '',
     sortOrder: 'asc'
   })
+
+  const auth = useAuth()
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
   const { data, isFetching } = useQuery({
     queryKey: ['clustersites', id, filters],
@@ -213,136 +217,140 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
         />
       )
     },
-    {
-      width: 160,
-      field: 'species',
-      headerName: 'Species',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('species')
-            setDrawerData({
-              queryKey: 'cluster-details-species-drawer',
-              id: params.row.site_id,
-              name: params.row.site_name,
-              image: params.row.images?.[0]?.file,
-              params: {
-                site_id: params.row.site_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.species_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 150,
-      field: 'animals',
-      headerName: 'Animals',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('animals')
-            setDrawerData({
-              queryKey: 'cluster-details-animals-drawer',
-              id: params.row.site_id,
-              name: params.row.site_name,
-              image: params.row.images?.[0]?.file,
-              params: {
-                site_id: params.row.site_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.animal_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 150,
-      field: 'enclosures',
-      align: 'left',
-      headerAlign: 'left',
-      headerName: 'Enclosures',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'default'
-          }}
+    ...(insightsViewAccess
+      ? [
+          {
+            width: 160,
+            field: 'species',
+            headerName: 'Species',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer'
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('species')
+                  setDrawerData({
+                    queryKey: 'cluster-details-species-drawer',
+                    id: params.row.site_id,
+                    name: params.row.site_name,
+                    image: params.row.images?.[0]?.file,
+                    params: {
+                      site_id: params.row.site_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.species_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'animals',
+            headerName: 'Animals',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer'
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('animals')
+                  setDrawerData({
+                    queryKey: 'cluster-details-animals-drawer',
+                    id: params.row.site_id,
+                    name: params.row.site_name,
+                    image: params.row.images?.[0]?.file,
+                    params: {
+                      site_id: params.row.site_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.animal_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'enclosures',
+            align: 'left',
+            headerAlign: 'left',
+            headerName: 'Enclosures',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'default'
+                }}
 
-          // onClick={e => {
-          //   e.stopPropagation()
+                // onClick={e => {
+                //   e.stopPropagation()
 
-          //   setDrawerType('enclosures')
-          //   setDrawerData({
-          //     queryKey: 'cluster-details-enclosures-drawer',
-          //     id: params.row.site_id,
-          //     name: params.row.site_name,
-          //     image: params.row.images?.[0]?.file,
-          //     params: {
-          //       site_id: params.row.site_id
-          //     }
-          //   })
-          // }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.enclosure_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
+                //   setDrawerType('enclosures')
+                //   setDrawerData({
+                //     queryKey: 'cluster-details-enclosures-drawer',
+                //     id: params.row.site_id,
+                //     name: params.row.site_name,
+                //     image: params.row.images?.[0]?.file,
+                //     params: {
+                //       site_id: params.row.site_id
+                //     }
+                //   })
+                // }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.enclosure_count || 0}
+                </Typography>
+              </Box>
+            )
+          }
+        ]
+      : []),
     {
       width: 200,
       field: 'incharge',

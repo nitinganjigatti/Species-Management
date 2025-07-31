@@ -1,7 +1,7 @@
-import withModuleAccess from 'src/components/ProtectedRoute'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const Dashboard = () => {
   return <>dashboard page</>
 }
 
-export default withModuleAccess(Dashboard, 'enable_housing_in_web')
+export default enforceModuleAccess(Dashboard, 'enable_housing_in_web')

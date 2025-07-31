@@ -6,7 +6,7 @@ import React, { useState } from 'react'
 import ClusterSites from 'src/components/housing/clusters/ClusterSites'
 import ClusterSpecies from 'src/components/housing/clusters/ClusterSpecies'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
-import withModuleAccess from 'src/components/ProtectedRoute'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
 import { getSpecificClusterAnalytics } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -25,6 +25,7 @@ const ClusterDetails = () => {
   const auth = useAuth()
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
   const [drawerType, setDrawerType] = useState(null)
@@ -135,6 +136,7 @@ const ClusterDetails = () => {
           zooName={data?.data?.cluster_name}
           userName={data?.data?.cluster_incharge}
           error={error}
+          haveInsightsViewAccess={insightsViewAccess}
           onCallClick={() => {
             const phoneNumber = data?.data?.incharge_mobile_no || ''
             if (phoneNumber) {
@@ -172,4 +174,4 @@ const ClusterDetails = () => {
   )
 }
 
-export default withModuleAccess(ClusterDetails, 'enable_housing_in_web')
+export default enforceModuleAccess(ClusterDetails, 'enable_housing_in_web')
