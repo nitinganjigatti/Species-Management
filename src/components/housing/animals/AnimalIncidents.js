@@ -416,6 +416,7 @@ const AnimalIncidents = () => {
                             transparent 13px
                             )`,
                             opacity: 1
+
                             // strokeDashoffset: '5 8',
                             // borderLeft: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
                           }
@@ -576,19 +577,21 @@ const AnimalIncidents = () => {
             </Button>
           </Box>
 
-          <Grid container
+          <Grid
+            container
             sx={{
               padding: '8px 12px 8px 8px',
               backgroundColor: theme.palette.customColors.OnBackground,
               borderRadius: '8px',
+
               // display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              flexWrap: 'wrap',
+              flexWrap: 'wrap'
             }}
             spacing={4}
           >
-            <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', gap: '24px', alignItems: 'center', }}>
+            <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -613,12 +616,30 @@ const AnimalIncidents = () => {
               </Box>
               <Box sx={{ display: 'flex', minWidth: '100px', maxWidth: '1000px', flexDirection: 'column', gap: '6px' }}>
                 <Tooltip title={'INC00410'}>
-                  <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 20, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: 20,
+                      fontWeight: 500,
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     INC00410
                   </Typography>
                 </Tooltip>
                 <Tooltip title={'INC00410'}>
-                  <Typography sx={{ color: theme.palette.customColors.Tertiary, fontSize: 16, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.Tertiary,
+                      fontSize: 16,
+                      fontWeight: 500,
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     Animal Missing
                   </Typography>
                 </Tooltip>
@@ -626,36 +647,90 @@ const AnimalIncidents = () => {
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <Tooltip title={'INC00410'}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.neutralSecondary,
+                    fontSize: 14,
+                    fontWeight: 400,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
                   Site
                 </Typography>
               </Tooltip>
               <Tooltip title={'INC00410'}>
-                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: 16,
+                    fontWeight: 500,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
                   Bannerghatta East 12A
                 </Typography>
               </Tooltip>
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <Tooltip title={'INC00410'}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.neutralSecondary,
+                    fontSize: 14,
+                    fontWeight: 400,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
                   Section
                 </Typography>
               </Tooltip>
               <Tooltip title={'INC00410'}>
-                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: 16,
+                    fontWeight: 500,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
                   Hillcrest Wildlife Center
                 </Typography>
               </Tooltip>
             </Grid>
             <Grid item size={{ xs: 10, sm: 5, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <Tooltip title={'INC00410'}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 14, fontWeight: 400, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.neutralSecondary,
+                    fontSize: 14,
+                    fontWeight: 400,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
                   Enclosure
                 </Typography>
               </Tooltip>
               <Tooltip title={'INC00410'}>
-                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: 16, fontWeight: 500, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: 16,
+                    fontWeight: 500,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
                   Enclosure-234
                 </Typography>
               </Tooltip>
@@ -671,27 +746,41 @@ const AnimalIncidents = () => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
-                <MenuItem onClick={() => {
-                  setActivtyLogSideBar(true)
-                  handleMenuClose()
-                }}>View Details</MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setActivtyLogSideBar(true)
+                    handleMenuClose()
+                  }}
+                >
+                  View Details
+                </MenuItem>
                 <MenuItem onClick={handleMenuClose}>Edit Incident</MenuItem>
-                <MenuItem onClick={
-                  () => {
+                <MenuItem
+                  onClick={() => {
                     setMissReportIncidence('Found')
                     setMissReportIncidentForm(true)
                     handleMenuClose()
-                  }
-                }>Misreport Found</MenuItem>
-                <MenuItem onClick={() => {
-                  setMissReportIncidence('Missing')
-                  setMissReportIncidentForm(true)
-                  handleMenuClose()
-                }}>Misreport Missing</MenuItem>
-                <MenuItem onClick={() => {
-                  setReportFoundForm(true)
-                  handleMenuClose()
-                }}>Report Found</MenuItem>
+                  }}
+                >
+                  Misreport Found
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setMissReportIncidence('Missing')
+                    setMissReportIncidentForm(true)
+                    handleMenuClose()
+                  }}
+                >
+                  Misreport Missing
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setReportFoundForm(true)
+                    handleMenuClose()
+                  }}
+                >
+                  Report Found
+                </MenuItem>
               </Menu>
             </Grid>
           </Grid>
@@ -708,11 +797,9 @@ const AnimalIncidents = () => {
         animalId={animalId}
         missReportIncidentForm={missReportIncidentForm}
         missReportIncidence={missReportIncidence}
-        setMissReportIncidentForm={setMissReportIncidentForm} />
-      <ReportFoundForm
-        animalId={animalId}
-        reportFoundForm={reportFoundForm}
-        setReportFoundForm={setReportFoundForm} />
+        setMissReportIncidentForm={setMissReportIncidentForm}
+      />
+      <ReportFoundForm animalId={animalId} reportFoundForm={reportFoundForm} setReportFoundForm={setReportFoundForm} />
     </>
   )
 }

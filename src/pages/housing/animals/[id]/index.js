@@ -14,6 +14,7 @@ import withModuleAccess from 'src/components/ProtectedRoute'
 import AnimalQRCard from 'src/views/pages/housing/animals/AnimalQRCard'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
+import AnimalMedia from 'src/components/housing/animals/AnimalMedia'
 
 const tabConfig = [
   { label: 'Overview', value: 'overview', component: AnimalOverview },
@@ -22,7 +23,8 @@ const tabConfig = [
   { label: 'Journal', value: 'journal', component: AnimalJournals },
   { label: 'History', value: 'history', component: AnimalHistory },
   { label: 'Identifier', value: 'identifier', component: AnimalIdentifier },
-  { label: 'Mortality', value: 'mortality', component: AnimalMortality }
+  { label: 'Mortality', value: 'mortality', component: AnimalMortality },
+  { label: 'Media', value: 'media', component: AnimalMedia }
 ]
 
 const dummyData = {

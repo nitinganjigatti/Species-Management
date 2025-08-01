@@ -1,8 +1,9 @@
 import { useTheme } from '@mui/material/styles'
-import { Typography, Box, Divider, Menu, MenuItem, IconButton } from '@mui/material'
+import { Typography, Box, Divider, Menu, MenuItem, IconButton, Avatar } from '@mui/material'
 import React, { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import AnimalMortalityEditDrawer from 'src/views/pages/housing/animals/AnimalMortalityEditDrawer'
+import RenderUtility from 'src/utility/render'
 
 const AnimalMortality = () => {
   const theme = useTheme()
@@ -87,7 +88,7 @@ const AnimalMortality = () => {
                 borderRadius: 2,
                 minWidth: 120,
                 boxShadow: 2,
-                p: 3
+                px: 1
               }
             }}
             anchorOrigin={{
@@ -140,23 +141,49 @@ const AnimalMortality = () => {
               </Typography>
             </Box>
           ))}
-        </Box>
-        <Divider sx={{ width: '100%', my: 2, borderColor: '#FAE4D8' }} />
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            pl: { xs: 1, sm: 3 },
-            pt: 1,
-            color: '#757575'
-          }}
-        >
-          <Icon icon='mdi:account-circle' fontSize={20} style={{ marginRight: 8 }} />
-          <Typography sx={{ fontSize: 13, color: '#757575', lineHeight: 1 }}>
-            {createdBy}
-            <span style={{ margin: '0 10px', color: '#d0cfcf' }}>|</span>
-            {createdAt}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Avatar
+              sx={{
+                width: 30,
+                height: 30,
+                borderRadius: '50%',
+                backgroundColor: theme.palette.customColors.displaybgPrimary
+              }}
+            >
+              <img src={''} alt='user-profile' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </Avatar>
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  letterSpacing: '0.1px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {createdBy}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {createdAt}
+              </Typography>
+            </Box>
+          </Box>
+          {/* <Box>
+            {RenderUtility.renderUserAvatarDetails(
+              '',
+              createdBy,
+              createdAt,
+              theme.palette.customColors.OnSurfaceVariant,
+              '14px'
+            )}
+          </Box> */}
         </Box>
       </Box>
       {openEditMortalityDrawer && (
