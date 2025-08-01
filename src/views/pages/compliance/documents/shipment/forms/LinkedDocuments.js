@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { Typography, Box, List, ListItem, ListItemText, ListItemIcon, Collapse } from '@mui/material'
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
+import { useTheme } from '@mui/material/styles'
 
 const SectionBlock = ({ title, type, data }) => {
   const [expanded, setExpanded] = useState(false)
-
+  const theme = useTheme()
   return (
     <Box
       sx={{
@@ -21,7 +22,7 @@ const SectionBlock = ({ title, type, data }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: '#E8F4F2',
+          background: theme.palette.customColors.tableHeaderBg,
           px: 4,
           py: 2.8,
           cursor: data?.length > 0 ? 'pointer' : 'default'

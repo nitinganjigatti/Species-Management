@@ -10,6 +10,7 @@ import AnimalsData from 'src/views/pages/compliance/documents/imports/forms/Anim
 import { getLinkedDocumentsImports } from 'src/lib/api/compliance/imports'
 import { useTheme } from '@mui/material/styles'
 import LinkedShipments from 'src/components/compliance/LinkedShipments'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const AddEditImport = () => {
   const router = useRouter()
@@ -120,7 +121,10 @@ const AddEditImport = () => {
           onClick={() => router.push('/compliance/documents/imports')}
           sx={{ cursor: 'pointer' }}
         >
-          <Icon style={{ cursor: 'pointer', color: '#44544A' }} icon='material-symbols:arrow-back' />
+          <Icon
+            style={{ cursor: 'pointer', color: theme.palette.customColors.OnSurfaceVariant }}
+            icon='material-symbols:arrow-back'
+          />
           <CardHeader
             title={
               action === 'edit' ? 'Edit Import Permit' : action === 'details' ? 'Import Details' : 'CITES Import Permit'
@@ -139,13 +143,17 @@ const AddEditImport = () => {
         id='animals-details'
         docsCount={
           !isAnimalsEditable && !expanded.includes('animals-details') && (totalAnimals || totalSpecies) ? (
-            <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
+            <Typography component='span' sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
               <strong>{totalSpecies}</strong> Species&nbsp;|&nbsp;
               <strong>{totalAnimals}</strong> Animals
             </Typography>
           ) : null
         }
-        title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Details</Typography>}
+        title={
+          <Typography sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}>
+            Details
+          </Typography>
+        }
         expanded={expanded.includes('animals-details')}
         onChange={handleAccordionChange}
         editable={showEditAnimals && expanded.includes('animals-details') && id && action === 'details'}
@@ -173,7 +181,11 @@ const AddEditImport = () => {
         <CustomAccordion
           id='supporting-documents'
           title={
-            <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Supporting Documents</Typography>
+            <Typography
+              sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}
+            >
+              Supporting Documents
+            </Typography>
           }
           docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
           expanded={expanded.includes('supporting-documents')}
@@ -231,4 +243,4 @@ const AddEditImport = () => {
   )
 }
 
-export default AddEditImport
+export default enforceModuleAccess(AddEditImport, 'compliance_module')

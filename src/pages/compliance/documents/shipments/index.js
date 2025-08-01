@@ -14,6 +14,7 @@ import moment from 'moment'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
 import { useTheme } from '@mui/material/styles'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const ShipmentPage = () => {
   const router = useRouter()
@@ -133,7 +134,12 @@ const ShipmentPage = () => {
               height: 10,
               borderRadius: '50%',
               display: 'inline-block',
-              backgroundColor: params.value === 'draft' ? '#FFE86E' : params.value === 'completed' ? '#52F990' : '',
+              backgroundColor:
+                params.value === 'draft'
+                  ? theme.palette.customColors.antzNotes80
+                  : params.value === 'completed'
+                  ? theme.palette.customColors.PrimaryContainer
+                  : '',
               ml: 3
             }}
           />
@@ -304,4 +310,4 @@ const ShipmentPage = () => {
   )
 }
 
-export default ShipmentPage
+export default enforceModuleAccess(ShipmentPage, 'compliance_module')
