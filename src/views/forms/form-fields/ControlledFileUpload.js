@@ -87,7 +87,7 @@ const ControlledFileUpload = ({
           alignItems: 'center',
           cursor: 'pointer',
           mt: 1,
-          borderRadius: '10px',
+          borderRadius: '8px',
           position: 'relative',
           width: '100%',
           height: '50px',

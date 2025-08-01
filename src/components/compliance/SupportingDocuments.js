@@ -114,7 +114,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                 border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 p: isMobile ? 2 : 4,
-                backgroundColor: document
+                backgroundColor: document?.file_path
                   ? theme.palette.customColors.Surface
                   : alpha(theme.palette.customColors.addPrimary, 0.2)
               }}
