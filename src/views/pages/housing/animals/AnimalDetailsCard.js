@@ -87,7 +87,7 @@ const AnimalDetailsCard = ({ data }) => {
               pl: { xs: 0, sm: 4 },
               py: 1,
               gap: 4,
-              pr: { xs: 30, md: 10 }
+              pr: { xs: 40, md: 10 }
             }}
           >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
