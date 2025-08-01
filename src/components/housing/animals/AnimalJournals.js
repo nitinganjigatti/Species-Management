@@ -20,6 +20,7 @@ const activityLogData = [
         "time": "12:22 PM",
         "type": "Medical",
         "title": "Lab test report updated",
+        "code": "MED-123",
         "details": {
           "report_id": "MED-232",
           "lab_request_id": "LT-2131",
@@ -47,6 +48,7 @@ const activityLogData = [
         "time": "9:15 AM",
         "type": "Medical",
         "title": "Vaccination Administered",
+        "code": "MED-123",
         "details": {
           "report_id": "MED-240",
           "brand": "Zoetis plus",
@@ -59,6 +61,7 @@ const activityLogData = [
         "time": "5:40 PM",
         "type": "Transfer",
         "title": "Enclosure Shift",
+        "code": "MED-123",
         "details": {
           "report_id": "INT-456",
           "from": "Cage 3B",
@@ -74,6 +77,7 @@ const activityLogData = [
         "time": "11:00 AM",
         "type": "Medical",
         "title": "Health Check Report",
+        "code": "INT-123",
         "details": {
           "report_id": "MED-238",
           "lab_request_id": "LT-2119",
@@ -90,6 +94,7 @@ const activityLogData = [
         "time": "3:00 PM",
         "type": "Transfer",
         "title": "Animal Relocation",
+        "code": "MED-123",
         "details": {
           "report_id": "INT-789",
           "from": "Hilltop Zone",
@@ -119,8 +124,9 @@ const activityLogData = [
     "events": [
       {
         "time": "4:00 PM",
-        "type": "Medical",
+        "type": "Vaccination",
         "title": "Treatment Initiated",
+        "code": "MED-123",
         "details": {
           "report_id": "MED-221",
           "lab_request_id": "LT-2101",
@@ -161,168 +167,6 @@ const AnimalJournals = ({ icon, color, title, time, children }) => {
     },
   }
 
-  // const IncidentTimeline = () => {
-  //   // Styled Timeline component
-  //   const Timeline = styled(MuiTimeline)({
-  //     paddingLeft: 0,
-  //     paddingRight: 0,
-  //     '& .MuiTimelineItem-root': {
-  //       width: '100%',
-  //       '&:before': {
-  //         display: 'none'
-  //       }
-  //     }
-  //   })
-
-  //   return (
-  //     <Timeline>
-  //       {activtyLogData?.map((item, index) => (
-  //         <TimelineItem key={index}>
-  //           <TimelineSeparator
-  //             sx={{
-  //               '& span': {
-  //                 ml: '1px',
-  //                 background: 'transparent',
-  //                 width: '1px',
-  //                 height: '100%',
-  //                 backgroundImage: `repeating-linear-gradient(
-  //                           to bottom,
-  //                           ${theme.palette.customColors.OutlineVariant},
-  //                           ${theme.palette.customColors.OutlineVariant} 5px,
-  //                           transparent 8px,
-  //                           transparent 13px
-  //                           )`,
-  //                 opacity: 1
-  //               }
-  //             }}
-  //           >
-  //             <Box
-  //               sx={{
-  //                 // border: '2px solid ',
-  //                 backgroundColor:
-  //                   item.type === 'Animal Missing' || item.status === 'Discard' || item.status === 'Rotten'
-  //                     ? theme.palette.formContent.tertiary
-  //                     : theme.palette.primary.dark,
-  //                 boxSizing: 'border-box',
-  //                 width: '16px',
-  //                 height: '16px',
-  //                 borderRadius: '50%',
-  //                 display: 'flex',
-  //                 alignItems: 'center',
-  //                 justifyContent: 'center'
-  //               }}
-  //             ></Box>
-  //             {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
-  //           </TimelineSeparator>
-  //           <TimelineContent
-  //             sx={{
-  //               ml: 4,
-  //               borderRadius: '8px',
-  //               position: 'relative',
-  //               top: -5,
-  //               p: 0
-  //             }}
-  //           >
-  //             <Typography
-  //               sx={{
-  //                 color: item.color,
-  //                 fontWeight: 400,
-  //                 fontSize: 14,
-  //                 mb: '12px'
-  //               }}
-  //             >
-  //               {item.type}
-  //             </Typography>
-  //             <Box
-  //               sx={{
-  //                 flexGrow: 1,
-  //                 backgroundColor: item.type === 'Animal Found' ? '#E1F9ED' : '#FFBDA833',
-  //                 borderRadius: 2,
-  //                 display: 'flex',
-  //                 flexDirection: 'column',
-  //                 gap: '16px',
-  //                 p: '16px'
-  //               }}
-  //             >
-  //               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-  //                 <Typography
-  //                   sx={{
-  //                     fontWeight: 400,
-  //                     fontSize: '14px',
-  //                     letterSpacing: 0,
-  //                     color: theme.palette.customColors.OnSurfaceVariant
-  //                   }}
-  //                 >
-  //                   {item.type === 'Animal Found' ? 'Found On' : 'Missing Since'}
-  //                 </Typography>
-  //                 <Typography
-  //                   sx={{
-  //                     fontWeight: 500,
-  //                     fontSize: '16px',
-  //                     letterSpacing: 0,
-  //                     color: theme.palette.customColors.neutralPrimary
-  //                   }}
-  //                 >
-  //                   {item.date} • {item.time}
-  //                 </Typography>
-  //               </Box>
-  //               {Object.entries(item.details).map(([key, value]) => (
-  //                 <Box key={key}>
-  //                   <Typography
-  //                     sx={{
-  //                       fontWeight: 400,
-  //                       fontSize: '14px',
-  //                       letterSpacing: 0,
-  //                       color: theme.palette.customColors.OnSurfaceVariant
-  //                     }}
-  //                   >
-  //                     {key}
-  //                   </Typography>
-  //                   <Typography
-  //                     sx={{
-  //                       fontWeight: 500,
-  //                       fontSize: '16px',
-  //                       letterSpacing: 0,
-  //                       color: theme.palette.customColors.neutralPrimary
-  //                     }}
-  //                   >
-  //                     {value}
-  //                   </Typography>
-  //                 </Box>
-  //               ))}
-
-  //               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-  //                 <Avatar sx={{ width: 34, height: 34 }} />
-  //                 <Box>
-  //                   <Typography
-  //                     sx={{
-  //                       fontSize: 14,
-  //                       fontWeight: 500,
-  //                       letterSpacing: 0,
-  //                       color: theme.palette.customColors.OnSurfaceVariant
-  //                     }}
-  //                   >
-  //                     Sourav tambe
-  //                   </Typography>
-  //                   <Typography
-  //                     sx={{
-  //                       fontSize: 12,
-  //                       fontWeight: 400,
-  //                       letterSpacing: 0,
-  //                       color: theme.palette.customColors.OnSurfaceVariant
-  //                     }}
-  //                   >
-  //                     14 Apr 2024 | 12 : 35 PM
-  //                   </Typography>
-  //                 </Box>
-  //               </Box>
-  //             </Box>
-  //           </TimelineContent>
-  //         </TimelineItem>
-  //       ))}
-  //     </Timeline>
-  //   )
-  // }
   const IncidentTimeline = () => {
     const Timeline = styled(MuiTimeline)({
       paddingLeft: 0,
@@ -341,7 +185,7 @@ const AnimalJournals = ({ icon, color, title, time, children }) => {
               sx={{
                 backgroundColor: '#0000000D',
                 height: '48px',
-                px: '16px',
+                pl: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 2,
@@ -378,8 +222,6 @@ const AnimalJournals = ({ icon, color, title, time, children }) => {
               />
             </Box>
 
-
-
             <Timeline>
               {group.events.map((item, index) => (
                 <TimelineItem key={index}>
@@ -413,65 +255,74 @@ const AnimalJournals = ({ icon, color, title, time, children }) => {
                       borderRadius: '8px',
                       position: 'relative',
                       top: -5,
-                      p: 0
+                      p: 0,
                     }}
                   >
-                    <Typography sx={{ color: item.color || theme.palette.primary.main, fontWeight: 400, fontSize: 14, mb: '12px' }}>
-                      {item.type}
-                    </Typography>
+                    <Box sx={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
 
-                    <Box
-                      sx={{
-                        flexGrow: 1,
-                        backgroundColor: item.type === 'Animal Found' ? '#E1F9ED' : '#FFBDA833',
-                        borderRadius: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px',
-                        p: '16px'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <Typography sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                          {item.type === 'Animal Found' ? 'Found On' : 'Missing Since'}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '200px' }}>
+                        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: 12, letterSpacing: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                          {item.type}
                         </Typography>
-                        <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
-                          {item.time}
+                        <Tooltip title={item.type}>
+                          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: 16, letterSpacing: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                            Lab test report updated
+                          </Typography>
+                        </Tooltip>
+                        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 600, fontSize: 12, letterSpacing: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                          12:22 PM
                         </Typography>
                       </Box>
 
-                      {Object.entries(item.details).map(([key, value]) => (
-                        <Box key={key}>
-                          <Typography sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                            {key}
-                          </Typography>
-                          <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
-                            {value}
-                          </Typography>
-                        </Box>
-                      ))}
 
-                      {item.createdBy && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Avatar sx={{ width: 34, height: 34 }} />
-                          <Box>
-                            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-                              {item.createdBy.name}
+                      <Box
+                        sx={{
+                          flexGrow: 1,
+                          backgroundColor: theme.palette.customColors.lightBg,
+                          borderRadius: '8px',
+                          maxWidth: '2000px',
+                          width: '270px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          p: '16px'
+                        }}
+                      >
+                        {item?.code && <Typography sx={{ fontWeight: 600, fontSize: '14px', color: item.type === 'Medical' ? theme.palette.customColors.Tertiary : item.type === 'Vaccination' ? theme.palette.primary.dark : theme.palette.customColors.addPrimary }}>
+                          {item.code}
+                        </Typography>}
+
+                        {Object.entries(item.details).map(([key, value]) => (
+                          <Tooltip title={`${key} : ${Array.isArray(value) ? String(value).split(',').join(', ') : value}}`}>
+                            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, letterSpacing: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                              {key} : <span style={{ fontWeight: 500, letterSpacing: '0.1px', letterSpacing: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }} >{Array.isArray(value) ? String(value).split(',').join(', ') : value}</span>
                             </Typography>
-                            <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-                              {item.createdBy.timestamp}
-                            </Typography>
+                          </Tooltip>
+                        ))}
+
+                        {item.createdBy && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Avatar sx={{ width: 34, height: 34 }} />
+                            <Box>
+                              <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+                                {item.createdBy.name}
+                              </Typography>
+                              <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+                                {item.createdBy.timestamp}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                      )}
+                        )}
+                      </Box>
                     </Box>
                   </TimelineContent>
                 </TimelineItem>
               ))}
             </Timeline>
           </Box>
-        ))}
-      </Box>
+        ))
+        }
+      </Box >
     )
   }
 
