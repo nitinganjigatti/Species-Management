@@ -16,7 +16,7 @@ import { useAuth } from 'src/hooks/useAuth'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
-import withModuleAccess from 'src/components/ProtectedRoute'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
@@ -40,6 +40,9 @@ const SectionDetails = () => {
   const [addEnclosureDrawerOpen, setAddEnclosureDrawerOpen] = useState(false)
   const [refetchEnclosure, setRefechEnclosure] = useState(false)
   const auth = useAuth()
+
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
+  const addEnclosureAccess = auth?.userData?.roles?.settings?.housing_add_enclosure
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
@@ -154,14 +157,16 @@ const SectionDetails = () => {
           data={data?.data}
           loading={isLoading}
           zooName={data?.data?.section_name}
+
           // subtitle={data?.data?.site_description}
           userName={data?.data?.incharge_name}
+
           // description={data?.data?.incharges?.[0]?.full_name}
           // userImage={data?.data?.incharges?.[0]?.user_profile_pic}
           actions={{
             // onEdit: () => console.log('Edit'),
             // onDelete: () => console.log('Delete'),
-            onAddNew: () => setAddEnclosureDrawerOpen(true)
+            onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null
 
             // onTimeClick: () => console.log('Time clicked')
           }}
@@ -173,6 +178,8 @@ const SectionDetails = () => {
               return
             }
           }}
+          haveInsightsViewAccess={insightsViewAccess}
+
           // onMessageClick={() => console.log('Message clicked')}
           error={error}
           statsData={statsData}
@@ -220,4 +227,4 @@ const SectionDetails = () => {
   )
 }
 
-export default withModuleAccess(SectionDetails, 'enable_housing_in_web')
+export default enforceModuleAccess(SectionDetails, 'enable_housing_in_web')

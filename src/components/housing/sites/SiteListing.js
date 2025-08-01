@@ -41,6 +41,8 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
+
   // Populate filters from query string on mount
   useEffect(() => {
     const { page = '1', pageSize = '10', search = '', sortBy = '', sortOrder = 'asc' } = query
@@ -211,7 +213,6 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
         </Box>
       )
     },
-
     {
       width: 330,
       field: 'site_name',
@@ -230,176 +231,176 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
         />
       )
     },
-    {
-      width: 170,
-      field: 'species',
-      headerName: 'Species',
-      align: 'left', // Align cell content
-      headerAlign: 'left', // Align header text
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            pl: 2,
-            justifyContent: 'left', // Center the number
-            cursor: 'pointer'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('species')
-            setDrawerData({
-              queryKey: 'site-species-drawer',
-              id: params.row.site_id,
-              name: params.row.site_name,
-              image: params.row.images?.[0]?.file,
-              params: {
-                site_id: params.row.site_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.species_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-
-    {
-      width: 150,
-      field: 'animals',
-      headerName: 'Animals',
-      align: 'left',
-      headerAlign: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'left',
-            pl: 2,
-            cursor: 'pointer'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('animals')
-            setDrawerData({
-              queryKey: 'site-animals-drawer',
-              id: params.row.site_id,
-              name: params.row.site_name,
-              image: params.row.images?.[0]?.file,
-              params: {
-                site_id: params.row.site_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.animal_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 150,
-      field: 'sections',
-      headerName: 'Sections',
-      align: 'left',
-      headerAlign: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'left',
-            pl: 2,
-            cursor: 'pointer'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('sections')
-            setDrawerData({
-              queryKey: 'site-sections-drawer',
-              id: params.row?.site_id,
-              name: params.row?.site_name,
-              image: params.row?.images?.[0]?.file,
-              params: {
-                site_id: params.row?.site_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{
-              fontWeight: 600,
-              fontSize: '16px',
-              color: theme.palette.primary.OnSurface
-            }}
-          >
-            {params.row.section_count}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 150,
-      field: 'enclosures',
-      headerName: 'Enclosures',
-      align: 'left',
-      headerAlign: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'left',
-            pl: 2,
-            cursor: 'default' // Enable if needed
-          }}
-          onClick={e => {
-            e.stopPropagation()
-
-            // Add logic if needed
-          }}
-        >
-          <Typography
-            sx={{
-              fontWeight: 600,
-              fontSize: '16px',
-              color: theme.palette.primary.OnSurface
-            }}
-          >
-            {params.row.enclosure_count}
-          </Typography>
-        </Box>
-      )
-    },
-
+    ...(insightsViewAccess
+      ? [
+          {
+            width: 170,
+            field: 'species',
+            headerName: 'Species',
+            align: 'left',
+            headerAlign: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  pl: 2,
+                  justifyContent: 'left',
+                  cursor: 'pointer'
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('species')
+                  setDrawerData({
+                    queryKey: 'site-species-drawer',
+                    id: params.row.site_id,
+                    name: params.row.site_name,
+                    image: params.row.images?.[0]?.file,
+                    params: {
+                      site_id: params.row.site_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.species_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'animals',
+            headerName: 'Animals',
+            align: 'left',
+            headerAlign: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'left',
+                  pl: 2,
+                  cursor: 'pointer'
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('animals')
+                  setDrawerData({
+                    queryKey: 'site-animals-drawer',
+                    id: params.row.site_id,
+                    name: params.row.site_name,
+                    image: params.row.images?.[0]?.file,
+                    params: {
+                      site_id: params.row.site_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.animal_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'sections',
+            headerName: 'Sections',
+            align: 'left',
+            headerAlign: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'left',
+                  pl: 2,
+                  cursor: 'pointer'
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('sections')
+                  setDrawerData({
+                    queryKey: 'site-sections-drawer',
+                    id: params.row?.site_id,
+                    name: params.row?.site_name,
+                    image: params.row?.images?.[0]?.file,
+                    params: {
+                      site_id: params.row?.site_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    color: theme.palette.primary.OnSurface
+                  }}
+                >
+                  {params.row.section_count}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'enclosures',
+            headerName: 'Enclosures',
+            align: 'left',
+            headerAlign: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'left',
+                  pl: 2,
+                  cursor: 'default'
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    color: theme.palette.primary.OnSurface
+                  }}
+                >
+                  {params.row.enclosure_count}
+                </Typography>
+              </Box>
+            )
+          }
+        ]
+      : []),
     {
       width: 180,
       field: 'incharge',
@@ -428,7 +429,6 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
         </Box>
       )
     },
-
     {
       width: 150,
       field: 'actions',
