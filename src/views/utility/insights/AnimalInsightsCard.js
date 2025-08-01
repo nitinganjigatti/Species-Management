@@ -27,7 +27,7 @@ const AnimalInsightsCard = ({
       sx={{
         position: 'relative',
         borderRadius: 1.5,
-        backgroundImage: image && `url(${image})`,
+        backgroundImage: image && `url(${image || '/images/housing/testInDev.jpg'})`,
         background: !image && 'linear-gradient(180deg, #37BD69 0%, #1F415B 100%)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
