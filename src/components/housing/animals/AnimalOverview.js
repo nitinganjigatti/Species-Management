@@ -6,7 +6,7 @@ import Icon from 'src/@core/components/icon'
 import AnimalDetailsCard from 'src/views/pages/housing/animals/AnimalDetailsCard'
 import EnclosureDetailsCard from 'src/views/pages/housing/animals/EnclosureDetailsCard'
 
-const AnimalOverview = () => {
+const AnimalOverview = ({ animalDetails, enclosureDetails }) => {
   return (
     <>
       <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -16,8 +16,8 @@ const AnimalOverview = () => {
         </IconButton>
       </Box>
       <Box>
-        <AnimalDetailsCard />
-        <EnclosureDetailsCard />
+        <AnimalDetailsCard data={animalDetails} />
+        <EnclosureDetailsCard enclosureData={enclosureDetails} />
       </Box>
     </>
   )
