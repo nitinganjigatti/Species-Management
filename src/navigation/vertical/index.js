@@ -37,7 +37,7 @@ const ComposeNavigation = () => {
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
-  const housingModuleCluster = !authData?.userData?.roles?.settings?.manage_cluster_permission
+  const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
