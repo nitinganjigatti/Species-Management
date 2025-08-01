@@ -2,7 +2,7 @@ import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import AnimalDiet from 'src/components/housing/animals/AnimalDiet'
 import AnimalHistory from 'src/components/housing/animals/AnimalHistory'
 import AnimalIdentifier from 'src/components/housing/animals/AnimalIdentifier'
@@ -15,6 +15,8 @@ import AnimalQRCard from 'src/views/pages/housing/animals/AnimalQRCard'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import AnimalMedia from 'src/components/housing/animals/AnimalMedia'
+import { getAnimalDetailsOverview } from 'src/lib/api/housing'
+import Utility from 'src/utility'
 
 const tabConfig = [
   { label: 'Overview', value: 'overview', component: AnimalOverview },
@@ -27,14 +29,6 @@ const tabConfig = [
   { label: 'Media', value: 'media', component: AnimalMedia }
 ]
 
-const dummyData = {
-  imageUrl:
-    'https://api.dev.antzsystems.com/api/image/download/uploaded/file?path=uploads/species_images/D1E92EE1-9DC9-443C-95FD-5400C5B33943_1753177485.jpg',
-  speciesName: 'Somatogyrus fluvialis',
-  aid: '38832',
-  qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://antz.app/species/38832'
-}
-
 const animalHeaderDetails = {
   commonName: 'Macaw',
   scientificName: 'Somatogyrus somatogyrus',
@@ -46,10 +40,73 @@ const AnimalDetais = () => {
   const router = useRouter()
   const { id } = router.query
 
+  const [loading, setLoading] = useState(false)
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
-  const [drawerType, setDrawerType] = useState(null)
-  const [drawerData, setDrawerData] = useState(null)
   const [qrDialogOpen, setQrDialogOpen] = useState(false)
+  const [qrData, setQrData] = useState({})
+  const [data, setData] = useState({})
+  const [animalDetails, setAnimalDetails] = useState({})
+  const [enclosureDetails, setEnclosureDetails] = useState({})
+
+  useEffect(() => {
+    const fetchAnimalOverviewData = async () => {
+      setLoading(true)
+
+      try {
+        const params = {
+          animal_id: id
+        }
+        const response = await getAnimalDetailsOverview(params)
+
+        if (response?.success) {
+          setData(response)
+          const ad = response?.data?.animal_details
+          const ed = response?.data?.enclosure_details
+          setQrData({
+            imageUrl: ad?.default_icon,
+            speciesName: ad?.complete_name,
+            aid: ad?.animal_id,
+            qrCodeUrl: ad?.animal_qr_image
+          })
+          setAnimalDetails({
+            commonName: ad?.common_name,
+            scientificName: ad?.complete_name,
+            aid: ad?.animal_id,
+            enclosure: ad?.user_enclosure_name,
+            breed: ad?.breed_name,
+            morph: ad?.morph_name,
+            sex: ad?.sex,
+            lifeStage: ad?.life_stage_name,
+            accessionDate: Utility.formatDisplayDate(ad?.accession_date),
+            birthDate: Utility.formatDisplayDate(ad?.birth_date),
+            age: ad?.age,
+            contraceptionStatus: ad?.contraception_status,
+            sexingType: ad?.sexing_type,
+            collectionType: ad?.collection_type,
+            organisation: ad?.organization_name,
+            ownershipTerm: ad?.ownership_terms_label,
+            localIdentifier: ad?.local_identifier_value,
+            isAlive: ad?.is_alive,
+            identifierName: ad?.local_identifier_name
+          })
+          setEnclosureDetails({
+            enclusreId: ed?.user_enclosure_name,
+            enclusreType: ed?.enclosure_type_name,
+            sectionName: ed?.section_name,
+            siteName: ed?.site_name
+          })
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Cannot fetch Animal Overview', error)
+        setLoading(false)
+      }
+    }
+
+    fetchAnimalOverviewData()
+  }, [id])
+
+  console.log(data, 'animalData')
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue)
@@ -74,9 +131,12 @@ const AnimalDetais = () => {
         </Breadcrumbs>
         <AnimalInsightsCard
           isAnimalDetailsPage={true}
-          headerDetails={animalHeaderDetails}
+          headerDetails={animalDetails}
+          animalDetails={animalDetails}
           showQr={true}
           onQrClick={handleQrClick}
+          image={data?.data?.animal_details?.banner_images[0]?.image_path}
+          loading={loading}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -91,16 +151,21 @@ const AnimalDetais = () => {
             <SelectedComponent
               selectedTab={selectedTab}
               setSelectedTab={setSelectedTab}
-              drawerType={drawerType}
-              setDrawerType={setDrawerType}
-              drawerData={drawerData}
-              setDrawerData={setDrawerData}
+              animalDetails={animalDetails}
+              enclosureDetails={enclosureDetails}
             />
           </Box>
         </Card>
       </Box>
       {qrDialogOpen && (
-        <AnimalQRCard open={qrDialogOpen} handleClose={() => setQrDialogOpen(false)} speciesData={dummyData} />
+        <AnimalQRCard
+          open={qrDialogOpen}
+          handleClose={() => {
+            setQrDialogOpen(false)
+            setQrData({})
+          }}
+          speciesData={qrData}
+        />
       )}
     </>
   )

@@ -542,7 +542,7 @@ export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
 
 export const GET_SITES_LIST_CLUSTER_WISE = `cluster/get-site-list-for-cluster-assign`
 
-export const ADD_CLUSTER = `cluster/add-cluster` 
+export const ADD_CLUSTER = `cluster/add-cluster`
 
 export const ADD_SECTION = `/zoos/createsection`
 
@@ -631,3 +631,13 @@ export const GET_ANIMAL_LIST_FOR_OBSERVATION_REPORT = `v1/collection/animal/list
 export const GET_OBSERVATION_REPORT = `v1/notes/observation`
 
 export const GET_ANIMAL_FILTERS_LISTS = `/v1/collection/animal/stats`
+
+export const ANIMAL_DETAILS_OVERVIEW = `animal/get-common-data-by-animal-id-new`
+
+export const ANIMAL_DETAILS_INCIDENT_LIST = `animal/incidentlist/`
+
+export const ANIMAL_INCIDENT_DETAILS = `animal/incident/`
+
+export const ANIMAL_CREATE_INCIDENT = `animal/create-incident-report`
+
+export const ANIMAL_UPDATE_INCIDENT = `animal/incident/edit`

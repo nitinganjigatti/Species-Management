@@ -34,8 +34,7 @@ const AnimalQRCard = ({ open, handleClose, speciesData }) => {
         >
           AID: {aid}
         </Typography>
-        <Box
-          component='img'
+        <img
           src={qrCodeUrl}
           alt='QR Code'
           sx={{

@@ -7,7 +7,7 @@ const AnimalDetailsCard = ({ data }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const left = [
-    { label: 'Animal ID', value: data?.animalId || 'NA' },
+    { label: 'Animal ID', value: data?.aid || 'NA' },
     { label: 'Accession Date', value: data?.accessionDate || 'NA' },
     { label: 'Birth Date', value: data?.birthDate || 'NA' },
     { label: 'Age', value: data?.age || 'NA' },

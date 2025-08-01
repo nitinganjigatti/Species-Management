@@ -26,7 +26,11 @@ import {
   ADD_ENCLOSURE_TO_HOUSING,
   GET_ENCLOSURE_SETTINGS,
   GET_SECTION_FOR_ENCLOSURE,
-  GET_PARENT_ENCLOSURE
+  GET_PARENT_ENCLOSURE,
+  ANIMAL_DETAILS_OVERVIEW,
+  ANIMAL_DETAILS_INCIDENT_LIST,
+  ANIMAL_INCIDENT_DETAILS,
+  ANIMAL_UPDATE_INCIDENT
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -42,7 +46,7 @@ export async function AddNewSite(params) {
 }
 
 export async function getAllSites(params) {
-  const response = await axiosGet({ url: `${GET_SITES}`, params }) 
+  const response = await axiosGet({ url: `${GET_SITES}`, params })
 
   return response.data
 }
@@ -183,4 +187,30 @@ export async function getParentEnclosureList(params) {
   const respponse = await axiosPost({ url: `${GET_PARENT_ENCLOSURE}`, body: params })
 
   return respponse?.data
+}
+
+export async function getAnimalDetailsOverview(params) {
+  const response = await axiosGet({ url: `${ANIMAL_DETAILS_OVERVIEW}`, params })
+
+  return response?.data
+}
+
+export async function getAnimalIncidentList(animalId) {
+  const response = await axiosGet({ url: `${ANIMAL_DETAILS_INCIDENT_LIST}/${animalId}` })
+
+  return response?.data
+}
+
+export async function getAnimalIncidentDetails(animalId) {
+  const response = await axiosGet({ url: `${ANIMAL_INCIDENT_DETAILS}/${animalId}` })
+
+  return response?.data
+}
+
+export async function createAnimalIncident() {}
+
+export async function updateAnimalIncident(params) {
+  const response = await axiosPost({ url: `${ANIMAL_UPDATE_INCIDENT}`, body: params })
+
+  return response?.data
 }

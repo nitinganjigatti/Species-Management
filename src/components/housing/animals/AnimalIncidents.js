@@ -363,20 +363,6 @@ const AnimalIncidents = () => {
                     10 Apr 2024 • 12:28 PM
                   </Typography>
                 </Box>
-                {/* <AnimalInsightsCard
-                  animalDetails={{
-                    aid: '0027334',
-                    breed: 'Rainbow Lorikeet',
-                    morph: 'Trichoglossus moluccanus',
-                    sex: 'NA', // Not shown in image
-                    lifeStage: 'NA', // Not shown in image
-                    enclosure: 'Enclosure23',
-                    section: 'Section 23',
-                    site: 'Gagva',
-                    image:
-                      'https://upload.wikimedia.org/wikipedia/commons/7/7a/Rainbow_Lorikeet_Trichoglossus_moluccanus_-Australia-8a.jpg' // optional
-                  }}
-                /> */}
               </Box>
             </Box>
             <Box
