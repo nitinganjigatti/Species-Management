@@ -66,14 +66,23 @@ const CitesExportPermitIndex = () => {
   const fetchExportPermits = useCallback(async () => {
     setLoading(true)
     try {
+      // Format dates to YYYY-MM-DD if they exist
+      const formatDate = dateString => {
+        if (!dateString) {
+          return null
+        }
+
+        return new Date(dateString).toISOString().split('T')[0]
+      }
+
       const params = {
         q: searchValue,
         page_no: paginationModel.page + 1,
         limit: paginationModel.pageSize,
         sort: sortModel?.[0]?.sort,
         sortBy: sortModel?.[0]?.field,
-        from_date: filterDate.startDate,
-        to_date: filterDate.endDate,
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
         exporting_country: selectedExportingCountry?.value
 
         // country_of_origin: selectedCountryOfOrigin?.value,
