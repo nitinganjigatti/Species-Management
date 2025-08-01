@@ -812,13 +812,11 @@ const RecipeCard = ({
           maxWidth: '562px',
           position: 'fixed',
           bottom: 0,
-
           px: 4,
           bgcolor: 'white',
           alignItems: 'center',
           justifyContent: 'center',
           display: 'flex'
-
           // bgcolor: 'yellow'
         }}
       >
@@ -832,7 +830,7 @@ const RecipeCard = ({
           </Button>
         )}
       </Box>
-      {/* )} */}
+     
     </Box>
   )
 }

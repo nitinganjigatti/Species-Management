@@ -124,7 +124,6 @@ const StepPreviewDiet = ({
       const numericType = type !== 'Generic' ? parseFloat(type) : type
 
       const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
-        // Check if meal_value_header is not equal to 'Generic'
         if (meal.meal_value_header !== 'Generic') {
           return parseFloat(meal.meal_value_header) === numericType
         } else {
@@ -165,7 +164,7 @@ const StepPreviewDiet = ({
       setheadertype(type)
     } else {
       const inputString = type
-      const numberOnly = inputString.replace(/[^\d.-]/g, '') // Remove all non-numeric characters
+      const numberOnly = inputString.replace(/[^\d.-]/g, '') 
       const textOnly = inputString.replace(/^\s*\d*\s*/, '')
 
       setheadertype(type)
@@ -208,7 +207,6 @@ const StepPreviewDiet = ({
     }
   }, [formData, reset])
 
-  // Define a function to receive the diet_types values from the child component
   const handleReceiveDietTypes = dietTypesData => {
     setDietTypes(dietTypesData)
     setActivitySidebarOpen(false)
@@ -234,7 +232,6 @@ const StepPreviewDiet = ({
     document.cookie = `dietTypeChildValues=${JSON.stringify(stateforHeader)}; path=/`
     document.cookie = `dietTypeChildVal=${JSON.stringify(apival)}; path=/`
 
-    // Check if stateforHeader is an array
     if (Array.isArray(stateforHeader)) {
       setdiettypechildvalues(stateforHeader)
     } else {
@@ -274,7 +271,7 @@ const StepPreviewDiet = ({
 
   useEffect(() => {
     if (id) {
-      //const child = formData.child
+     
       const dietTypeChildValues = getCookie('dietTypeChildValues')
       const dietTypeChildVal = getCookie('dietTypeChildVal')
       if (dietTypeChildValues !== null) {
@@ -322,17 +319,17 @@ const StepPreviewDiet = ({
   }, [activitySidebarOpen, id])
 
   const CustomScrollbar = styled('div')({
-    overflowX: 'auto', // or 'scroll'
+    overflowX: 'auto', 
     '&::-webkit-scrollbar': {
-      width: 10, // specify your desired width
-      height: 4 // specify your desired height
+      width: 10, 
+      height: 4 
     },
     '&::-webkit-scrollbar-track': {
-      backgroundColor: 'transparent' // customize track color if needed
+      backgroundColor: 'transparent' 
     },
     '&::-webkit-scrollbar-thumb': {
-      backgroundColor: 'lightgray', // customize thumb color if needed
-      borderRadius: 5 // specify border radius
+      backgroundColor: 'lightgray', 
+      borderRadius: 5 
     }
   })
 
@@ -377,7 +374,6 @@ const StepPreviewDiet = ({
                 }
               })
 
-              // Update mealTypeArray with weight_uom_id and weight_uom_label if found in the cookie
               if (existingMealTypeIndex !== -1) {
                 mealTypeArray[existingMealTypeIndex] = {
                   meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
@@ -386,13 +382,11 @@ const StepPreviewDiet = ({
                   feed_uom_name: feed_uom_name?.label || feed_uom_name,
                   notes: notes,
                   ...(headertype !== 'Generic' && {
-                    // Conditionally include weight_uom_id and weight_uom_label
                     weight_uom_id: uomId,
                     weight_uom_label: uomLabel
                   })
                 }
               } else {
-                // If an existing object with the same meal_value_header is not found, add a new object
                 mealTypeArray.push({
                   meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
                   quantity: quantity,
@@ -400,7 +394,6 @@ const StepPreviewDiet = ({
                   feed_uom_name: feed_uom_name?.label || feed_uom_name,
                   notes: notes,
                   ...(headertype !== 'Generic' && {
-                    // Conditionally include weight_uom_id and weight_uom_label
                     weight_uom_id: uomId,
                     weight_uom_label: uomLabel
                   })
@@ -435,8 +428,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else if (dietTypeval === 'recipe') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
-
+        const updatedFormData = { ...formData } 
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
@@ -581,7 +573,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
+        const updatedFormData = { ...formData } 
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
@@ -678,7 +670,7 @@ const StepPreviewDiet = ({
   useEffect(() => {
     if (formData.diet_type_name === 'By Weight') {
       const updatedFormData = { ...formData, child: diettypechildvalues }
-      setlocalformData(updatedFormData) // Update local state
+      setlocalformData(updatedFormData)
       setFormData(updatedFormData)
     }
   }, [diettypechildvalues, formData.diet_type_name])
@@ -687,9 +679,8 @@ const StepPreviewDiet = ({
     const updatedFormData = { ...formData }
     console.log(updatedFormData, 'updatedFormData')
 
-    // Iterate over meal_data
+    
     updatedFormData.meal_data.forEach(meal => {
-      // Check if the meal_data has an ingredient array
       if (meal.ingredient) {
         meal.ingredient.forEach(ingredient => {
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
@@ -704,7 +695,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.recipe) {
         meal.recipe.forEach(recipe => {
           if (recipe.meal_type && recipe.meal_type.length > 0) {
@@ -719,7 +709,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.combo) {
         meal.combo.forEach(recipe => {
           if (recipe.meal_type && recipe.meal_type.length > 0) {
@@ -734,7 +723,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.ingredientwithchoice) {
         meal.ingredientwithchoice.forEach(ingredientwithchoice => {
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
@@ -795,12 +783,11 @@ const StepPreviewDiet = ({
         className=''
         open={open}
         onClose={(event, reason) => {
-          // Prevent closing on backdrop click or Escape key
           if (reason !== 'backdropClick') {
             handleClosed()
           }
         }}
-        disableEscapeKeyDown // Disable closing on pressing Escape
+        disableEscapeKeyDown 
         aria-labelledby='customized-dialog-title'
         sx={{
           '& .MuiDialog-paper': {
@@ -856,10 +843,10 @@ const StepPreviewDiet = ({
                   render={({ field: { value, onChange } }) => (
                     <Autocomplete
                       onChange={(event, newValue) => {
-                        onChange(newValue) // Update the form value
+                        onChange(newValue) 
                       }}
                       defaultValue={initialValues.feed_uom_name ? initialValues.feed_uom_name : null}
-                      options={transformedArray} // List of options with value and label
+                      options={transformedArray} 
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                       renderInput={params => (
@@ -968,7 +955,7 @@ const StepPreviewDiet = ({
                 </CardContent>
               </div>
             </Grid>
-            {/* Second Grid item */}
+           
             <Grid item size={{ xs: 10, sm: 7.5 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography>
@@ -1473,7 +1460,7 @@ const StepPreviewDiet = ({
                                 </span>
                               </TableCell>
 
-                              {/* Recipe module start  */}
+                            
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
@@ -2823,9 +2810,7 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* Combo module end */}
-
-                              {/* ingredient module start */}
+                             
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   return (
@@ -3967,10 +3952,10 @@ const StepPreviewDiet = ({
                             </TableRow>
                             <TableRow
                               sx={{
-                                width: '100%', // Ensure the row spans the full width of the table
-                                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, // Add border directly to the row
-                                minHeight: '48px', // Optional: set a minimum height for the row
-                                display: 'table-row', // Default behavior for TableRow
+                                width: '100%', 
+                                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, 
+                                minHeight: '48px', 
+                                display: 'table-row', 
                                 '&:hover': {
                                   backgroundColor: theme.palette.secondary.contrastText,
                                   boxShadow: 'none'
@@ -3984,7 +3969,7 @@ const StepPreviewDiet = ({
                                     {itemd.notes}
                                   </>
                                 ) : (
-                                  <></> // Render nothing if no notes are available
+                                  <></> 
                                 )}
                               </TableCell>
                             </TableRow>
@@ -4007,8 +3992,8 @@ const StepPreviewDiet = ({
                         label='Remarks (Optional)'
                         name='remarks'
                         onChange={e => {
-                          onChange(e) // Update react-hook-form state
-                          onRemarksChange(e.target.value) // Update formData state in AddDiet
+                          onChange(e) 
+                          onRemarksChange(e.target.value)
                         }}
                         id='textarea-outlined'
                         rows={5}
