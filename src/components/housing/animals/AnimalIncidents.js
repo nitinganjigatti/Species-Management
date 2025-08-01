@@ -194,6 +194,255 @@ const AnimalIncidents = () => {
     }
   ]
 
+  const incidentListData = [
+    {
+      id: 'INC00410',
+      date: '12 Dec 2025',
+      time: '03:20 PM',
+      type: 'Animal Missing',
+      site: 'Bannerghatta East 12A',
+      section: 'Hillcrest Wildlife Center',
+      enclosure: 'Enclosure-234'
+    },
+    {
+      id: 'INC00411',
+      date: '13 Dec 2025',
+      time: '10:10 AM',
+      type: 'Animal Found',
+      site: 'Nagarhole Zone 3',
+      section: 'Riverbank Rescue Center',
+      enclosure: 'Enclosure-567'
+    },
+    {
+      id: 'INC00412',
+      date: '14 Dec 2025',
+      time: '08:45 PM',
+      type: 'Animal Missing',
+      site: 'Kaziranga West',
+      section: 'Savannah Watchpoint',
+      enclosure: 'Enclosure-991'
+    }
+  ]
+
+  const IncidentCardList = ({ data, onViewDetails, onEdit, onMisreport, onReportFound }) => {
+    const theme = useTheme()
+    const [anchorEl, setAnchorEl] = useState(null)
+    const open = Boolean(anchorEl)
+
+    const handleMenuOpen = event => setAnchorEl(event.currentTarget)
+    const handleMenuClose = () => setAnchorEl(null)
+
+    return data.map((incident, index) => (
+      <Grid
+        container
+        key={incident.id}
+        sx={{
+          padding: '8px 12px 8px 8px',
+          backgroundColor: incident.type === 'Animal Found' ? theme.palette.customColors.OnBackground : theme.palette.customColors.Tertiary20,
+          borderRadius: '8px',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}
+        spacing={4}
+      >
+        <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              minWidth: '120px',
+              backgroundColor: incident.type === 'Animal Found' ? theme.palette.primary.dark : theme.palette.customColors.Tertiary,
+              borderRadius: '8px',
+              padding: '12px'
+            }}
+          >
+            <Typography
+              sx={{ textAlign: 'center', color: theme.palette.primary.contrastText, fontSize: 14, fontWeight: 600 }}
+            >
+              {incident.date}
+            </Typography>
+            <Typography
+              sx={{ textAlign: 'center', color: theme.palette.primary.contrastText, fontSize: 14, fontWeight: 600 }}
+            >
+              {incident.time}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', minWidth: '100px', maxWidth: '1000px', flexDirection: 'column', gap: '6px' }}>
+            <Tooltip title={incident.id}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: 20,
+                  fontWeight: 500,
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {incident.id}
+              </Typography>
+            </Tooltip>
+            <Tooltip title={incident.type}>
+              <Typography
+                sx={{
+                  color: incident.type === 'Animal Found' ? theme.palette.primary.dark : theme.palette.customColors.Tertiary,
+                  fontSize: 16,
+                  fontWeight: 500,
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {incident.type}
+              </Typography>
+            </Tooltip>
+          </Box>
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <Tooltip title={'Site'}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: 14,
+                fontWeight: 400,
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Site
+            </Typography>
+          </Tooltip>
+          <Tooltip title={incident.site}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: 16,
+                fontWeight: 500,
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {incident.site}
+            </Typography>
+          </Tooltip>
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <Tooltip title={'Section'}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: 14,
+                fontWeight: 400,
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Section
+            </Typography>
+          </Tooltip>
+          <Tooltip title={incident.section}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: 16,
+                fontWeight: 500,
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {incident.section}
+            </Typography>
+          </Tooltip>
+        </Grid>
+        <Grid item size={{ xs: 10, sm: 5, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <Tooltip title={'Enclosure'}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: 14,
+                fontWeight: 400,
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Enclosure
+            </Typography>
+          </Tooltip>
+          <Tooltip title={'INC00410'}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: 16,
+                fontWeight: 500,
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {incident.enclosure}
+            </Typography>
+          </Tooltip>
+        </Grid>
+        <Grid item size={{ xs: 2, sm: 1, md: 0.5 }}>
+          <IconButton size='small' onClick={handleMenuOpen}>
+            <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:dots-vertical' />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem
+              onClick={() => {
+                setActivtyLogSideBar(true)
+                handleMenuClose()
+              }}
+            >
+              View Details
+            </MenuItem>
+            <MenuItem onClick={handleMenuClose}>Edit Incident</MenuItem>
+            <MenuItem
+              onClick={() => {
+                setMissReportIncidence('Found')
+                setMissReportIncidentForm(true)
+                handleMenuClose()
+              }}
+            >
+              Misreport Found
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setMissReportIncidence('Missing')
+                setMissReportIncidentForm(true)
+                handleMenuClose()
+              }}
+            >
+              Misreport Missing
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setReportFoundForm(true)
+                handleMenuClose()
+              }}
+            >
+              Report Found
+            </MenuItem>
+          </Menu>
+        </Grid>
+      </Grid>
+    ))
+  }
+
+
   const handleScroll = async e => {
     // const container = e.target
     // // Check if the user has reached the bottom
@@ -223,6 +472,154 @@ const AnimalIncidents = () => {
     //   }
     // }
   }
+
+  const IncidentDetailsCard = ({ item, index }) => (
+    <TimelineItem key={index}>
+      <TimelineSeparator
+        sx={{
+          '& span': {
+            ml: '1px',
+            background: 'transparent',
+            width: '1px',
+            height: '100%',
+            backgroundImage: `repeating-linear-gradient(
+                            to bottom,
+                            ${theme.palette.customColors.OutlineVariant},
+                            ${theme.palette.customColors.OutlineVariant} 5px,
+                            transparent 8px,
+                            transparent 13px
+                            )`,
+            opacity: 1
+
+            // strokeDashoffset: '5 8',
+            // borderLeft: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
+          }
+        }}
+      >
+        <Box
+          sx={{
+            // border: '2px solid ',
+            backgroundColor:
+              item.type === 'Animal Missing' || item.status === 'Discard' || item.status === 'Rotten'
+                ? theme.palette.formContent.tertiary
+                : theme.palette.primary.dark,
+            boxSizing: 'border-box',
+            width: '16px',
+            height: '16px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        ></Box>
+        {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
+      </TimelineSeparator>
+      <TimelineContent
+        sx={{
+          ml: 4,
+          borderRadius: '8px',
+          position: 'relative',
+          top: -5,
+          p: 0
+        }}
+      >
+        <Typography
+          sx={{
+            color: item.color,
+            fontWeight: 400,
+            fontSize: 14,
+            mb: '12px'
+          }}
+        >
+          {item.type}
+        </Typography>
+        <Box
+          sx={{
+            flexGrow: 1,
+            backgroundColor: item.type === 'Animal Found' ? '#E1F9ED' : '#FFBDA833',
+            borderRadius: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            p: '16px'
+          }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Typography
+              sx={{
+                fontWeight: 400,
+                fontSize: '14px',
+                letterSpacing: 0,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              {item.type === 'Animal Found' ? 'Found On' : 'Missing Since'}
+            </Typography>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '16px',
+                letterSpacing: 0,
+                color: theme.palette.customColors.neutralPrimary
+              }}
+            >
+              {item.date} • {item.time}
+            </Typography>
+          </Box>
+          {Object.entries(item.details).map(([key, value]) => (
+            <Box key={key}>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: '14px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {key}
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.neutralPrimary
+                }}
+              >
+                {value}
+              </Typography>
+            </Box>
+          ))}
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Avatar sx={{ width: 34, height: 34 }} />
+            <Box>
+              <Typography
+                sx={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Sourav tambe
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 400,
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                14 Apr 2024 | 12 : 35 PM
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      </TimelineContent>
+    </TimelineItem>
+  )
 
   const IncidentTimeline = () => {
     // Styled Timeline component
@@ -258,8 +655,6 @@ const AnimalIncidents = () => {
               px: 4,
               position: 'sticky',
               top: 0,
-
-              // backgroundColor: theme.palette.primary.contrastText,
               backgroundColor: theme.palette.customColors.Background,
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
               zIndex: 100
@@ -281,8 +676,6 @@ const AnimalIncidents = () => {
                   borderRadius: '4px',
                   height: '32px',
                   width: '32px'
-
-                  // backgroundColor: theme.palette.customColors.mdAntzNeutral
                 }}
               >
                 <Icon icon={'ion:time-outline'} />
@@ -400,151 +793,7 @@ const AnimalIncidents = () => {
               {activtyLogData?.length > 0 ? (
                 <Timeline>
                   {activtyLogData?.map((item, index) => (
-                    <TimelineItem key={index}>
-                      <TimelineSeparator
-                        sx={{
-                          '& span': {
-                            ml: '1px',
-                            background: 'transparent',
-                            width: '1px',
-                            height: '100%',
-                            backgroundImage: `repeating-linear-gradient(
-                            to bottom,
-                            ${theme.palette.customColors.OutlineVariant},
-                            ${theme.palette.customColors.OutlineVariant} 5px,
-                            transparent 8px,
-                            transparent 13px
-                            )`,
-                            opacity: 1
-
-                            // strokeDashoffset: '5 8',
-                            // borderLeft: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
-                          }
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            // border: '2px solid ',
-                            backgroundColor:
-                              item.type === 'Animal Missing' || item.status === 'Discard' || item.status === 'Rotten'
-                                ? theme.palette.formContent.tertiary
-                                : theme.palette.primary.dark,
-                            boxSizing: 'border-box',
-                            width: '16px',
-                            height: '16px',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        ></Box>
-                        {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
-                      </TimelineSeparator>
-                      <TimelineContent
-                        sx={{
-                          ml: 4,
-                          borderRadius: '8px',
-                          position: 'relative',
-                          top: -5,
-                          p: 0
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color: item.color,
-                            fontWeight: 400,
-                            fontSize: 14,
-                            mb: '12px'
-                          }}
-                        >
-                          {item.type}
-                        </Typography>
-                        <Box
-                          sx={{
-                            flexGrow: 1,
-                            backgroundColor: item.type === 'Animal Found' ? '#E1F9ED' : '#FFBDA833',
-                            borderRadius: 2,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '16px',
-                            p: '16px'
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <Typography
-                              sx={{
-                                fontWeight: 400,
-                                fontSize: '14px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.OnSurfaceVariant
-                              }}
-                            >
-                              {item.type === 'Animal Found' ? 'Found On' : 'Missing Since'}
-                            </Typography>
-                            <Typography
-                              sx={{
-                                fontWeight: 500,
-                                fontSize: '16px',
-                                letterSpacing: 0,
-                                color: theme.palette.customColors.neutralPrimary
-                              }}
-                            >
-                              {item.date} • {item.time}
-                            </Typography>
-                          </Box>
-                          {Object.entries(item.details).map(([key, value]) => (
-                            <Box key={key}>
-                              <Typography
-                                sx={{
-                                  fontWeight: 400,
-                                  fontSize: '14px',
-                                  letterSpacing: 0,
-                                  color: theme.palette.customColors.OnSurfaceVariant
-                                }}
-                              >
-                                {key}
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  fontWeight: 500,
-                                  fontSize: '16px',
-                                  letterSpacing: 0,
-                                  color: theme.palette.customColors.neutralPrimary
-                                }}
-                              >
-                                {value}
-                              </Typography>
-                            </Box>
-                          ))}
-
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Avatar sx={{ width: 34, height: 34 }} />
-                            <Box>
-                              <Typography
-                                sx={{
-                                  fontSize: 14,
-                                  fontWeight: 500,
-                                  letterSpacing: 0,
-                                  color: theme.palette.customColors.OnSurfaceVariant
-                                }}
-                              >
-                                Sourav tambe
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  fontSize: 12,
-                                  fontWeight: 400,
-                                  letterSpacing: 0,
-                                  color: theme.palette.customColors.OnSurfaceVariant
-                                }}
-                              >
-                                14 Apr 2024 | 12 : 35 PM
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                      </TimelineContent>
-                    </TimelineItem>
+                    <IncidentDetailsCard item={item} index={index} key={index} />
                   ))}
                 </Timeline>
               ) : null}
@@ -577,213 +826,16 @@ const AnimalIncidents = () => {
             </Button>
           </Box>
 
-          <Grid
-            container
-            sx={{
-              padding: '8px 12px 8px 8px',
-              backgroundColor: theme.palette.customColors.OnBackground,
-              borderRadius: '8px',
-
-              // display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap'
+          <IncidentCardList
+            data={incidentListData}
+            onViewDetails={() => setActivtyLogSideBar(true)}
+            onEdit={() => console.log('Edit incident')}
+            onMisreport={(incident, type) => {
+              setMissReportIncidence(type)
+              setMissReportIncidentForm(true)
             }}
-            spacing={4}
-          >
-            <Grid item size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  minWidth: '120px',
-                  backgroundColor: theme.palette.customColors.Tertiary,
-                  borderRadius: '8px',
-                  padding: '12px'
-                }}
-              >
-                <Typography
-                  sx={{ textAlign: 'center', color: theme.palette.primary.contrastText, fontSize: 14, fontWeight: 600 }}
-                >
-                  12 Dec 2025
-                </Typography>
-                <Typography
-                  sx={{ textAlign: 'center', color: theme.palette.primary.contrastText, fontSize: 14, fontWeight: 600 }}
-                >
-                  03:20 PM
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', minWidth: '100px', maxWidth: '1000px', flexDirection: 'column', gap: '6px' }}>
-                <Tooltip title={'INC00410'}>
-                  <Typography
-                    sx={{
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontSize: 20,
-                      fontWeight: 500,
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    INC00410
-                  </Typography>
-                </Tooltip>
-                <Tooltip title={'INC00410'}>
-                  <Typography
-                    sx={{
-                      color: theme.palette.customColors.Tertiary,
-                      fontSize: 16,
-                      fontWeight: 500,
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Animal Missing
-                  </Typography>
-                </Tooltip>
-              </Box>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <Tooltip title={'INC00410'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: 14,
-                    fontWeight: 400,
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Site
-                </Typography>
-              </Tooltip>
-              <Tooltip title={'INC00410'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: 16,
-                    fontWeight: 500,
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Bannerghatta East 12A
-                </Typography>
-              </Tooltip>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <Tooltip title={'INC00410'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: 14,
-                    fontWeight: 400,
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Section
-                </Typography>
-              </Tooltip>
-              <Tooltip title={'INC00410'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: 16,
-                    fontWeight: 500,
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Hillcrest Wildlife Center
-                </Typography>
-              </Tooltip>
-            </Grid>
-            <Grid item size={{ xs: 10, sm: 5, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <Tooltip title={'INC00410'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: 14,
-                    fontWeight: 400,
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Enclosure
-                </Typography>
-              </Tooltip>
-              <Tooltip title={'INC00410'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: 16,
-                    fontWeight: 500,
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Enclosure-234
-                </Typography>
-              </Tooltip>
-            </Grid>
-            <Grid item size={{ xs: 2, sm: 1, md: 0.5 }}>
-              <IconButton size='small' onClick={handleMenuOpen}>
-                <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:dots-vertical' />
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleMenuClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              >
-                <MenuItem
-                  onClick={() => {
-                    setActivtyLogSideBar(true)
-                    handleMenuClose()
-                  }}
-                >
-                  View Details
-                </MenuItem>
-                <MenuItem onClick={handleMenuClose}>Edit Incident</MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    setMissReportIncidence('Found')
-                    setMissReportIncidentForm(true)
-                    handleMenuClose()
-                  }}
-                >
-                  Misreport Found
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    setMissReportIncidence('Missing')
-                    setMissReportIncidentForm(true)
-                    handleMenuClose()
-                  }}
-                >
-                  Misreport Missing
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    setReportFoundForm(true)
-                    handleMenuClose()
-                  }}
-                >
-                  Report Found
-                </MenuItem>
-              </Menu>
-            </Grid>
-          </Grid>
+            onReportFound={() => setReportFoundForm(true)}
+          />
         </Box>
       </Box>
 
