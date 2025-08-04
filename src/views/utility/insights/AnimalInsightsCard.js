@@ -50,15 +50,15 @@ const AnimalInsightsCard = ({
         {loading ? (
           <>
             {/* Skeleton for header */}
-            <Skeleton variant='rounded' width={240} height={48} sx={{ mb: 4, bgcolor: 'grey.800' }} />
+            <Skeleton variant='rounded' width={240} height={48} sx={{ mb: 4, backgroundColor: 'grey.800' }} />
             {/* Main Skeleton Section */}
             <Box sx={{ mt: 10 }}>
               <Grid container spacing={2}>
                 {[1, 2, 3].map(idx => (
                   <Grid key={idx} item size={{ xs: 12, md: 4 }}>
-                    <Skeleton variant='rectangular' height={90} sx={{ borderRadius: 1, bgcolor: 'grey.900', mb: 1 }} />
-                    <Skeleton width='90%' sx={{ bgcolor: 'grey.900' }} />
-                    <Skeleton width='60%' sx={{ bgcolor: 'grey.900' }} />
+                    <Skeleton variant='rectangular' height={90} sx={{ borderRadius: 1, backgroundColor: 'grey.900', mb: 1 }} />
+                    <Skeleton width='90%' sx={{ backgroundColor: 'grey.900' }} />
+                    <Skeleton width='60%' sx={{ backgroundColor: 'grey.900' }} />
                   </Grid>
                 ))}
               </Grid>

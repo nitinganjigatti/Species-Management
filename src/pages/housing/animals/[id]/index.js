@@ -160,10 +160,7 @@ const AnimalDetais = () => {
       {qrDialogOpen && (
         <AnimalQRCard
           open={qrDialogOpen}
-          handleClose={() => {
-            setQrDialogOpen(false)
-            setQrData({})
-          }}
+          handleClose={() => setQrDialogOpen(false)}
           speciesData={qrData}
         />
       )}
