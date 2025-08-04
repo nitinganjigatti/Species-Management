@@ -75,7 +75,6 @@ function InComingAndOutGoingShipments({ type }) {
   const [loading, setLoading] = useState(false)
 
   const [sortColumn, setSortColumn] = useState('label')
-
   const [shipmentTab, setShipmentTab] = useState('all')
 
   const [paginationModel, setPaginationModel] = useState({
@@ -105,7 +104,7 @@ function InComingAndOutGoingShipments({ type }) {
       headerName: 'Shipment Id',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 500, fontSize: '14px' }}>
             {params.row.shipment_id}
           </Typography>
         </div>
@@ -116,27 +115,18 @@ function InComingAndOutGoingShipments({ type }) {
       field: 'ro_no',
       headerName: 'Belongs to',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography sx={{ color: 'primary.OnSurface', fontWeight: 500, fontSize: '14px' }}>
           {params.row.ro_no}
         </Typography>
       )
     },
-    {
-      width: 120,
-      field: 'shipment_date',
-      headerName: 'Date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.shipment_date)}
-        </Typography>
-      )
-    },
+
     {
       width: 120,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 500, fontSize: '14px' }}>
           {params.row.vehicle_no ? params.row.vehicle_no : 'NA'}
         </Typography>
       )
@@ -146,21 +136,17 @@ function InComingAndOutGoingShipments({ type }) {
       field: 'person_shipping',
       headerName: 'Driver Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
-        </Typography>
+        <Box sx={{ py: 2, mx: 'auto' }}>
+          <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 400, fontSize: '14px' }}>
+            {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
+          </Typography>
+          <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}>
+            {params.row.phone_number ? params.row.phone_number : 'NA'}
+          </Typography>
+        </Box>
       )
     },
-    {
-      width: 160,
-      field: 'phone_number',
-      headerName: 'Driver Number',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.phone_number ? params.row.phone_number : 'NA'}
-        </Typography>
-      )
-    },
+
     {
       width: 160,
       field: 'status',
@@ -238,8 +224,6 @@ function InComingAndOutGoingShipments({ type }) {
     // }
   ]
 
-  console.log('selectedPharmacy', selectedPharmacy, selectedStore && selectedPharmacy.type === 'central')
-
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
       try {
@@ -273,7 +257,7 @@ function InComingAndOutGoingShipments({ type }) {
         setLoading(false)
       }
     },
-    [paginationModel, selectedStore, selectedPharmacy, selectedRequest, shipmentTab, type]
+    [selectedStore, selectedPharmacy, selectedRequest, shipmentTab, type]
   )
 
   const searchTableData = useCallback(
@@ -369,7 +353,7 @@ function InComingAndOutGoingShipments({ type }) {
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, selectedStore, selectedRequest, shipmentTab])
+  }, [selectedPharmacy.id, selectedStore, selectedRequest, shipmentTab, paginationModel])
 
   useEffect(() => {
     fetchStoreList()
