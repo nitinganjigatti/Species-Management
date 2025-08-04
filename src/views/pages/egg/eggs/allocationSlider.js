@@ -57,8 +57,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             .number()
             .typeError('Value must be a number')
             .required('Weight is required')
-            .positive('Value must be positive') // Ensure positive
-            .min(1, 'Value must be greater than or equal to 1') // Ensure non-negative
+            .positive('Value must be positive') 
+            .min(1, 'Value must be greater than or equal to 1') 
         })
       )
       .required('At least one measurement is required')
@@ -499,8 +499,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                         message: 'Non-negative '
                                       })
 
-                                      // Update error state in react-hook-form if negative value
-                                      onChange(e) // Ensures the negative value is not stored in form state
+                                      onChange(e)
                                     }
                                   }}
                                   name={`measurements[${index}].assessment_value`}

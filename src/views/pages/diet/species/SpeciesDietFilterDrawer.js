@@ -150,7 +150,6 @@ const SpeciesDietFilterDrawer = ({
   }
 
   const handleCheckboxChange = (id, name) => {
-    // Default to empty array if currentSelectedOptions is not defined
     const currentSelectedOptions = selectedOptions[selectedMenu.name] || []
 
     const isChecked = currentSelectedOptions.some(option => option.id === id)
@@ -184,7 +183,7 @@ const SpeciesDietFilterDrawer = ({
       return sum + (Array.isArray(arr) ? arr.length : 0)
     }, 0)
 
-    setFilterCount(totalFilters) // Update count
+    setFilterCount(totalFilters) 
     setSelectedFiltersOptions(selectedOptions ?? {})
     handleCloseDrawer()
   }
@@ -270,13 +269,13 @@ const SpeciesDietFilterDrawer = ({
                 borderRadius: '8px',
                 width: '345px',
                 height: 'calc(100vh - 185px)',
-                overflowY: 'auto', // Enable vertical scrolling
+                overflowY: 'auto', 
                 '&::-webkit-scrollbar': {
                   width: 0,
                   height: 0
                 },
-                '-ms-overflow-style': 'none', // Hide scrollbar for Internet Explorer and Edge
-                scrollbarWidth: 'none' // Hide scrollbar for Firefox
+                '-ms-overflow-style': 'none',
+                scrollbarWidth: 'none' 
               }}
             >
               <>
@@ -352,7 +351,6 @@ const SpeciesDietFilterDrawer = ({
           </Grid>
         </Grid>
       </Box>
-      {/* bottom buttons */}
       <Box
         sx={{
           height: '122px',

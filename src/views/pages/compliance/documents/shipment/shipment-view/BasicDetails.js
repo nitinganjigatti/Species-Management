@@ -5,7 +5,7 @@ import moment from 'moment'
 
 const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, loader }) => {
   const rawValue = airwaybillvalue || ''
-  const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+  const removeSpaceValue = rawValue.replace(/\s+/g, '') 
   const formattedValue =
     removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
   return (

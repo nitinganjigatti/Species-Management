@@ -65,19 +65,17 @@ const AddEnclosureToGroup = ({
   }
 
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] // Get the item being removed
+    const itemToRemove = selectedItems[index] 
 
     const updatedItems = selectedItems.filter((_, i) => i !== index)
 
-    // Extract the IDs from the updatedItems
     const updatedIds = updatedItems.map(item => item.enclosure_id)
 
-    // Optional: if you want to update checkedRows separately
     const updatedChecked = updatedItems
 
-    setSelectedItems(updatedItems) // update the list of selected enclosures
+    setSelectedItems(updatedItems)
     // setSelectedEnclosureIds(updatedIds) // update just the IDs for checking checkboxes
-    setCheckedRows(updatedIds) // if you have a separate checkedRows state
+    setCheckedRows(updatedIds) 
   }
 
   const handleCheckboxChange = id => {
@@ -88,7 +86,7 @@ const AddEnclosureToGroup = ({
     if (!groupId) return setMealGroupError(true)
     setMealGroupError(false)
 
-    if (loading) return // Prevent multiple calls
+    if (loading) return 
     setLoading(true)
     const params = {
       site_id: selectedOption,
@@ -163,7 +161,6 @@ const AddEnclosureToGroup = ({
         onClose={() => setAddEnclosureDrawer(false)}
         sx={{ '& .MuiDrawer-paper': { width: '100%', maxWidth: '562px' } }}
       >
-        {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 3, bgcolor: '#EEF5F1' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <img src='/icons/Activity.svg' alt='Icon' width='35' />
@@ -174,7 +171,6 @@ const AddEnclosureToGroup = ({
           </IconButton>
         </Box>
 
-        {/* Content */}
         <Box sx={{ p: 3, bgcolor: '#EEF5F1', height: 'calc(100dvh - 106px)', overflowY: 'auto' }}>
           <Box
             sx={{
@@ -374,7 +370,6 @@ const AddEnclosureToGroup = ({
             </Typography>
           </Box>
 
-          {/* Cards */}
           <Box>
             {loader ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>

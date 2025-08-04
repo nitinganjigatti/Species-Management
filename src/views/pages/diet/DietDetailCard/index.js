@@ -150,7 +150,7 @@ const DietDetailCard = ({
         query: { source: 'fromdiet' }
       })
     } else {
-      // Router.push('/diet/diet')
+    
       Router.back()
     }
   }
@@ -414,13 +414,10 @@ const DietDetailCard = ({
                 ) : (
                   ''
                 )}
-                {/* Species and Animals Details */}
                 <Grid container spacing={2}>
-                  {/* Species Section */}
                   <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_species !== '0' ? (
                       <Box display='flex' justifyContent='space-between' alignItems='center'>
-                        {/* Label */}
                         <Typography
                           variant='body2'
                           fontWeight='bold'
@@ -457,7 +454,6 @@ const DietDetailCard = ({
                     )}
                   </Grid>
 
-                  {/* Animals Section */}
                   <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_animals !== '0' ? (
                       <Box
@@ -467,7 +463,6 @@ const DietDetailCard = ({
                         sx={{ pb: 3, cursor: 'pointer' }}
                         onClick={() => handleSpeciesClicknew('details', 'animals')}
                       >
-                        {/* Label */}
                         <Typography
                           variant='body2'
                           fontWeight='bold'
@@ -475,7 +470,6 @@ const DietDetailCard = ({
                         >
                           Animals
                         </Typography>
-                        {/* Value and Primary */}
                         <Box display='flex' alignItems='center'>
                           <Typography variant='h6' color={theme.palette.primary.main}>
                             {dietDetails.total_animals}
@@ -639,7 +633,6 @@ const DietDetailCard = ({
             handleSidebarClose={handleSidebarClose}
           />
         )}
-        {/* ////it is for delete /////////*/}
         <ConfirmationDialog
           icon={'mdi:delete'}
           iconColor={'#ff3838'}
@@ -651,7 +644,6 @@ const DietDetailCard = ({
           loading={loading}
         />
 
-        {/* ////it is for status change /////////*/}
         <DeleteDialogConfirmation
           handleClosenew={handleClosenew}
           action={confirmStatusAction}

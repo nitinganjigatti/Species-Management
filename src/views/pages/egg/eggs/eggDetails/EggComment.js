@@ -76,9 +76,7 @@ const EggComment = ({ eggDetails, eggId }) => {
   const handleScroll = async e => {
     const container = e.target
 
-    // Check if the user has reached the bottom
     if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight && shouldCallList) {
-      // User has reached the bottom, perform your action here
       setCommentsPage(++commentsPage)
       setReachedEnd(true)
       try {

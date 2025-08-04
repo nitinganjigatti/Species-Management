@@ -64,7 +64,6 @@ const DashboardFilter = ({
   }
 
   const handleMenuClick = menu => {
-    // console.log('menu', menu)
     setSelectedMenu(menu)
     setTimeout(() => {
       setSelectedOptions({
@@ -76,9 +75,7 @@ const DashboardFilter = ({
     searchData('')
 
     const allOptions = getOptionsForMenu(menu)
-    // console.log('selectedOptions', selectedOptions)
 
-    // Always update selectAll based on the new selection state
     if (allOptions?.length > 0) {
       setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions?.length)
     }
@@ -172,7 +169,6 @@ const DashboardFilter = ({
       [selectedMenu.name]: newSelectedOptions
     })
 
-    // Always update selectAll based on the new selection state
     setSelectAll(areAllSelected)
   }
 
@@ -188,7 +184,6 @@ const DashboardFilter = ({
       }
       setSelectedOptions(newSelectedOptions)
     } else {
-      // Deselect all options for the current menu
       const newSelectedOptions = {
         ...selectedOptions,
         [selectedMenu.name]: []
@@ -376,13 +371,13 @@ const DashboardFilter = ({
                 borderRadius: '8px',
                 width: '345px',
                 height: 'calc(100vh - 185px)',
-                overflowY: 'auto', // Enable vertical scrolling
+                overflowY: 'auto', 
                 '&::-webkit-scrollbar': {
                   width: 0,
                   height: 0
                 },
-                '-ms-overflow-style': 'none', // Hide scrollbar for Internet Explorer and Edge
-                scrollbarWidth: 'none' // Hide scrollbar for Firefox
+                '-ms-overflow-style': 'none', 
+                scrollbarWidth: 'none' 
               }}
             >
               <>

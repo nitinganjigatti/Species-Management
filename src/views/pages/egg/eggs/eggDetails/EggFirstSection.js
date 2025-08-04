@@ -16,10 +16,8 @@ import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import Badge from '@mui/material/Badge'
 
-// ** Third Party Components
 import clsx from 'clsx'
 
-// import 'keen-slider/keen-slider.min.css'
 import { useKeenSlider } from 'keen-slider/react'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import KeenSliderWrapper from 'src/@core/styles/libs/keen-slider'
@@ -29,7 +27,6 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 
-// import Router from 'next/router'
 import Utility from 'src/utility'
 import EditEggInfo from 'src/components/egg/EditEggInfo'
 
@@ -40,7 +37,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
     settings: { direction }
   } = useSettings()
 
-  // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -48,13 +44,11 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
   const [openDiscard, setOpenDiscard] = useState(false)
   const [allocationNurseryId, setAllocationNurseryId] = useState({})
 
-  //Edit Egg info
 
   const [openEditDrawer, setOpenEditDrawer] = useState(false)
 
   // const [openCreate, setOpenCreate] = useState(false)
 
-  // ** Hook
   const [sliderRef, instanceRef] = useKeenSlider({
     rtl: direction === 'rtl',
     slideChanged(slider) {

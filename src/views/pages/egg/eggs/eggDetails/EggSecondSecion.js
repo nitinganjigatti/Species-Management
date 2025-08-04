@@ -197,7 +197,7 @@ const EggSecondSecion = ({
       position: 'top',
       horizontalAlign: 'center'
     },
-    colors: [theme.palette.primary.main] // Colors for the lines (green and blue)
+    colors: [theme.palette.primary.main] 
   }
 
   const columns = [
@@ -313,7 +313,7 @@ const EggSecondSecion = ({
   })
 
   const onError = errors => {
-    // console.error('Form errors', errors)
+  
   }
 
   const onSubmit = val => {
@@ -422,7 +422,6 @@ const EggSecondSecion = ({
     fetchTableData()
   }, [fetchTableData])
 
-  // internal used components
   const ViewAllWeightSideBar = () => (
     <Drawer
       anchor='right'
@@ -553,7 +552,6 @@ const EggSecondSecion = ({
                             onChange={event => {
                               const newValue = event.target.value
 
-                              // Validate the input to ensure it contains only numbers
                               if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
                                 onChange(event)
                               }

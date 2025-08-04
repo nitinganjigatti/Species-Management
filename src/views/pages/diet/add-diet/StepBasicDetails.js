@@ -33,10 +33,8 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 
-// ** Custom Component Imports
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoice'
 import AddIngredients from 'src/components/diet/AddIngredients'
@@ -357,7 +355,6 @@ const StepBasicDetails = ({
       )
 
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
-        // Find the matching meal data
         const matchedMealData = formData.meal_data.find(
           mealData =>
             Array.isArray(mealData.combo) &&
@@ -820,7 +817,6 @@ const StepBasicDetails = ({
         return field
       })
 
-      // Set the final value using setfinalvalue
       setfinalvalue(updatedFieldsIngredients)
 
       return filteredChildStateValue

@@ -155,7 +155,6 @@ const StepPreviewDiet = ({
       setInitialValues(initialval)
     }
 
-    // Then open the dialog
     setOpen(true)
     setmealingredientIndex(index)
     setingredientvalueid(item.mealid)
@@ -170,7 +169,7 @@ const StepPreviewDiet = ({
       setheadertype(type)
       type !== 'Generic' ? setheaderMatch(parseFloat(numberOnly)) : setheaderMatch(numberOnly)
 
-      // Find the object in uomprevnew array where name matches textOnly
+      
       const matchedUom = uomprevnew.find(item => item.name === textOnly)
       if (matchedUom) {
         setuomId(parseFloat(matchedUom._id))
@@ -500,7 +499,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else if (dietTypeval === 'combo') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
+        const updatedFormData = { ...formData } 
 
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
@@ -905,7 +904,7 @@ const StepPreviewDiet = ({
           </Box>
 
           <Grid container spacing={5} sx={{ px: 5 }}>
-            {/* First Grid item */}
+           
             <Grid item size={{ xs: 12, sm: 4 }}>
               <div
                 item
@@ -1394,7 +1393,7 @@ const StepPreviewDiet = ({
                                     width: '70%'
                                   }}
                                 >
-                                  {/* Meal Name */}
+                                
                                   <Typography
                                     sx={{
                                       textAlign: 'center',
@@ -2124,9 +2123,7 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* Recipe module end */}
-
-                              {/* Combo module start  */}
+                             
 
                               <>
                                 {itemd?.combo?.map((item, index) => {
@@ -3396,7 +3393,7 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* ingredient module end  */}
+                            
 
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
