@@ -36,11 +36,13 @@ const ComposeNavigation = () => {
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
+  const userRole = authData?.userData?.roles?.role_name
+
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
 
   const navigationArray = []
-  const dashboardNav = dashboardNavigation()
+  const dashboardNav = dashboardNavigation({ userRole })
   navigationArray.push(...dashboardNav)
 
   if (reports_module) {

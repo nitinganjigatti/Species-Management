@@ -1,4 +1,4 @@
-const composeLabNavigation = () => {
+const composeLabNavigation = ({ userRole }) => {
   const Title = {
     sectionTitle: 'Dashboard'
   }
@@ -20,11 +20,13 @@ const composeLabNavigation = () => {
   dashboardNavigationArray.push(Title)
 
   dashboardNavigationArray.push(dashboard)
-  dashboardNavigationArray.push(analytics)
+  if (userRole == 'Super Admin') {
+    dashboardNavigationArray.push(analytics)
+  }
 
   return dashboardNavigationArray
 }
 
-const dashboardNavigation = () => composeLabNavigation()
+const dashboardNavigation = ({ userRole }) => composeLabNavigation({ userRole })
 
 export default dashboardNavigation
