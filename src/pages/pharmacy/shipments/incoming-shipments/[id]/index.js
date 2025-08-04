@@ -4,15 +4,15 @@ import React from 'react'
 
 import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 
-const AllShipmentDetails = () => {
+const ShipmentDetails = () => {
   const router = useRouter()
-  const { requestId, orderId, requestType } = router.query
+  const { requestId, orderId, requestedFrom } = router.query
 
   return (
     <Card sx={{ p: 6 }}>
-      <OrderReceiveForm orderId={orderId} requestId={requestId} requestedFrom={requestType} />
+      <OrderReceiveForm orderId={orderId} requestId={requestId} requestedFrom={requestedFrom} />
     </Card>
   )
 }
 
-export default AllShipmentDetails
+export default ShipmentDetails

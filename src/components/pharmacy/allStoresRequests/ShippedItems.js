@@ -121,7 +121,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-            {/* /* This will show after shipping before receiving the request */}
+            {/* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
               (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (

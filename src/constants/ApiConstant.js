@@ -278,6 +278,14 @@ export const STOCK_LIST = 'stock-item'
 
 export const VARIANTS_MAPPING_FOR_BATCH = 'variantMappingBatch'
 
+export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
+
+export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
+
+export const GET_ALL_SHIPMENTS = 'shipment/receive/show'
+
+export const INCOMING_AND_OUTGOING_SHIPMENTS = 'outgoing-incoming-shipment/show'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
@@ -537,12 +545,6 @@ export const GET_ENCLOSURE_LIST_SECTION_WISE = `v1/enclosure/sub/listing`
 export const GET_ENCLOSURE_WISE_STATS = `enclosure/get-enclosure`
 
 export const GET_ENCLOSURE_WISE_SPECIES = `v1/enclosure/species/listing`
-
-export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
-
-export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
-
-export const GET_ALL_SHIPMENTS = 'shipment/receive/show'
 
 // Compliance  module
 

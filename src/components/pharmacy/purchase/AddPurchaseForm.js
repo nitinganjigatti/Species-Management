@@ -1497,7 +1497,9 @@ const AddPurchaseForm = () => {
       setInvoicePrintLoader(true)
       const printInvoice = await printPurchaseInvoice(purchaseId)
       if (printInvoice?.success && printInvoice?.data) {
-        window.open(printInvoice?.data, '_blank')
+        // window.open(printInvoice?.data, '_blank')
+        Utility?.downloadFileFromURL(printInvoice?.data, 'Invoice.Pdf')
+
         toast.success(printInvoice?.message)
         setInvoicePrintLoader(false)
       } else {
