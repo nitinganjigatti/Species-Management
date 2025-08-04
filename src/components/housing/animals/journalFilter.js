@@ -16,6 +16,7 @@ import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const JournalFilterSheet = ({
     openFilterDrawer,
@@ -309,7 +310,7 @@ const JournalFilterSheet = ({
                                                         checked={(selectedOptions[activeCategory] || []).includes(option.userId)}
                                                         onChange={() => handleToggleOption(option.userId, activeCategory)}
                                                     />
-                                                    <Avatar sx={{ height: 34, width: 34 }} />
+                                                    <FallbackAvatar sx={{ height: 34, width: 34 }} />
                                                     <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
                                                         {option.userName}
                                                     </Typography>
