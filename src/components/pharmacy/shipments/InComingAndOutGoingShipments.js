@@ -257,7 +257,7 @@ function InComingAndOutGoingShipments({ type }) {
         setLoading(false)
       }
     },
-    [selectedStore, selectedPharmacy, selectedRequest, shipmentTab, type]
+    [paginationModel, selectedStore]
   )
 
   const searchTableData = useCallback(
@@ -353,7 +353,7 @@ function InComingAndOutGoingShipments({ type }) {
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, selectedStore, selectedRequest, shipmentTab, paginationModel])
+  }, [selectedPharmacy.id, selectedStore, selectedRequest, shipmentTab, paginationModel.page])
 
   useEffect(() => {
     fetchStoreList()
@@ -451,8 +451,11 @@ function InComingAndOutGoingShipments({ type }) {
               errors={{}}
               options={requestOptions}
               onChangeOverride={value => {
-                if (value) setValue('selectedRequest', value)
-                else setValue('selectedRequest', null)
+                if (value) {
+                  setValue('selectedRequest', value)
+                  setTotal(0)
+                  setPaginationModel({ page: 0, pageSize: 50 })
+                } else setValue('selectedRequest', null)
               }}
               getOptionLabel={o => o.label}
               isOptionEqualToValue={(o, v) => o.value === v.value}
