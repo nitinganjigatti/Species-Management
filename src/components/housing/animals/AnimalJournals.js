@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
-import { Box, Typography, Button, IconButton, Switch, Divider, Avatar, Chip, TextField, Tooltip, Autocomplete } from '@mui/material'
+import { Box, Typography, Button, Avatar, TextField, Tooltip, Autocomplete } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@mui/material/styles'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import { styled } from '@mui/material/styles'
-import { color, fontWeight, letterSpacing, lineHeight } from '@mui/system'
 import TimelineItem from '@mui/lab/TimelineItem'
 import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline from '@mui/lab/Timeline'
+import JournalFilterSheet from './journalFilter'
 
 
 const activityLogData = [
@@ -153,12 +153,108 @@ const activityLogData = [
   }
 ]
 
+const usersData = [
+  { "userId": 1, "userName": "User 1", "image": "https://randomuser.me/api/portraits/men/1.jpg" },
+  { "userId": 2, "userName": "User 2", "image": "https://randomuser.me/api/portraits/women/2.jpg" },
+  { "userId": 3, "userName": "User 3", "image": "https://randomuser.me/api/portraits/men/3.jpg" },
+  { "userId": 4, "userName": "User 4", "image": "https://randomuser.me/api/portraits/women/4.jpg" },
+  { "userId": 5, "userName": "User 5", "image": "https://randomuser.me/api/portraits/men/5.jpg" },
+  { "userId": 6, "userName": "User 6", "image": "https://randomuser.me/api/portraits/women/6.jpg" },
+  { "userId": 7, "userName": "User 7", "image": "https://randomuser.me/api/portraits/men/7.jpg" },
+  { "userId": 8, "userName": "User 8", "image": "https://randomuser.me/api/portraits/women/8.jpg" },
+  { "userId": 9, "userName": "User 9", "image": "https://randomuser.me/api/portraits/men/9.jpg" },
+  { "userId": 10, "userName": "User 10", "image": "https://randomuser.me/api/portraits/women/10.jpg" },
+  { "userId": 11, "userName": "User 11", "image": "https://randomuser.me/api/portraits/men/11.jpg" },
+  { "userId": 12, "userName": "User 12", "image": "https://randomuser.me/api/portraits/women/12.jpg" },
+  { "userId": 13, "userName": "User 13", "image": "https://randomuser.me/api/portraits/men/13.jpg" },
+  { "userId": 14, "userName": "User 14", "image": "https://randomuser.me/api/portraits/women/14.jpg" },
+  { "userId": 15, "userName": "User 15", "image": "https://randomuser.me/api/portraits/men/15.jpg" },
+  { "userId": 16, "userName": "User 16", "image": "https://randomuser.me/api/portraits/women/16.jpg" },
+  { "userId": 17, "userName": "User 17", "image": "https://randomuser.me/api/portraits/men/17.jpg" },
+  { "userId": 18, "userName": "User 18", "image": "https://randomuser.me/api/portraits/women/18.jpg" },
+  { "userId": 19, "userName": "User 19", "image": "https://randomuser.me/api/portraits/men/19.jpg" },
+  { "userId": 20, "userName": "User 20", "image": "https://randomuser.me/api/portraits/women/20.jpg" },
+  { "userId": 21, "userName": "User 21", "image": "https://randomuser.me/api/portraits/men/21.jpg" },
+  { "userId": 22, "userName": "User 22", "image": "https://randomuser.me/api/portraits/women/22.jpg" },
+  { "userId": 23, "userName": "User 23", "image": "https://randomuser.me/api/portraits/men/23.jpg" },
+  { "userId": 24, "userName": "User 24", "image": "https://randomuser.me/api/portraits/women/24.jpg" },
+  { "userId": 25, "userName": "User 25", "image": "https://randomuser.me/api/portraits/men/25.jpg" },
+  { "userId": 26, "userName": "User 26", "image": "https://randomuser.me/api/portraits/women/26.jpg" },
+  { "userId": 27, "userName": "User 27", "image": "https://randomuser.me/api/portraits/men/27.jpg" },
+  { "userId": 28, "userName": "User 28", "image": "https://randomuser.me/api/portraits/women/28.jpg" },
+  { "userId": 29, "userName": "User 29", "image": "https://randomuser.me/api/portraits/men/29.jpg" },
+  { "userId": 30, "userName": "User 30", "image": "https://randomuser.me/api/portraits/women/30.jpg" },
+  { "userId": 31, "userName": "User 31", "image": "https://randomuser.me/api/portraits/men/31.jpg" },
+  { "userId": 32, "userName": "User 32", "image": "https://randomuser.me/api/portraits/women/32.jpg" },
+  { "userId": 33, "userName": "User 33", "image": "https://randomuser.me/api/portraits/men/33.jpg" },
+  { "userId": 34, "userName": "User 34", "image": "https://randomuser.me/api/portraits/women/34.jpg" },
+  { "userId": 35, "userName": "User 35", "image": "https://randomuser.me/api/portraits/men/35.jpg" },
+  { "userId": 36, "userName": "User 36", "image": "https://randomuser.me/api/portraits/women/36.jpg" },
+  { "userId": 37, "userName": "User 37", "image": "https://randomuser.me/api/portraits/men/37.jpg" },
+  { "userId": 38, "userName": "User 38", "image": "https://randomuser.me/api/portraits/women/38.jpg" },
+  { "userId": 39, "userName": "User 39", "image": "https://randomuser.me/api/portraits/men/39.jpg" },
+  { "userId": 40, "userName": "User 40", "image": "https://randomuser.me/api/portraits/women/40.jpg" },
+  { "userId": 41, "userName": "User 41", "image": "https://randomuser.me/api/portraits/men/41.jpg" },
+  { "userId": 42, "userName": "User 42", "image": "https://randomuser.me/api/portraits/women/42.jpg" },
+  { "userId": 43, "userName": "User 43", "image": "https://randomuser.me/api/portraits/men/43.jpg" },
+  { "userId": 44, "userName": "User 44", "image": "https://randomuser.me/api/portraits/women/44.jpg" },
+  { "userId": 45, "userName": "User 45", "image": "https://randomuser.me/api/portraits/men/45.jpg" },
+  { "userId": 46, "userName": "User 46", "image": "https://randomuser.me/api/portraits/women/46.jpg" },
+  { "userId": 47, "userName": "User 47", "image": "https://randomuser.me/api/portraits/men/47.jpg" },
+  { "userId": 48, "userName": "User 48", "image": "https://randomuser.me/api/portraits/women/48.jpg" },
+  { "userId": 49, "userName": "User 49", "image": "https://randomuser.me/api/portraits/men/49.jpg" },
+  { "userId": 50, "userName": "User 50", "image": "https://randomuser.me/api/portraits/women/50.jpg" }
+]
 
-const AnimalJournals = ({ icon, color, title, time, children }) => {
+const categoriesData = [
+  { "categoryId": 1, "categoryName": "Technology" },
+  { "categoryId": 2, "categoryName": "Health" },
+  { "categoryId": 3, "categoryName": "Education" },
+  { "categoryId": 4, "categoryName": "Finance" },
+  { "categoryId": 5, "categoryName": "Travel" },
+  { "categoryId": 6, "categoryName": "Food" },
+  { "categoryId": 7, "categoryName": "Fashion" },
+  { "categoryId": 8, "categoryName": "Sports" },
+  { "categoryId": 9, "categoryName": "Entertainment" },
+  { "categoryId": 10, "categoryName": "Lifestyle" },
+  { "categoryId": 11, "categoryName": "Business" },
+  { "categoryId": 12, "categoryName": "Science" },
+  { "categoryId": 13, "categoryName": "Politics" },
+  { "categoryId": 14, "categoryName": "Art" },
+  { "categoryId": 15, "categoryName": "Culture" },
+  { "categoryId": 16, "categoryName": "Books" },
+  { "categoryId": 17, "categoryName": "Gaming" },
+  { "categoryId": 18, "categoryName": "Automobile" },
+  { "categoryId": 19, "categoryName": "Music" },
+  { "categoryId": 20, "categoryName": "Real Estate" }
+]
+
+
+const AnimalJournals = () => {
   const theme = useTheme()
   const [selectedTab, setSelectedTab] = useState('active') // or 'inactive'
   const [searchValue, setSearchValue] = useState('')
   const [selectedUser, setSelectedUser] = useState({ user_name: 'All' })
+
+  // filter options
+  const categories = ['Users', 'Categories', 'Date Range']
+
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [selectedOptions, setSelectedOptions] = useState({
+    Users: [],
+    Categories: [],
+    'Date Range': { from: null, to: null }
+  })
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const [dateRange, setDateRange] = useState({ from: null, to: null })
+
+  const [isLoading, setIsLoading] = useState(false)
+
+  const options = {
+    Users: usersData || [],
+    Categories: categoriesData || [],
+    'Date Range': null
+  }
 
   const basicStyle = {
     '& .MuiOutlinedInput-root': {
@@ -326,6 +422,51 @@ const AnimalJournals = ({ icon, color, title, time, children }) => {
     )
   }
 
+  const handleSelection = async (selectedIDs, category) => {
+    let params = {}
+    setIsLoading(true)
+
+    const isAllSelected =
+      category === 'Users' ? 'All Users' :
+        category === 'Categories' ? 'All Categories' :
+          null
+
+    const key =
+      category === 'Users' ? 'userIds' :
+        category === 'Categories' ? 'categoryids' :
+          'date'
+
+    const stateSetter = category === 'Users'
+      ? setSelectedUsers
+      : setSelectedOptions
+
+    // ✅ Only run array logic if it's array
+    if (Array.isArray(selectedIDs) && selectedIDs.includes(isAllSelected)) {
+      if (category === 'Users') {
+        stateSetter(usersData.map(user => user.userId)) // Select all
+        params[key] = ''
+      } else if (category === 'Categories') {
+        stateSetter(prev => ({ ...prev, Categories: categoriesData.map(c => c.categoryId) }))
+        params[key] = ''
+      }
+    } else {
+      params[key] = Array.isArray(selectedIDs) ? selectedIDs.toString() : ''
+      if (category === 'Users') {
+        stateSetter(selectedIDs)
+      } else if (category === 'Categories') {
+        stateSetter(prev => ({ ...prev, Categories: selectedIDs }))
+      } else if (category === 'Date Range') {
+        setSelectedOptions(prev => ({
+          ...prev,
+          'Date Range': selectedIDs
+        }))
+      }
+    }
+
+    setIsLoading(false)
+  }
+
+
   return <>
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: 4 }}>
       {/* Header */}
@@ -439,7 +580,7 @@ const AnimalJournals = ({ icon, color, title, time, children }) => {
               />
             )}
           />
-          <Box sx={{ borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '40px', width: '95px', border: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
+          <Box onClick={() => setOpenFilterDrawer(true)} sx={{ borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '40px', width: '95px', border: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
             <Icon icon='mage:filter' fontSize={24} />
             <Typography s={{ fontSize: '16px', fontWeight: 400, lineHeight: '24px', letterSpacing: '0.15px', color: theme.palette.customColors.OnSurfaceVariant }}>
               Filter
@@ -450,12 +591,22 @@ const AnimalJournals = ({ icon, color, title, time, children }) => {
     </Box>
 
 
-
-
-
     <IncidentTimeline />
 
-
+    <JournalFilterSheet
+      options={options}
+      animalId={123}
+      categories={categories}
+      openFilterDrawer={openFilterDrawer}
+      setOpenFilterDrawer={setOpenFilterDrawer}
+      selectedOptions={selectedOptions}
+      setSelectedOptions={setSelectedOptions}
+      handleSelection={handleSelection}
+      selectedUsers={selectedUsers}
+      setSelectedUsers={setSelectedUsers}
+      dateRange={dateRange}
+      setDateRange={setDateRange}
+    />
   </>
 }
 
