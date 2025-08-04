@@ -531,7 +531,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       returnListing,
 
       // directDispatchList,
-      directDispatchListForLocal
+      directDispatchListForLocal,
+      shipmentParent
     )
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
