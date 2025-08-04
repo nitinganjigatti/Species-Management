@@ -24,19 +24,18 @@ const SelectedEnclosure = ({
   const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] // Get the item being removed
+    const itemToRemove = selectedItems[index] 
 
     const updatedItems = selectedEnclosures.filter((_, i) => i !== index)
 
-    // Extract the IDs from the updatedItems
     const updatedIds = updatedItems.map(item => item.enclosure_id)
 
-    // Optional: if you want to update checkedRows separately
+   
     const updatedChecked = updatedItems
 
-    setSelectedEnclosures(updatedItems) // update the list of selected enclosures
-    setSelectedEnclosureIds(updatedIds) // update just the IDs for checking checkboxes
-    setCheckedRows(updatedChecked) // if you have a separate checkedRows state
+    setSelectedEnclosures(updatedItems) 
+    setSelectedEnclosureIds(updatedIds) 
+    setCheckedRows(updatedChecked) 
   }
 
   return dietModule ? (
@@ -64,7 +63,7 @@ const SelectedEnclosure = ({
             height: 'calc(100dvh - 0px)'
           }}
         >
-          {/* Header */}
+          
           <Box
             className='sidebar-header'
             sx={{
@@ -98,7 +97,7 @@ const SelectedEnclosure = ({
             </IconButton>
           </Box>
 
-          {/* Body */}
+        
           <Box sx={{}}>
             <Box sx={{ flex: 1, overflowY: 'auto', px: 2, pt: 2 }}>
               {loader ? (
@@ -116,7 +115,6 @@ const SelectedEnclosure = ({
                 selectedEnclosures.map((item, index) => (
                   <Box sx={{ m: 3 }}>
                     {' '}
-                    {/* Adds margin around the Card */}
                     <Card
                       key={index}
                       sx={{

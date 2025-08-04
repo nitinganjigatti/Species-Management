@@ -90,7 +90,6 @@ const ConditionSlider = ({
   const [sexingTypeList, setSexingTypeList] = useState([])
   const [lifeStageList, setLifeStageList] = useState([])
   const [contraceptionTypeList, setContraceptionTypeList] = useState([])
-  //for enclosure
   const [open, setOpen] = useState(false)
   const [enclosureData, setEnclosureData] = useState({})
 
@@ -101,8 +100,7 @@ const ConditionSlider = ({
     try {
       await GetEggMaster().then(res => {
         if (res.success) {
-          // console.log('res?.data? master :>> ', res?.data)
-          setEggMaster(res?.data)
+         setEggMaster(res?.data)
         }
       })
     } catch (e) {
@@ -170,10 +168,10 @@ const ConditionSlider = ({
               function (value) {
                 const { accessionType } = this.parent
                 if (accessionType === '2') {
-                  return !!value // Return true if value is not empty
+                  return !!value 
                 }
 
-                return true // Otherwise, always pass validation
+                return true 
               }
             ),
           accessionDate: yup.string().required('Accession date is required'),
@@ -200,9 +198,9 @@ const ConditionSlider = ({
               function (value) {
                 const { localIdentifierType } = this.parent
                 if (localIdentifierType && localIdentifierType.trim() !== '') {
-                  return !!value // Return true if value is not empty
+                  return !!value 
                 }
-                return true // Otherwise, always pass validation
+                return true 
               }
             )
         }
@@ -244,10 +242,8 @@ const ConditionSlider = ({
   useEffect(() => {
     if (statusID) {
       setStatusId(statusID)
-      // console.log('statusID :>> ', statusID)
       const filteredEggStatus = eggMaster?.egg_state?.filter(status => status?.egg_status_id === statusID)
       setEggStaged(filteredEggStatus)
-      // console.log('filteredEggStatus :>> ', filteredEggStatus)
     }
   }, [statusID, eggMaster])
 
@@ -277,7 +273,7 @@ const ConditionSlider = ({
   //   clearErrors('institution')
   // }
   const { getRootProps, getInputProps } = useDropzone({
-    multiple: true, // changed to true for multiple files
+    multiple: true, 
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
     },
@@ -291,11 +287,9 @@ const ConditionSlider = ({
         reader.readAsDataURL(file)
       })
 
-      // Update filenames as comma-separated string
       const fileNames = acceptedFiles.map(file => file.name).join(', ')
       setDisplayFile(fileNames)
 
-      // Add all files to imgArr state
       setImgArr(prev => [...prev, ...acceptedFiles])
 
       setValue('image', acceptedFiles)
@@ -344,7 +338,6 @@ const ConditionSlider = ({
         setImgArr(prev => [...prev, fileItem])
       })
 
-      // Display filenames as comma-separated string
       const fileNames = Array.from(files)
         .map(f => f.name)
         .join(', ')
@@ -364,13 +357,11 @@ const ConditionSlider = ({
     setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
     setImgArr(prevArr => prevArr.filter((_, i) => i !== index))
 
-    // Update the form value accordingly
     setValue(
       'image',
       imgArr.filter((_, i) => i !== index)
     )
 
-    // If no images left, optionally reset display filename
     if (imgArr.length === 1) {
       setDisplayFile('')
       setValue('image', '')
@@ -501,7 +492,6 @@ const ConditionSlider = ({
           if (res.success) {
             setLoader(false)
 
-            // console.log('res on submit :>> ', res)
             setImgSrc('')
             reset()
 
@@ -523,7 +513,6 @@ const ConditionSlider = ({
         })
       }
 
-      // Perform any additional operations, e.g., API call
     } catch (error) {
       setLoader(false)
       if (getDetails) {
@@ -968,7 +957,7 @@ const ConditionSlider = ({
                                 name='assisted_by'
                                 onChange={onChange}
                                 placeholder=''
-                                sx={{ width: '100%', mr: 12 }} // Adjusted sx prop
+                                sx={{ width: '100%', mr: 12 }} 
                               />
                             )}
                           />
@@ -1009,7 +998,7 @@ const ConditionSlider = ({
                           placeholder=''
                           multiline
                           rows={3}
-                          sx={{ width: '100%', mr: 12, mb: 3 }} // Adjusted sx prop
+                          sx={{ width: '100%', mr: 12, mb: 3 }} 
                         />
                       )}
                     />
@@ -1099,7 +1088,6 @@ const ConditionSlider = ({
                       </Stack>
                     </Grid>
                   </Grid>
-                  {/* {console.log('permission check', checkAddPermission())} */}
                   {statusID === '4' && checkAddPermission() && (
                     <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>

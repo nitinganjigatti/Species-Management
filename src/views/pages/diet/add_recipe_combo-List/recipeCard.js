@@ -362,10 +362,10 @@ const RecipeCard = ({
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
-      // Find the remarks for the current item
+   
       const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
 
-      // Extract ingredient details
+      
       const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
       const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
       const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
@@ -424,7 +424,7 @@ const RecipeCard = ({
   }
 
   const filteredRecipeList = rows.filter(
-    item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()) // filter by search
+    item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()) 
   )
 
   let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
@@ -632,7 +632,7 @@ const RecipeCard = ({
                               objectFit: 'cover'
                             }}
                             onError={e => {
-                              e.target.src = '/icons/icon_ingredient.svg' // Fallback to default icon
+                              e.target.src = '/icons/icon_ingredient.svg' 
                             }}
                           />
                         </Avatar>

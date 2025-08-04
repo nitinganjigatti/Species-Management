@@ -48,9 +48,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     }
   }, [activitySidebarOpen])
 
-  // Function to send diet_types values to the parent component
   const sendDietTypesToParent = dietTypesData => {
-    // Call the function received from the parent component and pass the diet_types values
     onReceiveDietTypes(dietTypesData)
   }
 

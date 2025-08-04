@@ -342,20 +342,18 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             overflowY: 'auto',
                             whiteSpace: 'normal',
 
-                            /* Firefox scrollbar */
+                        
                             scrollbarWidth: 'thin',
                             scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
                           }}
                         >
                           <div
                             style={{
-                              /* Webkit scrollbar styles (Chrome, Edge, Safari) */
                               display: 'inline-block',
                               width: '100%',
                               height: '100%',
                               scrollbarWidth: 'thin',
 
-                              /* These only apply in WebKit browsers */
                               WebkitScrollbarWidth: 'thin'
                             }}
                           >
@@ -412,7 +410,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     Added Photos
                   </Typography>
 
-                  {/* image gallery */}
                   <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
                     <AddGallery galleryList={galleryList} />
                   </Box>

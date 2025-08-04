@@ -19,11 +19,9 @@ import { LoadingButton } from '@mui/lab'
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getCutSizeById } from 'src/lib/api/diet/settings/cutSizes'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   label: yup
@@ -181,7 +179,7 @@ const AddCutSize = props => {
                   error={Boolean(errors.comments)}
                   name='comments'
                   multiline
-                  rows={6} // Number of rows for the textarea
+                  rows={6} 
                 />
               )}
             />

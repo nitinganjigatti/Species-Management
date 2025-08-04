@@ -41,7 +41,6 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
       setConfirmDialogBox(false)
       const response = await feedStatusChange({ status: activePayload }, FeedDetailsValue?.id)
 
-      // console.log(response, 'response')
       if (response?.success) {
         setIsActive(Number(isActive) === 0 ? '1' : '0')
 
@@ -210,7 +209,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
                   mb: 2
                 }}
               >
-                <Box sx={{}}></Box>
+               
               </Box>
               <Box
                 sx={{

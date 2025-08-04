@@ -47,7 +47,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [selectedOptions, setSelectedOptions] = useState(initFilters())
   const [applyFilters, setApplyFilters] = useState(initFilters())
 
-  // Helper to initialize filters
   function initFilters() {
     return {
       Species: [],
@@ -61,7 +60,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     }
   }
 
-  // Common param builder
   const buildParams = (q = '', toDate = '', fromDate = '') => {
     const extractIds = key => applyFilters[key]?.map(option => option.id) || []
 
@@ -81,7 +79,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     }
   }
 
-  // Fetch Discard List
   const DiscardList = async (q = '', toDate = '', fromDate = '') => {
     setLoader(true)
     try {
@@ -220,7 +217,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setDiscardList([])
   }, [selectedDropDown])
 
-  // Extra Components
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -285,7 +281,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 id='dropdown'
                 value={selectedDropDown}
                 onChange={event => {
-                  handleDropDownChange(event) // Call the function with the event
+                  handleDropDownChange(event) 
                 }}
                 sx={{ height: '36px' }}
               >
