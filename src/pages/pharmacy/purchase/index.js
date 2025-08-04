@@ -32,7 +32,6 @@ import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExcelExportButton } from 'src/components/Buttons'
-import Utility from 'src/utility'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
@@ -41,6 +40,7 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import toast from 'react-hot-toast'
+import Utility from 'src/utility'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -254,7 +254,7 @@ const ListOfPurchase = () => {
       setInvoicePrintLoaderId(purchaseId)
       const printInvoice = await printPurchaseInvoice(purchaseId)
       if (printInvoice?.success && printInvoice?.data) {
-        window.open(printInvoice?.data, '_blank')
+        Utility?.downloadFileFromURL(printInvoice?.data, 'Invoice.Pdf')
         toast.success(printInvoice?.message)
         setInvoicePrintLoaderId(null)
       } else {

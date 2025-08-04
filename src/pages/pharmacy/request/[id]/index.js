@@ -1944,7 +1944,7 @@ const IndividualRequest = () => {
                                     onRowClick={e => {
                                       setOrderId(e.id)
                                       Router.push({
-                                        pathname: `/pharmacy/request/${id}/shipment-details`,
+                                        pathname: `/pharmacy/shipments/incoming-shipments/${id}`,
                                         query: { orderId: e.id, requestId: id }
                                       })
                                     }}
@@ -2686,7 +2686,7 @@ const IndividualRequest = () => {
                   </>
                 }
               /> */}
-             
+
               <Dialog
                 fullWidth
                 open={show}
