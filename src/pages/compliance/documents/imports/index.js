@@ -14,6 +14,7 @@ import moment from 'moment'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
 import { useTheme } from '@mui/material/styles'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const ImportsPage = () => {
   const router = useRouter()
@@ -264,4 +265,4 @@ const ImportsPage = () => {
   )
 }
 
-export default ImportsPage
+export default enforceModuleAccess(ImportsPage, 'compliance_module')

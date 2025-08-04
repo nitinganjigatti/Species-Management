@@ -11,6 +11,7 @@ import ShipmentBasicDetails from 'src/views/pages/compliance/documents/shipment/
 import { getLinkedDocumentsShipments } from 'src/lib/api/compliance/shipment'
 import { useTheme } from '@mui/material/styles'
 import LinkedDocuments from 'src/views/pages/compliance/documents/shipment/forms/LinkedDocuments'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const AddEditShipment = () => {
   const router = useRouter()
@@ -133,7 +134,10 @@ const AddEditShipment = () => {
           onClick={() => router.push('/compliance/documents/shipments')}
           sx={{ cursor: 'pointer' }}
         >
-          <Icon style={{ cursor: 'pointer', color: '#44544A' }} icon='material-symbols:arrow-back' />
+          <Icon
+            style={{ cursor: 'pointer', color: theme.palette.customColors.OnSurfaceVariant }}
+            icon='material-symbols:arrow-back'
+          />
           <CardHeader
             title={
               action === 'edit'
@@ -153,13 +157,16 @@ const AddEditShipment = () => {
 
         {/* Right section: Status and dropdown */}
         <Box display='flex' alignItems='center' gap={2}>
-          <Typography sx={{ fontWeight: 500, color: '#44544A' }}>Status:</Typography>
+          <Typography sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>Status:</Typography>
           {action === 'details' ? (
             <Typography
               sx={{
                 fontWeight: 600,
-                color: status === 'draft' ? '#000' : '#000',
-                backgroundColor: status === 'draft' ? '#FFE86E' : '#52F990',
+                color: status === 'draft' ? theme.palette.common.black : theme.palette.common.black,
+                backgroundColor:
+                  status === 'draft'
+                    ? theme.palette.customColors.antzNotes80
+                    : theme.palette.customColors.PrimaryContainer,
                 padding: '4px 12px',
                 borderRadius: '6px',
                 fontSize: '14px',
@@ -176,8 +183,11 @@ const AddEditShipment = () => {
               sx={{
                 minWidth: 140,
                 fontWeight: 600,
-                background: status === 'draft' ? '#FFE86E' : '#52F990',
-                color: '#000'
+                background:
+                  status === 'draft'
+                    ? theme.palette.customColors.antzNotes80
+                    : theme.palette.customColors.PrimaryContainer,
+                color: theme.palette.common.black
               }}
             >
               <MenuItem value='draft'>Draft</MenuItem>
@@ -192,7 +202,11 @@ const AddEditShipment = () => {
       <CustomAccordion
         id='permit-details'
         docsCount={!isBasicEditable && !expanded.includes('permit-details') && id ? `ID: ${formattedValue}` : null}
-        title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Basic Details</Typography>}
+        title={
+          <Typography sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}>
+            Basic Details
+          </Typography>
+        }
         expanded={expanded.includes('permit-details')}
         onChange={handleAccordionChange}
         editable={showEdit && expanded.includes('permit-details') && id && action === 'details'}
@@ -220,13 +234,19 @@ const AddEditShipment = () => {
           id='animals-details'
           docsCount={
             !isAnimalsEditable && !expanded.includes('animals-details') && (totalAnimals || totalSpecies) ? (
-              <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
+              <Typography component='span' sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
                 <strong>{totalSpecies}</strong> Species&nbsp;|&nbsp;
                 <strong>{totalAnimals}</strong> Animals
               </Typography>
             ) : null
           }
-          title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Animals</Typography>}
+          title={
+            <Typography
+              sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}
+            >
+              Animals
+            </Typography>
+          }
           expanded={expanded.includes('animals-details')}
           onChange={handleAccordionChange}
           editable={
@@ -257,7 +277,9 @@ const AddEditShipment = () => {
         <CustomAccordion
           id='supporting-documents'
           title={
-            <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>
+            <Typography
+              sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}
+            >
               Travel & customs Documents
             </Typography>
           }
@@ -300,12 +322,18 @@ const AddEditShipment = () => {
       {id && (linkedDocumentsData?.exports?.length || linkedDocumentsData?.imports?.length) ? (
         <CustomAccordion
           id='linked-documents'
-          title={<Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#1F515B' }}>Linked Documents</Typography>}
+          title={
+            <Typography
+              sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}
+            >
+              Linked Documents
+            </Typography>
+          }
           expanded={expanded.includes('linked-documents')}
           onChange={handleAccordionChange}
           docsCount={
             linkedDocumentsData?.exports_count || linkedDocumentsData?.imports_count ? (
-              <Typography component='span' sx={{ fontWeight: 400, color: '#44544A' }}>
+              <Typography component='span' sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
                 <strong>{linkedDocumentsData?.exports_count}</strong> Exports&nbsp;|&nbsp;
                 <strong>{linkedDocumentsData?.imports_count}</strong> Imports
               </Typography>
@@ -322,4 +350,4 @@ const AddEditShipment = () => {
   )
 }
 
-export default AddEditShipment
+export default enforceModuleAccess(AddEditShipment, 'compliance_module')
