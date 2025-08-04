@@ -78,7 +78,6 @@ const VerifyOtp = () => {
         setShowResendOptions(true)
       }
     } else {
-      // If the user is coming for the first time, start countdown automatically
       localStorage.setItem('otpTimestamp', Date.now().toString())
       localStorage.setItem('otpCountdown', initialCountdown.toString())
       setCountdown(initialCountdown)

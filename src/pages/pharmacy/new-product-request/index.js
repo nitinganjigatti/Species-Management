@@ -13,7 +13,6 @@ import Chip from '@mui/material/Chip'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// import DeleteIcon from '@mui/icons-material/Delete'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import Tab from '@mui/material/Tab'
@@ -68,7 +67,7 @@ export default function NewProductList() {
     router.replace({ pathname: router.pathname, query: newQuery }, undefined)
   }, [])
 
-  console.log(router.query, 'updateUrlParams')
+  
 
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -104,8 +103,7 @@ export default function NewProductList() {
         toast.success(toastMessage)
         setShow(false)
 
-        // Trigger table data refresh after status change
-        // Call fetchTableData for 'Pending' tab if the new status is 'Cancelled'
+      
         if (status === 'Cancelled' || 'Approved' || 'Rejected') {
           fetchTableData({
             sort,
@@ -122,7 +120,7 @@ export default function NewProductList() {
             filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
             page: paginationModel?.page,
             limit: paginationModel?.pageSize
-          }) // Refresh pending tab
+          }) 
         } else {
           fetchTableData({
             sort,
@@ -354,13 +352,13 @@ export default function NewProductList() {
 
     setStatus(newValue)
 
-    // Fetch table data with the new status
+   
     fetchTableData({
       sort,
-      q: '', // Clear the search value when status changes
+      q: '',
       column: sortColumn,
-      status: newValue, // Use the updated status
-      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId, // Use the current pharmacy filter
+      status: newValue, 
+      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId, 
       page: 1,
       limit: paginationModel.pageSize,
       filterDates
@@ -391,8 +389,8 @@ export default function NewProductList() {
           sort,
           q,
           column,
-          page: page || paginationModel.page + 1, // Fallback to current page if not provided
-          limit: limit || paginationModel.pageSize, // Fallback to current limit if not provided
+          page: page || paginationModel.page + 1, 
+          limit: limit || paginationModel.pageSize, 
           type: status,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -402,7 +400,7 @@ export default function NewProductList() {
         await getNonExistingProductList({ params }).then(res => {
           if (res?.data?.length > 0) {
             setTotal(parseInt(res?.count, 10))
-            setRows(loadServerRows(params.page - 1, res?.data)) // Convert back to 0-indexed for client-side
+            setRows(loadServerRows(params.page - 1, res?.data)) 
           } else {
             setTotal(0)
             setRows([])
@@ -416,7 +414,7 @@ export default function NewProductList() {
         setLoading(false)
       }
     },
-    [paginationModel.page, paginationModel.pageSize, filterDates] // Ensure state is watched properly
+    [paginationModel.page, paginationModel.pageSize, filterDates] 
   )
 
   const handleSortModel = async newModel => {
@@ -609,7 +607,7 @@ export default function NewProductList() {
               ['Requested User']: el?.requested_user_name ? el?.requested_user_name : 'NA'
             }))
           })
-          .flat() // Use flat() to flatten the array of arrays into a single array
+          .flat()
 
         Utility.exportToCSV(data, 'Existing_ProductList')
       } else {
@@ -672,17 +670,17 @@ export default function NewProductList() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              flexWrap: { xs: 'wrap', sm: 'nowrap' }, // Allow wrapping on small screens
+              flexWrap: { xs: 'wrap', sm: 'nowrap' }, 
               mx: { xs: 3, md: 5 },
               gap: { sm: 2 }
             }}
           >
-            {/* Left Box (Date Picker) */}
+           
             <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ mb: { xs: 3, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
 
-            {/* Right Box (Download, Pharmacy Filter, Search) */}
+          
 
             <Box
               sx={{
@@ -693,7 +691,6 @@ export default function NewProductList() {
                 mt: { xs: 1, sm: 0 }
               }}
             >
-              {/* Search Field */}
               <TextField
                 variant='outlined'
                 size='small'
@@ -706,7 +703,6 @@ export default function NewProductList() {
                   borderRadius: '8px',
                   minWidth: 250
 
-                  // mt: { xs: 3, sm: 0 }
                 }}
                 slotProps={{
                   input: {
@@ -719,7 +715,6 @@ export default function NewProductList() {
                 }}
               />
 
-              {/* Pharmacy Filter */}
 
               <FormControl
                 size='small'
@@ -728,7 +723,7 @@ export default function NewProductList() {
 
                   // mr: { sm: 2 },
                   // ml: { xs: 2 },
-                  minWidth: { xs: '230px', sm: '10px' }, // Increased width for both small and larger screens
+                  minWidth: { xs: '230px', sm: '10px' }, 
                   flex: { xs: 1, sm: 'auto' }
                 }}
               >
@@ -740,10 +735,8 @@ export default function NewProductList() {
                     setPaginationModel({ page: 0, pageSize: 10 })
                     const selectedId = e.target.value
 
-                    // Update the dropdown value
                     setFilterByPharmacyId(selectedId)
 
-                    // Fetch table data with the selected pharmacy filter
                     fetchTableData({
                       sort,
                       q: searchValue,
@@ -774,7 +767,6 @@ export default function NewProductList() {
                 </Select>
               </FormControl>
 
-              {/* Download Button */}
               <Box sx={{ mt: { xs: 4, sm: 0 }, ml: { xs: 2 } }}>
                 <ExportButton
                   loading={excelLoader}
@@ -838,22 +830,22 @@ export default function NewProductList() {
               indexedRows={indexedRows}
               total={total}
               columns={columns}
-              paginationModel={paginationModel} // Controlled model
+              paginationModel={paginationModel} 
               setPaginationModel={model => {
-                // Update state first
+             
                 setPaginationModel(model)
                 console.log(model, 'model')
 
-                // Destructure the updated page and pageSize for clarity
+             
                 const { page, pageSize } = model
 
-                // Fetch table data with the updated page and pageSize
+              
                 fetchTableData({
                   sort,
                   q: searchValue,
                   column: sortColumn,
                   status,
-                  page: page + 1, // Convert to 1-indexed pages for API
+                  page: page + 1, 
                   limit: pageSize,
                   filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
                 })
@@ -951,7 +943,7 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleChange}>
             <Tab
-              sx={{ ml: { xs: 1, sm: 3 } }} // Adjust margin for tabs
+              sx={{ ml: { xs: 1, sm: 3 } }} 
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />

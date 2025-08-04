@@ -5,7 +5,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import AnimalIdentifiers from '../shipment-view/AnimalsIdentifier'
 
 const SpeciesDetails = ({ selectedExportData }) => {
-  // Flatten all species from all exports
+ 
   const allSpecies = selectedExportData?.export?.flatMap(exportItem => exportItem.species || []) || []
   return (
     <Box>
@@ -25,7 +25,7 @@ const SpeciesDetails = ({ selectedExportData }) => {
             boxShadow: 'none'
           }}
         >
-          {/* Top Section: Avatar and Name */}
+         
           <Box display='flex' gap={2} alignItems='center' sx={{ px: 3, py: 3 }}>
             <Avatar alt={species?.common_name} src={species?.default_icon} />
             <Box>
@@ -38,7 +38,7 @@ const SpeciesDetails = ({ selectedExportData }) => {
             </Box>
           </Box>
 
-          {/* Bottom Section: Count and Chips */}
+         
           <Divider />
           <Box
             display='flex'
@@ -126,7 +126,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, title, identifiers, selectedExpor
           backgroundColor: theme.palette.customColors.Background
         }}
       >
-        {/* Header */}
+    
         <Box sx={{ px: 5, pt: 4, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
@@ -140,7 +140,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, title, identifiers, selectedExpor
         </Box>
 
         <Box sx={{ px: 5, pb: 6, pt: 2 }}>
-          {/* Button Tabs */}
+        
           <Box display='flex' gap={2}>
             <Button
               variant={tab === 0 ? 'contained' : 'text'}
@@ -181,7 +181,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, title, identifiers, selectedExpor
             </Button>
           </Box>
 
-          {/* Content */}
+        
           <Box mt={3}>
             {tab === 0 && <SpeciesDetails selectedExportData={selectedExportData} />}
             {tab === 1 && <AnimalIdentifiers selectedExportData={selectedExportData} />}

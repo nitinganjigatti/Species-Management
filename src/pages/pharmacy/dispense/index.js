@@ -243,7 +243,6 @@ function Dispense() {
           limit: paginationModel.pageSize
         }
 
-        // Call the API to fetch data with the sorting and other params
         await getDispenseList({ params }).then(res => {
           if (res?.success) {
             setTotal(parseInt(res?.count))
@@ -311,8 +310,8 @@ function Dispense() {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const newSort = newModel[0].sort // This will give 'asc' or 'desc'
-      const newColumn = newModel[0].field // This is the field by which you're sorting
+      const newSort = newModel[0].sort 
+      const newColumn = newModel[0].field 
 
       setSort(newSort)
       setSortColumn(newColumn)
@@ -363,7 +362,6 @@ function Dispense() {
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
         <Card>
-          {/* Title and Button */}
 
           <CardHeader
             sx={{
@@ -383,7 +381,6 @@ function Dispense() {
             action={headerAction}
           />
 
-          {/* Search and Switch Section */}
           <Grid
             container
             sx={{
@@ -392,7 +389,6 @@ function Dispense() {
               justifyContent: 'space-between'
             }}
           >
-            {/* Search Field */}
             <Grid item size={{ xs: 12, sm: 8, md: 8 }} sx={{ mx: { xs: 3, md: 5 } }}>
               <Box
                 sx={{
@@ -441,7 +437,7 @@ function Dispense() {
             ) : null} */}
           </Grid>
 
-          {/* Table */}
+        
           <Grid
             sx={{
               mx: { xs: 3, md: 5 }

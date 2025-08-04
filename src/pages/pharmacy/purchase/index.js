@@ -51,7 +51,6 @@ const ListOfPurchase = () => {
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
-  /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
 
@@ -158,7 +157,7 @@ const ListOfPurchase = () => {
         supplier: selectedSupplier
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates, selectedSupplier])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -553,16 +552,16 @@ const ListOfPurchase = () => {
               action={headerAction}
             />
 
-            {/* Left Box (Search Field) */}
+        
             <CardContent sx={{ paddingTop: '4px' }}>
               <Box
                 sx={{
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' }, // Stack on small screens, row on larger screens
+                  flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'space-between',
-                  alignItems: { xs: 'stretch', sm: 'center' }, // Stretch items in column mode
-                  gap: { xs: 2, sm: 0 }, // Add spacing for small screens
-                  width: '100%' // Ensure full width
+                  alignItems: { xs: 'stretch', sm: 'center' }, 
+                  gap: { xs: 2, sm: 0 }, 
+                  width: '100%' 
                 }}
               >
                 <Grid
@@ -658,12 +657,12 @@ const ListOfPurchase = () => {
                   columns={columns}
                   paginationModel={paginationModel}
                   onPaginationModelChange={model => {
-                    setPaginationModel(model) // Update page and pageSize in the state
+                    setPaginationModel(model) 
                     router.replace({
                       pathname: router.pathname,
                       query: {
                         ...router.query,
-                        page: model.page + 1, // API uses 1-indexed pages
+                        page: model.page + 1, 
                         pageSize: model.pageSize,
                         searchValue,
                         sort,

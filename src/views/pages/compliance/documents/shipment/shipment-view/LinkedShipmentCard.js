@@ -5,7 +5,6 @@ import moment from 'moment'
 const ShipmentCard = ({ shipment }) => {
   return (
     <Box mb={6}>
-      {/* Shipment ID */}
       <Typography sx={{ fontSize: '18px', color: '#44544A', fontWeight: 500, mb: 3 }}>
         Shipment ID :{' '}
         <Box component='span' sx={{ fontSize: '18px', fontWeight: 500, color: '#006D35' }}>
@@ -13,7 +12,6 @@ const ShipmentCard = ({ shipment }) => {
         </Box>
       </Typography>
 
-      {/* Shipment Details Card */}
       <Paper
         elevation={1}
         sx={{
@@ -27,7 +25,6 @@ const ShipmentCard = ({ shipment }) => {
         }}
       >
         <Grid container spacing={2}>
-          {/* Left Column */}
           <Grid size={{ xs: 7 }}>
             <Box mb={4}>
               <Typography sx={{ fontSize: '16px', color: '#7A8684', fontWeight: 400 }}>Shipment Date</Typography>
@@ -43,7 +40,6 @@ const ShipmentCard = ({ shipment }) => {
             </Box>
           </Grid>
 
-          {/* Right Column aligned with "Total Species" */}
           <Grid size={{ xs: 5 }} display='flex' flexDirection='column' justifyContent='flex-end'>
             <Box mt='28px'>
               {' '}

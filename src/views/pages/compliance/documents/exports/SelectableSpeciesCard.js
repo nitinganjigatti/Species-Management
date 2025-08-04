@@ -9,7 +9,7 @@ const SelectableSpeciesCard = ({
   selected,
   borderColor,
   onClick,
-  selectionType = 'checkbox' // 'checkbox' | 'radio' | 'cross'
+  selectionType = 'checkbox' 
 }) => {
   const theme = useTheme()
 
@@ -29,10 +29,10 @@ const SelectableSpeciesCard = ({
           display: 'flex',
           width: '100%',
           padding: 0,
-          alignItems: 'stretch' // make children fill vertically
+          alignItems: 'stretch' 
         }}
       >
-        {/* Species Card */}
+        
         <Box sx={{ flex: 1, px: 4, py: 3 }}>
           <SpeciesCard
             species={{
@@ -43,7 +43,6 @@ const SelectableSpeciesCard = ({
           />
         </Box>
 
-        {/* Selection Icon with full height and background */}
         <Box
           sx={{
             px: 2,

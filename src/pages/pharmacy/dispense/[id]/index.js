@@ -279,7 +279,6 @@ const IndividualDispense = () => {
           <Card>
             {dispenseData?.dispense_item_details?.length > 0 ? (
               <>
-                {/* <CardHeader title='Dispense List' /> */}
                 <Box
                   sx={{
                     px: 4,

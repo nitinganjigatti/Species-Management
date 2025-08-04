@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getLocalDispatchItemsList } from 'src/lib/api/pharmacy/directDispatch'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton } from 'src/components/Buttons'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import { useTheme } from '@emotion/react'
@@ -213,16 +208,11 @@ const DirectDispatchList = () => {
     </div>
   )
 
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   searchTableData(sort, value, 'request_number', status)
-  // }
 
   const handleSearch = value => {
     setSearchValue(value) // Update search value state
     searchTableData(sort, value, sortColumn, status)
 
-    // setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }) / Reset pagination to the first page
   }
 
   const columns = [
@@ -458,8 +448,8 @@ const DirectDispatchList = () => {
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start', // Align content to the left
-                alignItems: 'flex-start', // Align items to the top left
+                justifyContent: 'flex-start', 
+                alignItems: 'flex-start', 
                 gap: { xs: 2, sm: 0 },
                 '& .MuiCardHeader-action': {
                   width: { xs: '100% ', sm: 'auto' }
@@ -474,9 +464,9 @@ const DirectDispatchList = () => {
                 mx: { xs: 2, sm: 3, md: 5 }
               }}
             >
-              {/* Search Field and Filters */}
+             
               <Grid container spacing={3}>
-                {/* Search Field */}
+               
                 <Grid
                   item
                   size={{ xs: 12, sm: 6 }}
@@ -516,7 +506,7 @@ const DirectDispatchList = () => {
                   </Box>
                 </Grid>
 
-                {/* Switch Button */}
+             
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
@@ -534,7 +524,7 @@ const DirectDispatchList = () => {
               </Grid>
             </Box>
 
-            {/* Common Table */}
+          
             <Grid
               sx={{
                 mx: { xs: 2, sm: 3, md: 5 }

@@ -231,7 +231,7 @@ const StepBasicDetails = ({
       )
 
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
-        // Find the matching meal data
+       
         const matchedMealData = formData.meal_data.find(
           mealData =>
             Array.isArray(mealData.ingredient) &&
@@ -243,7 +243,7 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-          // Append the meal_type from the matched ingredient
+          
           const matchedIngredient = matchedMealData.ingredient.find(
             ingredient =>
               String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
@@ -282,7 +282,7 @@ const StepBasicDetails = ({
     )
 
     setAllRecipeSelectedValues(prevState => {
-      // Filter out duplicates from the previous state
+     
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
@@ -293,7 +293,7 @@ const StepBasicDetails = ({
       )
 
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
-        // Find the matching meal data
+       
 
         const matchedMealData = formData.meal_data.find(
           mealData =>
@@ -306,7 +306,7 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-          // Append the meal_type from the matched recipe
+        
           const matchedRecipe = matchedMealData.recipe.find(
             recipe =>
               String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
@@ -346,7 +346,7 @@ const StepBasicDetails = ({
     )
 
     setAllComboSelectedValues(prevState => {
-      // Filter out duplicates from the previous state
+     
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
@@ -369,7 +369,7 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-          // Append the meal_type from the matched combo
+         
           const matchedCombo = matchedMealData.combo?.find(
             combo =>
               String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
@@ -421,7 +421,7 @@ const StepBasicDetails = ({
       const flattenedIngredients = formData.meal_data?.flatMap(all =>
         all.ingredient?.map(ing => ({
           ...ing,
-          ingredient_id: String(ing.ingredient_id) // Convert ingredient_id to string
+          ingredient_id: String(ing.ingredient_id) 
         }))
       )
       setAllSelectedValues(flattenedIngredients)
@@ -429,7 +429,7 @@ const StepBasicDetails = ({
       const flattenedRecipes = formData.meal_data?.flatMap(all =>
         all.recipe?.map(ing => ({
           ...ing,
-          recipe_id: String(ing.recipe_id), // Convert recipe_id to string
+          recipe_id: String(ing.recipe_id), 
           ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
         }))
       )
@@ -439,7 +439,7 @@ const StepBasicDetails = ({
       const flattenedCombos = formData.meal_data?.flatMap(all =>
         all.combo?.map(ing => ({
           ...ing,
-          recipe_id: String(ing.recipe_id), // Convert recipe_id to string
+          recipe_id: String(ing.recipe_id), 
           ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
         }))
       )
@@ -477,7 +477,7 @@ const StepBasicDetails = ({
   }, [formData, reset])
 
   useEffect(() => {
-    // Filter allSelectedValues based on checkid
+   
     if (checkid) {
       const filteredValues = allSelectedValues.filter(value => value?.mealid === checkid)
 
@@ -676,7 +676,7 @@ const StepBasicDetails = ({
         return
       }
 
-      // Check for time overlap
+     
       const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
 
       if (lastOverlapIndex !== -1) {
@@ -701,7 +701,6 @@ const StepBasicDetails = ({
       const fromTime = new Date(meal_from_time).getTime()
       const toTime = new Date(meal_to_time).getTime()
 
-      // Check if meal_from_time is greater than or equal to meal_to_time
       if (fromTime >= toTime) {
         lastOverlapIndex = index
 
@@ -807,13 +806,11 @@ const StepBasicDetails = ({
       )
 
       setAllSelectedValues(prevAllSelectedValues => {
-        // Filter out objects based on conditions
         return prevAllSelectedValues.filter(ingredient => {
           return !(ingredient?.mealid === val && ingredient?.ingredient_id === ingredientIdToRemove)
         })
       })
 
-      // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         if (field?.mealid === val) {
           // Remove ingredient only if mealid matches
@@ -833,7 +830,6 @@ const StepBasicDetails = ({
   const removeingClicking = (indexToRemove, val, value) => {
     setingType('')
     setIngredientchoiceChildStateValue(prevSelectedCard => {
-      // Filter out the entire ingredient object based on the index of prevSelectedCard
       const filteredChildStateValue = prevSelectedCard.filter((_, index) => index !== indexToRemove)
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
@@ -844,11 +840,9 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      // Update fieldsIngredients by removing the matching ingredient objects
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         if (field?.mealid === val) {
           field.ingredientwithchoice = field.ingredientwithchoice?.filter(ingWithChoice => {
-            // Check if this ingWithChoice's ingredientList contains any object that matches all criteria
             const hasMatchingIngredient = ingWithChoice.ingredientList?.some(ing => {
               return value.ingredientList?.some(
                 valIng =>
@@ -875,13 +869,11 @@ const StepBasicDetails = ({
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
 
       setAllRecipeSelectedValues(prevAllSelectedValues => {
-        // Filter out objects based on conditions
         return prevAllSelectedValues.filter(recipe => {
           return !(recipe?.mealid === val && recipe?.recipe_id === recipeIdToRemove)
         })
       })
 
-      // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         if (field?.mealid === val) {
           field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
@@ -890,7 +882,6 @@ const StepBasicDetails = ({
         return field
       })
 
-      // Set the final value using setfinalrecipevalue
       setfinalrecipevalue(updatedFieldsIngredients)
 
       return filteredChildStateValue
@@ -902,13 +893,11 @@ const StepBasicDetails = ({
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
 
       setAllComboSelectedValues(prevAllSelectedValues => {
-        // Filter out objects based on conditions
         return prevAllSelectedValues.filter(recipe => {
           return !(recipe?.mealid === val && recipe?.recipe_id === recipeIdToRemove)
         })
       })
 
-      // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         if (field?.mealid === val) {
           field.combo = field.combo?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
@@ -917,7 +906,6 @@ const StepBasicDetails = ({
         return field
       })
 
-      // Set the final value using setfinalcombovalue
       setfinalcombovalue(updatedFieldsIngredients)
 
       return filteredChildStateValue
@@ -933,7 +921,6 @@ const StepBasicDetails = ({
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
         const updatedAllSelectedValues = prevAllSelectedValues
           .map((ingredient, i) => {
-            // Check both index and checkid === mealid
             if (i === index && ingredient?.mealid === val) {
               return {
                 ...ingredient,
@@ -952,7 +939,6 @@ const StepBasicDetails = ({
         if (field?.mealid === val) {
           const updatedIngredientWithChoice = field.ingredientwithchoice
             ?.map(ingWithChoice => {
-              // Filter out only the exact matching ingredient from ingredientList
               const updatedIngredientList = ingWithChoice.ingredientList?.filter(ing => {
                 return !(
                   String(value.preparation_type_id) === String(ing.preparation_type_id) &&
@@ -966,7 +952,7 @@ const StepBasicDetails = ({
                 ingredientList: updatedIngredientList?.length > 0 ? updatedIngredientList : undefined
               }
             })
-            .filter(ingWithChoice => ingWithChoice.ingredientList) // Remove entries with empty ingredientList
+            .filter(ingWithChoice => ingWithChoice.ingredientList) 
 
           return {
             ...field,
@@ -1262,7 +1248,7 @@ const StepBasicDetails = ({
                                     errors.meal_data[index] &&
                                     errors.meal_data[index]?.meal_from_time
                                       ? 'red'
-                                      : undefined // Change border color to red if there's an error
+                                      : undefined 
                                 }
                               }}
                               renderInput={params => (

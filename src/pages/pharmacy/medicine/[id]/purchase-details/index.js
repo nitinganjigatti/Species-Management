@@ -175,7 +175,6 @@ function PurchaseDetails() {
         // limit: paginationModel.pageSize
       }
 
-      // Call the API to fetch data with the sorting and other params
       await getPurchaseBatchDetailsList(p_id, params).then(res => {
         if (res?.success) {
           setTotal(parseInt(res?.data?.purchase_detailss?.length))

@@ -63,7 +63,7 @@ const DocumentTypeForm = ({
         position: 'relative'
       }}
     >
-      {/* Scrollable Form Content */}
+    
       <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{

@@ -60,7 +60,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
         await getDietListonRecipeDtl(id, params, type).then(res => {
           console.log('response', res)
 
-          // Generate uid field based on the index
+        
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
           let listWithId = res.data.data.result.map((el, i) => {

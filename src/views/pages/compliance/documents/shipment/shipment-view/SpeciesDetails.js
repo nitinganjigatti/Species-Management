@@ -121,7 +121,7 @@ const SpeciesDetailsContainer = ({
     return (
       <>
         <Box>
-          {/* Others Header */}
+         
           <Box
             display='flex'
             justifyContent='space-between'
@@ -181,7 +181,6 @@ const SpeciesDetailsContainer = ({
     return (
       <>
         <Box>
-          {/* Export Header */}
           <Box
             display='flex'
             justifyContent='space-between'
@@ -238,7 +237,6 @@ const SpeciesDetailsContainer = ({
             )}
           </Box>
 
-          {/* Collapsible Species */}
           <Collapse in={!isCollapsed}>
             <Paper elevation={0} sx={{ borderRadius: 0 }}>
               {data.species.map((s, i) => (
@@ -263,7 +261,6 @@ const SpeciesDetailsContainer = ({
           borderBottomRightRadius: '4px'
         }}
       >
-        {/* Header with Toggle */}
         <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ px: 4, py: 3 }}>
           <Typography
             fontWeight={500}

@@ -1,4 +1,3 @@
-/* eslint-disable lines-around-comment */
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
@@ -51,7 +50,6 @@ import {
   updateDirectDispatchItems,
   cancelDirectDispatchItems
 } from 'src/lib/api/pharmacy/directDispatch'
-// import { deleteLineItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/dispatch/add-direct-dispatch-form'
 import Error404 from 'src/pages/404'
@@ -133,8 +131,7 @@ const AddLocalDispatch = () => {
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
-  // const [deleteItemId, setDeleteItemId] = useState('')
-  // const [deleteDialog, setDeleteDialog] = useState(false)
+ 
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
 
@@ -176,9 +173,7 @@ const AddLocalDispatch = () => {
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
     setDuplicateMedError(false)
-    // Resetting State
     setOptionsBatchList([])
-    // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
   }
 
@@ -187,7 +182,6 @@ const AddLocalDispatch = () => {
     setVisibleExpiryField(false)
   }
 
-  // local nested items delete
   const removeItemsFromTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
       return el.uuid != itemId
@@ -238,14 +232,12 @@ const AddLocalDispatch = () => {
     if (!values.control_substance_file) {
       itemErrors.control_substance_file = 'This field is required'
     }
-    // if (values.control_substance) {
     if (values.control_substance === true) {
       if (values.control_substance_file.length === 0) {
         itemErrors.control_substance_file = 'This field is required'
       }
     }
-    // itemErrors.control_substance = 'This field is required'
-    // }
+  
 
     return itemErrors
   }
@@ -253,9 +245,6 @@ const AddLocalDispatch = () => {
   const validateItems = values => {
     const errors = {}
 
-    // if (!values.from_store_id) {
-    //   errors.from_store_id = 'This field is required'
-    // }
     if (!values.to_store_id) {
       errors.to_store_id = 'This field is required'
     }
@@ -566,13 +555,11 @@ const AddLocalDispatch = () => {
     }
   }
 
-  // ****** edit section //////
   const editTableData = itemId => {
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
 
-    //
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
@@ -601,12 +588,9 @@ const AddLocalDispatch = () => {
       //
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, action])
 
-  // ****** edit section //////
-  // data posting section
-
+ 
   const postItemsData = async () => {
     setSubmitLoader(true)
     const postData = editParams
@@ -655,8 +639,6 @@ const AddLocalDispatch = () => {
           Router.replace(`/pharmacy/local-dispatch/`)
         } else {
           toast.error(result?.data?.data)
-          // setDeleteDialog(false)
-          // setDeleteItemId(null)
         }
       } catch (error) {
         toast.error(error.data)
@@ -672,7 +654,6 @@ const AddLocalDispatch = () => {
   return (
     <>
       {selectedPharmacy.type === 'local' ? (
-        // (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <Card>
           <Grid
             container
@@ -688,7 +669,6 @@ const AddLocalDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    // Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
                     Router.back()
                   }}
                   icon='ep:back'
@@ -759,8 +739,7 @@ const AddLocalDispatch = () => {
                         })
                         setErrors({})
                       }}
-                      // error={Boolean(errors?.state_id)}
-                      // labelId='state_id'
+                     
                     >
                       {toStocks?.map((item, index) => (
                         <MenuItem
@@ -829,8 +808,7 @@ const AddLocalDispatch = () => {
                     }}
                   />
                 </Grid>
-                {/* </Grid>
-                </Grid> */}
+              
                 <Grid item size={{ xs: 12, sm: 6 }}>
                   <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
@@ -966,9 +944,7 @@ const AddLocalDispatch = () => {
                                   >
                                     {el.product_name}
                                   </Typography>
-                                  {/* {el.control_substance ? (
-                                    <CustomChip label='CS' skin='light' color='success' size='small' />
-                                  ) : null} */}
+                                 
                                   <Typography
                                     variant='body2'
                                     sx={{
@@ -1011,12 +987,10 @@ const AddLocalDispatch = () => {
                                     sx={{ mr: 0.5 }}
                                     aria-label='Edit'
                                     onClick={() => {
-                                      //
                                       setMedicineItemId(el.request_item_medicine_id)
 
                                       editTableData(el.uuid)
                                       showDialog()
-                                      // }
                                     }}
                                   >
                                     <Icon icon='mdi:pencil-outline' />

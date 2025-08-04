@@ -40,7 +40,7 @@ const AnimalDetailsDrawer = ({
           backgroundColor: theme.palette.customColors.Background
         }}
       >
-        {/* Header */}
+     
         <Box sx={{ px: 5, pt: 4, pb: 4 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
@@ -204,7 +204,7 @@ const AnimalDetailsDrawer = ({
                     mb: 3
                   }}
                 >
-                  {/* Gender Avatar */}
+               
                   <Avatar
                     sx={{
                       backgroundColor:
@@ -235,7 +235,6 @@ const AnimalDetailsDrawer = ({
                     {animal.gender === 'male' ? 'M' : animal.gender === 'female' ? 'F' : 'U'}
                   </Avatar>
 
-                  {/* Animal Info */}
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px', mb: 0.5 }}>
                       Species :{' '}

@@ -17,13 +17,10 @@ import Icon from 'src/@core/components/icon'
 import { Box, Grid, TextField } from '@mui/material'
 import { debounce } from 'lodash'
 
-import Router from 'next/router'
 import toast from 'react-hot-toast'
 
 import AddManufacturer from 'src/views/pages/pharmacy/medicine/manufacturers/addManufacturer'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
@@ -42,7 +39,6 @@ const ManufacturerList = () => {
   const [manufacturers, setManufacturers] = useState({})
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -145,8 +141,7 @@ const ManufacturerList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -165,7 +160,7 @@ const ManufacturerList = () => {
     }
   ]
 
-  /***** Serverside pagination */
+
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
@@ -212,8 +207,7 @@ const ManufacturerList = () => {
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
-      // setSort('asc')
-      // setSortColumn('label')
+     
     }
   }
 
@@ -267,7 +261,6 @@ const ManufacturerList = () => {
       } else {
         setSubmitLoader(false)
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -277,7 +270,6 @@ const ManufacturerList = () => {
     } catch (e) {
       setSubmitLoader(false)
 
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
       toast.error(JSON.stringify(e))
     }
   }
@@ -291,7 +283,6 @@ const ManufacturerList = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -303,8 +294,8 @@ const ManufacturerList = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
+                    justifyContent: 'flex-start', 
+                    alignItems: 'flex-start', 
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }

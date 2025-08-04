@@ -17,11 +17,9 @@ import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
 import { width } from '@mui/system'
 
-// Styled component for the upload image inside the dropzone area
 const Img = styled('img')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
     marginRight: theme.spacing(10)
@@ -34,7 +32,6 @@ const Img = styled('img')(({ theme }) => ({
   }
 }))
 
-// Styled component for the heading inside the dropzone area
 const HeadingTypography = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(5),
   [theme.breakpoints.down('sm')]: {
@@ -43,13 +40,11 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
 }))
 
 const FileUploaderMultiple = props => {
-  // ** State
   const [files, setFiles] = useState([])
   const [prescribedFiles, setPrescribedFiles] = useState([])
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
 
-  // ** Hooks
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: acceptedFiles => {
       props?.onImageUpload(acceptedFiles.map(file => Object.assign(file)))
@@ -58,7 +53,6 @@ const FileUploaderMultiple = props => {
   })
 
   useEffect(() => {
-    // If prescriptionField is provided, set the files initially
     if (props?.prescriptionField) {
       setPrescribedFiles(props.prescriptionField)
       setFiles(props.prescriptionField.map(file => file))
@@ -116,7 +110,6 @@ const FileUploaderMultiple = props => {
     const { files } = file.target
     const totalFiles = [...files]
 
-    // Append the new files to the existing ones
     setFiles(prevFiles => [...prevFiles, ...totalFiles])
   }
   const fileInputRef = useRef(null)

@@ -43,7 +43,7 @@ const schema = yup.object().shape({
 })
 
 const StepBasicDetails = ({ handleNext, formData, uomList }) => {
-  // ** States
+  
   const [uploadedImage, setUploadedImage] = useState(null)
   const router = useRouter()
 
@@ -102,7 +102,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   const onSubmit = async data => {
     window.scrollTo(0, 0)
 
-    // Clear any existing errors
+   
     Object.keys(defaultValues).forEach(field => {
       clearErrors(field)
     })
@@ -112,7 +112,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
 
-      // Merge the image data with other form data
+   
       const formDataWithImage = {
         ...data,
         recipe_image: uploadedImage

@@ -38,7 +38,7 @@ const ControlledAutocomplete = ({
             {...field}
             options={options}
             getOptionLabel={getOptionLabel}
-            value={field.value ?? null} // ensures Autocomplete is always controlled
+            value={field.value ?? null} 
             isOptionEqualToValue={isOptionEqualToValue}
             onChange={(e, value, reason) => {
               field.onChange(value)
@@ -63,7 +63,7 @@ const ControlledAutocomplete = ({
                 helperText={fieldError?.value?.message || fieldError?.label?.message || fieldError?.message}
                 {...textFieldProps}
                 InputProps={{
-                  ...params.InputProps, // ensures dropdown arrow and anchor remain
+                  ...params.InputProps, 
                   ...(textFieldProps?.InputProps || {}),
                   sx: {
                     ...params.InputProps?.sx,

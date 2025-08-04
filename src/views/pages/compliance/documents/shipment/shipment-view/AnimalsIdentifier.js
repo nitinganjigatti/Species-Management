@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Box, Typography, Avatar } from '@mui/material'
 
 const AnimalIdentifiers = ({ selectedExportData }) => {
-  // Sample data for multiple cards
 
   const animals =
     selectedExportData?.export?.flatMap(exportItem =>
@@ -73,7 +72,6 @@ const AnimalIdentifiers = ({ selectedExportData }) => {
                   : ''}
               </Avatar>
 
-              {/* Animal Info */}
               <Box sx={{ flexGrow: 1 }}>
                 <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px', mb: 0.5 }}>
                   Species :{' '}

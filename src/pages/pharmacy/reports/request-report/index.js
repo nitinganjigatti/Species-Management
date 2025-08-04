@@ -421,7 +421,7 @@ const RequestReport = () => {
         endDate: filterDates?.endDate
       })
 
-      console.log('Date range selected:', { startDate, endDate })
+     
     } else {
       setFilterDates({
         startDate: '',
@@ -433,7 +433,6 @@ const RequestReport = () => {
         endDate: ''
       })
 
-      console.log('Empty date range selected,', { startDate, endDate })
     }
   }
 
@@ -553,7 +552,6 @@ const RequestReport = () => {
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
 
-  console.log(filteredData)
 
   return (
     <>

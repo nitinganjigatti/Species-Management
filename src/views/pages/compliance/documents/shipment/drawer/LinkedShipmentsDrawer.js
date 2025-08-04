@@ -23,7 +23,7 @@ const LinkedShipmentsDrawer = ({ open, onClose, title, linkedShipmentsData }) =>
           backgroundColor: theme.palette.customColors.Background
         }}
       >
-        {/* Header */}
+     
         <Box sx={{ px: 5, pt: 4, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>

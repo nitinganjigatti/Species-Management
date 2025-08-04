@@ -5,7 +5,7 @@ import { alpha, styled, useTheme } from '@mui/material/styles'
 // ** Custom Icon Import
 import Icon from 'src/@core/components/icon'
 
-// Styled Box component
+
 const Box = styled(MuiBox)(() => ({
   width: 20,
   height: 20,
@@ -15,10 +15,10 @@ const Box = styled(MuiBox)(() => ({
 }))
 
 const StepperCustomDot = props => {
-  // ** Props
+
   const { active, completed, error } = props
 
-  // ** Hooks
+
   const theme = useTheme()
   if (error) {
     return <Icon icon='mdi:alert' fontSize={20} color={theme.palette.error.main} transform='scale(1.2)' />

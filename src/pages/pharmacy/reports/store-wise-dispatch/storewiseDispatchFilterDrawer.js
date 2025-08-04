@@ -49,12 +49,10 @@ const StoreWisedispatchFilter = ({
       setFiltersApplied(false)
     }
 
-    // Ensure that we are attaching the scroll event to the correct element
     if (ref) {
       ref.addEventListener('scroll', handleScroll)
     }
 
-    // Cleanup event listener on unmount or when ref changes
     return () => {
       if (ref) {
         ref.removeEventListener('scroll', handleScroll)
@@ -177,8 +175,8 @@ const StoreWisedispatchFilter = ({
                     fullStoreList.map(fruit => (
                       <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                         <Checkbox
-                          checked={tempSelectedStores.includes(fruit.id)} // Use tempSelectedStores here
-                          onChange={() => handleFruitSelection(fruit.id)} // Update tempSelectedStores on selection
+                          checked={tempSelectedStores.includes(fruit.id)} 
+                          onChange={() => handleFruitSelection(fruit.id)} 
                           inputProps={{ 'aria-label': 'controlled' }}
                         />
                         <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
@@ -201,7 +199,6 @@ const StoreWisedispatchFilter = ({
           </Grid>
         </Grid>
       </Box>
-      {/* bottom buttons */}
       <Box
         sx={{
           height: '122px',

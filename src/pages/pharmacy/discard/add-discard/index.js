@@ -1,4 +1,3 @@
-/* eslint-disable lines-around-comment */
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
@@ -94,7 +93,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 })
 
 const AddDiscardProducts = () => {
-  // ** Hook
 
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
@@ -130,9 +128,7 @@ const AddDiscardProducts = () => {
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
     setDuplicateMedError(false)
-    // Resetting State
     setOptionsBatchList([])
-    // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
   }
 
@@ -166,7 +162,6 @@ const AddDiscardProducts = () => {
     } catch (error) {}
   }
 
-  // local nested items delete
   const removeItemsFromTable = itemId => {
     const updatedItems = editParams?.items?.filter(el => {
       return el.uuid != itemId
@@ -210,7 +205,6 @@ const AddDiscardProducts = () => {
   }
 
   const submitItems = (params, type) => {
-    //
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams?.items?.some(
@@ -236,7 +230,6 @@ const AddDiscardProducts = () => {
   }
 
   const updateTableItems = params => {
-    //
     const itemId = medicineItemId
     const updatedState = { ...editParams }
 
@@ -282,7 +275,6 @@ const AddDiscardProducts = () => {
     showDialog()
   }
 
-  //  ****** debounce
   const fetchMedicineData = async searchText => {
     try {
       setProductLoading(true)
@@ -291,8 +283,6 @@ const AddDiscardProducts = () => {
         sort: 'asc',
         q: searchText,
         limit: 20
-        // active: 1,
-        // is_specific: 1
       }
 
       const searchResults = await getMedicineList({ params: params })
@@ -408,7 +398,6 @@ const AddDiscardProducts = () => {
     }, 500),
     []
   )
-  //  ****** debounce
 
   const getListOfItemsById = async id => {
     try {
@@ -454,13 +443,12 @@ const AddDiscardProducts = () => {
     }
   }
 
-  // ****** edit section //////
   const editTableData = itemId => {
     const getItems = editParams?.items?.filter(el => {
       return el.uuid === itemId
     })
 
-    //
+    
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].medicine_name,
@@ -481,7 +469,7 @@ const AddDiscardProducts = () => {
       reason: getItems[0]?.reason,
       unit_price: getItems[0]?.unit_price
     })
-    // }
+  
   }
 
   useEffect(() => {
@@ -489,11 +477,10 @@ const AddDiscardProducts = () => {
       //
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [id, action])
 
-  // ****** edit section //////
-  // data posting section
+
 
   const postItemsData = async () => {
     setSubmitLoader(true)
@@ -537,7 +524,6 @@ const AddDiscardProducts = () => {
   const [commentDrawerOpen, setCommentDrawerOpen] = useState(false)
   const [selectedComment, setSelectedComment] = useState({})
 
-  // ... existing code
 
   const handleOpenCommentDrawer = comment => {
     setSelectedComment(comment)
@@ -573,10 +559,9 @@ const AddDiscardProducts = () => {
         const supplierId = response?.data?.supplier_id || null
 
         const discardDate = response?.data?.discarded_date
-          ? formatDate(response?.data?.discarded_date) // Ensure date is formatted
+          ? formatDate(response?.data?.discarded_date) 
           : 'N/A'
 
-        // Find Supplier Name from supplierList using supplier_id
         const supplierName = supplierList.find(supplier => supplier.id === supplierId)?.company_name || 'N/A'
 
         const data = response?.data?.item_details.map(el => ({
@@ -585,8 +570,8 @@ const AddDiscardProducts = () => {
           ['Batch No']: el?.batch_no,
           ['Expiry Date']: el?.expiry_date,
           ['Quantity']: el?.quantity,
-          ['Supplier Name']: supplierName, // Attach the found Supplier Name
-          ['Discard Date']: discardDate, // Attach formatted Discard Date
+          ['Supplier Name']: supplierName, 
+          ['Discard Date']: discardDate, 
           ['Reason']: el?.reason,
           ['Stock Type']: el?.stock_type
         }))
@@ -638,7 +623,6 @@ const AddDiscardProducts = () => {
               title={
                 <Box>
                   {' '}
-                  {/* Title takes full available space */}
                   Return To Supplier
                 </Box>
               }
@@ -711,8 +695,7 @@ const AddDiscardProducts = () => {
                           })
                           setErrors({})
                         }}
-                        // error={Boolean(errors?.state_id)}
-                        // labelId='state_id'
+                      
                       >
                         {supplierList?.map((item, index) => (
                           <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
@@ -738,7 +721,6 @@ const AddDiscardProducts = () => {
                         name={'Date*'}
                         disabled={id ? true : false}
                         onChangeHandler={date => {
-                          // setStores({ ...stores, date: date })
                           setEditParams({ ...editParams, discarded_date: formatDate(date) })
                           setErrors({})
                         }}
@@ -835,7 +817,6 @@ const AddDiscardProducts = () => {
                     <TableCell>Product Name</TableCell>
                     <TableCell>Batch No</TableCell>
                     <TableCell>Expiry Date</TableCell>
-                    {/* <TableCell>Comment</TableCell> */}
                     <TableCell>Quantity</TableCell>
                     <TableCell>Reason</TableCell>
 
@@ -851,7 +832,7 @@ const AddDiscardProducts = () => {
                             key={index}
                             sx={{
                               '&:last-child td, &:last-child th': {
-                                border: 0 // Removes borders for the last row
+                                border: 0 
                               }
                             }}
                           >
@@ -864,9 +845,7 @@ const AddDiscardProducts = () => {
                                 {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
                                 {el.medicine_name}
                               </Typography>
-                              {/* {el.control_substance ? (
-                              <CustomChip label='CS' skin='light' color='success' size='small' />
-                            ) : null} */}
+                         
                               <Typography
                                 variant='body2'
                                 sx={{ color: 'customColors.customHeadingTextColor', fontSize: '14px', fontWeight: 400 }}

@@ -18,7 +18,6 @@ import { Box, Drawer, Grid, TextField } from '@mui/material'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 
 import { debounce } from 'lodash'
 
@@ -45,7 +44,6 @@ const StorageList = () => {
   const [saltsList, setSaltsList] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -90,7 +88,6 @@ const StorageList = () => {
     setOpenDrawer(true)
   }
 
-  /***** Drawer  */
 
   const columns = [
     {
@@ -150,8 +147,7 @@ const StorageList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -171,7 +167,6 @@ const StorageList = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
@@ -257,7 +252,6 @@ const StorageList = () => {
         response = await addStorage(payload)
       }
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
@@ -267,7 +261,6 @@ const StorageList = () => {
       } else {
         setSubmitLoader(false)
 
-        // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -289,7 +282,6 @@ const StorageList = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -301,8 +293,8 @@ const StorageList = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start', 
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }
@@ -408,12 +400,6 @@ const StorageList = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              {/* <UserSnackbar
-                status={openSnackbar}
-                message={snackbarMessage}
-                severity={severity}
-                handleClose={handleClose}
-              /> */}
             </>
           )}
         </>

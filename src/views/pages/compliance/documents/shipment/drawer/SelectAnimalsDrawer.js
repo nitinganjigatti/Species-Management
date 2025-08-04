@@ -22,7 +22,6 @@ const SelectAnimalsDrawer = ({
   const theme = useTheme()
   const [selectedAnimals, setSelectedAnimals] = useState(initialSelectedAnimals)
 
-  // Update local state when initialSelectedAnimals changes
   useEffect(() => {
     setSelectedAnimals(initialSelectedAnimals)
   }, [initialSelectedAnimals, open])
@@ -39,7 +38,6 @@ const SelectAnimalsDrawer = ({
   }
 
   const validateSelection = () => {
-    // Find the species in selectedExportData
     const exportItem = draftData.export.find(e => e.export_id === exportID)
     const speciesData = exportItem?.species?.find(s => s.master_species_id === speciesId)
 
@@ -55,9 +53,9 @@ const SelectAnimalsDrawer = ({
       else counts.undeterminate++
     })
 
-    // Check against allowed counts from selectedExportData
+  
     if (speciesData) {
-      // Check for zero counts first
+    
       if (counts.male > 0 && Number(speciesData.male_count || 0) === 0) {
         Toaster({
           type: 'error',
@@ -131,7 +129,7 @@ const SelectAnimalsDrawer = ({
           backgroundColor: theme.palette.customColors.Background
         }}
       >
-        {/* Header */}
+       
         <Box sx={{ px: 5, pt: 4, pb: 2, background: '#fff' }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
@@ -142,7 +140,6 @@ const SelectAnimalsDrawer = ({
             </IconButton>
           </Box>
         </Box>
-        {console.log(selectedExportData, 'selectedExportData')}
         <Box sx={{ backgroundColor: '#fff', px: 5, pb: 6, pt: 2 }}>
           <Box
             sx={{
@@ -184,7 +181,7 @@ const SelectAnimalsDrawer = ({
               display: 'flex',
               flexDirection: 'column',
               gap: 2.5,
-              maxWidth: '600px', // Adjust based on your layout
+              maxWidth: '600px', 
               margin: 'auto',
               px: 6,
               borderRadius: '8px'
@@ -205,7 +202,6 @@ const SelectAnimalsDrawer = ({
                   borderRadius: '8px'
                 }}
               >
-                {/* Gender Avatar */}
                 <Avatar
                   sx={{
                     backgroundColor:
@@ -242,7 +238,6 @@ const SelectAnimalsDrawer = ({
                     : ''}
                 </Avatar>
 
-                {/* Animal Info */}
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
                     Species :{' '}
@@ -259,7 +254,6 @@ const SelectAnimalsDrawer = ({
                   </Typography>
                 </Box>
 
-                {/* Checkbox */}
                 <Box
                   sx={{
                     background: '#F2FFF8',
@@ -282,7 +276,6 @@ const SelectAnimalsDrawer = ({
             ))}
           </Box>
         </Box>
-        {/* Sticky footer */}
         <Box
           sx={{
             position: 'sticky',

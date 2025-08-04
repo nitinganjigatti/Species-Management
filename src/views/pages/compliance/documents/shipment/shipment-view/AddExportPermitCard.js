@@ -67,7 +67,7 @@ const ExportCard = ({
         }}
         onClick={() => handleClickAnimals(exportId)}
       >
-        {/* Left Section */}
+      
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
           <Typography variant='subtitle2' color='#7A8684' fontWeight='400'>
             Export ID : <span style={{ color: '#44544A', fontWeight: '500' }}>{exportNumber}</span>
@@ -118,7 +118,6 @@ const ExportCard = ({
           </Grid>
         </CardContent>
 
-        {/* Right Section */}
         <Box
           sx={{
             background: '#F2FFF8',

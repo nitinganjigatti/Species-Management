@@ -50,7 +50,6 @@ import {
   updateDirectDispatchItems,
   cancelDirectDispatchItems
 } from 'src/lib/api/pharmacy/directDispatch'
-// import { deleteLineItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/dispatch/add-direct-dispatch-form'
 import Error404 from 'src/pages/404'
@@ -84,7 +83,6 @@ const editParamsInitialState = {
 
   // from_store_id: '',
   to_store_id: '',
-  // from_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
   priority_item: 'Normal',
@@ -131,8 +129,6 @@ const AddDirectDispatch = () => {
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
-  // const [deleteItemId, setDeleteItemId] = useState('')
-  // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
 
@@ -177,7 +173,6 @@ const AddDirectDispatch = () => {
     setVisibleExpiryField(false)
   }
 
-  // local nested items delete
   const removeItemsFromTable = itemId => {
     const updatedItems = editParams?.request_item_details?.filter(el => {
       return el.uuid != itemId
@@ -257,7 +252,7 @@ const AddDirectDispatch = () => {
   }
 
   const submitItems = (params, type) => {
-    //
+    
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams?.request_item_details?.some(
@@ -310,7 +305,6 @@ const AddDirectDispatch = () => {
 
   const updateFormItems = params => {
     const HasErrors = !params.product_name || !params.request_item_qty || !params.priority_item
-    // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(params))
 
@@ -508,8 +502,7 @@ const AddDirectDispatch = () => {
     }, 500),
     []
   )
-  //  ****** debounce
-
+ 
   const getListOfItemsById = async id => {
     try {
       const result = await getDirectDispatchItemsListById(id)
@@ -559,7 +552,7 @@ const AddDirectDispatch = () => {
     }
   }
 
-  // ****** edit section //////
+  
   const editTableData = itemId => {
     //
     // if (id != undefined && action === 'edit') {
@@ -617,11 +610,10 @@ const AddDirectDispatch = () => {
       //
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   }, [id, action])
 
-  // ****** edit section //////
-  // data posting section
+
 
   const postItemsData = async () => {
     setSubmitLoader(true)
@@ -838,8 +830,7 @@ const AddDirectDispatch = () => {
                         })
                         setErrors({})
                       }}
-                      // error={Boolean(errors?.state_id)}
-                      // labelId='state_id'
+                     
                     >
                       {toStocks?.map((item, index) => (
                         <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
@@ -1037,7 +1028,6 @@ const AddDirectDispatch = () => {
                 handleSubmit()
               }}
             />
-            {/* </Grid> */}
           </Box>
           {/* <Grid
             container
@@ -1098,9 +1088,7 @@ const AddDirectDispatch = () => {
                                   >
                                     {el.product_name}
                                   </Typography>
-                                  {/* {el.control_substance ? (
-                                     <CustomChip label='CS' skin='light' color='success' size='small' />
-                                   ) : null} */}
+                                  
                                   <Typography
                                     variant='body2'
                                     sx={{
@@ -1145,12 +1133,12 @@ const AddDirectDispatch = () => {
                                     sx={{ mr: 0.5 }}
                                     aria-label='Edit'
                                     onClick={() => {
-                                      //
+                                     
                                       setMedicineItemId(el.request_item_medicine_id)
 
                                       editTableData(el.uuid)
                                       showDialog()
-                                      // }
+                                     
                                     }}
                                   >
                                     <Icon icon='mdi:pencil-outline' />
@@ -1158,11 +1146,9 @@ const AddDirectDispatch = () => {
 
                                   <IconButton
                                     onClick={() => {
-                                      // if (editParams?.request_item_details?.length === 1) {
-                                      //   openCancelDialog()
-                                      // } else {
+                                     
                                       removeItemsFromTable(el.uuid)
-                                      // }
+                                    
                                     }}
                                     size='small'
                                     sx={{ mr: 0.5 }}
@@ -1236,7 +1222,6 @@ const AddDirectDispatch = () => {
                         title='Cancel Request'
                         action={() => {
                           openCancelDialog()
-                          // setEditParams(editParamsInitialState)
                         }}
                       />
                     </>
