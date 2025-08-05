@@ -492,7 +492,7 @@ const DietDetailCard = ({
                       variant='body2'
                       sx={{
                         width: '100%',
-                        color: '#7A8684',
+                        color: theme.palette.customColors.secondaryBg,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         display: '-webkit-box',
@@ -512,7 +512,7 @@ const DietDetailCard = ({
                           fontSize: '13px',
 
                           textDecoration: 'underline',
-                          color: '#000',
+                          color: theme.palette.common.black,
                           cursor: 'pointer'
                         }}
                       >
@@ -570,7 +570,9 @@ const DietDetailCard = ({
                     onClick={() => setActivitySidebarOpen(true)}
                     sx={{ display: 'flex', marginLeft: isSmallDevice ? '0' : 'auto', cursor: 'pointer' }}
                   >
-                    <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
+                    <Typography sx={{ color: theme.palette.customColors.deepDark, my: 3, fontSize: 14 }}>
+                      Activity Log
+                    </Typography>
                     <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
                   </Box>
                 )}

@@ -182,7 +182,11 @@ const SpeciesAnimalsMapped = ({
       <Grid item size={{ md: 8, xs: 12 }}>
         <TabContext value={selectionType}>
           {dietDetails?.total_animals !== '0' && dietDetails?.total_species !== '0' ? (
-            <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
+            <TabList
+              onChange={handleChange}
+              aria-label='customized tabs example'
+              sx={{ background: theme.palette.common.white }}
+            >
               <Tab
                 style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '50%', fontWeight: '600' }}
                 value='species'
@@ -222,7 +226,7 @@ const SpeciesAnimalsMapped = ({
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        border: '1px solid #C3CEC7',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '7px',
                         padding: '0 8px',
                         height: '45px',
@@ -285,7 +289,7 @@ const SpeciesAnimalsMapped = ({
                         border:
                           selectedItems && Object.values(selectedItems).some(array => array.length > 0)
                             ? `1px solid ${theme.palette.primary.main}`
-                            : '1px solid #C3CEC7',
+                            : `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         mr: '10px'
                       }}
                     >
@@ -348,7 +352,7 @@ const SpeciesAnimalsMapped = ({
                         py: 1,
                         borderRadius: '10px',
                         background: theme.palette.customColors.Primary10,
-                        border: '1px solid #0000000D'
+                        border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`
                       }}
                     >
                       <Typography
@@ -500,7 +504,7 @@ const SpeciesAnimalsMapped = ({
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        border: '1px solid #C3CEC7',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '7px',
                         padding: '0 8px',
                         height: '45px',
@@ -562,7 +566,7 @@ const SpeciesAnimalsMapped = ({
                         border:
                           selectedItems && Object.values(selectedItems).some(array => array.length > 0)
                             ? `1px solid ${theme.palette.primary.main}`
-                            : '1px solid #C3CEC7',
+                            : `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         mr: '10px'
                       }}
                     >

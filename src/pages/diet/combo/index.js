@@ -190,13 +190,16 @@ const RecipeList = () => {
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                <Icon
+                  icon='ooui:success'
+                  style={{ marginRight: '20px', fontSize: 50, color: theme.palette.primary.main }}
+                />
                 <div>
                   <Typography sx={{ fontWeight: 500 }} variant='h5'>
                     Success!
                   </Typography>
                   <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                  <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                     Recipe {'REP' + rowData.id} has been successfully {newIsActive === 1 ? 'activated' : 'deactivated'}
                   </Typography>
                 </div>
@@ -253,7 +256,14 @@ const RecipeList = () => {
           <Avatar
             variant='square'
             alt='Recipe Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -321,8 +331,6 @@ const RecipeList = () => {
             }
             arrow
             placement='right'
-
-            // style={{ background: '#1F515B' }}
           >
             <Typography>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</Typography>
           </Tooltip>
@@ -344,7 +352,7 @@ const RecipeList = () => {
               height: 30,
               mr: 4,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               overflow: 'hidden'
             }}
           >

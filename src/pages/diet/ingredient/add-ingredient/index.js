@@ -153,9 +153,6 @@ const AddIngredient = () => {
           setValue('dryMatterPercentage', res?.data?.water_dry_matter)
           setValue('nutritionalValuesPer', res?.data?.standard_unit || '')
 
-          // console.log('res?.data?.standard_unit', res?.data?.standard_unit)
-          // console.log('res?.data?.uom', res?.data?.uom)
-          // console.log('res?', res)
           setDefaultUom({
             id: res?.data?.uom_id,
             name: res?.data?.uom || ''
@@ -885,7 +882,7 @@ const AddIngredient = () => {
                               >
                                 <Icon
                                   icon='material-symbols-light:close'
-                                  color='#fff'
+                                  color={theme.palette.common.white}
                                   onClick={() => removeSelectedImage()}
                                 >
                                   {' '}

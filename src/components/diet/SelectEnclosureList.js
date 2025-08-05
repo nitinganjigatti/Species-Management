@@ -138,7 +138,7 @@ const SelectEnclosureList = ({
       {/* header */}
       <Box
         sx={{
-          bgcolor: '#FFF',
+          bgcolor: theme.palette.common.white,
           borderRadius: '8px',
           overflow: 'hidden',
           width: '100%',
@@ -358,7 +358,7 @@ const SelectEnclosureList = ({
             pt: 4,
             position: 'sticky',
             bottom: 0,
-            background: '#FFF',
+            background: theme.palette.common.white,
             zIndex: 1,
             pb: 4
           }}
@@ -366,7 +366,13 @@ const SelectEnclosureList = ({
           <Button
             variant='contained'
             fullWidth
-            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+            sx={{
+              bgcolor: '#28A745',
+              color: theme.palette.common.white,
+              p: 2,
+              borderRadius: '8px',
+              '&:hover': { bgcolor: '#218838' }
+            }}
             onClick={() => onSelectEnclosures(selectedEnclosures)}
             disabled={selectedEnclosures.length <= 0}
           >

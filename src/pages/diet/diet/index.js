@@ -366,8 +366,8 @@ const Diet = () => {
                       overflowX: 'auto'
                     },
                     '.MuiDataGrid-main': {
-                      borderLeft: '1px solid #0000000D',
-                      borderRight: '1px solid #0000000D',
+                      borderLeft: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                      borderRight: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                       marginLeft: '20px',
                       marginRight: '20px',
                       borderRadius: '8px',

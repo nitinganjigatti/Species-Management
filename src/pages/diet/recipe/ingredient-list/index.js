@@ -17,7 +17,7 @@ import IconButton from '@mui/material/IconButton'
 import ClearIcon from '@mui/icons-material/Clear'
 import SearchIcon from '@mui/icons-material/Search'
 import InputAdornment from '@mui/material/InputAdornment'
-
+import { useTheme } from '@mui/material/styles'
 // ** MUI Imports
 
 import Card from '@mui/material/Card'
@@ -36,7 +36,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   const [loader, setLoader] = useState(false)
-
+  const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -103,7 +103,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               width: 40,
               height: 40,
               mr: 2,
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               padding: '8px',
               borderRadius: '4px'
             }}

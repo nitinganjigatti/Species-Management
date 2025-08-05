@@ -208,7 +208,14 @@ const RecipeList = () => {
           <Avatar
             variant='square'
             alt='Recipe Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -275,8 +282,6 @@ const RecipeList = () => {
             }
             arrow
             placement='right'
-
-            // style={{ background: '#1F515B' }}
           >
             <Typography sx={{ pl: 2 }}>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</Typography>
           </Tooltip>
@@ -298,7 +303,7 @@ const RecipeList = () => {
               height: 30,
               mr: 4,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               overflow: 'hidden'
             }}
           >
@@ -394,8 +399,8 @@ const RecipeList = () => {
                     overflowX: 'auto'
                   },
                   '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #0000000D',
-                    borderRight: '1px solid #0000000D',
+                    borderLeft: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                    borderRight: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                     marginLeft: '20px',
                     marginRight: '20px',
                     borderRadius: '8px',
