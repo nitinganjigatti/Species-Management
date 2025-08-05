@@ -641,3 +641,11 @@ export const ANIMAL_INCIDENT_DETAILS = `animal/incident/`
 export const ANIMAL_CREATE_INCIDENT = `animal/create-incident-report`
 
 export const ANIMAL_UPDATE_INCIDENT = `animal/incident/edit`
+
+export const ANIMAL_DETAILS_IDENTIFIER_LIST = `/animal/identifier-list`
+
+export const ADD_ANIMAL_IDENTIFIER = `add/animalidentifier`
+
+export const EDIT_ANIMAL_IDENTIFIER = `/edit/animalidentifier`
+
+export const DELETE_ANIMAL_IDENTIFIER = `/delete/animalidentifier`

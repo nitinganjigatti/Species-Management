@@ -10,7 +10,7 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -19,17 +19,19 @@ import { useDropzone } from 'react-dropzone'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { getAnimalGetconfigs } from 'src/lib/api/egg/egg/createAnimal'
+import { addAnimalIdentifier, editAnimalIdentifier } from 'src/lib/api/housing'
+import { Toaster } from 'react-hot-toast'
 
 const schema = yup.object().shape({
   localIdentifierType: yup.string().required('Local Identifier Type is required'),
   localIdentifier: yup.string().required('LocalIdentifier is required')
 })
 
-const AddIdentifierDrawer = ({ open, setOpen, isEditing = true }) => {
+const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIdentifierTypeData, setIdentifierData }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
 
-  const [localIdentifierTypeData, setLocalIdentifierTypeData] = useState([])
   const [loading, setLoading] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -44,37 +46,36 @@ const AddIdentifierDrawer = ({ open, setOpen, isEditing = true }) => {
     defaultValues: {
       localIdentifierType: '',
       localIdentifier: '',
-      images: []
+      images: [],
+      makePrimary: false
     },
     resolver: yupResolver(schema)
   })
 
+  // Populate form fields when editing
+  useEffect(() => {
+    if (identifierData) {
+      setValue('localIdentifierType', identifierData.type || '')
+      setValue('localIdentifier', identifierData.local_identifier_value || '')
+      setValue('makePrimary', identifierData.is_primary === 1)
+
+      if (identifierData.images && identifierData.images.length > 0) {
+        setValue('images', identifierData.images)
+      }
+    } else {
+      setValue('localIdentifierType', '')
+      setValue('localIdentifier', '')
+      setValue('makePrimary', false)
+      setValue('images', [])
+    }
+  }, [identifierData, setValue, localIdentifierTypeData])
+
   const handleDrawerClose = () => {
     setOpen(false)
+    setIdentifierData(null)
   }
 
   const images = watch('images')
-
-  const { getRootProps } = useDropzone({
-    multiple: false,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg']
-    },
-    onDrop: acceptedFiles => {
-      const file = acceptedFiles[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = () => {
-          setValue('image', { file, preview: reader.result })
-        }
-        reader.readAsDataURL(file)
-      }
-    }
-  })
-
-  const handleAddImageClick = () => {
-    fileInputRef.current?.click()
-  }
 
   const handleFilesChange = files => {
     if (!files || files.length === 0) return
@@ -105,14 +106,55 @@ const AddIdentifierDrawer = ({ open, setOpen, isEditing = true }) => {
   }
 
   const onSubmit = async data => {
-    console.log(data, 'data')
+    const params = {
+      animal_id: animalId,
+      type: data?.localIdentifierType,
+      value: data?.localIdentifier,
+      is_primary: data?.makePrimary ? 1 : 0,
+      image: data?.images
+    }
+
+    console.log(params, "params")
+
+    try {
+      setLoading(true)
+      if (identifierData === null) {
+        await addAnimalIdentifier(params).then(res => {
+          if (res?.success) {
+            Toaster({ type: 'success', message: res?.message })
+            setLoading(false)
+            setOpen(false)
+          } else {
+            Toaster({ type: 'error', message: res?.message })
+          }
+        })
+      } else {
+        const editParams = {
+          ...params,
+          identifier_id: identifierData.id
+        }
+        await editAnimalIdentifier(editParams).then(res => {
+          if (res?.success) {
+            setLoading(false)
+            setOpen(false)
+            Toaster({ type: 'success', message: res?.message })
+          } else {
+            Toaster({ type: 'error', message: res?.message })
+          }
+        })
+      }
+    } catch (error) {
+      console.error(error, `Cannot ${identifierData === null ? 'Add' : 'Edit'} the Local Identifier`)
+      setLoading(false)
+    }
+
   }
 
   const onDeleteDialogClose = () => {
     setOpenDeleteDialog(false)
   }
 
-  const handleDelete = () => {}
+  const handleDelete = () => { }
 
   return (
     <>
@@ -143,7 +185,7 @@ const AddIdentifierDrawer = ({ open, setOpen, isEditing = true }) => {
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Cluster Icon' width='30px' />
-            <Typography variant='h6'>{isEditing ? 'Edit' : 'Add'} Local Identifier</Typography>
+            <Typography variant='h6'>{identifierData !== null ? 'Edit' : 'Add'} Local Identifier</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -183,7 +225,16 @@ const AddIdentifierDrawer = ({ open, setOpen, isEditing = true }) => {
                   inputProps={{ placeholder: 'Local Identifier*' }}
                   errors={errors}
                 />
-                <FormControlLabel control={<Checkbox />} label='Make Primary' />
+                <Controller
+                  name='makePrimary'
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Checkbox {...field} checked={field.value} />}
+                      label='Make Primary'
+                    />
+                  )}
+                />
               </Card>
               <Box sx={{ mt: 6 }}>
                 <Typography
@@ -336,7 +387,7 @@ const AddIdentifierDrawer = ({ open, setOpen, isEditing = true }) => {
             gap: 5
           }}
         >
-          {isEditing && (
+          {identifierData !== null && (
             <Button
               variant='outlined'
               fullWidth

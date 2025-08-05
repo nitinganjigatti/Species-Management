@@ -4,38 +4,71 @@ import { useTheme } from '@mui/material/styles'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import StickyTable from 'src/views/table/sticky-table'
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/system'
+import { Box, minWidth, width } from '@mui/system'
 import AddIdentifierDrawer from 'src/views/pages/housing/animals/AddIdentifierDrawer'
-import AddIdentifier from './AddIdentifierForm'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
+import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { deleteAnimalIdentifier, getAnimalIdentifier } from 'src/lib/api/housing'
+import Utility from 'src/utility'
+import Search from 'src/views/utility/Search'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { getAnimalGetconfigs } from 'src/lib/api/egg/egg/createAnimal'
+import { Toaster } from 'react-hot-toast'
 
 const AnimalIdentifier = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
 
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
-  const [openAddIdentifierDrawer, setOpenAddIdentifierDrawer] = useState(false)
-
-  // Inside your component
-  const [anchorEl, setAnchorEl] = useState(null)
-  const open = Boolean(anchorEl)
-
   const [addIdentifierDrawer, setAddIdentifierDrawer] = useState(false)
-  const [animalId, setAnimalId] = useState('')
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+  const [identifierData, setIdentifierData] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [localIdentifierTypeData, setLocalIdentifierTypeData] = useState([])
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null)
+  const [selectedRow, setSelectedRow] = useState(null)
+  const [selectedItemToDelete, setSelectedItemToDelete] = useState(null)
 
-  const [deleteDialog, setDeleteDialog] = useState(false)
+  useEffect(() => {
+    const getLocalIdentifierTypeData = async () => {
+      try {
+        await getAnimalGetconfigs().then(res => {
+          if (res?.success) {
+            setLocalIdentifierTypeData(res?.data?.animal_indetifier.map(item => ({
+              label: item?.label,
+              value: item?.id
+            })))
+          }
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    }
 
-  const handleMenuOpen = event => {
-    setAnchorEl(event.currentTarget)
-  }
+    getLocalIdentifierTypeData()
+  }, [])
 
-  const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['animal-identifier', id],
+    queryFn: () => getAnimalIdentifier({
+      animal_id: id
+    }),
+    enabled: !!id
+  })
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const indexedRows = data?.data?.map((row, index) => ({
+    ...row,
+    sl: getSlNo(index)
+  }))
 
   const columns = [
     {
-      field: 'sl_no',
+      field: 'sl',
       headerName: 'NO',
       minWidth: 50,
       width: 50,
@@ -51,15 +84,14 @@ const AnimalIdentifier = () => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          {params.row.sl_no}
+          {params.row.sl}
         </Typography>
       )
     },
     {
       field: 'identifier_type',
       headerName: 'LOCAL IDENTIFIER TYPE',
-      width: 220,
-      flex: 0.4,
+      width: 150,
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -72,14 +104,9 @@ const AnimalIdentifier = () => {
               backgroundColor: theme.palette.customColors.displaybgPrimary
             }}
           >
-            {/* Replace with actual icon based on type */}
-            {params.row.identifier_type === 'Name' ? (
-              <img src={params.row.image} alt='avatar' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <Icon icon='mdi:tag-outline' />
-            )}
+            <Icon icon='mdi:tag-outline' />
           </Avatar>
-          <Tooltip title={params.row.identifier_type}>
+          <Tooltip title={params.row.local_identifier_name}>
             <Typography
               sx={{
                 fontSize: '16px',
@@ -91,7 +118,7 @@ const AnimalIdentifier = () => {
                 overflow: 'hidden'
               }}
             >
-              {params.row.identifier_type}
+              {params.row.local_identifier_name}
             </Typography>
           </Tooltip>
         </Box>
@@ -100,8 +127,7 @@ const AnimalIdentifier = () => {
     {
       field: 'identifier',
       headerName: 'LOCAL IDENTIFIER',
-      width: 160,
-      flex: 0.3,
+      width: 150,
       sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.identifier}>
@@ -116,147 +142,117 @@ const AnimalIdentifier = () => {
               overflow: 'hidden'
             }}
           >
-            {params.row.identifier}
+            {params.row.local_identifier_value ? params.row.local_identifier_value : 'NA'}
           </Typography>
         </Tooltip>
       )
     },
     {
-      field: 'primary',
+      field: 'is_primary',
       headerName: 'PRIMARY',
-      width: 100,
-      flex: 0.2,
+      width: 80,
       align: 'left',
       headerAlign: 'left',
-      renderCell: params => (
-        <Tooltip title={params.row.primary}>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: 16,
-              color: params.row.primary === 'Yes' ? theme.palette.primary.dark : '',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.primary}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      field: 'added_by',
-      headerName: 'ADDED BY',
-      width: 220,
-      flex: 0.5,
-      sortable: false,
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Avatar
-            sx={{
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              backgroundColor: theme.palette.customColors.displaybgPrimary
-            }}
-          >
-            <img
-              src={params.row.profile}
-              alt='user-profile'
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </Avatar>
-          <Box>
+      renderCell: params => {
+        const isPrimary = params.row.is_primary === 1 || params.row.is_primary === '1'
+
+        return (
+          <Tooltip title={isPrimary ? 'Primary' : 'Not Primary'}>
             <Typography
               sx={{
-                fontSize: '14px',
                 fontWeight: 500,
-                letterSpacing: '0.1px',
-                color: theme.palette.customColors.OnSurfaceVariant
+                fontSize: 16,
+                color: isPrimary ? theme.palette.primary.dark : theme.palette.customColors.OnSurfaceVariant,
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden'
               }}
             >
-              {params.row.user}
+              {isPrimary ? 'True' : 'False'}
             </Typography>
-            <Typography
-              sx={{
-                fontSize: '12px',
-                fontWeight: 400,
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {params.row.date}
-            </Typography>
-          </Box>
-        </Box>
+          </Tooltip>
+        )
+      }
+    },
+    {
+      minWidth: 20,
+      width: 140,
+      field: 'created_at',
+      headerName: 'Date',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.created_at)}
+        </Typography>
       )
     },
     {
-      field: 'action',
+      field: 'actions',
       headerName: '',
-      width: 50,
-      flex: 0.5,
+      minWidth: 20,
+      width: 80,
       sortable: false,
       renderCell: params => (
-        <Box>
-          <IconButton size='small' onClick={handleMenuOpen}>
-            <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:dots-vertical' />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            sx={{ backgroundColor: 'transparent' }}
-            onClose={handleMenuClose}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        <>
+          <IconButton
+            size='small'
+            aria-controls={menuAnchorEl ? 'identifier-menu' : undefined}
+            aria-haspopup='true'
+            onClick={event => {
+              setMenuAnchorEl(event.currentTarget)
+              setSelectedRow(params.row)
+            }}
           >
-            <MenuItem onClick={handleMenuClose}>View Details</MenuItem>
-            <MenuItem onClick={() => {
-              setAnimalId('123')
-              handleMenuClose()
-              setAddIdentifierDrawer(true)
-            }}>Edit Identifier</MenuItem>
-            <MenuItem onClick={() => {
-              setDeleteDialog(true)
-              handleMenuClose()
-            }}>Delete Identifier</MenuItem>
-          </Menu>
-        </Box>
+            <Icon icon='mdi:dots-vertical' />
+          </IconButton>
+        </>
       )
     }
   ]
 
-  const rows = [
-    {
-      sl_no: 1,
-      identifier_type: 'Name',
-      identifier: 'Vishvash',
-      primary: 'Yes',
-      user: 'Jordan Stevenson',
-      date: '14 Apr 2024 | 12:35 PM',
-      profile: '/path/to/jordan-profile.png',
-      image: '/path/to/parrot-image.jpg'
-    },
-    {
-      sl_no: 2,
-      identifier_type: 'Micro Chip',
-      identifier: '54363',
-      primary: 'No',
-      user: 'Jordan Stevenson',
-      date: '14 Feb 2024 | 01:35 PM',
-      profile: '/path/to/jordan-profile.png'
-    },
-    {
-      sl_no: 3,
-      identifier_type: 'Ring Number',
-      identifier: '253425',
-      primary: 'No',
-      user: 'Jordan Stevenson',
-      date: '14 Jan 2024 | 10:35 PM',
-      profile: '/path/to/jordan-profile.png'
+  const handleAddIdentifierDrawer = () => {
+    setAddIdentifierDrawer(true)
+    setIdentifierData(null)
+  }
+
+  const onDeleteDialogClose = () => {
+    setOpenDeleteDialog(false)
+    setSelectedItemToDelete(null)
+  }
+
+  const handleDelete = async (id) => {
+    const params = {
+      identifier_id: selectedItemToDelete?.id,
+      type: 'delete'
     }
-  ]
+    try {
+      setDeleteLoading(true)
+      await deleteAnimalIdentifier(params).then(res => {
+        if (res?.success === true) {
+          setDeleteLoading(false)
+          setOpenDeleteDialog(false)
+          Toaster({ type: 'success', message: res?.message })
+        } else {
+          Toaster({ type: 'error', message: res?.message })
+          setOpenDeleteDialog(false)
+          setDeleteLoading(false)
+        }
+      })
+    } catch (error) {
+      console.error(error, "Cannot delete the Identifier")
+      setDeleteLoading(false)
+    }
+  }
+
+  console.log(selectedItemToDelete, "itemToDelete")
 
   return (
     <Box sx={{ py: '24px' }}>
@@ -269,68 +265,121 @@ const AnimalIdentifier = () => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          Local Identifiers (3)
+          Local Identifiers {`(${data?.data?.length})`}
         </Typography>
         <Box sx={{ display: 'flex', columnGap: '8px', rowGap: '12px', flexWrap: 'wrap' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              padding: '0 8px',
-              height: '40px'
-            }}
-          >
-            <Icon icon='mi:search' color={theme.palette.customColors.neutralSecondary} />
-            <TextField
-              variant='outlined'
-              placeholder='Search...'
-              onChange={e => {
-                setSearchValue(e.target.value)
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  borderRadius: '90px',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
+          <Box sx={{ display: 'none' }}>
+            <Search value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
           </Box>
-          <Button onClick={() => setAddIdentifierDrawer(true)} sx={{ height: '38px', padding: '8px' }} variant='contained'>
+          <Button onClick={handleAddIdentifierDrawer} sx={{ height: '38px', padding: '8px' }} variant='contained'>
             <Icon icon='mdi:plus' /> Add Identifier
           </Button>
         </Box>
       </Box>
       <Box>
         <StickyTable
-          rows={rows}
+          rows={indexedRows}
           pageSizeOptions={[5, 10, 25, 50]}
           rowsInView={10}
+          loading={isLoading}
           rowsInViewOptions={[5, 10, 25]}
           columns={columns}
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
           headerHeight={50}
-          pagination={true}
+          pagination={false}
           downloadExcel
           searchMode='server'
           disableColumnSorting={true}
         />
       </Box>
-      <AddIdentifier
-        animalId={animalId}
-        addIdentifierDrawer={addIdentifierDrawer}
-        setAddIdentifierDrawer={setAddIdentifierDrawer} />
-      <DialogConfirmationDialog
-        open={deleteDialog}
-        message={'Are you sure you want to delete this local identifier?'}
-        handleClose={() => setDeleteDialog(false)}
-        action={() => setDeleteDialog(false)} />
+      {
+        addIdentifierDrawer && (
+          <AddIdentifierDrawer
+            open={addIdentifierDrawer}
+            setOpen={setAddIdentifierDrawer}
+            identifierData={identifierData}
+            animalId={id}
+            localIdentifierTypeData={localIdentifierTypeData}
+            setIdentifierData={setIdentifierData}
+          />
+        )
+      }
+      {openDeleteDialog && (
+        <ConfirmationDialog
+          dialogBoxStatus={openDeleteDialog}
+          onClose={onDeleteDialogClose}
+          title={'Are your sure you want to delete this local identifier?'}
+          cancelText={'NO'}
+          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          confirmAction={handleDelete}
+          loading={deleteLoading}
+        />
+      )}
+      <Menu
+        id='identifier-menu'
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={() => setMenuAnchorEl(null)}
+        PaperProps={{
+          sx: {
+            border: '1px solid #37BD69',
+            borderRadius: 2,
+            minWidth: 120,
+            boxShadow: 2,
+            px: 1
+          }
+        }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right'
+        }}
+      >
+        <MenuItem
+          sx={{
+            display: 'none'
+          }}
+        >
+          View Details
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setAddIdentifierDrawer(true)
+            setIdentifierData(selectedRow)
+            setMenuAnchorEl(null)
+          }}
+          sx={{
+            fontWeight: 500,
+            p: 3,
+            fontSize: '16px',
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Edit Identifier
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setOpenDeleteDialog(true)
+            setSelectedItemToDelete(selectedRow)
+            setMenuAnchorEl(null)
+          }}
+          sx={{
+            fontWeight: 500,
+            p: 3,
+            fontSize: '16px',
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Delete Identifier
+        </MenuItem>
+      </Menu>
+
     </Box>
   )
 }

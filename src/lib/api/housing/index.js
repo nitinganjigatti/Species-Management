@@ -30,7 +30,11 @@ import {
   ANIMAL_DETAILS_OVERVIEW,
   ANIMAL_DETAILS_INCIDENT_LIST,
   ANIMAL_INCIDENT_DETAILS,
-  ANIMAL_UPDATE_INCIDENT
+  ANIMAL_UPDATE_INCIDENT,
+  ANIMAL_DETAILS_IDENTIFIER_LIST,
+  ADD_ANIMAL_IDENTIFIER,
+  EDIT_ANIMAL_IDENTIFIER,
+  DELETE_ANIMAL_IDENTIFIER
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -207,10 +211,34 @@ export async function getAnimalIncidentDetails(animalId) {
   return response?.data
 }
 
-export async function createAnimalIncident() {}
+export async function createAnimalIncident() { }
 
 export async function updateAnimalIncident(params) {
   const response = await axiosPost({ url: `${ANIMAL_UPDATE_INCIDENT}`, body: params })
+
+  return response?.data
+}
+
+export async function getAnimalIdentifier(params) {
+  const response = await axiosGet({ url: `${ANIMAL_DETAILS_IDENTIFIER_LIST}`, params })
+
+  return response?.data
+}
+
+export async function addAnimalIdentifier(params) {
+  const response = await axiosPost({ url: `${ADD_ANIMAL_IDENTIFIER}`, body: params })
+
+  return response?.data
+}
+
+export async function editAnimalIdentifier(params) {
+  const response = await axiosPost({ url: `${EDIT_ANIMAL_IDENTIFIER}`, body: params })
+
+  return response?.data
+}
+
+export async function deleteAnimalIdentifier(params) {
+  const response = await axiosGet({ url: `${DELETE_ANIMAL_IDENTIFIER}`, params })
 
   return response?.data
 }
