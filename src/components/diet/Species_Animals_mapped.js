@@ -42,6 +42,8 @@ const SpeciesAnimalsMapped = ({
   debouncedFetchList,
   selectedItems,
   setTempSelectedItems,
+  tempSelectedItems,
+  items,
   setOpenFilterDrawer,
   applyfilterCheck,
   setFilterState,
@@ -329,10 +331,42 @@ const SpeciesAnimalsMapped = ({
                 height: 'calc(100vh - 162px)',
                 px: 4,
                 py: 3,
-                mt: 4
+                mt: 2
               }}
               onScroll={handleScroll}
             >
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                {selectedItems &&
+                  Object.values(selectedItems).some(array => array.length > 0) &&
+                  items.Site?.filter(site => tempSelectedItems.Site?.includes(site.site_id)).map(site => (
+                    <Box
+                      key={site.site_id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 4,
+                        py: 1,
+                        borderRadius: '10px',
+                        background: theme.palette.customColors.Primary10,
+                        border: '1px solid #0000000D'
+                      }}
+                    >
+                      <Typography
+                        variant='body2'
+                        sx={{ color: theme.palette.primary.dark, fontWeight: 500, fontSize: '16px' }}
+                      >
+                        {site.site_name}
+                      </Typography>
+                      <IconButton
+                        edge='end'
+                        onClick={() => handleRemove(site.site_id)}
+                        sx={{ color: theme.palette.primary.light, padding: '4px' }}
+                      >
+                        <Icon icon='material-symbols:close-rounded' fontSize={20} />
+                      </IconButton>
+                    </Box>
+                  ))}
+              </Box>
               {!loading && speciesData?.length === 0 && searchQuery !== '' ? (
                 <Box
                   sx={{

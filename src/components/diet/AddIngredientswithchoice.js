@@ -27,8 +27,6 @@ import { Add, Remove } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-import { getFeedTypeList } from 'src/lib/api/diet/feedType'
-import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 import { palette } from '@mui/system'
 
 const AddIngredientswithChoice = props => {
@@ -188,7 +186,6 @@ const AddIngredientswithChoice = props => {
     setRemarks(event.target.value)
   }
 
-  // card selection
   const [selectedCardIngchoice, setSelectedCardIngredientchoice] = useState([])
 
   const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, updatedSelectedDays) => {
@@ -272,34 +269,6 @@ const AddIngredientswithChoice = props => {
       }
     }
   }
-
-  // useEffect(() => {
-  //   // getUnitsList()
-  //   setReachedEnd(true)
-
-  //   try {
-  //     const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
-  //     getIngredientList({ params }).then(res => {
-  //       if (res?.data?.result?.length > 0) {
-  //         const newResults = res.data.result.filter(
-  //           item => !ingredientList.some(existingItem => existingItem.id === item.id)
-  //         )
-
-  //         // Combine previous and new results, ensuring unique IDs
-  //         const combinedList = [...ingredientList, ...newResults]
-  //         const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
-
-  //         setIngredientList(uniqueList)
-  //         setTotalCount(res?.data?.total_count)
-  //         setReachedEnd(false)
-  //       } else {
-  //         setReachedEnd(false)
-  //       }
-  //     })
-  //   } catch (error) {
-  //     console.error(error)
-  //   }
-  // }, [ingredientwithChoiceId])
 
   useEffect(() => {
     setReachedEnd(true)
@@ -408,13 +377,11 @@ const AddIngredientswithChoice = props => {
   const handleScroll = async e => {
     const container = e.target
     const threshold = 20
-    // Check if the user has reached the bottom
+
     if (totalCount > ingredientList.length) {
       const isNearBottom =
         container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
       if (isNearBottom) {
-        // User has reached the bottom, perform your action here
-
         setIngredientPage(++ingredientPage)
         setReachedEnd(true)
         try {
@@ -446,7 +413,7 @@ const AddIngredientswithChoice = props => {
         const minChoices = selectedValuesWithCheckId.flatMap(item => item.no_of_component_required)
 
         setSelectedCardIngredientchoice(ingredientLists)
-        console.log(daysOfWeek, 'daysOfWeek')
+
         setSelectedDays(daysOfWeek)
         setShowDays(false)
         setCount(Math.max(...minChoices))
@@ -459,7 +426,7 @@ const AddIngredientswithChoice = props => {
 
         const newVisibility = selectedValuesWithCheckId?.flatMap(item =>
           item.ingredientList.map(ingredient => ({
-            id: ingredient.ingredient_id.toString(), // Ensure id is a string
+            id: ingredient.ingredient_id.toString(),
             isVisible: true
           }))
         )
@@ -504,27 +471,6 @@ const AddIngredientswithChoice = props => {
     }
   }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex, open])
 
-  // const handelInputCutSize = (event, item) => {
-  //   event.stopPropagation()
-  //   const newCutSize = event.target.value
-
-  //   // Set cutSize state
-  //   setCutSize(prevState => ({
-  //     ...prevState,
-  //     [item.id]: {
-  //       id: event.target.value
-  //       // name: selectedFeedType.label
-  //     }
-  //   }))
-
-  //   // Call handelCardSelection with the updated cutSize value
-  //   if (newCutSize) {
-  //     handelCardSelection(event, item, null, newCutSize, null, selectedDays)
-  //   } else {
-  //     removeSelectedCard(event, item.id)
-  //   }
-  // }
-
   const removeSelectedCard = (event, itemId) => {
     // Check if the card with itemId is present in the selectedCard state
     const cardIndex = selectedCardIngchoice.findIndex(card => card.ingredient_id === itemId)
@@ -535,7 +481,6 @@ const AddIngredientswithChoice = props => {
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCardIngredientchoice(updatedSelectedCard)
 
-      // Remove only the matching item from selectFeed and size
       setSelectFeed(prev => {
         const newFeed = { ...prev }
         delete newFeed[itemId]
@@ -606,7 +551,6 @@ const AddIngredientswithChoice = props => {
       })
 
       if (existingIngredientIndex !== -1) {
-        // Clone the listOfIngredient to make changes
         const updatedListOfIngredient = [...allIngredientchoiceSelectedValues]
 
         // Update the ingredient at the specified index
@@ -645,7 +589,6 @@ const AddIngredientswithChoice = props => {
         setListOfIngredient(updatedListOfIngredient)
         onChange(updatedListOfIngredient)
 
-        // Show success toast message for updating the ingredient
         toast.success('Ingredient updated successfully!')
 
         return
@@ -689,12 +632,9 @@ const AddIngredientswithChoice = props => {
         )
 
         if (hasDayOverlap) {
-          // Get names of all duplicate ingredients
-          console.log(duplicateIngredients, 'duplicateIngredients')
-
           const duplicateNames = duplicateIngredients
             .map(ing => ing.ingredient_name)
-            .filter((name, index, self) => self.indexOf(name) === index) // Remove duplicates
+            .filter((name, index, self) => self.indexOf(name) === index)
 
           toast.error(
             `Ingredient ${duplicateNames.join(', ')} already exist's with same preparation type and days of the week`
@@ -704,10 +644,9 @@ const AddIngredientswithChoice = props => {
         }
       }
 
-      // Add the selected ingredient to the list of ingredients
       setListOfIngredient(prevList => {
         const updatedList = [...prevList, selectedIngredient]
-        onChange(updatedList) // Call onChange with the updated list
+        onChange(updatedList)
 
         return updatedList
       })
@@ -865,7 +804,6 @@ const AddIngredientswithChoice = props => {
             overflowY: 'auto',
             bgcolor: theme.palette.customColors.bodyBg
           }}
-          //onScroll={handleScroll}
           onScroll={fromrow !== 'rowedit_ingredientwithchoice' ? handleScroll : undefined}
         >
           {loading ? (
@@ -994,7 +932,6 @@ const AddIngredientswithChoice = props => {
 
                       <Box sx={{ width: 200 }}>
                         <FormControl fullWidth>
-                          {/* <InputLabel id='demo-simple-select-label'>Select</InputLabel> */}
                           <Select
                             size='small'
                             value={selectFeed[item.id]?.id || ''}
@@ -1031,8 +968,6 @@ const AddIngredientswithChoice = props => {
                   </Box>
                 </Box>
 
-                {/* bottom part */}
-
                 <>
                   <Box
                     sx={{
@@ -1049,23 +984,7 @@ const AddIngredientswithChoice = props => {
                         <Divider mt={-2} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
                           <Typography>Enter cut size</Typography>
-                          {/* <Box sx={{ width: '160.5px' }}>
-                          <FormControl fullWidth>
-                            <TextField
-                              size='small'
-                              placeholder='Add Size'
-                              variant='outlined'
-                              value={cutSize[item.id]?.id || ''}
-                              onChange={event => handelInputCutSize(event, item)}
-                              error={
-                                visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                                !cutSize[item.id]?.id
-                              }
 
-                              // onChange={event => setCutSize(event.target.value)}
-                            />
-                          </FormControl>
-                        </Box> */}
                           <Box sx={{ pl: 5 }}>
                             <FormControl fullWidth>
                               <Select

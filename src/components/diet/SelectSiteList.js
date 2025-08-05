@@ -39,7 +39,7 @@ const SelectSiteList = ({
   }
 
   const handleSiteCheckboxChange = site => {
-    const isSelected = pendingSelections.Site.includes(site.site_id)
+    const isSelected = pendingSelections?.Site?.includes(site.site_id)
 
     const updatedSelection = isSelected
       ? pendingSelections.Site.filter(id => id !== site.site_id)
@@ -242,11 +242,11 @@ const SelectSiteList = ({
                   pl: 3,
                   mb: 4,
                   border: '1px solid',
-                  borderColor: pendingSelections.Site.includes(site.site_id)
+                  borderColor: pendingSelections?.Site?.includes(site.site_id)
                     ? '#80E0A3'
                     : theme.palette.customColors.OutlineVariant,
                   borderRadius: '8px',
-                  bgcolor: pendingSelections.Site.includes(site.site_id)
+                  bgcolor: pendingSelections?.Site?.includes(site.site_id)
                     ? theme.palette.customColors.OnBackground
                     : 'transparent',
                   height: '70px'
@@ -276,7 +276,7 @@ const SelectSiteList = ({
                   // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                 />
                 <Checkbox
-                  checked={pendingSelections.Site.includes(site.site_id)}
+                  checked={pendingSelections?.Site?.includes(site.site_id)}
                   onChange={() => handleSiteCheckboxChange(site)}
                 />
               </ListItem>

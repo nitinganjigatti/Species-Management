@@ -445,7 +445,7 @@ const ListOfSpeciesMapped = ({
                           }}
                         />
                       }
-                      maxDate={endDate || new Date()}
+                      maxDate={endDate}
                     />
                     {errors.startDate && (
                       <FormHelperText sx={{ color: 'error.main' }}>{errors.startDate}</FormHelperText>
@@ -492,7 +492,7 @@ const ListOfSpeciesMapped = ({
                         />
                       }
                       minDate={startDate}
-                      maxDate={new Date()}
+                      //maxDate={new Date()}
                     />
                     {errors.endDate && <FormHelperText sx={{ color: 'error.main' }}>{errors.endDate}</FormHelperText>}
                   </FormControl>

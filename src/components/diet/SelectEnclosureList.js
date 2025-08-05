@@ -298,11 +298,11 @@ const SelectEnclosureList = ({
                     mb: 4,
                     height: '70px',
                     border: '1px solid',
-                    borderColor: selectedEnclosures.includes(enclosure.enclosure_id)
+                    borderColor: selectedEnclosures?.includes(enclosure.enclosure_id)
                       ? '#80E0A3'
                       : theme.palette.customColors.OutlineVariant,
                     borderRadius: '8px',
-                    bgcolor: selectedEnclosures.includes(enclosure.enclosure_id)
+                    bgcolor: selectedEnclosures?.includes(enclosure.enclosure_id)
                       ? theme.palette.customColors.OnBackground
                       : 'transparent'
                   }}
@@ -334,7 +334,7 @@ const SelectEnclosureList = ({
                     // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
-                    checked={selectedEnclosures.includes(enclosure.enclosure_id)}
+                    checked={selectedEnclosures?.includes(enclosure.enclosure_id)}
                     onChange={() => handleSiteCheckboxChange(enclosure.enclosure_id)}
                   />
                 </ListItem>

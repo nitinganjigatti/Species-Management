@@ -89,7 +89,7 @@ const FeedTypes = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn, status) => {
+    async (sort, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -98,7 +98,7 @@ const FeedTypes = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status
         }
 
@@ -232,10 +232,10 @@ const FeedTypes = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async (sort, q, sortColumn, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(sort, q, sortColumn, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -248,7 +248,7 @@ const FeedTypes = () => {
 
     setSearchValue(value)
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
-    searchTableData(sort, value, sortColumning, status)
+    searchTableData(sort, value, sortColumning, status, paginationModel.pageSize)
   }
 
   const headerAction = (

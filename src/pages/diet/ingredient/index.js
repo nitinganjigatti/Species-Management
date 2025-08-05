@@ -113,7 +113,7 @@ const IngredientsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, status) => {
+    async (sortBy, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -122,7 +122,7 @@ const IngredientsList = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status
         }
 
@@ -172,10 +172,10 @@ const IngredientsList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sortBy, q, sortColumn, status) => {
+    debounce(async (sortBy, q, sortColumn, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sortBy, q, sortColumn, status)
+        await fetchTableData(sortBy, q, sortColumn, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -239,7 +239,7 @@ const IngredientsList = () => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
-    searchTableData(sort, value, sortColumning, status)
+    searchTableData(sort, value, sortColumning, status, paginationModel.pageSize)
   }
 
   const columns = [

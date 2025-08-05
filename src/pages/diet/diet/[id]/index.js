@@ -3758,12 +3758,14 @@ const DietDetail = () => {
             isLoadingMore={isLoadingMore}
             pageNo={pageNo}
             tempSelectedSpecies={tempSelectedSpecies}
+            items={items}
             selectionType={selectionType}
             setSelectionType={setSelectionType}
             setPrimaryStatus={setPrimaryStatus}
             debouncedFetchList={debouncedFetchList}
             selectedItems={selectedItems}
             setTempSelectedItems={setTempSelectedItems}
+            tempSelectedItems={tempSelectedItems}
             setOpenFilterDrawer={setOpenFilterDrawer}
             applyfilterCheck={applyfilterCheck}
             setFilterState={setFilterState}

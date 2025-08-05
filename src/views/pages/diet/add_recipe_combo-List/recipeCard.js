@@ -31,7 +31,7 @@ const RecipeCard = ({
   dietid
 }) => {
   const [remarks, setRemarks] = useState({})
-  console.log('remarks', remarks)
+
   const theme = useTheme()
   const [selectedCount, setSelectedCount] = useState([])
   const [selectedDays, setSelectedDays] = useState()
@@ -87,7 +87,7 @@ const RecipeCard = ({
           ...item,
           id: String(item.recipe_id)
         }))
-        .filter(item => !currentSelectedCardRecipe.some(existingItem => existingItem.recipe_id === item.recipe_id)) // Avoid duplicates
+        .filter(item => !currentSelectedCardRecipe.some(existingItem => existingItem.recipe_id === item.recipe_id))
     ]
     if (!searchValue) {
       setSelectedCardRecipe(updatedSelectedCard)
@@ -162,7 +162,7 @@ const RecipeCard = ({
         const updatedDay = updatedSelectedDays?.find(updated => updated.cardId === row.id)
 
         if (updatedDay) {
-          return updatedDay // Use the updated selection if available
+          return updatedDay
         } else {
           const existingDay = selectedDays?.find(existing => existing.cardId === row.id)
 
@@ -239,8 +239,6 @@ const RecipeCard = ({
       })
 
       setSelectedDays(updatedSelectedDays)
-
-      //setRemarks({})
     } else if (searchValue !== '' && !dietid) {
       const previousSelectedDays = selectedDays || []
 
@@ -363,7 +361,7 @@ const RecipeCard = ({
     if (selectedCardRecipe.length === 0) {
       toast.error('Recipes are required.')
 
-      return // Exit early to prevent further processing
+      return
     }
 
     const filteredItems = selectedCardRecipe.map(item => {
@@ -438,23 +436,13 @@ const RecipeCard = ({
     setSelectedCardRecipe(updatedCards)
   }
 
-  const filteredRecipeList = rows.filter(
-    item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()) // filter by search
-  )
+  const filteredRecipeList = rows.filter(item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()))
 
   let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
 
   // Filter sortedRecipeList based on remarks and fromrow condition
   if (fromrow !== '' && fromrow === 'rowedit_recipe') {
-    sortedRecipeList = sortedRecipeList.filter(item => item.id === recipeid && item.recipe_name === recipeName) // Compare with recipeid state
-  }
-
-  const calculateTotalQuantity = ingredients => {
-    const total = ingredients.reduce((total, ingredient) => {
-      return total + parseFloat(ingredient.quantity)
-    }, 0)
-
-    return Math.round(total)
+    sortedRecipeList = sortedRecipeList.filter(item => item.id === recipeid && item.recipe_name === recipeName)
   }
 
   return (
@@ -562,15 +550,6 @@ const RecipeCard = ({
                     </Box>
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
-                      {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
-                    <Box sx={{ ml: '10px' }}>
-                      <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: theme.palette.customColors.neutralPrimary }}>
-                        {item?.ingredients_count}&nbsp;
-                        <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
-                      </Typography>
-                      <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
-                    </Box>
-                    <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider> */}
                       <Box sx={{ ml: 4 }}>
                         <Typography
                           sx={{
@@ -585,14 +564,6 @@ const RecipeCard = ({
                         </Typography>
                         <Typography sx={{ fontSize: '10px', width: '100px' }}>Items by qty</Typography>
                       </Box>
-                      {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
-                    <Box>
-                      <Typography sx={{ mt: 2, fontSize: '12px', color: theme.palette.customColors.neutralPrimary, fontWeight: 'bold' }}>
-                        {' '}
-                        {item?.total_kcal ? item?.total_kcal : 0}
-                      </Typography>
-                      <Typography sx={{ fontSize: '10px', width: '100px' }}>Calories by 100g</Typography>
-                    </Box> */}
                     </Box>
                   </Box>
                 </Box>
@@ -641,7 +612,7 @@ const RecipeCard = ({
                           }}
                         >
                           <img
-                            src={ingredient?.ingredient_image || '/icons/icon_ingredient.svg'}
+                            src={ingredient?.ingredient_image || '/icons/Icon_ingredient.svg'}
                             alt={ingredient.ingredient_name}
                             style={{
                               width: '100%',
@@ -819,7 +790,7 @@ const RecipeCard = ({
           </Box>
         </Box>
       )}
-      {/* {selectedCardRecipe?.length > 0 && ( */}
+
       <Box
         sx={{
           height: '100px',
@@ -836,8 +807,6 @@ const RecipeCard = ({
           alignItems: 'center',
           justifyContent: 'center',
           display: 'flex'
-
-          // bgcolor: 'yellow'
         }}
       >
         {fromrow === 'rowedit_recipe' ? (

@@ -296,11 +296,11 @@ const SelectSectionList = ({
                     mb: 4,
                     height: '70px',
                     border: '1px solid',
-                    borderColor: selectedSections.includes(section.section_id)
+                    borderColor: selectedSections?.includes(section.section_id)
                       ? '#80E0A3'
                       : theme.palette.customColors.OutlineVariant,
                     borderRadius: '8px',
-                    bgcolor: selectedSections.includes(section.section_id)
+                    bgcolor: selectedSections?.includes(section.section_id)
                       ? theme.palette.customColors.OnBackground
                       : 'transparent'
                   }}
@@ -332,7 +332,7 @@ const SelectSectionList = ({
                     // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
-                    checked={selectedSections.includes(section.section_id)}
+                    checked={selectedSections?.includes(section.section_id)}
                     onChange={() => handleSiteCheckboxChange(section.section_id)}
                   />
                 </ListItem>

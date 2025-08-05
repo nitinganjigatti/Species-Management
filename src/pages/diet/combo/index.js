@@ -99,7 +99,7 @@ const RecipeList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, searchColumns, status) => {
+    async (sortBy, q, sortColumn, searchColumns, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -109,15 +109,12 @@ const RecipeList = () => {
           sortColumn,
           searchColumns,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status,
           meal_type: 'combo'
         }
 
         await getRecipeList({ params: params }).then(res => {
-          console.log('response', res)
-
-          // Generate uid field based on the index
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
           let listWithId = res.data.result.map((el, i) => {
@@ -125,8 +122,6 @@ const RecipeList = () => {
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
       } catch (e) {
@@ -159,10 +154,10 @@ const RecipeList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sortBy, q, sortColumn, searchColumns, status) => {
+    debounce(async (sortBy, q, sortColumn, searchColumns, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sortBy, q, sortColumn, searchColumns, status)
+        await fetchTableData(sortBy, q, sortColumn, searchColumns, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -187,7 +182,7 @@ const RecipeList = () => {
     const newIsActive = event.target.checked ? 1 : 0
     try {
       const response = await updateRecipeStatus(rowData?.id, { active: newIsActive })
-      console.log(response, 'response')
+
       if (response.success === true) {
         fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
 
@@ -233,7 +228,7 @@ const RecipeList = () => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
-    searchTableData(sortBy, value, sortColumn, searchColumns, status)
+    searchTableData(sortBy, value, sortColumn, searchColumns, status, paginationModel.pageSize)
   }
 
   const columns = [
@@ -415,10 +410,7 @@ const RecipeList = () => {
     // }
   ]
 
-  console.log('total Count ?>>>', total)
-
   const onCellClick = params => {
-    console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {

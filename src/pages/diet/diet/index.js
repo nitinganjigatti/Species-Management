@@ -48,9 +48,7 @@ const Diet = () => {
   })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(query.status || '')
-  const [selectedValue, setSelectedValue] = useState('10')
   const [loader, setLoader] = useState(false)
-  const [openDrawer, setOpenDrawer] = useState(false)
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
@@ -87,25 +85,14 @@ const Diet = () => {
   }, [query.page, query.pageSize, query.status])
 
   const handleChange = (event, newValue) => {
-    // debugger
     setStatus(newValue)
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 50 })
     updateQueryParams({ page: 0, status: newValue, pageSize: 50 })
   }
 
-  // const addEventSidebarOpen = () => {
-  //   setOpenDrawer(true)
-  //   setSelectedCard([])
-  // }
-
-  const handleSidebarClose = () => {
-    console.log('close event clicked')
-    setOpenDrawer(false)
-  }
-
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn, status) => {
+    async (sort, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -114,7 +101,7 @@ const Diet = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status
         }
 
@@ -160,10 +147,10 @@ const Diet = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async (sort, q, sortColumn, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(sort, q, sortColumn, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -192,7 +179,7 @@ const Diet = () => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn, status)
+    searchTableData(sort, value, sortColumn, status, paginationModel.pageSize)
   }
 
   const columns = [
@@ -360,43 +347,6 @@ const Diet = () => {
           <>
             <Card>
               <CardHeader title='Diet' action={headerAction} sx={{ px: 5 }} />
-              {/* <Grid sx={{ display: 'flex', ml: 5, m: 2 }}>
-                <Grid sx={{ m: 2 }}>
-                  <Typography variant='body2'>Show</Typography>
-                </Grid>
-
-                <Grid>
-                  <Select
-                    sx={{ width: '80px', height: '40px', borderRadius: '10px' }}
-                    value={selectedValue}
-                    onChange={e => setSelectedValue(e.target.value)}
-                  >
-                    <MenuItem value='10'>10</MenuItem>
-                    <MenuItem value='20'>20</MenuItem>
-                    <MenuItem value='30'>30</MenuItem>
-                  </Select>
-                </Grid>
-                <Grid sx={{ m: 2 }}>
-                  <Typography variant='body2'>entries</Typography>
-                </Grid>
-              </Grid> */}
-              <Grid>
-                {/* <TabList
-                  onChange={handleChange}
-                  sx={{ position: 'relative', top: '20px', left: '10px', cursor: 'pointer' }}
-                >
-                  <DescriptionIcon sx={{ mt: '13px', position: 'relative', left: '15px' }} />
-                  <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
-                  <SpeakerNotesOffIcon sx={{ mt: '13px', position: 'relative', left: '15px' }} />
-                  <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
-                  <NotesIcon sx={{ mt: '13px', position: 'relative', left: '15px' }} />{' '}
-                  <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
-                  {/* <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}[[]]
-            /> */}
-                {/* </TabList>    */}
-              </Grid>
 
               <Box sx={{ width: '100%', overflowX: 'auto' }}>
                 <DataGrid
