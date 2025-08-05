@@ -136,7 +136,7 @@ const SelectSectionList = ({
       {/* header */}
       <Box
         sx={{
-          bgcolor: '#FFF',
+          bgcolor: theme.palette.common.white,
           borderRadius: '8px',
           overflow: 'hidden',
           width: '100%',
@@ -296,11 +296,11 @@ const SelectSectionList = ({
                     mb: 4,
                     height: '70px',
                     border: '1px solid',
-                    borderColor: selectedSections.includes(section.section_id)
+                    borderColor: selectedSections?.includes(section.section_id)
                       ? '#80E0A3'
                       : theme.palette.customColors.OutlineVariant,
                     borderRadius: '8px',
-                    bgcolor: selectedSections.includes(section.section_id)
+                    bgcolor: selectedSections?.includes(section.section_id)
                       ? theme.palette.customColors.OnBackground
                       : 'transparent'
                   }}
@@ -332,7 +332,7 @@ const SelectSectionList = ({
                     // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
-                    checked={selectedSections.includes(section.section_id)}
+                    checked={selectedSections?.includes(section.section_id)}
                     onChange={() => handleSiteCheckboxChange(section.section_id)}
                   />
                 </ListItem>
@@ -356,7 +356,7 @@ const SelectSectionList = ({
             pt: 4,
             position: 'sticky',
             bottom: 0,
-            background: '#FFF',
+            background: theme.palette.common.white,
             zIndex: 1,
             pb: 4
           }}
@@ -364,7 +364,13 @@ const SelectSectionList = ({
           <Button
             variant='contained'
             fullWidth
-            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+            sx={{
+              bgcolor: '#28A745',
+              color: theme.palette.common.white,
+              p: 2,
+              borderRadius: '8px',
+              '&:hover': { bgcolor: '#218838' }
+            }}
             onClick={() => onSelectSections(selectedSections)}
             disabled={selectedSections.length <= 0}
           >

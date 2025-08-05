@@ -1585,7 +1585,7 @@ const StepPreviewDiet = ({
                                                           sx={{
                                                             fontSize: '14px',
                                                             lineHeight: '1.7rem',
-                                                            color: '#000'
+                                                            color: theme.palette.common.black
                                                           }}
                                                         >
                                                           {`${name?.ingredient_name || ''} | ${
@@ -1599,7 +1599,7 @@ const StepPreviewDiet = ({
                                                             fontSize: '14px',
                                                             lineHeight: '1.7rem',
                                                             marginLeft: '2px',
-                                                            color: '#000'
+                                                            color: theme.palette.common.black
                                                           }}
                                                         >
                                                           {` ${parseFloat(name?.quantity) || 0}${' ' + name?.uom_text}`}
@@ -2185,7 +2185,7 @@ const StepPreviewDiet = ({
                                                           sx={{
                                                             fontSize: '14px',
                                                             lineHeight: '1.7rem',
-                                                            color: '#000'
+                                                            color: theme.palette.common.black
                                                           }}
                                                         >
                                                           {`${name?.ingredient_name || ''} | ${
@@ -2199,7 +2199,7 @@ const StepPreviewDiet = ({
                                                             fontSize: '14px',
                                                             lineHeight: '1.7rem',
                                                             marginLeft: '2px',
-                                                            color: '#000'
+                                                            color: theme.palette.common.black
                                                           }}
                                                         >
                                                           {` ${parseFloat(name?.quantity) || 0}${

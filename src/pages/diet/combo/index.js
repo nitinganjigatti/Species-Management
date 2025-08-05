@@ -99,7 +99,7 @@ const RecipeList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, searchColumns, status) => {
+    async (sortBy, q, sortColumn, searchColumns, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -109,15 +109,12 @@ const RecipeList = () => {
           sortColumn,
           searchColumns,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status,
           meal_type: 'combo'
         }
 
         await getRecipeList({ params: params }).then(res => {
-          console.log('response', res)
-
-          // Generate uid field based on the index
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
           let listWithId = res.data.result.map((el, i) => {
@@ -125,8 +122,6 @@ const RecipeList = () => {
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
       } catch (e) {
@@ -159,10 +154,10 @@ const RecipeList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sortBy, q, sortColumn, searchColumns, status) => {
+    debounce(async (sortBy, q, sortColumn, searchColumns, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sortBy, q, sortColumn, searchColumns, status)
+        await fetchTableData(sortBy, q, sortColumn, searchColumns, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -187,7 +182,7 @@ const RecipeList = () => {
     const newIsActive = event.target.checked ? 1 : 0
     try {
       const response = await updateRecipeStatus(rowData?.id, { active: newIsActive })
-      console.log(response, 'response')
+
       if (response.success === true) {
         fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
 
@@ -195,13 +190,16 @@ const RecipeList = () => {
           t => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
+                <Icon
+                  icon='ooui:success'
+                  style={{ marginRight: '20px', fontSize: 50, color: theme.palette.primary.main }}
+                />
                 <div>
                   <Typography sx={{ fontWeight: 500 }} variant='h5'>
                     Success!
                   </Typography>
                   <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
+                  <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                     Recipe {'REP' + rowData.id} has been successfully {newIsActive === 1 ? 'activated' : 'deactivated'}
                   </Typography>
                 </div>
@@ -233,7 +231,7 @@ const RecipeList = () => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
-    searchTableData(sortBy, value, sortColumn, searchColumns, status)
+    searchTableData(sortBy, value, sortColumn, searchColumns, status, paginationModel.pageSize)
   }
 
   const columns = [
@@ -258,7 +256,14 @@ const RecipeList = () => {
           <Avatar
             variant='square'
             alt='Recipe Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -326,8 +331,6 @@ const RecipeList = () => {
             }
             arrow
             placement='right'
-
-            // style={{ background: '#1F515B' }}
           >
             <Typography>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</Typography>
           </Tooltip>
@@ -349,7 +352,7 @@ const RecipeList = () => {
               height: 30,
               mr: 4,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               overflow: 'hidden'
             }}
           >
@@ -415,10 +418,7 @@ const RecipeList = () => {
     // }
   ]
 
-  console.log('total Count ?>>>', total)
-
   const onCellClick = params => {
-    console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {

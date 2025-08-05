@@ -1280,7 +1280,7 @@ const DietDetail = () => {
                                                                                 sx={{
                                                                                   fontSize: '14px',
                                                                                   lineHeight: '1.7rem',
-                                                                                  color: '#000'
+                                                                                  color: theme.palette.common.black
                                                                                 }}
                                                                               >
                                                                                 {`${name?.ingredient_name || ''} | ${
@@ -1294,7 +1294,7 @@ const DietDetail = () => {
                                                                                   fontSize: '14px',
                                                                                   lineHeight: '1.7rem',
                                                                                   marginLeft: '2px',
-                                                                                  color: '#000'
+                                                                                  color: theme.palette.common.black
                                                                                 }}
                                                                               >
                                                                                 {` ${parseFloat(name?.quantity) || 0}${
@@ -1957,7 +1957,7 @@ const DietDetail = () => {
                                                                                 sx={{
                                                                                   fontSize: '14px',
                                                                                   lineHeight: '1.7rem',
-                                                                                  color: '#000'
+                                                                                  color: theme.palette.common.black
                                                                                 }}
                                                                               >
                                                                                 {`${name?.ingredient_name || ''} | ${
@@ -1971,7 +1971,7 @@ const DietDetail = () => {
                                                                                   fontSize: '14px',
                                                                                   lineHeight: '1.7rem',
                                                                                   marginLeft: '2px',
-                                                                                  color: '#000'
+                                                                                  color: theme.palette.common.black
                                                                                 }}
                                                                               >
                                                                                 {` ${parseFloat(name?.quantity) || 0}${
@@ -3758,12 +3758,14 @@ const DietDetail = () => {
             isLoadingMore={isLoadingMore}
             pageNo={pageNo}
             tempSelectedSpecies={tempSelectedSpecies}
+            items={items}
             selectionType={selectionType}
             setSelectionType={setSelectionType}
             setPrimaryStatus={setPrimaryStatus}
             debouncedFetchList={debouncedFetchList}
             selectedItems={selectedItems}
             setTempSelectedItems={setTempSelectedItems}
+            tempSelectedItems={tempSelectedItems}
             setOpenFilterDrawer={setOpenFilterDrawer}
             applyfilterCheck={applyfilterCheck}
             setFilterState={setFilterState}

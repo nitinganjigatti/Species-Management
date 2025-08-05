@@ -326,7 +326,7 @@ const SpeciesMappedtoDietFilter = ({
                     sx={{
                       padding: 1,
                       cursor: 'pointer',
-                      backgroundColor: activeTab === tab ? '#fff' : 'transparent',
+                      backgroundColor: activeTab === tab ? theme.palette.common.white : 'transparent',
                       fontWeight: activeTab === tab ? 'bold' : 'normal',
                       color: theme.palette.primary.dark,
                       fontSize: '16px',
@@ -351,7 +351,7 @@ const SpeciesMappedtoDietFilter = ({
             <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
               <Box
                 sx={{
-                  bgcolor: '#FFFFFF',
+                  bgcolor: theme.palette.customColors.OnPrimary,
                   p: '16px',
                   borderRadius: '8px',
                   width: '345px',
@@ -371,7 +371,7 @@ const SpeciesMappedtoDietFilter = ({
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        border: '1px solid #C3CEC7',
+                        border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
                         borderRadius: '4px',
                         padding: '0 8px',
                         height: '40px',
@@ -439,7 +439,7 @@ const SpeciesMappedtoDietFilter = ({
                   </>
                 ) : activeTab === 'Site' ? (
                   <>
-                    <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none' }}>
+                    <Card sx={{ border: `1px solid ${theme.palette.customColors?.OutlineVariant}`, boxShadow: 'none' }}>
                       <CardHeader
                         title='Select Site'
                         onClick={() => {
@@ -450,14 +450,20 @@ const SpeciesMappedtoDietFilter = ({
                         }}
                         disabled={tempSelectedItems?.Section?.length > 0}
                         sx={{
-                          background: tempSelectedItems?.Section?.length > 0 ? '#0000000D' : '#E8F4F2',
+                          background:
+                            tempSelectedItems?.Section?.length > 0
+                              ? theme.palette.customColors.mdAntzNeutral
+                              : theme.palette.customColors.tableHeaderBg,
                           p: 2,
                           pl: 4,
                           pr: 2,
                           '.MuiCardHeader-title': {
                             fontWeight: '500',
                             fontSize: '16px',
-                            color: tempSelectedItems?.Section?.length > 0 ? '#44544A' : '#1F515B',
+                            color:
+                              tempSelectedItems?.Section?.length > 0
+                                ? theme.palette.customColors.OnSurfaceVariant
+                                : theme.palette.customColors.OnPrimaryContainer,
                             cursor: tempSelectedItems?.Section?.length > 0 ? '' : 'pointer'
                           }
                         }}
@@ -466,7 +472,7 @@ const SpeciesMappedtoDietFilter = ({
                             size='small'
                             aria-label='collapse'
                             sx={{
-                              color: '#44544A'
+                              color: theme.palette.customColors.OnSurfaceVariant
                             }}
                             disabled={tempSelectedItems?.Section?.length > 0}
                           >
@@ -495,7 +501,7 @@ const SpeciesMappedtoDietFilter = ({
                                 mb: 2
                               }}
                             >
-                              <Typography variant='body2' sx={{ color: '#000000' }}>
+                              <Typography variant='body2' sx={{ color: theme.palette.customColors.deepDark }}>
                                 {site.site_name}
                               </Typography>
                               <IconButton
@@ -517,7 +523,13 @@ const SpeciesMappedtoDietFilter = ({
 
                     {/* Display selected sections */}
                     {tempSelectedItems?.Site?.length === 1 && (
-                      <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%' }}>
+                      <Card
+                        sx={{
+                          border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
+                          boxShadow: 'none',
+                          mt: '6%'
+                        }}
+                      >
                         <CardHeader
                           title='Select Sections'
                           onClick={() => {
@@ -527,14 +539,20 @@ const SpeciesMappedtoDietFilter = ({
                           }}
                           disabled={tempSelectedItems?.Enclosure?.length > 0}
                           sx={{
-                            background: tempSelectedItems?.Enclosure?.length > 0 ? '#0000000D' : '#E8F4F2',
+                            background:
+                              tempSelectedItems?.Enclosure?.length > 0
+                                ? theme.palette.customColors.mdAntzNeutral
+                                : theme.palette.customColors.tableHeaderBg,
                             p: 2,
                             pl: 4,
                             pr: 2,
                             '.MuiCardHeader-title': {
                               fontWeight: '500',
                               fontSize: '16px',
-                              color: tempSelectedItems?.Enclosure?.length > 0 ? '#44544A' : '#1F515B',
+                              color:
+                                tempSelectedItems?.Enclosure?.length > 0
+                                  ? theme.palette.customColors.OnSurfaceVariant
+                                  : theme.palette.customColors.OnPrimaryContainer,
                               cursor: tempSelectedItems?.Enclosure?.length > 0 ? '' : 'pointer'
                             }
                           }}
@@ -542,7 +560,7 @@ const SpeciesMappedtoDietFilter = ({
                             <IconButton
                               size='small'
                               aria-label='collapse'
-                              sx={{ color: '#44544A' }}
+                              sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
                               disabled={tempSelectedItems?.Enclosure?.length > 0}
                             >
                               <Icon
@@ -574,7 +592,7 @@ const SpeciesMappedtoDietFilter = ({
                                       mb: 2
                                     }}
                                   >
-                                    <Typography variant='body2' sx={{ color: '#000000' }}>
+                                    <Typography variant='body2' sx={{ color: theme.palette.customColors.deepDark }}>
                                       {section.section_name}
                                     </Typography>
                                     <IconButton
@@ -599,19 +617,29 @@ const SpeciesMappedtoDietFilter = ({
 
                     {/* Display selected enclosures */}
                     {tempSelectedItems?.Section?.length === 1 && (
-                      <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%', mb: 4 }}>
+                      <Card
+                        sx={{
+                          border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
+                          boxShadow: 'none',
+                          mt: '6%',
+                          mb: 4
+                        }}
+                      >
                         <CardHeader
                           title='Select Enclosures'
                           onClick={() => setOpenEnclosureListDrawer(true)}
                           sx={{
-                            background: '#E8F4F2',
+                            background: theme.palette.customColors.tableHeaderBg,
                             p: 2,
                             pl: 4,
                             pr: 2,
                             '.MuiCardHeader-title': {
                               fontWeight: '500',
                               fontSize: '16px',
-                              color: tempSelectedItems?.Section?.length > 0 ? '#44544A' : '#1F515B',
+                              color:
+                                tempSelectedItems?.Section?.length > 0
+                                  ? theme.palette.customColors.OnSurfaceVariant
+                                  : theme.palette.customColors.OnPrimaryContainer,
                               cursor: 'pointer'
                             }
                           }}
@@ -619,7 +647,7 @@ const SpeciesMappedtoDietFilter = ({
                             <IconButton
                               size='small'
                               aria-label='collapse'
-                              sx={{ color: '#44544A' }}
+                              sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
 
                               //disabled={tempSelectedItems.Enclosure?.length > 0} // Disable if enclosures are selected
                             >
@@ -644,7 +672,7 @@ const SpeciesMappedtoDietFilter = ({
                                       mb: 2
                                     }}
                                   >
-                                    <Typography variant='body2' sx={{ color: '#000000' }}>
+                                    <Typography variant='body2' sx={{ color: theme.palette.customColors.deepDark }}>
                                       {enclosure.user_enclosure_name}
                                     </Typography>
                                     <IconButton

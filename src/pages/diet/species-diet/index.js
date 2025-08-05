@@ -201,7 +201,7 @@ const SpeciesDietList = () => {
               width: 40,
               height: 40,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               padding:
                 params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
                   ? '2px'

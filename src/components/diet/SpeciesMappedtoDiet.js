@@ -248,7 +248,7 @@ const SpeciesMappedtoDiet = ({
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '4px',
                   padding: '0 8px',
                   height: '44px',
@@ -301,7 +301,7 @@ const SpeciesMappedtoDiet = ({
                   border:
                     selectedItems && Object.values(selectedItems).some(array => array.length > 0)
                       ? `1px solid ${theme.palette.primary.main}`
-                      : '1px solid #C3CEC7',
+                      : `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   mr: '10px'
                 }}
               >
@@ -365,7 +365,7 @@ const SpeciesMappedtoDiet = ({
                   py: 1,
                   borderRadius: '10px',
                   background: theme.palette.customColors.Primary10,
-                  border: '1px solid #0000000D'
+                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`
                 }}
               >
                 <Typography

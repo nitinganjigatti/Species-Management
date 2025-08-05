@@ -113,7 +113,7 @@ const IngredientsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, status) => {
+    async (sortBy, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -122,7 +122,7 @@ const IngredientsList = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status
         }
 
@@ -172,10 +172,10 @@ const IngredientsList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sortBy, q, sortColumn, status) => {
+    debounce(async (sortBy, q, sortColumn, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sortBy, q, sortColumn, status)
+        await fetchTableData(sortBy, q, sortColumn, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -239,7 +239,7 @@ const IngredientsList = () => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
-    searchTableData(sort, value, sortColumning, status)
+    searchTableData(sort, value, sortColumning, status, paginationModel.pageSize)
   }
 
   const columns = [
@@ -261,11 +261,17 @@ const IngredientsList = () => {
       headerName: 'ITEMS',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
           <Avatar
             variant='square'
             alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 3, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 3,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.image ? params.row.image : '/icons/icon_ingredient_fill.png'}
           >
             {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -351,8 +357,6 @@ const IngredientsList = () => {
             }
             arrow
             placement='right'
-
-            // style={{ background: '#1F515B' }}
           >
             <span>{params.row.preparation_type_count ? params.row.preparation_type_count : '-'}</span>
           </Tooltip>
@@ -375,7 +379,7 @@ const IngredientsList = () => {
               height: 30,
               mr: 4,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               overflow: 'hidden'
             }}
           >
@@ -471,6 +475,7 @@ const IngredientsList = () => {
         ) : (
           <Card>
             <CardHeader title='Items' action={headerAction} sx={{ px: 5 }} />
+
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
@@ -513,8 +518,8 @@ const IngredientsList = () => {
                     overflowX: 'auto'
                   },
                   '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #0000000D',
-                    borderRight: '1px solid #0000000D',
+                    borderLeft: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                    borderRight: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                     marginLeft: '20px',
                     marginRight: '20px',
                     borderRadius: '8px',

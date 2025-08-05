@@ -17,7 +17,7 @@ import IconButton from '@mui/material/IconButton'
 import ClearIcon from '@mui/icons-material/Clear'
 import SearchIcon from '@mui/icons-material/Search'
 import InputAdornment from '@mui/material/InputAdornment'
-
+import { useTheme } from '@mui/material/styles'
 // ** MUI Imports
 
 import Card from '@mui/material/Card'
@@ -34,7 +34,7 @@ import Router from 'next/router'
 
 const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   const [loader, setLoader] = useState(false)
-
+  const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -176,7 +176,14 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <Avatar
             variant='square'
             alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.ingredient_image ? params.row.ingredient_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
