@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, Grid, Divider, Typography, useMediaQuery } from '@mui/material'
+import { Box, Grid, Divider, Typography, useMediaQuery, Tooltip } from '@mui/material'
 import React from 'react'
 
 const AnimalDetailsCard = ({ data }) => {
@@ -7,21 +7,21 @@ const AnimalDetailsCard = ({ data }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const left = [
-    { label: 'Animal ID', value: data?.aid || 'NA' },
-    { label: 'Accession Date', value: data?.accessionDate || 'NA' },
-    { label: 'Birth Date', value: data?.birthDate || 'NA' },
-    { label: 'Age', value: data?.age || 'NA' },
-    { label: 'Contraception Status', value: data?.contraceptionStatus || 'NA' },
-    { label: 'Sexing Type', value: data?.sexingType || 'NA' }
+    { label: 'Animal ID', value: data?.aid },
+    { label: 'Accession Date', value: data?.accessionDate },
+    { label: 'Birth Date', value: data?.birthDate },
+    { label: 'Age', value: data?.age },
+    { label: 'Contraception Status', value: data?.contraceptionStatus },
+    { label: 'Sexing Type', value: data?.sexingType }
   ]
 
   const right = [
-    { label: 'Collection Type', value: data?.collectionType || 'NA' },
-    { label: 'Organisation', value: data?.organisation || 'NA' },
-    { label: 'Ownership Term', value: data?.ownershipTerm || 'NA' },
-    { label: 'Local Identifier', value: data?.localIdentifier || 'NA' },
-    { label: 'Micro Chip', value: data?.microChip || 'NA' },
-    { label: 'Identifier Name', value: data?.identifierName || 'NA' }
+    { label: 'Collection Type', value: data?.collectionType },
+    { label: 'Organisation', value: data?.organisation },
+    { label: 'Ownership Term', value: data?.ownershipTerm },
+    { label: 'Local Identifier', value: data?.localIdentifier },
+    { label: 'Micro Chip', value: data?.microChip },
+    { label: 'Identifier Name', value: data?.identifierName }
   ]
 
   return (
@@ -33,7 +33,57 @@ const AnimalDetailsCard = ({ data }) => {
         mt: 3
       }}
     >
-      <Grid container spacing={0} alignItems='stretch'>
+      <Grid container rowGap={1} spacing={0} alignItems='stretch'>
+        <Grid item size={{ xs: 12, md: 6 }}>
+          <Box
+            sx={{
+              borderRight: { md: `1px solid ${theme.palette.customColors.OutlineVariant}` },
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'stretch',
+              justifyContent: 'space-between',
+              pl: { xs: 0, sm: 4 },
+              py: 1,
+              height: '100%',
+              gap: { lg: "110px", xs: '50px', },
+              pr: { md: 5, xs: 1 },
+              mr: { md: 5, xs: 1 }
+            }}
+          >
+            <Box sx={{ width: '140px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {left.map(item => (
+                <Tooltip title={item?.label || ''}>
+                  <Typography
+                    key={item.label}
+                    sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '14px', textOverflow: 'ellipsis', textWrap: 'nowrap', overflow: 'hidden' }}
+                  >
+                    {item.label}
+                  </Typography>
+                </Tooltip>
+              ))}
+            </Box>
+            <Box sx={{ width: { lg: 'calc(100% - 250px)', md: 'calc(100% - 190px)', xs: 'calc(100% - 190px)' }, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'start' }}>
+              {left.map(item => (
+                <Tooltip title={item?.value || ''}>
+                  <Typography
+                    key={item.label + '-value'}
+                    sx={{ width: '100%', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '14px', textOverflow: 'ellipsis', textWrap: 'nowrap', overflow: 'hidden' }}
+                  >
+                    {item?.value || 'NA'}
+                  </Typography>
+                </Tooltip>
+              ))}
+            </Box>
+          </Box>
+        </Grid>
+        {/* 
+          {!isMobile && (
+            <Divider
+              flexItem
+              orientation='vertical'
+              sx={{ mx: 0, borderColor: theme.palette.customColors.OutlineVariant }}
+            />
+          )} */}
         <Grid item size={{ xs: 12, md: 6 }}>
           <Box
             sx={{
@@ -42,78 +92,40 @@ const AnimalDetailsCard = ({ data }) => {
               alignItems: 'stretch',
               justifyContent: 'space-between',
               pl: { xs: 0, sm: 4 },
-              py: 1,
               height: '100%',
-              gap: 4,
-              pr: 40
-            }}
-          >
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {left.map(item => (
-                <Typography
-                  key={item.label}
-                  sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '14px' }}
-                >
-                  {item.label}
-                </Typography>
-              ))}
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'start' }}>
-              {left.map(item => (
-                <Typography
-                  key={item.label + '-value'}
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '14px' }}
-                >
-                  {item.value}
-                </Typography>
-              ))}
-            </Box>
-          </Box>
-        </Grid>
-        {!isMobile && (
-          <Divider
-            flexItem
-            orientation='vertical'
-            sx={{ mx: 0, borderColor: theme.palette.customColors.OutlineVariant }}
-          />
-        )}
-        <Grid item size={{ xs: 12, md: 5 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'stretch',
-              justifyContent: 'space-between',
-              pl: { xs: 0, sm: 4 },
               py: 1,
-              gap: 4,
-              pr: { xs: 40, md: 10 }
+              gap: { lg: "110px", xs: '50px', },
+              pr: { md: 10, xs: 2 }
             }}
           >
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ width: '140px', display: 'flex', flexDirection: 'column', gap: 2 }}>
               {right.map(item => (
-                <Typography
-                  key={item.label}
-                  sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '14px' }}
-                >
-                  {item.label}
-                </Typography>
+                <Tooltip title={item?.label || ''}>
+                  <Typography
+                    key={item.label}
+                    sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '14px', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}
+                  >
+                    {item?.label || ''}
+                  </Typography>
+                </Tooltip>
               ))}
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'start' }}>
+            <Box sx={{ width: { lg: 'calc(100% - 220px)', md: 'calc(100% - 170px)', xs: 'calc(100% - 190px)' }, display: 'flex', flexDirection: 'column', gap: 2, }}>
               {right.map(item => (
-                <Typography
-                  key={item.label + '-value'}
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '14px' }}
-                >
-                  {item.value}
-                </Typography>
+                <Tooltip title={item?.value || ''}>
+                  <Typography
+                    key={item.label + '-value'}
+                    sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '14px', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}
+                  >
+                    {item?.value || 'NA'}
+                  </Typography>
+                </Tooltip>
               ))}
             </Box>
           </Box>
         </Grid>
       </Grid>
-    </Box>
+    </Box >
   )
 }
 
