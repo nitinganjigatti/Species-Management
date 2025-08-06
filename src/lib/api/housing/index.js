@@ -41,7 +41,8 @@ import {
   REVOKE_ANIMAL_MORTALITY,
   MANNER_OF_DEATH,
   CARCASS_CONDITION,
-  CARCASS_DEPOSITION
+  CARCASS_DEPOSITION,
+  ANIMAL_DIET_LIST
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -218,14 +219,14 @@ export async function getAnimalIncidentDetails(animalId) {
   return response?.data
 }
 
-export async function createAnimalIncident(animalId) {
-  const response = await axiosPost({ url: `${ANIMAL_CREATE_INCIDENT}/${animalId}`, body: params })
+export async function createAnimalIncident(payload) {
+  const response = await axiosFormPost({ url: `${ANIMAL_CREATE_INCIDENT}`, body: payload })
 
   return response?.data
 }
 
 export async function updateAnimalIncident(params) {
-  const response = await axiosPost({ url: `${ANIMAL_UPDATE_INCIDENT}`, body: params })
+  const response = await axiosFormPost({ url: `${ANIMAL_UPDATE_INCIDENT}`, body: params })
 
   return response?.data
 }
@@ -286,6 +287,12 @@ export async function getCarcassCondition(params) {
 
 export async function getCarcassDeposition(params) {
   const response = await axiosGet({ url: `${CARCASS_DEPOSITION}`, params })
+
+  return response?.data
+}
+
+export async function getAnimalDietList(animalId, params) {
+  const response = await axiosGet({ url: `${ANIMAL_DIET_LIST}/${animalId}`, params })
 
   return response?.data
 }

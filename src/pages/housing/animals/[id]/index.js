@@ -80,6 +80,7 @@ const AnimalDetais = () => {
             accessionDate: Utility.formatDisplayDate(ad?.accession_date),
             birthDate: Utility.formatDisplayDate(ad?.birth_date),
             age: ad?.age,
+            taxonomyId: ad.taxonomy_id,
             contraceptionStatus: ad?.contraception_status,
             sexingType: ad?.sexing_type,
             collectionType: ad?.collection_type,

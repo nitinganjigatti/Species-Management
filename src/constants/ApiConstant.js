@@ -661,3 +661,5 @@ export const MANNER_OF_DEATH = `masters/mannerofDeath`
 export const CARCASS_CONDITION = `masters/carcassCondition`
 
 export const CARCASS_DEPOSITION = `masters/carcassDisposition`
+
+export const ANIMAL_DIET_LIST = `diet/get-species-detail`
