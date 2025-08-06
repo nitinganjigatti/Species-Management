@@ -70,7 +70,7 @@ const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_pr
             }}
             variant='circular'
             alt={name}
-            src={user_profile_pic} // You can provide an image source here
+            src={user_profile_pic} 
           />
         </Box>
         <Box>
@@ -176,7 +176,6 @@ function Ledger({ tabValue, updateUrlParams }) {
 
   useEffect(() => {
     if (router.query.tab !== tabValue) {
-      // debugger
       setPaginationModel({ page: 0, pageSize: 10 })
       setSortColumn('created_at')
       setSelectedTabs([])
@@ -470,7 +469,6 @@ function Ledger({ tabValue, updateUrlParams }) {
     }
   ]
 
-  // Helper function to merge
   const mergeOptions = (existingOptions, newOptions) => {
     const mergedOptionsMap = new Map(existingOptions.map(option => [option.id, option]))
 
@@ -510,7 +508,6 @@ function Ledger({ tabValue, updateUrlParams }) {
             setStockDetails(res?.data)
             setRows(loadServerRows(paginationModel.page, res?.data?.ledger_data))
 
-            // Extract unique dispatched_to options
             const uniqueDispatchedBy = Array.from(
               new Map(
                 res?.data?.ledger_data
@@ -697,7 +694,6 @@ function Ledger({ tabValue, updateUrlParams }) {
     )
   }
 
-  // Handle change in search input
   const handleSearchChange = event => {
     setSearchTerm(event.target.value)
   }
@@ -706,8 +702,8 @@ function Ledger({ tabValue, updateUrlParams }) {
     setSelectedCreateBy(
       prevSelected =>
         prevSelected.includes(id)
-          ? prevSelected.filter(selectedId => selectedId !== id) // Remove if already selected
-          : [...prevSelected, id] // Add if not selected
+          ? prevSelected.filter(selectedId => selectedId !== id) 
+          : [...prevSelected, id] 
     )
   }
 
@@ -805,7 +801,6 @@ function Ledger({ tabValue, updateUrlParams }) {
       console.error(error)
     }
 
-    // Close the filter drawer
     toggleDrawer()
   }
 
@@ -1060,7 +1055,7 @@ function Ledger({ tabValue, updateUrlParams }) {
               flexWrap: 'wrap'
             }}
           >
-            {/* Avatar Section */}
+    
             <Grid
               item
               size={{ xs: 12, sm: 'auto' }}
@@ -1086,7 +1081,6 @@ function Ledger({ tabValue, updateUrlParams }) {
               </Box>
             </Grid>
 
-            {/* Data Section */}
             <Grid item xs={12} sm>
               <Grid
                 container
@@ -1095,7 +1089,6 @@ function Ledger({ tabValue, updateUrlParams }) {
                   justifyContent: { xs: 'center', sm: 'flex-start' }
                 }}
               >
-                {/* Total Purchase */}
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box
                     sx={{
@@ -1123,7 +1116,6 @@ function Ledger({ tabValue, updateUrlParams }) {
                   </Box>
                 </Grid>
 
-                {/* Total Return */}
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box
                     sx={{
@@ -1151,7 +1143,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                   </Box>
                 </Grid>
 
-                {/* Total Outgoing */}
+             
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box
                     sx={{
@@ -1224,7 +1216,6 @@ function Ledger({ tabValue, updateUrlParams }) {
         handleClearFilter={handleClearFilter}
       >
         <Box sx={{ px: 5 }}>
-          {/* Batch Details */}
           {selectedItem === 'Batch Details' && (
             <>
               <Box
@@ -1308,7 +1299,6 @@ function Ledger({ tabValue, updateUrlParams }) {
             </>
           )}
 
-          {/* Dispatch To */}
           {selectedItem === 'Dispatch To' && (
             <Box sx={{ pt: 3 }}>
               {dispatchedToOptions.map(option => (
@@ -1329,7 +1319,6 @@ function Ledger({ tabValue, updateUrlParams }) {
             </Box>
           )}
 
-          {/* Created By */}
           {selectedItem === 'Created By' && (
             <Box
               sx={{
@@ -1355,7 +1344,6 @@ function Ledger({ tabValue, updateUrlParams }) {
             </Box>
           )}
 
-          {/* Date */}
           {selectedItem === 'Date' && (
             <>
               {dates.map(location => (

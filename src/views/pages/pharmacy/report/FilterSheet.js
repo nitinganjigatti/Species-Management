@@ -95,15 +95,12 @@ const FilterSheet = ({
   }
 
   const handleConfirmSelection = () => {
-    // Handle Sites
     const selectedSiteIDs = selectedOptions.Site || []
     handleSelection(selectedSiteIDs, 'Site')
 
-    // Handle Organizations
     const selectedOrganizationIDs = selectedOptions.Organization || []
     handleSelection(selectedOrganizationIDs, 'Organization')
 
-    // Close the drawer
     setOpenFilterDrawer(false)
   }
 
@@ -121,7 +118,6 @@ const FilterSheet = ({
         return option?.organization_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
     }) || []
-  console.log('Selected options >', filteredOptions)
 
   const handleCategoryClick = category => {
     setActiveCategory(category)
@@ -171,7 +167,6 @@ const FilterSheet = ({
           </IconButton>
         </Box>
       </Box>
-      {/* Drawer Content */}
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -323,7 +318,6 @@ const FilterSheet = ({
           </Grid>
         </Grid>
       </Box>
-      {/* bottom buttons */}
       <Box
         sx={{
           height: '122px',

@@ -69,14 +69,11 @@ const addValidationSchema = yup.object().shape({
             .test('is-unique', 'Duplicate Product Name selected', function (value) {
               const { options, parent, path } = this
 
-              // Skip validation if we are not on the updated field
               if (!parent || !path) return true
 
-              // Extract all alternatives (entire form array)
               const allAlternatives = options?.from?.[2]?.value?.alternatives || []
               const currentIndex = Number(path.match(/\d+/)?.[0])
 
-              // Ensure we're not validating the same field more than once
               const duplicates = allAlternatives.filter((item, idx) => {
                 const isSameProduct = item?.productName?.value === value
 
@@ -85,7 +82,7 @@ const addValidationSchema = yup.object().shape({
 
               const hasDuplicates = duplicates.length > 0
 
-              return !hasDuplicates // Return false if duplicates exist, causing an error
+              return !hasDuplicates 
             })
         })
         .required('Product Name is required'),
@@ -140,13 +137,13 @@ const Overview = props => {
   )
 
   const handleProductChange = (selectedOption, index) => {
-    // Update productName field
+  
     setValue(`alternatives[${index}].productName`, selectedOption)
 
-    // Update or clear manufacturerName field
+  
     setValue(`alternatives[${index}].manufacturerName`, selectedOption?.manufacture || '')
 
-    // Re-trigger validation with current form context
+  
     trigger(undefined, {
       shouldFocus: false,
       context: {
@@ -161,7 +158,7 @@ const Overview = props => {
       setValue('status', option.status == 1 ? 'active' : 'inactive')
     } else {
       setValue('manufacturerName', '')
-      setValue('status', 'inactive') // fallback to 'inactive' if no option is selected
+      setValue('status', 'inactive')
     }
   }
 
@@ -690,7 +687,7 @@ const Overview = props => {
       setIsLoading(true)
       let result
 
-      // Fetch data based on selected drawer ID
+    
       if (name === 'aboutToExpire') {
         result = await getProductAboutToExpireList(id)
       } else if (name === 'expiredBatches') {
@@ -714,7 +711,6 @@ const Overview = props => {
           const totalQuantity = allStores.reduce((sum, store) => sum + Number(store.total_qty), 0)
           const totalStores = allStores.length
 
-          // Set only totalValue and totalStores
           setTotalValue({
             totalQuantity,
             totalStores,
@@ -797,7 +793,6 @@ const Overview = props => {
     defaultValues: addDefaultValues
   })
 
-  // Watch alternatives field
   const alternatives = watch('alternatives')
 
   const handleAddAlternative = () => {
@@ -806,7 +801,6 @@ const Overview = props => {
 
   const handleDeleteLastAlternative = () => {
     if (alternatives.length > 1) {
-      // Only remove if more than one alternative exists
       setValue('alternatives', alternatives.slice(0, -1))
     }
   }
@@ -854,7 +848,6 @@ const Overview = props => {
       if (response.success) {
         toast.success(response?.message)
 
-        // Refetch first page of the relevant tab
         await getAlternativeMedicineList('active', 1)
         await getAlternativeMedicineList('inactive', 1)
         setEditMedicinesDrawerOpen(false)
@@ -887,7 +880,7 @@ const Overview = props => {
       id: medicine.id
     }
 
-    reset(defaultValues) // Prefill form
+    reset(defaultValues) 
     setEditMedicinesDrawerOpen(true)
   }
 
@@ -1022,11 +1015,9 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        {/* Apply similar structure to the rest of the cards */}
         <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              {/* Header Section */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box
                   sx={{
@@ -1074,10 +1065,8 @@ const Overview = props => {
                 />
               </Box>
 
-              {/* Divider */}
               <Divider sx={{ my: 2 }} />
 
-              {/* Medicine List */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
                 {isLoading && !alternativeMedicinesList?.active?.list_items?.length ? (
                   <Typography
@@ -1126,7 +1115,7 @@ const Overview = props => {
                       ))}
                     </List>
 
-                    {/* More Section - Only show if more than 5 */}
+                   
                     {alternativeMedicinesList?.active?.total_count > 5 && (
                       <Box>
                         <Button

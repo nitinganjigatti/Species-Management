@@ -16,14 +16,11 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getVariantById } from 'src/lib/api/pharmacy/variant'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   // description: yup.string().required('Description is required'),
@@ -43,7 +40,6 @@ const defaultValues = {
 }
 
 const AddVariant = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {
@@ -148,11 +144,10 @@ const AddVariant = props => {
                   onChange={e => {
                     const newValue = e.target.value
 
-                    // Allow only positive numbers
                     if (!isNaN(newValue) && Number(newValue) >= 0) {
                       onChange(newValue)
                     } else {
-                      onChange('') // Clear field if invalid
+                      onChange('')
                     }
                   }}
                   onKeyPress={e => {

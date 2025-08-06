@@ -331,11 +331,9 @@ import { useState, useEffect, useCallback, Fragment, forwardRef } from 'react'
 // export default AddPayment
 
 const AddPayment = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
   console.log('props', props)
 
-  // ** States
   const [values, setValues] = useState(defaultValues)
   const [suppliers, setSuppliers] = useState([])
 
@@ -345,7 +343,7 @@ const AddPayment = props => {
       .string()
       .required('Date required')
       .test('is-valid-date', 'Invalid date format', value => {
-        return !isNaN(Date.parse(value)) // Basic date validation
+        return !isNaN(Date.parse(value)) 
       }),
     total_due_amount: yup
       .number()
@@ -374,7 +372,6 @@ const AddPayment = props => {
     reset,
     setValue,
     watch
-    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -420,7 +417,6 @@ const AddPayment = props => {
   const getSuppliersLists = async () => {
     const response = await getSuppliers()
     if (response.data.data?.length > 0) {
-      console.log('list in addpayment', response)
       const result = response.data.data
       result.sort((a, b) => a.id - b.id)
       setSuppliers(result)

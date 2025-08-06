@@ -463,7 +463,7 @@ export const AddItemsForm = ({
 
   return (
     <>
-      {/* <CardContent> */}
+     
       <form
         onSubmit={handleSubmit(onSubmit)}
         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
