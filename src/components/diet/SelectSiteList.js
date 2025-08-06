@@ -233,7 +233,7 @@ const SelectSiteList = ({
             }
           }}
         >
-          {filteredSites.length > 0 ? (
+          {filteredSites?.length > 0 ? (
             filteredSites.map(site => (
               <ListItem
                 key={site.site_id}
@@ -309,7 +309,7 @@ const SelectSiteList = ({
               '&:hover': { bgcolor: '#218838' }
             }}
             onClick={handleCloseDrawer}
-            disabled={pendingSelections.Site.length === 0}
+            disabled={pendingSelections?.Site?.length === 0}
           >
             CONTINUE
           </Button>
