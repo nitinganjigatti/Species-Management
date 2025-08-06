@@ -402,8 +402,8 @@ const SpeciesMappedtoDiet = ({
               fontWeight: 600
             }}
           >
-            {tempSelectedSpecies.length > 0 && speciesData.length > 0 && !loading
-              ? `Selected ${tempSelectedSpecies.length} / ${speciestotalcount}`
+            {tempSelectedSpecies?.length > 0 && speciesData?.length > 0 && !loading
+              ? `Selected ${tempSelectedSpecies?.length} / ${speciestotalcount}`
               : selectionType === 'species'
               ? `All species${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`
               : `All animals${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`}
@@ -430,7 +430,7 @@ const SpeciesMappedtoDiet = ({
                 }}
                 onClick={handleSelectAll}
               >
-                {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'}
+                {tempSelectedSpecies?.length === speciesData?.length ? 'Select all' : 'Select all'}
               </Button>
 
               <Checkbox
@@ -477,7 +477,7 @@ const SpeciesMappedtoDiet = ({
           </CardContent>
         ) : selectionType === 'species' ? (
           <List>
-            {speciesData.length > 0 ? (
+            {speciesData?.length > 0 ? (
               speciesData.map(species => (
                 <SpeciesCardItem
                   species={species}
@@ -543,7 +543,7 @@ const SpeciesMappedtoDiet = ({
           </List>
         ) : (
           <List>
-            {speciesData.length > 0 ? (
+            {speciesData?.length > 0 ? (
               speciesData.map(species => (
                 <AnimalCardItem
                   species={species}

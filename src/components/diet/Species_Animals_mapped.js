@@ -79,7 +79,7 @@ const SpeciesAnimalsMapped = ({
     setspeciesview('')
     setSearchQuery('')
     setPrimaryStatus({})
-    setSelectedItems([])
+    setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     setTempSelectedItems({
       Site: [],
       Section: [],

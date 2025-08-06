@@ -212,7 +212,7 @@ const SelectSectionList = ({
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-            {loading ? '' : `Selected ${selectedSections.length}/${sectionsData.length}`}
+            {loading ? '' : `Selected ${selectedSections?.length}/${sectionsData?.length}`}
           </Typography>
           <Box
             sx={{
@@ -224,7 +224,7 @@ const SelectSectionList = ({
               size='small'
               sx={{
                 color:
-                  selectedSections.length === sectionsData.length && sectionsData.length > 0
+                  selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                     ? theme.palette.primary.main
                     : theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '12px',
@@ -238,8 +238,8 @@ const SelectSectionList = ({
             </Button>
 
             <Checkbox
-              checked={selectedSections.length === sectionsData.length && sectionsData.length > 0}
-              indeterminate={selectedSections.length > 0 && selectedSections.length < sectionsData.length}
+              checked={selectedSections?.length === sectionsData?.length && sectionsData?.length > 0}
+              indeterminate={selectedSections?.length > 0 && selectedSections?.length < sectionsData?.length}
               onChange={handleSelectAllSites}
               inputProps={{ 'aria-label': 'Select all species' }}
               sx={{
@@ -251,11 +251,11 @@ const SelectSectionList = ({
                   height: '19px',
                   border: '2px dotted',
                   borderColor:
-                    selectedSections.length === sectionsData.length && sectionsData.length > 0
+                    selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                       ? theme.palette.primary.main
                       : theme.palette.customColors.OnSurfaceVariant,
                   color:
-                    selectedSections.length === sectionsData.length && sectionsData.length > 0
+                    selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                       ? theme.palette.primary.main
                       : theme.palette.customColors.OnSurfaceVariant
                 },
@@ -372,7 +372,7 @@ const SelectSectionList = ({
               '&:hover': { bgcolor: '#218838' }
             }}
             onClick={() => onSelectSections(selectedSections)}
-            disabled={selectedSections.length <= 0}
+            disabled={selectedSections?.length <= 0}
           >
             CONTINUE
           </Button>
