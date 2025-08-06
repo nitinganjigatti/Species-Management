@@ -168,7 +168,7 @@ const AnimalDiet = ({ animalDetails }) => {
                 Inactive diets - {inActiveDietCount}
               </Button>
             </Box>
-            {/* <Box sx={{ display: 'flex', gap: '8px' }}>
+            <Box sx={{ display: 'flex', gap: '8px' }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -198,10 +198,10 @@ const AnimalDiet = ({ animalDetails }) => {
                   }}
                 />
               </Box>
-              <Button onClick={() => setUploadAnimalDietDrawer(true)} sx={{ height: '38px' }} variant='contained'>
+              {/* <Button onClick={() => setUploadAnimalDietDrawer(true)} sx={{ height: '38px' }} variant='contained'>
                 <Icon icon='mdi:plus' /> Upload
-              </Button>
-            </Box> */}
+              </Button> */}
+            </Box>
           </Box>
         </Box>
 
@@ -309,21 +309,7 @@ const AnimalDiet = ({ animalDetails }) => {
                     textColor={theme.palette.customColors.OnSurfaceVariant}
                     fontWeight={500}
                   />
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {/* <GreenSwitch
-                    checked={diet.isActive}
-                    onChange={() => {
-                      if (selectedTab === 'active') {
-                        const updated = [...activeDietData]
-                        updated[index].isActive = !updated[index].isActive
-                        setActiveDietData(updated)
-                      } else {
-                        const updated = [...inActiveDietData]
-                        updated[index].isActive = !updated[index].isActive
-                        setInActiveDietData(updated)
-                      }
-                    }}
-                  /> */}
+                  {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     <GreenSwitch
                       checked={selectedTab === 'active'}
                       // checked={diet.isActive}
@@ -349,7 +335,7 @@ const AnimalDiet = ({ animalDetails }) => {
                     <IconButton sx={{ padding: 0 }} onClick={() => setDeleteDietDialog(true)}>
                       <Icon icon='mdi:trash-can-outline' color={theme.palette.customColors.OnSurfaceVariant} />
                     </IconButton>
-                  </Box>
+                  </Box> */}
                 </Box>
               </Box>
 
@@ -368,7 +354,7 @@ const AnimalDiet = ({ animalDetails }) => {
                 }}
               >
                 <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
-                  Notes
+                  Notes:
                 </Typography>
                 <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 400 }}>
                   {diet.notes}
