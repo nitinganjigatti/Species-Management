@@ -49,39 +49,6 @@ const schema = yup.object().shape({
     .array()
     .of(
       yup.object().shape({
-        // request_item_batch_no: yup.object().shape({
-        //   value: yup
-        //     .string()
-        //     .transform(value => (value === '' ? null : value))
-        //     .required('Batch number is required')
-        //     .test('unique-batch', 'Batch number already exists', function (value) {
-        //       if (!value) return true
-
-        //       const { editParams = {}, nestedMedicine = {} } = this.options.context || {}
-
-        //       // Get the root form data (this.from[this.from.length - 1] gets the root object)
-        //       const rootData = this.from[this.from.length - 1].value
-        //       const currentBatches = rootData?.product_batches || []
-
-        //       // Extract current index from path
-        //       const pathMatch = this.path.match(/product_batches\[(\d+)\]/)
-        //       const currentIndex = pathMatch ? parseInt(pathMatch[1]) : -1
-
-        //       // Check against editParams (existing data in the system)
-        //       const isInEditParams = editParams?.request_item_details?.some(
-        //         item => item.request_item_batch_no === value && item.uuid !== nestedMedicine?.uuid
-        //       )
-
-        //       // Check against current form entries (excluding current index)
-        //       const isDuplicateInForm = currentBatches.some((batch, idx) => {
-        //         const batchValue = batch?.request_item_batch_no?.value
-
-        //         return batchValue === value && idx !== currentIndex
-        //       })
-
-        //       return !(isInEditParams || isDuplicateInForm)
-        //     })
-        // }),
         request_item_batch_no: yup
           .mixed()
           .test('is-object', 'Batch number must be an object', function (value) {
@@ -270,7 +237,7 @@ export const AddDispatchForm = ({
     />
   )
 
-  const removeSaltButton = (index) => (
+  const removeSaltButton = index => (
     <IconButton
       icon='material-symbols-light:close-small'
       onClick={() => remove(index)}
@@ -284,7 +251,7 @@ export const AddDispatchForm = ({
     />
   )
 
-  const clearSaltFields = (index) => (
+  const clearSaltFields = index => (
     <IconButton
       icon='material-symbols-light:close-small'
       onClick={() => {
@@ -344,7 +311,11 @@ export const AddDispatchForm = ({
           request_item_batch_no: {
             label: nestedMedicine?.request_item_batch_no,
             value: nestedMedicine?.request_item_batch_no,
-            expiry_date: nestedMedicine?.expiry_date
+            expiry_date: nestedMedicine?.expiry_date,
+            available_item_qty: nestedMedicine?.available_item_qty,
+            multiplier: nestedMedicine?.multiplier,
+            variant_id: nestedMedicine?.variant_id,
+            unit_price: nestedMedicine?.unit_price
           }
         } || []
       ]
@@ -515,7 +486,13 @@ export const AddDispatchForm = ({
             container
             size={{ xs: 12, sm: 12 }}
             spacing={4}
-            sx={{ bgcolor: theme.palette.customColors.mdAntzNeutral, padding: 4, borderRadius: 1, width: '100%', display: 'flex' }}
+            sx={{
+              bgcolor: theme.palette.customColors.mdAntzNeutral,
+              padding: 4,
+              borderRadius: 1,
+              width: '100%',
+              display: 'flex'
+            }}
           >
             <Grid
               item
@@ -573,6 +550,7 @@ export const AddDispatchForm = ({
               <ControlledTextField
                 name={`product_batches[${index}].request_item_qty`}
                 label='Quantity*'
+                type='number'
                 control={control}
                 errors={errors}
                 required
