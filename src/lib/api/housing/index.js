@@ -34,7 +34,8 @@ import {
   ANIMAL_DETAILS_IDENTIFIER_LIST,
   ADD_ANIMAL_IDENTIFIER,
   EDIT_ANIMAL_IDENTIFIER,
-  DELETE_ANIMAL_IDENTIFIER
+  DELETE_ANIMAL_IDENTIFIER,
+  ANIMAL_CREATE_INCIDENT
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -211,7 +212,11 @@ export async function getAnimalIncidentDetails(animalId) {
   return response?.data
 }
 
-export async function createAnimalIncident() { }
+export async function createAnimalIncident(animalId) {
+  const response = await axiosPost({ url: `${ANIMAL_CREATE_INCIDENT}/${animalId}`, body: params })
+
+  return response?.data
+}
 
 export async function updateAnimalIncident(params) {
   const response = await axiosPost({ url: `${ANIMAL_UPDATE_INCIDENT}`, body: params })

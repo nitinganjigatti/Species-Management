@@ -1,39 +1,45 @@
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord'
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+
 import {
   Button,
-  Card,
   Typography,
   Box,
-  TextField,
   Avatar,
-  Divider,
   IconButton,
   MenuItem,
   Menu,
   Drawer,
-  Tooltip
+  Tooltip,
+  CircularProgress,
+  Skeleton
 } from '@mui/material'
-import Icon from 'src/@core/components/icon'
-import React, { useState } from 'react'
+
+import { border, Grid } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-import SpeciesCard from 'src/views/utility/SpeciesCard'
-import StickyTable from 'src/views/table/sticky-table'
 import TimelineItem from '@mui/lab/TimelineItem'
 import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline from '@mui/lab/Timeline'
 import { styled } from '@mui/material/styles'
-import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
-import ReportMissingIncidentForm from './ReportMissingIncidentForm'
-import MissReportIncidentForm from './MissReportIncidentForm'
-import ReportFoundForm from './ReportFoundForm'
-import { Grid } from '@mui/system'
 
-// import {  TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from '@mui/lab'
+import moment from 'moment'
+import Icon from 'src/@core/components/icon'
+import Utility from 'src/utility'
+
+import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
+import ReportFoundForm from './ReportFoundForm'
+import ReportIncidentForm from './ReportIncidentForm'
+import MissReportIncidentForm from './MissReportIncidentForm'
+import { getAnimalIncidentDetails, getAnimalIncidentList } from 'src/lib/api/housing'
+import IncidentDetailsCard from './IncidentDetailsCard'
+import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 
 const AnimalIncidents = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id: animalId } = router.query
 
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
 
@@ -41,188 +47,51 @@ const AnimalIncidents = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
 
-  const [animalId, setAnimalId] = useState('')
+  const [animalListLoading, setAnimalListLoading] = useState(false)
+  const [animalListData, setAnimalListData] = useState([])
+  const [animalListCount, setAnimalListCount] = useState(0)
+  const [incidentDetailsData, setIncidentDetailsData] = useState({})
+
   const [animalIncidentForm, setAnimalIncidentForm] = useState(false)
   const [missReportIncidence, setMissReportIncidence] = useState('')
   const [missReportIncidentForm, setMissReportIncidentForm] = useState(false)
   const [reportFoundForm, setReportFoundForm] = useState(false)
 
-  const handleMenuOpen = event => {
-    setAnchorEl(event.currentTarget)
+  const fetchAnimalIncidents = async () => {
+    try {
+      setAnimalListLoading(true)
+      console.log("sam", animalId)
+      if (animalId) {
+        const res = await getAnimalIncidentList(animalId)
+        console.log('res', res)
+        setAnimalListData(res?.data?.result)
+        setAnimalListCount(res?.data?.total_count)
+
+      }
+    } catch (error) {
+      console.error('❌ Error fetching animal incidents:', error)
+    } finally {
+      setAnimalListLoading(false)
+    }
   }
 
-  const handleMenuClose = () => {
-    setAnchorEl(null)
+  useEffect(() => {
+    fetchAnimalIncidents()
+  }, [animalId])
+
+
+  const fetchAnimalIncidentDetails = async (incidentId) => {
+    try {
+
+      if (incidentId) {
+        const res = await getAnimalIncidentDetails(incidentId)
+        console.log('getAnimalIncidentDetails + res', res)
+        setIncidentDetailsData(res?.data)
+      }
+    } catch (error) {
+      console.error('❌ Error fetching animal incidents:', error)
+    }
   }
-
-  const activtyLogData = [
-    {
-      type: 'Animal Found',
-      color: '#00A046',
-      date: '3 Dec 2025',
-      time: '3:34 PM',
-      details: {
-        'Physical condition': 'Minor scratches on rear leg',
-        'Behaviour observation': 'Restless',
-        'Health assessment': 'Under observation in Vet Zone A',
-        'Injury details': 'Documented, no critical concern',
-        'Immediate action taken': 'Caretaker assigned and sedated for treatment'
-      },
-      createdBy: {
-        name: 'Sourav Tambe',
-        timestamp: '14 Apr 2024 | 12:35 PM'
-      }
-    },
-    {
-      type: 'Animal Missing',
-      color: '#FF5630',
-      date: '3 Dec 2025',
-      time: '3:34 PM',
-      details: {
-        'Missing Since': '3 Dec 2025 • 3:34 PM',
-        'Last seen or escaped from': 'Cage from Gagav',
-        'Animal behaviour before incident': 'Aggressive',
-        'Actions taken': 'Allotted control room',
-        'Steps to prevent future incidents': 'Informed'
-      },
-      createdBy: {
-        name: 'Sourav Tambe',
-        timestamp: '14 Apr 2024 | 12:35 PM'
-      }
-    },
-    {
-      type: 'Animal Found',
-      color: '#00A046',
-      date: '5 Dec 2025',
-      time: '10:20 AM',
-      details: {
-        'Physical condition': 'Healthy but dehydrated',
-        'Behaviour observation': 'Calm',
-        'Health assessment': 'Given fluids and under observation',
-        'Injury details': 'None',
-        'Immediate action taken': 'Returned to enclosure'
-      },
-      createdBy: {
-        name: 'Nikita Rao',
-        timestamp: '15 Apr 2024 | 11:20 AM'
-      }
-    },
-    {
-      type: 'Animal Missing',
-      color: '#FF5630',
-      date: '6 Dec 2025',
-      time: '2:45 PM',
-      details: {
-        'Missing Since': '6 Dec 2025 • 2:45 PM',
-        'Last seen or escaped from': 'Section B Gate',
-        'Animal behaviour before incident': 'Highly alert',
-        'Actions taken': 'Area cordoned off',
-        'Steps to prevent future incidents': 'Review gate sensors'
-      },
-      createdBy: {
-        name: 'Amit Verma',
-        timestamp: '16 Apr 2024 | 9:15 AM'
-      }
-    },
-    {
-      type: 'Animal Found',
-      color: '#00A046',
-      date: '7 Dec 2025',
-      time: '6:10 AM',
-      details: {
-        'Physical condition': 'Minor bruises',
-        'Behaviour observation': 'Tired',
-        'Health assessment': 'Observation ongoing',
-        'Injury details': 'Soft tissue bruising',
-        'Immediate action taken': 'Shifted to recovery zone'
-      },
-      createdBy: {
-        name: 'Rohit Sharma',
-        timestamp: '17 Apr 2024 | 1:00 PM'
-      }
-    },
-    {
-      type: 'Animal Missing',
-      color: '#FF5630',
-      date: '9 Dec 2025',
-      time: '11:50 PM',
-      details: {
-        'Missing Since': '9 Dec 2025 • 11:50 PM',
-        'Last seen or escaped from': 'Feeding area',
-        'Animal behaviour before incident': 'Stressed',
-        'Actions taken': 'Emergency alert triggered',
-        'Steps to prevent future incidents': 'Added night guards'
-      },
-      createdBy: {
-        name: 'Priya Nair',
-        timestamp: '18 Apr 2024 | 8:40 PM'
-      }
-    },
-    {
-      type: 'Animal Found',
-      color: '#00A046',
-      date: '10 Dec 2025',
-      time: '9:15 AM',
-      details: {
-        'Physical condition': 'Stable',
-        'Behaviour observation': 'Relaxed',
-        'Health assessment': 'Vet cleared',
-        'Injury details': 'None',
-        'Immediate action taken': 'Returned to normal habitat'
-      },
-      createdBy: {
-        name: 'Anjali Mehta',
-        timestamp: '19 Apr 2024 | 9:00 AM'
-      }
-    },
-    {
-      type: 'Animal Missing',
-      color: '#FF5630',
-      date: '11 Dec 2025',
-      time: '5:00 PM',
-      details: {
-        'Missing Since': '11 Dec 2025 • 5:00 PM',
-        'Last seen or escaped from': 'Veterinary block',
-        'Animal behaviour before incident': 'Agitated',
-        'Actions taken': 'Security dispatched',
-        'Steps to prevent future incidents': 'Strengthened barrier protocols'
-      },
-      createdBy: {
-        name: 'Rahul Deshmukh',
-        timestamp: '20 Apr 2024 | 4:45 PM'
-      }
-    }
-  ]
-
-  const incidentListData = [
-    {
-      id: 'INC00410',
-      date: '12 Dec 2025',
-      time: '03:20 PM',
-      type: 'Animal Missing',
-      site: 'Bannerghatta East 12A',
-      section: 'Hillcrest Wildlife Center',
-      enclosure: 'Enclosure-234'
-    },
-    {
-      id: 'INC00411',
-      date: '13 Dec 2025',
-      time: '10:10 AM',
-      type: 'Animal Found',
-      site: 'Nagarhole Zone 3',
-      section: 'Riverbank Rescue Center',
-      enclosure: 'Enclosure-567'
-    },
-    {
-      id: 'INC00412',
-      date: '14 Dec 2025',
-      time: '08:45 PM',
-      type: 'Animal Missing',
-      site: 'Kaziranga West',
-      section: 'Savannah Watchpoint',
-      enclosure: 'Enclosure-991'
-    }
-  ]
 
   const IncidentCardList = ({ data, onViewDetails, onEdit, onMisreport, onReportFound }) => {
     const theme = useTheme()
@@ -232,13 +101,17 @@ const AnimalIncidents = () => {
     const handleMenuOpen = event => setAnchorEl(event.currentTarget)
     const handleMenuClose = () => setAnchorEl(null)
 
+    if (animalListLoading === true) return <Box sx={{ textAlign: 'center' }}>
+      <Skeleton variant='rectangular' height={84} sx={{ borderRadius: 1, mb: 1 }} />
+    </Box>
+
     return data.map((incident, index) => (
       <Grid
         container
         key={incident.id}
         sx={{
           padding: '8px 12px 8px 8px',
-          backgroundColor: incident.type === 'Animal Found' ? theme.palette.customColors.OnBackground : theme.palette.customColors.Tertiary20,
+          backgroundColor: incident.current_incident_type === 'found' ? theme.palette.customColors.OnBackground : theme.palette.customColors.Tertiary20,
           borderRadius: '8px',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -253,7 +126,7 @@ const AnimalIncidents = () => {
               flexDirection: 'column',
               gap: '6px',
               minWidth: '120px',
-              backgroundColor: incident.type === 'Animal Found' ? theme.palette.primary.dark : theme.palette.customColors.Tertiary,
+              backgroundColor: incident.current_incident_type === 'found' ? theme.palette.primary.dark : theme.palette.customColors.Tertiary,
               borderRadius: '8px',
               padding: '12px'
             }}
@@ -261,16 +134,16 @@ const AnimalIncidents = () => {
             <Typography
               sx={{ textAlign: 'center', color: theme.palette.primary.contrastText, fontSize: 14, fontWeight: 600 }}
             >
-              {incident.date}
+              {moment(Utility.convertUTCToLocalDate(incident.created_at)).format('DD MMM YYYY')}
             </Typography>
             <Typography
               sx={{ textAlign: 'center', color: theme.palette.primary.contrastText, fontSize: 14, fontWeight: 600 }}
             >
-              {incident.time}
+              {Utility.convertUTCToLocaltime(incident.created_at)}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', minWidth: '100px', maxWidth: '1000px', flexDirection: 'column', gap: '6px' }}>
-            <Tooltip title={incident.id}>
+            <Tooltip title={incident.incident_code}>
               <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
@@ -281,13 +154,13 @@ const AnimalIncidents = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                {incident.id}
+                {incident.incident_code}
               </Typography>
             </Tooltip>
-            <Tooltip title={incident.type}>
+            <Tooltip title={incident.current_incident_type}>
               <Typography
                 sx={{
-                  color: incident.type === 'Animal Found' ? theme.palette.primary.dark : theme.palette.customColors.Tertiary,
+                  color: incident.current_incident_type === 'found' ? theme.palette.primary.dark : theme.palette.customColors.Tertiary,
                   fontSize: 16,
                   fontWeight: 500,
                   textOverflow: 'ellipsis',
@@ -295,7 +168,7 @@ const AnimalIncidents = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                {incident.type}
+                Animal {incident.current_incident_type === 'found' ? 'Found' : 'Missing'}
               </Typography>
             </Tooltip>
           </Box>
@@ -315,7 +188,7 @@ const AnimalIncidents = () => {
               Site
             </Typography>
           </Tooltip>
-          <Tooltip title={incident.site}>
+          <Tooltip title={incident.site_name}>
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -326,7 +199,7 @@ const AnimalIncidents = () => {
                 whiteSpace: 'nowrap'
               }}
             >
-              {incident.site}
+              {incident.site_name}
             </Typography>
           </Tooltip>
         </Grid>
@@ -345,7 +218,7 @@ const AnimalIncidents = () => {
               Section
             </Typography>
           </Tooltip>
-          <Tooltip title={incident.section}>
+          <Tooltip title={incident.section_name}>
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -356,7 +229,7 @@ const AnimalIncidents = () => {
                 whiteSpace: 'nowrap'
               }}
             >
-              {incident.section}
+              {incident.section_name}
             </Typography>
           </Tooltip>
         </Grid>
@@ -375,7 +248,7 @@ const AnimalIncidents = () => {
               Enclosure
             </Typography>
           </Tooltip>
-          <Tooltip title={'INC00410'}>
+          <Tooltip title={''}>
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -386,7 +259,7 @@ const AnimalIncidents = () => {
                 whiteSpace: 'nowrap'
               }}
             >
-              {incident.enclosure}
+              {''}
             </Typography>
           </Tooltip>
         </Grid>
@@ -403,6 +276,7 @@ const AnimalIncidents = () => {
           >
             <MenuItem
               onClick={() => {
+                fetchAnimalIncidentDetails(incident?.incident_id)
                 setActivtyLogSideBar(true)
                 handleMenuClose()
               }}
@@ -443,183 +317,6 @@ const AnimalIncidents = () => {
   }
 
 
-  const handleScroll = async e => {
-    // const container = e.target
-    // // Check if the user has reached the bottom
-    // if (
-    //   container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight &&
-    //   activtyLogData.length < activtyLogCount
-    // ) {
-    //   // User has reached the bottom, perform your action here
-    //   setPage_no(++page_no)
-    //   setReachedEnd(true)
-    //   const params = { page_no }
-    //   try {
-    //     getActivityLogs(egg_id, params).then(res => {
-    //       if (res?.success) {
-    //         if (res?.data?.result?.length > 0) {
-    //           setActivtyLogData(prev => [...prev, ...res?.data?.result])
-    //           setReachedEnd(false)
-    //         } else {
-    //           setReachedEnd(false)
-    //         }
-    //       } else {
-    //         setReachedEnd(false)
-    //       }
-    //     })
-    //   } catch (error) {
-    //     console.log('error', error)
-    //   }
-    // }
-  }
-
-  const IncidentDetailsCard = ({ item, index }) => (
-    <TimelineItem key={index}>
-      <TimelineSeparator
-        sx={{
-          '& span': {
-            ml: '1px',
-            background: 'transparent',
-            width: '1px',
-            height: '100%',
-            backgroundImage: `repeating-linear-gradient(
-                            to bottom,
-                            ${theme.palette.customColors.OutlineVariant},
-                            ${theme.palette.customColors.OutlineVariant} 5px,
-                            transparent 8px,
-                            transparent 13px
-                            )`,
-            opacity: 1
-
-            // strokeDashoffset: '5 8',
-            // borderLeft: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
-          }
-        }}
-      >
-        <Box
-          sx={{
-            // border: '2px solid ',
-            backgroundColor:
-              item.type === 'Animal Missing' || item.status === 'Discard' || item.status === 'Rotten'
-                ? theme.palette.formContent.tertiary
-                : theme.palette.primary.dark,
-            boxSizing: 'border-box',
-            width: '16px',
-            height: '16px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        ></Box>
-        {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
-      </TimelineSeparator>
-      <TimelineContent
-        sx={{
-          ml: 4,
-          borderRadius: '8px',
-          position: 'relative',
-          top: -5,
-          p: 0
-        }}
-      >
-        <Typography
-          sx={{
-            color: item.color,
-            fontWeight: 400,
-            fontSize: 14,
-            mb: '12px'
-          }}
-        >
-          {item.type}
-        </Typography>
-        <Box
-          sx={{
-            flexGrow: 1,
-            backgroundColor: item.type === 'Animal Found' ? '#E1F9ED' : '#FFBDA833',
-            borderRadius: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            p: '16px'
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <Typography
-              sx={{
-                fontWeight: 400,
-                fontSize: '14px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {item.type === 'Animal Found' ? 'Found On' : 'Missing Since'}
-            </Typography>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.customColors.neutralPrimary
-              }}
-            >
-              {item.date} • {item.time}
-            </Typography>
-          </Box>
-          {Object.entries(item.details).map(([key, value]) => (
-            <Box key={key}>
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                {key}
-              </Typography>
-              <Typography
-                sx={{
-                  fontWeight: 500,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.neutralPrimary
-                }}
-              >
-                {value}
-              </Typography>
-            </Box>
-          ))}
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Avatar sx={{ width: 34, height: 34 }} />
-            <Box>
-              <Typography
-                sx={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Sourav tambe
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: 12,
-                  fontWeight: 400,
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                14 Apr 2024 | 12 : 35 PM
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      </TimelineContent>
-    </TimelineItem>
-  )
 
   const IncidentTimeline = () => {
     // Styled Timeline component
@@ -633,7 +330,6 @@ const AnimalIncidents = () => {
         }
       }
     })
-
     return (
       <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
         <Drawer
@@ -692,7 +388,6 @@ const AnimalIncidents = () => {
           </Box>
 
           <Box
-            onScroll={handleScroll}
             sx={{ px: 4, py: 6, overflowY: 'auto', backgroundColor: theme.palette.customColors.Background }}
           >
             <Box
@@ -705,7 +400,7 @@ const AnimalIncidents = () => {
             >
               <Box
                 sx={{
-                  backgroundColor: theme.palette.customColors.OnBackground,
+                  backgroundColor: incidentDetailsData?.current_incident_type === 'found' ? theme.palette.customColors.OnBackground : '#FFBDA833',
                   padding: '12px',
                   display: 'flex',
                   borderRadius: '8px',
@@ -721,7 +416,7 @@ const AnimalIncidents = () => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    INC00410
+                    {incidentDetailsData?.incident_code}
                   </Typography>
                   <Typography
                     sx={{
@@ -731,7 +426,7 @@ const AnimalIncidents = () => {
                       color: theme.palette.customColors.Tertiary
                     }}
                   >
-                    Animal Missing
+                    {incidentDetailsData?.incident_label}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -756,7 +451,9 @@ const AnimalIncidents = () => {
                     10 Apr 2024 • 12:28 PM
                   </Typography>
                 </Box>
+
               </Box>
+              <AnimalCard animalParentCardStyle={{ paddingLeft: 0 }} sx={{ border: 'none' }} data={incidentDetailsData} />
             </Box>
             <Box
               sx={{
@@ -776,10 +473,11 @@ const AnimalIncidents = () => {
               >
                 Incident Timeline
               </Typography>
-              {activtyLogData?.length > 0 ? (
+
+              {incidentDetailsData?.incident_details?.length > 0 ? (
                 <Timeline>
-                  {activtyLogData?.map((item, index) => (
-                    <IncidentDetailsCard item={item} index={index} key={index} />
+                  {incidentDetailsData?.incident_details?.map((item, index) => (
+                    <IncidentDetailsCard data={incidentDetailsData?.incident_details} item={item} index={index} key={index} />
                   ))}
                 </Timeline>
               ) : null}
@@ -795,7 +493,7 @@ const AnimalIncidents = () => {
     <>
       <Box sx={{ mt: 4, p: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <Typography
               sx={{
                 fontSize: 20,
@@ -804,7 +502,7 @@ const AnimalIncidents = () => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Incidents (2)
+              {animalListCount > 0 && `${animalListCount > 1 ? 'Incidents' : 'Incident'} (${animalListCount})`}
             </Typography>
             <Button onClick={() => setAnimalIncidentForm(true)} variant='contained' sx={{ height: '40px' }}>
               <Icon icon='mdi:plus' />
@@ -813,7 +511,7 @@ const AnimalIncidents = () => {
           </Box>
 
           <IncidentCardList
-            data={incidentListData}
+            data={animalListData.length ? animalListData : []}
             onViewDetails={() => setActivtyLogSideBar(true)}
             onEdit={() => console.log('Edit incident')}
             onMisreport={(incident, type) => {
@@ -826,7 +524,7 @@ const AnimalIncidents = () => {
       </Box>
 
       <IncidentTimeline />
-      <ReportMissingIncidentForm
+      <ReportIncidentForm
         animalId={animalId}
         animalIncidentForm={animalIncidentForm}
         setAnimalIncidentForm={setAnimalIncidentForm}
@@ -837,7 +535,11 @@ const AnimalIncidents = () => {
         missReportIncidence={missReportIncidence}
         setMissReportIncidentForm={setMissReportIncidentForm}
       />
-      <ReportFoundForm animalId={animalId} reportFoundForm={reportFoundForm} setReportFoundForm={setReportFoundForm} />
+      <ReportFoundForm
+        animalId={animalId}
+        reportFoundForm={reportFoundForm}
+        setReportFoundForm={setReportFoundForm}
+      />
     </>
   )
 }

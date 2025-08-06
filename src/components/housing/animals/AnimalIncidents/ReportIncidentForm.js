@@ -26,43 +26,44 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { createAnimalIncident } from 'src/lib/api/housing'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { read, readAsync } from 'src/lib/windows/utils'
 
 
 const defaultValues = {
-  missingDate: dayjs(),                       // Date field
-  missingTime: dayjs(),                       // Time field
-  reportedBy: '',                             // Autocomplete - user_id
-  notes: '',                                  // Notes
-  attachment: '',                             // Image file name
-  lastSeenLocation: '',                       // Additional Info
-  animalBehaviour: '',
-  actionsTaken: '',
-  preventiveSteps: ''
+  incident_date: dayjs(),
+  incident_time: dayjs(),
+  reported_by: '',
+  notes: '',
+  attachment: '',
+  animal_behaviour_before_incident: '',
+  action_taken: '',
+  steps_to_prevent: ''
 }
 
 const schema = yup.object().shape({
-  missingDate: yup.date().required('Date is required'),
-  missingTime: yup.date().required('Time is required'),
-  reportedBy: yup.string().required('Reporter is required'),
-  notes: yup.string().required('Notes are required'),
-  attachment: yup.string().required('Attachment is required'),
-  lastSeenLocation: yup.string().required('Location is required'),
-  animalBehaviour: yup.string().required('Behaviour is required'),
-  actionsTaken: yup.string().required('Action taken is required'),
-  preventiveSteps: yup.string().required('Steps are required')
+  incident_date: yup.date().required('Date is required'),
+  incident_time: yup.date().required('Time is required'),
+  reported_by: yup.string().required('Reporter is required'),
+  // notes: yup.string().required('Notes are required'),
+  // attachment: yup.string().required('Attachment is required'),
 })
 
 
-const ReportMissingIncidentForm = ({
+const ReportIncidentForm = ({
   animalIncidentForm,
   setAnimalIncidentForm,
   animalId,
 }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
+  const timeInputRef = useRef(null)
 
-  const [preparedByUsers, setPreparedByUsers] = useState([])
-  const [defaultPreparedBy, setDefaultPreparedBy] = useState(null)
+  const [reported_byUsers, setreported_byUsers] = useState([])
+  const [defaultreported_by, setDefaultreported_by] = useState(null)
 
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFileName, setSelectedFileName] = useState(null)
@@ -90,6 +91,35 @@ const ReportMissingIncidentForm = ({
     reValidateMode: 'onChange'
   })
 
+  const getUserData = () => {
+    const result = read('userDetails')
+    console.log('result', result)
+    // setDefaultreported_by({ user_id: result?.user?.user_id, user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}` })
+    setValue('reported_by', result?.user?.user_id)
+
+    // setUserData(result)
+  }
+
+
+  useEffect(() => {
+    if (animalIncidentForm) {
+      getUsers()
+      getUserData()
+    }
+  }, [animalIncidentForm])
+
+  const getUsers = async () => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      const zoo_id = userDetails?.user?.zoos[0].zoo_id
+      const Users = await getUserList({ zoo_id })
+
+      setreported_byUsers(Users?.data)
+    } catch (error) {
+      Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+    }
+  }
+
   const handleFileUpload = async (event, speciesId) => {
     const file = event?.target?.files[0]
 
@@ -109,26 +139,51 @@ const ReportMissingIncidentForm = ({
     }
   }
   ////////////////////////////////////////////////////////////
-  const onSubmit = async ({ localIdentifierType, LocalIdentifier }) => {
+  const onSubmit = async (data) => {
+    const {
+      incident_date,
+      incident_time,
+      reported_by,
+      notes,
+      attachment,
+      last_seen,
+      animal_behaviour_before_incident,
+      action_taken,
+      steps_to_prevent
+    } = data
+
+    const payload = {
+      incident_type: 'missing',
+      incident_date,
+      incident_time,
+      reported_by,
+      notes,
+      additional_info: {
+        last_seen,
+        animal_behaviour_before_incident,
+        action_taken,
+        steps_to_prevent
+      },
+      incident_details_id: '',
+    }
+
     setUploadingAttachment(true)
     try {
-      const res = await speciesAttachmentUpload({
-        species_id: speciesId,
-        attachment: selectedFile,
-        localIdentifierType,
-        LocalIdentifier
-      })
-      Toaster({ type: 'success', message: res.message })
-      fetchTableData()
-      setUploadDietDrawer(false)
+
+      // reset()
+      // setSelectedFileName(null)
+      // setSelectedFile(null)
+      // handleSearch('')
+      console.log('first', data)
+      console.log('second', payload)
+
+      // const res = await createAnimalIncident()
+
       reset()
-      setDefaultPreparedBy(null)
-      setSelectedFileName(null)
+      setAnimalIncidentForm(false)
       setSelectedFile(null)
-      handleSearch('')
-      if (speciesDetailsDrawer) {
-        getSpecieDetail(speciesId)
-      }
+      setSelectedFileName(null)
+
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })
     } finally {
@@ -221,6 +276,8 @@ const ReportMissingIncidentForm = ({
         >
           <>
             {SpeciesDietCard()}
+
+
             <Box
               sx={{
                 mt: 20,
@@ -230,6 +287,8 @@ const ReportMissingIncidentForm = ({
                 gap: '24px'
               }}
             >
+
+
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <Typography
@@ -256,7 +315,7 @@ const ReportMissingIncidentForm = ({
 
                   <FormControl fullWidth>
                     <Controller
-                      name='missingDate'
+                      name='incident_date'
                       control={control}
                       defaultValue={dayjs()} // or null
                       render={({ field }) => (
@@ -280,10 +339,9 @@ const ReportMissingIncidentForm = ({
                       )}
                     />
                   </FormControl>
-                  <FormControl fullWidth>
-
+                  {/* <FormControl fullWidth>
                     <Controller
-                      name='missingTime'
+                      name='incident_time'
                       control={control}
                       // defaultValue={dayjs()} // or null
                       render={({ field }) => (
@@ -298,10 +356,21 @@ const ReportMissingIncidentForm = ({
                             slotProps={{
                               textField: {
                                 fullWidth: true,
-                                error: Boolean(errors.missingTime),
-                                helperText: errors.missingTime?.message,
+                                error: Boolean(errors.incident_time),
+                                helperText: errors.incident_time?.message,
                                 InputProps: {
-                                  endAdornment: <Icon icon='mdi:clock-outline' />
+                                  endAdornment: (
+                                    <IconButton
+                                      edge="end"
+                                      onClick={() => {
+                                        // Focus the time picker when icon is clicked
+                                        const input = document.querySelector('input[name="incident_time"]')
+                                        if (input) input.focus()
+                                      }}
+                                    >
+                                      <Icon icon='mdi:clock-outline' />
+                                    </IconButton>
+                                  )
                                 }
                               }
                             }}
@@ -309,10 +378,44 @@ const ReportMissingIncidentForm = ({
                         </LocalizationProvider>
                       )}
                     />
-                  </FormControl>
-
+                  </FormControl> */}
+                  <Controller
+                    name='incident_time'
+                    control={control}
+                    render={({ field }) => (
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <TimePicker
+                          {...field}
+                          label='Time'
+                          format='hh:mm A'
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              error: Boolean(errors.incident_time),
+                              helperText: errors.incident_time?.message,
+                              inputRef: timeInputRef,
+                              InputProps: {
+                                endAdornment: (
+                                  <IconButton
+                                    edge='end'
+                                    onClick={() => {
+                                      timeInputRef.current?.focus()
+                                    }}
+                                  >
+                                    <Icon icon='mdi:clock-outline' />
+                                  </IconButton>
+                                )
+                              }
+                            }
+                          }}
+                          sx={basicStyle}
+                        />
+                      </LocalizationProvider>
+                    )}
+                  />
                 </Box>
               </Box>
+
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <Typography
                   sx={{
@@ -337,17 +440,17 @@ const ReportMissingIncidentForm = ({
                 }}>
                   <FormControl fullWidth>
                     <Controller
-                      name='reportedBy'
+                      name='reported_by'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <Autocomplete
-                          value={defaultPreparedBy}
-                          options={preparedByUsers}
+                          value={defaultreported_by}
+                          options={reported_byUsers}
                           getOptionLabel={option => option.user_name}
                           isOptionEqualToValue={(option, value) => option?.user_id === value?.user_id}
                           onChange={(e, val) => {
-                            setDefaultPreparedBy(val)
+                            setDefaultreported_by(val)
                             onChange(val?.user_id || '')
                           }}
                           renderInput={params => (
@@ -355,8 +458,8 @@ const ReportMissingIncidentForm = ({
                               {...params}
                               label='Reported by *'
                               placeholder='Search & Select'
-                              error={Boolean(errors.reportedBy)}
-                              helperText={errors?.reportedBy?.message}
+                              error={Boolean(errors.reported_by)}
+                              helperText={errors?.reported_by?.message}
                               sx={{
                                 ...basicStyle,
                               }}
@@ -369,6 +472,26 @@ const ReportMissingIncidentForm = ({
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifierType?.message}</FormHelperText>
                     )}
                   </FormControl>
+
+                  {/* <ControlledAutocomplete
+                    name='reported_by'
+                    control={control}
+                    rules={{ required: true }}
+                    label='Reported by *'
+                    error={Boolean(errors.reported_by)}
+                    helperText={errors?.reported_by?.message}
+                    // value={defaultreported_by}
+                    options={reported_byUsers}
+                    getOptionLabel={option => option.user_name}
+                    isOptionEqualToValue={(option, value) => option?.user_id === value?.user_id}
+                    onChange={(e, val) => {
+                      // setDefaultreported_by(val)
+                      onChange(val?.user_id || '')
+                    }}
+                    sx={{
+                      ...basicStyle,
+                    }}
+                  /> */}
                 </Box>
               </Box>
 
@@ -410,17 +533,6 @@ const ReportMissingIncidentForm = ({
                           helperText={errors.notes?.message}
                           sx={{
                             ...basicStyle,
-                            // '& .MuiOutlinedInput-root': {
-                            //   '& fieldset': {
-                            //     borderColor: errors?.localIdentifier?.message && 'red !important',
-                            //     borderRadius: '4px'
-                            //   },
-
-                            // },
-                            // '& .MuiInputBase-input::placeholder': {
-                            //   color: 'red !important', // Custom placeholder color
-                            //   opacity: 1 // Needed for non-IE browsers
-                            // }
                           }}
                         />
                       )}
@@ -429,6 +541,21 @@ const ReportMissingIncidentForm = ({
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
                     )}
                   </FormControl>
+
+                  {/* <ControlledTextField
+                    name='notes'
+                    control={control}
+                    rules={{ required: true }}
+                    multiline
+                    rows={3}
+                    label='Write notes here'
+                    placeholder='Write notes here'
+                    error={Boolean(errors.notes)}
+                    helperText={errors.notes?.message}
+                    sx={{
+                      ...basicStyle,
+                    }}
+                  /> */}
                   <FormControl fullWidth>
                     <Controller
                       name='attachment'
@@ -549,123 +676,9 @@ const ReportMissingIncidentForm = ({
                   borderRadius: '8px',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 }}>
-                  {/* <FormControl fullWidth>
-                    <Controller
-                      name='localIdentifier'
-                      control={control}
 
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          name='localIdentifier'
-                          id='localIdentifier'
-                          type='text'
-                          sx={{
-                            ...basicStyle
-                          }}
-                          value={value}
-                          onChange={onChange}
-                          focused={value !== ''}
-                          label='Last Seen/Escaped From'
-                          placeholder='Last Seen/Escaped From'
-                        />
-                      )}
-                    />
-                    {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='localIdentifier'
-                      control={control}
-
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          name='localIdentifier'
-                          id='localIdentifier'
-                          type='text'
-                          sx={{
-                            ...basicStyle
-                          }}
-                          value={value}
-                          onChange={onChange}
-                          focused={value !== ''}
-                          label='Animal Behaviour Before Incident'
-                          placeholder='Animal Behaviour Before Incident'
-                        />
-                      )}
-                    />
-                    {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='localIdentifier'
-                      control={control}
-
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          name='localIdentifier'
-                          id='localIdentifier'
-                          type='text'
-                          sx={{
-                            ...basicStyle
-                            // '& .MuiOutlinedInput-root': {
-                            //   '& fieldset': {
-                            //     borderColor: errors?.localIdentifier?.message && 'red !important',
-                            //     borderRadius: '4px'
-                            //   },
-
-                            // },
-                            // '& .MuiInputBase-input::placeholder': {
-                            //   color: 'red !important', // Custom placeholder color
-                            //   opacity: 1 // Needed for non-IE browsers
-                            // }
-                          }}
-                          value={value}
-                          onChange={onChange}
-                          focused={value !== ''}
-                          label='Actions Taken'
-                          placeholder='Actions Taken'
-                        />
-                      )}
-                    />
-                    {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='localIdentifier'
-                      control={control}
-
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          name='localIdentifier'
-                          id='localIdentifier'
-                          type='text'
-                          sx={{
-                            ...basicStyle
-                          }}
-                          value={value}
-                          onChange={onChange}
-                          focused={value !== ''}
-                          label='Steps to Prevent Future Incidents'
-                          placeholder='Steps to Prevent Future Incidents'
-                        />
-                      )}
-                    />
-                    {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
-                    )}
-                  </FormControl> */}
-                  <Controller
-                    name='lastSeenLocation'
+                  {/* <Controller
+                    name='last_seen'
                     control={control}
                     rules={{ required: true }}
                     render={({ field }) => (
@@ -674,60 +687,55 @@ const ReportMissingIncidentForm = ({
                         sx={{ ...basicStyle }}
                         label='Last Seen/Escaped From'
                         placeholder='Last Seen/Escaped From'
-                        error={Boolean(errors.lastSeenLocation)}
-                        helperText={errors.lastSeenLocation?.message}
+                        error={Boolean(errors.last_seen)}
+                        helperText={errors.last_seen?.message}
                       />
                     )}
-                  />
+                  /> */}
 
-                  <Controller
-                    name='animalBehaviour'
+                  <ControlledTextField
+                    name='last_seen'
                     control={control}
                     rules={{ required: true }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        sx={{ ...basicStyle }}
-                        label='Animal Behaviour Before Incident'
-                        placeholder='Animal Behaviour Before Incident'
-                        error={Boolean(errors.animalBehaviour)}
-                        helperText={errors.animalBehaviour?.message}
-                      />
-                    )}
+                    sx={{ ...basicStyle }}
+                    label='Last Seen/Escaped From'
+                    placeholder='Last Seen/Escaped From'
+                    errors={errors}
+                    helperText={errors.last_seen?.message}
                   />
 
-                  <Controller
-                    name='actionsTaken'
+                  <ControlledTextField
+                    name='animal_behaviour_before_incident'
                     control={control}
                     rules={{ required: true }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        sx={{ ...basicStyle }}
-                        label='Actions Taken'
-                        placeholder='Actions Taken'
-                        error={Boolean(errors.actionsTaken)}
-                        helperText={errors.actionsTaken?.message}
-                      />
-                    )}
+                    sx={{ ...basicStyle }}
+                    label='Animal Behaviour Before Incident'
+                    placeholder='Animal Behaviour Before Incident'
+                    errors={errors}
+                    helperText={errors.animal_behaviour_before_incident?.message}
                   />
 
-                  <Controller
-                    name='preventiveSteps'
+                  <ControlledTextField
+                    name='action_taken'
                     control={control}
                     rules={{ required: true }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        sx={{ ...basicStyle }}
-                        label='Steps to Prevent Future Incidents'
-                        placeholder='Steps to Prevent Future Incidents'
-                        error={Boolean(errors.preventiveSteps)}
-                        helperText={errors.preventiveSteps?.message}
-                      />
-                    )}
+                    sx={{ ...basicStyle }}
+                    label='Actions Taken'
+                    placeholder='Actions Taken'
+                    errors={errors}
+                    helperText={errors.action_taken?.message}
                   />
 
+                  <ControlledTextField
+                    name='steps_to_prevent'
+                    control={control}
+                    rules={{ required: true }}
+                    sx={{ ...basicStyle }}
+                    label='Steps to Prevent Future Incidents'
+                    placeholder='Steps to Prevent Future Incidents'
+                    errors={errors}
+                    helperText={errors.steps_to_prevent?.message}
+                  />
                 </Box>
               </Box>
             </Box>
@@ -772,7 +780,7 @@ const ReportMissingIncidentForm = ({
   )
 }
 
-export default ReportMissingIncidentForm
+export default ReportIncidentForm
 
 
 
