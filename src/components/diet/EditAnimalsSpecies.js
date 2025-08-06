@@ -539,7 +539,15 @@ const EditAnimalSpeciesMapped = ({
                                   borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                                 }}
                               >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: 2,
+                                    width: '50%',
+                                    minHeight: '100%'
+                                  }}
+                                >
                                   <Avatar
                                     src={species.default_icon ? species.default_icon : '/icons/species.svg'}
                                     alt={species.scientific_name}
@@ -553,7 +561,8 @@ const EditAnimalSpeciesMapped = ({
                                           : 'unset',
                                       height: '44px',
                                       width: '44px',
-                                      mr: 2
+                                      mr: 2,
+                                      mt: 2.5
                                     }}
                                   />
                                   <ListItemText
@@ -789,7 +798,15 @@ const EditAnimalSpeciesMapped = ({
                                   borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                                 }}
                               >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: 2,
+                                    width: '50%',
+                                    minHeight: '100%'
+                                  }}
+                                >
                                   <Avatar
                                     src={species.default_icon ? species.default_icon : '/icons/species.svg'}
                                     alt={species.scientific_name}
@@ -803,7 +820,8 @@ const EditAnimalSpeciesMapped = ({
                                           : 'unset',
                                       height: '44px',
                                       width: '44px',
-                                      mr: 2
+                                      mr: 2,
+                                      mt: 2.5
                                     }}
                                   />
                                   <ListItemText

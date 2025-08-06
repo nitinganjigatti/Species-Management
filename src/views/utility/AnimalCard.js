@@ -106,30 +106,78 @@ const AnimalCard = ({ data, size }) => {
         }}
       >
         {data?.local_identifier_name && data?.local_identifier_value && (
-          <Typography
+          <Box
             sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            <span> {data?.local_identifier_name}: </span>
-            <span> {data?.local_identifier_value}</span>
-          </Typography>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              <span> {data?.local_identifier_name}: </span>
+              <span> {data?.local_identifier_value}</span>
+            </Typography>
+            {data?.is_primary === '1' && (
+              <Box
+                component='span'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  background: '#37bd6924',
+                  px: '5px',
+                  py: '2px',
+                  borderRadius: '4px',
+                  ml: '10px'
+                }}
+              >
+                Primary Diet
+              </Box>
+            )}
+          </Box>
         )}
 
         {!(data?.local_identifier_name && data?.local_identifier_value) && data?.animal_id && (
-          <Typography
+          <Box
             sx={{
-              fontSize: size ?? '16px',
-              fontWeight: 600,
-              lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            AID : {data?.animal_id}
-          </Typography>
+            <Typography
+              sx={{
+                fontSize: size ?? '16px',
+                fontWeight: 600,
+                lineHeight: '19.36px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              AID : {data?.animal_id}
+            </Typography>
+            {data?.is_primary === '1' && (
+              <Box
+                component='span'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  background: '#37bd6924',
+                  px: '5px',
+                  py: '2px',
+                  borderRadius: '4px',
+                  ml: '10px'
+                }}
+              >
+                Primary Diet
+              </Box>
+            )}
+          </Box>
         )}
 
         {(data?.common_name || data?.default_common_name) && (

@@ -109,6 +109,23 @@ function SpeciesCard({ species }) {
             }}
           >
             {species.common_name ? species.common_name : '-'}
+            {species?.is_primary === '1' && (
+              <Box
+                component='span'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  background: '#37bd6924',
+                  px: '5px',
+                  py: '2px',
+                  borderRadius: '4px',
+                  ml: '10px'
+                }}
+              >
+                Primary Diet
+              </Box>
+            )}
           </Typography>
         </Tooltip>
         <Tooltip title={species.scientific_name}>

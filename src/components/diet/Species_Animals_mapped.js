@@ -9,15 +9,16 @@ import {
   TextField,
   CardContent,
   CircularProgress,
-  Tab
+  Tab,
+  Avatar
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import Utility from 'src/utility'
-import SpeciesCardItem from 'src/views/utility/SpeciesCardItem'
-import AnimalCardItem from 'src/views/utility/AnimalsCardItem'
+import AnimalCard from 'src/views/utility/AnimalCard'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const SpeciesAnimalsMapped = ({
   setIsOpenTabs,
@@ -437,14 +438,65 @@ const SpeciesAnimalsMapped = ({
                       </CardContent>
                     ) : mappedSpecies?.length > 0 ? (
                       mappedSpecies.map(species => (
-                        <SpeciesCardItem
-                          key={species.id}
-                          species={species}
-                          theme={theme}
-                          tempSelectedSpecies={tempSelectedSpecies}
-                          selectionType={selectionType}
-                          speciesview={speciesview}
-                        />
+                        <Box
+                          sx={{
+                            background:
+                              speciesview !== 'details' && species.mapped_to_diet
+                                ? theme.palette.customColors.SurfaceVariant
+                                : theme.palette.background.paper,
+                            padding: '20px 48px 20px 16px',
+                            borderRadius: '8px',
+                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                            mb: 3
+                          }}
+                        >
+                          {' '}
+                          <SpeciesCard species={species} />
+                          {speciesview === 'details' ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '11%', mt: '3px' }}>
+                              <Avatar
+                                variant='square'
+                                alt='Medicine Image'
+                                sx={{
+                                  width: 25,
+                                  height: 25,
+                                  mr: 4,
+                                  borderRadius: '50%',
+                                  background: theme.palette.customColors.tableHeaderBg,
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                {species?.profile_pic ? (
+                                  <img
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    src={species?.profile_pic}
+                                    alt='Profile'
+                                  />
+                                ) : (
+                                  <Icon icon='mdi:user' />
+                                )}
+                              </Avatar>
+                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                <Typography
+                                  noWrap
+                                  variant='body2'
+                                  sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
+                                >
+                                  {species?.user_details?.created_by}
+                                </Typography>
+                                <Typography
+                                  noWrap
+                                  variant='body2'
+                                  sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
+                                >
+                                  {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          ) : (
+                            ''
+                          )}
+                        </Box>
                       ))
                     ) : (
                       <Box
@@ -682,13 +734,65 @@ const SpeciesAnimalsMapped = ({
                       </CardContent>
                     ) : mappedSpecies?.length > 0 ? (
                       mappedSpecies.map(species => (
-                        <AnimalCardItem
-                          species={species}
-                          theme={theme}
-                          tempSelectedSpecies={tempSelectedSpecies}
-                          selectionType={selectionType}
-                          speciesview={speciesview}
-                        />
+                        <Box
+                          sx={{
+                            background:
+                              speciesview !== 'details' && species.mapped_to_diet
+                                ? theme.palette.customColors.SurfaceVariant
+                                : theme.palette.background.paper,
+                            padding: '20px 48px 20px 16px',
+                            borderRadius: '8px',
+                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                            mb: 3
+                          }}
+                        >
+                          {' '}
+                          <AnimalCard data={species} size='16px' />
+                          {speciesview === 'details' ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '13%', mt: '3px' }}>
+                              <Avatar
+                                variant='square'
+                                alt='Medicine Image'
+                                sx={{
+                                  width: 25,
+                                  height: 25,
+                                  mr: 4,
+                                  borderRadius: '50%',
+                                  background: theme.palette.customColors.tableHeaderBg,
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                {species?.profile_pic ? (
+                                  <img
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    src={species?.profile_pic}
+                                    alt='Profile'
+                                  />
+                                ) : (
+                                  <Icon icon='mdi:user' />
+                                )}
+                              </Avatar>
+                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                <Typography
+                                  noWrap
+                                  variant='body2'
+                                  sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
+                                >
+                                  {species?.user_details?.created_by}
+                                </Typography>
+                                <Typography
+                                  noWrap
+                                  variant='body2'
+                                  sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
+                                >
+                                  {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          ) : (
+                            ''
+                          )}
+                        </Box>
                       ))
                     ) : (
                       <Box

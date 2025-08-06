@@ -17,8 +17,8 @@ import { LoadingButton } from '@mui/lab'
 
 import Icon from 'src/@core/components/icon'
 import { useMediaQuery } from '@mui/material'
-import SpeciesCardItem from 'src/views/utility/SpeciesCardItem'
-import AnimalCardItem from 'src/views/utility/AnimalsCardItem'
+import AnimalCard from 'src/views/utility/AnimalCard'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const SpeciesMappedtoDiet = ({
   isOpen,
@@ -479,37 +479,67 @@ const SpeciesMappedtoDiet = ({
           <List>
             {speciesData?.length > 0 ? (
               speciesData.map(species => (
-                <SpeciesCardItem
-                  species={species}
-                  theme={theme}
-                  tempSelectedSpecies={tempSelectedSpecies}
-                  selectionType={selectionType}
-                  speciesview={speciesview}
+                <Box
+                  sx={{
+                    position: 'relative',
+                    background:
+                      speciesview !== 'details' && species.mapped_to_diet
+                        ? theme.palette.customColors.SurfaceVariant
+                        : theme.palette.background.paper,
+                    borderRadius: '8px',
+                    border: tempSelectedSpecies.includes(species.species_id)
+                      ? `1px solid ${theme.palette.primary.main}`
+                      : '',
+                    mb: 3,
+                    p: 3.5,
+                    pr: 14,
+                    width: '100%'
+                  }}
                 >
-                  <Checkbox
-                    disabled={species.mapped_to_diet}
-                    edge='end'
-                    checked={
-                      selectionType === 'species'
-                        ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
-                        : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
-                    }
-                    onChange={() => handleToggle(species)}
+                  <SpeciesCard species={species} />
+
+                  <Box
                     sx={{
-                      '&.Mui-checked': {
-                        color: theme.palette.primary.main
-                      },
-                      '& .MuiSvgIcon-root': {
-                        borderRadius: '4px',
-                        width: '22px',
-                        height: '22px',
-                        color: species.mapped_to_diet
-                          ? theme.palette.customColors.secondaryBg
-                          : theme.palette.primary.main
-                      }
+                      position: 'absolute',
+                      right: 0,
+                      top: 0,
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: species.mapped_to_diet ? '' : theme.palette.customColors.Surface,
+                      pl: 3,
+                      pr: 4,
+                      py: 2.5,
+                      borderTopRightRadius: 8,
+                      borderBottomRightRadius: 8
                     }}
-                  />
-                </SpeciesCardItem>
+                  >
+                    <Checkbox
+                      disabled={species.mapped_to_diet}
+                      edge='end'
+                      checked={
+                        selectionType === 'species'
+                          ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
+                          : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
+                      }
+                      onChange={() => handleToggle(species)}
+                      sx={{
+                        '&.Mui-checked': {
+                          color: theme.palette.primary.main
+                        },
+                        '& .MuiSvgIcon-root': {
+                          borderRadius: '4px',
+                          width: '22px',
+                          height: '22px',
+                          color: species.mapped_to_diet
+                            ? theme.palette.customColors.secondaryBg
+                            : theme.palette.primary.main
+                        }
+                      }}
+                    />
+                  </Box>
+                </Box>
               ))
             ) : (
               <Box
@@ -545,17 +575,40 @@ const SpeciesMappedtoDiet = ({
           <List>
             {speciesData?.length > 0 ? (
               speciesData.map(species => (
-                <AnimalCardItem
-                  species={species}
-                  theme={theme}
-                  tempSelectedSpecies={tempSelectedSpecies}
-                  selectionType={selectionType}
+                <Box
+                  sx={{
+                    position: 'relative',
+                    background:
+                      speciesview !== 'details' && species.mapped_to_diet
+                        ? theme.palette.customColors.SurfaceVariant
+                        : theme.palette.background.paper,
+                    borderRadius: '8px',
+                    border: tempSelectedSpecies.includes(species.animal_id)
+                      ? `1px solid ${theme.palette.primary.main}`
+                      : '',
+                    mb: 3,
+                    p: 3,
+                    pr: 13,
+                    width: '100%'
+                  }}
                 >
+                  <AnimalCard data={species} size='16px' />
+
                   <Box
                     sx={{
+                      position: 'absolute',
+                      right: 0,
+                      top: 0,
+                      height: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      height: '100%'
+                      justifyContent: 'center',
+                      backgroundColor: species.mapped_to_diet ? '' : theme.palette.customColors.Surface,
+                      pl: 3,
+                      pr: 4,
+                      py: 2.5,
+                      borderTopRightRadius: 8,
+                      borderBottomRightRadius: 8
                     }}
                   >
                     <Checkbox
@@ -582,7 +635,7 @@ const SpeciesMappedtoDiet = ({
                       }}
                     />
                   </Box>
-                </AnimalCardItem>
+                </Box>
               ))
             ) : (
               <Box
