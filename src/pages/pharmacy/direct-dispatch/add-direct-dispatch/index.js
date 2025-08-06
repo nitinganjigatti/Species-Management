@@ -76,6 +76,7 @@ import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { AddDispatchForm } from 'src/views/pages/pharmacy/dispatch/AddDispatch'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -131,6 +132,7 @@ const AddDirectDispatch = () => {
   const [batchLoading, setBatchLoading] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
+  const [isEdit, setIsEdit] = useState(false)
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -166,6 +168,7 @@ const AddDirectDispatch = () => {
     setOptionsBatchList([])
     // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
+    if (isEdit) setIsEdit(false)
   }
 
   const showDialog = () => {
@@ -184,7 +187,7 @@ const AddDirectDispatch = () => {
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
   const addItemsToTable = params => {
-    const updatedNestedRows = [...editParams.request_item_details, params]
+    const updatedNestedRows = [...editParams.request_item_details, ...params]
     setEditParams({
       ...editParams,
       request_item_details: updatedNestedRows
@@ -252,7 +255,6 @@ const AddDirectDispatch = () => {
   }
 
   const submitItems = (params, type) => {
-    
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams?.request_item_details?.some(
@@ -269,12 +271,18 @@ const AddDirectDispatch = () => {
     }
 
     setErrors({})
-    var tempParams = params
-    if (tempParams?.uuid === '') {
-      tempParams.uuid = uuidv4()
-      addItemsToTable(tempParams)
+
+    const allHaveUUIDs = params.every(item => item.uuid && item.uuid !== '')
+
+    const processedItems = params.map(item => ({
+      ...item,
+      uuid: allHaveUUIDs ? item.uuid : uuidv4()
+    }))
+
+    if (allHaveUUIDs) {
+      updateFormItems(processedItems[0])
     } else {
-      updateFormItems(params)
+      addItemsToTable(processedItems)
     }
 
     closeDialog()
@@ -502,7 +510,7 @@ const AddDirectDispatch = () => {
     }, 500),
     []
   )
- 
+
   const getListOfItemsById = async id => {
     try {
       const result = await getDirectDispatchItemsListById(id)
@@ -552,7 +560,6 @@ const AddDirectDispatch = () => {
     }
   }
 
-  
   const editTableData = itemId => {
     //
     // if (id != undefined && action === 'edit') {
@@ -577,6 +584,8 @@ const AddDirectDispatch = () => {
     //     uuid: getItems[0].uuid
     //   })
     // } else {
+    setIsEdit(true)
+
     const getItems = editParams?.request_item_details?.filter(el => {
       return el.uuid === itemId
     })
@@ -588,6 +597,7 @@ const AddDirectDispatch = () => {
       request_item_medicine_id: getItems[0].request_item_medicine_id,
       request_item_batch_no: getItems[0].request_item_batch_no,
       expiry_date: getItems[0].expiry_date,
+      product_batches: [getItems[0]],
       // id: getItems[0].id,
       request_item_qty: getItems[0].request_item_qty,
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -610,10 +620,7 @@ const AddDirectDispatch = () => {
       //
       getListOfItemsById(id)
     }
-  
   }, [id, action])
-
-
 
   const postItemsData = async () => {
     setSubmitLoader(true)
@@ -773,7 +780,7 @@ const AddDirectDispatch = () => {
                 title={'Add Dispatch Item'}
                 dialogBoxStatus={show}
                 formComponent={
-                  <AddItemsForm
+                  <AddDispatchForm
                     searchBatchData={searchBatchData}
                     searchMedicineData={searchMedicineData}
                     productList={optionsMedicineList}
@@ -787,6 +794,7 @@ const AddDirectDispatch = () => {
                     totalQuantity={totalBatchQuantity}
                     editParams={editParams}
                     closeDialog={closeDialog}
+                    isEdit={isEdit}
                   />
                 }
                 close={closeDialog}
@@ -830,7 +838,6 @@ const AddDirectDispatch = () => {
                         })
                         setErrors({})
                       }}
-                     
                     >
                       {toStocks?.map((item, index) => (
                         <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
@@ -1088,7 +1095,7 @@ const AddDirectDispatch = () => {
                                   >
                                     {el.product_name}
                                   </Typography>
-                                  
+
                                   <Typography
                                     variant='body2'
                                     sx={{
@@ -1133,12 +1140,10 @@ const AddDirectDispatch = () => {
                                     sx={{ mr: 0.5 }}
                                     aria-label='Edit'
                                     onClick={() => {
-                                     
                                       setMedicineItemId(el.request_item_medicine_id)
 
                                       editTableData(el.uuid)
                                       showDialog()
-                                     
                                     }}
                                   >
                                     <Icon icon='mdi:pencil-outline' />
@@ -1146,9 +1151,7 @@ const AddDirectDispatch = () => {
 
                                   <IconButton
                                     onClick={() => {
-                                     
                                       removeItemsFromTable(el.uuid)
-                                    
                                     }}
                                     size='small'
                                     sx={{ mr: 0.5 }}

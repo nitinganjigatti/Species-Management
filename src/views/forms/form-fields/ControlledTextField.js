@@ -19,10 +19,11 @@ const ControlledTextField = ({
   onKeyDown,
   onPaste,
   onInput,
-  dateReader = false, 
+  dateReader = false,
+  formHelperTextBackgroundColor = 'inherit',
   sx = {}
 }) => {
-  const error = get(errors, name) 
+  const error = get(errors, name)
   const helperText = error?.message || ''
 
   return (
@@ -51,7 +52,15 @@ const ControlledTextField = ({
           sx={sx}
           slotProps={{
             input: { readOnly },
-            htmlInput: inputProps
+            htmlInput: inputProps,
+            formHelperText: {
+              sx: {
+                backgroundColor: formHelperTextBackgroundColor,
+                margin: 0,
+                px: '14px',
+                pt: '3px'
+              }
+            }
           }}
         />
       )}

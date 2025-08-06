@@ -73,6 +73,7 @@ import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
+import { AddDispatchForm } from 'src/views/pages/pharmacy/dispatch/AddDispatch'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -129,6 +130,7 @@ const AddReturnRequest = () => {
   // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [loader, setLoader] = useState(false)
+  const [isEdit, setIsEdit] = useState(false)
   const router = useRouter()
   const { id, action } = router.query
 
@@ -162,6 +164,7 @@ const AddReturnRequest = () => {
     setOptionsBatchList([])
     // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
+    if (isEdit) setIsEdit(false)
   }
 
   const showDialog = () => {
@@ -180,7 +183,7 @@ const AddReturnRequest = () => {
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
   const addItemsToTable = params => {
-    const updatedNestedRows = [...editParams.request_item_details, params]
+    const updatedNestedRows = [...editParams.request_item_details, ...params]
     setEditParams({
       ...editParams,
       request_item_details: updatedNestedRows
@@ -259,19 +262,23 @@ const AddReturnRequest = () => {
 
     if (isMedicineAlreadyExists) {
       setDuplicateMedError(true)
-      console.log('Medicine already exists')
 
       return
     }
     setErrors({})
-    var tempParams = params
-    if (tempParams?.uuid === '') {
-      tempParams.uuid = uuidv4()
-      addItemsToTable(tempParams)
-    } else {
-      updateFormItems(params)
-    }
 
+    const allHaveUUIDs = params.every(item => item.uuid && item.uuid !== '')
+
+    const processedItems = params.map(item => ({
+      ...item,
+      uuid: allHaveUUIDs ? item.uuid : uuidv4()
+    }))
+
+    if (allHaveUUIDs) {
+      updateFormItems(processedItems[0])
+    } else {
+      addItemsToTable(processedItems)
+    }
     closeDialog()
   }
 
@@ -518,6 +525,8 @@ const AddReturnRequest = () => {
 
   // ****** edit section //////
   const editTableData = async itemId => {
+    setIsEdit(true)
+
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
@@ -527,6 +536,7 @@ const AddReturnRequest = () => {
       request_item_medicine_id: getItems[0].request_item_medicine_id,
       request_item_batch_no: getItems[0].request_item_batch_no,
       expiry_date: getItems[0].expiry_date,
+      product_batches: [getItems[0]],
       // id: getItems[0].id,
       request_item_qty: getItems[0].request_item_qty,
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -653,7 +663,7 @@ const AddReturnRequest = () => {
   // data posting section
   const createForm = () => {
     return (
-      <AddItemsForm
+      <AddDispatchForm
         searchBatchData={searchBatchData}
         searchMedicineData={searchMedicineData}
         productList={optionsMedicineList}
@@ -667,6 +677,7 @@ const AddReturnRequest = () => {
         totalQuantity={totalBatchQuantity}
         editParams={editParams}
         closeDialog={closeDialog}
+        isEdit={isEdit}
       />
     )
   }

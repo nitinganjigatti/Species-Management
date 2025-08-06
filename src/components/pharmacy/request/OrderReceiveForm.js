@@ -297,6 +297,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+  const pathname = router?.pathname
 
   const closeDisputeDialog = () => {
     setDisputeDialog(false)
@@ -357,8 +358,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       // api updated for normal request api
       let response
       setShowSpinner(true)
-      if (requestedFrom === 'requestByAllStores') {
+      if (requestedFrom === 'requestByAllStores' || pathname.includes('pharmacy/shipments/')) {
         // this function for all stores shipment request store details
+        // pathname.includes('pharmacy/shipments/') added this condition because use this api for incoming and outgoing shipments
         response = await getShipmentDetailOfOrder(orderId)
       } else {
         response = await getShipmentOrderDetailsOfRequests(orderId, requestId)

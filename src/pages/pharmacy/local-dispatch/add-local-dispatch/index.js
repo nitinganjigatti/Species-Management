@@ -76,6 +76,7 @@ import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
+import { AddDispatchForm } from 'src/views/pages/pharmacy/dispatch/AddDispatch'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -83,6 +84,7 @@ const editParamsInitialState = {
 
   // from_store_id: '',
   to_store_id: '',
+
   // from_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
@@ -131,9 +133,10 @@ const AddLocalDispatch = () => {
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
- 
+
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
+  const [isEdit, setIsEdit] = useState(false)
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -175,6 +178,7 @@ const AddLocalDispatch = () => {
     setDuplicateMedError(false)
     setOptionsBatchList([])
     setTotalBatchQuantity(0)
+    if (isEdit) setIsEdit(false)
   }
 
   const showDialog = () => {
@@ -193,7 +197,7 @@ const AddLocalDispatch = () => {
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
   const addItemsToTable = params => {
-    const updatedNestedRows = [...editParams.request_item_details, params]
+    const updatedNestedRows = [...editParams.request_item_details, ...params]
     setEditParams({
       ...editParams,
       request_item_details: updatedNestedRows
@@ -237,7 +241,6 @@ const AddLocalDispatch = () => {
         itemErrors.control_substance_file = 'This field is required'
       }
     }
-  
 
     return itemErrors
   }
@@ -273,12 +276,17 @@ const AddLocalDispatch = () => {
     }
 
     setErrors({})
-    var tempParams = params
-    if (tempParams?.uuid === '') {
-      tempParams.uuid = uuidv4()
-      addItemsToTable(tempParams)
+
+    const allHaveUUIDs = params.every(item => item.uuid && item.uuid !== '')
+
+    const processedItems = params.map(item => ({
+      ...item,
+      uuid: allHaveUUIDs ? item.uuid : uuidv4()
+    }))
+    if (allHaveUUIDs) {
+      updateFormItems(processedItems[0])
     } else {
-      updateFormItems(params)
+      addItemsToTable(processedItems)
     }
 
     closeDialog()
@@ -309,6 +317,7 @@ const AddLocalDispatch = () => {
 
   const updateFormItems = params => {
     const HasErrors = !params.product_name || !params.request_item_qty || !params.priority_item
+
     // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(params))
@@ -503,6 +512,7 @@ const AddLocalDispatch = () => {
     }, 500),
     []
   )
+
   //  ****** debounce
 
   const getListOfItemsById = async id => {
@@ -513,6 +523,7 @@ const AddLocalDispatch = () => {
         const lineItems = result?.data?.request_item_details.map(el => {
           return {
             request_item_medicine_id: el?.stock_item_id,
+
             // medicine_name: el?.stock_name,
             product_name: el?.stock_name,
             request_item_qty: el?.qty,
@@ -540,9 +551,11 @@ const AddLocalDispatch = () => {
           ...editParams,
           id: result.data.id,
           dispatch_id: result?.data?.dispatch_id,
+
           // from_store_id: result.data.from_store_id,
           to_store_id: result.data.to_store_id,
           ro_date: result.data.request_date,
+
           // from_store_type: result.data.from_store_type,
           to_store_type: result.data.to_store_type,
           user_id: result?.data?.user_id,
@@ -559,6 +572,7 @@ const AddLocalDispatch = () => {
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
+    setIsEdit(true)
 
     setNestedRowMedicine({
       ...nestedRowMedicine,
@@ -566,6 +580,8 @@ const AddLocalDispatch = () => {
       request_item_medicine_id: getItems[0].request_item_medicine_id,
       request_item_batch_no: getItems[0].request_item_batch_no,
       expiry_date: getItems[0].expiry_date,
+      product_batches: [getItems[0]],
+
       // id: getItems[0].id,
       request_item_qty: getItems[0].request_item_qty,
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -580,6 +596,7 @@ const AddLocalDispatch = () => {
       multiplier: getItems[0]?.multiplier,
       unit_price: getItems[0]?.unit_price
     })
+
     // }
   }
 
@@ -590,7 +607,6 @@ const AddLocalDispatch = () => {
     }
   }, [id, action])
 
- 
   const postItemsData = async () => {
     setSubmitLoader(true)
     const postData = editParams
@@ -683,7 +699,7 @@ const AddLocalDispatch = () => {
                 title={'Add Dispatch Item'}
                 dialogBoxStatus={show}
                 formComponent={
-                  <AddItemsForm
+                  <AddDispatchForm
                     searchBatchData={searchBatchData}
                     searchMedicineData={searchMedicineData}
                     productList={optionsMedicineList}
@@ -697,6 +713,7 @@ const AddLocalDispatch = () => {
                     totalQuantity={totalBatchQuantity}
                     editParams={editParams}
                     closeDialog={closeDialog}
+                    isEdit={isEdit}
                   />
                 }
                 close={closeDialog}
@@ -739,7 +756,6 @@ const AddLocalDispatch = () => {
                         })
                         setErrors({})
                       }}
-                     
                     >
                       {toStocks?.map((item, index) => (
                         <MenuItem
@@ -808,7 +824,7 @@ const AddLocalDispatch = () => {
                     }}
                   />
                 </Grid>
-              
+
                 <Grid item size={{ xs: 12, sm: 6 }}>
                   <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
@@ -944,7 +960,7 @@ const AddLocalDispatch = () => {
                                   >
                                     {el.product_name}
                                   </Typography>
-                                 
+
                                   <Typography
                                     variant='body2'
                                     sx={{
@@ -1057,6 +1073,7 @@ const AddLocalDispatch = () => {
                         title='Cancel Request'
                         action={() => {
                           openCancelDialog()
+
                           // setEditParams(editParamsInitialState)
                         }}
                       />

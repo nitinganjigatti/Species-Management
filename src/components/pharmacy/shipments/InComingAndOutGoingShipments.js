@@ -400,7 +400,7 @@ function InComingAndOutGoingShipments({ type }) {
             mt: 6
           }}
         >
-          <Grid item size={{ xs: 12, sm: 12, md: 4, lg: 4 }}>
+          <Grid item size={{ xs: 12, sm: 12, md: 6, lg: 4 }}>
             <Search
               placeholder='Search...'
               onChange={e => handleSearch(e.target.value)}
