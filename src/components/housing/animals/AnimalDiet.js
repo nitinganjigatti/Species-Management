@@ -168,7 +168,7 @@ const AnimalDiet = ({ animalDetails }) => {
                 Inactive diets - {inActiveDietCount}
               </Button>
             </Box>
-            <Box sx={{ display: 'flex', gap: '8px' }}>
+            {/* <Box sx={{ display: 'flex', gap: '8px' }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -201,7 +201,7 @@ const AnimalDiet = ({ animalDetails }) => {
               <Button onClick={() => setUploadAnimalDietDrawer(true)} sx={{ height: '38px' }} variant='contained'>
                 <Icon icon='mdi:plus' /> Upload
               </Button>
-            </Box>
+            </Box> */}
           </Box>
         </Box>
 
@@ -325,7 +325,8 @@ const AnimalDiet = ({ animalDetails }) => {
                     }}
                   /> */}
                     <GreenSwitch
-                      checked={diet.isActive}
+                      checked={selectedTab === 'active'}
+                      // checked={diet.isActive}
                       onChange={() => {
                         if (diet.isActive) {
                           // About to turn OFF, so ask for confirmation

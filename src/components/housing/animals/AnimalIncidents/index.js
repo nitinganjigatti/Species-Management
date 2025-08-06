@@ -520,7 +520,7 @@ const AnimalIncidents = () => {
           </Box>
 
           <IncidentCardList
-            data={animalListData.length ? animalListData : []}
+            data={animalListData?.length ? animalListData : []}
             onViewDetails={() => setActivtyLogSideBar(true)}
             onEdit={() => console.log('Edit incident')}
             onMisreport={(incident, type) => {
