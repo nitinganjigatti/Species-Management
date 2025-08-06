@@ -26,11 +26,12 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { createAnimalIncident } from 'src/lib/api/housing'
+import { createAnimalIncident, updateAnimalIncident } from 'src/lib/api/housing'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { read, readAsync } from 'src/lib/windows/utils'
+import moment from 'moment'
 
 
 const defaultValues = {
@@ -53,15 +54,19 @@ const schema = yup.object().shape({
 })
 
 
-const ReportIncidentForm = ({
+const CreateMissingIncident = ({
   animalIncidentForm,
   setAnimalIncidentForm,
   animalId,
+  isEdit,
+  editData,
+  fetchAnimalIncidents
 }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const timeInputRef = useRef(null)
 
+  const [incidenceId, setIncidenceId] = useState(null)
   const [reported_byUsers, setreported_byUsers] = useState([])
   const [defaultreported_by, setDefaultreported_by] = useState(null)
 
@@ -94,7 +99,7 @@ const ReportIncidentForm = ({
   const getUserData = () => {
     const result = read('userDetails')
     console.log('result', result)
-    // setDefaultreported_by({ user_id: result?.user?.user_id, user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}` })
+    setDefaultreported_by({ user_id: result?.user?.user_id, user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}` })
     setValue('reported_by', result?.user?.user_id)
 
     // setUserData(result)
@@ -105,6 +110,22 @@ const ReportIncidentForm = ({
     if (animalIncidentForm) {
       getUsers()
       getUserData()
+    }
+  }, [animalIncidentForm])
+
+  useEffect(() => {
+    if (animalIncidentForm && isEdit && editData) {
+      console.log('editData', editData)
+      setIncidenceId(editData?.id)
+      setValue('incident_date', editData.incident_date ? dayjs(editData.incident_date) : null)
+      setValue('incident_time', editData.incident_time ? dayjs(editData.incident_time, 'hh:mm A') : null)
+      setValue('reported_by', editData.reported_by || '')
+      setValue('notes', editData.notes || '')
+      setValue('attachment', editData.attachment || '') // If present
+      setValue('action_taken', editData.additional_info?.action_taken || '')
+      setValue('animal_behaviour_before_incident', editData.additional_info?.animal_behaviour_before_incident || '')
+      setValue('steps_to_prevent', editData.additional_info?.steps_to_prevent || '')
+      setValue('last_seen', editData.additional_info?.last_seen || '')
     }
   }, [animalIncidentForm])
 
@@ -128,8 +149,7 @@ const ReportIncidentForm = ({
       Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
       return
     }
-
-
+    console.log('file', file)
     setSelectedFile(file)
     setPreviewUrl(URL.createObjectURL(file))
     setSelectedFileName(file.name)
@@ -137,6 +157,15 @@ const ReportIncidentForm = ({
     if (file.name) {
       clearErrors('attachment')
     }
+  }
+
+  const handleCloseFormDrawer = () => {
+    reset()
+    setDefaultreported_by(null)
+    setAnimalIncidentForm(false)
+    setSelectedFile(null)
+    setSelectedFileName(null)
+    setIncidenceId(null)
   }
   ////////////////////////////////////////////////////////////
   const onSubmit = async (data) => {
@@ -152,37 +181,73 @@ const ReportIncidentForm = ({
       steps_to_prevent
     } = data
 
-    const payload = {
-      incident_type: 'missing',
-      incident_date,
-      incident_time,
-      reported_by,
-      notes,
-      additional_info: {
-        last_seen,
-        animal_behaviour_before_incident,
-        action_taken,
-        steps_to_prevent
-      },
-      incident_details_id: '',
+    // const payload = {
+    //   incident_type: 'missing',
+    //   incident_date: moment(incident_date).format('YYYY-MM-DD'),
+    //   incident_time: moment(incident_time).format('HH:mm:ss'),
+    //   reported_by,
+    //   notes,
+    //   images: selectedFile,
+    //   additional_info: JSON.stringify({
+    //     last_seen,
+    //     animal_behaviour_before_incident,
+    //     action_taken,
+    //     steps_to_prevent
+    //   }),
+    //   ...(isEdit
+    //     ? { incident_details_id: incidenceId, }
+    //     : { ref_id: animalId, }),
+    // }
+
+    const formData = new FormData()
+    formData.append('incident_type', 'missing')
+    formData.append('incident_date', moment(incident_date).format('YYYY-MM-DD'))
+    formData.append('incident_time', moment(incident_time).format('HH:mm:ss'))
+    formData.append('reported_by', reported_by)
+    formData.append('notes', notes)
+    formData.append('additional_info', JSON.stringify({
+      last_seen,
+      animal_behaviour_before_incident,
+      action_taken,
+      steps_to_prevent
+    }))
+
+    if (selectedFile) {
+      formData.append('media_attachment', [selectedFile])
     }
+
+    if (isEdit) {
+      formData.append('incident_details_id', incidenceId)
+    } else {
+      formData.append('ref_id', animalId)
+    }
+
 
     setUploadingAttachment(true)
     try {
+      console.log('second', formData)
+      if (isEdit) {
+        const res = await updateAnimalIncident(formData)
+        if (res.success) {
+          Toaster({ type: 'success', message: res.message || 'Incident updated successfully' })
+          fetchAnimalIncidents()
+          handleCloseFormDrawer()
+        } else {
+          fetchAnimalIncidents()
+          handleCloseFormDrawer()
+          Toaster({ type: 'error', message: res.message || 'Failed to update incident' })
+        }
+      } else {
 
-      // reset()
-      // setSelectedFileName(null)
-      // setSelectedFile(null)
-      // handleSearch('')
-      console.log('first', data)
-      console.log('second', payload)
-
-      // const res = await createAnimalIncident()
-
-      reset()
-      setAnimalIncidentForm(false)
-      setSelectedFile(null)
-      setSelectedFileName(null)
+        const res = await createAnimalIncident(formData)
+        if (res.success) {
+          Toaster({ type: 'success', message: res.message || 'Incident created successfully' })
+          handleCloseFormDrawer()
+        } else {
+          handleCloseFormDrawer()
+          Toaster({ type: 'error', message: res.message || 'Failed to create incident' })
+        }
+      }
 
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })
@@ -234,8 +299,9 @@ const ReportIncidentForm = ({
         size='small'
         sx={{ color: 'text.primary', height: '40px', width: '40px' }}
         onClick={() => {
-          reset()
-          setAnimalIncidentForm(false)
+          // reset()
+          // setAnimalIncidentForm(false)
+          handleCloseFormDrawer()
         }}
       >
         <Icon icon='mdi:close' fontSize={24} />
@@ -780,7 +846,7 @@ const ReportIncidentForm = ({
   )
 }
 
-export default ReportIncidentForm
+export default CreateMissingIncident
 
 
 

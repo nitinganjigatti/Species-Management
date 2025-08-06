@@ -30,7 +30,7 @@ import Utility from 'src/utility'
 
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import ReportFoundForm from './ReportFoundForm'
-import ReportIncidentForm from './ReportIncidentForm'
+import CreateMissingIncident from './CreateMissingIncident'
 import MissReportIncidentForm from './MissReportIncidentForm'
 import { getAnimalIncidentDetails, getAnimalIncidentList } from 'src/lib/api/housing'
 import IncidentDetailsCard from './IncidentDetailsCard'
@@ -53,6 +53,9 @@ const AnimalIncidents = () => {
   const [incidentDetailsData, setIncidentDetailsData] = useState({})
 
   const [animalIncidentForm, setAnimalIncidentForm] = useState(false)
+  const [isEdit, setIsEdit] = useState(false)
+  const [editData, setEditData] = useState(null)
+
   const [missReportIncidence, setMissReportIncidence] = useState('')
   const [missReportIncidentForm, setMissReportIncidentForm] = useState(false)
   const [reportFoundForm, setReportFoundForm] = useState(false)
@@ -283,7 +286,13 @@ const AnimalIncidents = () => {
             >
               View Details
             </MenuItem>
-            <MenuItem onClick={handleMenuClose}>Edit Incident</MenuItem>
+            <MenuItem onClick={() => {
+              setIsEdit(true)
+              setEditData(incident?.incident_details[index])
+              setAnimalIncidentForm(true)
+              handleMenuClose()
+            }
+            }>Edit Incident</MenuItem>
             <MenuItem
               onClick={() => {
                 setMissReportIncidence('Found')
@@ -312,7 +321,7 @@ const AnimalIncidents = () => {
             </MenuItem>
           </Menu>
         </Grid>
-      </Grid>
+      </Grid >
     ))
   }
 
@@ -524,8 +533,11 @@ const AnimalIncidents = () => {
       </Box>
 
       <IncidentTimeline />
-      <ReportIncidentForm
+      <CreateMissingIncident
+        isEdit={isEdit}
+        editData={editData}
         animalId={animalId}
+        fetchAnimalIncidents={fetchAnimalIncidents}
         animalIncidentForm={animalIncidentForm}
         setAnimalIncidentForm={setAnimalIncidentForm}
       />

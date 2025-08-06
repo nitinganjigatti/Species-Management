@@ -1,11 +1,13 @@
-import React, { useState } from 'react'
-import { Box, Typography, Button, IconButton, Switch, TextField, Avatar, Tooltip } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import { Box, Typography, Button, IconButton, Switch, TextField, Avatar, Tooltip, Skeleton } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@mui/material/styles'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import { styled } from '@mui/material/styles'
 import UploadAnimalDiet from './UploadAnimalDiet'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { getAnimalDietList } from 'src/lib/api/housing'
+import { useRouter } from 'next/router'
 
 const GreenSwitch = styled(Switch)(({ theme }) => ({
   width: 45.5,
@@ -44,95 +46,19 @@ const GreenSwitch = styled(Switch)(({ theme }) => ({
   }
 }))
 
-const AnimalDiet = () => {
+const AnimalDiet = ({ animalDetails }) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id: animalid } = router.query
+
   const [selectedTab, setSelectedTab] = useState('active') // or 'inactive'
-  const [animalId, setAnimalId] = useState(123) // or 'inactive'
+  const [animalId, setAnimalId] = useState(animalid) // or 'inactive'
 
-  const [activeDietData, setActiveDietData] = useState([
-    {
-      id: 1,
-      fileName: 'Diet_Ringneck Parakeet.pdf',
-      uploadedBy: 'Sourav',
-      role: 'Dietitian',
-      createdBy: {
-        name: 'Jordan Stevenson',
-        timestamp: '14 Apr 2024 | 12 : 35 PM',
-        avatarUrl: ''
-      },
-      isActive: true,
-      notes:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam'
-    },
-    {
-      id: 2,
-      fileName: 'Diet_Sun Conure.pdf',
-      uploadedBy: 'Amit',
-      role: 'Dietitian',
-      createdBy: {
-        name: 'Sarah Mills',
-        timestamp: '12 Apr 2024 | 03 : 20 PM',
-        avatarUrl: ''
-      },
-      isActive: true,
-      notes: 'No significant changes in diet this week.'
-    },
-    {
-      id: 3,
-      fileName: 'Diet_Cockatoo.pdf',
-      uploadedBy: 'Rhea',
-      role: 'Assistant',
-      createdBy: {
-        name: 'Daniel Costa',
-        timestamp: '10 Apr 2024 | 08 : 15 AM',
-        avatarUrl: ''
-      },
-      isActive: true,
-      notes: 'Include extra sunflower seeds for feather growth.'
-    }
-  ])
-
-  const [inActiveDietData, setInActiveDietData] = useState([
-    {
-      id: 1,
-      fileName: 'Diet_Ringneck Parakeet.pdf',
-      uploadedBy: 'Sourav',
-      role: 'Dietitian',
-      createdBy: {
-        name: 'Jordan Stevenson',
-        timestamp: '14 Apr 2024 | 12 : 35 PM',
-        avatarUrl: ''
-      },
-      isActive: false,
-      notes: 'Lorem ipsum dolordunt ut labore et dolore magna aliqua. Ut enim ad minim veniam'
-    },
-    {
-      id: 2,
-      fileName: 'Diet_Sun Conure.pdf',
-      uploadedBy: 'Amit',
-      role: 'Dietitian',
-      createdBy: {
-        name: 'Sarah Mills',
-        timestamp: '12 Apr 2024 | 03 : 20 PM',
-        avatarUrl: ''
-      },
-      isActive: false,
-      notes: 'No significant changes in diet this week.'
-    },
-    {
-      id: 3,
-      fileName: 'Diet_Cockatoo.pdf',
-      uploadedBy: 'Rhea',
-      role: 'Assistant',
-      createdBy: {
-        name: 'Daniel Costa',
-        timestamp: '10 Apr 2024 | 08 : 15 AM',
-        avatarUrl: ''
-      },
-      isActive: false,
-      notes: 'Include extra sunflower seeds for feather growth.'
-    }
-  ])
+  const [dietListLoader, setDietListLoader] = useState(false)
+  const [activeDietData, setActiveDietData] = useState([])
+  const [inActiveDietData, setInActiveDietData] = useState([])
+  const [activeDietCount, setActiveDietCount] = useState(0)
+  const [inActiveDietCount, setInActiveDietCount] = useState(0)
 
   const [dietStates, setDietStates] = useState(
     (selectedTab === 'active' ? activeDietData : inActiveDietData).map(d => d.isActive)
@@ -145,6 +71,30 @@ const AnimalDiet = () => {
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false)
   const [deactivateLoading, setDeactivateLoading] = useState(false)
   const [pendingDeactivateIndex, setPendingDeactivateIndex] = useState(null)
+
+  const animalDietList = async () => {
+    try {
+      setDietListLoader(true)
+      const res = await getAnimalDietList(animalDetails.taxonomyId, { animal_id: animalId })
+      if (res.success) {
+        setActiveDietData((res?.data?.active_attachments))
+        setInActiveDietData(res?.data?.deactive_attachments)
+        setActiveDietCount(res?.data?.active_attachments_count)
+        setInActiveDietCount(res?.data?.deactive_attachments_count)
+      } else {
+
+      }
+    } catch (error) {
+
+    } finally {
+      setDietListLoader(false)
+    }
+  }
+
+  useEffect(() => {
+    animalDietList()
+  }, [animalId])
+
 
   return (
     <>
@@ -160,7 +110,7 @@ const AnimalDiet = () => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Diet Attached (3)
+            Diet Attached {`(${selectedTab === 'active' ? activeDietCount : inActiveDietCount})`}
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', rowGap: 4, flexWrap: 'wrap' }}>
@@ -189,7 +139,7 @@ const AnimalDiet = () => {
                   }
                 }}
               >
-                Active diets - 1
+                Active diets - {activeDietCount}
               </Button>
 
               <Button
@@ -215,7 +165,7 @@ const AnimalDiet = () => {
                   }
                 }}
               >
-                Inactive diets - 2
+                Inactive diets - {inActiveDietCount}
               </Button>
             </Box>
             <Box sx={{ display: 'flex', gap: '8px' }}>
@@ -255,110 +205,112 @@ const AnimalDiet = () => {
           </Box>
         </Box>
 
+        {/* <Skeleton sx={{ borderRadius: '8px', py: '80px', marginTop: '-40px' }} /> */}
         {/* Diet Card */}
-        {(selectedTab === 'active' ? activeDietData : inActiveDietData).map((diet, index) => (
-          <Box
-            key={diet.id}
-            sx={{
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              backgroundColor: selectedTab === 'active' ? 'transparent' : theme.palette.customColors.mdAntzNeutral,
-
-              // border: selectedTab === 'active' ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
-              border: `1px solid ${
-                selectedTab === 'active' ? theme.palette.customColors.OutlineVariant : 'transparent' // or use a light transparent color
-              }`,
-              borderRadius: '8px',
-              gap: '24px',
-              p: '16px',
-              mb: 3
-            }}
-          >
+        {dietListLoader ?
+          <Skeleton variant='rounded' sx={{ borderRadius: '8px', minHeight: '160px', maxHeight: '240px' }} height={118} />
+          :
+          (selectedTab === 'active' ? activeDietData : inActiveDietData).map((diet, index) => (
             <Box
+              key={diet.ref_id}
               sx={{
-                width: '100%',
+                boxSizing: 'border-box',
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: 4,
-                flexWrap: 'wrap'
+                flexDirection: 'column',
+                backgroundColor: selectedTab === 'active' ? 'transparent' : theme.palette.customColors.mdAntzNeutral,
+                // border: selectedTab === 'active' ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
+                border: `1px solid ${selectedTab === 'active' ? theme.palette.customColors.OutlineVariant : 'transparent' // or use a light transparent color
+                  }`,
+                borderRadius: '8px',
+                gap: '24px',
+                p: '16px',
+                mb: 3
               }}
             >
-              <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Box
-                  sx={{
-                    backgroundColor: '#FFE7E7',
-                    p: 1,
-                    borderRadius: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Avatar
-                    variant='rounded'
-                    alt='Medicine Image'
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 4,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Box
                     sx={{
-                      pt: '6px',
-                      width: 48,
-                      height: 48,
-                      background: theme.palette.customColors.avatarBackground,
-                      overflow: 'hidden'
+                      backgroundColor: '#FFE7E7',
+                      p: 1,
+                      borderRadius: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
-                    <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='pdf' />
-                  </Avatar>
-                </Box>
-
-                <Box
-                  sx={{ minWidth: '100px', maxWidth: '300px', display: 'flex', flexDirection: 'column', gap: '6px' }}
-                >
-                  <Tooltip title={diet.fileName}>
-                    <Typography
+                    <Avatar
+                      variant='rounded'
+                      alt='Medicine Image'
                       sx={{
-                        fontSize: 16,
-                        fontWeight: 500,
-                        letterSpacing: 0,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        wordBreak: 'break-word',
-                        color: theme.palette.customColors.OnSurfaceVariant
+                        pt: '6px',
+                        width: 48,
+                        height: 48,
+                        background: theme.palette.customColors.avatarBackground,
+                        overflow: 'hidden'
                       }}
                     >
-                      {diet.fileName}
-                    </Typography>
-                  </Tooltip>
-                  <Tooltip title={`${diet.uploadedBy} • ${diet.role}`}>
-                    <Typography
-                      sx={{
-                        fontSize: 14,
-                        fontWeight: 400,
-                        letterSpacing: 0,
-                        textOverflow: 'ellipsis',
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }}
-                    >
-                      {diet.uploadedBy} • {diet.role}
-                    </Typography>
-                  </Tooltip>
-                </Box>
-              </Box>
+                      <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='pdf' />
+                    </Avatar>
+                  </Box>
 
-              {/* Right: User Info, Switch, Delete */}
-              <Box sx={{ maxWidth: '340px', display: 'flex', alignItems: 'end', gap: 2, flexWrap: 'wrap' }}>
-                <UserInfoCard
-                  avatarUrl={diet.createdBy.avatarUrl}
-                  name={diet.createdBy.name}
-                  description={diet.createdBy.timestamp}
-                  textColor={theme.palette.customColors.OnSurfaceVariant}
-                  fontWeight={500}
-                />
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                  {/* <GreenSwitch
+                  <Box
+                    sx={{ minWidth: '100px', maxWidth: '300px', display: 'flex', flexDirection: 'column', gap: '6px' }}
+                  >
+                    <Tooltip title={diet.file_original_name}>
+                      <Typography
+                        sx={{
+                          fontSize: 16,
+                          fontWeight: 500,
+                          letterSpacing: 0,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          wordBreak: 'break-word',
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {diet.file_original_name}
+                      </Typography>
+                    </Tooltip>
+                    <Tooltip title={`${diet.attached_by} • Dietitian`}>
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          fontWeight: 400,
+                          letterSpacing: 0,
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap',
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {diet.attached_by} • Dietitian
+                      </Typography>
+                    </Tooltip>
+                  </Box>
+                </Box>
+
+                {/* Right: User Info, Switch, Delete */}
+                <Box sx={{ maxWidth: '340px', display: 'flex', alignItems: 'end', gap: 2, flexWrap: 'wrap' }}>
+                  <UserInfoCard
+                    avatarUrl={diet.attached_by_profile}
+                    name={diet.attached_by}
+                    description={diet.notes}
+                    textColor={theme.palette.customColors.OnSurfaceVariant}
+                    fontWeight={500}
+                  />
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    {/* <GreenSwitch
                     checked={diet.isActive}
                     onChange={() => {
                       if (selectedTab === 'active') {
@@ -372,59 +324,60 @@ const AnimalDiet = () => {
                       }
                     }}
                   /> */}
-                  <GreenSwitch
-                    checked={diet.isActive}
-                    onChange={() => {
-                      if (diet.isActive) {
-                        // About to turn OFF, so ask for confirmation
-                        setPendingDeactivateIndex(index)
-                        setDeactivateDialogOpen(true)
-                      } else {
-                        // Turning ON directly
-                        if (selectedTab === 'active') {
-                          const updated = [...activeDietData]
-                          updated[index].isActive = true
-                          setActiveDietData(updated)
+                    <GreenSwitch
+                      checked={diet.isActive}
+                      onChange={() => {
+                        if (diet.isActive) {
+                          // About to turn OFF, so ask for confirmation
+                          setPendingDeactivateIndex(index)
+                          setDeactivateDialogOpen(true)
                         } else {
-                          const updated = [...inActiveDietData]
-                          updated[index].isActive = true
-                          setInActiveDietData(updated)
+                          // Turning ON directly
+                          if (selectedTab === 'active') {
+                            const updated = [...activeDietData]
+                            updated[index].isActive = true
+                            setActiveDietData(updated)
+                          } else {
+                            const updated = [...inActiveDietData]
+                            updated[index].isActive = true
+                            setInActiveDietData(updated)
+                          }
                         }
-                      }
-                    }}
-                  />
-                  <IconButton sx={{ padding: 0 }} onClick={() => setDeleteDietDialog(true)}>
-                    <Icon icon='mdi:trash-can-outline' color={theme.palette.customColors.OnSurfaceVariant} />
-                  </IconButton>
+                      }}
+                    />
+                    <IconButton sx={{ padding: 0 }} onClick={() => setDeleteDietDialog(true)}>
+                      <Icon icon='mdi:trash-can-outline' color={theme.palette.customColors.OnSurfaceVariant} />
+                    </IconButton>
+                  </Box>
                 </Box>
               </Box>
-            </Box>
 
-            {/* Notes Section */}
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px',
-                backgroundColor:
-                  selectedTab === 'active'
-                    ? theme.palette.customColors.antzNotesLight
-                    : theme.palette.customColors.mdAntzNeutral,
-                borderRadius: 1,
-                p: '12px'
-              }}
-            >
-              <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
-                Notes
-              </Typography>
-              <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 400 }}>
-                {diet.notes}
-              </Typography>
+              {/* Notes Section */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  backgroundColor:
+                    selectedTab === 'active'
+                      ? theme.palette.customColors.antzNotesLight
+                      : theme.palette.customColors.mdAntzNeutral,
+                  borderRadius: 1,
+                  p: '12px'
+                }}
+              >
+                <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
+                  Notes
+                </Typography>
+                <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 400 }}>
+                  {diet.notes}
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-        ))}
+          ))
+        }
 
-        <UploadAnimalDiet
+        < UploadAnimalDiet
           animalId={animalId}
           setAnimalId={setAnimalId}
           uploadAnimalDietDrawer={uploadAnimalDietDrawer}
@@ -440,7 +393,7 @@ const AnimalDiet = () => {
           confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
-          confirmAction={() => {}}
+          confirmAction={() => { }}
           loading={deleteLoading}
           ConfirmationText={'DELETE'}
           description={'Are you sure you want to permanently delete this file?'}
