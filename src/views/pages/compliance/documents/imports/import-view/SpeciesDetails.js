@@ -9,12 +9,14 @@ import {
   Icon,
   Grid,
   CircularProgress,
-  CardContent
+  CardContent,
+  alpha
 } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import IconButton from '@mui/material/IconButton'
 import moment from 'moment'
 import { useAuth } from 'src/hooks/useAuth'
+import { useTheme } from '@mui/material/styles'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
 
 const SpeciesDetailsContainer = ({
@@ -35,6 +37,7 @@ const SpeciesDetailsContainer = ({
 }) => {
   const [collapsed, setCollapsed] = useState(false)
   const auth = useAuth()
+  const theme = useTheme()
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER // Get image paths from user data
 
   const getFileIcon = () => {
@@ -78,7 +81,7 @@ const SpeciesDetailsContainer = ({
       justifyContent='space-between'
       // py={2}
       sx={{
-        borderBottom: '1px solid #0000000D',
+        borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
         px: 4,
         pb: 4,
         pt: 3,
@@ -90,25 +93,33 @@ const SpeciesDetailsContainer = ({
       onClick={() => handleAnimalClick(species, type)}
     >
       <Box className='export_dtl_list'>
-        <Typography fontWeight='medium' sx={{ color: '#44544A', fontWeight: 500, fontSize: '16px' }}>
+        <Typography
+          fontWeight='medium'
+          sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '16px' }}
+        >
           {species?.common_name || 'N/A'}
         </Typography>
-        <Typography fontStyle='italic' sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}>
+        <Typography
+          fontStyle='italic'
+          sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '14px' }}
+        >
           {species?.scientific_name || 'N/A'}
         </Typography>
       </Box>
       <Box display='flex' alignItems='center' gap={2} flex={1}>
-        <Typography sx={{ color: '#44544A', fontSize: '14px', fontWeight: 500, mr: 2 }}>
+        <Typography
+          sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 500, mr: 2 }}
+        >
           Count : {species?.total_count || 0}
         </Typography>
         <Chip
           label={`M - ${species?.male_count || 0}`}
           size='small'
           sx={{
-            background: '#AFEFEB80',
+            background: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
             borderRadius: '4px',
             px: 2,
-            color: '#00AFD6',
+            color: theme.palette.customColors.addPrimary,
             fontSize: '14px',
             fontWeight: 500
           }}
@@ -117,10 +128,10 @@ const SpeciesDetailsContainer = ({
           label={`F - ${species?.female_count || 0}`}
           size='small'
           sx={{
-            background: '#FA614026',
+            background: alpha(theme.palette.customColors.customDropdownColor, 0.15),
             borderRadius: '4px',
             px: 2,
-            color: '#FA6140',
+            color: theme.palette?.formContent?.tertiary,
             fontSize: '14px',
             fontWeight: 500
           }}
@@ -129,10 +140,10 @@ const SpeciesDetailsContainer = ({
           label={`U - ${species?.undeterminate_count || 0}`}
           size='small'
           sx={{
-            background: '#DDEBE9',
+            background: theme.palette.customColors.displaybgSecondary,
             borderRadius: '4px',
             px: 2,
-            color: '#1F515B',
+            color: theme.palette.customColors.OnPrimaryContainer,
             fontSize: '14px',
             fontWeight: 500
           }}
@@ -161,7 +172,7 @@ const SpeciesDetailsContainer = ({
             display='flex'
             justifyContent='space-between'
             alignItems='center'
-            bgcolor={isCollapsed ? '#fff' : '#EFF5F2'}
+            bgcolor={isCollapsed ? theme.palette.common.white : theme.palette.customColors.lightBg}
             sx={{
               px: 4,
               py: 4,
@@ -170,8 +181,12 @@ const SpeciesDetailsContainer = ({
               borderBottomRightRadius: isLast ? '8px' : '0px'
             }}
           >
-            <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '14px' }}>
-              <Box component='span' fontWeight={600} sx={{ color: '#006D35', fontWeight: 500, fontSize: '14px' }}>
+            <Typography fontWeight={500} sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}>
+              <Box
+                component='span'
+                fontWeight={600}
+                sx={{ color: theme.palette?.primary?.dark, fontWeight: 500, fontSize: '14px' }}
+              >
                 Export ID : <span>{data.export_number}</span>
               </Box>{' '}
               ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
@@ -211,7 +226,7 @@ const SpeciesDetailsContainer = ({
               padding: '1px',
               background: '#EFF5F266',
               borderRadius: '10px',
-              border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               p: 8,
               mb: 5
             }}
@@ -219,20 +234,20 @@ const SpeciesDetailsContainer = ({
             <Grid container spacing={2}>
               {/* Shipment ID */}
               <Grid size={{ xs: 6, md: 4 }}>
-                <Typography fontWeight='400' color='#7A8684' fontSize='16px'>
+                <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
                   Certificate ID
                 </Typography>
-                <Typography color={'#44544A'} sx={{ pt: 1 }}>
+                <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
                   {airwaybillvalue}
                 </Typography>
               </Grid>
 
               {/* Date Of Issue */}
               <Grid size={{ xs: 6, md: 4 }}>
-                <Typography fontWeight='400' color='#7A8684' fontSize='16px'>
+                <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
                   Date Of Issue
                 </Typography>
-                <Typography color='#44544A' sx={{ pt: 1 }}>
+                <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
                   {moment(startDate).format('DD/MM/yyyy')}
                 </Typography>
               </Grid>
@@ -251,9 +266,9 @@ const SpeciesDetailsContainer = ({
                     display: 'flex',
                     alignItems: 'center',
                     padding: '8px 12px',
-                    border: '1px solid #E0E0E0',
+                    border: `1px solid ${theme?.palette?.grey[300]}`,
                     borderRadius: '10px',
-                    backgroundColor: '#FFF',
+                    backgroundColor: theme.palette.common.white,
                     minWidth: '280px',
                     cursor: 'pointer'
                   }}
@@ -264,7 +279,7 @@ const SpeciesDetailsContainer = ({
                     width='18%'
                     style={{
                       marginRight: '8px',
-                      background: '#FFBDA84D',
+                      background: theme.palette.customColors.Tertiary30,
                       borderRadius: '6px',
                       padding: '10px'
                     }}
@@ -290,9 +305,9 @@ const SpeciesDetailsContainer = ({
 
           <Box
             sx={{
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               borderRadius: '8px',
-              border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
               borderBottomLeftRadius: '8px',
               borderBottomRightRadius: '8px'
             }}
@@ -314,7 +329,7 @@ const SpeciesDetailsContainer = ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '10px',
-                  color: '#1F515B',
+                  color: theme.palette.customColors.OnPrimaryContainer,
                   fontWeight: 500,
                   fontSize: '14px',
                   cursor: 'pointer'

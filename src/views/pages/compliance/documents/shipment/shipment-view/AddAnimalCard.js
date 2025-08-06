@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Grid,
-  useMediaQuery,
-  useTheme,
-  CircularProgress,
-  CardContent
-} from '@mui/material'
+import { Box, Typography, TextField, Button, Grid, useMediaQuery, CircularProgress, CardContent } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import SelectAnimalsDrawer from '../drawer/SelectAnimalsDrawer'
+import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
 const AnimalCardLayout = ({
@@ -247,24 +238,38 @@ const AnimalCardLayout = ({
                 <Box
                   key={card.id}
                   sx={{
-                    border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '16px',
-                    backgroundColor: '#FFFFFF'
+                    backgroundColor: theme.palette.customColors.OnPrimary
                   }}
                 >
                   {/* Title and Subtitle */}
-                  <Typography variant='h6' sx={{ fontWeight: '500', color: '#44544A' }}>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontWeight: '500', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
                     {card.common_name}
                   </Typography>
                   <Typography
                     //variant='subtitle2'
-                    sx={{ color: '#44544A', fontStyle: 'italic', fontSize: '400', fontSize: '16px' }}
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontStyle: 'italic',
+                      fontSize: '400',
+                      fontSize: '16px'
+                    }}
                   >
                     {card.scientific_name}
                   </Typography>
                   <Typography
-                    sx={{ color: '#44544A', marginTop: '8px', marginBottom: '16px', fontSize: '400', fontSize: '16px' }}
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      marginTop: '8px',
+                      marginBottom: '16px',
+                      fontSize: '400',
+                      fontSize: '16px'
+                    }}
                   >
                     {`${card.total_balance_animal}/${card.total_count}`} animals available for shipment
                   </Typography>
@@ -272,17 +277,27 @@ const AnimalCardLayout = ({
                   {/* Animals Part of Shipment */}
                   <Box
                     sx={{
-                      border: '1px solid #0000000D',
+                      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                       borderRadius: '8px',
                       padding: '16px',
                       backgroundColor: '#E8F4F266'
                     }}
                   >
                     <Grid container justifyContent='space-between' alignItems='center'>
-                      <Typography variant='subtitle2' sx={{ fontWeight: '400', color: '#44544A', fontSize: '16px' }}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{ fontWeight: '400', color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
+                      >
                         Animals part of shipment:
                       </Typography>
-                      <Typography variant='subtitle2' sx={{ fontWeight: '500', color: '#1F415B', fontSize: '24px' }}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{
+                          fontWeight: '500',
+                          color: theme.palette.customColors.OnSecondaryContainer,
+                          fontSize: '24px'
+                        }}
+                      >
                         {`${
                           (speciesData.male_count || 0) +
                           (speciesData.female_count || 0) +
@@ -298,7 +313,10 @@ const AnimalCardLayout = ({
                           variant='caption'
                           sx={{
                             display: 'block',
-                            color: card.total_balance_male_animal === '0' ? '#7A8684' : '#44544A',
+                            color:
+                              card.total_balance_male_animal === '0'
+                                ? theme.palette.customColors.secondaryBg
+                                : theme.palette.customColors.OnSurfaceVariant,
                             marginBottom: '4px',
                             fontWeight: 400
                           }}
@@ -329,7 +347,10 @@ const AnimalCardLayout = ({
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               borderRadius: '8px',
-                              backgroundColor: card.total_balance_male_animal === '0' ? '#0000000D' : '#FFFFFF'
+                              backgroundColor:
+                                card.total_balance_male_animal === '0'
+                                  ? theme.palette.customColors.mdAntzNeutral
+                                  : theme.palette.customColors.OnPrimary
                             },
                             width: '95%'
                           }}
@@ -340,7 +361,10 @@ const AnimalCardLayout = ({
                           variant='caption'
                           sx={{
                             display: 'block',
-                            color: card.total_balance_female_animal === '0' ? '#7A8684' : '#44544A',
+                            color:
+                              card.total_balance_female_animal === '0'
+                                ? theme.palette.customColors.secondaryBg
+                                : theme.palette.customColors.OnSurfaceVariant,
                             marginBottom: '4px',
                             fontWeight: 400
                           }}
@@ -371,7 +395,10 @@ const AnimalCardLayout = ({
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               borderRadius: '8px',
-                              backgroundColor: card.total_balance_female_animal === '0' ? '#0000000D' : '#FFFFFF'
+                              backgroundColor:
+                                card.total_balance_female_animal === '0'
+                                  ? theme.palette.customColors.mdAntzNeutral
+                                  : theme.palette.customColors.OnPrimary
                             },
                             width: '95%'
                           }}
@@ -382,7 +409,10 @@ const AnimalCardLayout = ({
                           variant='caption'
                           sx={{
                             display: 'block',
-                            color: card.total_balance_undeterminate_animal === '0' ? '#7A8684' : '#44544A',
+                            color:
+                              card.total_balance_undeterminate_animal === '0'
+                                ? theme.palette.customColors.secondaryBg
+                                : theme.palette.customColors.OnSurfaceVariant,
                             marginBottom: '4px'
                           }}
                         >
@@ -412,7 +442,10 @@ const AnimalCardLayout = ({
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               borderRadius: '8px',
-                              backgroundColor: card.total_balance_undeterminate_animal === '0' ? '#0000000D' : '#FFFFFF'
+                              backgroundColor:
+                                card.total_balance_undeterminate_animal === '0'
+                                  ? theme.palette.customColors.mdAntzNeutral
+                                  : theme.palette.customColors.OnPrimary
                             },
                             width: '95%'
                           }}
@@ -434,7 +467,7 @@ const AnimalCardLayout = ({
                         <Typography
                           sx={{
                             textTransform: 'none',
-                            color: '#006D35',
+                            color: theme.palette.primary.dark,
                             display: 'flex',
                             alignItems: 'center',
                             fontWeight: 500,
@@ -449,7 +482,13 @@ const AnimalCardLayout = ({
                           Select from list
                           <ChevronRightIcon sx={{ fontSize: '22px', marginLeft: '4px' }} />
                         </Typography>
-                        <Typography sx={{ color: '#44544A', fontWeight: '500', fontSize: '16px' }}>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontWeight: '500',
+                            fontSize: '16px'
+                          }}
+                        >
                           {selectedCounts[card.master_species_id] || 0} Selected
                         </Typography>
                       </Grid>
@@ -461,7 +500,7 @@ const AnimalCardLayout = ({
           ) : (
             <Typography
               sx={{
-                background: '#0000000D',
+                background: theme.palette.customColors.mdAntzNeutral,
                 p: 15,
                 textAlign: 'center',
                 borderRadius: '8px',

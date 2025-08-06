@@ -16,7 +16,7 @@ const validationSchema = yup.object({
     .string()
     .required('Airway bill number is required')
     .test('valid-awb', 'Enter a valid 11-digit airway bill number', value => {
-      const strippedValue = value.replace(/\s/g, '') // Remove spaces
+      const strippedValue = value.replace(/\s/g, '')
       return /^\d{11}$/.test(strippedValue)
     }),
   startDate: yup.date().nullable().required('Shipment date is required'),
@@ -32,7 +32,6 @@ const validationSchema = yup.object({
         return allowedTypes.includes(value.type)
       }
 
-      // If it's an existing uploaded file (edit mode)
       if (value.file_original_name) {
         const ext = value.file_original_name.split('.').pop().toLowerCase()
         const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf']

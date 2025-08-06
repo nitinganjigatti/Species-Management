@@ -309,7 +309,7 @@ const UserThemeOptions = () => {
             },
             ':not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
               borderColor: '#D8D8DD'
-            },
+            }
           }
         }
       }

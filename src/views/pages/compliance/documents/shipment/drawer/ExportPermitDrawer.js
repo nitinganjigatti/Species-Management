@@ -131,7 +131,7 @@ const ExportPermitDrawer = ({
               ) : (
                 <Typography
                   sx={{
-                    background: '#0000000D',
+                    background: theme.palette.customColors.mdAntzNeutral,
                     p: 12,
                     textAlign: 'center',
                     borderRadius: '8px',
