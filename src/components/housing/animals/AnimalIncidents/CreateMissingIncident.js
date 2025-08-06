@@ -342,8 +342,6 @@ const CreateMissingIncident = ({
         >
           <>
             {SpeciesDietCard()}
-
-
             <Box
               sx={{
                 mt: 20,

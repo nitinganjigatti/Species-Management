@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Typography, Button, Avatar, TextField, Tooltip, Autocomplete } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@mui/material/styles'
@@ -10,6 +10,9 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline from '@mui/lab/Timeline'
 import JournalFilterSheet from './journalFilter'
+import { read, readAsync } from 'src/lib/windows/utils'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import Toaster from 'src/components/Toaster'
 
 
 const activityLogData = [
@@ -234,7 +237,9 @@ const AnimalJournals = () => {
   const theme = useTheme()
   const [selectedTab, setSelectedTab] = useState('active') // or 'inactive'
   const [searchValue, setSearchValue] = useState('')
+
   const [selectedUser, setSelectedUser] = useState({ user_name: 'All' })
+  const [users, setUsers] = useState([])
 
   // filter options
   const categories = ['Users', 'Categories', 'Date Range']
@@ -262,6 +267,29 @@ const AnimalJournals = () => {
       height: '40px'
     },
   }
+
+  const getUsers = async () => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      const zoo_id = userDetails?.user?.zoos[0].zoo_id
+      const Users = await getUserList({ zoo_id })
+
+      setUsers(Users?.data)
+    } catch (error) {
+      Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+    }
+  }
+
+  const getUserData = () => {
+    const result = read('userDetails')
+    setSelectedUser({ user_id: result?.user?.user_id, user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}` })
+  }
+
+
+  useEffect(() => {
+    getUsers()
+    getUserData()
+  }, [])
 
   const IncidentTimeline = () => {
     const Timeline = styled(MuiTimeline)({
@@ -526,7 +554,7 @@ const AnimalJournals = () => {
             }
           }}
         >
-          Medical Record
+          Mortality
         </Button>
       </Box>
 
@@ -565,27 +593,36 @@ const AnimalJournals = () => {
             sx={{ width: '200px', height: '40px' }}
             value={selectedUser}
             disablePortal
-            options={[{ user_name: 'All' }, { user_name: 'xyz' }, { user_name: 'abc' }]}
+            options={users}
             getOptionLabel={option => option.user_name}
-            isOptionEqualToValue={(option, value) => option?.user_name === value?.user_name}
+            isOptionEqualToValue={(option, value) => option?.user_id === value?.user_id}
             onChange={(e, val) => {
               setSelectedUser(val)
             }}
             renderInput={params => (
               <TextField
                 {...params}
-                sx={{ ...basicStyle }}
-                label='All'
-                placeholder='All'
+                sx={{
+                  ...basicStyle,
+                  '& label.MuiInputLabel-root': {
+                    transform: 'translate(14px, 8px) !important',
+                  },
+                  '& label.MuiInputLabel-root[data-shrink="true"]': {
+                    transform: 'translate(14px, -9px) scale(0.75) !important',
+                    // pointerEvents: 'none'
+                  }
+                }}
+                label='Users'
+                placeholder='Search & Select'
               />
             )}
           />
-          <Box onClick={() => setOpenFilterDrawer(true)} sx={{ borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '40px', width: '95px', border: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
+          {/* <Box onClick={() => setOpenFilterDrawer(true)} sx={{ borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '40px', width: '95px', border: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
             <Icon icon='mage:filter' fontSize={24} />
             <Typography s={{ fontSize: '16px', fontWeight: 400, lineHeight: '24px', letterSpacing: '0.15px', color: theme.palette.customColors.OnSurfaceVariant }}>
               Filter
             </Typography>
-          </Box>
+          </Box> */}
         </Box>
       </Box>
     </Box>
