@@ -642,10 +642,22 @@ export const ANIMAL_CREATE_INCIDENT = `animal/create-incident-report`
 
 export const ANIMAL_UPDATE_INCIDENT = `animal/incident/edit`
 
-export const ANIMAL_DETAILS_IDENTIFIER_LIST = `/animal/identifier-list`
+export const ANIMAL_DETAILS_IDENTIFIER_LIST = `animal/identifier-list`
 
 export const ADD_ANIMAL_IDENTIFIER = `add/animalidentifier`
 
-export const EDIT_ANIMAL_IDENTIFIER = `/edit/animalidentifier`
+export const EDIT_ANIMAL_IDENTIFIER = `edit/animalidentifier`
 
-export const DELETE_ANIMAL_IDENTIFIER = `/delete/animalidentifier`
+export const DELETE_ANIMAL_IDENTIFIER = `delete/animalidentifier`
+
+export const GET_ANIMAL_MORTALITY = `animal/getmortalityrecords`
+
+export const EDIT_ANIMAL_MORTALITY = `v2/animal/editanimalmortality`
+
+export const REVOKE_ANIMAL_MORTALITY = `/mortality/revoke-mortality`
+
+export const MANNER_OF_DEATH = `masters/mannerofDeath`
+
+export const CARCASS_CONDITION = `masters/carcassCondition`
+
+export const CARCASS_DEPOSITION = `masters/carcassDisposition`

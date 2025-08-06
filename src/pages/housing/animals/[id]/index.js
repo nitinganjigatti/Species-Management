@@ -112,7 +112,23 @@ const AnimalDetais = () => {
     setSelectedTab(newValue)
   }
 
-  const selected = tabConfig.find(tab => tab.value === selectedTab)
+  // Switch to overview tab if currently on mortality tab but animal is alive
+  useEffect(() => {
+    if (selectedTab === 'mortality' && animalDetails.isAlive === "1") {
+      setSelectedTab('overview')
+    }
+  }, [animalDetails.isAlive, selectedTab])
+
+  // Filter tabs based on animal's alive status
+  const filteredTabConfig = tabConfig.filter(tab => {
+    if (tab.value === 'mortality') {
+      return animalDetails.isAlive === "0"
+    }
+
+    return true
+  })
+
+  const selected = filteredTabConfig.find(tab => tab.value === selectedTab)
 
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
@@ -141,7 +157,7 @@ const AnimalDetais = () => {
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-              {tabConfig.map(tab => (
+              {filteredTabConfig.map(tab => (
                 <Tab key={tab.value} label={tab.label} value={tab.value} />
               ))}
             </Tabs>

@@ -35,7 +35,13 @@ import {
   ADD_ANIMAL_IDENTIFIER,
   EDIT_ANIMAL_IDENTIFIER,
   DELETE_ANIMAL_IDENTIFIER,
-  ANIMAL_CREATE_INCIDENT
+  ANIMAL_CREATE_INCIDENT,
+  GET_ANIMAL_MORTALITY,
+  EDIT_ANIMAL_MORTALITY,
+  REVOKE_ANIMAL_MORTALITY,
+  MANNER_OF_DEATH,
+  CARCASS_CONDITION,
+  CARCASS_DEPOSITION
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -244,6 +250,42 @@ export async function editAnimalIdentifier(params) {
 
 export async function deleteAnimalIdentifier(params) {
   const response = await axiosGet({ url: `${DELETE_ANIMAL_IDENTIFIER}`, params })
+
+  return response?.data
+}
+
+export async function getAnimalMortalityReport(params) {
+  const response = await axiosGet({ url: `${GET_ANIMAL_MORTALITY}`, params })
+
+  return response?.data
+}
+
+export async function editAnimalMortalityReport(params) {
+  const response = await axiosPost({ url: `${EDIT_ANIMAL_MORTALITY}`, body: params })
+
+  return response?.data
+}
+
+export async function revokeAnimalMortality(params) {
+  const response = await axiosPost({ url: `${REVOKE_ANIMAL_MORTALITY}`, body: params })
+
+  return response?.data
+}
+
+export async function getMannerOfDeath(params) {
+  const response = await axiosGet({ url: `${MANNER_OF_DEATH}`, params })
+
+  return response?.data
+}
+
+export async function getCarcassCondition(params) {
+  const response = await axiosGet({ url: `${CARCASS_CONDITION}`, params })
+
+  return response?.data
+}
+
+export async function getCarcassDeposition(params) {
+  const response = await axiosGet({ url: `${CARCASS_DEPOSITION}`, params })
 
   return response?.data
 }

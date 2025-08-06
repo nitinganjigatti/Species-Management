@@ -1,14 +1,27 @@
 import { useTheme } from '@mui/material/styles'
 import { Typography, Box, Divider, Menu, MenuItem, IconButton, Avatar } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import AnimalMortalityEditDrawer from 'src/views/pages/housing/animals/AnimalMortalityEditDrawer'
 import RenderUtility from 'src/utility/render'
+import { useRouter } from 'next/router'
+import { getAnimalMortalityReport, getCarcassCondition, getCarcassDeposition, getMannerOfDeath, revokeAnimalMortality } from 'src/lib/api/housing'
+import Utility from 'src/utility'
+import AnimalRevokeDrawer from 'src/views/pages/housing/animals/AnimalRevokeDrawer'
 
 const AnimalMortality = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
   const [anchorEl, setAnchorEl] = useState(null)
   const [openEditMortalityDrawer, setOpenMortalityDrawer] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [mortality, setMortality] = useState({})
+  const [mannerOfDeath, setMannerOfDeath] = useState([])
+  const [carcassCondition, setCarcassCondition] = useState([])
+  const [carcassDeposition, setCarcassDeposition] = useState([])
+  const [refetch, setRefetch] = useState(false)
+  const [openRevokeDrawer, setOpenRevokeDrawer] = useState(false)
 
   // Open menu
   const handleMenuOpen = event => {
@@ -20,42 +33,119 @@ const AnimalMortality = () => {
     setAnchorEl(null)
   }
 
+  const fetchMannerOfDeath = async () => {
+    const params = {}
+    try {
+      await getMannerOfDeath(params).then(res => {
+        if (res?.is_success === true) {
+          setMannerOfDeath(res?.data.map(item => ({
+            value: item?.id,
+            label: item?.name
+          })))
+        }
+      })
+    } catch (error) {
+      console.error(error, "Cannot fetch manner of death")
+    }
+  }
+
+  const fetchCarcassCondition = async () => {
+    const params = {}
+    try {
+      await getCarcassCondition(params).then(res => {
+        if (res?.is_success === true) {
+          setCarcassCondition(res?.data?.map(item => ({
+            value: item?.id,
+            label: item?.name
+          })))
+        }
+      })
+    } catch (error) {
+      console.error(error, "Canot fetch Carcass Condition")
+    }
+  }
+
+  const fetchCarcassDeposition = async () => {
+    const params = {}
+    try {
+      await getCarcassDeposition(params).then(res => {
+        if (res?.is_success === true) {
+          setCarcassDeposition(res?.data?.map(item => ({
+            value: item?.id,
+            label: item?.name
+          })))
+        }
+      })
+    } catch (error) {
+      console.error(error, "Canot fetch Carcass Condition")
+    }
+  }
+
+  useEffect(() => {
+    fetchMannerOfDeath()
+    fetchCarcassCondition()
+    fetchCarcassDeposition()
+  }, [])
+
+  useEffect(() => {
+    const getMortalityData = async () => {
+      try {
+        setLoading(true)
+
+        const params = {
+          entity_id: id,
+          type: 'animal'
+        }
+
+        await getAnimalMortalityReport(params).then(res => {
+          if (res?.success) {
+            setMortality(res?.data[0])
+          }
+        })
+      } catch (error) {
+
+      }
+    }
+
+    getMortalityData()
+  }, [id, refetch])
+
   const mortalityData = [
     {
       label: 'Suspected Cause of Death',
-      value: 'Natural'
+      value: mortality?.manner_of_death
     },
     {
       label: 'Discovered Time and Date',
       value: (
         <>
-          03:42 PM
+          {Utility?.convertUTCToLocaltime(mortality?.discovered_date)}
           <span style={{ margin: '0 8px', color: '#aaa' }}>•</span>
-          24 Apr 2024
+          {Utility?.formatDisplayDate(mortality?.discovered_date)}
         </>
       )
     },
     {
       label: 'Carcass Condition',
-      value: 'Body was found intact with no visible injuries. Minor signs of natural decomposition were present.'
+      value: mortality?.carcass_condition
     },
     {
       label: 'Carcass Disposition',
-      value: 'Carcass was securely bagged and transferred to the veterinary facility for examination.'
+      value: mortality?.carcass_disposition
     },
     {
       label: 'Notes',
-      value:
-        'Animal had shown signs of fatigue and reduced mobility over the past few weeks. No incidents of aggression or trauma reported.'
+      value: mortality?.notes
     },
     {
       label: 'Necropsy Requested',
-      value: 'Yes'
+      value: `${mortality?.submitted_for_necropsy === "1" ? 'Yes' : 'No'
+        }`
     }
   ]
 
-  const createdBy = 'Sourav tambe'
-  const createdAt = '14 Apr 2024 | 12:35 PM'
+  const createdBy = mortality?.reported_by
+  const createdAt = `${Utility?.formatDisplayDate(mortality?.reported_on)} | ${Utility?.convertUTCToLocaltime(mortality?.reported_on)}`
 
   const handleMortalityEdit = () => {
     setOpenMortalityDrawer(true)
@@ -107,7 +197,11 @@ const AnimalMortality = () => {
               Edit
             </MenuItem>
             <MenuItem
-              sx={{ fontWeight: 500, p: 3, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
+              onClick={() => {
+                setOpenRevokeDrawer(true)
+                setAnchorEl(false)
+              }}
+              sx={{ fontWeight: 500, p: 3, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant, display: 'none' }}
             >
               Revoke
             </MenuItem>
@@ -150,7 +244,7 @@ const AnimalMortality = () => {
                 backgroundColor: theme.palette.customColors.displaybgPrimary
               }}
             >
-              <img src={''} alt='user-profile' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={mortality?.reported_by_profile_picture} alt='user-profile' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </Avatar>
             <Box>
               <Typography
@@ -175,19 +269,27 @@ const AnimalMortality = () => {
               </Typography>
             </Box>
           </Box>
-          {/* <Box>
-            {RenderUtility.renderUserAvatarDetails(
-              '',
-              createdBy,
-              createdAt,
-              theme.palette.customColors.OnSurfaceVariant,
-              '14px'
-            )}
-          </Box> */}
+
         </Box>
       </Box>
       {openEditMortalityDrawer && (
-        <AnimalMortalityEditDrawer open={openEditMortalityDrawer} setDrawerOpen={setOpenMortalityDrawer} />
+        <AnimalMortalityEditDrawer
+          open={openEditMortalityDrawer}
+          setDrawerOpen={setOpenMortalityDrawer}
+          mortalityData={mortality}
+          mannerOfDeath={mannerOfDeath}
+          carcassCondition={carcassCondition}
+          carcassDeposition={carcassDeposition}
+          refetch={refetch}
+          setRefetch={setRefetch}
+        />
+      )}
+      {openRevokeDrawer && (
+        <AnimalRevokeDrawer
+          open={openRevokeDrawer}
+          setDrawerOpen={setOpenRevokeDrawer}
+          mortalityId={mortality?.mortality_id}
+        />
       )}
     </>
   )

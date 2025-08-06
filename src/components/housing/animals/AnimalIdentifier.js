@@ -7,7 +7,7 @@ import Icon from 'src/@core/components/icon'
 import { Box, minWidth, width } from '@mui/system'
 import AddIdentifierDrawer from 'src/views/pages/housing/animals/AddIdentifierDrawer'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { deleteAnimalIdentifier, getAnimalIdentifier } from 'src/lib/api/housing'
 import Utility from 'src/utility'
@@ -19,6 +19,7 @@ import { Toaster } from 'react-hot-toast'
 const AnimalIdentifier = () => {
   const theme = useTheme()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { id } = router.query
 
   const [searchValue, setSearchValue] = useState('')
@@ -27,6 +28,7 @@ const AnimalIdentifier = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [identifierData, setIdentifierData] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [restoreLoading, setRestoreLoading] = useState(false)
   const [localIdentifierTypeData, setLocalIdentifierTypeData] = useState([])
   const [menuAnchorEl, setMenuAnchorEl] = useState(null)
   const [selectedRow, setSelectedRow] = useState(null)
@@ -153,6 +155,7 @@ const AnimalIdentifier = () => {
       width: 80,
       align: 'left',
       headerAlign: 'left',
+      sortable: false,
       renderCell: params => {
         const isPrimary = params.row.is_primary === 1 || params.row.is_primary === '1'
 
@@ -179,7 +182,7 @@ const AnimalIdentifier = () => {
       width: 140,
       field: 'created_at',
       headerName: 'Date',
-      sortable: true,
+      sortable: false,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -228,6 +231,10 @@ const AnimalIdentifier = () => {
     setSelectedItemToDelete(null)
   }
 
+  const refreshData = () => {
+    queryClient.invalidateQueries(['animal-identifier', id])
+  }
+
   const handleDelete = async (id) => {
     const params = {
       identifier_id: selectedItemToDelete?.id,
@@ -240,6 +247,9 @@ const AnimalIdentifier = () => {
           setDeleteLoading(false)
           setOpenDeleteDialog(false)
           Toaster({ type: 'success', message: res?.message })
+
+          // Refresh the data after successful deletion
+          queryClient.invalidateQueries(['animal-identifier', id])
         } else {
           Toaster({ type: 'error', message: res?.message })
           setOpenDeleteDialog(false)
@@ -251,6 +261,8 @@ const AnimalIdentifier = () => {
       setDeleteLoading(false)
     }
   }
+
+  const handleRestore = () => { }
 
   console.log(selectedItemToDelete, "itemToDelete")
 
@@ -302,6 +314,7 @@ const AnimalIdentifier = () => {
             animalId={id}
             localIdentifierTypeData={localIdentifierTypeData}
             setIdentifierData={setIdentifierData}
+            refreshData={refreshData}
           />
         )
       }
@@ -348,36 +361,57 @@ const AnimalIdentifier = () => {
         >
           View Details
         </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setAddIdentifierDrawer(true)
-            setIdentifierData(selectedRow)
-            setMenuAnchorEl(null)
-          }}
-          sx={{
-            fontWeight: 500,
-            p: 3,
-            fontSize: '16px',
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Edit Identifier
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setOpenDeleteDialog(true)
-            setSelectedItemToDelete(selectedRow)
-            setMenuAnchorEl(null)
-          }}
-          sx={{
-            fontWeight: 500,
-            p: 3,
-            fontSize: '16px',
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
-          Delete Identifier
-        </MenuItem>
+        {selectedRow?.is_deleted === '1' ? (
+
+          // Show restore option for deleted identifiers
+          <MenuItem
+            onClick={handleRestore}
+            sx={{
+              fontWeight: 500,
+              p: 3,
+              fontSize: '16px',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+            disabled={restoreLoading}
+          >
+            {restoreLoading ? 'Restoring...' : 'Restore Identifier'}
+          </MenuItem>
+        ) : (
+
+          // Show edit and delete options for active identifiers
+          <>
+            <MenuItem
+              onClick={() => {
+                setAddIdentifierDrawer(true)
+                setIdentifierData(selectedRow)
+                setMenuAnchorEl(null)
+              }}
+              sx={{
+                fontWeight: 500,
+                p: 3,
+                fontSize: '16px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Edit Identifier
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setOpenDeleteDialog(true)
+                setSelectedItemToDelete(selectedRow)
+                setMenuAnchorEl(null)
+              }}
+              sx={{
+                fontWeight: 500,
+                p: 3,
+                fontSize: '16px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              Delete Identifier
+            </MenuItem>
+          </>
+        )}
       </Menu>
 
     </Box>

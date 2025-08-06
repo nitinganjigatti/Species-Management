@@ -20,15 +20,17 @@ import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getAnimalGetconfigs } from 'src/lib/api/egg/egg/createAnimal'
-import { addAnimalIdentifier, editAnimalIdentifier } from 'src/lib/api/housing'
-import { Toaster } from 'react-hot-toast'
+import { addAnimalIdentifier, deleteAnimalIdentifier, editAnimalIdentifier } from 'src/lib/api/housing'
+
+import { QueryClient } from '@tanstack/react-query'
+import Toaster from 'src/components/Toaster'
 
 const schema = yup.object().shape({
   localIdentifierType: yup.string().required('Local Identifier Type is required'),
   localIdentifier: yup.string().required('LocalIdentifier is required')
 })
 
-const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIdentifierTypeData, setIdentifierData }) => {
+const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIdentifierTypeData, setIdentifierData, refreshData }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
 
@@ -57,7 +59,7 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
     if (identifierData) {
       setValue('localIdentifierType', identifierData.type || '')
       setValue('localIdentifier', identifierData.local_identifier_value || '')
-      setValue('makePrimary', identifierData.is_primary === 1)
+      setValue('makePrimary', identifierData.is_primary === "1")
 
       if (identifierData.images && identifierData.images.length > 0) {
         setValue('images', identifierData.images)
@@ -124,8 +126,12 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
             Toaster({ type: 'success', message: res?.message })
             setLoading(false)
             setOpen(false)
+
+            // Refresh the data after successful addition
+            if (refreshData) refreshData()
           } else {
             Toaster({ type: 'error', message: res?.message })
+            setLoading(false)
           }
         })
       } else {
@@ -138,8 +144,12 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
             setLoading(false)
             setOpen(false)
             Toaster({ type: 'success', message: res?.message })
+
+            // Refresh the data after successful edit
+            if (refreshData) refreshData()
           } else {
             Toaster({ type: 'error', message: res?.message })
+            setLoading(false)
           }
         })
       }
@@ -154,7 +164,31 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
     setOpenDeleteDialog(false)
   }
 
-  const handleDelete = () => { }
+  const handleDelete = async () => {
+    const params = {
+      identifier_id: identifierData?.id,
+      type: 'delete'
+    }
+
+    try {
+      setDeleteLoading(true)
+      await deleteAnimalIdentifier(params).then(res => {
+        if (res?.success === true) {
+          setDeleteLoading(false)
+          setOpenDeleteDialog(false)
+          setOpen(false)
+          Toaster({ type: 'success', message: res?.message })
+        } else {
+          Toaster({ type: 'error', message: res?.message })
+          setOpenDeleteDialog(false)
+          setDeleteLoading(false)
+        }
+      })
+    } catch (error) {
+      console.error(error, "Cannot delete the Identifier")
+      setDeleteLoading(false)
+    }
+  }
 
   return (
     <>
@@ -216,6 +250,7 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
                   options={localIdentifierTypeData}
                   getOptionLabel={option => option.label}
                   getOptionValue={option => option.value}
+                  disabled={identifierData !== null}
                 />
                 <ControlledTextField
                   name={'localIdentifier'}

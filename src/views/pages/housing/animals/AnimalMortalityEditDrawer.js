@@ -1,15 +1,20 @@
 import { useTheme } from '@emotion/react'
 import { Button, Card, Checkbox, CircularProgress, Drawer, IconButton, Switch, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
-import SingleDatePicker from 'src/components/SingleDatePicker'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import toast from 'react-hot-toast'
+import dayjs from 'dayjs'
+import { editAnimalMortalityReport } from 'src/lib/api/housing'
+import Toaster from 'src/components/Toaster'
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 
-const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
+const AnimalMortalityEditDrawer = ({ open, setDrawerOpen, mortalityData, mannerOfDeath, carcassCondition, carcassDeposition, refetch, setRefetch }) => {
   const theme = useTheme()
 
   const {
@@ -20,26 +25,57 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
     formState: { errors }
   } = useForm({
     defaultValues: {
-      timeOfDiscovery: '',
-      dateOfDiscovery: '',
+      timeOfDiscovery: null,
+      dateOfDiscovery: null,
       images: [],
       mannerOfDeath: '',
       carcassCondition: '',
       carcassDisposition: '',
-      necropsyNeed: '',
+      necropsyNeed: false,
       priority: '',
-      notes: ''
+      notes: '',
+      isApproximateDate: false
     }
   })
 
   const images = watch('images')
   const fileInputRef = useRef()
 
-  const [mannerOfDeath, setMannerOfDeath] = useState([])
-  const [carcassCondition, setCarcassCondition] = useState([])
-  const [carcassDeposition, setCarcassDeposition] = useState([])
+
   const [loading, setLoading] = useState(false)
   const [selectedType, setSelectedType] = useState('')
+
+  useEffect(() => {
+    if (mortalityData && Object.keys(mortalityData).length > 0) {
+      setValue('mannerOfDeath', mortalityData?.manner_of_death_id || '')
+      setValue('carcassCondition', mortalityData?.carcass_condition_id || '')
+      setValue('carcassDisposition', mortalityData?.carcass_disposition_id || '')
+      setValue('notes', mortalityData?.notes || '')
+      setValue('necropsyNeed', mortalityData?.submitted_for_necropsy === "1")
+      if (mortalityData.discovered_date) {
+        const discoveredDateTime = dayjs(mortalityData?.discovered_date)
+        setValue('dateOfDiscovery', discoveredDateTime)
+        setValue('timeOfDiscovery', discoveredDateTime)
+      }
+
+      if (mortalityData.priority) {
+        const capitalizedPriority = mortalityData?.priority.charAt(0).toUpperCase() + mortalityData?.priority.slice(1).toLowerCase()
+        setSelectedType(capitalizedPriority)
+        setValue('priority', capitalizedPriority)
+      }
+
+      setValue('isApproximateDate', mortalityData?.is_estimate === "1")
+
+      if (mortalityData?.antz_animal_mortality_media && Array.isArray(mortalityData?.antz_animal_mortality_media)) {
+        const existingImages = mortalityData?.antz_animal_mortality_media?.map(media => ({
+          id: media?.id,
+          url: media?.media_path,
+          isExisting: true
+        }))
+        setValue('images', existingImages)
+      }
+    }
+  }, [mortalityData, setValue])
 
   const handleDrawerClose = () => {
     setDrawerOpen(false)
@@ -47,6 +83,7 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
 
   const handleSelectedTypeChange = type => {
     setSelectedType(type)
+    setValue('priority', type)
   }
 
   const handleRemoveImage = index => {
@@ -73,11 +110,46 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
     })
 
     if (validFiles.length > 0) {
+      // Add new files to existing images (both existing and new)
       setValue('images', [...images, ...validFiles], { shouldValidate: true })
     }
   }
 
-  const onSubmit = async data => {}
+  const onSubmit = async data => {
+    const params = {
+      mortality_id: mortalityData?.mortality_id,
+      entity_id: mortalityData?.entity_id,
+      entity_type: mortalityData?.entity_type,
+      reason_for_death: mortalityData?.reason_for_death,
+      discovered_date: data?.dateOfDiscovery,
+      is_estimate: data?.isApproximateDate === true ? 1 : 0,
+      manner_of_death: data?.mannerOfDeath,
+      carcass_condition: data?.carcassCondition,
+      carcass_disposition: data?.carcassDeposition,
+      notes: data?.notes,
+      submitted_for_necropsy: data?.necropsyNeed === true ? 1 : 0,
+      total_animal: mortalityData?.total_animal,
+      necropsy_reason: mortalityData?.necropsy_reason,
+      priority: data?.priority?.toLowerCase(),
+      discovered_time: data?.timeOfDiscovery
+    }
+
+    try {
+      setLoading(true)
+      await editAnimalMortalityReport(params).then(res => {
+        if (res?.success === true) {
+          setDrawerOpen(false)
+          setRefetch(!refetch)
+          setLoading(false)
+          Toaster({ type: 'success', message: res?.message })
+        }
+      })
+
+    } catch (error) {
+      console.error(error, "Cannot Update Mortality Report")
+      setLoading(false)
+    }
+  }
 
   return (
     <>
@@ -100,7 +172,7 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#EFF5F2',
+            backgroundColor: '#FFFFFF',
             px: '1.2rem',
             py: '1rem'
           }}
@@ -135,11 +207,31 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
                     Date and Time of Discovery
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 4 }}>
-                    <SingleDatePicker />
-                    <SingleDatePicker />
+                    <ControlledDatePicker
+                      name="dateOfDiscovery"
+                      control={control}
+                      label="Date of Discovery"
+                      required={true}
+                    />
+                    <ControlledTimePicker
+                      name="timeOfDiscovery"
+                      control={control}
+                      label="Time of Discovery"
+                      required={true}
+                    />
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '2.5px' }}>
-                    <Checkbox />
+                    <Controller
+                      name="isApproximateDate"
+                      control={control}
+                      defaultValue={false}
+                      render={({ field }) => (
+                        <Checkbox
+                          checked={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
                       Mark this Date as Approximate
                     </Typography>
@@ -213,7 +305,16 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
                   }}
                 >
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Necropsy Need</Typography>
-                  <Switch />
+                  <Controller
+                    name="necropsyNeed"
+                    control={control}
+                    render={({ field }) => (
+                      <Switch
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
                 </Box>
               </Card>
               <Card
@@ -262,9 +363,7 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
                         width: 20,
                         height: 20,
                         borderRadius: '50%',
-                        border: `2px solid ${
-                          selectedType === 'Low' ? theme.palette.primary.main : theme.palette.divider
-                        }`,
+                        border: `2px solid ${selectedType === 'Low' ? theme.palette.primary.main : theme.palette.divider}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -318,9 +417,7 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
                         width: 20,
                         height: 20,
                         borderRadius: '50%',
-                        border: `2px solid ${
-                          selectedType === 'High' ? theme.palette.primary.main : theme.palette.divider
-                        }`,
+                        border: `2px solid ${selectedType === 'High' ? theme.palette.primary.main : theme.palette.divider}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -352,16 +449,25 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
                   mt: 6
                 }}
               >
-                <ControlledTextField name={'notes'} control={control} label={'Enter Notes'} />
+                <ControlledTextArea name={'notes'} control={control} label={'Enter Notes'} />
                 <Box>
                   {images.length > 0 && (
                     <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                       {images.map((img, index) => {
-                        const previewUrl = typeof img === 'string' ? img : URL.createObjectURL(img)
+                        let previewUrl
+                        if (img?.url) {
+                          previewUrl = img.url
+                        } else if (typeof img === 'string') {
+                          previewUrl = img
+                        } else if (img instanceof File) {
+                          previewUrl = URL.createObjectURL(img)
+                        } else {
+                          previewUrl = ''
+                        }
 
                         return (
                           <Box
-                            key={index}
+                            key={img?.id || index}
                             sx={{
                               position: 'relative',
                               width: 100,
@@ -375,7 +481,7 @@ const AnimalMortalityEditDrawer = ({ open, setDrawerOpen }) => {
                           >
                             <img
                               src={previewUrl}
-                              alt={`Cluster ${index}`}
+                              alt={`Mortality Image ${index}`}
                               style={{
                                 width: 80,
                                 height: 80,
