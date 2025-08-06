@@ -663,3 +663,5 @@ export const CARCASS_CONDITION = `masters/carcassCondition`
 export const CARCASS_DEPOSITION = `masters/carcassDisposition`
 
 export const ANIMAL_DIET_LIST = `diet/get-species-detail`
+
+export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`

@@ -296,3 +296,11 @@ export async function getAnimalDietList(animalId, params) {
 
   return response?.data
 }
+
+export async function getAnimalJournalLogs(params) {
+  const response = await axiosGet({ url: `${ANIMAL_DIET_LIST}`, params })
+
+  return response?.data
+}
+
+
