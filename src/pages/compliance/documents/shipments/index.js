@@ -16,6 +16,7 @@ import Utility from 'src/utility'
 import { useTheme } from '@mui/material/styles'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
+import { format, subMonths } from 'date-fns'
 
 const ShipmentPage = () => {
   const router = useRouter()
@@ -26,7 +27,11 @@ const ShipmentPage = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [selectedId, setSelectedId] = useState(null)
   const [sortModel, setSortModel] = useState([])
-  const [filterDate, setFilterDate] = useState({})
+
+  const [filterDate, setFilterDate] = useState({
+    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+    endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  })
 
   // Filter states
   const [filterCount, setFilterCount] = useState(0)

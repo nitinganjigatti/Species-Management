@@ -15,6 +15,7 @@ import { useTheme } from '@mui/material/styles'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
+import { format, subMonths } from 'date-fns'
 
 const CitesExportPermitIndex = () => {
   const router = useRouter()
@@ -26,7 +27,11 @@ const CitesExportPermitIndex = () => {
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [sortModel, setSortModel] = useState([])
-  const [filterDate, setFilterDate] = useState({})
+
+  const [filterDate, setFilterDate] = useState({
+    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+    endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  })
 
   // Filter states
   const [filterCount, setFilterCount] = useState(0)
