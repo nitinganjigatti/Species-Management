@@ -339,6 +339,7 @@ const AnimalIncidents = () => {
         }
       }
     })
+
     return (
       <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
         <Drawer

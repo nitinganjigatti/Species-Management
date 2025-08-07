@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, IconButton, Menu, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
+import { Avatar, Button, Card, CircularProgress, IconButton, Menu, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
@@ -6,20 +6,19 @@ import StickyTable from 'src/views/table/sticky-table'
 import Icon from 'src/@core/components/icon'
 import { Box, minWidth, width } from '@mui/system'
 import AddIdentifierDrawer from 'src/views/pages/housing/animals/AddIdentifierDrawer'
-import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { deleteAnimalIdentifier, getAnimalIdentifier } from 'src/lib/api/housing'
 import Utility from 'src/utility'
 import Search from 'src/views/utility/Search'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getAnimalGetconfigs } from 'src/lib/api/egg/egg/createAnimal'
-import { Toaster } from 'react-hot-toast'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import Toaster from 'src/components/Toaster'
 
 const AnimalIdentifier = () => {
   const theme = useTheme()
   const router = useRouter()
-  const queryClient = useQueryClient()
   const { id } = router.query
 
   const [searchValue, setSearchValue] = useState('')
@@ -53,7 +52,7 @@ const AnimalIdentifier = () => {
     getLocalIdentifierTypeData()
   }, [])
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['animal-identifier', id],
     queryFn: () => getAnimalIdentifier({
       animal_id: id
@@ -71,9 +70,9 @@ const AnimalIdentifier = () => {
   const columns = [
     {
       field: 'sl',
-      headerName: 'NO',
+      headerName: 'SL NO',
       minWidth: 50,
-      width: 50,
+      width: 100,
       align: 'center',
       headerAlign: 'center',
       sortable: false,
@@ -93,11 +92,11 @@ const AnimalIdentifier = () => {
     {
       field: 'identifier_type',
       headerName: 'LOCAL IDENTIFIER TYPE',
-      width: 150,
+      width: 250,
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Avatar
+          {/* <Avatar
             variant='rounded'
             sx={{
               width: 40,
@@ -107,7 +106,7 @@ const AnimalIdentifier = () => {
             }}
           >
             <Icon icon='mdi:tag-outline' />
-          </Avatar>
+          </Avatar> */}
           <Tooltip title={params.row.local_identifier_name}>
             <Typography
               sx={{
@@ -129,7 +128,7 @@ const AnimalIdentifier = () => {
     {
       field: 'identifier',
       headerName: 'LOCAL IDENTIFIER',
-      width: 150,
+      width: 200,
       sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.identifier}>
@@ -152,7 +151,7 @@ const AnimalIdentifier = () => {
     {
       field: 'is_primary',
       headerName: 'PRIMARY',
-      width: 80,
+      width: 200,
       align: 'left',
       headerAlign: 'left',
       sortable: false,
@@ -179,9 +178,9 @@ const AnimalIdentifier = () => {
     },
     {
       minWidth: 20,
-      width: 140,
+      width: 160,
       field: 'created_at',
-      headerName: 'Date',
+      headerName: 'Created Date',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -198,11 +197,33 @@ const AnimalIdentifier = () => {
       )
     },
     {
-      field: 'actions',
-      headerName: '',
       minWidth: 20,
-      width: 80,
+      width: 160,
+      field: 'modified_at',
+      headerName: 'Updated Date',
       sortable: false,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.modified_at)}
+        </Typography>
+      )
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      headerAlign: 'right',
+      minWidth: 20,
+      width: 140,
+      sortable: false,
+      align: 'right',
       renderCell: params => (
         <>
           <IconButton
@@ -231,10 +252,6 @@ const AnimalIdentifier = () => {
     setSelectedItemToDelete(null)
   }
 
-  const refreshData = () => {
-    queryClient.invalidateQueries(['animal-identifier', id])
-  }
-
   const handleDelete = async (id) => {
     const params = {
       identifier_id: selectedItemToDelete?.id,
@@ -247,9 +264,7 @@ const AnimalIdentifier = () => {
           setDeleteLoading(false)
           setOpenDeleteDialog(false)
           Toaster({ type: 'success', message: res?.message })
-
-          // Refresh the data after successful deletion
-          queryClient.invalidateQueries(['animal-identifier', id])
+          refetch()
         } else {
           Toaster({ type: 'error', message: res?.message })
           setOpenDeleteDialog(false)
@@ -262,9 +277,39 @@ const AnimalIdentifier = () => {
     }
   }
 
-  const handleRestore = () => { }
+  const handleRestore = async (selectedRow) => {
 
-  console.log(selectedItemToDelete, "itemToDelete")
+    const params = {
+      identifier_id: selectedRow?.id,
+      type: 'restore'
+    }
+    try {
+      setRestoreLoading(true)
+      await deleteAnimalIdentifier(params).then(res => {
+        if (res?.success === true) {
+          Toaster({ type: 'success', message: res?.message })
+          setRestoreLoading(false)
+          setMenuAnchorEl(false)
+          refetch()
+        } else {
+          Toaster({ type: 'error', message: res?.message })
+        }
+      })
+    } catch (error) {
+      console.error(error, "Cannot resore the Identifier")
+      setRestoreLoading(false)
+      setMenuAnchorEl(false)
+    }
+
+  }
+
+  const getRowClassName = (params) => {
+    if (params.row.is_deleted === '1') {
+      return 'deleted-row'
+    }
+
+    return ''
+  }
 
   return (
     <Box sx={{ py: '24px' }}>
@@ -277,7 +322,7 @@ const AnimalIdentifier = () => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          Local Identifiers {`(${data?.data?.length})`}
+          Local Identifiers {data?.data?.length ? `(${data?.data?.length})` : ''}
         </Typography>
         <Box sx={{ display: 'flex', columnGap: '8px', rowGap: '12px', flexWrap: 'wrap' }}>
           <Box sx={{ display: 'none' }}>
@@ -289,7 +334,7 @@ const AnimalIdentifier = () => {
         </Box>
       </Box>
       <Box>
-        <StickyTable
+        {/* <StickyTable
           rows={indexedRows}
           pageSizeOptions={[5, 10, 25, 50]}
           rowsInView={10}
@@ -303,6 +348,27 @@ const AnimalIdentifier = () => {
           downloadExcel
           searchMode='server'
           disableColumnSorting={true}
+        /> */}
+        <CommonTable
+          indexedRows={indexedRows}
+          columns={columns}
+          loading={isLoading}
+          getRowClassName={getRowClassName}
+          total={indexedRows?.length}
+          externalTableStyle={{
+            '& .deleted-row': {
+              backgroundColor: '#ffebee',
+              '&:hover': {
+                backgroundColor: '#ffcdd2 !important',
+              },
+            },
+            '& .primary-row': {
+              backgroundColor: '#e3f2fd',
+              '&:hover': {
+                backgroundColor: '#bbdefb !important',
+              },
+            }
+          }}
         />
       </Box>
       {
@@ -314,7 +380,7 @@ const AnimalIdentifier = () => {
             animalId={id}
             localIdentifierTypeData={localIdentifierTypeData}
             setIdentifierData={setIdentifierData}
-            refreshData={refreshData}
+            refetch={refetch}
           />
         )
       }
@@ -362,10 +428,8 @@ const AnimalIdentifier = () => {
           View Details
         </MenuItem>
         {selectedRow?.is_deleted === '1' ? (
-
-          // Show restore option for deleted identifiers
           <MenuItem
-            onClick={handleRestore}
+            onClick={() => handleRestore(selectedRow)}
             sx={{
               fontWeight: 500,
               p: 3,
@@ -374,7 +438,17 @@ const AnimalIdentifier = () => {
             }}
             disabled={restoreLoading}
           >
-            {restoreLoading ? 'Restoring...' : 'Restore Identifier'}
+            {restoreLoading ? (
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                minHeight: '24px'
+              }}>
+                <CircularProgress size={24} sx={{ color: theme.palette.primary.main }} />
+              </Box>
+            ) : 'Restore Identifier'}
           </MenuItem>
         ) : (
 

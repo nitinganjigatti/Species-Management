@@ -30,7 +30,7 @@ const schema = yup.object().shape({
   localIdentifier: yup.string().required('LocalIdentifier is required')
 })
 
-const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIdentifierTypeData, setIdentifierData, refreshData }) => {
+const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIdentifierTypeData, setIdentifierData, refetch }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
 
@@ -126,9 +126,7 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
             Toaster({ type: 'success', message: res?.message })
             setLoading(false)
             setOpen(false)
-
-            // Refresh the data after successful addition
-            if (refreshData) refreshData()
+            refetch()
           } else {
             Toaster({ type: 'error', message: res?.message })
             setLoading(false)
@@ -144,9 +142,7 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
             setLoading(false)
             setOpen(false)
             Toaster({ type: 'success', message: res?.message })
-
-            // Refresh the data after successful edit
-            if (refreshData) refreshData()
+            refetch()
           } else {
             Toaster({ type: 'error', message: res?.message })
             setLoading(false)
@@ -178,6 +174,7 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
           setOpenDeleteDialog(false)
           setOpen(false)
           Toaster({ type: 'success', message: res?.message })
+          refetch()
         } else {
           Toaster({ type: 'error', message: res?.message })
           setOpenDeleteDialog(false)

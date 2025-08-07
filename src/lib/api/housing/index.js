@@ -42,7 +42,9 @@ import {
   MANNER_OF_DEATH,
   CARCASS_CONDITION,
   CARCASS_DEPOSITION,
-  ANIMAL_DIET_LIST
+  ANIMAL_DIET_LIST,
+  ANIMAL_HISTORY,
+  ANIMAL_MEDIA
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -304,3 +306,15 @@ export async function getAnimalJournalLogs(params) {
 }
 
 
+
+export async function getAnimalMedia(params) {
+  const response = await axiosGet({ url: `${ANIMAL_MEDIA}`, params })
+
+  return response?.data
+}
+
+export async function getAnimalHistory(params) {
+  const response = await axiosGet({ url: `${ANIMAL_HISTORY}`, params })
+
+  return response?.data
+}

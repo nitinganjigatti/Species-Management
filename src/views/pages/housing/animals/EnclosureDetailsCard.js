@@ -11,7 +11,7 @@ const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
   const info = [
     {
       icon: <img src='/images/housing/enclosure-icon-colored.svg' alt='Cluster Icon' width='40px' />,
-      label: 'Enclosure ID',
+      label: 'Enclosure Name',
       value: `${enclosureData?.enclusreId}`
     },
     {

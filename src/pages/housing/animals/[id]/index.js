@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
+import { Breadcrumbs, Card, Tab, Tabs, Typography, Skeleton } from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
@@ -88,7 +88,8 @@ const AnimalDetais = () => {
             ownershipTerm: ad?.ownership_terms_label,
             localIdentifier: ad?.local_identifier_value,
             isAlive: ad?.is_alive,
-            identifierName: ad?.local_identifier_name
+            identifierName: ad?.local_identifier_name,
+            isGrouped: Number(ad?.total_animal) > 1 ? true : false
           })
           setEnclosureDetails({
             enclusreId: ed?.user_enclosure_name,
@@ -137,6 +138,78 @@ const AnimalDetais = () => {
     setQrDialogOpen(true)
   }
 
+  // Skeleton component for tabs
+  const TabsSkeleton = () => (
+    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Box sx={{ display: 'flex', gap: 2, p: 2 }}>
+        {[1, 2, 3, 4, 5, 6].map((item) => (
+          <Skeleton key={item} variant="rectangular" width={80} height={36} sx={{ borderRadius: 1 }} />
+        ))}
+      </Box>
+    </Box>
+  )
+
+  // Skeleton component for overview content (AnimalDetails + EnclosureDetails)
+  const OverviewSkeleton = () => (
+    <Box sx={{ p: 4 }}>
+      {/* Animal Details Section */}
+      <Card sx={{ p: 4, mb: 4 }}>
+        <Skeleton variant="text" width={180} height={28} sx={{ mb: 3 }} />
+
+        {/* Animal details grid */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
+          {/* Left column */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Skeleton variant="text" width={120} height={20} />
+                <Skeleton variant="text" width={100} height={20} />
+              </Box>
+            ))}
+          </Box>
+
+          {/* Right column */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Skeleton variant="text" width={120} height={20} />
+                <Skeleton variant="text" width={100} height={20} />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Card>
+
+      {/* Enclosure Details Section */}
+      <Card sx={{ p: 4 }}>
+        <Skeleton variant="text" width={200} height={28} sx={{ mb: 3 }} />
+
+        {/* Enclosure details grid */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
+          {/* Left column */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {[1, 2, 3].map((item) => (
+              <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Skeleton variant="text" width={140} height={20} />
+                <Skeleton variant="text" width={120} height={20} />
+              </Box>
+            ))}
+          </Box>
+
+          {/* Right column */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {[1, 2, 3].map((item) => (
+              <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Skeleton variant="text" width={140} height={20} />
+                <Skeleton variant="text" width={120} height={20} />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Card>
+    </Box>
+  )
+
   return (
     <>
       <Box>
@@ -156,22 +229,33 @@ const AnimalDetais = () => {
           loading={loading}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-              {filteredTabConfig.map(tab => (
-                <Tab key={tab.value} label={tab.label} value={tab.value} />
-              ))}
-            </Tabs>
-          </Box>
-          {/* Selected Tab Content */}
-          <Box>
-            <SelectedComponent
-              selectedTab={selectedTab}
-              setSelectedTab={setSelectedTab}
-              animalDetails={animalDetails}
-              enclosureDetails={enclosureDetails}
-            />
-          </Box>
+          {loading ? (
+            <>
+              {/* Show skeleton for tabs */}
+              <TabsSkeleton />
+              {/* Show skeleton for content */}
+              <OverviewSkeleton />
+            </>
+          ) : (
+            <>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
+                  {filteredTabConfig.map(tab => (
+                    <Tab key={tab.value} label={tab.label} value={tab.value} />
+                  ))}
+                </Tabs>
+              </Box>
+              {/* Selected Tab Content */}
+              <Box>
+                <SelectedComponent
+                  selectedTab={selectedTab}
+                  setSelectedTab={setSelectedTab}
+                  animalDetails={animalDetails}
+                  enclosureDetails={enclosureDetails}
+                />
+              </Box>
+            </>
+          )}
         </Card>
       </Box>
       {qrDialogOpen && (

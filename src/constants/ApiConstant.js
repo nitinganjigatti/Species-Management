@@ -665,3 +665,7 @@ export const CARCASS_DEPOSITION = `masters/carcassDisposition`
 export const ANIMAL_DIET_LIST = `diet/get-species-detail`
 
 export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
+
+export const ANIMAL_HISTORY = `animal-log-history`
+
+export const ANIMAL_MEDIA = `animal/media-list`
