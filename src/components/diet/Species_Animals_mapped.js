@@ -9,8 +9,7 @@ import {
   TextField,
   CardContent,
   CircularProgress,
-  Tab,
-  Avatar
+  Tab
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -18,6 +17,7 @@ import Icon from 'src/@core/components/icon'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import Utility from 'src/utility'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import RenderUtility from 'src/utility/render'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const SpeciesAnimalsMapped = ({
@@ -452,50 +452,21 @@ const SpeciesAnimalsMapped = ({
                         >
                           {' '}
                           <SpeciesCard species={species} />
-                          {speciesview === 'details' ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '11%', mt: '3px' }}>
-                              <Avatar
-                                variant='square'
-                                alt='Medicine Image'
-                                sx={{
-                                  width: 25,
-                                  height: 25,
-                                  mr: 4,
-                                  borderRadius: '50%',
-                                  background: theme.palette.customColors.tableHeaderBg,
-                                  overflow: 'hidden'
-                                }}
-                              >
-                                {species?.profile_pic ? (
-                                  <img
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    src={species?.profile_pic}
-                                    alt='Profile'
-                                  />
-                                ) : (
-                                  <Icon icon='mdi:user' />
-                                )}
-                              </Avatar>
-                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                <Typography
-                                  noWrap
-                                  variant='body2'
-                                  sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
-                                >
-                                  {species?.user_details?.created_by}
-                                </Typography>
-                                <Typography
-                                  noWrap
-                                  variant='body2'
-                                  sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
-                                >
-                                  {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          ) : (
-                            ''
-                          )}
+                          <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '11%', mt: '3px' }}>
+                            {speciesview === 'details'
+                              ? species.user_details
+                                ? RenderUtility.renderUserAvatarDetails(
+                                    species.user_details.created_by_profile_image,
+                                    species.user_details.created_by,
+                                    species?.user_details?.created_at,
+                                    theme.palette.customColors.OnSurfaceVariant,
+                                    '14px',
+                                    '',
+                                    true
+                                  )
+                                : null
+                              : ''}
+                          </Box>
                         </Box>
                       ))
                     ) : (
@@ -748,50 +719,21 @@ const SpeciesAnimalsMapped = ({
                         >
                           {' '}
                           <AnimalCard data={species} size='16px' />
-                          {speciesview === 'details' ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '13%', mt: '3px' }}>
-                              <Avatar
-                                variant='square'
-                                alt='Medicine Image'
-                                sx={{
-                                  width: 25,
-                                  height: 25,
-                                  mr: 4,
-                                  borderRadius: '50%',
-                                  background: theme.palette.customColors.tableHeaderBg,
-                                  overflow: 'hidden'
-                                }}
-                              >
-                                {species?.profile_pic ? (
-                                  <img
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    src={species?.profile_pic}
-                                    alt='Profile'
-                                  />
-                                ) : (
-                                  <Icon icon='mdi:user' />
-                                )}
-                              </Avatar>
-                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                <Typography
-                                  noWrap
-                                  variant='body2'
-                                  sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
-                                >
-                                  {species?.user_details?.created_by}
-                                </Typography>
-                                <Typography
-                                  noWrap
-                                  variant='body2'
-                                  sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
-                                >
-                                  {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          ) : (
-                            ''
-                          )}
+                          <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '11%', mt: '3px' }}>
+                            {speciesview === 'details'
+                              ? species.user_details
+                                ? RenderUtility.renderUserAvatarDetails(
+                                    species.user_details.created_by_profile_image,
+                                    species.user_details.created_by,
+                                    species?.user_details?.created_at,
+                                    theme.palette.customColors.OnSurfaceVariant,
+                                    '14px',
+                                    '',
+                                    true
+                                  )
+                                : null
+                              : ''}
+                          </Box>
                         </Box>
                       ))
                     ) : (

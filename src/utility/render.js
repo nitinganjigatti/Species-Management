@@ -57,7 +57,7 @@ export const pageTitle = title => (
   </Box>
 )
 
-export function renderUserAvatarDetails(image, userName, date, textColor, fontSize, description) {
+export function renderUserAvatarDetails(image, userName, date, textColor, fontSize, description, showTime = false) {
   return (
     <>
       {userName ? (
@@ -101,7 +101,7 @@ export function renderUserAvatarDetails(image, userName, date, textColor, fontSi
             )}
 
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {date ? Utility?.formatDisplayDate(date) : ''}
+              {date ? (showTime ? Utility.convertUTCToLocalDateTime(date) : Utility?.formatDisplayDate(date)) : ''}
             </Typography>
           </Box>
         </Box>
