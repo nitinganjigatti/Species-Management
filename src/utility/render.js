@@ -57,15 +57,33 @@ export const pageTitle = title => (
   </Box>
 )
 
-export function renderUserAvatarDetails(image, userName, date, textColor, fontSize, description, showTime = false) {
+export function renderUserAvatarDetails(
+  image,
+  userName,
+  date,
+  textColor,
+  fontSize,
+  description,
+  showTime = false,
+  avatarSize = 'medium'
+) {
+  const avatarSizes = {
+    small: { width: '24px', height: '24px' },
+    medium: { width: '32px', height: '32px' },
+    large: { width: '40px', height: '40px' }
+  }
+  const selectedAvatarSize = avatarSizes[avatarSize] || avatarSizes['medium']
+
   return (
     <>
       {userName ? (
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'default' }}>
           {image ? (
-            <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
+            <CustomAvatar src={image} sx={{ mr: avatarSize === 'small' ? '8px' : '16px', ...selectedAvatarSize }} />
           ) : (
-            <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+            <CustomAvatar
+              sx={{ mr: avatarSize === 'small' ? '8px' : '16px', fontSize: '.8rem', ...selectedAvatarSize }}
+            ></CustomAvatar>
           )}
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             {userName && (

@@ -462,7 +462,8 @@ const SpeciesAnimalsMapped = ({
                                     theme.palette.customColors.OnSurfaceVariant,
                                     '14px',
                                     '',
-                                    true
+                                    true,
+                                    'medium'
                                   )
                                 : null
                               : ''}
@@ -719,7 +720,7 @@ const SpeciesAnimalsMapped = ({
                         >
                           {' '}
                           <AnimalCard data={species} size='16px' />
-                          <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '11%', mt: '3px' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '14%', mt: '3px' }}>
                             {speciesview === 'details'
                               ? species.user_details
                                 ? RenderUtility.renderUserAvatarDetails(
@@ -729,7 +730,8 @@ const SpeciesAnimalsMapped = ({
                                     theme.palette.customColors.OnSurfaceVariant,
                                     '14px',
                                     '',
-                                    true
+                                    true,
+                                    'medium'
                                   )
                                 : null
                               : ''}
