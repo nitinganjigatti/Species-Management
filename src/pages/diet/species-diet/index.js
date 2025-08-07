@@ -196,7 +196,7 @@ const SpeciesDietList = () => {
         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar
             variant='rounded'
-            alt='Medicine Image'
+            alt='Species Image'
             sx={{
               width: 40,
               height: 40,
@@ -645,7 +645,7 @@ const SpeciesDietList = () => {
                 </Typography>
                 <Avatar
                   variant='square'
-                  alt='Medicine Image'
+                  alt='Specie Image'
                   sx={{ width: 20, height: 20, background: 'transparent', overflow: 'hidden' }}
                 >
                   <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.svg'} alt='Profile' />

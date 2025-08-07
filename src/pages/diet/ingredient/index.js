@@ -263,7 +263,7 @@ const IngredientsList = () => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
-            alt='Medicine Image'
+            alt='Ingredient Image'
             sx={{
               width: 40,
               height: 40,
@@ -373,7 +373,7 @@ const IngredientsList = () => {
           {/* {renderClient(params)} */}
           <Avatar
             variant='square'
-            alt='Medicine Image'
+            alt='Ingredient Image'
             sx={{
               width: 30,
               height: 30,

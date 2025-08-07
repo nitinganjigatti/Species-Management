@@ -98,7 +98,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
         >
           <Avatar
             variant='square'
-            alt='Medicine Image'
+            alt='Ingredient Image'
             sx={{
               width: 40,
               height: 40,

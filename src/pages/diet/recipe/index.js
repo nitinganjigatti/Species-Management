@@ -297,7 +297,7 @@ const RecipeList = () => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
-            alt='Medicine Image'
+            alt='Recipe Image'
             sx={{
               width: 30,
               height: 30,
