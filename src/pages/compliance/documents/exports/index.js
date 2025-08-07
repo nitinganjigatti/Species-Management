@@ -1,33 +1,25 @@
-import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react'
-import { Card, CardHeader, Grid, Box, Breadcrumbs, Typography, IconButton, Tooltip } from '@mui/material'
-
-// import { AddButton } from 'src/components/Buttons'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { Card, CardHeader, Grid, Box, Breadcrumbs, Typography, Tooltip, Button, Badge } from '@mui/material'
 import Search from 'src/views/utility/Search'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-
-// import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-// import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { debounce } from 'lodash'
-import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
-import { useForm } from 'react-hook-form'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import { useRouter } from 'next/router'
-import { getExportCountries, getSpecies, getExportList } from 'src/lib/api/compliance/exports'
-import Icon from 'src/@core/components/icon'
+import { getExportList } from 'src/lib/api/compliance/exports'
 import Utility from 'src/utility'
 import countryList from 'react-select-country-list'
-import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import RenderUtility from 'src/utility/render'
 import { useTheme } from '@mui/material/styles'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
+import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
+import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
 
 const CitesExportPermitIndex = () => {
-  const { userData } = useContext(AuthContext)
   const router = useRouter()
-  const canEdit = userData?.roles?.settings?.cites_export_permit_module === 'EDIT' || true
 
+  // Table and main data states
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -35,44 +27,33 @@ const CitesExportPermitIndex = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [sortModel, setSortModel] = useState([])
   const [filterDate, setFilterDate] = useState({})
-  const [countryOptions, setCountryOptions] = useState([])
-  const [statusOptions, setStatusOptions] = useState([])
-  const [selectedExportingCountry, setSelectedExportingCountry] = useState(null)
 
-  const theme = useTheme()
+  // Filter states
+  const [filterCount, setFilterCount] = useState(0)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
-  const { control, watch } = useForm({
-    defaultValues: {
-      exportingCountry: null,
-      countryOfOrigin: null,
-      status: null
-    }
+  const [selectedOptions, setSelectedOptions] = useState({
+    Species: [],
+    'Exporting country': [],
+    Exporter: [],
+    Importer: [],
+    Documents: []
   })
 
-  const selectedCountryOfOrigin = watch('countryOfOrigin')
-  const selectedStatus = watch('status')
-
+  const theme = useTheme()
   const countryListOptions = useMemo(() => countryList().getData(), [])
-
-  const fetchStatuses = async () => {
-    try {
-      const res = await getSpecies()
-      if (res.success) setStatusOptions(res.data)
-    } catch (error) {
-      console.error('Error fetching statuses:', error)
-    }
-  }
 
   const fetchExportPermits = useCallback(async () => {
     setLoading(true)
     try {
-      // Format dates to YYYY-MM-DD if they exist
       const formatDate = dateString => {
-        if (!dateString) {
-          return null
-        }
+        if (!dateString) return null
 
         return new Date(dateString).toISOString().split('T')[0]
+      }
+
+      const prepareFilterParams = key => {
+        return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
       }
 
       const params = {
@@ -83,11 +64,13 @@ const CitesExportPermitIndex = () => {
         sortBy: sortModel?.[0]?.field,
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
-        exporting_country: selectedExportingCountry?.value
-
-        // country_of_origin: selectedCountryOfOrigin?.value,
-        // status: selectedStatus?.value
+        species: prepareFilterParams('Species'),
+        exporting_country: prepareFilterParams('Exporting country'),
+        exporter: prepareFilterParams('Exporter'),
+        importer: prepareFilterParams('Importer'),
+        missing_docs: prepareFilterParams('Documents')
       }
+
       const res = await getExportList(params)
       const start = paginationModel.page * paginationModel.pageSize
       setRows(
@@ -111,31 +94,35 @@ const CitesExportPermitIndex = () => {
       Toaster({ type: 'error', message: 'Failed to fetch export permits' })
     }
     setLoading(false)
-  }, [
-    searchValue,
-    paginationModel,
-    sortModel,
-    filterDate,
-    selectedExportingCountry,
-    selectedCountryOfOrigin,
-    selectedStatus
-  ])
+  }, [searchValue, paginationModel, sortModel, filterDate, selectedOptions])
 
   useEffect(() => {
     fetchExportPermits()
   }, [fetchExportPermits])
 
-  const debouncedSearch = useCallback(
+  // Apply filters
+  const applyFilters = selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setOpenFilterDrawer(false)
+  }
+
+  // Main search handler
+  const debouncedMainSearch = useCallback(
     debounce(val => {
       setSearchValue(val)
     }, 500),
     []
   )
 
-  const handleSearch = val => {
-    debouncedSearch(val)
+  const handleMainSearch = val => {
+    debouncedMainSearch(val)
   }
 
+  const handleFilterDrawerOpen = async () => {
+    setOpenFilterDrawer(true)
+  }
+
+  // Columns definition (same as before)
   const columns = [
     {
       flex: 0.12,
@@ -297,43 +284,6 @@ const CitesExportPermitIndex = () => {
     }
   ]
 
-  // {
-  //   flex: 0.1,
-  //   minWidth: 120,
-  //   field: 'actions',
-  //   headerName: 'ACTIONS',
-  //   sortable: false,
-  //   renderCell: params => (
-  //     <Box
-  //       sx={{
-  //         display: 'flex',
-  //         justifyContent: 'center',
-  //         px: 2,
-  //         width: '100%'
-  //       }}
-  //     >
-  //       {canEdit && (
-  //         <IconButton
-  //           size='small'
-  //           onClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${params.row.id}`)}
-  //           aria-label='Edit'
-  //           sx={{ mx: 0.5 }}
-  //         >
-  //           <Icon icon='mdi:pencil-outline' />
-  //         </IconButton>
-  //       )}
-  //       <IconButton
-  //         size='small'
-  //         onClick={() => router.push(`/compliance/documents/exports/AddEditExportPermit?id=${params.row.id}`)}
-  //         aria-label='View'
-  //         sx={{ mx: 0.5 }}
-  //       >
-  //         <Icon icon='mdi:eye-outline' />
-  //       </IconButton>
-  //     </Box>
-  //   )
-  // }
-
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
@@ -353,67 +303,56 @@ const CitesExportPermitIndex = () => {
         />
 
         <Grid container columnSpacing={4} rowSpacing={1} sx={{ px: 5, pt: 2 }} alignItems='center'>
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              gap: 4,
+              flexWrap: 'wrap'
+            }}
+          >
             <Search
               placeholder='Search exports...'
-              onChange={e => handleSearch(e.target.value)}
-              onClear={() => handleSearch('')}
+              onChange={e => handleMainSearch(e.target.value)}
+              onClear={() => handleMainSearch('')}
             />
-          </Grid>
-          <Grid size={{ xs: 12, md: 1 }}></Grid>
-
-          <Grid size={{ xs: 12, md: 4.5 }}>
-            <CommonDateRangePickers
-              filterDates={filterDate}
-              onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 2.5 }}>
-            <ControlledAutocomplete
-              name='exportingCountry'
-              label='Exporting Country'
-              control={control}
-              errors={{}}
-              options={countryListOptions}
-              onChangeOverride={value => {
-                if (value) setSelectedExportingCountry(value)
-                else setSelectedExportingCountry(null)
-              }}
-              getOptionLabel={o => o.label}
-              isOptionEqualToValue={(o, v) => o.value === v.value}
-              textFieldProps={{
-                size: 'small',
-                InputProps: {
-                  sx: { fontSize: '0.875rem', height: 40 }
-                },
-                InputLabelProps: {
-                  sx: { fontSize: '0.875rem' }
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+              <Box>
+                <CommonDateRangePickers
+                  filterDates={filterDate}
+                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                />
+              </Box>
+              <Button
+                variant='outlined'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  borderColor: theme.palette.customColors.OutlineVariant,
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+                startIcon={
+                  <TuneRoundedIcon
+                    sx={{ height: '24px', width: '24px' }}
+                    color={theme.palette.customColors.OnSurfaceVariant}
+                  />
                 }
-              }}
-            />
-          </Grid>
-
-          {/* <Grid size={{ xs: 12, md: 2.5 }}>
-            <ControlledAutocomplete
-              name='countryOfOrigin'
-              label='Country of Origin'
-              control={control}
-              errors={{}}
-              options={countryOptions}
-              getOptionLabel={o => o.label}
-              isOptionEqualToValue={(o, v) => o.value === v.value}
-              textFieldProps={{
-                size: 'small',
-                InputProps: {
-                  sx: { fontSize: '0.875rem', height: 40 }
-                },
-                InputLabelProps: {
-                  sx: { fontSize: '0.875rem' }
+                endIcon={
+                  <Badge
+                    badgeContent={filterCount}
+                    color='primary'
+                    invisible={filterCount === 0}
+                    sx={{ ml: 2, mr: 2 }}
+                  />
                 }
-              }}
-            />
-          </Grid> */}
+                onClick={handleFilterDrawerOpen}
+              >
+                Filter
+              </Button>
+            </Box>
+          </Box>
 
           <Grid size={{ xs: 12 }}>
             <CommonTable
@@ -429,6 +368,15 @@ const CitesExportPermitIndex = () => {
           </Grid>
         </Grid>
       </Card>
+      <FiltersDrawer
+        openFilterDrawer={openFilterDrawer}
+        onCloseFilterDrawer={() => setOpenFilterDrawer(false)}
+        onSubmitLoading={loading}
+        onApplyFilters={applyFilters}
+        setFilterCount={setFilterCount}
+        initialSelectedOptions={selectedOptions}
+        contextId={'1'} // Don't include this prop as i am having dependency i am using it
+      />
     </>
   )
 }

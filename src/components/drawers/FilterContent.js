@@ -1,0 +1,69 @@
+import React from 'react'
+import { Box, Checkbox, Typography, Divider, CircularProgress } from '@mui/material'
+import Search from 'src/views/utility/Search'
+import ImageWithShimmer from '../utility/ImageWithShimmer'
+
+const FilterContent = ({
+  menuName,
+  searchQuery,
+  onSearch,
+  selectedOptions,
+  onOptionChange,
+  selectAllHandler,
+  items,
+  isAllSelected,
+  enableSelectAll = false,
+  searchLoading,
+  theme,
+  placeholder = `Search ${menuName.toLowerCase()}...`
+}) => {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ mb: 4 }}>
+        <Search
+          value={searchQuery}
+          onChange={e => onSearch(e.target.value)}
+          placeholder={placeholder}
+          onClear={() => onSearch('')}
+        />
+      </Box>
+      {searchLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress size={24} />
+        </Box>
+      ) : (
+        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+          {enableSelectAll && (
+            <>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Checkbox
+                  checked={isAllSelected}
+                  indeterminate={selectedOptions?.length > 0 && !isAllSelected}
+                  onChange={selectAllHandler}
+                />
+                <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>Select All</Typography>
+              </Box>
+              <Divider sx={{ mb: 3 }} />
+            </>
+          )}
+          <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column' }}>
+            {items?.map(item => (
+              <Box key={item.value} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Checkbox
+                  checked={selectedOptions?.includes(item.value)}
+                  onChange={() => onOptionChange(item.value, menuName)}
+                />
+                {item.image && <ImageWithShimmer src={item.image} alt={item.label} />}
+                <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>
+                  {item.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+export default FilterContent
