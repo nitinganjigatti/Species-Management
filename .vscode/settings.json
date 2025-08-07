@@ -38,6 +38,6 @@
   "search-node-modules.path": "node_modules",
   "markdown.extension.toc.updateOnSave": false,
   "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

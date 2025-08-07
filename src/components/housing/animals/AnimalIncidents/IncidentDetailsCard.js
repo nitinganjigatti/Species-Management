@@ -1,10 +1,10 @@
-import { TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from "@mui/lab"
-import { Box } from "@mui/system"
-import FallbackAvatar from "src/views/utility/FallbackAvatar"
+import { TimelineConnector, TimelineContent, TimelineItem, TimelineSeparator } from '@mui/lab'
+import { Box } from '@mui/system'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { useTheme } from '@mui/material/styles'
-import moment from "moment"
-import Utility from "src/utility"
-import { Typography } from "@mui/material"
+import moment from 'moment'
+import Utility from 'src/utility'
+import { Typography } from '@mui/material'
 
 const IncidentDetailsCard = ({ item, index, data }) => {
     const theme = useTheme()
@@ -12,7 +12,9 @@ const IncidentDetailsCard = ({ item, index, data }) => {
     const cardData = {
         ...(item?.incident_type === 'missing'
             ? {
-                'Missing Since': `${moment(Utility.convertUTCToLocalDate(item.incident_date)).format('DD MMM YYYY')} • ${Utility.convertUTCToLocaltime(item.incident_date)}`,
+                'Missing Since': `${moment(Utility.convertUTCToLocalDate(item.incident_date)).format(
+                    'DD MMM YYYY'
+                )} • ${Utility.convertUTCToLocaltime(item.incident_date)}`,
                 'Last seen or escaped from': item?.additional_info?.last_seen,
                 'Animal behaviour before incident': item?.additional_info?.animal_behaviour_before_incident,
                 'Actions taken': item?.additional_info?.action_taken,
@@ -25,8 +27,9 @@ const IncidentDetailsCard = ({ item, index, data }) => {
                 'Physical condition': '',
                 'Health assessment': '',
                 'Injury details': '',
-                'Immediate action taken': '',
-            }),
+                'Immediate action taken': ''
+            })
+
         // 'Immediate action taken': item?.additional_info?.action_taken
     }
 
@@ -144,7 +147,9 @@ const IncidentDetailsCard = ({ item, index, data }) => {
                                     color: theme.palette.customColors.OnSurfaceVariant
                                 }}
                             >
-                                {`${moment(Utility.convertUTCToLocalDate(item.incident_date)).format('DD MMM YYYY')} | ${Utility.convertUTCToLocaltime(item.incident_date)}`}
+                                {`${moment(Utility.convertUTCToLocalDate(item.incident_date)).format(
+                                    'DD MMM YYYY'
+                                )} | ${Utility.convertUTCToLocaltime(item.incident_date)}`}
                             </Typography>
                         </Box>
                     </Box>

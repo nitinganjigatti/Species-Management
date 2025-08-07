@@ -1,4 +1,15 @@
-import { Avatar, Button, Card, CircularProgress, IconButton, Menu, MenuItem, TextField, Tooltip, Typography } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Card,
+  CircularProgress,
+  IconButton,
+  Menu,
+  MenuItem,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
@@ -38,10 +49,12 @@ const AnimalIdentifier = () => {
       try {
         await getAnimalGetconfigs().then(res => {
           if (res?.success) {
-            setLocalIdentifierTypeData(res?.data?.animal_indetifier.map(item => ({
-              label: item?.label,
-              value: item?.id
-            })))
+            setLocalIdentifierTypeData(
+              res?.data?.animal_indetifier.map(item => ({
+                label: item?.label,
+                value: item?.id
+              }))
+            )
           }
         })
       } catch (error) {
@@ -54,9 +67,10 @@ const AnimalIdentifier = () => {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['animal-identifier', id],
-    queryFn: () => getAnimalIdentifier({
-      animal_id: id
-    }),
+    queryFn: () =>
+      getAnimalIdentifier({
+        animal_id: id
+      }),
     enabled: !!id
   })
 
@@ -252,7 +266,7 @@ const AnimalIdentifier = () => {
     setSelectedItemToDelete(null)
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     const params = {
       identifier_id: selectedItemToDelete?.id,
       type: 'delete'
@@ -272,13 +286,12 @@ const AnimalIdentifier = () => {
         }
       })
     } catch (error) {
-      console.error(error, "Cannot delete the Identifier")
+      console.error(error, 'Cannot delete the Identifier')
       setDeleteLoading(false)
     }
   }
 
-  const handleRestore = async (selectedRow) => {
-
+  const handleRestore = async selectedRow => {
     const params = {
       identifier_id: selectedRow?.id,
       type: 'restore'
@@ -296,14 +309,13 @@ const AnimalIdentifier = () => {
         }
       })
     } catch (error) {
-      console.error(error, "Cannot resore the Identifier")
+      console.error(error, 'Cannot resore the Identifier')
       setRestoreLoading(false)
       setMenuAnchorEl(false)
     }
-
   }
 
-  const getRowClassName = (params) => {
+  const getRowClassName = params => {
     if (params.row.is_deleted === '1') {
       return 'deleted-row'
     }
@@ -313,7 +325,16 @@ const AnimalIdentifier = () => {
 
   return (
     <Box sx={{ py: '24px' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: '24px', flexWrap: 'wrap' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 2,
+          mb: '24px',
+          flexWrap: 'wrap'
+        }}
+      >
         <Typography
           sx={{
             fontWeight: 500,
@@ -326,7 +347,7 @@ const AnimalIdentifier = () => {
         </Typography>
         <Box sx={{ display: 'flex', columnGap: '8px', rowGap: '12px', flexWrap: 'wrap' }}>
           <Box sx={{ display: 'none' }}>
-            <Search value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
+            <Search value={searchValue} onChange={e => setSearchValue(e.target.value)} />
           </Box>
           <Button onClick={handleAddIdentifierDrawer} sx={{ height: '38px', padding: '8px' }} variant='contained'>
             <Icon icon='mdi:plus' /> Add Identifier
@@ -359,31 +380,29 @@ const AnimalIdentifier = () => {
             '& .deleted-row': {
               backgroundColor: '#ffebee',
               '&:hover': {
-                backgroundColor: '#ffcdd2 !important',
-              },
+                backgroundColor: '#ffcdd2 !important'
+              }
             },
             '& .primary-row': {
               backgroundColor: '#e3f2fd',
               '&:hover': {
-                backgroundColor: '#bbdefb !important',
-              },
+                backgroundColor: '#bbdefb !important'
+              }
             }
           }}
         />
       </Box>
-      {
-        addIdentifierDrawer && (
-          <AddIdentifierDrawer
-            open={addIdentifierDrawer}
-            setOpen={setAddIdentifierDrawer}
-            identifierData={identifierData}
-            animalId={id}
-            localIdentifierTypeData={localIdentifierTypeData}
-            setIdentifierData={setIdentifierData}
-            refetch={refetch}
-          />
-        )
-      }
+      {addIdentifierDrawer && (
+        <AddIdentifierDrawer
+          open={addIdentifierDrawer}
+          setOpen={setAddIdentifierDrawer}
+          identifierData={identifierData}
+          animalId={id}
+          localIdentifierTypeData={localIdentifierTypeData}
+          setIdentifierData={setIdentifierData}
+          refetch={refetch}
+        />
+      )}
       {openDeleteDialog && (
         <ConfirmationDialog
           dialogBoxStatus={openDeleteDialog}
@@ -439,19 +458,22 @@ const AnimalIdentifier = () => {
             disabled={restoreLoading}
           >
             {restoreLoading ? (
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                minHeight: '24px'
-              }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  minHeight: '24px'
+                }}
+              >
                 <CircularProgress size={24} sx={{ color: theme.palette.primary.main }} />
               </Box>
-            ) : 'Restore Identifier'}
+            ) : (
+              'Restore Identifier'
+            )}
           </MenuItem>
         ) : (
-
           // Show edit and delete options for active identifiers
           <>
             <MenuItem
@@ -487,7 +509,6 @@ const AnimalIdentifier = () => {
           </>
         )}
       </Menu>
-
     </Box>
   )
 }

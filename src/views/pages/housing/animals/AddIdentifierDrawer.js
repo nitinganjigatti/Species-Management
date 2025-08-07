@@ -113,7 +113,7 @@ const AddIdentifierDrawer = ({ open, setOpen, identifierData, animalId, localIde
       type: data?.localIdentifierType,
       value: data?.localIdentifier,
       is_primary: data?.makePrimary ? 1 : 0,
-      image: data?.images
+      identifier_attachment: data?.images
     }
 
     console.log(params, "params")

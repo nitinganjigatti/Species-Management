@@ -218,6 +218,7 @@ const AnimalDiet = ({ animalDetails }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 backgroundColor: selectedTab === 'active' ? 'transparent' : theme.palette.customColors.mdAntzNeutral,
+
                 // border: selectedTab === 'active' ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
                 border: `1px solid ${selectedTab === 'active' ? theme.palette.customColors.OutlineVariant : 'transparent' // or use a light transparent color
                   }`,
@@ -338,28 +339,29 @@ const AnimalDiet = ({ animalDetails }) => {
                   </Box> */}
                 </Box>
               </Box>
+              {diet?.notes && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    backgroundColor:
+                      selectedTab === 'active'
+                        ? theme.palette.customColors.antzNotesLight
+                        : theme.palette.customColors.mdAntzNeutral,
+                    borderRadius: 1,
+                    p: '12px'
+                  }}
+                >
+                  <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
+                    Notes:
+                  </Typography>
+                  <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 400 }}>
+                    {diet.notes}
+                  </Typography>
+                </Box>
+              )}
 
-              {/* Notes Section */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  backgroundColor:
-                    selectedTab === 'active'
-                      ? theme.palette.customColors.antzNotesLight
-                      : theme.palette.customColors.mdAntzNeutral,
-                  borderRadius: 1,
-                  p: '12px'
-                }}
-              >
-                <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
-                  Notes:
-                </Typography>
-                <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 400 }}>
-                  {diet.notes}
-                </Typography>
-              </Box>
             </Box>
           ))
         }

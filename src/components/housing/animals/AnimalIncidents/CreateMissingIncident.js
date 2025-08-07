@@ -20,7 +20,6 @@ import imageUploader from 'public/images/gallery_add_Icon.png'
 import { DatePicker, LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 
-
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -32,7 +31,6 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { read, readAsync } from 'src/lib/windows/utils'
 import moment from 'moment'
-
 
 const defaultValues = {
   incident_date: dayjs(),
@@ -48,11 +46,11 @@ const defaultValues = {
 const schema = yup.object().shape({
   incident_date: yup.date().required('Date is required'),
   incident_time: yup.date().required('Time is required'),
-  reported_by: yup.string().required('Reporter is required'),
+  reported_by: yup.string().required('Reporter is required')
+
   // notes: yup.string().required('Notes are required'),
   // attachment: yup.string().required('Attachment is required'),
 })
-
 
 const CreateMissingIncident = ({
   animalIncidentForm,
@@ -73,10 +71,9 @@ const CreateMissingIncident = ({
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFileName, setSelectedFileName] = useState(null)
 
-  const [previewUrl, setPreviewUrl] = useState(null)  // ADD THIS
+  const [previewUrl, setPreviewUrl] = useState(null) // ADD THIS
 
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
-
 
   const {
     control,
@@ -99,12 +96,14 @@ const CreateMissingIncident = ({
   const getUserData = () => {
     const result = read('userDetails')
     console.log('result', result)
-    setDefaultreported_by({ user_id: result?.user?.user_id, user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}` })
+    setDefaultreported_by({
+      user_id: result?.user?.user_id,
+      user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}`
+    })
     setValue('reported_by', result?.user?.user_id)
 
     // setUserData(result)
   }
-
 
   useEffect(() => {
     if (animalIncidentForm) {
@@ -147,6 +146,7 @@ const CreateMissingIncident = ({
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml']
     if (!file || !allowedTypes.includes(file.type)) {
       Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
+
       return
     }
     console.log('file', file)
@@ -167,8 +167,9 @@ const CreateMissingIncident = ({
     setSelectedFileName(null)
     setIncidenceId(null)
   }
+
   ////////////////////////////////////////////////////////////
-  const onSubmit = async (data) => {
+  const onSubmit = async data => {
     const {
       incident_date,
       incident_time,
@@ -205,12 +206,15 @@ const CreateMissingIncident = ({
     formData.append('incident_time', moment(incident_time).format('HH:mm:ss'))
     formData.append('reported_by', reported_by)
     formData.append('notes', notes)
-    formData.append('additional_info', JSON.stringify({
-      last_seen,
-      animal_behaviour_before_incident,
-      action_taken,
-      steps_to_prevent
-    }))
+    formData.append(
+      'additional_info',
+      JSON.stringify({
+        last_seen,
+        animal_behaviour_before_incident,
+        action_taken,
+        steps_to_prevent
+      })
+    )
 
     if (selectedFile) {
       formData.append('media_attachment', [selectedFile])
@@ -221,7 +225,6 @@ const CreateMissingIncident = ({
     } else {
       formData.append('ref_id', animalId)
     }
-
 
     setUploadingAttachment(true)
     try {
@@ -238,7 +241,6 @@ const CreateMissingIncident = ({
           Toaster({ type: 'error', message: res.message || 'Failed to update incident' })
         }
       } else {
-
         const res = await createAnimalIncident(formData)
         if (res.success) {
           Toaster({ type: 'success', message: res.message || 'Incident created successfully' })
@@ -248,7 +250,6 @@ const CreateMissingIncident = ({
           Toaster({ type: 'error', message: res.message || 'Failed to create incident' })
         }
       }
-
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })
     } finally {
@@ -263,7 +264,6 @@ const CreateMissingIncident = ({
       }
     }
   }, [previewUrl])
-
 
   const SpeciesDietCard = () => (
     <Box
@@ -289,7 +289,7 @@ const CreateMissingIncident = ({
             fontWeight: '500',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            whiteSpace: 'nowrap'
           }}
         >
           Report Escaped/missing
@@ -308,14 +308,16 @@ const CreateMissingIncident = ({
       </IconButton>
     </Box>
   )
+
   const basicStyle = {
     // backgroundColor: theme.palette.primary.contrastText,
     // borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
     // width: '100%',
     '& .MuiOutlinedInput-root': {
       borderRadius: '4px'
-    },
+    }
   }
+
   return (
     <Drawer
       anchor='right'
@@ -351,9 +353,6 @@ const CreateMissingIncident = ({
                 gap: '24px'
               }}
             >
-
-
-
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <Typography
                   sx={{
@@ -361,22 +360,23 @@ const CreateMissingIncident = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Missing Since
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: '#fff',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
-
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='incident_date'
@@ -487,21 +487,23 @@ const CreateMissingIncident = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Missing Reported by
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: '#fff',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='reported_by'
@@ -525,7 +527,7 @@ const CreateMissingIncident = ({
                               error={Boolean(errors.reported_by)}
                               helperText={errors?.reported_by?.message}
                               sx={{
-                                ...basicStyle,
+                                ...basicStyle
                               }}
                             />
                           )}
@@ -533,7 +535,9 @@ const CreateMissingIncident = ({
                       )}
                     />
                     {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifierType?.message}</FormHelperText>
+                      <FormHelperText sx={{ color: 'error.main' }}>
+                        {errors?.localIdentifierType?.message}
+                      </FormHelperText>
                     )}
                   </FormControl>
 
@@ -566,21 +570,23 @@ const CreateMissingIncident = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Notes
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: '#fff',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='notes'
@@ -596,7 +602,7 @@ const CreateMissingIncident = ({
                           error={Boolean(errors.notes)}
                           helperText={errors.notes?.message}
                           sx={{
-                            ...basicStyle,
+                            ...basicStyle
                           }}
                         />
                       )}
@@ -629,7 +635,14 @@ const CreateMissingIncident = ({
                           <input
                             type='file'
                             multiple
-                            accept={['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml']}
+                            accept={[
+                              'image/png',
+                              'image/jpeg',
+                              'image/jpg',
+                              'image/gif',
+                              'image/webp',
+                              'image/svg+xml'
+                            ]}
                             ref={fileInputRef}
                             style={{ display: 'none' }}
                             onChange={e => {
@@ -646,7 +659,8 @@ const CreateMissingIncident = ({
                               gap: 7,
                               height: '48px',
                               border: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
-                              borderRadius: '10px',
+                              borderRadius: '10px'
+
                               // padding: 3
                             }}
                           >
@@ -671,7 +685,7 @@ const CreateMissingIncident = ({
                       <FormHelperText sx={{ color: 'error.main' }}>{errors.attachment?.message}</FormHelperText>
                     )}
                   </FormControl>
-                  {selectedFile &&
+                  {selectedFile && (
                     <Box
                       sx={{
                         position: 'relative',
@@ -715,7 +729,7 @@ const CreateMissingIncident = ({
                         />
                       </Box>
                     </Box>
-                  }
+                  )}
                 </Box>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -725,22 +739,23 @@ const CreateMissingIncident = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Additional Information
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: '#fff',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
-
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   {/* <Controller
                     name='last_seen'
                     control={control}
@@ -845,6 +860,3 @@ const CreateMissingIncident = ({
 }
 
 export default CreateMissingIncident
-
-
-

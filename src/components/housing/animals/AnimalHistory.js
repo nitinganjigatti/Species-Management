@@ -63,9 +63,8 @@ const AnimalHistory = () => {
           setLoading(false)
         }
       })
-
     } catch (error) {
-      console.error(error, "Cannot fetch Animal History")
+      console.error(error, 'Cannot fetch Animal History')
       setLoading(false)
     }
   }
@@ -76,9 +75,9 @@ const AnimalHistory = () => {
     }
   }, [id])
 
-  const handleSearch = (value) => { }
+  const handleSearch = value => {}
 
-  const formatHistoryData = (historyData) => {
+  const formatHistoryData = historyData => {
     return historyData.map((item, index) => ({
       id: item.id,
       label: index === 0 ? 'Current Enclosure' : 'Previous Enclosure',
@@ -114,11 +113,7 @@ const AnimalHistory = () => {
               justifyContent: 'center'
             }}
           >
-            <Skeleton
-              variant="circular"
-              width={40}
-              height={40}
-            />
+            <Skeleton variant='circular' width={40} height={40} />
             {idx < 2 && <TimelineConnector />}
           </TimelineSeparator>
           <TimelineContent
@@ -134,16 +129,18 @@ const AnimalHistory = () => {
             }}
           >
             {/* Left side - Timeline info skeleton */}
-            <Box sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 0.5,
-              minWidth: '200px',
-              justifyContent: 'center'
-            }}>
-              <Skeleton variant="text" width={140} height={20} />
-              <Skeleton variant="text" width={120} height={24} />
-              <Skeleton variant="text" width={80} height={16} />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.5,
+                minWidth: '200px',
+                justifyContent: 'center'
+              }}
+            >
+              <Skeleton variant='text' width={140} height={20} />
+              <Skeleton variant='text' width={120} height={24} />
+              <Skeleton variant='text' width={80} height={16} />
             </Box>
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
               <Box
@@ -161,17 +158,17 @@ const AnimalHistory = () => {
                   mt: 1
                 }}
               >
-                <Skeleton variant="text" width={180} height={20} />
-                <Skeleton variant="text" width={160} height={20} />
+                <Skeleton variant='text' width={180} height={20} />
+                <Skeleton variant='text' width={160} height={20} />
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                  <Skeleton variant="circular" width={16} height={16} />
-                  <Skeleton variant="text" width={120} height={20} />
+                  <Skeleton variant='circular' width={16} height={16} />
+                  <Skeleton variant='text' width={120} height={20} />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                  <Skeleton variant="rectangular" width={16} height={16} />
-                  <Skeleton variant="text" width={120} height={20} />
+                  <Skeleton variant='rectangular' width={16} height={16} />
+                  <Skeleton variant='text' width={120} height={20} />
                 </Box>
-                <Skeleton variant="text" width={200} height={20} />
+                <Skeleton variant='text' width={200} height={20} />
               </Box>
             </Box>
           </TimelineContent>
@@ -197,7 +194,6 @@ const AnimalHistory = () => {
         <Grid size={{ xs: 12 }}>
           <Box
             sx={{
-
               width: '100%',
               height: '48px',
               background: 'rgba(0, 0, 0, 0.05)',
@@ -214,8 +210,7 @@ const AnimalHistory = () => {
             <Typography sx={{ fontWeight: 500, color: theme.palette.common.black, fontSize: '20px' }}>
               {animalHistory.length > 0
                 ? Utility.formatDisplayDate(animalHistory[0]?.in_date)
-                : Utility.formatDisplayDate(new Date())
-              }
+                : Utility.formatDisplayDate(new Date())}
             </Typography>
           </Box>
         </Grid>
@@ -234,8 +229,33 @@ const AnimalHistory = () => {
             >
               {formatHistoryData(animalHistory).map((item, idx) => (
                 <TimelineItem key={item.id}>
-                  <TimelineSeparator sx={{ py: '6px' }}>
-                    <img src='/images/housing/current_enclosure.svg' alt='current_enclosure' />
+                  <TimelineSeparator
+                    sx={{
+                      py: '6px',
+                      '& span': {
+                        ml: '1px',
+                        background: 'transparent',
+                        width: '1px',
+                        height: '100%',
+                        backgroundImage: `repeating-linear-gradient(
+                        to bottom,
+                        ${theme.palette.customColors.OutlineVariant},
+                        ${theme.palette.customColors.OutlineVariant} 5px,
+                        transparent 8px,
+                        transparent 13px
+                      )`,
+                        opacity: 1
+                      }
+                    }}
+                  >
+                    <img
+                      src={
+                        item?.label === 'Current Enclosure'
+                          ? '/images/housing/current_enclosure.svg'
+                          : '/images/housing/previous_enclosure.svg'
+                      }
+                      alt='current_enclosure'
+                    />
                     {idx < animalHistory.length - 1 && <TimelineConnector />}
                   </TimelineSeparator>
                   <TimelineContent

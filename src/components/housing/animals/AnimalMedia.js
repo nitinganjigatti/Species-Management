@@ -11,7 +11,6 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import Search from 'src/views/utility/Search'
 
 const AnimalMedia = () => {
-
   const router = useRouter()
   const { id } = router.query
 
@@ -48,7 +47,7 @@ const AnimalMedia = () => {
 
       return {
         result: res?.data || [],
-        nextPage: (res?.data?.length === PAGE_SIZE) ? pageParam + 1 : undefined,
+        nextPage: res?.data?.length === PAGE_SIZE ? pageParam + 1 : undefined,
         total: parseInt(res?.total_count) || 0
       }
     },
@@ -112,22 +111,18 @@ const AnimalMedia = () => {
     >
       {/* File name skeleton */}
       <Box sx={{ display: 'flex', alignItems: 'center', px: '1rem', pt: '1.5rem' }}>
-        <Skeleton variant="text" width={20} height={20} sx={{ mr: 2 }} />
-        <Skeleton variant="text" width={150} height={20} />
+        <Skeleton variant='text' width={20} height={20} sx={{ mr: 2 }} />
+        <Skeleton variant='text' width={150} height={20} />
       </Box>
 
       {/* Media content skeleton */}
       <Box sx={{ p: 5 }}>
-        <Skeleton
-          variant="rectangular"
-          height={160}
-          sx={{ borderRadius: 2.6 }}
-        />
+        <Skeleton variant='rectangular' height={160} sx={{ borderRadius: 2.6 }} />
       </Box>
 
       {/* Timestamp skeleton */}
       <Box sx={{ px: '1rem', pb: '1rem' }}>
-        <Skeleton variant="text" width={120} height={16} />
+        <Skeleton variant='text' width={120} height={16} />
       </Box>
     </Box>
   )
@@ -135,7 +130,7 @@ const AnimalMedia = () => {
   // Grid skeleton for loading state
   const MediaGridSkeleton = () => (
     <Grid container spacing={6}>
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+      {[1, 2, 3, 4, 5, 6, 7, 8].map(item => (
         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item}>
           <MediaCardSkeleton />
         </Grid>
@@ -154,7 +149,7 @@ const AnimalMedia = () => {
           </Tabs>
         </Box>
 
-        <Box sx={{ display: 'none', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2, }}>
+        <Box sx={{ display: 'none', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
           <Search
             value={localSearch}
             onChange={handleSearchChange}
@@ -172,13 +167,9 @@ const AnimalMedia = () => {
             ))}
           </Grid>
 
-          {isFetching && media.length === 0 && (
-            <MediaGridSkeleton />
-          )}
+          {isFetching && media.length === 0 && <MediaGridSkeleton />}
 
-          {media.length === 0 && !isFetching && (
-            <NoDataFound height={250} width={250} />
-          )}
+          {media.length === 0 && !isFetching && <NoDataFound height={250} width={250} />}
 
           {(isFetchingNextPage || hasNextPage) && media.length > 0 && (
             <Box

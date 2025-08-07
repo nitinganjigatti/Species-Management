@@ -63,13 +63,12 @@ const AnimalIncidents = () => {
   const fetchAnimalIncidents = async () => {
     try {
       setAnimalListLoading(true)
-      console.log("sam", animalId)
+      console.log('sam', animalId)
       if (animalId) {
         const res = await getAnimalIncidentList(animalId)
         console.log('res', res)
         setAnimalListData(res?.data?.result)
         setAnimalListCount(res?.data?.total_count)
-
       }
     } catch (error) {
       console.error('❌ Error fetching animal incidents:', error)
@@ -82,10 +81,8 @@ const AnimalIncidents = () => {
     fetchAnimalIncidents()
   }, [animalId])
 
-
-  const fetchAnimalIncidentDetails = async (incidentId) => {
+  const fetchAnimalIncidentDetails = async incidentId => {
     try {
-
       if (incidentId) {
         const res = await getAnimalIncidentDetails(incidentId)
         console.log('getAnimalIncidentDetails + res', res)
@@ -104,9 +101,12 @@ const AnimalIncidents = () => {
     const handleMenuOpen = event => setAnchorEl(event.currentTarget)
     const handleMenuClose = () => setAnchorEl(null)
 
-    if (animalListLoading === true) return <Box sx={{ textAlign: 'center' }}>
-      <Skeleton variant='rectangular' height={84} sx={{ borderRadius: 1, mb: 1 }} />
-    </Box>
+    if (animalListLoading === true)
+      return (
+        <Box sx={{ textAlign: 'center' }}>
+          <Skeleton variant='rectangular' height={84} sx={{ borderRadius: 1, mb: 1 }} />
+        </Box>
+      )
 
     return data.map((incident, index) => (
       <Grid
@@ -114,7 +114,10 @@ const AnimalIncidents = () => {
         key={incident.id}
         sx={{
           padding: '8px 12px 8px 8px',
-          backgroundColor: incident.current_incident_type === 'found' ? theme.palette.customColors.OnBackground : theme.palette.customColors.Tertiary20,
+          backgroundColor:
+            incident.current_incident_type === 'found'
+              ? theme.palette.customColors.OnBackground
+              : theme.palette.customColors.Tertiary20,
           borderRadius: '8px',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -129,7 +132,10 @@ const AnimalIncidents = () => {
               flexDirection: 'column',
               gap: '6px',
               minWidth: '120px',
-              backgroundColor: incident.current_incident_type === 'found' ? theme.palette.primary.dark : theme.palette.customColors.Tertiary,
+              backgroundColor:
+                incident.current_incident_type === 'found'
+                  ? theme.palette.primary.dark
+                  : theme.palette.customColors.Tertiary,
               borderRadius: '8px',
               padding: '12px'
             }}
@@ -163,7 +169,10 @@ const AnimalIncidents = () => {
             <Tooltip title={incident.current_incident_type}>
               <Typography
                 sx={{
-                  color: incident.current_incident_type === 'found' ? theme.palette.primary.dark : theme.palette.customColors.Tertiary,
+                  color:
+                    incident.current_incident_type === 'found'
+                      ? theme.palette.primary.dark
+                      : theme.palette.customColors.Tertiary,
                   fontSize: 16,
                   fontWeight: 500,
                   textOverflow: 'ellipsis',
@@ -286,13 +295,16 @@ const AnimalIncidents = () => {
             >
               View Details
             </MenuItem>
-            <MenuItem onClick={() => {
-              setIsEdit(true)
-              setEditData(incident?.incident_details[index])
-              setAnimalIncidentForm(true)
-              handleMenuClose()
-            }
-            }>Edit Incident</MenuItem>
+            <MenuItem
+              onClick={() => {
+                setIsEdit(true)
+                setEditData(incident?.incident_details[index])
+                setAnimalIncidentForm(true)
+                handleMenuClose()
+              }}
+            >
+              Edit Incident
+            </MenuItem>
             <MenuItem
               onClick={() => {
                 setMissReportIncidence('Found')
@@ -321,11 +333,9 @@ const AnimalIncidents = () => {
             </MenuItem>
           </Menu>
         </Grid>
-      </Grid >
+      </Grid>
     ))
   }
-
-
 
   const IncidentTimeline = () => {
     // Styled Timeline component
@@ -397,9 +407,7 @@ const AnimalIncidents = () => {
             </Box>
           </Box>
 
-          <Box
-            sx={{ px: 4, py: 6, overflowY: 'auto', backgroundColor: theme.palette.customColors.Background }}
-          >
+          <Box sx={{ px: 4, py: 6, overflowY: 'auto', backgroundColor: theme.palette.customColors.Background }}>
             <Box
               sx={{
                 backgroundColor: theme.palette.primary.contrastText,
@@ -410,7 +418,10 @@ const AnimalIncidents = () => {
             >
               <Box
                 sx={{
-                  backgroundColor: incidentDetailsData?.current_incident_type === 'found' ? theme.palette.customColors.OnBackground : '#FFBDA833',
+                  backgroundColor:
+                    incidentDetailsData?.current_incident_type === 'found'
+                      ? theme.palette.customColors.OnBackground
+                      : '#FFBDA833',
                   padding: '12px',
                   display: 'flex',
                   borderRadius: '8px',
@@ -461,9 +472,12 @@ const AnimalIncidents = () => {
                     10 Apr 2024 • 12:28 PM
                   </Typography>
                 </Box>
-
               </Box>
-              <AnimalCard animalParentCardStyle={{ paddingLeft: 0 }} sx={{ border: 'none' }} data={incidentDetailsData} />
+              <AnimalCard
+                animalParentCardStyle={{ paddingLeft: 0 }}
+                sx={{ border: 'none' }}
+                data={incidentDetailsData}
+              />
             </Box>
             <Box
               sx={{
@@ -487,7 +501,12 @@ const AnimalIncidents = () => {
               {incidentDetailsData?.incident_details?.length > 0 ? (
                 <Timeline>
                   {incidentDetailsData?.incident_details?.map((item, index) => (
-                    <IncidentDetailsCard data={incidentDetailsData?.incident_details} item={item} index={index} key={index} />
+                    <IncidentDetailsCard
+                      data={incidentDetailsData?.incident_details}
+                      item={item}
+                      index={index}
+                      key={index}
+                    />
                   ))}
                 </Timeline>
               ) : null}
@@ -503,7 +522,9 @@ const AnimalIncidents = () => {
     <>
       <Box sx={{ mt: 4, p: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}
+          >
             <Typography
               sx={{
                 fontSize: 20,
@@ -548,11 +569,7 @@ const AnimalIncidents = () => {
         missReportIncidence={missReportIncidence}
         setMissReportIncidentForm={setMissReportIncidentForm}
       />
-      <ReportFoundForm
-        animalId={animalId}
-        reportFoundForm={reportFoundForm}
-        setReportFoundForm={setReportFoundForm}
-      />
+      <ReportFoundForm animalId={animalId} reportFoundForm={reportFoundForm} setReportFoundForm={setReportFoundForm} />
     </>
   )
 }
