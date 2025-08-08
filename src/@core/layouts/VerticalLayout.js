@@ -22,7 +22,7 @@ import ScrollToTop from 'src/@core/components/scroll-to-top'
 const VerticalLayoutWrapper = styled('div')({
   height: '100%',
   display: 'flex',
-  overflowX:'hidden'
+  overflowX: 'hidden'
 })
 
 const MainContentWrapper = styled(Box)({
@@ -30,7 +30,8 @@ const MainContentWrapper = styled(Box)({
   minWidth: 0,
   display: 'flex',
   minHeight: '100vh',
-  flexDirection: 'column'
+  flexDirection: 'column',
+  position: 'relative'
 })
 
 const ContentWrapper = styled('main')(({ theme }) => ({
@@ -100,6 +101,7 @@ const VerticalLayout = props => {
           <ContentWrapper
             className='layout-page-content'
             sx={{
+              paddingTop: theme => `${theme.mixins.toolbar.minHeight}px`,
               ...(contentHeightFixed && {
                 overflow: 'hidden',
                 '& > :first-of-type': { height: '100%' }
