@@ -55,6 +55,7 @@ function InComingAndOutGoingShipments({ type }) {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+  const { selectedPharmacy } = usePharmacyContext()
 
   const { control, watch, setValue } = useForm({
     defaultValues: {
@@ -63,10 +64,9 @@ function InComingAndOutGoingShipments({ type }) {
     }
   })
 
-  const selectedStore = watch('selectedStore')
-  const selectedRequest = watch('selectedRequest')
+  const selectedStore = selectedPharmacy.type === 'central' && watch('selectedStore')
+  const selectedRequest = selectedPharmacy.type === 'central' && watch('selectedRequest')
 
-  const { selectedPharmacy } = usePharmacyContext()
   const [total, setTotal] = useState(0)
 
   const [sort, setSort] = useState(router.query.sort || 'asc')
@@ -75,7 +75,7 @@ function InComingAndOutGoingShipments({ type }) {
   const [loading, setLoading] = useState(false)
 
   const [sortColumn, setSortColumn] = useState('label')
-  const [shipmentTab, setShipmentTab] = useState('all')
+  const [shipmentTab, setShipmentTab] = useState('pending')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -85,13 +85,15 @@ function InComingAndOutGoingShipments({ type }) {
     return data
   }
   const [storeOptions, setStoreOptions] = useState([])
-  const [requestOptions, setRequestOptions] = useState([])
+
+  // const [requestOptions, setRequestOptions] = useState([])
 
   const shippedColumns = [
     {
       minWidth: 120,
       field: 'sl_no',
       headerName: 'Sl.No',
+
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no}
@@ -122,6 +124,25 @@ function InComingAndOutGoingShipments({ type }) {
     },
 
     {
+      minWidth: 200,
+      field: 'from_store',
+      headerName: type === 'outing' ? 'Shipped To' : 'Shipped From',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {type === 'outing' ? params?.row?.to_store_name : params?.row?.from_store_name}
+        </Typography>
+      )
+    },
+
+    {
       width: 120,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
@@ -135,8 +156,9 @@ function InComingAndOutGoingShipments({ type }) {
       width: 140,
       field: 'person_shipping',
       headerName: 'Driver Name',
+      textAlign: 'left',
       renderCell: params => (
-        <Box sx={{ py: 2, mx: 'auto' }}>
+        <Box sx={{ py: 2 }}>
           <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 400, fontSize: '14px' }}>
             {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
           </Typography>
@@ -199,29 +221,6 @@ function InComingAndOutGoingShipments({ type }) {
         </Box>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-
-    //   renderCell: params => (
-    //     <Box sx={{ marginLeft: -6 }}>
-    //       <IconButton
-    //         size='small'
-    //         onClick={() => {
-    //           setOrderId(params.row.id)
-
-    //           showOrderFormDialog()
-    //         }}
-    //         aria-label='Edit'
-    //       >
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //     </Box>
-    //   )
-    // }
   ]
 
   const fetchTableData = useCallback(
@@ -308,14 +307,6 @@ function InComingAndOutGoingShipments({ type }) {
     }
   }
 
-  // const fetchRequestList = async () => {
-  //   try {
-  //     const res = await getSpecies()
-  //     if (res.success) setRequestOptions(res.data)
-  //   } catch (error) {
-  //     console.error('Error fetching statuses:', error)
-  //   }
-  // }
   const onRowClick = params => {
     const { ro_no, request_id, id } = params?.row || {}
     const isIncoming = type === 'incoming'
@@ -325,16 +316,16 @@ function InComingAndOutGoingShipments({ type }) {
     let subPath = ''
     let requestedFrom = ''
 
-    if (ro_no.startsWith('RES')) {
+    if (ro_no?.startsWith('RES')) {
       subPath = isIncoming ? 'incoming-shipments' : 'outgoing-shipments'
       requestedFrom = 'request'
-    } else if (ro_no.startsWith('RET')) {
+    } else if (ro_no?.startsWith('RET')) {
       subPath = isIncoming ? 'incoming-shipments' : 'outgoing-shipments'
       requestedFrom = 'return'
-    } else if (ro_no.startsWith('DD')) {
+    } else if (ro_no?.startsWith('DD')) {
       subPath = isIncoming ? 'incoming-shipments' : 'outgoing-shipments'
       requestedFrom = 'directDispatch'
-    } else if (ro_no.startsWith('DL')) {
+    } else if (ro_no?.startsWith('DL')) {
       subPath = isIncoming ? 'incoming-shipments' : 'outgoing-shipments'
       requestedFrom = 'localDispatch'
     } else {
@@ -385,8 +376,6 @@ function InComingAndOutGoingShipments({ type }) {
             px: 0
           }}
           title={RenderUtility.pageTitle(type === 'incoming' ? 'Incoming shipments' : 'Outgoing shipments')}
-
-          // action={headerAction}
         />
         <Grid
           container
@@ -400,24 +389,14 @@ function InComingAndOutGoingShipments({ type }) {
             mt: 6
           }}
         >
-          <Grid item size={{ xs: 12, sm: 12, md: 6, lg: 4 }}>
+          <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
             <Search
               placeholder='Search...'
               onChange={e => handleSearch(e.target.value)}
               onClear={() => handleSearch('')}
             />
           </Grid>
-          <Grid
-            item
-            size={{ xs: 12, md: 6, lg: 6 }}
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'row', md: 'row' },
-              alignItems: 'center',
-              width: '100%',
-              gap: 2
-            }}
-          >
+          <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
             {selectedPharmacy?.type === 'central' && (
               <ControlledAutocomplete
                 name='selectedStore'
@@ -444,7 +423,7 @@ function InComingAndOutGoingShipments({ type }) {
               />
             )}
 
-            <ControlledAutocomplete
+            {/* <ControlledAutocomplete
               name='selectedRequest'
               label='Filter By Request'
               control={control}
@@ -468,7 +447,7 @@ function InComingAndOutGoingShipments({ type }) {
                   sx: { fontSize: '0.875rem' }
                 }
               }}
-            />
+            /> */}
           </Grid>
         </Grid>
         <TabContext value={shipmentTab}>
@@ -488,19 +467,11 @@ function InComingAndOutGoingShipments({ type }) {
               mt: 5
             }}
           >
-            <Tab value='all' label='All' />
-            && <Tab value='pending' label='Pending' />
+            <Tab value='pending' label='Pending' />
             <Tab value='dispute' label='Dispute' />
+            <Tab value='all' label='All' />
           </TabLists>
 
-          <TabPanel
-            value='all'
-            sx={{
-              padding: '0px !important'
-            }}
-          >
-            {pageContent()}
-          </TabPanel>
           <TabPanel
             value='pending'
             sx={{
@@ -511,6 +482,14 @@ function InComingAndOutGoingShipments({ type }) {
           </TabPanel>
           <TabPanel
             value='dispute'
+            sx={{
+              padding: '0px !important'
+            }}
+          >
+            {pageContent()}
+          </TabPanel>
+          <TabPanel
+            value='all'
             sx={{
               padding: '0px !important'
             }}
