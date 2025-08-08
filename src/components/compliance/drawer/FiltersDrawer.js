@@ -47,15 +47,16 @@ const FiltersDrawer = ({
 
   // Fetch data for specific menu
   const fetchMenuData = useCallback(
-    async menuName => {
+    async (menuName, query = '') => {
       try {
         setSearchLoading(true)
         let data = []
-        let params
+        let params = {}
 
         switch (menuName) {
-          case 'Species': // Change case name as per your requirement
-            const speciesRes = await getSpeciesList() // Change API as per your requirement
+          case 'Species':
+            params = query ? { q: query } : {}
+            const speciesRes = await getSpeciesList(params)
             data = speciesRes.success
               ? speciesRes?.data?.data?.map(item => ({
                   label: item?.common_name || item?.scientific_name || '',
@@ -64,92 +65,17 @@ const FiltersDrawer = ({
                 }))
               : []
             break
+
           case 'Exporting country':
-            data = countryListOptions
-            break
-          case 'Exporter': // Change case name as per your requirement
-            params = {
-              type: 'exporter'
-            }
-            const exportersRes = await getMasterImports(params) // Change API as per your requirement
-            data = exportersRes.success
-              ? exportersRes?.data?.data?.map(item => ({ label: item.name, value: item.id }))
-              : []
-            break
-          case 'Importer': // Change case name as per your requirement
-            params = {
-              type: 'importer'
-            }
-            const importersRes = await getMasterImports(params) // Change API as per your requirement
-            data = importersRes.success
-              ? importersRes?.data?.data?.map(item => ({ label: item.name, value: item.id }))
-              : []
-            break
-          case 'Documents': // Change case name as per your requirement
-            params = {
-              context_id: contextId,
-              status: 1
-            }
-            const documentsRes = await getDocumentTypeList(params) // Change API as per your requirement
-            console.log('documentsRes', documentsRes)
-            data = documentsRes.success
-              ? documentsRes?.data?.records.map(item => ({ label: item.name, value: item.id }))
-              : []
-            break
-          default:
-            break
-        }
-
-        setMenuData(prev => ({
-          ...prev,
-          [menuName]: data
-        }))
-      } catch (error) {
-        console.error(`Error fetching ${menuName} data:`, error)
-        Toaster({ type: 'error', message: `Failed to load ${menuName} options` })
-      } finally {
-        setSearchLoading(false)
-      }
-    },
-    [selectedMenu]
-  )
-
-  // Debounced search for menu items
-
-  const debouncedMenuSearch = useCallback(
-    debounce(async (query, menuName) => {
-      if (!query) {
-        await fetchMenuData(menuName)
-
-        return
-      }
-
-      try {
-        setSearchLoading(true)
-        let data = []
-        let params
-
-        switch (menuName) {
-          case 'Exporting country': // Change case name as per your requirement
-            // Filter local country data
-            data = countryListOptions.filter(item => item.label.toLowerCase().includes(query.toLowerCase())) // Change API as per your requirement
+            data = query
+              ? countryListOptions.filter(item => item.label.toLowerCase().includes(query.toLowerCase()))
+              : countryListOptions
             break
 
-          case 'Species': // Change case name as per your requirement
-            // Make fresh API call for species search
-            const speciesRes = await getSpeciesList({ q: query }) // Change API as per your requirement
-            data = speciesRes.success
-              ? speciesRes?.data?.data?.map(item => ({
-                  label: item?.common_name || item?.scientific_name || '',
-                  image: item?.default_icon || '/images/default_specie_icon.png',
-                  value: item?.taxonomy_id || ''
-                }))
-              : []
-            break
-
-          case 'Exporter': // Change case name as per your requirement
-            params = { type: 'exporter', q: query }
-            const exportersRes = await getMasterImports(params) // Change API as per your requirement
+          case 'Exporter':
+            params = { type: 'exporter' }
+            if (query) params.q = query
+            const exportersRes = await getMasterImports(params)
             data = exportersRes.success
               ? exportersRes?.data?.data?.map(item => ({
                   label: item.name,
@@ -158,9 +84,10 @@ const FiltersDrawer = ({
               : []
             break
 
-          case 'Importer': // Change case name as per your requirement
-            params = { type: 'importer', q: query }
-            const importersRes = await getMasterImports(params) // Change API as per your requirement
+          case 'Importer':
+            params = { type: 'importer' }
+            if (query) params.q = query
+            const importersRes = await getMasterImports(params)
             data = importersRes.success
               ? importersRes?.data?.data?.map(item => ({
                   label: item.name,
@@ -168,21 +95,24 @@ const FiltersDrawer = ({
                 }))
               : []
             break
-          case 'Documents': // Change case name as per your requirement
-            const params = {
+
+          case 'Documents':
+            params = {
               context_id: contextId,
-              status: 1,
-              q: query
+              status: 1
             }
-            const documentsRes = await getDocumentTypeList(params) // Change API as per your requirement
-            console.log('documentsRes', documentsRes)
+            if (query) params.q = query
+            const documentsRes = await getDocumentTypeList(params)
             data = documentsRes.success
-              ? documentsRes?.data?.records.map(item => ({ label: item.name, value: item.id }))
+              ? documentsRes?.data?.records.map(item => ({
+                  label: item.name,
+                  value: item.id
+                }))
               : []
             break
 
           default:
-            return
+            break
         }
 
         setMenuData(prev => ({
@@ -190,13 +120,16 @@ const FiltersDrawer = ({
           [menuName]: data
         }))
       } catch (error) {
-        console.error(`Error searching ${menuName}:`, error)
-        Toaster({ type: 'error', message: `Failed to search ${menuName}` })
+        console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
+        Toaster({
+          type: 'error',
+          message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+        })
       } finally {
         setSearchLoading(false)
       }
-    }, 500),
-    [menuData, countryListOptions, getSpeciesList, getMasterImports]
+    },
+    [selectedMenu]
   )
 
   // Clear all filters
@@ -212,6 +145,14 @@ const FiltersDrawer = ({
     setLocalFilterCount(0)
     setFilterCount(0)
   }, [])
+
+  // Debounced search for menu items
+  const debouncedMenuSearch = useCallback(
+    debounce(async (menuName, query) => {
+      await fetchMenuData(menuName, query)
+    }, 500),
+    [menuData]
+  ) // Don't update this function
 
   // Handle search input
   const handleSearch = useCallback(
@@ -231,9 +172,9 @@ const FiltersDrawer = ({
       }
 
       // For API-based data, use debounced search
-      debouncedMenuSearch(query, menuName)
+      debouncedMenuSearch(menuName, query)
     },
-    [debouncedMenuSearch, countryListOptions]
+    [debouncedMenuSearch]
   )
 
   // Do not change any functionalities below
@@ -248,9 +189,7 @@ const FiltersDrawer = ({
     async menuName => {
       setSelectedMenu(menuName)
       setSearchQuery('')
-      if (!menuData[menuName] || menuData[menuName].length === 0) {
-        await fetchMenuData(menuName)
-      }
+      await fetchMenuData(menuName, '')
     },
     [menuData, fetchMenuData]
   )
@@ -336,7 +275,6 @@ const FiltersDrawer = ({
           items={menuData['Species']}
           isAllSelected={isAllSelected('Species')}
           searchLoading={searchLoading}
-          theme={theme}
           placeholder='Search species...'
         />
       )}
@@ -352,7 +290,6 @@ const FiltersDrawer = ({
           items={menuData['Exporting country']}
           isAllSelected={isAllSelected('Exporting country')}
           searchLoading={searchLoading}
-          theme={theme}
           placeholder='Search countries...'
         />
       )}
@@ -368,7 +305,6 @@ const FiltersDrawer = ({
           items={menuData['Exporter']}
           isAllSelected={isAllSelected('Exporter')}
           searchLoading={searchLoading}
-          theme={theme}
           placeholder='Search exporters...'
         />
       )}
@@ -383,7 +319,6 @@ const FiltersDrawer = ({
           items={menuData['Importer']}
           isAllSelected={isAllSelected('Importer')}
           searchLoading={searchLoading}
-          theme={theme}
           placeholder='Search importers...'
         />
       )}
@@ -398,7 +333,6 @@ const FiltersDrawer = ({
           items={menuData['Documents']}
           isAllSelected={isAllSelected('Documents')}
           searchLoading={searchLoading}
-          theme={theme}
           placeholder='Search documents...'
         />
       )}

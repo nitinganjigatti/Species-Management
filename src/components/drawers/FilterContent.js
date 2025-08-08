@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Checkbox, Typography, Divider, CircularProgress } from '@mui/material'
 import Search from 'src/views/utility/Search'
 import ImageWithShimmer from '../utility/ImageWithShimmer'
+import { useTheme } from '@mui/material/styles'
 
 const FilterContent = ({
   menuName,
@@ -14,9 +15,10 @@ const FilterContent = ({
   isAllSelected,
   enableSelectAll = false,
   searchLoading,
-  theme,
   placeholder = `Search ${menuName.toLowerCase()}...`
 }) => {
+  const theme = useTheme()
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ mb: 4 }}>

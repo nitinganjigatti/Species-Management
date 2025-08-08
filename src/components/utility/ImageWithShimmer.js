@@ -6,14 +6,7 @@ const ImageWithShimmer = ({ src, alt, height = 32, width = 32 }) => {
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      {!isLoaded && (
-        <Skeleton
-          variant='circular'
-          width={width}
-          height={height}
-          sx={{ marginRight: 2 }}
-        />
-      )}
+      {!isLoaded && <Skeleton variant='circular' width={width} height={height} sx={{ marginRight: 2 }} />}
       <Box
         component='img'
         src={src}
@@ -21,8 +14,8 @@ const ImageWithShimmer = ({ src, alt, height = 32, width = 32 }) => {
         onLoad={() => setIsLoaded(true)}
         sx={{
           display: isLoaded ? 'block' : 'none',
-          width: 32,
-          height: 32,
+          width: height,
+          height: width,
           borderRadius: '50%',
           objectFit: 'cover',
           marginRight: 2
