@@ -2,7 +2,6 @@
 // ** React Imports
 import { useState, useEffect, useCallback, Fragment } from 'react'
 
-// ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import Select from '@mui/material/Select'
@@ -23,13 +22,10 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { getSaltById } from 'src/lib/api/pharmacy/salts'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup
@@ -46,7 +42,6 @@ const defaultValues = {
 }
 
 const AddSalts = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {

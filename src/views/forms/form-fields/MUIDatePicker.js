@@ -25,7 +25,7 @@ const MUIDatePicker = ({
   helperText = '',
   sx = {}
 }) => {
-  // Apply locale globally
+ 
   dayjs.locale(locale)
 
   return (

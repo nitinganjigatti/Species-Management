@@ -16,14 +16,11 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getPreparationTypeById } from 'src/lib/api/diet/settings/preparationTypes'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   label: yup
@@ -39,7 +36,6 @@ const defaultValues = {
 }
 
 const AddPreparationType = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   console.log(editParams)
@@ -74,7 +70,6 @@ const AddPreparationType = props => {
   const getPreparationType = useCallback(
     async id => {
       const response = await getPreparationTypeById(id)
-      console.log('add state comp', response)
       if (response?.success) {
         console.log(response.data)
         reset({ label: response.data.label, status: response.data.status === 'active' ? 1 : 0 })

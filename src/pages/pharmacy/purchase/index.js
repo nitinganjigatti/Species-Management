@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
+import { getPurchaseList, printPurchaseInvoice } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
@@ -32,7 +32,6 @@ import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExcelExportButton } from 'src/components/Buttons'
-import Utility from 'src/utility'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
@@ -40,6 +39,8 @@ import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import toast from 'react-hot-toast'
+import Utility from 'src/utility'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -50,7 +51,6 @@ const ListOfPurchase = () => {
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
-  /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
 
@@ -71,12 +71,13 @@ const ListOfPurchase = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [excelLoader, setExcelLoader] = useState(false)
   const [suppliers, setSuppliers] = useState([])
   const [selectedSupplier, setSelectedSupplier] = useState(router.query.supplier || 'All')
+  const [invoicePrintLoaderId, setInvoicePrintLoaderId] = useState(null)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -156,7 +157,7 @@ const ListOfPurchase = () => {
         supplier: selectedSupplier
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates, selectedSupplier])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -188,7 +189,7 @@ const ListOfPurchase = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, filterDates) => {
       setSearchValue(q)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       try {
         await fetchTableData({ sort, q, column, filterDates })
         updateUrlParams({
@@ -221,7 +222,7 @@ const ListOfPurchase = () => {
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     if (startDate && endDate) {
       setFilterDates({
         startDate: Utility.formatDate(startDate),
@@ -248,10 +249,32 @@ const ListOfPurchase = () => {
     }
   }
 
+  const printInventory = async purchaseId => {
+    try {
+      setInvoicePrintLoaderId(purchaseId)
+      const printInvoice = await printPurchaseInvoice(purchaseId)
+      if (printInvoice?.success && printInvoice?.data) {
+        Utility?.downloadFileFromURL(printInvoice?.data, 'Invoice.Pdf')
+        toast.success(printInvoice?.message)
+        setInvoicePrintLoaderId(null)
+      } else {
+        toast.error(printInvoice?.message)
+        setInvoicePrintLoaderId(null)
+      }
+    } catch (error) {
+      toast.error(error?.message)
+      setInvoicePrintLoaderId(null)
+    } finally {
+      setInvoicePrintLoaderId(null)
+    }
+  }
+
   const columns = [
     {
       width: 80,
       headerName: 'SL.NO',
+      sortable: false,
+      field: 'id',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl + '.'}
@@ -364,19 +387,6 @@ const ListOfPurchase = () => {
             params?.row?.created_at
           )}
         </>
-
-        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-        //     </Typography>
-        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-        //       {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-        //       {Utility.formatDisplayDate(params.row.created_at)}
-        //     </Typography>
-        //   </Box>
-        // </Box>
       )
     },
     {
@@ -391,26 +401,32 @@ const ListOfPurchase = () => {
             params?.row?.updated_at
           )}
         </>
+      )
+    },
 
-        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        //   {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
-        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-        //       {params?.row?.updated_by_user_name ? params?.row?.updated_by_user_name : 'NA'}
-        //     </Typography>
-        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-        //       {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-        //       {params?.row?.updated_at ? Utility.formatDisplayDate(params.row.updated_at) : 'NA'}
-        //     </Typography>
-        //   </Box>
-        // </Box>
+    {
+      minWidth: 80,
+      headerName: 'Action',
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      field: 'action',
+      renderCell: params => (
+        <ExportButton
+          bgcolor='transparent'
+          tooltip='Download  Invoice'
+          loading={invoicePrintLoaderId === params.row.id}
+          onClick={event => {
+            event.stopPropagation()
+            printInventory(params.row.id)
+          }}
+        />
       )
     }
   ]
   useEffect(() => {
     getSuppliersLists()
   }, [])
-  const handleHeaderAction = () => {}
 
   const getInventoryDataToExport = async () => {
     try {
@@ -513,63 +529,39 @@ const ListOfPurchase = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            {/* <CardHeader
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'column' }, // Stack items in sm screens
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 3, sm: 1 },
-                mx: { xs: -1, sm: 1 },
-                width: '100%', // Ensure the header takes full width
-                '& .MuiCardHeader-content': {
-                  flexGrow: 1, // Allows the title to take full width
-                  width: '100%'
-                },
-
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' },
-                  justifyContent: 'flex-end',
-                },
-                mx: { xs: -1, sm: 1 }
-              }}
-              title={RenderUtility.pageTitle('Inventory List')}
-              action={headerAction}
-            /> */}
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Stack title and actions in xs, row in sm+
-                justifyContent: 'space-between', // Push title left and actions right on larger screens
-                alignItems: { xs: 'flex-start', sm: 'center' }, // Align items properly
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'flex-start', sm: 'center' },
                 width: '100%',
                 '& .MuiCardHeader-content': {
-                  flexGrow: 1 // Allows title to take available space
+                  flexGrow: 1
                 },
                 '& .MuiCardHeader-action': {
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons in xs, row in sm+
-                  alignItems: 'stretch', // Ensures full width in column mode
-                  justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Left align in xs, right align in sm+
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: 'stretch',
+                  justifyContent: { xs: 'flex-start', sm: 'flex-end' },
                   gap: 1,
-                  width: { xs: '100%', sm: 'auto' } // Full width for small screens
-                  // mt: { xs: 1, sm: 0 } // Add spacing between title and buttons in xs
+                  width: { xs: '100%', sm: 'auto' }
                 }
               }}
               title={RenderUtility.pageTitle('Inventory List')}
               action={headerAction}
             />
 
-            {/* Left Box (Search Field) */}
+        
             <CardContent sx={{ paddingTop: '4px' }}>
               <Box
                 sx={{
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' }, // Stack on small screens, row on larger screens
+                  flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'space-between',
-                  alignItems: { xs: 'stretch', sm: 'center' }, // Stretch items in column mode
-                  gap: { xs: 2, sm: 0 }, // Add spacing for small screens
-                  width: '100%' // Ensure full width
+                  alignItems: { xs: 'stretch', sm: 'center' }, 
+                  gap: { xs: 2, sm: 0 }, 
+                  width: '100%' 
                 }}
               >
                 <Grid
@@ -653,16 +645,6 @@ const ListOfPurchase = () => {
                       onClick={getInventoryDataToExport}
                       disabled={total === 0 ? true : false}
                     />
-
-                    <Grid
-                      item
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 2,
-                        justifyContent: { sm: 'flex-end', xs: 'flex-end' }
-                      }}
-                    ></Grid>
                   </Grid>
                 </Grid>
               </Box>
@@ -675,12 +657,12 @@ const ListOfPurchase = () => {
                   columns={columns}
                   paginationModel={paginationModel}
                   onPaginationModelChange={model => {
-                    setPaginationModel(model) // Update page and pageSize in the state
+                    setPaginationModel(model) 
                     router.replace({
                       pathname: router.pathname,
                       query: {
                         ...router.query,
-                        page: model.page + 1, // API uses 1-indexed pages
+                        page: model.page + 1, 
                         pageSize: model.pageSize,
                         searchValue,
                         sort,

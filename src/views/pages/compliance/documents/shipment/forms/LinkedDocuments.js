@@ -15,7 +15,7 @@ const SectionBlock = ({ title, type, data }) => {
         overflow: 'hidden'
       }}
     >
-      {/* Section Header */}
+ 
       <Box
         onClick={() => (data?.length > 0 ? setExpanded(!expanded) : null)}
         sx={{

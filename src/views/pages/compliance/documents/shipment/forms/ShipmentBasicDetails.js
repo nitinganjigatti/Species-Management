@@ -26,7 +26,6 @@ const validationSchema = yup.object({
     .test('fileType', 'Unsupported file format', value => {
       if (!value) return true
 
-      // If it's a File object (i.e., new upload)
       if (value.type) {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/x-png', 'application/pdf']
         return allowedTypes.includes(value.type)
@@ -80,7 +79,6 @@ const ShipmentBasicDetails = ({
     setShowEdit(false)
   }
 
-  // listen to parent instruction to trigger edit mode
   React.useEffect(() => {
     if (onEditClick) onEditClick.current = handleEditClick
     if (id) {

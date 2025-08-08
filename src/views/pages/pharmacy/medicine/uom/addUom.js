@@ -23,13 +23,10 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   unit_name: yup
@@ -46,7 +43,6 @@ const defaultValues = {
 }
 
 const AddUOM = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {

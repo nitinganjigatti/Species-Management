@@ -59,7 +59,6 @@ const NewForm = ({
         position: 'relative'
       }}
     >
-      {/* Scrollable Form Content */}
       <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{
@@ -230,10 +229,10 @@ const NewForm = ({
               fontSize: '20px',
               mb: 2,
               '&.Mui-focused': {
-                color: theme.palette.customColors.OnSurfaceVariant // prevent focus color change
+                color: theme.palette.customColors.OnSurfaceVariant 
               },
               '&.Mui-error': {
-                color: theme.palette.customColors.OnSurfaceVariant // prevent error color change
+                color: theme.palette.customColors.OnSurfaceVariant 
               }
             }}
           >

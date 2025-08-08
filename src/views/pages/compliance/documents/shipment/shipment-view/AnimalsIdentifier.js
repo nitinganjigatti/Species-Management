@@ -77,7 +77,6 @@ const AnimalIdentifiers = ({ selectedExportData }) => {
                   : ''}
               </Avatar>
 
-              {/* Animal Info */}
               <Box sx={{ flexGrow: 1 }}>
                 <Typography
                   sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px', mb: 0.5 }}

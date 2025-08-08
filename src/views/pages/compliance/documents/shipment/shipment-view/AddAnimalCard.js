@@ -50,10 +50,8 @@ const AnimalCardLayout = ({
     setCommonNameValue(name)
   }
 
-  // Find the current export object
   const currentExport = draftData?.export?.find(exp => exp.export_id === exportID) || { species: [] }
 
-  // Find species index for the current card
   const findSpeciesIndex = speciesId => {
     return currentExport?.species?.findIndex(s => s.master_species_id === speciesId)
   }
@@ -62,7 +60,6 @@ const AnimalCardLayout = ({
     const val = value === '' ? '' : Number(value)
     if (val === '' || (!isNaN(val) && val <= max)) {
       setDraftData(prev => {
-        // Deep clone the state to avoid direct mutations
         const updated = JSON.parse(JSON.stringify(prev))
 
         let exportIndex = updated.export.findIndex(e => e.export_id === exportID)
@@ -80,10 +77,8 @@ const AnimalCardLayout = ({
         let speciesIndex = updated.export[exportIndex].species.findIndex(s => s.master_species_id === String(speciesId))
 
         if (speciesIndex === -1) {
-          // Find matching species data from exportAnimalData
           const matchingSpecies = exportAnimalData.species.find(s => s.master_species_id === String(speciesId))
 
-          // Create new species entry with data from exportAnimalData if found
           const newSpecies = {
             master_species_id: speciesId,
             export_id: exportID,
@@ -100,7 +95,6 @@ const AnimalCardLayout = ({
           updated.export[exportIndex].species.push(newSpecies)
           speciesIndex = updated.export[exportIndex].species.length - 1
         } else {
-          // If species exists, ensure it has all fields from exportAnimalData
           const matchingSpecies = exportAnimalData.species.find(s => s.id === String(speciesId))
           if (matchingSpecies) {
             updated.export[exportIndex].species[speciesIndex] = {
@@ -113,7 +107,6 @@ const AnimalCardLayout = ({
           }
         }
 
-        // Update the specific field
         updated.export[exportIndex].species[speciesIndex][field] = val
 
         return updated
@@ -126,7 +119,7 @@ const AnimalCardLayout = ({
       const exportIndex = prev.export.findIndex(e => e.export_id === exportID)
       const speciesIndex = prev.export[exportIndex].species.findIndex(s => s.master_species_id === speciesId)
 
-      const updated = JSON.parse(JSON.stringify(prev)) // Deep clone
+      const updated = JSON.parse(JSON.stringify(prev))
       updated.export[exportIndex].species[speciesIndex].animals = selectedAnimals
       return updated
     })
@@ -135,7 +128,6 @@ const AnimalCardLayout = ({
   useEffect(() => {
     if (!exportID || !draftData.export) return
 
-    // Find the export item that matches the current exportID
     const matchedExport = draftData.export.find(exportItem => String(exportItem.export_id) === String(exportID))
 
     if (matchedExport) {
@@ -148,11 +140,10 @@ const AnimalCardLayout = ({
   }, [draftData, exportID])
 
   const isDoneDisabled = () => {
-    // First check if exportID exists in selectedExportData
     const exportExists = draftData?.export?.some(exportItem => exportItem.export_id === exportID)
 
     if (!exportExists) return true
-    // Then check if any species in this export has counts > 0
+
     return !draftData?.export?.some(
       exportItem =>
         exportItem.export_id === exportID &&
@@ -166,7 +157,6 @@ const AnimalCardLayout = ({
   }
 
   const handleDone = () => {
-    // Filter out empty export objects and validate each export
     const validatedExports = draftData.export
       .filter(exp => exp.export_id !== '')
       .map(exp => ({
@@ -274,7 +264,6 @@ const AnimalCardLayout = ({
                     {`${card.total_balance_animal}/${card.total_count}`} animals available for shipment
                   </Typography>
 
-                  {/* Animals Part of Shipment */}
                   <Box
                     sx={{
                       border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
@@ -306,7 +295,6 @@ const AnimalCardLayout = ({
                       </Typography>
                     </Grid>
 
-                    {/* Input Fields */}
                     <Grid container spacing={2} sx={{ marginTop: '8px' }}>
                       <Grid size={{ xs: 4 }}>
                         <Typography
@@ -513,7 +501,6 @@ const AnimalCardLayout = ({
           )}
         </Box>
       </Box>
-      {/* Sticky footer */}
 
       {exportAnimalData?.species?.length > 0 && !loading && (
         <Box

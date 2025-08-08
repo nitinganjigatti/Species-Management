@@ -56,6 +56,8 @@ export const STATES = 'state'
 
 export const PURCHASE = 'purchase'
 
+export const INVOICE_PRINT = 'print'
+
 export const PAYMENT_LIST = 'supplier-ledger'
 
 export const STORE = 'store'
@@ -275,6 +277,10 @@ export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bul
 export const STOCK_LIST = 'stock-item'
 
 export const VARIANTS_MAPPING_FOR_BATCH = 'variantMappingBatch'
+
+export const GET_ALL_SHIPMENTS = 'shipment/receive/show'
+
+export const INCOMING_AND_OUTGOING_SHIPMENTS = 'outgoing-incoming-shipment/show'
 
 export const FEED_DETAILS = 'details'
 

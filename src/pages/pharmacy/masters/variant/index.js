@@ -139,8 +139,7 @@ const VariantList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' ||
-            selectedPharmacy.permission.key === 'ADD') && */}
+          
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -282,8 +281,8 @@ const VariantList = () => {
             sx={{
               display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'flex-start', // Align content to the left
-              alignItems: 'flex-start', // Align items to the top left
+              justifyContent: 'flex-start', 
+              alignItems: 'flex-start', 
               gap: { xs: 3, sm: 0 },
               '& .MuiCardHeader-action': {
                 width: { xs: '100% ', sm: 'auto' }

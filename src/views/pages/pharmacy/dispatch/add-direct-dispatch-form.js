@@ -1,50 +1,24 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import {
-  CardContent,
   Grid,
   FormControl,
   Autocomplete,
   TextField,
   FormHelperText,
-  InputLabel,
-  Select,
-  MenuItem,
   Button,
   Typography,
   Paper,
-  Tooltip,
   Box
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import Chip from '@mui/material/Chip'
-
-import Table from '@mui/material/Table'
-import TableRow from '@mui/material/TableRow'
-
-import TableCell from '@mui/material/TableCell'
-import UserSnackbar from 'src/components/utility/snackbar'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-
-// import Table from '@mui/material/Table'
-// import TableRow from '@mui/material/TableRow'
-
-// import TableCell from '@mui/material/TableCell'
-
-// import TableHead from '@mui/material/TableHead'
-
-// import ConfirmDialog from 'src/components/ConfirmationDialog'
-
 import { LoaderIcon } from 'react-hot-toast'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CustomChip from 'src/@core/components/mui/chip'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
 const defaultValues = {
   request_item: {
@@ -348,7 +322,6 @@ export const AddItemsForm = ({
   //   )
   // }
   useEffect(() => {
-    console.log('available_item_qty in nested ', nestedMedicine)
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {
@@ -856,7 +829,7 @@ export const AddItemsForm = ({
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item size={{ xs: 12, sm: 4 }}>
-              <FormControl fullWidth>
+              {/* <FormControl fullWidth>
                 <Controller
                   name='expiry_date'
                   control={control}
@@ -882,7 +855,16 @@ export const AddItemsForm = ({
                 {errors.expiry_date && (
                   <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
                 )}
-              </FormControl>
+              </FormControl> */}
+              <ControlledTextField
+                name='expiry_date'
+                label='Expiry Date*'
+                control={control}
+                errors={errors}
+                required={true}
+                readOnly={true}
+                dateReader={true}
+              />
             </Grid>
           )}
           {getValues('stock_type') === 'non_medical' ? null : (

@@ -201,7 +201,6 @@ export default function DetailsTable({ ...props }) {
                           alignContent: 'center'
                         }}
                       >
-                        {/* {console.log('items', paginatedItems)} */}
                         {el.priority == 'high' || el.priority == 'emergency' ? (
                           <Box
                             sx={{

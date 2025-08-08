@@ -10,7 +10,7 @@ import TableBody from '@mui/material/TableBody'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import { Button, CardHeader } from '@mui/material'
@@ -21,7 +21,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import Autocomplete from '@mui/material/Autocomplete'
+
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
@@ -29,14 +29,8 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import CustomChip from 'src/@core/components/mui/chip'
-
 import { v4 as uuidv4 } from 'uuid'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -79,6 +73,7 @@ import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
+import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -135,6 +130,7 @@ const AddReturnRequest = () => {
   // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [loader, setLoader] = useState(false)
+  const [isEdit, setIsEdit] = useState(false)
   const router = useRouter()
   const { id, action } = router.query
 
@@ -168,6 +164,7 @@ const AddReturnRequest = () => {
     setOptionsBatchList([])
     // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
+    if (isEdit) setIsEdit(false)
   }
 
   const showDialog = () => {
@@ -186,7 +183,7 @@ const AddReturnRequest = () => {
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
   const addItemsToTable = params => {
-    const updatedNestedRows = [...editParams.request_item_details, params]
+    const updatedNestedRows = [...editParams.request_item_details, ...params]
     setEditParams({
       ...editParams,
       request_item_details: updatedNestedRows
@@ -254,22 +251,6 @@ const AddReturnRequest = () => {
   }
 
   const submitItems = params => {
-    // const HasErrors =
-    //   !nestedRowMedicine.medicine_name || !nestedRowMedicine.request_item_qty || !nestedRowMedicine.priority_item
-    // // || !nestedRowMedicine.control_substance
-    // if (HasErrors) {
-    //   setItemErrors(validate(nestedRowMedicine))
-
-    //   return
-    // }
-    // if (params.control_substance === true) {
-    //   if (nestedRowMedicine.control_substance_file.length === 0) {
-    //     setItemErrors(validate(nestedRowMedicine))
-
-    //     return
-    //   }
-    // }
-
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
@@ -281,19 +262,23 @@ const AddReturnRequest = () => {
 
     if (isMedicineAlreadyExists) {
       setDuplicateMedError(true)
-      console.log('Medicine already exists')
 
       return
     }
     setErrors({})
-    var tempParams = params
-    if (tempParams?.uuid === '') {
-      tempParams.uuid = uuidv4()
-      addItemsToTable(tempParams)
-    } else {
-      updateFormItems(params)
-    }
 
+    const allHaveUUIDs = params.every(item => item.uuid && item.uuid !== '')
+
+    const processedItems = params.map(item => ({
+      ...item,
+      uuid: allHaveUUIDs ? item.uuid : uuidv4()
+    }))
+
+    if (allHaveUUIDs) {
+      updateFormItems(processedItems[0])
+    } else {
+      addItemsToTable(processedItems)
+    }
     closeDialog()
   }
 
@@ -540,6 +525,8 @@ const AddReturnRequest = () => {
 
   // ****** edit section //////
   const editTableData = async itemId => {
+    setIsEdit(true)
+
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
@@ -549,6 +536,7 @@ const AddReturnRequest = () => {
       request_item_medicine_id: getItems[0].request_item_medicine_id,
       request_item_batch_no: getItems[0].request_item_batch_no,
       expiry_date: getItems[0].expiry_date,
+      product_batches: [getItems[0]],
       // id: getItems[0].id,
       request_item_qty: getItems[0].request_item_qty,
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -675,7 +663,7 @@ const AddReturnRequest = () => {
   // data posting section
   const createForm = () => {
     return (
-      <AddItemsForm
+      <AddProductForm
         searchBatchData={searchBatchData}
         searchMedicineData={searchMedicineData}
         productList={optionsMedicineList}
@@ -684,12 +672,12 @@ const AddReturnRequest = () => {
         batchLoading={batchLoading}
         onSubmitData={submitItems}
         batchList={optionsBatchList}
-        setBatchList={setOptionsBatchList}
         nestedMedicine={nestedRowMedicine}
         error={duplicateMedError}
         totalQuantity={totalBatchQuantity}
         editParams={editParams}
         closeDialog={closeDialog}
+        isEdit={isEdit}
       />
     )
   }

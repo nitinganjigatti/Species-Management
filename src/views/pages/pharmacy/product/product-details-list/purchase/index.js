@@ -70,7 +70,6 @@ function Purchase({ tabValue, updateUrlParams }) {
 
   useEffect(() => {
     if (router.query.tab !== tabValue) {
-      // debugger
       setPaginationModel({ page: 0, pageSize: 10 })
       setSortColumn('po_date')
       setSort('desc')
@@ -305,10 +304,8 @@ function Purchase({ tabValue, updateUrlParams }) {
           limit: paginationModel.pageSize
         }
 
-        // Call the API to fetch data with the sorting and other params
         await getPurchaseDetailsList(params, id).then(res => {
           if (res?.success) {
-            console.log(res, 'res')
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
             updateUrlParams({
@@ -422,7 +419,7 @@ function Purchase({ tabValue, updateUrlParams }) {
         to_date: formattedEndDate
       })
     } else {
-      // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
+     
       setFilterDates({
         startDate: '',
         endDate: ''

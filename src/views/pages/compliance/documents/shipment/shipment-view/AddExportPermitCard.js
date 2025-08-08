@@ -71,7 +71,7 @@ const ExportCard = ({
         }}
         onClick={() => handleClickAnimals(exportId)}
       >
-        {/* Left Section */}
+      
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
           <Typography
             variant='subtitle2'
@@ -130,7 +130,6 @@ const ExportCard = ({
           </Grid>
         </CardContent>
 
-        {/* Right Section */}
         <Box
           sx={{
             background: theme.palette.customColors.Surface,

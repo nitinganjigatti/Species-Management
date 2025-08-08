@@ -21,24 +21,21 @@ function Escrow({ value }) {
 
   const theme = useTheme()
 
-  // const { type } = Router.query
 
   const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
 
-  // const [searchValue, setSearchValue] = useState('')
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'name')
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10
+    pageSize: parseInt(router.query.pageSize, 10) || 50
   })
 
-  // const [stockType, setStockType] = useState( 'dispute')
   const [stockType, setStockType] = useState(router.query.stockType || 'dispute')
 
   function loadServerRows(currentPage, data) {
@@ -274,7 +271,6 @@ function Escrow({ value }) {
       )
     }
 
-    // no_of_days_exist
   ]
 
   const fetchScrewTableData = useCallback(async ({ sort, searchValue, column, type, page, pageSize }) => {
@@ -283,9 +279,9 @@ function Escrow({ value }) {
 
       const params = {
         sort,
-        q: searchValue, // Correctly map `searchValue` to `q`
+        q: searchValue, 
         column,
-        page: page + 1, // 1-based page index for API
+        page: page + 1, 
         limit: pageSize,
         type
       }
@@ -326,7 +322,7 @@ function Escrow({ value }) {
         ...router.query,
         stockType,
         value,
-        page: paginationModel.page + 1, // Convert back to 1-indexed
+        page: paginationModel.page + 1, 
         pageSize: paginationModel.pageSize,
         searchValue,
         sort,
@@ -421,10 +417,10 @@ function Escrow({ value }) {
         query: {
           ...router.query,
           searchValue: value,
-          page: 1 // Update to 1-indexed for the URL
+          page: 1 
         }
       })
-    }, 40), // Adjust debounce delay to a reasonable value (e.g., 300ms)
+    }, 40), 
     [router]
   )
 
@@ -432,7 +428,7 @@ function Escrow({ value }) {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      setPaginationModel(prevModel => ({ ...prevModel, page: 0 })) // Reset to the first page
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 })) 
     }
   }, [])
 
@@ -464,7 +460,7 @@ function Escrow({ value }) {
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* Left Box (Search Field) */}
+             
               <Grid item size={{ xs: 8 }}>
                 <Box
                   sx={{
@@ -499,7 +495,7 @@ function Escrow({ value }) {
                 </Box>
               </Grid>
 
-              {/* Group of two boxes on the right */}
+            
               <FormControl
                 size='small'
                 sx={{

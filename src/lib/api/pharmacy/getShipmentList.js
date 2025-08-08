@@ -50,7 +50,6 @@ export async function addDisputeItems(payload) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -72,7 +71,6 @@ export async function upDateDisputeItems(id, payload) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -93,7 +91,6 @@ export async function addDispenseItems(payload) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)

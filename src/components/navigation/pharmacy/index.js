@@ -378,6 +378,36 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/stock-location'
   }
 
+  const shipmentParent = {
+    title: 'Shipments',
+    path: '/pharmacy/shipments',
+    icon: 'la:shipping-fast',
+    activeWhen: [
+      '/pharmacy/shipments/',
+      '/pharmacy/shipments/incoming-shipments',
+      '/pharmacy/shipments/outgoing-shipments'
+    ],
+    children: [
+      {
+        title: 'Incoming Shipments',
+        path: '/pharmacy/shipments/incoming-shipments'
+      },
+      {
+        title: 'Outgoing Shipments',
+        path: '/pharmacy/shipments/outgoing-shipments'
+      }
+    ]
+  }
+
+  // const incomingShipments = {
+  //   title: 'Incoming Shipments',
+  //   path:  '/pharmacy/shipments/incoming-shipments'
+  // }
+  // const incomingShipments = {
+  //   title: 'Outgoing Shipments',
+  //   path:   '/pharmacy/shipments/outgoing-shipments'
+  // }
+
   reportsParent.children.push(consumptionReport)
   reportsParent.children.push(returnReport)
   reportsParent.children.push(shipmentReport)
@@ -434,7 +464,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       returnListing,
 
       // reportsParent,
-      directDispatchList
+      directDispatchList,
+      shipmentParent
     )
 
     if (
@@ -500,7 +531,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       returnListing,
 
       // directDispatchList,
-      directDispatchListForLocal
+      directDispatchListForLocal,
+      shipmentParent
     )
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||

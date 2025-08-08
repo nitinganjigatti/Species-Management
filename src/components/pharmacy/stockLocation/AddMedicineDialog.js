@@ -80,7 +80,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
 
   useEffect(() => {
     if (productData) {
-      // Directly set the product from productData
+      
       reset({
         stock_id: {
           label: productData.stock_name,
@@ -108,7 +108,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
       setDefaultRack(rackValues)
       setDefaultShelf(shelfValues)
 
-      // Fetch existing medicine config
+     
       getMedicineConfig({ stockId: productData?.stock_item_id })
     }
   }, [productData, selectedPharmacy?.id])
@@ -226,7 +226,6 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
   console.log(shelves, 'shelves')
 
   const onSubmit = async data => {
-    // Trigger validation before submitting
     const isValid = await trigger()
     if (!isValid) return
 
@@ -389,9 +388,9 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                             onChange={(event, newValue) => {
                               field.onChange(newValue)
                               if (newValue?.value) {
-                                getMedicineConfig({ stockId: newValue.value }) // fetch configs for selected product
+                                getMedicineConfig({ stockId: newValue.value }) 
                               }
-                              setExistingMedConfig([]) // clear previous configs until new fetch completes
+                              setExistingMedConfig([]) 
                             }}
                             onInputChange={(event, newInputValue) => {
                               if (event && !productData) searchProductData(newInputValue)
@@ -476,7 +475,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                       mb: 0
                     }}
                   >
-                    {/* Rack Field */}
+                   
                     <Grid item size={{ xs: 12, sm: 5 }}>
                       <FormControl fullWidth sx={{ mb: 6 }}>
                         <Controller

@@ -28,7 +28,6 @@ import toast from 'react-hot-toast'
 
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -47,7 +46,6 @@ const GenericNamesList = () => {
   const [genericNames, setGenericNames] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -147,8 +145,7 @@ const GenericNamesList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -167,13 +164,12 @@ const GenericNamesList = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -235,8 +231,7 @@ const GenericNamesList = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-          (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+    
 
       {pharmacyRole && (
         <Grid item>
@@ -257,7 +252,6 @@ const GenericNamesList = () => {
       }
 
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
         toast.success(response?.message)
 
@@ -269,7 +263,6 @@ const GenericNamesList = () => {
       } else {
         setSubmitLoader(false)
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -280,7 +273,6 @@ const GenericNamesList = () => {
       console.log(e)
       setSubmitLoader(false)
 
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
       toast.error(JSON.stringify(e))
     }
   }
@@ -294,7 +286,6 @@ const GenericNamesList = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -316,7 +307,6 @@ const GenericNamesList = () => {
                   title={RenderUtility.pageTitle('Generic Names')}
                   action={headerAction}
                 />
-                {/* Left Box (Search Field) */}
                 <Grid
                   item
                   sx={{

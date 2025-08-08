@@ -48,9 +48,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     }
   }, [activitySidebarOpen])
 
-  // Function to send diet_types values to the parent component
   const sendDietTypesToParent = dietTypesData => {
-    // Call the function received from the parent component and pass the diet_types values
     onReceiveDietTypes(dietTypesData)
   }
 
@@ -254,14 +252,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
               <Typography sx={{ fontWeight: 500, fontSize: '24px', color: 'black' }}>Add Weights</Typography>
               <Box>
                 <Autocomplete
-                  value={uom !== undefined && uom !== '' ? uom : null} // Set value to null for undefined or empty string
+                  value={uom !== undefined && uom !== '' ? uom : null} 
                   forcePopupIcon={false}
                   isOptionEqualToValue={(option, value) => option.value === value}
                   noOptionsText='Type to search'
                   options={uomList?.length > 0 ? uomList : []}
                   getOptionLabel={option => option?.name}
                   onChange={(e, val) => {
-                    setUom(val !== null ? val : '') // Set uom to val if not null, otherwise set it to empty string
+                    setUom(val !== null ? val : '') 
                   }}
                   renderInput={params => <TextField {...params} label='Select unit*' placeholder='Search & Select' />}
                   sx={{ width: '200px' }}
@@ -432,7 +430,6 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
               disabled={dis || Boolean(errors?.diet_types)}
               type='submit'
               onClick={() => {
-                // console.log('fields', getValues('diet_types'))
                 console.log(
                   'fields',
                   getValues('diet_types').map(item => ({

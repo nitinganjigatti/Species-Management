@@ -1,4 +1,3 @@
-/* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
 import {
   FormControl,
@@ -22,7 +21,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 
 import { useForm, Controller, useWatch } from 'react-hook-form'
 
-// import DatePicker from 'react-datepicker'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import Icon from 'src/@core/components/icon'
@@ -243,7 +241,6 @@ const PurchaseItemForm = props => {
     getValues,
     setError
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -380,7 +377,6 @@ const PurchaseItemForm = props => {
     // calculate total unity qty
     const totalUnitQty = checkNumber(updatedValues?.purchase_variant_ratio * purchase_qty)
 
-    // debugger
 
     // calculate total unity qty
 
@@ -563,6 +559,7 @@ const PurchaseItemForm = props => {
 
       searchMedicineData('')
     }
+    searchMedicineData('')
   }, [])
 
   const purchaseCgst = useWatch({ control, name: 'purchase_cgst' })
@@ -570,8 +567,6 @@ const PurchaseItemForm = props => {
   const purchaseIgst = useWatch({ control, name: 'purchase_igst' })
 
   useEffect(() => {
-    // alert('3')
-
     if (purchaseCgst > 0 || purchaseSgst > 0) {
       setValue('purchase_igst', 0)
     }
@@ -786,7 +781,6 @@ const PurchaseItemForm = props => {
                 render={({ field: { value, onChange } }) => (
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DesktopDatePicker
-                      // eslint-disable-next-line lines-around-comment
                       // disabled={nestedRowMedicine?.id ? true : false}
                       label='Expiry Date*'
                       inputFormat='MM/DD/YYYY'
@@ -1627,7 +1621,6 @@ const PurchaseItemForm = props => {
             </>
           }
         />
-        {/* // file uploader */}
         <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right' }}>
             {medicineItemId ? (

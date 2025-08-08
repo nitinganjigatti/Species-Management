@@ -22,15 +22,13 @@ const SiteSheet = ({
 
   useEffect(() => {
     if (openSiteDrawer) {
-      // Use context's selectedSites directly instead of apiFilterParams
       const storedSiteIds = selectedSites.includes('All Sites')
-        ? ['All Sites'] // Keep 'All Sites' if selected
-        : selectedSites // Otherwise, use selectedSites
+        ? ['All Sites'] 
+        : selectedSites 
 
-      setTempSelectedSites(storedSiteIds) // Set correct site IDs from context
+      setTempSelectedSites(storedSiteIds) 
     }
-  }, [openSiteDrawer, selectedSites]) // Add selectedSites as a dependency
-
+  }, [openSiteDrawer, selectedSites]) 
   const handleSelectAll = event => {
     if (event.target.checked) {
       setTempSelectedSites(sites.map(site => site.site_id))
@@ -51,32 +49,28 @@ const SiteSheet = ({
 
   const handleConfirmSelection = () => {
    
-    const totalSites = [...sites] // Assuming sites is an array of objects
-    const selectedArr = [...tempSelectedSites] // Array of selected site IDs
+    const totalSites = [...sites] 
+    const selectedArr = [...tempSelectedSites] 
 
-    // Sort the selected site IDs
     const sortedSelectedSites = selectedArr.sort((a, b) => a - b)
 
-    // Get unselected sites and sort them alphabetically
     const sortedUnSelectedSites = totalSites
       .filter(site => !sortedSelectedSites.includes(site.site_id))
       .sort((a, b) => a.site_name.localeCompare(b.site_name))
 
-    // Update selectedSites with merged and sorted list
     setSelectedSites([...sortedUnSelectedSites.map(site => site.site_id), ...sortedSelectedSites])
 
-    // Merge and update the `sites` prop
     const mergedSites = [
       ...totalSites.filter(site => sortedSelectedSites.includes(site.site_id)),
       ...sortedUnSelectedSites
     ]
 
-    setSites(mergedSites) // Assuming `setSites` is a state setter for `sites`
+    setSites(mergedSites) 
 
     console.log('Merged and Sorted Sites:', mergedSites)
 
-    handleSelectedSite(sortedSelectedSites) // Additional action
-    setOpenSiteDrawer(false) // Close the drawer
+    handleSelectedSite(sortedSelectedSites) 
+    setOpenSiteDrawer(false)
   }
 
   const theme = useTheme()
@@ -95,7 +89,7 @@ const SiteSheet = ({
         backgroundColor: 'background.default'
       }}
     >
-      {/* Header */}
+      
       <Box
         className='sidebar-header'
         sx={{
@@ -117,7 +111,7 @@ const SiteSheet = ({
         </IconButton>
       </Box>
 
-      {/* Drawer Content */}
+     
       <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto' }}>
         <Box
           sx={{
@@ -131,7 +125,7 @@ const SiteSheet = ({
             borderRadius: '8px'
           }}
         >
-          {/* Search Field */}
+        
           <TextField
             fullWidth
             placeholder='Search'
@@ -140,7 +134,7 @@ const SiteSheet = ({
             sx={{ mb: 2 }}
           />
 
-          {/* Select All */}
+        
           {filteredSites.length > 0 && (
             <FormControlLabel
               control={
@@ -167,7 +161,7 @@ const SiteSheet = ({
           )}
           <Divider sx={{ mb: 4 }} />
 
-          {/* Sites List */}
+         
           <Box
             sx={{
               display: 'flex',
@@ -204,7 +198,7 @@ const SiteSheet = ({
                     fontFamily: 'Inter',
                     color: theme.palette.customColors.Outline,
                     fontSize: '16px',
-                    flex: 1 // Allows text to grow naturally while respecting spacing
+                    flex: 1 
                   }}
                 >
                   {site.site_name}
@@ -215,7 +209,7 @@ const SiteSheet = ({
         </Box>
       </Box>
 
-      {/* Bottom Buttons */}
+    
       <Box
         sx={{
           height: '122px',

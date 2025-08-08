@@ -15,7 +15,6 @@ const ShipmentCard = ({ shipment }) => {
         </Box>
       </Typography>
 
-      {/* Shipment Details Card */}
       <Paper
         elevation={1}
         sx={{
@@ -29,7 +28,6 @@ const ShipmentCard = ({ shipment }) => {
         }}
       >
         <Grid container spacing={2}>
-          {/* Left Column */}
           <Grid size={{ xs: 7 }}>
             <Box mb={4}>
               <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.secondaryBg, fontWeight: 400 }}>
@@ -53,7 +51,6 @@ const ShipmentCard = ({ shipment }) => {
             </Box>
           </Grid>
 
-          {/* Right Column aligned with "Total Species" */}
           <Grid size={{ xs: 5 }} display='flex' flexDirection='column' justifyContent='flex-end'>
             <Box mt='28px'>
               {' '}

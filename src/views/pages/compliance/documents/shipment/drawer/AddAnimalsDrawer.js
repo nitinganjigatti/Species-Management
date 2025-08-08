@@ -25,7 +25,6 @@ const AddAnimalsDrawer = ({
   const theme = useTheme()
 
   const handleCancel = () => {
-    // Discard draft without saving
     setDraftData({ export: [], others: [] })
     onClose()
   }
@@ -70,7 +69,6 @@ const AddAnimalsDrawer = ({
                 width: '100%'
               }}
             >
-              {/* Export ID */}
               <Typography
                 sx={{
                   fontWeight: '500',

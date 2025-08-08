@@ -50,10 +50,9 @@ const PurchaseInvoiceUpload = ({
   const [file, setFile] = useState([])
   const [error, setError] = useState('')
 
-  const videoRef = useRef(null) // Reference to video element
-  const canvasRef = useRef(null) // Reference to canvas element
+  const videoRef = useRef(null) 
+  const canvasRef = useRef(null) 
   const browseButtonRef = useRef(null)
-
   const fileInputRef = useRef(null)
 
   const handleClick = () => {
@@ -73,13 +72,13 @@ const PurchaseInvoiceUpload = ({
     if (parts?.length === 3) {
       let [day, month, year] = parts
 
-      return `${year}-${month}-${day}` // Convert to YYYY-MM-DD
+      return `${year}-${month}-${day}` 
     }
 
     return ''
   }
 
-  // Request camera permission
+ 
   const requestCameraPermission = async () => {
     console.log('Requesting camera permission...')
 
@@ -94,7 +93,7 @@ const PurchaseInvoiceUpload = ({
       }
     } else {
       console.error('getUserMedia is not supported in this browser.')
-      setPermissionDenied(true) // If getUserMedia is not supported
+      setPermissionDenied(true) 
     }
   }
 
@@ -117,7 +116,7 @@ const PurchaseInvoiceUpload = ({
   const startCamera = async deviceId => {
     if (!deviceId) return
 
-    stopCamera() // Stop the previous camera if any
+    stopCamera() 
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -321,8 +320,7 @@ const PurchaseInvoiceUpload = ({
 
       const response = await invoiceProcessForPurchase(base64Images).then(async response => {
         setInvoiceSubmitLoader(false)
-        console.log('response,', response)
-        closeDialog()
+        // console.log('response,', response)
         let responseData = response?.data
 
         const payLoad = responseData?.product_details
@@ -352,6 +350,8 @@ const PurchaseInvoiceUpload = ({
           console.error('Error in variant mapping:', error)
         }
         if (responseData) {
+          closeDialog()
+
           const purchase_details = responseData?.product_details?.map((el, index) => {
             // Get GST values from invoice data
             const purchase_gst = el.purchase_gst || 0
@@ -494,10 +494,13 @@ const PurchaseInvoiceUpload = ({
             purchase_created_by: 'invoice_upload'
           })
           handleInputImageChange(file)
+
           toast.success('Invoice processed successfully')
+        } else {
+          toast.error('Invoice processed failed try again')
+          setInvoiceSubmitLoader(false)
         }
       })
-      console.log('Upload success:', response?.data)
     } catch (error) {
       console.error('Error uploading images:', error)
 

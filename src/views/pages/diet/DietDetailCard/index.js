@@ -148,7 +148,6 @@ const DietDetailCard = ({
         query: { source: 'fromdiet' }
       })
     } else {
-      // Router.push('/diet/diet')
       Router.back()
     }
   }
@@ -368,7 +367,6 @@ const DietDetailCard = ({
                 ) : (
                   ''
                 )}
-                {/* Species and Animals Details */}
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_species !== '0' ? (
@@ -409,7 +407,6 @@ const DietDetailCard = ({
                     )}
                   </Grid>
 
-                  {/* Animals Section */}
                   <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_animals !== '0' ? (
                       <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 3 }}>
@@ -590,7 +587,6 @@ const DietDetailCard = ({
             handleSidebarClose={handleSidebarClose}
           />
         )}
-        {/* ////it is for delete /////////*/}
         <ConfirmationDialog
           icon={'mdi:delete'}
           iconColor={'#ff3838'}
@@ -602,7 +598,6 @@ const DietDetailCard = ({
           loading={loading}
         />
 
-        {/* ////it is for status change /////////*/}
         <DeleteDialogConfirmation
           handleClosenew={handleClosenew}
           action={confirmStatusAction}

@@ -16,18 +16,14 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio, InputLabel, Select, MenuItem, Button } from '@mui/material'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getStoreById } from 'src/lib/api/pharmacy/getStoreList'
 
-// ** auth context
 
 import { AuthContext } from 'src/context/AuthContext'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup
@@ -51,7 +47,6 @@ const defaultValues = {
 }
 
 const AddStore = props => {
-  // ** Props
   const {
     addEventSidebarOpen,
     handleSidebarClose,
@@ -63,7 +58,6 @@ const AddStore = props => {
     totalStores
   } = props
 
-  // ** States
   const [values, setValues] = useState(defaultValues)
 
   const authData = useContext(AuthContext)

@@ -58,7 +58,6 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
           }}
         >
           <Grid container spacing={2}>
-            {/* Shipment ID */}
             <Grid size={{ xs: 6, md: 4 }}>
               <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
                 Shipment ID
@@ -68,7 +67,6 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
               </Typography>
             </Grid>
 
-            {/* Date Of Issue */}
             <Grid size={{ xs: 6, md: 4 }}>
               <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
                 Date Of Issue

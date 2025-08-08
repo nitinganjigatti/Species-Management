@@ -82,7 +82,6 @@ const SpeciesAddEdit = ({
 
   const handleFileUpload = (exportId, file) => {
     setSelectedExportData(prev => {
-      // Create a true deep copy
       const updated = {
         ...prev,
         export: prev.export.map(exporta => ({ ...exporta }))
@@ -94,7 +93,7 @@ const SpeciesAddEdit = ({
         return prev
       }
 
-      // Update only the specific export
+      
       updated.export[exportIndex] = {
         ...updated.export[exportIndex],
         attachment: file
@@ -110,7 +109,7 @@ const SpeciesAddEdit = ({
   )
 
   const handleRemoveOtherSpecies = index => {
-    // Get the species ID before removing
+   
     const speciesIdToRemove = selectedExportData.others[index]?.id
 
     setSelectedExportData(prev => ({
@@ -187,7 +186,7 @@ const SpeciesAddEdit = ({
 
         {selectedExportData?.export?.length > 0 || selectedExportData?.others?.length > 0 ? (
           <>
-            {/* Render export data if exists */}
+          
             {selectedExportData?.export?.length > 0 &&
               selectedExportData.export.map((all, index) => {
                 const totalAnimals =
@@ -211,7 +210,7 @@ const SpeciesAddEdit = ({
                     }}
                   >
                     <Paper elevation={3} sx={{ p: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
-                      {/* Header */}
+                   
                       <Box display='flex' justifyContent='space-between' alignItems='start' mb={2}>
                         <Box>
                           <Typography
@@ -265,7 +264,7 @@ const SpeciesAddEdit = ({
                         </Box>
                       </Box>
 
-                      {/* Species Summary */}
+                    
                       <Box
                         sx={{
                           borderRadius: '8px',
@@ -322,7 +321,6 @@ const SpeciesAddEdit = ({
 
                         <Divider />
 
-                        {/* Species List */}
                         <Box
                           sx={{
                             background: theme.palette.common.white,
@@ -430,7 +428,7 @@ const SpeciesAddEdit = ({
                 )
               })}
 
-            {/* Render others data if exists */}
+         
             {selectedExportData?.others?.length > 0 && (
               <Box
                 sx={{
@@ -443,7 +441,7 @@ const SpeciesAddEdit = ({
                 }}
               >
                 <Paper elevation={3} sx={{ p: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
-                  {/* Header */}
+               
                   <Box display='flex' justifyContent='space-between' alignItems='start' mb={2}>
                     <Box>
                       <Typography
@@ -465,7 +463,7 @@ const SpeciesAddEdit = ({
                     </Box>
                   </Box>
 
-                  {/* Species Summary */}
+                 
                   <Box
                     sx={{
                       borderRadius: '8px',

@@ -24,7 +24,6 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
         backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.4)
       }}
     >
-      {/* Main flex row container */}
       <Box
         sx={{
           display: 'flex',
@@ -35,7 +34,6 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
           justifyContent: 'space-between'
         }}
       >
-        {/* Certificate ID & Exporting Country */}
         <Box
           sx={{
             flex: '0 1 180px',
@@ -59,7 +57,6 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
           </Typography>
         </Box>
 
-        {/* Date of Issue & Exporter Name */}
         <Box
           sx={{
             flex: '0 1 180px',
@@ -83,7 +80,6 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
           </Typography>
         </Box>
 
-        {/* Last Day of Validity & Importer */}
         <Box
           sx={{
             flex: '0 1 180px',
@@ -107,7 +103,6 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
           </Typography>
         </Box>
 
-        {/* Country of Origin & Purpose of Transfer */}
         <Box
           sx={{
             flex: '0 1 180px',
@@ -131,7 +126,6 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
           </Typography>
         </Box>
 
-        {/* File Card - spans two rows */}
         {exportData.documents?.file_path && (
           <Box
             sx={{

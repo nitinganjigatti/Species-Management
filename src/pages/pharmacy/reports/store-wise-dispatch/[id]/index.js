@@ -126,7 +126,6 @@ const StoreWiseDispatchDetail = () => {
       const formattedFromDate = formatDateTime(fromDate, '00:00:00')
       const formattedToDate = formatDateTime(toDate, '23:59:00')
 
-      // Update state with the formatted dates
       setDownloadFromDate(formattedFromDate)
       setDownloadToDate(formattedToDate)
 
@@ -167,7 +166,6 @@ const StoreWiseDispatchDetail = () => {
     }
   }
 
-  // Utility function to format the date in 'YYYY-MM-DD HH:mm:ss' format
   const formatDateTime = (date, defaultTime = '00:00:00') => {
     return moment(date).format(`YYYY-MM-DD ${defaultTime}`)
   }
@@ -198,14 +196,11 @@ const StoreWiseDispatchDetail = () => {
         setFullStoreList(prevStores => {
           let mergedStores
           if (q) {
-            // If search is applied, replace the list with the searched results
             mergedStores = allStores
           } else {
-            // If search is cleared (q is empty), append the results to the full list
             mergedStores = [...prevStores, ...allStores]
           }
 
-          // Remove duplicates based on `id`
           const uniqueStores = mergedStores.filter(
             (store, index, self) => index === self.findIndex(s => s.id === store.id)
           )
@@ -231,7 +226,7 @@ const StoreWiseDispatchDetail = () => {
     setsearchbyDoctorname(value)
 
     if (medicineId && statusFilter) {
-      fetchDoctorlist(medicineId, downloadFromDate, downloadToDate, value) // Pass search value to API
+      fetchDoctorlist(medicineId, downloadFromDate, downloadToDate, value) 
     }
   }
 
@@ -375,7 +370,7 @@ const StoreWiseDispatchDetail = () => {
                 renderCell: params => {
                   const value = Number(params.value)
                   if (isNaN(value)) {
-                    return <span>{params.value}</span> // Show original value if it's not a number
+                    return <span>{params.value}</span> 
                   }
                   const originalValue = Math.round(value)
 
@@ -406,9 +401,8 @@ const StoreWiseDispatchDetail = () => {
               stock_name: row.stock_name,
               control_substance: row.control_substance,
 
-              // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
-                const value = Number(row.data_values[key]) // Convert to number
+                const value = Number(row.data_values[key]) 
                 acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2)
 
                 return acc
@@ -523,7 +517,6 @@ const StoreWiseDispatchDetail = () => {
     fetchfilterValues({ q: filtersearchValue, page })
   }, [filtersearchValue, page])
 
-  // Function to load more data
   const loadMoreData = () => {
     if (!isFetching && fullStoreList.length < totalMedicineCount) {
       setPage(prevPage => prevPage + 1)
@@ -570,17 +563,15 @@ const StoreWiseDispatchDetail = () => {
           'Shipped Value': item.shipped_value
         }))
 
-        // Create worksheet and workbook
         const worksheet = utils.json_to_sheet(rows)
         worksheet['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 15 }]
 
-        // Create workbook and append the worksheet
         const workbook = utils.book_new()
         utils.book_append_sheet(workbook, worksheet, 'DoctorList')
 
         const now = new Date()
-        const formattedDate = now.toISOString().slice(0, 10) // YYYY-MM-DD
-        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-') // HH-MM
+        const formattedDate = now.toISOString().slice(0, 10) 
+        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-') 
         const fileName = `DoctorList_${formattedDate}_${formattedTime}.xlsx`
 
         writeFile(workbook, fileName)
@@ -622,7 +613,6 @@ const StoreWiseDispatchDetail = () => {
           Medicine: row.stock_name
         }
 
-        // Initialize all month/year columns with default "₹0" values
         listItem.columnData.forEach(column => {
           rowData[`${column.title} (${column.sub_title})`] = '₹0'
         })
@@ -632,8 +622,7 @@ const StoreWiseDispatchDetail = () => {
 
           if (column) {
             if (value == null || isNaN(value)) {
-              // Handle null or NaN values
-              rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
+              rowData[`${column.title} (${column.sub_title})`] = '0' 
             } else {
               const roundedValue = parseFloat(value)
 
@@ -654,7 +643,7 @@ const StoreWiseDispatchDetail = () => {
         Medicine: 'Total Dispatch Value '
       }
       listItem.columnData.forEach(column => {
-        // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
+       
         const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
           maximumFractionDigits: 0
         })
@@ -666,9 +655,9 @@ const StoreWiseDispatchDetail = () => {
       const wsData = [headers, ...finalRows.map(row => Object.values(row))]
       const ws = utils.aoa_to_sheet(wsData)
       ws['!cols'] = [
-        { wch: 20 }, // Width for '1st' column
+        { wch: 20 }, 
 
-        ...listItem.columnData.map(() => ({ wch: 15 })) // Width for each month/year column
+        ...listItem.columnData.map(() => ({ wch: 15 })) 
       ]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
@@ -769,7 +758,7 @@ const StoreWiseDispatchDetail = () => {
                     container
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 5, pt: 2 }}
                   >
-                    {/* Search toolbar aligned to the left */}
+                  
                     <Grid item size={{ xs: 12, sm: 6, md: 6 }} sx={{ justifyContent: 'flex-start' }}>
                       <ServerSideToolbar
                         value={searchValue}
@@ -782,7 +771,7 @@ const StoreWiseDispatchDetail = () => {
                       />
                     </Grid>
 
-                    {/* Right-aligned container for Select Days and Filter button */}
+                   
                     <Grid item size={{ xs: 12, sm: 4, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <FormControl size='small' sx={{ mr: 2 }}>
                         <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>

@@ -124,7 +124,6 @@ const StepPreviewDiet = ({
       const numericType = type !== 'Generic' ? parseFloat(type) : type
 
       const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
-        // Check if meal_value_header is not equal to 'Generic'
         if (meal.meal_value_header !== 'Generic') {
           return parseFloat(meal.meal_value_header) === numericType
         } else {
@@ -156,7 +155,6 @@ const StepPreviewDiet = ({
       setInitialValues(initialval)
     }
 
-    // Then open the dialog
     setOpen(true)
     setmealingredientIndex(index)
     setingredientvalueid(item.mealid)
@@ -165,13 +163,12 @@ const StepPreviewDiet = ({
       setheadertype(type)
     } else {
       const inputString = type
-      const numberOnly = inputString.replace(/[^\d.-]/g, '') // Remove all non-numeric characters
+      const numberOnly = inputString.replace(/[^\d.-]/g, '')
       const textOnly = inputString.replace(/^\s*\d*\s*/, '')
 
       setheadertype(type)
       type !== 'Generic' ? setheaderMatch(parseFloat(numberOnly)) : setheaderMatch(numberOnly)
 
-      // Find the object in uomprevnew array where name matches textOnly
       const matchedUom = uomprevnew.find(item => item.name === textOnly)
       if (matchedUom) {
         setuomId(parseFloat(matchedUom._id))
@@ -208,7 +205,6 @@ const StepPreviewDiet = ({
     }
   }, [formData, reset])
 
-  // Define a function to receive the diet_types values from the child component
   const handleReceiveDietTypes = dietTypesData => {
     setDietTypes(dietTypesData)
     setActivitySidebarOpen(false)
@@ -234,7 +230,6 @@ const StepPreviewDiet = ({
     document.cookie = `dietTypeChildValues=${JSON.stringify(stateforHeader)}; path=/`
     document.cookie = `dietTypeChildVal=${JSON.stringify(apival)}; path=/`
 
-    // Check if stateforHeader is an array
     if (Array.isArray(stateforHeader)) {
       setdiettypechildvalues(stateforHeader)
     } else {
@@ -274,7 +269,6 @@ const StepPreviewDiet = ({
 
   useEffect(() => {
     if (id) {
-      //const child = formData.child
       const dietTypeChildValues = getCookie('dietTypeChildValues')
       const dietTypeChildVal = getCookie('dietTypeChildVal')
       if (dietTypeChildValues !== null) {
@@ -377,7 +371,6 @@ const StepPreviewDiet = ({
                 }
               })
 
-              // Update mealTypeArray with weight_uom_id and weight_uom_label if found in the cookie
               if (existingMealTypeIndex !== -1) {
                 mealTypeArray[existingMealTypeIndex] = {
                   meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
@@ -386,7 +379,6 @@ const StepPreviewDiet = ({
                   feed_uom_name: feed_uom_name?.label || feed_uom_name,
                   notes: notes,
                   ...(headertype !== 'Generic' && {
-                    // Conditionally include weight_uom_id and weight_uom_label
                     weight_uom_id: uomId,
                     weight_uom_label: uomLabel
                   })
@@ -399,7 +391,6 @@ const StepPreviewDiet = ({
                   feed_uom_name: feed_uom_name?.label || feed_uom_name,
                   notes: notes,
                   ...(headertype !== 'Generic' && {
-                    // Conditionally include weight_uom_id and weight_uom_label
                     weight_uom_id: uomId,
                     weight_uom_label: uomLabel
                   })
@@ -434,8 +425,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else if (dietTypeval === 'recipe') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
-
+        const updatedFormData = { ...formData }
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
@@ -507,7 +497,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else if (dietTypeval === 'combo') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
+        const updatedFormData = { ...formData }
 
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
@@ -580,7 +570,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
+        const updatedFormData = { ...formData }
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
@@ -677,7 +667,7 @@ const StepPreviewDiet = ({
   useEffect(() => {
     if (formData.diet_type_name === 'By Weight') {
       const updatedFormData = { ...formData, child: diettypechildvalues }
-      setlocalformData(updatedFormData) // Update local state
+      setlocalformData(updatedFormData)
       setFormData(updatedFormData)
     }
   }, [diettypechildvalues, formData.diet_type_name])
@@ -686,9 +676,7 @@ const StepPreviewDiet = ({
     const updatedFormData = { ...formData }
     console.log(updatedFormData, 'updatedFormData')
 
-    // Iterate over meal_data
     updatedFormData.meal_data.forEach(meal => {
-      // Check if the meal_data has an ingredient array
       if (meal.ingredient) {
         meal.ingredient.forEach(ingredient => {
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
@@ -703,7 +691,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.recipe) {
         meal.recipe.forEach(recipe => {
           if (recipe.meal_type && recipe.meal_type.length > 0) {
@@ -718,7 +705,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.combo) {
         meal.combo.forEach(recipe => {
           if (recipe.meal_type && recipe.meal_type.length > 0) {
@@ -733,7 +719,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.ingredientwithchoice) {
         meal.ingredientwithchoice.forEach(ingredientwithchoice => {
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
@@ -794,12 +779,11 @@ const StepPreviewDiet = ({
         className=''
         open={open}
         onClose={(event, reason) => {
-          // Prevent closing on backdrop click or Escape key
           if (reason !== 'backdropClick') {
             handleClosed()
           }
         }}
-        disableEscapeKeyDown // Disable closing on pressing Escape
+        disableEscapeKeyDown
         aria-labelledby='customized-dialog-title'
         sx={{
           '& .MuiDialog-paper': {
@@ -916,7 +900,6 @@ const StepPreviewDiet = ({
           </Box>
 
           <Grid container spacing={5} sx={{ px: 5 }}>
-            {/* First Grid item */}
             <Grid item size={{ xs: 12, sm: 4 }}>
               <div
                 item
@@ -966,7 +949,7 @@ const StepPreviewDiet = ({
                 </CardContent>
               </div>
             </Grid>
-            {/* Second Grid item */}
+
             <Grid item size={{ xs: 10, sm: 7.5 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography>
@@ -1382,7 +1365,6 @@ const StepPreviewDiet = ({
                                     width: '70%'
                                   }}
                                 >
-                                  {/* Meal Name */}
                                   <Typography
                                     sx={{
                                       textAlign: 'center',
@@ -1448,7 +1430,6 @@ const StepPreviewDiet = ({
                                 </span>
                               </TableCell>
 
-                              {/* Recipe module start  */}
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
@@ -2042,9 +2023,6 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* Recipe module end */}
-
-                              {/* Combo module start  */}
 
                               <>
                                 {itemd?.combo?.map((item, index) => {
@@ -2642,9 +2620,7 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* Combo module end */}
 
-                              {/* ingredient module start */}
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   return (
@@ -3202,7 +3178,6 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* ingredient module end  */}
 
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
@@ -3743,7 +3718,7 @@ const StepPreviewDiet = ({
                                     {itemd.notes}
                                   </>
                                 ) : (
-                                  <></> // Render nothing if no notes are available
+                                  <></>
                                 )}
                               </TableCell>
                             </TableRow>

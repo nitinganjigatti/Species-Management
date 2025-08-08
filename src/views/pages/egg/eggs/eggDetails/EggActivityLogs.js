@@ -13,7 +13,6 @@ import Icon from 'src/@core/components/icon'
 import moment from 'moment'
 import Utility from 'src/utility'
 
-// Styled Timeline component
 const Timeline = styled(MuiTimeline)({
   paddingLeft: 0,
   paddingRight: 0,
@@ -65,7 +64,6 @@ const EggActivityLogs = ({
       container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight &&
       activtyLogData.length < activtyLogCount
     ) {
-      // User has reached the bottom, perform your action here
       setPage_no(++page_no)
       setReachedEnd(true)
       const params = { page_no }

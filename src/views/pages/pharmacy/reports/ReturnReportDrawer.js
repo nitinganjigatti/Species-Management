@@ -184,7 +184,6 @@ const ReturnReportDrawer = ({
       }
     }
 
-    // Attach near-expiry date filters to object to send
     if (selectedOptions['Near Expiry'] && nearExpiryFilterDates.startDate && nearExpiryFilterDates.endDate) {
       filterData['nearExpiryDate'] = {
         startDate: nearExpiryFilterDates.startDate,
@@ -192,7 +191,6 @@ const ReturnReportDrawer = ({
       }
     }
 
-    //Attack Drug-Type filters to object to send
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
       filterData[selectedOptions['Drug Type']] = 1
     }

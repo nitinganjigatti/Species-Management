@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { forwardRef, useState, useEffect } from 'react'
 
 import {
@@ -124,7 +123,6 @@ const IndividualRequest = () => {
 
         responseData['request_item_details'] = mappedWithUid
 
-        // setRequestItems(response.data)
         setRequestItems(responseData)
         setLoader(false)
         setPermissionView(true)
@@ -384,7 +382,6 @@ const IndividualRequest = () => {
       field: 'batch_no',
       headerName: 'Batch No',
 
-      // align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
@@ -915,7 +912,6 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        // Router.push('/pharmacy/local-dispatch/local-dispatch-list/')
                         Router.back()
                       }}
                       icon='ep:back'
@@ -1023,7 +1019,6 @@ const IndividualRequest = () => {
                             ) : null
                           }
                         />
-                        {/* Medicine Listing */}
                         {requestItems?.request_item_details?.length > 0 ? (
                           <TableBasic
                             rowHeight={90}
@@ -1069,7 +1064,6 @@ const IndividualRequest = () => {
                                 padding: '0px !important'
                               }}
                             >
-                              {/* Dispatch list */}
                               {dispatchedItems?.length > 0 && selectedPharmacy?.id === requestItems.from_store_id ? (
                                 <>
                                   <CardHeader
@@ -1109,7 +1103,6 @@ const IndividualRequest = () => {
                                 padding: '0px !important'
                               }}
                             >
-                              {/* Shipped list*/}
                               {shippedItems?.length > 0 ? (
                                 <>
                                   <TableBasic
@@ -1171,7 +1164,6 @@ const IndividualRequest = () => {
                 />
               </Dialog>
 
-              {/* Ship Request Dialog */}
 
               <Dialog
                 fullWidth

@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { CardHeader, Grid, Card, Chip } from '@mui/material'
@@ -69,7 +69,7 @@ const RequestDetailsScreen = () => {
 
   return (
     <Grid container>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
+    
       <Card sx={{ mb: 6, width: '100%', boxShadow: 'none !important' }}>
         {selectedPharmacy.type === 'local' ? null : (
           <CardHeader
@@ -157,11 +157,6 @@ const RequestDetailsScreen = () => {
           </TabContext>
         </Grid>
       </Card>
-      {/* ) : (
-      <Grid sx={{ mb: 6, width: '100%' }}>
-          <Error404></Error404>
-        </Grid>
-      )} */}
     </Grid>
   )
 }

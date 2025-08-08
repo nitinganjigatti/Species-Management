@@ -10,7 +10,6 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
   const theme = useTheme()
   const [comments, setComments] = useState('')
   const [loading, setLoading] = useState(false)
-  // console.log('comments :>> ', comments)
 
   const handleClose = () => {
     setOpenDiscardDialog(false)
@@ -24,7 +23,6 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
       egg_id: JSON.stringify(selectionEggModel),
       reason: comments
     }
-    // console.log('payload :>> ', payload)
 
     try {
       const response = await AddDiscardEgg(payload)
@@ -83,7 +81,7 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
             label='Add Comments'
             variant='outlined'
             fullWidth
-            value={comments} // Bind the value to state
+            value={comments} 
             onChange={e => setComments(e.target.value)}
           />
         </Box>

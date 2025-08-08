@@ -56,7 +56,7 @@ const ListOfDiscardProducts = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
 
@@ -67,7 +67,6 @@ const ListOfDiscardProducts = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, page, limit, filterDates }) => {
-
       try {
         setLoading(true)
         const isEmptyDates = filterDates?.startDate === '' && filterDates?.endDate === ''
@@ -77,7 +76,7 @@ const ListOfDiscardProducts = () => {
           q,
           column,
           ...(isEmptyDates
-            ? { from_date: '', to_date: '' } // Explicitly send empty values
+            ? { from_date: '', to_date: '' } 
             : filterDates?.startDate && filterDates?.endDate
             ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
             : {}),
@@ -179,7 +178,7 @@ const ListOfDiscardProducts = () => {
     debounce(async (sort, q, column, filterDates) => {
       setSearchValue(q)
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
 
       try {
         await fetchTableData({
@@ -323,13 +322,13 @@ const ListOfDiscardProducts = () => {
       field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
-        (<>
+        <>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_profile_pic,
             params?.row?.created_by_user_name,
             params?.row?.created_at
           )}
-        </>)
+        </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
@@ -430,9 +429,9 @@ const ListOfDiscardProducts = () => {
     <Grid
       sx={{
         display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons vertically
-        gap: 2, // Add spacing between buttons
-        width: '100%' // Ensure full width
+        flexDirection: { xs: 'column', sm: 'row' }, 
+        gap: 2, 
+        width: '100%' 
       }}
     >
       {/* <ExcelExportButton
@@ -586,7 +585,7 @@ const ListOfDiscardProducts = () => {
                   mx: { xs: 3, md: 5 }
                 }}
               >
-                {/* Left Box (Search Field) */}
+              
                 <Grid
                   container
                   spacing={4}
@@ -597,9 +596,13 @@ const ListOfDiscardProducts = () => {
                   </Grid>
 
                   <Grid item size={{ xs: 12, sm: 6 }}>
-                    <Grid container spacing={2} sx={{
-                      justifyContent: { xs: 'flex-end' }
-                    }}>
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{
+                        justifyContent: { xs: 'flex-end' }
+                      }}
+                    >
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
@@ -718,7 +721,7 @@ const ListOfDiscardProducts = () => {
         <Error404 />
       )}
     </>
-  );
+  )
 }
 
 export default ListOfDiscardProducts

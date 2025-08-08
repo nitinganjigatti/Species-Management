@@ -10,7 +10,6 @@ import Typography from '@mui/material/Typography'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// import DeleteIcon from '@mui/icons-material/Delete'
 
 import { Box, Button } from '@mui/material'
 
@@ -131,7 +130,6 @@ export default function NewProductList() {
               handleDelete(params.row.id)
             }}
           >
-            {/* <DeleteIcon /> */}
           </IconButton>
         </Box>
       )

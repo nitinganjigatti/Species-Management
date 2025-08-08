@@ -1,7 +1,6 @@
 import { Badge, Box, CircularProgress, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { bgcolor } from '@mui/system'
 
 export const ExportButton = ({
   loading = false,

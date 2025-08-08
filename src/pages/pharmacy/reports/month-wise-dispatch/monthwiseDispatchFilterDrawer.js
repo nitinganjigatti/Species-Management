@@ -50,12 +50,10 @@ const MonthWisedispatchFilter = ({
       setFiltersApplied(false)
     }
 
-    // Ensure that we are attaching the scroll event to the correct element
     if (ref) {
       ref.addEventListener('scroll', handleScroll)
     }
 
-    // Cleanup event listener on unmount or when ref changes
     return () => {
       if (ref) {
         ref.removeEventListener('scroll', handleScroll)
@@ -202,7 +200,6 @@ const MonthWisedispatchFilter = ({
           </Grid>
         </Grid>
       </Box>
-      {/* bottom buttons */}
       <Box
         sx={{
           height: '122px',

@@ -107,7 +107,6 @@ const ConsumptionReportDrawer = ({
     setIsSubmitting(true)
     const filterData = {}
 
-    //Attach Pharmacy filters to object to send
     if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
       filterData.pharmacy = selectedOptions['Pharmacy']
     }

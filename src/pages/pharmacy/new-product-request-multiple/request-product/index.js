@@ -47,7 +47,6 @@ import { useRouter } from 'next/router'
 import { AddButton } from 'src/components/Buttons'
 import FileUploaderMultiple from 'src/views/forms/form-elements/file-uploader/FileUploaderMultiple'
 
-// ** Styled Component
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 
 export default function AddProduct() {
@@ -270,7 +269,7 @@ export default function AddProduct() {
                           multiline
                           rows={1}
 
-                          // error={Boolean(errors.medicine_name)}
+                        
                         />
                       )}
                     />

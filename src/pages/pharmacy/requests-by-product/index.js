@@ -9,9 +9,9 @@ const RequestByProduct = () => {
   const router = useRouter()
 
   const navigateToCentralStore = useCallback(() => {
-    // debugger
+    
     if (selectedPharmacy?.type === 'central' && router.pathname !== '/pharmacy/requests-by-store') {
-      // debugger
+    
       router.push({
         pathname: `/pharmacy/requests-by-store`,
         query: selectedPharmacy?.id

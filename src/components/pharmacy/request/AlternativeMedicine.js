@@ -107,7 +107,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
     return result
   }
 
-  //  ****** debounce
   const fetchMedicineData = async searchText => {
     try {
       const params = {

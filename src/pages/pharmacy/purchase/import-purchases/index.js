@@ -99,10 +99,8 @@ const ImportPurchase = () => {
   const formRef = useRef(null)
 
   const uploadFileData = async () => {
-    // const formData = new FormData()
     const formData = new FormData(formRef.current)
 
-    // console.log('upload file', getValues('upload_file'))
 
     formData.append('is_confirm', uploadedFileData?.length > 0 ? '1' : '0')
 
@@ -143,7 +141,6 @@ const ImportPurchase = () => {
             purchaseDetail.id = purchaseDetailIndex + 1
           })
         })
-        console.log('newData', newData)
         setSubmitLoader(false)
         setLoader(false)
 
@@ -167,7 +164,6 @@ const ImportPurchase = () => {
       setSubmitLoader(false)
       setLoader(false)
 
-      console.log('error', error)
     }
   }
   const router = useRouter()
@@ -187,14 +183,12 @@ const ImportPurchase = () => {
 
       const result = await uploadPurchaseFile(formData)
       setSubmitLoader(true)
-      console.log('newData', result)
 
       if (result?.success === false && result?.error?.length > 0) {
         setFileUploadErrors(result?.error)
         setSubmitLoader(false)
         setLoader(false)
 
-        console.log('newData', result)
 
         if (result?.data.length > 0) {
           const newData = result?.data?.map((item, index) => ({
@@ -208,7 +202,6 @@ const ImportPurchase = () => {
               purchaseDetail.id = purchaseDetailIndex + 1
             })
           })
-          console.log('newData', newData)
           setUploadedFileData(newData)
           setLoader(false)
         }
@@ -230,7 +223,6 @@ const ImportPurchase = () => {
             purchaseDetail.id = purchaseDetailIndex + 1
           })
         })
-        console.log('newData', newData)
         setSubmitLoader(false)
         setLoader(false)
 

@@ -64,7 +64,7 @@ const DirectDispatchList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
@@ -92,14 +92,14 @@ const DirectDispatchList = () => {
           : router.query.status
       )
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [selectedPharmacy.type])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
 
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
     setStatus(newValue)
   }
@@ -159,7 +159,7 @@ const DirectDispatchList = () => {
       setSort(newSort)
       setSortColumn(newColumn)
 
-      // Update the router query
+     
       router.push(
         {
           pathname: router.pathname,
@@ -170,7 +170,7 @@ const DirectDispatchList = () => {
           }
         },
         undefined,
-        { shallow: true } // Use shallow routing to avoid full page reload
+        { shallow: true } 
       )
 
       fetchTableData(newSort, searchValue, newColumn, currentStatus)
@@ -180,7 +180,7 @@ const DirectDispatchList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       const currentStatus = filterSwitch === true ? 'completed' : status
 
@@ -203,7 +203,7 @@ const DirectDispatchList = () => {
 
   const handleSwitchChange = event => {
     setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
 
     setFilterSwitch(prev => event.target.checked)
@@ -222,7 +222,7 @@ const DirectDispatchList = () => {
   useEffect(() => {
     const currentStatus = filterSwitch === true ? 'completed' : status
 
-    // const tabStatus = status === 'all' ? currentStatus : status
+   
 
     fetchTableData(sort, searchValue, sortColumn, currentStatus)
     updateUrlParams({
@@ -234,7 +234,7 @@ const DirectDispatchList = () => {
       limit: paginationModel.pageSize,
       filterSwitch
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [status, filterSwitch, selectedPharmacy.id, paginationModel.page, paginationModel.pageSize])
 
   const onRowClick = params => {
@@ -255,8 +255,8 @@ const DirectDispatchList = () => {
               })
             }
             sx={{
-              mt: { xs: 2, sm: 0 }, // Add top margin on small screens
-              alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
+              mt: { xs: 2, sm: 0 }, 
+              alignSelf: { xs: 'flex-start', sm: 'center' } 
             }}
             fullWidth='fullWidth'
           />
@@ -401,7 +401,7 @@ const DirectDispatchList = () => {
                     <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
                   </Box>
                   <Box sx={{ color: 'warning.main', mr: 2 }}>
-                    {/* added for partial shipping */}
+                  
                     <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                   </Box>
                 </>
@@ -478,14 +478,14 @@ const DirectDispatchList = () => {
                 action={headerAction}
               />
 
-              {/* Search Field and Filters */}
+            
               <Box
                 sx={{
                   mx: { xs: 2, sm: 4, md: 5 }
                 }}
               >
                 <Grid container spacing={3}>
-                  {/* Search Field */}
+                 
                   <Grid
                     item
                     size={{ xs: 12, sm: 6 }}
@@ -543,7 +543,6 @@ const DirectDispatchList = () => {
                 </Grid>
               </Box>
 
-              {/* Common Table */}
               <Grid
                 sx={{
                   mx: { xs: 2, sm: 4, md: 5 }

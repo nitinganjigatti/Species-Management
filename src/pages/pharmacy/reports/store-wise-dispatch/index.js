@@ -95,14 +95,11 @@ const StoreWiseDispatch = () => {
         setFullStoreList(prevStores => {
           let mergedStores
           if (q) {
-            // If search is applied, replace the list with the searched results
             mergedStores = allStores
           } else {
-            // If search is cleared (q is empty), append the results to the full list
             mergedStores = [...prevStores, ...allStores]
           }
 
-          // Remove duplicates based on `id`
           const uniqueStores = mergedStores.filter(
             (store, index, self) => index === self.findIndex(s => s.id === store.id)
           )
@@ -264,14 +261,12 @@ const StoreWiseDispatch = () => {
                   const roundedValue = Math.round(value)
                   const valueInLac = roundedValue / 100000 // Convert to lakhs
 
-                  // Format the number in lakhs
                   const formattedLac = valueInLac.toLocaleString('en-IN', {
-                    maximumFractionDigits: 2 // Display up to 2 decimal places for lakhs
+                    maximumFractionDigits: 2 
                   })
 
-                  // Format the number in thousands (no conversion needed, just format it)
                   const formattedThousands = roundedValue.toLocaleString('en-IN', {
-                    maximumFractionDigits: 0 // Display rounded number with no decimals for thousands
+                    maximumFractionDigits: 0 
                   })
 
                   return (
@@ -289,7 +284,6 @@ const StoreWiseDispatch = () => {
               id: row.to_store_id,
               store_name: row.store_name,
 
-              // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
                 acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2)
@@ -477,8 +471,7 @@ const StoreWiseDispatch = () => {
 
           if (column) {
             if (value == null || isNaN(value)) {
-              // Handle null or NaN values
-              rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
+              rowData[`${column.title} (${column.sub_title})`] = '0' 
             } else {
               const roundedValue = parseFloat(value)
 
@@ -505,17 +498,15 @@ const StoreWiseDispatch = () => {
         totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
 
-      // Add the total purchase row as the first row in the table
       const finalRows = [totalPurchaseRow, ...rows]
 
-      // Convert the rows and headers to worksheet format
       const wsData = [headers, ...finalRows.map(row => Object.values(row))]
 
       const ws = utils.aoa_to_sheet(wsData)
       ws['!cols'] = [
-        { wch: 20 }, // Width for '1st' column
+        { wch: 20 }, 
 
-        ...listItem.columnData.map(() => ({ wch: 15 })) // Width for each month/year column
+        ...listItem.columnData.map(() => ({ wch: 15 })) 
       ]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
@@ -636,7 +627,6 @@ const StoreWiseDispatch = () => {
                       />
                     </Grid>
 
-                    {/* Right-aligned container for Select Days and Filter button */}
                     <Grid item size={{ xs: 12, sm: 4, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <FormControl size='small' sx={{ mr: 2 }}>
                         <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>
@@ -713,7 +703,7 @@ const StoreWiseDispatch = () => {
                   pagination
                   hideFooterSelectedRowCount
                   disableColumnSelector={true}
-                  rows={router.asPath.includes('dashboard') ? rows.slice(0, 5) : rows} // Show only first 5 rows for dashboard
+                  rows={router.asPath.includes('dashboard') ? rows.slice(0, 5) : rows} 
                   rowCount={total}
                   columns={columns}
                   sortingMode='server'

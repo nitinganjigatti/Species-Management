@@ -154,7 +154,7 @@ const BasicDetailsAddEdit = ({
         </Grid>
       </Grid>
 
-      {/* Buttons */}
+  
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
         <Button
           variant='outlined'

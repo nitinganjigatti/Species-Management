@@ -5,7 +5,7 @@ import {
   Box,
   Typography
 } from '@mui/material'
-import AlternativeMedicinesList from './AlternativeMedicinesList' // Assuming it's in the same folder
+import AlternativeMedicinesList from './AlternativeMedicinesList' 
 
 const AlternativeMedicinesTabs = ({ data, isLoading, onLoadMore, onEdit }) => {
   const [activeTab, setActiveTab] = useState('active')

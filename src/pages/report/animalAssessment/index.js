@@ -90,16 +90,14 @@ const AnimalAssessment = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Inside your component
   const searchRef = useRef(null)
 
   useEffect(() => {
     if (searchRef.current && document.activeElement !== searchRef.current) {
       searchRef.current.focus()
     }
-  }, [assessmentData]) // Or use isLoading, total, or whatever changes after search
+  }, [assessmentData]) 
 
-  // api call for table data
   const animalAssessmentReport = async (searchValue = search || '') => {
     setIsLoading(true)
 
@@ -167,7 +165,6 @@ const AnimalAssessment = () => {
     // }
   }, [assessmentData])
 
-  // Transform raw animal data
   const transformAnimalData = () => {
     const animals = assessmentData || []
 
@@ -186,12 +183,12 @@ const AnimalAssessment = () => {
         let parts = []
         if (years > 0) parts.push(`${years}y`)
         if (months > 0) parts.push(`${months}m`)
-        if (days > 0 || parts.length === 0) parts.push(`${days}d`) // always show days if nothing else
+        if (days > 0 || parts.length === 0) parts.push(`${days}d`)
 
         return parts.join(' ')
       })()
 
-      // need to check here time is right or wrong according to ISO
+      
       const recordMap = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
@@ -409,7 +406,6 @@ const AnimalAssessment = () => {
     }
   }
 
-  // for download data in csv
   const getDataToExport = async type => {
     if (selectedSpecie && selectedAssessmentType) {
       setIsLoading(true)
@@ -607,7 +603,6 @@ const AnimalAssessment = () => {
                   flexWrap: 'wrap'
                 }}
               >
-                {/* Species Side Sheet */}
                 <Box
                   onClick={() => setOpenspeciesFilter(true)}
                   sx={{
@@ -680,7 +675,6 @@ const AnimalAssessment = () => {
                   </Box>
                 </Box>
 
-                {/* Assessment Side Sheet */}
                 <Box
                   onClick={() => setOpenAssessmentFilter(true)}
                   sx={{
@@ -751,7 +745,6 @@ const AnimalAssessment = () => {
                   </Box>
                 </Box>
 
-                {/* Generate Button */}
                 <Box sx={{ minWidth: 120 }}>
                   <Button
                     variant='contained'
@@ -806,7 +799,7 @@ const AnimalAssessment = () => {
                           // borderRadius: '40px', // Applies to the container
                           '& .MuiOutlinedInput-root': {
                             width: '240px',
-                            borderRadius: '4px' // Applies to the input field
+                            borderRadius: '4px' 
                           }
                         }}
                       />
