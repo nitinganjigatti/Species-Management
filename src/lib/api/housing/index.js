@@ -44,7 +44,8 @@ import {
   CARCASS_DEPOSITION,
   ANIMAL_DIET_LIST,
   ANIMAL_HISTORY,
-  ANIMAL_MEDIA
+  ANIMAL_MEDIA,
+  ANIMAL_JOURNAL_LOGS
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -300,7 +301,7 @@ export async function getAnimalDietList(animalId, params) {
 }
 
 export async function getAnimalJournalLogs(params) {
-  const response = await axiosGet({ url: `${ANIMAL_DIET_LIST}`, params })
+  const response = await axiosGet({ url: `${ANIMAL_JOURNAL_LOGS}`, params })
 
   return response?.data
 }
