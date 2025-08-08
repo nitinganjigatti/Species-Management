@@ -6,10 +6,10 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useTheme } from '@emotion/react'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import ProductOption from '../utility/ProductOption'
-import BatchOption from '../utility/BatchOption'
-import ProductDetailsCard from '../utility/ProductDetailsCard'
-import IconButton from './IconButton'
+import ProductOption from './ProductOption'
+import BatchOption from './BatchOption'
+import ProductDetailsCard from './ProductDetailsCard'
+import IconButton from '../dispatch/IconButton'
 
 const defaultValues = {
   request_item: {
@@ -128,7 +128,7 @@ const schema = yup.object().shape({
   stock_type: yup.string().required('Stock type is required')
 })
 
-export const AddDispatchForm = ({
+export const AddProductForm = ({
   searchMedicineData,
   productList,
   productLoading,
@@ -215,7 +215,7 @@ export const AddDispatchForm = ({
     onSubmitData(submitData, type)
   }
 
-  const addSaltButton = () => (
+  const addButton = () => (
     <IconButton
       icon='si:add-duotone'
       onClick={() => {
@@ -237,7 +237,7 @@ export const AddDispatchForm = ({
     />
   )
 
-  const removeSaltButton = index => (
+  const removeButton = index => (
     <IconButton
       icon='material-symbols-light:close-small'
       onClick={() => remove(index)}
@@ -251,7 +251,7 @@ export const AddDispatchForm = ({
     />
   )
 
-  const clearSaltFields = index => (
+  const clearBatchFields = index => (
     <IconButton
       icon='material-symbols-light:close-small'
       onClick={() => {
@@ -363,19 +363,19 @@ export const AddDispatchForm = ({
     if (fields.length === 1) {
       return (
         <>
-          {addSaltButton()}
-          {clearSaltFields(index)}
+          {addButton()}
+          {clearBatchFields(index)}
         </>
       )
     } else if (index === fields.length - 1) {
       return (
         <>
-          {addSaltButton()}
-          {removeSaltButton(index)}
+          {addButton()}
+          {removeButton(index)}
         </>
       )
     } else {
-      return removeSaltButton(index)
+      return removeButton(index)
     }
   }
 

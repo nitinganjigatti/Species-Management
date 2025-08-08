@@ -73,7 +73,7 @@ import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
-import { AddDispatchForm } from 'src/views/pages/pharmacy/dispatch/AddDispatch'
+import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -663,7 +663,7 @@ const AddReturnRequest = () => {
   // data posting section
   const createForm = () => {
     return (
-      <AddDispatchForm
+      <AddProductForm
         searchBatchData={searchBatchData}
         searchMedicineData={searchMedicineData}
         productList={optionsMedicineList}

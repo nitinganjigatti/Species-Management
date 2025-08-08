@@ -76,7 +76,7 @@ import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
-import { AddDispatchForm } from 'src/views/pages/pharmacy/dispatch/AddDispatch'
+import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -699,7 +699,7 @@ const AddLocalDispatch = () => {
                 title={'Add Dispatch Item'}
                 dialogBoxStatus={show}
                 formComponent={
-                  <AddDispatchForm
+                  <AddProductForm
                     searchBatchData={searchBatchData}
                     searchMedicineData={searchMedicineData}
                     productList={optionsMedicineList}

@@ -76,7 +76,7 @@ import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { AddDispatchForm } from 'src/views/pages/pharmacy/dispatch/AddDispatch'
+import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -780,7 +780,7 @@ const AddDirectDispatch = () => {
                 title={'Add Dispatch Item'}
                 dialogBoxStatus={show}
                 formComponent={
-                  <AddDispatchForm
+                  <AddProductForm
                     searchBatchData={searchBatchData}
                     searchMedicineData={searchMedicineData}
                     productList={optionsMedicineList}
