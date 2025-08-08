@@ -57,59 +57,84 @@ export const pageTitle = title => (
   </Box>
 )
 
-export function renderUserAvatarDetails(
-  image,
-  userName,
+export function renderUserAvatarDetails({
+  profile_image,
+  user_name,
   date,
-  textColor,
-  fontSize,
+  text_color,
   description,
-  showTime = false,
-  avatarSize = 'medium'
-) {
+  size = 'large',
+  show_time
+}) {
   const avatarSizes = {
-    small: { width: '24px', height: '24px' },
-    medium: { width: '32px', height: '32px' },
-    large: { width: '40px', height: '40px' }
+    small: {
+      profile_picture: { width: '24px', height: '24px' },
+      gap: '8px',
+      user_name: { fontSize: '12px', fontWeight: 500 },
+      date: { fontSize: '10px', fontWeight: 500 }
+    },
+    medium: {
+      profile_picture: { width: '32px', height: '32px' },
+      gap: '8px',
+      user_name: { fontSize: '14px', fontWeight: 500 },
+      date: { fontSize: '12px', fontWeight: 400, lineHeight: '14px' }
+    },
+    large: {
+      profile_picture: { width: '40px', height: '40px' },
+      gap: '12px',
+      user_name: { fontSize: '14px', fontWeight: 500 },
+      date: { fontSize: '12px', fontWeight: 400, lineHeight: '21px' }
+    }
   }
-  const selectedAvatarSize = avatarSizes[avatarSize] || avatarSizes['medium']
+  const selectedAvatarSize = avatarSizes[size] || avatarSizes[size]
 
   return (
     <>
-      {userName ? (
+      {user_name ? (
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'default' }}>
-          {image ? (
-            <CustomAvatar src={image} sx={{ mr: avatarSize === 'small' ? '8px' : '16px', ...selectedAvatarSize }} />
+          {profile_image ? (
+            <CustomAvatar
+              src={profile_image}
+              sx={{
+                mr: avatarSizes[size].gap,
+                ...(selectedAvatarSize?.profile_picture || {})
+              }}
+            />
           ) : (
             <CustomAvatar
-              sx={{ mr: avatarSize === 'small' ? '8px' : '16px', fontSize: '.8rem', ...selectedAvatarSize }}
+              sx={{
+                mr: avatarSizes[size].gap,
+                ...(selectedAvatarSize?.profile_picture || {})
+              }}
             ></CustomAvatar>
           )}
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            {userName && (
+            {user_name && (
               <>
-                <Tooltip title={userName}>
+                <Tooltip title={user_name}>
                   <Typography
                     variant='subtitle2'
                     sx={{
-                      color: textColor ?? 'text.primary',
-                      fontSize: fontSize,
+                      color: text_color ?? 'text.primary',
+
+                      // fontSize: fontSize,
                       whiteSpace: 'nowrap',
-                      overflow: 'hidden', // required for ellipsis
-                      textOverflow: 'ellipsis', // required for ellipsis
-                      maxWidth: 100 // triggers the truncation
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 100,
+                      ...(selectedAvatarSize?.user_name || {})
                     }}
 
                     // component={'span'}
                   >
-                    {userName ? userName : 'NA'}
+                    {user_name ? user_name : 'NA'}
                   </Typography>
                 </Tooltip>
 
                 {description && (
                   <>
                     <Tooltip title={description}>
-                      <Typography sx={{ color: theme => textColor ?? theme.palette.common.white }} variant='body2'>
+                      <Typography sx={{ color: theme => text_color ?? theme.palette.common.white }} variant='body2'>
                         {description}
                       </Typography>
                     </Tooltip>
@@ -118,9 +143,21 @@ export function renderUserAvatarDetails(
               </>
             )}
 
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {date ? (showTime ? Utility.convertUTCToLocalDateTime(date) : Utility?.formatDisplayDate(date)) : ''}
-            </Typography>
+            {date && (
+              <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
+                <span>
+                  {show_time ? (
+                    <>
+                      {Utility.convertUTCToLocaltime(date)}
+                      <span> &bull; </span>
+                    </>
+                  ) : (
+                    ''
+                  )}
+                </span>
+                <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
+              </Typography>
+            )}
           </Box>
         </Box>
       ) : (

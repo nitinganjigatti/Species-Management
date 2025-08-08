@@ -437,8 +437,9 @@ const SpeciesAnimalsMapped = ({
                         </Box>
                       </CardContent>
                     ) : mappedSpecies?.length > 0 ? (
-                      mappedSpecies.map(species => (
+                      mappedSpecies.map((species, index) => (
                         <Box
+                          key={index}
                           sx={{
                             background:
                               speciesview !== 'details' && species.mapped_to_diet
@@ -455,16 +456,14 @@ const SpeciesAnimalsMapped = ({
                           <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '11%', mt: '3px' }}>
                             {speciesview === 'details'
                               ? species.user_details
-                                ? RenderUtility.renderUserAvatarDetails(
-                                    species.user_details.created_by_profile_image,
-                                    species.user_details.created_by,
-                                    species?.user_details?.created_at,
-                                    theme.palette.customColors.OnSurfaceVariant,
-                                    '14px',
-                                    '',
-                                    true,
-                                    'medium'
-                                  )
+                                ? RenderUtility.renderUserAvatarDetails({
+                                    profile_image: species.user_details.created_by_profile_image,
+                                    user_name: species.user_details.created_by,
+                                    date: species?.user_details?.created_at,
+                                    text_color: theme.palette.customColors.OnSurfaceVariant,
+                                    show_time: true,
+                                    size: 'small'
+                                  })
                                 : null
                               : ''}
                           </Box>
@@ -705,8 +704,9 @@ const SpeciesAnimalsMapped = ({
                         </Box>
                       </CardContent>
                     ) : mappedSpecies?.length > 0 ? (
-                      mappedSpecies.map(species => (
+                      mappedSpecies.map((species, index) => (
                         <Box
+                          key={index}
                           sx={{
                             background:
                               speciesview !== 'details' && species.mapped_to_diet
@@ -723,16 +723,14 @@ const SpeciesAnimalsMapped = ({
                           <Box sx={{ display: 'flex', alignItems: 'center', pt: 1, ml: '14%', mt: '3px' }}>
                             {speciesview === 'details'
                               ? species.user_details
-                                ? RenderUtility.renderUserAvatarDetails(
-                                    species.user_details.created_by_profile_image,
-                                    species.user_details.created_by,
-                                    species?.user_details?.created_at,
-                                    theme.palette.customColors.OnSurfaceVariant,
-                                    '14px',
-                                    '',
-                                    true,
-                                    'medium'
-                                  )
+                                ? RenderUtility.renderUserAvatarDetails({
+                                    profile_image: species.user_details.created_by_profile_image,
+                                    user_name: species.user_details.created_by,
+                                    date: species?.user_details?.created_at,
+                                    text_color: theme.palette.customColors.OnSurfaceVariant,
+                                    show_time: true,
+                                    size: 'small'
+                                  })
                                 : null
                               : ''}
                           </Box>

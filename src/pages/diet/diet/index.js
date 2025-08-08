@@ -26,6 +26,9 @@ import { AuthContext } from 'src/context/AuthContext'
 import { useTheme } from '@mui/material/styles'
 import Error404 from 'src/pages/404'
 
+import RenderUtility from 'src/utility/render'
+import moment from 'moment'
+
 // Styled TabList component
 const roleColors = {
   active: 'success',
@@ -252,44 +255,62 @@ const Diet = () => {
       )
     },
 
+    // {
+    //   //flex: 0.6,
+    //   width: 260,
+    //   field: 'created_at',
+    //   headerName: 'CREATED BY',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Avatar
+    //         variant='square'
+    //         alt='Diet Image'
+    //         sx={{
+    //           width: 30,
+    //           height: 30,
+    //           mr: 4,
+    //           borderRadius: '50%',
+    //           background: theme.palette.customColors.tableHeaderBg,
+    //           overflow: 'hidden'
+    //         }}
+    //       >
+    //         {params.row.profile_pic ? (
+    //           <img
+    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    //             src={params.row.profile_pic}
+    //             alt='Profile'
+    //           />
+    //         ) : (
+    //           <Icon icon='mdi:user' />
+    //         )}
+    //       </Avatar>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
+    //           {params.row.user_name ? params.row.user_name : '-'}
+    //         </Typography>
+    //         <Typography noWrap variant='body2' sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}>
+    //           {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
+
     {
       //flex: 0.6,
       width: 260,
       field: 'created_at',
       headerName: 'CREATED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
-            variant='square'
-            alt='Diet Image'
-            sx={{
-              width: 30,
-              height: 30,
-              mr: 4,
-              borderRadius: '50%',
-              background: theme.palette.customColors.tableHeaderBg,
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.profile_pic ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.profile_pic}
-                alt='Profile'
-              />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-              {params.row.user_name ? params.row.user_name : '-'}
-            </Typography>
-            <Typography noWrap variant='body2' sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
-            </Typography>
+        <>
+          <Box>
+            {RenderUtility.renderUserAvatarDetails({
+              profile_image: params.row.profile_pic,
+              user_name: params.row.user_name,
+              date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD')
+            })}
           </Box>
-        </Box>
+        </>
       )
     },
 
