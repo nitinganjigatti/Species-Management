@@ -64,7 +64,7 @@ export function renderUserAvatarDetails({
   text_color,
   description,
   size = 'large',
-  show_time
+  show_time = false
 }) {
   const avatarSizes = {
     small: {

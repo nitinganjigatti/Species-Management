@@ -241,7 +241,9 @@ const SelectSectionList = ({
               checked={selectedSections?.length === sectionsData?.length && sectionsData?.length > 0}
               indeterminate={selectedSections?.length > 0 && selectedSections?.length < sectionsData?.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                root: { 'aria-label': 'Select all sections' }
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -306,10 +308,10 @@ const SelectSectionList = ({
                   }}
                 >
                   <ListItemAvatar>
-                    <Avatar src={section.image || '/default-site.jpg'} variant='rounded' />
+                    <Avatar src={section?.default_icon || '/icons/antz.svg'} variant='rounded' />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={section.section_name}
+                    primary={section?.section_name}
                     // secondary={section.location || '-'}
                     slotProps={{
                       primary: {
@@ -324,12 +326,6 @@ const SelectSectionList = ({
                         }
                       }
                     }}
-
-                    // primaryTypographyProps={{
-                    //   fontWeight: 'bold',
-                    //   color: theme.palette.customColors.OnPrimaryContainer
-                    // }}
-                    // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
                     checked={selectedSections?.includes(section.section_id)}
