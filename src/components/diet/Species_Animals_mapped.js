@@ -460,10 +460,10 @@ const SpeciesAnimalsMapped = ({
                                     species.user_details.created_by,
                                     species?.user_details?.created_at,
                                     theme.palette.customColors.OnSurfaceVariant,
-                                    '14px',
+                                    '12px',
                                     '',
                                     true,
-                                    'medium'
+                                    'small'
                                   )
                                 : null
                               : ''}
@@ -728,10 +728,10 @@ const SpeciesAnimalsMapped = ({
                                     species.user_details.created_by,
                                     species?.user_details?.created_at,
                                     theme.palette.customColors.OnSurfaceVariant,
-                                    '14px',
+                                    '12px',
                                     '',
                                     true,
-                                    'medium'
+                                    'small'
                                   )
                                 : null
                               : ''}

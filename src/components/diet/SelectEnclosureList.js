@@ -243,7 +243,9 @@ const SelectEnclosureList = ({
               checked={selectedEnclosures.length === enclosuresData.length && enclosuresData.length > 0}
               indeterminate={selectedEnclosures.length > 0 && selectedEnclosures.length < enclosuresData.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                root: { 'aria-label': 'Select all enclosures' }
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -308,10 +310,10 @@ const SelectEnclosureList = ({
                   }}
                 >
                   <ListItemAvatar>
-                    <Avatar src={enclosure.image || '/default-site.jpg'} variant='rounded' />
+                    <Avatar src={enclosure?.default_icon || '/icons/antz.svg'} variant='rounded' />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={enclosure.user_enclosure_name}
+                    primary={enclosure?.user_enclosure_name}
                     //secondary={enclosure.location || '-'}
                     slotProps={{
                       primary: {

@@ -189,7 +189,9 @@ const SelectSiteList = ({
             <Checkbox
               checked={pendingSelections?.Site?.length === items?.Site?.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                root: { 'aria-label': 'Select all species' }
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -198,15 +200,6 @@ const SelectSiteList = ({
                   width: '19px',
                   height: '19px',
                   border: '2px dotted'
-
-                  //   borderColor:
-                  //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                  //       ? theme.palette.primary.main
-                  //       : '#44544A',
-                  //   color:
-                  //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                  //       ? theme.palette.primary.main
-                  //       : '#44544A'
                 },
                 mr: 1
               }}
@@ -253,10 +246,10 @@ const SelectSiteList = ({
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar src={site.image || '/default-site.jpg'} variant='rounded' />
+                  <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={site.site_name}
+                  primary={site?.site_name}
                   //secondary={site.location || '-'}
                   slotProps={{
                     secondary: {
@@ -271,9 +264,6 @@ const SelectSiteList = ({
                       }
                     }
                   }}
-
-                  // primaryTypographyProps={{ fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer }}
-                  // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                 />
                 <Checkbox
                   checked={pendingSelections?.Site?.includes(site.site_id)}

@@ -65,24 +65,24 @@ export function renderUserAvatarDetails(
   fontSize,
   description,
   showTime = false,
-  avatarSize = 'medium'
+  avatarSize = 'large'
 ) {
   const avatarSizes = {
     small: { width: '24px', height: '24px' },
     medium: { width: '32px', height: '32px' },
     large: { width: '40px', height: '40px' }
   }
-  const selectedAvatarSize = avatarSizes[avatarSize] || avatarSizes['medium']
+  const selectedAvatarSize = avatarSizes[avatarSize] || avatarSizes['large']
 
   return (
     <>
       {userName ? (
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'default' }}>
           {image ? (
-            <CustomAvatar src={image} sx={{ mr: avatarSize === 'small' ? '8px' : '16px', ...selectedAvatarSize }} />
+            <CustomAvatar src={image} sx={{ mr: avatarSize === 'small' ? '4px' : '8px', ...selectedAvatarSize }} />
           ) : (
             <CustomAvatar
-              sx={{ mr: avatarSize === 'small' ? '8px' : '16px', fontSize: '.8rem', ...selectedAvatarSize }}
+              sx={{ mr: avatarSize === 'small' ? '4px' : '8px', fontSize: '.8rem', ...selectedAvatarSize }}
             ></CustomAvatar>
           )}
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
