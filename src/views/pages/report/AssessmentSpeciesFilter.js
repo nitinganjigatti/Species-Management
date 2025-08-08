@@ -126,7 +126,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
             searchInputRef.current.focus()
           }
         })
-      }, 500) // Give time for drawer transition and rendering
+      }, 500) 
 
       return () => clearTimeout(timeout)
     }

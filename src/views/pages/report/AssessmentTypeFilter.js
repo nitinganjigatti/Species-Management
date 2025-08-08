@@ -32,7 +32,6 @@ function AssessmentTypeFilter({
 
     try {
       const res = await getAssessmentCategoriesList({ ref_type: 'animal' })
-      //   console.log('res.data', res.data)
       const newList = res?.data || []
       setAssessmentCategoryList([
         {
@@ -150,9 +149,9 @@ function AssessmentTypeFilter({
             overflowX: 'auto',
             gap: 2,
             backgroundColor: 'background.default',
-            scrollbarWidth: 'none', // Firefox
+            scrollbarWidth: 'none', 
             '&::-webkit-scrollbar': {
-              display: 'none' // Chrome
+              display: 'none' 
             }
           }}
         >

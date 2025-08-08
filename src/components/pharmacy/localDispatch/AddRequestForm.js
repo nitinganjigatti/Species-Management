@@ -893,7 +893,7 @@ const AddRequestForm = () => {
             </RadioGroup>
           </Grid>
 
-          {/* // file uploader */}
+        
           {nestedRowMedicine.control_substance === true ? (
             nestedRowMedicine.control_substance_file ? (
               <Grid item size={{ xs: 12, sm: 11 / 2 }}>
@@ -1081,8 +1081,7 @@ const AddRequestForm = () => {
             )
           ) : null}
 
-          {/* // file uploader */}
-
+        
           {/* <Grid item xs={12}> */}
           <Grid item size={{ xs: 12 }}>
             <Box sx={{ float: 'right' }}>

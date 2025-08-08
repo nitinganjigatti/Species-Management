@@ -38,7 +38,7 @@ const series = [
 ]
 
 const AnalyticsWeeklySales = () => {
-  // ** Hook
+ 
   const theme = useTheme()
 
   const options = {

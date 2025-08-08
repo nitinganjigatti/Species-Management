@@ -763,7 +763,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                 )}
               </Box>
 
-              {/* Mark as Received Button */}
+             
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
                 <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
                   Mark as Received

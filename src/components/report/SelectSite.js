@@ -94,7 +94,7 @@ const SelectSites = ({
           minHeight: 0
         }}
       >
-        {/* Header */}
+     
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             <Typography
@@ -115,7 +115,7 @@ const SelectSites = ({
           </IconButton>
         </Box>
 
-        {/* Search */}
+       
         <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
           <TextField
             fullWidth
@@ -154,7 +154,7 @@ const SelectSites = ({
           />
         </Box>
 
-        {/* Selected Count */}
+       
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
             Selected {pendingSelections?.Site?.length} / {siteData?.length}
@@ -203,7 +203,7 @@ const SelectSites = ({
           </Box>
         </Box>
 
-        {/* Sites List */}
+        
         <Box
           className=''
           sx={{
@@ -264,7 +264,7 @@ const SelectSites = ({
           )}
         </Box>
 
-        {/* Footer Button */}
+      
         <Box
           sx={{
             p: 2,

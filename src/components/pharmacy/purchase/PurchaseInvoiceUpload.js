@@ -50,10 +50,9 @@ const PurchaseInvoiceUpload = ({
   const [file, setFile] = useState([])
   const [error, setError] = useState('')
 
-  const videoRef = useRef(null) // Reference to video element
-  const canvasRef = useRef(null) // Reference to canvas element
+  const videoRef = useRef(null) 
+  const canvasRef = useRef(null) 
   const browseButtonRef = useRef(null)
-
   const fileInputRef = useRef(null)
 
   const handleClick = () => {
@@ -73,13 +72,13 @@ const PurchaseInvoiceUpload = ({
     if (parts?.length === 3) {
       let [day, month, year] = parts
 
-      return `${year}-${month}-${day}` // Convert to YYYY-MM-DD
+      return `${year}-${month}-${day}` 
     }
 
     return ''
   }
 
-  // Request camera permission
+ 
   const requestCameraPermission = async () => {
     console.log('Requesting camera permission...')
 
@@ -94,7 +93,7 @@ const PurchaseInvoiceUpload = ({
       }
     } else {
       console.error('getUserMedia is not supported in this browser.')
-      setPermissionDenied(true) // If getUserMedia is not supported
+      setPermissionDenied(true) 
     }
   }
 
@@ -117,7 +116,7 @@ const PurchaseInvoiceUpload = ({
   const startCamera = async deviceId => {
     if (!deviceId) return
 
-    stopCamera() // Stop the previous camera if any
+    stopCamera() 
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({

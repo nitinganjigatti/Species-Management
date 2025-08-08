@@ -297,14 +297,13 @@ const AllStoresRequestList = () => {
     setActiveTab('Available')
     setDrawerSearchValue('')
 
-    // Resetting page and data when drawer is closed
+    
     setPage(1)
     setTotalUniqueItems(0)
     setHasMore(true)
     setUniquePendingData([])
   }
 
-  // Reset when tab changes
   const resetStates = useCallback(() => {
     setPage(1)
     currentPageRef.current = 1
@@ -364,7 +363,6 @@ const AllStoresRequestList = () => {
 
           noDataRef.current = false
         } else {
-          // No data
           if (page === 1) {
             setUniquePendingData([])
             setTotalUniqueItems(0)
@@ -397,7 +395,7 @@ const AllStoresRequestList = () => {
         limit: 10,
         q
       })
-    }, 500), // 500ms debounce time
+    }, 500), 
     [resetStates, fetchUniquePendingData]
   )
 
@@ -453,7 +451,7 @@ const AllStoresRequestList = () => {
     })
   }, [resetStates, fetchUniquePendingData, activeTab])
 
-  // Reset scroll
+  
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0
@@ -479,7 +477,7 @@ const AllStoresRequestList = () => {
     }
   }
 
-  // Render header section
+  
   const renderHeader = title => (
     <Box
       sx={{
@@ -630,7 +628,7 @@ const AllStoresRequestList = () => {
             }}
           />
 
-          {/* Table Section */}
+        
           <Grid sx={{ mx: { xs: 3, md: 5 } }}>
             <CommonTable
               onRowClick={handleRowClick}
@@ -654,7 +652,7 @@ const AllStoresRequestList = () => {
               paper: {
                 sx: {
                   width: {
-                    xs: '80%', // Full width on extra small screens
+                    xs: '80%', 
                     sm: '80%',
                     md: 560
                   },
@@ -666,7 +664,7 @@ const AllStoresRequestList = () => {
               }
             }}
           >
-            {/* Header Section */}
+          
             <Box
               sx={{
                 p: 3,
@@ -705,7 +703,7 @@ const AllStoresRequestList = () => {
               </Box>
             </Box>
 
-            {/* Tab List Section */}
+          
             <Box
               sx={{
                 position: 'sticky',
@@ -714,7 +712,7 @@ const AllStoresRequestList = () => {
                 backgroundColor: 'customColors.OnPrimary'
               }}
             >
-              {/* Wrap TabContext here */}
+            
               <TabContext value={activeTab}>
                 <TabList
                   variant='scrollable'
@@ -785,7 +783,6 @@ const AllStoresRequestList = () => {
               </Box>
             </Box>
 
-            {/* Content Section - Allow scrolling here */}
 
             <Box
               ref={scrollContainerRef}

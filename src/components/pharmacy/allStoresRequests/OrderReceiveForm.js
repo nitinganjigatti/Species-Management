@@ -637,16 +637,13 @@ function OrderReceiveForm({ shipmentId }) {
       return
     }
     console.log(itemId, 'itemId')
-    // Update the status of the specific item to "Received"
     disputeItemDetails.item_details = disputeItemDetails.item_details.map(item =>
       item.id === itemId ? { ...item, status: 'Received' } : item
     )
-    // Call updateStatus to handle the rest of the logic
     await updateStatus()
     closeCommentDialog()
   }
 
-  // Usage in button click
 
   const commentDialogBox = () => {
     console.log(markReceived, 'markReceived')
@@ -684,7 +681,6 @@ function OrderReceiveForm({ shipmentId }) {
                         </Typography>
                       </Box>
 
-                      {/* Comment Card */}
                       <Box
                         sx={{
                           mb: 2,
@@ -725,7 +721,6 @@ function OrderReceiveForm({ shipmentId }) {
                 )}
               </Box>
 
-              {/* Mark as Received Button */}
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
                 <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
                   Mark as Received
@@ -1079,7 +1074,7 @@ function OrderReceiveForm({ shipmentId }) {
                       padding: 0, // Add padding if required
                       m: 0,
                       '& .MuiGrid-item': {
-                        padding: '3px 4px !important' // Specifically target Grid item padding,
+                        padding: '3px 4px !important' 
                       }
                     }}
                   >
@@ -1365,7 +1360,7 @@ function OrderReceiveForm({ shipmentId }) {
                               }
                               onChange={event => handleStatusChange(params.row.id, event)}
                               sx={{
-                                backgroundColor: 'customColors.displaybgPrimary' // Apply the background color to the Select component
+                                backgroundColor: 'customColors.displaybgPrimary'
                               }}
                             >
                               <MenuItem value='' disabled>

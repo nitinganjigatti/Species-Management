@@ -401,7 +401,6 @@ const AddRequestForm = () => {
     }
   }
 
-  //  ****** debounce
   const fetchMedicineData = async searchText => {
     try {
       const params = {
@@ -530,7 +529,6 @@ const AddRequestForm = () => {
     fetchMedicineData('')
     fetchGenericMedicineData('')
   }, [])
-  //  ****** debounce
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
@@ -636,8 +634,7 @@ const AddRequestForm = () => {
     }
   }, [id, action])
 
-  // ****** edit section //////
-  // data posting section
+ 
 
   const postItemsData = async () => {
     const updateData = { ...editParams }
@@ -958,7 +955,7 @@ const AddRequestForm = () => {
                   value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
                   onChange={(event, newValue) => {
                     if (newValue?.value) {
-                      requestPendingProducts(newValue.value) // Only call if value is defined
+                      requestPendingProducts(newValue.value) 
                     }
                     setNestedRowMedicine({
                       ...nestedRowMedicine,

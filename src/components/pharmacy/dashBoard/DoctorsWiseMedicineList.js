@@ -158,7 +158,7 @@ const DoctorsWiseMedicineList = ({
                   <TextField
                     variant='outlined'
                     placeholder='Search by doctors'
-                    value={searchbyDoctorname} // controlled input for search value
+                    value={searchbyDoctorname} 
                     onChange={e => handleSearchDoctors(e.target.value)} // handle search change
                     sx={{
                       '& .MuiOutlinedInput-root': {
