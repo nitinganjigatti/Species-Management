@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react"
-import { Avatar, Skeleton } from "@mui/material"
+import { useEffect, useState } from 'react'
+import { Avatar, Skeleton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
-const FallbackAvatar = ({ src, fallback, sx = {}, ...props }) => {
+const FallbackAvatar = ({ src = '', fallback = '/branding/antz/Antz_logomark_h_color.svg', sx = {}, ...props }) => {
   const theme = useTheme()
 
   const [imgSrc, setImgSrc] = useState(src || fallback)
@@ -29,9 +29,10 @@ const FallbackAvatar = ({ src, fallback, sx = {}, ...props }) => {
         <Skeleton
           variant='rounded'
           animation='wave'
-          width={40}
-          height={40}
           sx={{
+            height: 25,
+            width: 25,
+            borderRadius: '50%',
             ...sx
           }}
         />
@@ -43,7 +44,8 @@ const FallbackAvatar = ({ src, fallback, sx = {}, ...props }) => {
         onError={handleError}
         sx={{
           display: isLoading ? 'none' : 'flex',
-          ...style
+          ...style,
+          padding: !src && 1
         }}
       />
     </>
