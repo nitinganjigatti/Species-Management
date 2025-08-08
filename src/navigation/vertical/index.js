@@ -36,7 +36,8 @@ const ComposeNavigation = () => {
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
-  const userRole = authData?.userData?.roles?.role_name
+  const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
@@ -83,8 +84,10 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
-  const housingnav = housingNavigation()
-  navigationArray.push(...housingnav)
+  if (housingModule) {
+    const housingNav = housingNavigation(housingModuleCluster)
+    navigationArray.push(...housingNav)
+  }
 
   const medicalNav = medicalNavigation({
     userSettings

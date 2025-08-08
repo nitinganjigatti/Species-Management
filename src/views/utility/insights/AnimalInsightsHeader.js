@@ -2,8 +2,10 @@ import { useTheme } from '@emotion/react'
 import { IconButton, Typography } from '@mui/material'
 import { Box, Stack } from '@mui/system'
 import React from 'react'
+import Icon from 'src/@core/components/icon'
 import QrCodeIcon from '@mui/icons-material/QrCode'
 import AddIcon from '@mui/icons-material/Add'
+import GroupIcon from '@mui/icons-material/Group'
 
 const AnimalInsightsHeader = ({
   isAnimalDetailsPage,
@@ -43,6 +45,23 @@ const AnimalInsightsHeader = ({
                 {scientificName}
               </Typography>
             )}
+            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+              {headerDetails?.isAlive === "0" && (
+                <Box sx={{ px: 4, py: 2, background: theme.palette.customColors.Error, borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <img src='/icons/died_symbol_icon.svg' alt='died' height={'20px'} width={'20px'} />
+                  <Typography sx={{ color: '#FFF', fontWeight: 500, fontSize: '20px' }}>
+                    Dead
+                  </Typography>
+                </Box>
+              )}
+              {headerDetails?.isGrouped && (
+                <Box sx={{ px: 4, py: 2, background: '#FFF', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography sx={{ color: theme.palette.customColors.Error, fontWeight: 500, fontSize: '20px' }}>
+                    Group
+                  </Typography>
+                </Box>
+              )}
+            </Box>
           </Box>
           <Box>
             {showQr && (

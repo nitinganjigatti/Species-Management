@@ -195,7 +195,8 @@ const AddSectionDrawer = ({ open, setShowAddSectionDrawer, selectedSiteId, setAd
             alignItems: 'center',
             justifyContent: 'space-between',
             backgroundColor: 'background.default',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255),
+            px: '1.2rem',
+            py: '1rem',
             borderBottom: `1px solid ${theme.palette.divider}`
           }}
         >

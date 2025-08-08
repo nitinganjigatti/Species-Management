@@ -1,4 +1,4 @@
-const composeHousingNavigation = () => {
+const composeHousingNavigation = includeClusters => {
   const Title = {
     sectionTitle: 'Housing'
   }
@@ -39,7 +39,8 @@ const composeHousingNavigation = () => {
 
   // housingParent.children.push(dashboard)
   housingParent.children.push(sites)
-  housingParent.children.push(clusters)
+
+  if (includeClusters) housingParent.children.push(clusters)
 
   // housingParent.children.push(sections)
 
@@ -51,6 +52,6 @@ const composeHousingNavigation = () => {
   return housingNavigationArray
 }
 
-const housingNavigation = () => composeHousingNavigation()
+const housingNavigation = includeClusters => composeHousingNavigation(includeClusters)
 
 export default housingNavigation

@@ -16,6 +16,7 @@ import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing },
@@ -33,6 +34,9 @@ const SiteDetails = () => {
   const router = useRouter()
   const { id } = router.query
   const auth = useAuth()
+
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
+  const addSectionAccess = auth?.userData?.roles?.settings?.housing_add_section
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
@@ -152,9 +156,10 @@ const SiteDetails = () => {
           subtitle={data?.data?.site_description}
           userName={data?.data?.incharges?.[0]?.full_name}
           description={data?.data?.incharges?.[0]?.role_name}
+          haveInsightsViewAccess={insightsViewAccess}
           userImage={data?.data?.incharges?.[0]?.user_profile_pic}
           actions={{
-            onAddNew: () => setShowAddSectionDrawer(true)
+            onAddNew: addSectionAccess ? () => setShowAddSectionDrawer(true) : null
           }}
           onCallClick={() => {
             const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
@@ -210,4 +215,4 @@ const SiteDetails = () => {
   )
 }
 
-export default SiteDetails
+export default enforceModuleAccess(SiteDetails, 'enable_housing_in_web')
