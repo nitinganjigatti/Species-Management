@@ -305,10 +305,9 @@ const AddanimalCountDrawer = ({
         }}
       >
         {/* Header */}
-        <Box sx={{ px: 5, pt: 4, pb: 2, background: '#fff' }}>
+        <Box sx={{ px: 5, pt: 4, pb: 2, background: theme.palette.common.white }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
-              {/* <Box component='img' src='/images/housing/Enclosure icon.png' alt='icon' sx={{ width: 32, height: 32 }} /> */}
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{title}</Typography>
             </Box>
             <IconButton onClick={onClose}>
@@ -322,13 +321,13 @@ const AddanimalCountDrawer = ({
           alignItems='center'
           gap={2}
           sx={{
-            background: '#fff',
+            background: theme.palette.common.white,
             mt: 3,
             mx: 5,
             px: 5,
             pt: 3,
             pb: 4,
-            border: '1px solid #C3CEC7',
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             borderRadius: '8px'
           }}
         >
@@ -337,10 +336,10 @@ const AddanimalCountDrawer = ({
             sx={{ width: 40, height: 40 }}
           />
           <Box sx={{ ml: 2 }}>
-            <Typography fontWeight={600} color='#44544A'>
+            <Typography fontWeight={600} color={theme.palette.customColors.OnSurfaceVariant}>
               {selectedSpeciesData.common_name || '-'}
             </Typography>
-            <Typography fontStyle='italic' color='#44544A' fontWeight={400}>
+            <Typography fontStyle='italic' color={theme.palette.customColors.OnSurfaceVariant} fontWeight={400}>
               {selectedSpeciesData.scientific_name || '-'}
             </Typography>
           </Box>
@@ -348,7 +347,7 @@ const AddanimalCountDrawer = ({
 
         <Box sx={{ px: 5, overflowY: 'auto', flexGrow: 1, height: '100vh' }}>
           {/* Total Animal Count */}
-          <Typography fontWeight={600} color='#44544A' sx={{ mb: 2, mt: 4 }}>
+          <Typography fontWeight={600} color={theme.palette.customColors.OnSurfaceVariant} sx={{ mb: 2, mt: 4 }}>
             Total Animal Count
           </Typography>
           <Paper elevation={1} sx={{ p: 3, mb: 4 }}>
@@ -433,7 +432,7 @@ const AddanimalCountDrawer = ({
 
           {/* Animals with Identifier */}
           <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
-            <Typography fontWeight={600} color='#44544A'>
+            <Typography fontWeight={600} color={theme.palette.customColors.OnSurfaceVariant}>
               Animals with identifier
             </Typography>
             <Button
@@ -462,7 +461,13 @@ const AddanimalCountDrawer = ({
             ))
           ) : (
             <Typography
-              sx={{ background: '#0000000D', p: 12, textAlign: 'center', borderRadius: '8px', fontWeight: '500' }}
+              sx={{
+                background: theme.palette.customColors.mdAntzNeutral,
+                p: 12,
+                textAlign: 'center',
+                borderRadius: '8px',
+                fontWeight: '500'
+              }}
             >
               No Data Available
             </Typography>

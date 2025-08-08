@@ -155,7 +155,7 @@ const ExportPermitDrawer = ({
               ) : (
                 <Typography
                   sx={{
-                    background: '#0000000D',
+                    background: theme.palette.customColors.mdAntzNeutral,
                     p: 12,
                     textAlign: 'center',
                     borderRadius: '8px',
@@ -191,10 +191,10 @@ const ExportPermitDrawer = ({
                   fontWeight: 600,
                   fontSize: '0.95rem',
                   cursor: 'pointer',
-                  color: '#44544A',
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   display: 'flex',
                   alignItems: 'center',
-                  color: '#37BD69'
+                  color: theme.palette.primary.main
                 }}
               >
                 {draftData.export.length} Selected <ExpandMoreIcon sx={{ fontSize: '28px' }} />

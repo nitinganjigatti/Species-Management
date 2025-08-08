@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Typography, Box, Drawer, IconButton, Avatar, Checkbox, Button } from '@mui/material'
+import { Typography, Box, Drawer, IconButton, Avatar, Checkbox, Button, alpha } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import Toaster from 'src/components/Toaster'
@@ -132,7 +132,7 @@ const SelectAnimalsDrawer = ({
         }}
       >
         {/* Header */}
-        <Box sx={{ px: 5, pt: 4, pb: 2, background: '#fff' }}>
+        <Box sx={{ px: 5, pt: 4, pb: 2, background: theme.palette.common.white }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{title}</Typography>
@@ -142,12 +142,12 @@ const SelectAnimalsDrawer = ({
             </IconButton>
           </Box>
         </Box>
-        {console.log(selectedExportData, 'selectedExportData')}
-        <Box sx={{ backgroundColor: '#fff', px: 5, pb: 6, pt: 2 }}>
+
+        <Box sx={{ backgroundColor: theme.palette.common.white, px: 5, pb: 6, pt: 2 }}>
           <Box
             sx={{
-              backgroundColor: '#1F515B0D',
-              color: '#FFFFFF',
+              backgroundColor: theme.palette.customColors.OnPrimarycontainer10,
+              color: theme.palette.customColors.OnPrimary,
               borderRadius: '8px',
               padding: '16px',
               width: '100%'
@@ -156,7 +156,7 @@ const SelectAnimalsDrawer = ({
             <Typography
               sx={{
                 fontWeight: '500',
-                color: '#1F415B',
+                color: theme.palette.customColors.OnSecondaryContainer,
                 marginBottom: '3px',
                 fontSize: '16px'
               }}
@@ -167,7 +167,7 @@ const SelectAnimalsDrawer = ({
 
             <Typography
               sx={{
-                color: '#44544A',
+                color: theme.palette.customColors.OnSurfaceVariant,
                 fontWeight: '500',
                 fontSize: '16px'
               }}
@@ -190,7 +190,9 @@ const SelectAnimalsDrawer = ({
               borderRadius: '8px'
             }}
           >
-            <Typography sx={{ pt: 3, fontWeight: 500, fontSize: '18px', color: '#44544A' }}>
+            <Typography
+              sx={{ pt: 3, fontWeight: 500, fontSize: '18px', color: theme.palette.customColors.OnSurfaceVariant }}
+            >
               Animals ({animalLists.length})
             </Typography>
             {animalLists.map(animal => (
@@ -200,7 +202,7 @@ const SelectAnimalsDrawer = ({
                   display: 'flex',
                   alignItems: 'center',
                   // padding: '12px',
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: theme.palette.customColors.OnPrimary,
                   border: '1px solid #E5E5E5',
                   borderRadius: '8px'
                 }}
@@ -210,19 +212,19 @@ const SelectAnimalsDrawer = ({
                   sx={{
                     backgroundColor:
                       animal.gender === 'male'
-                        ? '#AFEFEB80'
+                        ? alpha(theme.palette.customColors.SecondaryContainer, 0.5)
                         : animal.gender === 'female'
-                        ? '#FA614026'
+                        ? alpha(theme.palette.customColors.customDropdownColor, 0.15)
                         : animal.gender === 'unknown'
-                        ? '#DDEBE9'
+                        ? theme.palette.customColors.displaybgSecondary
                         : '',
                     color:
                       animal.gender === 'male'
-                        ? '#00AFD6'
+                        ? theme.palette.customColors.addPrimary
                         : animal.gender === 'female'
-                        ? '#FA6140'
+                        ? theme.palette.customColors.customDropdownColor
                         : animal.gender === 'unknown'
-                        ? '#1F515B'
+                        ? theme.palette.customColors.OnPrimaryContainer
                         : '',
                     fontWeight: '500',
                     marginRight: '16px',
@@ -244,16 +246,24 @@ const SelectAnimalsDrawer = ({
 
                 {/* Animal Info */}
                 <Box sx={{ flexGrow: 1 }}>
-                  <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
+                  <Typography
+                    sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
+                  >
                     Species :{' '}
-                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                    <span
+                      style={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 500 }}
+                    >
                       {commonNameValue ? commonNameValue : 'N/A'}
                     </span>
                   </Typography>
 
-                  <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
+                  <Typography
+                    sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
+                  >
                     {animal.identifier_type} :{' '}
-                    <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                    <span
+                      style={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 500 }}
+                    >
                       {animal.identifier_value}
                     </span>
                   </Typography>
@@ -262,8 +272,8 @@ const SelectAnimalsDrawer = ({
                 {/* Checkbox */}
                 <Box
                   sx={{
-                    background: '#F2FFF8',
-                    borderLeft: '1px solid #C3CEC7',
+                    background: theme.palette.customColors.Surface,
+                    borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     height: '68px',
                     width: '45px',
                     display: 'flex',

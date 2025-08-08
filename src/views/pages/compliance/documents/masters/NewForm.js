@@ -300,10 +300,14 @@ const NewForm = ({
                           </Box>
                         }
                         sx={{
-                          border: `1px solid ${field.value?.includes(option) ? '#37BD69' : '#D0D5DD'}`,
+                          border: `1px solid ${field.value?.includes(option) ? theme.palette.primary.main : '#D0D5DD'}`,
                           borderRadius: '4px',
                           p: 2,
-                          bgcolor: `${field.value?.includes(option) ? '#F2FFF8' : '#fff'}`,
+                          bgcolor: `${
+                            field.value?.includes(option)
+                              ? theme.palette.customColors.Surface
+                              : theme.palette.common.white
+                          }`,
                           display: 'flex',
                           alignItems: 'center',
                           minWidth: '30%'

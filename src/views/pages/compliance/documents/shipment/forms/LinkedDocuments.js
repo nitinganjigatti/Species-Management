@@ -9,7 +9,7 @@ const SectionBlock = ({ title, type, data }) => {
   return (
     <Box
       sx={{
-        border: '1px solid #C3CEC7',
+        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
         borderRadius: 1,
         mb: 5,
         overflow: 'hidden'
@@ -45,7 +45,11 @@ const SectionBlock = ({ title, type, data }) => {
       {data?.map(item => (
         <Box
           key={item.export_id}
-          sx={{ background: expanded ? '#EFF5F2' : '#fff', borderTop: '1px solid #eee', pt: 3.5 }}
+          sx={{
+            background: expanded ? theme.palette.customColors.lightBg : theme.palette.common.white,
+            borderTop: '1px solid #eee',
+            pt: 3.5
+          }}
         >
           <Box
             sx={{
@@ -56,16 +60,16 @@ const SectionBlock = ({ title, type, data }) => {
               px: 4
             }}
           >
-            <Typography sx={{ fontWeight: 500, color: '#006D35' }}>
+            <Typography sx={{ fontWeight: 500, color: theme.palette.primary.dark }}>
               {type} ID: {item.export_id || item.import_id}
             </Typography>
             <Typography
               sx={{
                 fontSize: '13px',
-                backgroundColor: '#fff',
+                backgroundColor: theme.palette.common.white,
                 padding: '2px 8px',
                 borderRadius: '4px',
-                color: '#44544A'
+                color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
               <strong>{item.documents?.length || 0}</strong> {item.documents?.length == 1 ? 'Document' : 'Documents'}
@@ -82,8 +86,8 @@ const SectionBlock = ({ title, type, data }) => {
                     justifyContent: 'space-between',
                     px: 4,
                     py: 2.5,
-                    borderBottom: '1px solid #0000000D',
-                    background: '#fff'
+                    borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                    background: theme.palette.common.white
                   }}
                 >
                   <ListItemText primary={doc.document_type_name} />

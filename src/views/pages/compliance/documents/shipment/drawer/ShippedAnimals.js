@@ -1,15 +1,19 @@
 import React, { useState } from 'react'
-import { Typography, Box, Drawer, IconButton, Paper, Chip, Avatar, Button, Divider } from '@mui/material'
+import { Typography, Box, Drawer, IconButton, Paper, Chip, Avatar, Button, Divider, alpha } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import AnimalIdentifiers from '../shipment-view/AnimalsIdentifier'
 
 const SpeciesDetails = ({ selectedExportData }) => {
+  const theme = useTheme()
   // Flatten all species from all exports
   const allSpecies = selectedExportData?.export?.flatMap(exportItem => exportItem.species || []) || []
   return (
     <Box>
-      <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '16px', mb: 3, mt: 4 }}>
+      <Typography
+        fontWeight={500}
+        sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', mb: 3, mt: 4 }}
+      >
         Species ({allSpecies?.length})
       </Typography>
 
@@ -21,7 +25,7 @@ const SpeciesDetails = ({ selectedExportData }) => {
             borderRadius: '8px',
             display: 'flex',
             flexDirection: 'column',
-            border: '1px solid #C3CEC7',
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             boxShadow: 'none'
           }}
         >
@@ -29,10 +33,13 @@ const SpeciesDetails = ({ selectedExportData }) => {
           <Box display='flex' gap={2} alignItems='center' sx={{ px: 3, py: 3 }}>
             <Avatar alt={species?.common_name} src={species?.default_icon} />
             <Box>
-              <Typography fontWeight={600} sx={{ color: '#44544A', fontSize: '16px' }}>
+              <Typography
+                fontWeight={600}
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
+              >
                 {species?.common_name}
               </Typography>
-              <Typography fontStyle='italic' color='#44544A' fontSize={14}>
+              <Typography fontStyle='italic' color={theme.palette.customColors.OnSurfaceVariant} fontSize={14}>
                 {species?.scientific_name}
               </Typography>
             </Box>
@@ -47,11 +54,18 @@ const SpeciesDetails = ({ selectedExportData }) => {
             sx={{ px: 4, pb: 3, pt: 2, background: '#E8F4F233' }}
           >
             <Box textAlign='center'>
-              <Typography fontSize={16} fontWeight={600} color={'#1F415B'}>
+              <Typography fontSize={16} fontWeight={600} color={theme.palette.customColors.OnSecondaryContainer}>
                 {(Number(species?.male_count) || 0) +
                   (Number(species?.female_count) || 0) +
                   (Number(species?.undeterminate_count) || 0)}
-                <span style={{ fontWeight: '400', fontSize: '15px', marginLeft: '6px', color: '#1F415B' }}>
+                <span
+                  style={{
+                    fontWeight: '400',
+                    fontSize: '15px',
+                    marginLeft: '6px',
+                    color: theme.palette.customColors.OnSecondaryContainer
+                  }}
+                >
                   {(Number(species?.male_count) || 0) +
                     (Number(species?.female_count) || 0) +
                     (Number(species?.undeterminate_count) || 0) ===
@@ -67,10 +81,10 @@ const SpeciesDetails = ({ selectedExportData }) => {
                 label={`M - ${species?.male_count || 0}`}
                 size='small'
                 sx={{
-                  background: '#AFEFEB80',
+                  background: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
                   borderRadius: '4px',
                   px: 2,
-                  color: '#00AFD6',
+                  color: theme.palette.customColors.addPrimary,
                   fontSize: '14px',
                   fontWeight: 500
                 }}
@@ -79,10 +93,10 @@ const SpeciesDetails = ({ selectedExportData }) => {
                 label={`F - ${species?.female_count || 0}`}
                 size='small'
                 sx={{
-                  background: '#FA614026',
+                  background: alpha(theme.palette.customColors.customDropdownColor, 0.15),
                   borderRadius: '4px',
                   px: 2,
-                  color: '#FA6140',
+                  color: theme.palette.formContent.tertiary,
                   fontSize: '14px',
                   fontWeight: 500
                 }}
@@ -91,10 +105,10 @@ const SpeciesDetails = ({ selectedExportData }) => {
                 label={`U - ${species?.undeterminate_count || 0}`}
                 size='small'
                 sx={{
-                  background: '#DDEBE9',
+                  background: theme.palette.customColors.displaybgSecondary,
                   borderRadius: '4px',
                   px: 2,
-                  color: '#1F515B',
+                  color: theme.palette.customColors.OnPrimaryContainer,
                   fontSize: '14px',
                   fontWeight: 500
                 }}
@@ -111,11 +125,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, title, identifiers, selectedExpor
   const theme = useTheme()
   const [tab, setTab] = useState(0)
   return (
-    <Drawer
-      open={open}
-      //onClose={onClose}
-      anchor='right'
-    >
+    <Drawer open={open} anchor='right'>
       <Box
         sx={{
           width: 570,
@@ -149,13 +159,14 @@ const ShippedAnimalsDrawer = ({ open, onClose, title, identifiers, selectedExpor
                 fontSize: '16px',
                 borderRadius: '8px',
                 mr: 3,
-                backgroundColor: tab === 0 ? '#1E5650' : '#0000000D',
-                color: tab === 0 ? '#fff' : '#1F515B',
+                backgroundColor:
+                  tab === 0 ? theme.palette.customColors.OnPrimaryContainer : theme.palette.customColors.mdAntzNeutral,
+                color: tab === 0 ? theme.palette.common.white : theme.palette.customColors.OnPrimaryContainer,
                 fontWeight: 500,
                 textTransform: 'none',
                 px: 3,
                 '&:hover': {
-                  backgroundColor: tab === 0 ? '#1E5650' : '#f0f0f0'
+                  backgroundColor: tab === 0 ? theme.palette.customColors.OnPrimaryContainer : '#f0f0f0'
                 }
               }}
             >
@@ -167,13 +178,14 @@ const ShippedAnimalsDrawer = ({ open, onClose, title, identifiers, selectedExpor
               sx={{
                 fontSize: '16px',
                 borderRadius: '8px',
-                backgroundColor: tab === 1 ? '#1E5650' : '#0000000D',
-                color: tab === 1 ? '#fff' : '#1F515B',
+                backgroundColor:
+                  tab === 1 ? theme.palette.customColors.OnPrimaryContainer : theme.palette.customColors.mdAntzNeutral,
+                color: tab === 1 ? theme.palette.common.white : theme.palette.customColors.OnPrimaryContainer,
                 fontWeight: 500,
                 textTransform: 'none',
                 px: 3,
                 '&:hover': {
-                  backgroundColor: tab === 1 ? '#1E5650' : '#f0f0f0'
+                  backgroundColor: tab === 1 ? theme.palette.customColors.OnPrimaryContainer : '#f0f0f0'
                 }
               }}
             >

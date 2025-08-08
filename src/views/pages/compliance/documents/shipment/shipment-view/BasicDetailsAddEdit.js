@@ -15,6 +15,7 @@ import Icon from 'src/@core/components/icon'
 import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { useTheme } from '@mui/material/styles'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
 
@@ -32,6 +33,7 @@ const BasicDetailsAddEdit = ({
   errors,
   setErrors
 }) => {
+  const theme = useTheme()
   const handleAirwaybillChange = event => {
     let inputValue = event.target.value.replace(/\D/g, '')
     if (inputValue.length > 11) inputValue = inputValue.slice(0, 11)
@@ -69,19 +71,19 @@ const BasicDetailsAddEdit = ({
               onChange={handleChange}
               label=''
               sx={{
-                background: '#0000000D',
+                background: theme.palette.customColors.mdAntzNeutral,
                 border: 'none',
-                color: '#839D8D',
+                color: theme.palette.customColors.Outline,
                 borderBottomRightRadius: '0px',
                 borderTopRightRadius: '0px',
                 '& .MuiSelect-select': {
-                  color: '#839D8D'
+                  color: theme.palette.customColors.Outline
                 },
                 '&.Mui-disabled .MuiSelect-select': {
-                  color: '#839D8D'
+                  color: theme.palette.customColors.Outline
                 },
                 '& fieldset': {
-                  border: '1px solid #C3CEC7'
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }
               }}
               disabled
@@ -143,7 +145,9 @@ const BasicDetailsAddEdit = ({
         <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
           {errors.uploadedFile && (
-            <Typography sx={{ color: '#FF4D49', fontSize: '12px', fontWeight: '400', mt: 1 }}>
+            <Typography
+              sx={{ color: theme.palette.customColors.errorText, fontSize: '12px', fontWeight: '400', mt: 1 }}
+            >
               {errors.uploadedFile}
             </Typography>
           )}

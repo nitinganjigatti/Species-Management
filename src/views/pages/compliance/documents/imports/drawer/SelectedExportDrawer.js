@@ -50,7 +50,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
               <Box
                 key={item.id}
                 sx={{
-                  backgroundColor: '#fff',
+                  backgroundColor: theme.palette.common.white,
                   borderRadius: '8px',
                   px: 5,
                   pt: 3,
@@ -79,15 +79,27 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
                   <Icon icon='carbon:close-outline' fontSize={24} />
                 </IconButton>
 
-                <Typography sx={{ fontWeight: 400, mb: 0.5, color: '#7A8684', fontSize: '14px' }}>
+                <Typography
+                  sx={{ fontWeight: 400, mb: 0.5, color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
+                >
                   Export ID :{' '}
-                  <Box component='span' fontWeight='500' sx={{ color: '#44544A', fontSize: '14px' }}>
+                  <Box
+                    component='span'
+                    fontWeight='500'
+                    sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}
+                  >
                     {item?.export_number || 'N/A'}
                   </Box>
                 </Typography>
-                <Typography sx={{ fontWeight: 400, mb: 0.5, color: '#7A8684', fontSize: '14px' }}>
+                <Typography
+                  sx={{ fontWeight: 400, mb: 0.5, color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
+                >
                   Exporter :{' '}
-                  <Box component='span' fontWeight='500' sx={{ color: '#44544A', fontSize: '14px' }}>
+                  <Box
+                    component='span'
+                    fontWeight='500'
+                    sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}
+                  >
                     {item?.exporter_name || 'N/A'}
                   </Box>
                 </Typography>
@@ -95,28 +107,28 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
                 <Box display='flex' gap={2} mt={2}>
                   <Box
                     sx={{
-                      background: '#EFF5F2',
+                      background: theme.palette.customColors.lightBg,
                       px: 2.5,
                       pt: 1.2,
                       pb: 1.4,
                       borderRadius: '16px',
                       fontSize: '0.875rem',
                       fontWeight: 500,
-                      color: '#44544A'
+                      color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
                     Species {item.species?.length || 0}
                   </Box>
                   <Box
                     sx={{
-                      background: '#EFF5F2',
+                      background: theme.palette.customColors.lightBg,
                       px: 2.5,
                       pt: 1.2,
                       pb: 1.4,
                       borderRadius: '16px',
                       fontSize: '0.875rem',
                       fontWeight: 500,
-                      color: '#44544A'
+                      color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
                     Animals {item.species?.reduce((sum, s) => sum + Number(s.total_count || 0), 0)}
@@ -127,7 +139,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
           ) : (
             <Typography
               sx={{
-                background: '#0000000D',
+                background: theme.palette.customColors.mdAntzNeutral,
                 p: 12,
                 textAlign: 'center',
                 borderRadius: '8px',
