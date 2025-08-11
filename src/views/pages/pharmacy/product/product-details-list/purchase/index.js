@@ -27,7 +27,7 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import { getPurchaseDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { v4 as uuidv4 } from 'uuid'
-import RenderUtility from 'src/utility/render'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const formatDate = dateString => {
   const date = new Date(dateString)
@@ -279,11 +279,11 @@ function Purchase({ tabValue, updateUrlParams }) {
       headerName: 'created by',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     }
@@ -419,7 +419,6 @@ function Purchase({ tabValue, updateUrlParams }) {
         to_date: formattedEndDate
       })
     } else {
-     
       setFilterDates({
         startDate: '',
         endDate: ''

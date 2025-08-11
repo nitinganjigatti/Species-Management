@@ -31,6 +31,7 @@ import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ReturnSupplier = () => {
   const router = useRouter()
@@ -543,11 +544,11 @@ const ReturnSupplier = () => {
       headerName: 'DISCARDED BY',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.discard_created_by_user_name,
-            params?.row?.discard_created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.discard_created_by_user_name}
+            date={params?.row?.discard_created_at}
+          />
         </>
       )
     }
@@ -764,9 +765,13 @@ const ReturnSupplier = () => {
                   </Grid>
 
                   <Grid item size={{ xs: 12, sm: 7 }}>
-                    <Grid container spacing={2} sx={{
-                      justifyContent: { xs: 'flex-end' }
-                    }}>
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{
+                        justifyContent: { xs: 'flex-end' }
+                      }}
+                    >
                       <Grid item size={{ xs: 12, sm: 8 }} sm={8} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
@@ -861,7 +866,7 @@ const ReturnSupplier = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default ReturnSupplier
