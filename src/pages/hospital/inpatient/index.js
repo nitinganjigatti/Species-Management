@@ -13,6 +13,7 @@ import {
   MenuItem
 } from '@mui/material'
 import { width } from '@mui/system'
+import { useRouter } from 'next/router'
 import React from 'react'
 import RenderUtility from 'src/utility/render'
 import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
@@ -88,6 +89,7 @@ const dummyData = [
 
 const HospitalInpatient = () => {
   const theme = useTheme()
+  const router = useRouter()
 
   const columns = [
     {
@@ -225,7 +227,9 @@ const HospitalInpatient = () => {
 
   const headerAction = (
     <>
-      <Button variant='contained'>ADD PATIENT</Button>
+      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/add-patient` })}>
+        ADD PATIENT
+      </Button>
     </>
   )
 
@@ -265,8 +269,8 @@ const HospitalInpatient = () => {
                     size='small'
                     value={''}
                     // onChange={event => handleChangeSize(event, item)}
-                    displayEmpty
                     // error={visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && !size[item.id]?.id}
+                    displayEmpty
                     sx={{
                       '& .MuiOutlinedInput-notchedOutline': {
                         borderColor: theme.palette.customColors.Outline
