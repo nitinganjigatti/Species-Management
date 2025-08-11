@@ -19,27 +19,6 @@ import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
 
-const data = [
-  {
-    label: 'Current Enclosure',
-    time: '12:22 PM',
-    enclosure: 'Enclosure - 232',
-    section: 'Quail Section',
-    site: 'Gagva',
-    date: '21 Mar 2024',
-    reporter: 'Naveen Kumar'
-  },
-  {
-    label: 'Previous Enclosure',
-    time: '12:22 PM',
-    enclosure: 'Enclosure - 232',
-    section: 'Quail Section',
-    site: 'Gagva',
-    date: '21 Jan 2024',
-    reporter: 'Naveen Kumar'
-  }
-]
-
 const AnimalHistory = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -75,7 +54,7 @@ const AnimalHistory = () => {
     }
   }, [id])
 
-  const handleSearch = value => {}
+  const handleSearch = value => { }
 
   const formatHistoryData = historyData => {
     return historyData.map((item, index) => ({
