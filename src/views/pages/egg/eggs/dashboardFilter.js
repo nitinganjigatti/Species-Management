@@ -2,7 +2,19 @@ import React, { useState, useEffect, useContext, useCallback } from 'react'
 
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
-import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  Checkbox,
+  debounce,
+  Divider,
+  Drawer,
+  FormControlLabel,
+  Grid,
+  IconButton,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
@@ -411,7 +423,7 @@ const DashboardFilter = ({
               <Box
                 key={menu.id}
                 sx={{
-                  width: '190px',
+                  maxWidth: '190px',
                   bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
                   cursor: 'pointer',
                   p: 4,
@@ -420,9 +432,21 @@ const DashboardFilter = ({
                 }}
                 onClick={() => handleMenuClick(menu)}
               >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                  {menu.name}
-                </Typography>
+                <Tooltip title={menu.name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      lineHeight: '19.36px',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {menu.name}
+                  </Typography>
+                </Tooltip>
               </Box>
             ))}
           </Grid>
@@ -432,7 +456,7 @@ const DashboardFilter = ({
                 bgcolor: theme.palette.primary.contrastText,
                 p: '16px',
                 borderRadius: '8px',
-                width: '345px',
+                maxWidth: '345px',
                 height: 'calc(100vh - 185px)',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
@@ -507,16 +531,23 @@ const DashboardFilter = ({
                         onChange={() => handleCheckboxChange(option.id, option.name)}
                         inputProps={{ 'aria-label': 'controlled' }}
                       />
-                      <Typography
-                        sx={{
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          color: theme.palette.customColors.Outline,
-                          textTransform: 'capitalize'
-                        }}
-                      >
-                        {option.name}
-                      </Typography>
+                      <Tooltip title={option.name}>
+                        <Typography
+                          onClick={() => handleCheckboxChange(option.id, option.name)}
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            cursor: 'pointer',
+                            color: theme.palette.customColors.Outline,
+                            textTransform: 'capitalize',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {option.name}
+                        </Typography>
+                      </Tooltip>
                     </Box>
                   ))}
                 </Box>

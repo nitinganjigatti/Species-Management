@@ -423,8 +423,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               border: `1px solid ${theme.palette.customColors.OutlineVariant}`
             }}
           >
-            <Box sx={{ display: 'flex', gap: 4, mb: 4, mb: 4, alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <Box sx={{ width: '100%', display: 'flex', gap: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ width: '100%', display: 'flex', alignItems: 'center' }}>
                 <Avatar
                   variant='rounded'
                   alt='Medicine Image'
@@ -445,73 +445,70 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 </Avatar>
 
                 <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <Box sx={{ display: 'flex', width: 250, gap: 4 }}>
-                    <Typography
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.deepDark,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {list?.egg_code}
+                  </Typography>
+
+
+                  {list?.egg_condition && (
+                    <Box
                       sx={{
-                        color: theme.palette.primary.deepDark,
-                        fontSize: '16px',
-                        fontWeight: '500',
-                        lineHeight: '19.36px',
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      {list?.egg_code}
-                    </Typography>
-
-                    {list?.egg_condition && (
-                      <Box
-                        sx={{
-                          borderRadius: '4px',
-                          px: 3,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-
-                          backgroundColor:
-                            list?.egg_condition === 'Rotten'
-                              ? theme.palette.customColors.AntzTertiary
-                              : list?.egg_condition === 'Broken'
+                        borderRadius: '4px',
+                        px: 3,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor:
+                          list?.egg_condition === 'Rotten'
+                            ? theme.palette.customColors.AntzTertiary
+                            : list?.egg_condition === 'Broken'
                               ? theme.palette.customColors.AntzTertiary
                               : list?.egg_condition === 'Cracked'
-                              ? theme.palette.customColors.AntzTertiary
-                              : list?.egg_condition === 'Discard'
-                              ? theme.palette.customColors.AntzTertiary
-                              : list?.egg_condition === 'Thin-Shelled'
-                              ? theme.palette.customColors.displaybgPrimary
-                              : list?.egg_condition === 'Fertile'
-                              ? theme.palette.customColors.displaybgPrimary
-                              : theme.palette.customColors.OnBackground
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color:
-                              list?.egg_condition === 'Fresh'
-                                ? theme.palette.primary.dark
-                                : list?.egg_condition === 'Rotten'
+                                ? theme.palette.customColors.AntzTertiary
+                                : list?.egg_condition === 'Discard'
+                                  ? theme.palette.customColors.AntzTertiary
+                                  : list?.egg_condition === 'Thin-Shelled'
+                                    ? theme.palette.customColors.displaybgPrimary
+                                    : list?.egg_condition === 'Fertile'
+                                      ? theme.palette.customColors.displaybgPrimary
+                                      : theme.palette.customColors.OnBackground
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color:
+                            list?.egg_condition === 'Fresh'
+                              ? theme.palette.primary.dark
+                              : list?.egg_condition === 'Rotten'
                                 ? theme.palette.customColors.Tertiary
                                 : list?.egg_condition === 'Broken'
-                                ? theme.palette.customColors.Tertiary
-                                : list?.egg_condition === 'Cracked'
-                                ? theme.palette.customColors.moderateSecondary
-                                : list?.egg_condition === 'Discard'
-                                ? theme.palette.customColors.Tertiary
-                                : list?.egg_condition === 'Hatched'
-                                ? theme.palette.customColors.antzInfo60
-                                : list?.egg_condition === 'Thin-Shelled'
-                                ? theme.palette.primary.light
-                                : theme.palette.primary.dark,
-                            fontSize: '14px',
-                            fontWeight: '500'
-                          }}
-                        >
-                          {list?.egg_condition}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
+                                  ? theme.palette.customColors.Tertiary
+                                  : list?.egg_condition === 'Cracked'
+                                    ? theme.palette.customColors.moderateSecondary
+                                    : list?.egg_condition === 'Discard'
+                                      ? theme.palette.customColors.Tertiary
+                                      : list?.egg_condition === 'Hatched'
+                                        ? theme.palette.customColors.antzInfo60
+                                        : list?.egg_condition === 'Thin-Shelled'
+                                          ? theme.palette.primary.light
+                                          : theme.palette.primary.dark,
+                          fontSize: '14px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {list?.egg_condition}
+                      </Typography>
+                    </Box>
+                  )}
 
                   <Tooltip
                     title={
@@ -520,6 +517,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   >
                     <Typography
                       sx={{
+                        width: 'calc(100% - 100px)',
                         color: theme.palette.customColors.OnSecondaryContainer,
                         fontSize: '16px',
                         fontWeight: 500,
@@ -527,7 +525,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        width: '240px'
                       }}
                     >
                       {list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'}
@@ -535,20 +532,19 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   </Tooltip>
                 </Box>
               </Box>
-              <Box>
-                {list?.activity_status === 'COMPLETED' ? (
-                  <Typography
-                    sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: theme.palette.primary.light }}
-                  >
-                    Security checked
-                  </Typography>
-                ) : (
-                  <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>Security check pending</Typography>
-                )}
-              </Box>
+
+              {list?.activity_status === 'COMPLETED' ? (
+                <Typography
+                  sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: theme.palette.primary.light }}
+                >
+                  Security checked
+                </Typography>
+              ) : (
+                <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>Security check pending</Typography>
+              )}
             </Box>
-            <Divider />
-            <Stack sx={{ mt: 4 }}>
+            <Divider sx={{ my: 4 }} />
+            <Stack>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography
                   sx={{
@@ -705,12 +701,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
             <TabContext value={tabStatus}>
               <TabList onChange={handleTabChange}>
                 <Tab
-                  sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
+                  sx={{ flex: 1, maxWidth: '280px', fontWeight: 600, fontSize: '14px' }}
                   value='site'
                   label={<TabBadge label='SITE WISE ' />}
                 />
                 <Tab
-                  sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
+                  sx={{ flex: 1, maxWidth: '280px', fontWeight: 600, fontSize: '14px' }}
                   value='nursery'
                   label={<TabBadge label='NURSERY WISE ' />}
                 />
