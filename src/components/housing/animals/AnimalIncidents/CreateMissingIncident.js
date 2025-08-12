@@ -372,7 +372,7 @@ const CreateMissingIncident = ({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '24px',
-                    backgroundColor: '#fff',
+                    backgroundColor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
@@ -388,6 +388,7 @@ const CreateMissingIncident = ({
                             sx={{
                               ...basicStyle
                             }}
+
                             // value={allocationDate}
                             onChange={newDate => {
                               if (newDate) {
@@ -499,7 +500,7 @@ const CreateMissingIncident = ({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '24px',
-                    backgroundColor: '#fff',
+                    backgroundColor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
@@ -582,7 +583,7 @@ const CreateMissingIncident = ({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '24px',
-                    backgroundColor: '#fff',
+                    backgroundColor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
@@ -751,7 +752,7 @@ const CreateMissingIncident = ({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '24px',
-                    backgroundColor: '#fff',
+                    backgroundColor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
@@ -845,6 +846,7 @@ const CreateMissingIncident = ({
             variant='contained'
             size='large'
             sx={{ height: '58px', width: '514px', mx: 4 }}
+
             // onClick={() => {
             //   handleSubmit()
             // }}

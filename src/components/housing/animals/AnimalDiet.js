@@ -8,6 +8,7 @@ import UploadAnimalDiet from './UploadAnimalDiet'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getAnimalDietList } from 'src/lib/api/housing'
 import { useRouter } from 'next/router'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const GreenSwitch = styled(Switch)(({ theme }) => ({
   width: 45.5,
@@ -22,7 +23,7 @@ const GreenSwitch = styled(Switch)(({ theme }) => ({
     padding: 3,
     '&.Mui-checked': {
       transform: 'translateX(18px)',
-      color: '#fff',
+      color: theme.palette.primary.contrastText,
       '& + .MuiSwitch-track': {
         backgroundColor: '#4CAF50', // ✅ Green background
         opacity: 1
@@ -34,7 +35,7 @@ const GreenSwitch = styled(Switch)(({ theme }) => ({
     width: 22,
     height: 22,
     borderRadius: '50%',
-    backgroundColor: '#fff'
+    backgroundColor: theme.palette.primary.contrastText,
   },
   '& .MuiSwitch-track': {
     borderRadius: 26 / 2,
@@ -205,112 +206,110 @@ const AnimalDiet = ({ animalDetails }) => {
           </Box>
         </Box>
 
-        {/* <Skeleton sx={{ borderRadius: '8px', py: '80px', marginTop: '-40px' }} /> */}
         {/* Diet Card */}
         {dietListLoader ?
           <Skeleton variant='rounded' sx={{ borderRadius: '8px', minHeight: '160px', maxHeight: '240px' }} height={118} />
           :
-          (selectedTab === 'active' ? activeDietData : inActiveDietData).map((diet, index) => (
-            <Box
-              key={diet.ref_id}
-              sx={{
-                boxSizing: 'border-box',
-                display: 'flex',
-                flexDirection: 'column',
-                backgroundColor: selectedTab === 'active' ? 'transparent' : theme.palette.customColors.mdAntzNeutral,
-
-                // border: selectedTab === 'active' ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
-                border: `1px solid ${selectedTab === 'active' ? theme.palette.customColors.OutlineVariant : 'transparent' // or use a light transparent color
-                  }`,
-                borderRadius: '8px',
-                gap: '24px',
-                p: '16px',
-                mb: 3
-              }}
-            >
+          (activeDietData?.length || inActiveDietData?.length) ?
+            (selectedTab === 'active' ? activeDietData : inActiveDietData).map((diet, index) => (
               <Box
+                key={diet.ref_id}
                 sx={{
-                  width: '100%',
+                  boxSizing: 'border-box',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 4,
-                  flexWrap: 'wrap'
+                  flexDirection: 'column',
+                  backgroundColor: selectedTab === 'active' ? 'transparent' : theme.palette.customColors.mdAntzNeutral,
+                  border: `1px solid ${selectedTab === 'active' ? theme.palette.customColors.OutlineVariant : 'transparent' // or use a light transparent color
+                    }`,
+                  borderRadius: '8px',
+                  gap: '24px',
+                  p: '16px',
+                  mb: 3
                 }}
               >
-                <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Box
-                    sx={{
-                      backgroundColor: '#FFE7E7',
-                      p: 1,
-                      borderRadius: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Avatar
-                      variant='rounded'
-                      alt='Medicine Image'
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 4,
+                    flexWrap: 'wrap'
+                  }}
+                >
+                  <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Box
                       sx={{
-                        pt: '6px',
-                        width: 48,
-                        height: 48,
-                        background: theme.palette.customColors.avatarBackground,
-                        overflow: 'hidden'
+                        backgroundColor: '#FFE7E7',
+                        p: 1,
+                        borderRadius: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
-                      <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='pdf' />
-                    </Avatar>
-                  </Box>
-
-                  <Box
-                    sx={{ minWidth: '100px', maxWidth: '300px', display: 'flex', flexDirection: 'column', gap: '6px' }}
-                  >
-                    <Tooltip title={diet.file_original_name}>
-                      <Typography
+                      <Avatar
+                        variant='rounded'
+                        alt='Medicine Image'
                         sx={{
-                          fontSize: 16,
-                          fontWeight: 500,
-                          letterSpacing: 0,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          wordBreak: 'break-word',
-                          color: theme.palette.customColors.OnSurfaceVariant
+                          pt: '6px',
+                          width: 48,
+                          height: 48,
+                          background: theme.palette.customColors.avatarBackground,
+                          overflow: 'hidden'
                         }}
                       >
-                        {diet.file_original_name}
-                      </Typography>
-                    </Tooltip>
-                    <Tooltip title={`${diet.attached_by} • Dietitian`}>
-                      <Typography
-                        sx={{
-                          fontSize: 14,
-                          fontWeight: 400,
-                          letterSpacing: 0,
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap',
-                          color: theme.palette.customColors.OnSurfaceVariant
-                        }}
-                      >
-                        {diet.attached_by} • Dietitian
-                      </Typography>
-                    </Tooltip>
-                  </Box>
-                </Box>
+                        <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='pdf' />
+                      </Avatar>
+                    </Box>
 
-                {/* Right: User Info, Switch, Delete */}
-                <Box sx={{ maxWidth: '340px', display: 'flex', alignItems: 'end', gap: 2, flexWrap: 'wrap' }}>
-                  <UserInfoCard
-                    avatarUrl={diet.attached_by_profile}
-                    name={diet.attached_by}
-                    description={diet.notes}
-                    textColor={theme.palette.customColors.OnSurfaceVariant}
-                    fontWeight={500}
-                  />
-                  {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    <Box
+                      sx={{ minWidth: '100px', maxWidth: '300px', display: 'flex', flexDirection: 'column', gap: '6px' }}
+                    >
+                      <Tooltip title={diet.file_original_name}>
+                        <Typography
+                          sx={{
+                            fontSize: 16,
+                            fontWeight: 500,
+                            letterSpacing: 0,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            wordBreak: 'break-word',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          {diet.file_original_name}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title={`${diet.attached_by} • Dietitian`}>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            fontWeight: 400,
+                            letterSpacing: 0,
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          {diet.attached_by} • Dietitian
+                        </Typography>
+                      </Tooltip>
+                    </Box>
+                  </Box>
+
+                  {/* Right: User Info, Switch, Delete */}
+                  <Box sx={{ maxWidth: '340px', display: 'flex', alignItems: 'end', gap: 2, flexWrap: 'wrap' }}>
+                    <UserInfoCard
+                      avatarUrl={diet.attached_by_profile}
+                      name={diet.attached_by}
+                      description={diet.notes}
+                      textColor={theme.palette.customColors.OnSurfaceVariant}
+                      fontWeight={500}
+                    />
+                    {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     <GreenSwitch
                       checked={selectedTab === 'active'}
                       // checked={diet.isActive}
@@ -337,33 +336,33 @@ const AnimalDiet = ({ animalDetails }) => {
                       <Icon icon='mdi:trash-can-outline' color={theme.palette.customColors.OnSurfaceVariant} />
                     </IconButton>
                   </Box> */}
+                  </Box>
                 </Box>
-              </Box>
-              {diet?.notes && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                    backgroundColor:
-                      selectedTab === 'active'
-                        ? theme.palette.customColors.antzNotesLight
-                        : theme.palette.customColors.mdAntzNeutral,
-                    borderRadius: 1,
-                    p: '12px'
-                  }}
-                >
-                  <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
-                    Notes:
-                  </Typography>
-                  <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 400 }}>
-                    {diet.notes}
-                  </Typography>
-                </Box>
-              )}
+                {diet?.notes && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      backgroundColor:
+                        selectedTab === 'active'
+                          ? theme.palette.customColors.antzNotesLight
+                          : theme.palette.customColors.mdAntzNeutral,
+                      borderRadius: 1,
+                      p: '12px'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
+                      Notes:
+                    </Typography>
+                    <Typography sx={{ fontSize: 14, color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 400 }}>
+                      {diet.notes}
+                    </Typography>
+                  </Box>
+                )}
 
-            </Box>
-          ))
+              </Box>
+            )) : <NoDataFound />
         }
 
         < UploadAnimalDiet

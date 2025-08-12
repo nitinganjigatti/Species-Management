@@ -236,7 +236,7 @@ const MissReportIncidentForm = ({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '24px',
-                  backgroundColor: '#fff',
+                  backgroundColor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 }}>
@@ -318,7 +318,7 @@ const MissReportIncidentForm = ({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '24px',
-                  backgroundColor: '#fff',
+                  backgroundColor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 }}>

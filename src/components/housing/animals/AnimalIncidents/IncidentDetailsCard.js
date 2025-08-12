@@ -82,7 +82,7 @@ const IncidentDetailsCard = ({ item, index, data }) => {
             >
                 <Typography
                     sx={{
-                        color: item.incident_type === 'missing' ? '#FA6140' : '#006D35',
+                        color: item.incident_type === 'missing' ? theme.palette.customColors.customDropdownColor : theme.palette.primary.dark,
                         fontWeight: 600,
                         fontSize: 14,
                         mb: '16px'
@@ -93,7 +93,7 @@ const IncidentDetailsCard = ({ item, index, data }) => {
                 <Box
                     sx={{
                         flexGrow: 1,
-                        backgroundColor: item.incident_type === 'found' ? '#E1F9ED' : '#FFBDA833',
+                        backgroundColor: item.incident_type === 'found' ? theme.palette.customColors.OnBackground : theme.palette.customColors.Tertiary20,
                         borderRadius: 2,
                         display: 'flex',
                         flexDirection: 'column',

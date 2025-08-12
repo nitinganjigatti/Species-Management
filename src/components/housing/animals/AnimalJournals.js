@@ -8,6 +8,8 @@ import TimelineItem from '@mui/lab/TimelineItem'
 import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
+import { timelineItemClasses } from '@mui/lab'
+
 import MuiTimeline from '@mui/lab/Timeline'
 import JournalFilterSheet from './journalFilter'
 import { read, readAsync } from 'src/lib/windows/utils'
@@ -16,6 +18,9 @@ import Toaster from 'src/components/Toaster'
 
 import { getAnimalJournalLogs } from 'src/lib/api/housing'
 import Utility from 'src/utility'
+import Timeline from '@mui/lab/Timeline'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const categoriesData = [
   { categoryId: 1, categoryName: 'Technology' },
@@ -66,7 +71,6 @@ const AnimalJournals = () => {
   const [selectedUsers, setSelectedUsers] = useState([])
   const [dateRange, setDateRange] = useState({ from: null, to: null })
 
-
   const options = {
     Users: users || [],
     Categories: categoriesData || [],
@@ -99,7 +103,6 @@ const AnimalJournals = () => {
       user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}`
     })
   }
-
 
   const fetchAnimalJournalLogs = async () => {
     const params = {
@@ -145,7 +148,7 @@ const AnimalJournals = () => {
           <Box key={groupIndex} sx={{ mb: 6 }}>
             <Box
               sx={{
-                backgroundColor: '#0000000D',
+                backgroundColor: theme.palette.customColors.mdAntzNeutral,
                 height: '48px',
                 pl: '16px',
                 display: 'flex',
@@ -154,13 +157,13 @@ const AnimalJournals = () => {
                 mb: 2
               }}
             >
-              <Icon icon='mdi:calendar-blank-outline' style={{ fontSize: 24, color: '#000' }} />
+              <Icon icon='mdi:calendar-blank-outline' style={{ fontSize: 24, color: theme.palette.customColors.neutralPrimary }} />
               <Typography
                 sx={{
                   fontWeight: 500,
                   fontSize: 20,
                   letterSpacing: 0,
-                  color: '#000',
+                  color: theme.palette.customColors.neutralPrimary,
                   whiteSpace: 'nowrap'
                 }}
               >
@@ -278,15 +281,15 @@ const AnimalJournals = () => {
                                 item.type === 'Medical'
                                   ? theme.palette.customColors.Tertiary
                                   : item.type === 'Vaccination'
-                                  ? theme.palette.primary.dark
-                                  : theme.palette.customColors.addPrimary
+                                    ? theme.palette.primary.dark
+                                    : theme.palette.customColors.addPrimary
                             }}
                           >
                             {item.code}
                           </Typography>
                         )}
 
-                       
+
                         {item?.category && <Typography sx={{ fontWeight: 600, fontSize: '14px', color: item.type === 'Medical' ? theme.palette.customColors.Tertiary : item.type === 'Vaccination' ? theme.palette.primary.dark : theme.palette.customColors.addPrimary }}>
                           {item?.details?.medical_record_number}
                         </Typography>}
@@ -415,10 +418,93 @@ const AnimalJournals = () => {
     setIsLoading(false)
   }
 
+  const TimelineSkeleton = () => (
+    <Timeline
+      position='right'
+      sx={{
+        [`& .${timelineItemClasses.root}:before`]: {
+          flex: 0,
+          padding: 0
+        }
+      }}
+    >
+      {[1, 2].map((item, idx) => (
+        <TimelineItem key={item}>
+          <TimelineSeparator
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Skeleton variant='circular' width={40} height={40} />
+            {idx < 2 && <TimelineConnector />}
+          </TimelineSeparator>
+          <TimelineContent
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              justifyContent: 'flex-start',
+              width: '100%',
+              py: 0,
+              pl: 2
+            }}
+          >
+            {/* Left side - Timeline info skeleton */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.5,
+                minWidth: '200px',
+                justifyContent: 'center'
+              }}
+            >
+              <Skeleton variant='text' width={140} height={20} />
+              <Skeleton variant='text' width={120} height={24} />
+              <Skeleton variant='text' width={80} height={16} />
+            </Box>
+            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  justifyContent: 'center',
+                  gap: 1,
+                  p: 4,
+                  borderRadius: 1,
+                  background: theme.palette.customColors.displaybgPrimary,
+                  width: { xs: '100%', md: '400px' },
+                  maxWidth: '400px',
+                  mt: 1
+                }}
+              >
+                <Skeleton variant='text' width={180} height={20} />
+                <Skeleton variant='text' width={160} height={20} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                  <Skeleton variant='circular' width={16} height={16} />
+                  <Skeleton variant='text' width={120} height={20} />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                  <Skeleton variant='rectangular' width={16} height={16} />
+                  <Skeleton variant='text' width={120} height={20} />
+                </Box>
+                <Skeleton variant='text' width={200} height={20} />
+              </Box>
+            </Box>
+          </TimelineContent>
+        </TimelineItem>
+      ))}
+    </Timeline>
+  )
+
   return (
-  <>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: 4 }}>
-      <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+    <>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: 4 }}>
+        <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <Button
             onClick={() => setSelectedTab('active')}
             variant={selectedTab === 'active' ? 'contained' : 'text'}
@@ -472,16 +558,16 @@ const AnimalJournals = () => {
                     ? theme.palette.customColors.OnPrimaryContainer
                     : theme.palette.customColors.displaybgSecondary
               }
-          }}
-        >
-          Mortality
-        </Button>
-      </Box> 
+            }}
+          >
+            Mortality
+          </Button>
+        </Box>
 
-       <Box sx={{ display: 'flex', justifyContent: 'space-between', rowGap: 4, columnGap: 2, flexWrap: 'wrap' }}>
-          <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-
-          <Box
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', rowGap: 4, columnGap: 2, flexWrap: 'wrap' }}>
+          <Box />
+          {/* <Box></Box> */}
+          {/* <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -507,7 +593,9 @@ const AnimalJournals = () => {
                 }
               }}
             />
-          </Box> 
+          </Box>  */}
+          <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+
             <Autocomplete
               sx={{ width: '200px', height: '40px' }}
               value={selectedUser}
@@ -536,75 +624,42 @@ const AnimalJournals = () => {
                   placeholder='Search & Select'
                 />
               )}
-            /> 
-            <Box onClick={() => setOpenFilterDrawer(true)} sx={{ borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '40px', width: '95px', border: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
+            />
+            {/* <Box onClick={() => setOpenFilterDrawer(true)} sx={{ borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '40px', width: '95px', border: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
             <Icon icon='mage:filter' fontSize={24} />
             <Typography s={{ fontSize: '16px', fontWeight: 400, lineHeight: '24px', letterSpacing: '0.15px', color: theme.palette.customColors.OnSurfaceVariant }}>
               Filter
             </Typography>
-          </Box> 
+              </Box>  */}
+            <Box sx={{ minWidth: '40px', maxWidth: '400px' }}>
+              <CommonDateRangePickers />
+            </Box>
           </Box>
         </Box>
 
-
-
-      <JournalFilterSheet
-        options={options}
-        animalId={123}
-        categories={categories}
-        openFilterDrawer={openFilterDrawer}
-        setOpenFilterDrawer={setOpenFilterDrawer}
-        selectedOptions={selectedOptions}
-        setSelectedOptions={setSelectedOptions}
-        handleSelection={handleSelection}
-        selectedUsers={selectedUsers}
-        setSelectedUsers={setSelectedUsers}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-      />
-
-
-      {journalLogsLoading ? <Box sx={{ mb: 6 }}>
-      <Box
-        sx={{
-          backgroundColor: '#0000000D',
-          height: '48px',
-          pl: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          mb: 2
-        }}
-      >
-      </Box>
-      <Box sx={{ display: 'flex', columnGap:'100px', flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '200px' }}>
-          <Skeleton variant='rounded' sx={{ borderRadius: '8px', minHeight: '20px', maxHeight: '240px' }} height={10} />
-          <Skeleton variant='rounded' sx={{ borderRadius: '8px', minHeight: '30px', maxHeight: '240px' }} height={20} />
-          <Skeleton variant='rounded' sx={{ borderRadius: '8px', minHeight: '20px', maxHeight: '240px' }} height={10} />
-        </Box>
-        <Skeleton
-          sx={{
-            backgroundColor: theme.palette.customColors.lightBg,
-            borderRadius: '8px',
-            minHight: '200px',
-            maxWidth:'100%',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            p: '16px'
-          }}
-          height={200}
-          width={800}
+        <JournalFilterSheet
+          options={options}
+          animalId={123}
+          categories={categories}
+          openFilterDrawer={openFilterDrawer}
+          setOpenFilterDrawer={setOpenFilterDrawer}
+          selectedOptions={selectedOptions}
+          setSelectedOptions={setSelectedOptions}
+          handleSelection={handleSelection}
+          selectedUsers={selectedUsers}
+          setSelectedUsers={setSelectedUsers}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
         />
+
+        {journalLogsLoading ?
+          <TimelineSkeleton />
+          : animalJournalLogs.length > 0 ?
+            <AnimalJournalLog /> : <NoDataFound variant='Seal' />
+        }
+
       </Box>
-    </Box > :
-      <AnimalJournalLog />
-    }
-      
-    </Box>
-  </>)
+    </>)
 }
 
 export default AnimalJournals
- 
