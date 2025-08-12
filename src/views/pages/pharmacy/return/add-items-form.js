@@ -463,7 +463,7 @@ export const AddItemsForm = ({
 
   return (
     <>
-      {/* <CardContent> */}
+     
       <form
         onSubmit={handleSubmit(onSubmit)}
         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
@@ -563,6 +563,7 @@ export const AddItemsForm = ({
                 errors={errors}
                 required={true}
                 readOnly={true}
+                dateReader={true}
               />
             </Grid>
           )}

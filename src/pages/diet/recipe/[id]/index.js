@@ -284,11 +284,7 @@ const RecipeDetail = () => {
                                 src={'/icons/delete_outlined.svg'}
                                 variant='square'
                                 onClick={() => {
-                                  if (
-                                    Number(IngredientsDetailsval?.total_ingredients) +
-                                      Number(IngredientsDetailsval?.diet_count) >
-                                    0
-                                  ) {
+                                  if (Number(IngredientsDetailsval?.diet_count) > 0) {
                                     handleStatusClickOpen()
                                   } else {
                                     handleClickOpen()

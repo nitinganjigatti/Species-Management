@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useContext } from 'react'
 import { Box, Grid, Typography } from '@mui/material'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from '../401'
 
 const videoData = [
   {
@@ -42,74 +44,87 @@ const videoData = [
 
 const Analytics = () => {
   const [fullscreenVideo, setFullscreenVideo] = useState(null)
+  const authData = useContext(AuthContext)
+  const userRole = authData?.userData?.roles?.role_name
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
-        backgroundColor: 'black',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        p: 1
-      }}
-    >
-      <Grid container spacing={1} sx={{ width: '100%', height: '100%' }}>
-        {videoData.map((video, index) => (
-          <Grid
-            item
-            size={{ xs: 12, sm: 6, md: 4 }}
-            key={index}
+    <>
+      {userRole == 'Super Admin' ? (
+        <>
+          <Box
             sx={{
+              width: '100%',
+              height: '100%',
+              overflow: 'hidden',
+              backgroundColor: 'black',
               display: 'flex',
               justifyContent: 'center',
-              alignItems: 'center'
+              alignItems: 'center',
+              p: 1
             }}
           >
-            <VideoTile video={video} onExpand={() => setFullscreenVideo(video)} />
-          </Grid>
-        ))}
-      </Grid>
+            <Grid container spacing={1} sx={{ width: '100%', height: '100%' }}>
+              {videoData.map((video, index) => (
+                <Grid
+                  item
+                  size={{ xs: 12, sm: 6, md: 4 }}
+                  key={index}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                >
+                  <VideoTile video={video} onExpand={() => setFullscreenVideo(video)} />
+                </Grid>
+              ))}
+            </Grid>
 
-      {fullscreenVideo && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999
-          }}
-          onClick={() => setFullscreenVideo(null)}
-        >
-          <video
-            src={fullscreenVideo.url}
-            autoPlay
-            loop
-            controls
-            style={{
-              width: '60%',
-              height: '90%',
-              objectFit: 'contain',
-              borderRadius: '8px'
-            }}
-          />
-        </Box>
+            {fullscreenVideo && (
+              <Box
+                sx={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100vw',
+                  height: '100vh',
+                  backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 9999
+                }}
+                onClick={() => setFullscreenVideo(null)}
+              >
+                <video
+                  src={fullscreenVideo.url}
+                  autoPlay
+                  loop
+                  controls
+                  style={{
+                    width: '60%',
+                    height: '90%',
+                    objectFit: 'contain',
+                    borderRadius: '8px'
+                  }}
+                />
+              </Box>
+            )}
+          </Box>
+        </>
+      ) : (
+        <>
+          <Error404 />
+        </>
       )}
-    </Box>
+    </>
   )
 }
 
 const VideoTile = ({ video, onExpand }) => {
   const videoRef = useRef(null)
   const [showOverlay, setShowOverlay] = useState(false)
+
   let timeout
 
   useEffect(() => {
@@ -137,50 +152,52 @@ const VideoTile = ({ video, onExpand }) => {
   }, [])
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        width: '100%',
-        aspectRatio: '16/9',
-        backgroundColor: 'black',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        cursor: 'pointer'
-      }}
-      onClick={onExpand}
-    >
-      <video
-        ref={videoRef}
-        src={video.url}
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
+    <>
+      <Box
+        sx={{
+          position: 'relative',
           width: '100%',
-          height: '100%',
-          objectFit: 'contain'
+          aspectRatio: '16/9',
+          backgroundColor: 'black',
+          borderRadius: '4px',
+          overflow: 'hidden',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          cursor: 'pointer'
         }}
-      />
-      {showOverlay && (
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 10,
-            left: 10,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            padding: '5px 10px',
-            borderRadius: '4px'
+        onClick={onExpand}
+      >
+        <video
+          ref={videoRef}
+          src={video.url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain'
           }}
-        >
-          <Typography variant='caption'>{video.name}</Typography>
-        </Box>
-      )}
-    </Box>
+        />
+        {showOverlay && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 10,
+              left: 10,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              color: 'white',
+              padding: '5px 10px',
+              borderRadius: '4px'
+            }}
+          >
+            <Typography variant='caption'>{video.name}</Typography>
+          </Box>
+        )}
+      </Box>
+    </>
   )
 }
 

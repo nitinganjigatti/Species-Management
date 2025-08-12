@@ -78,7 +78,6 @@ const AnimalsData = ({
     setlinkedShipmentsData(linkedshipments)
   }
 
-  // listen to parent instruction to trigger edit mode
   React.useEffect(() => {
     if (onEditClick) onEditClick.current = handleEditClick
     if (shipmentId) {
@@ -129,7 +128,6 @@ const AnimalsData = ({
     }
   }
 
-  // Modify your fetchExportList to reset properly on new searches
   const fetchExportList = useCallback(
     async (reset = false) => {
       setIsLoading(true)
@@ -180,7 +178,6 @@ const AnimalsData = ({
     fetchMastersData()
   }, [fetchExportList])
 
-  // Reset to first page when search changes
   useEffect(() => {
     fetchExportList(true)
   }, [searchValue])
@@ -197,7 +194,6 @@ const AnimalsData = ({
   }
 
   const handleSpeciesSelect = selectedSpecies => {
-    // Create new species items for those not already in the list
     const newSpeciesItems = selectedSpecies
       .filter(species => !speciesList.some(existing => existing.species.tsn_id === species.tsn_id))
       .map(species => {
@@ -258,7 +254,6 @@ const AnimalsData = ({
 
     setSpeciesList(updatedSpeciesList)
 
-    // ✅ Update others ONLY on save
     setSelectedExportData(prev => ({
       ...prev,
       others: updatedSpeciesList
@@ -274,13 +269,10 @@ const AnimalsData = ({
   const handleClose = () => {
     const selectedSpeciesIds = selectedExportData?.others?.map(item => item.id)
 
-    // Filter draftData.others to keep only species present in selectedExportData
     const filteredDraftData = draftData.others.filter(item => selectedSpeciesIds.includes(item.id))
 
-    // Filter speciesList similarly
     const filteredSpeciesList = speciesList.filter(item => selectedSpeciesIds.includes(item.id))
 
-    // Update both states
     setDraftData(prev => ({
       ...prev,
       others: filteredDraftData
@@ -295,7 +287,7 @@ const AnimalsData = ({
     if (!shipmentId) return
 
     const payload = {}
-    setLoader(true)
+    setLoading(true)
     // Handle export data
     selectedExportData.export.forEach((exp, index) => {
       // species as JSON string
@@ -321,11 +313,9 @@ const AnimalsData = ({
         }))
       )
 
-      // attachment as stringified object (if needed)
       payload[`export[${index}][attachment]`] = exp.attachment
     })
 
-    // Handle others data
     selectedExportData.others.forEach((item, index) => {
       payload[`others[${index}][species]`] = JSON.stringify([
         {
@@ -356,17 +346,17 @@ const AnimalsData = ({
           : await createShipmentSpecies(shipmentId, payload)
       if (response?.success) {
         setShowEditAnimals(true)
-        setLoader(false)
+        setLoading(false)
         router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=details&export=1`)
         Toaster({ type: 'success', message: response?.message })
         fetchShipmentspeciesDetails()
       } else {
-        setLoader(false)
+        setLoading(false)
         Toaster({ type: 'error', message: response?.message })
         console.error('API Error:', response?.message)
       }
     } catch (error) {
-      setLoader(false)
+      setLoading(false)
       console.error('Exception:', error)
     }
   }
@@ -489,6 +479,7 @@ const AnimalsData = ({
           setCurrentSpeciesId={setCurrentSpeciesId}
           setSelectedSpeciesData={setSelectedSpeciesData}
           setSearchValue={setSearchValue}
+          shipmentId={shipmentId}
         />
       ) : shipmentId && action === 'details' ? (
         <SpeciesDetailsContainer
@@ -551,6 +542,7 @@ const AnimalsData = ({
           setSelectedSpeciesData={setSelectedSpeciesData}
           setSearchValue={setSearchValue}
           loader={loader}
+          shipmentId={shipmentId}
         />
       )}
       <AddAnimalCountDrawer

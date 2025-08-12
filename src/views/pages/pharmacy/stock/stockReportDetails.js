@@ -62,7 +62,7 @@ const StockReportDetails = props => {
           height: '100%'
         }}
       >
-        {/* Header */}
+       
         <Box
           sx={{
             position: 'sticky',
@@ -128,7 +128,6 @@ const StockReportDetails = props => {
           }}
         />
 
-        {/* Scrollable Content */}
         <Box
           sx={{
             flexGrow: 1,

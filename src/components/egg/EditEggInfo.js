@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Box, Drawer, FormControl, FormHelperText, IconButton, TextField, Typography } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
@@ -13,6 +13,8 @@ import Toaster from 'src/components/Toaster'
 import { EditEgg } from 'src/lib/api/egg/egg'
 
 const EditEggInfo = ({ eggDetails, openEditDrawer, closeEditDrawer, getDetails }) => {
+  const inputRef = useRef(null)
+
   const [loader, setLoader] = useState(false)
   const theme = useTheme()
 
@@ -23,13 +25,6 @@ const EditEggInfo = ({ eggDetails, openEditDrawer, closeEditDrawer, getDetails }
   const defaultValues = {
     egg_number: ''
   }
-
-  useEffect(() => {
-    // debugger
-    if (eggDetails?.egg_number !== null) {
-      reset({ egg_number: eggDetails?.egg_number })
-    }
-  }, [])
 
   const {
     control,
@@ -70,6 +65,21 @@ const EditEggInfo = ({ eggDetails, openEditDrawer, closeEditDrawer, getDetails }
       setLoader(false)
     }
   }
+
+  useEffect(() => {
+    // debugger
+    if (eggDetails?.egg_number !== null) {
+      reset({ egg_number: eggDetails?.egg_number })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (openEditDrawer) {
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100) // delay to wait for drawer to mount
+    }
+  }, [openEditDrawer])
 
   return (
     <Drawer
@@ -131,6 +141,7 @@ const EditEggInfo = ({ eggDetails, openEditDrawer, closeEditDrawer, getDetails }
                     <TextField
                       label='Egg Identifier*'
                       value={value}
+                      inputRef={inputRef}
                       onChange={onChange}
                       focused={value !== ''}
                       placeholder='Egg Identifier'

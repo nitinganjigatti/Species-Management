@@ -1,9 +1,8 @@
-import { Icon } from '@iconify/react'
-import { Box, Card, CardHeader, IconButton, Typography, TextField } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
-import { GetLabUsersById } from 'src/lib/api/lab/labDetails'
+import { Card, CardHeader, Tooltip, Typography } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
+import { GetLabUsersById } from 'src/lib/api/lab/labDetails'
 
 const Users = ({ labId }) => {
   const theme = useTheme()
@@ -38,17 +37,22 @@ const Users = ({ labId }) => {
     },
     {
       flex: 2.3,
-      minWidth: 20,
+      minWidth: 200,
       field: 'users',
       headerName: 'Users',
       hide: false,
       sortable: true,
       renderCell: params => (
-        <>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.user_full_name}
+        <Tooltip title={params?.row?.user_full_name || ''}>
+          <Typography variant='body2' sx={{
+            color: 'text.primary',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {params?.row?.user_full_name || ''}
           </Typography>
-        </>
+        </Tooltip>
       )
     }
   ]

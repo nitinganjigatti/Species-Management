@@ -124,7 +124,6 @@ const StepPreviewDiet = ({
       const numericType = type !== 'Generic' ? parseFloat(type) : type
 
       const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
-        // Check if meal_value_header is not equal to 'Generic'
         if (meal.meal_value_header !== 'Generic') {
           return parseFloat(meal.meal_value_header) === numericType
         } else {
@@ -156,7 +155,6 @@ const StepPreviewDiet = ({
       setInitialValues(initialval)
     }
 
-    // Then open the dialog
     setOpen(true)
     setmealingredientIndex(index)
     setingredientvalueid(item.mealid)
@@ -165,13 +163,12 @@ const StepPreviewDiet = ({
       setheadertype(type)
     } else {
       const inputString = type
-      const numberOnly = inputString.replace(/[^\d.-]/g, '') // Remove all non-numeric characters
+      const numberOnly = inputString.replace(/[^\d.-]/g, '')
       const textOnly = inputString.replace(/^\s*\d*\s*/, '')
 
       setheadertype(type)
       type !== 'Generic' ? setheaderMatch(parseFloat(numberOnly)) : setheaderMatch(numberOnly)
 
-      // Find the object in uomprevnew array where name matches textOnly
       const matchedUom = uomprevnew.find(item => item.name === textOnly)
       if (matchedUom) {
         setuomId(parseFloat(matchedUom._id))
@@ -208,7 +205,6 @@ const StepPreviewDiet = ({
     }
   }, [formData, reset])
 
-  // Define a function to receive the diet_types values from the child component
   const handleReceiveDietTypes = dietTypesData => {
     setDietTypes(dietTypesData)
     setActivitySidebarOpen(false)
@@ -234,7 +230,6 @@ const StepPreviewDiet = ({
     document.cookie = `dietTypeChildValues=${JSON.stringify(stateforHeader)}; path=/`
     document.cookie = `dietTypeChildVal=${JSON.stringify(apival)}; path=/`
 
-    // Check if stateforHeader is an array
     if (Array.isArray(stateforHeader)) {
       setdiettypechildvalues(stateforHeader)
     } else {
@@ -274,7 +269,6 @@ const StepPreviewDiet = ({
 
   useEffect(() => {
     if (id) {
-      //const child = formData.child
       const dietTypeChildValues = getCookie('dietTypeChildValues')
       const dietTypeChildVal = getCookie('dietTypeChildVal')
       if (dietTypeChildValues !== null) {
@@ -322,17 +316,17 @@ const StepPreviewDiet = ({
   }, [activitySidebarOpen, id])
 
   const CustomScrollbar = styled('div')({
-    overflowX: 'auto', // or 'scroll'
+    overflowX: 'auto',
     '&::-webkit-scrollbar': {
-      width: 10, // specify your desired width
-      height: 4 // specify your desired height
+      width: 10,
+      height: 4
     },
     '&::-webkit-scrollbar-track': {
-      backgroundColor: 'transparent' // customize track color if needed
+      backgroundColor: 'transparent'
     },
     '&::-webkit-scrollbar-thumb': {
-      backgroundColor: 'lightgray', // customize thumb color if needed
-      borderRadius: 5 // specify border radius
+      backgroundColor: 'lightgray',
+      borderRadius: 5
     }
   })
 
@@ -377,7 +371,6 @@ const StepPreviewDiet = ({
                 }
               })
 
-              // Update mealTypeArray with weight_uom_id and weight_uom_label if found in the cookie
               if (existingMealTypeIndex !== -1) {
                 mealTypeArray[existingMealTypeIndex] = {
                   meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
@@ -386,13 +379,11 @@ const StepPreviewDiet = ({
                   feed_uom_name: feed_uom_name?.label || feed_uom_name,
                   notes: notes,
                   ...(headertype !== 'Generic' && {
-                    // Conditionally include weight_uom_id and weight_uom_label
                     weight_uom_id: uomId,
                     weight_uom_label: uomLabel
                   })
                 }
               } else {
-                // If an existing object with the same meal_value_header is not found, add a new object
                 mealTypeArray.push({
                   meal_value_header: headertype !== 'Generic' ? headerMatch : headertype,
                   quantity: quantity,
@@ -400,7 +391,6 @@ const StepPreviewDiet = ({
                   feed_uom_name: feed_uom_name?.label || feed_uom_name,
                   notes: notes,
                   ...(headertype !== 'Generic' && {
-                    // Conditionally include weight_uom_id and weight_uom_label
                     weight_uom_id: uomId,
                     weight_uom_label: uomLabel
                   })
@@ -435,8 +425,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else if (dietTypeval === 'recipe') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
-
+        const updatedFormData = { ...formData }
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
@@ -508,7 +497,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else if (dietTypeval === 'combo') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
+        const updatedFormData = { ...formData }
 
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
@@ -581,7 +570,7 @@ const StepPreviewDiet = ({
         setOpen(false)
       } else {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
-        const updatedFormData = { ...formData } // Create a copy of formData
+        const updatedFormData = { ...formData }
         const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
@@ -678,7 +667,7 @@ const StepPreviewDiet = ({
   useEffect(() => {
     if (formData.diet_type_name === 'By Weight') {
       const updatedFormData = { ...formData, child: diettypechildvalues }
-      setlocalformData(updatedFormData) // Update local state
+      setlocalformData(updatedFormData)
       setFormData(updatedFormData)
     }
   }, [diettypechildvalues, formData.diet_type_name])
@@ -687,9 +676,7 @@ const StepPreviewDiet = ({
     const updatedFormData = { ...formData }
     console.log(updatedFormData, 'updatedFormData')
 
-    // Iterate over meal_data
     updatedFormData.meal_data.forEach(meal => {
-      // Check if the meal_data has an ingredient array
       if (meal.ingredient) {
         meal.ingredient.forEach(ingredient => {
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
@@ -704,7 +691,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.recipe) {
         meal.recipe.forEach(recipe => {
           if (recipe.meal_type && recipe.meal_type.length > 0) {
@@ -719,7 +705,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.combo) {
         meal.combo.forEach(recipe => {
           if (recipe.meal_type && recipe.meal_type.length > 0) {
@@ -734,7 +719,6 @@ const StepPreviewDiet = ({
         })
       }
 
-      // Check if the meal_data has an ingredient array
       if (meal.ingredientwithchoice) {
         meal.ingredientwithchoice.forEach(ingredientwithchoice => {
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
@@ -795,12 +779,11 @@ const StepPreviewDiet = ({
         className=''
         open={open}
         onClose={(event, reason) => {
-          // Prevent closing on backdrop click or Escape key
           if (reason !== 'backdropClick') {
             handleClosed()
           }
         }}
-        disableEscapeKeyDown // Disable closing on pressing Escape
+        disableEscapeKeyDown
         aria-labelledby='customized-dialog-title'
         sx={{
           '& .MuiDialog-paper': {
@@ -826,7 +809,6 @@ const StepPreviewDiet = ({
           <Icon style={{ cursor: 'pointer' }} icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
         </DialogTitle>
         <DialogContent>
-          {/* <Typography variant='h6'>Add Value</Typography> */}
           <Grid container spacing={5} sx={{ mt: 1 }}>
             <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
@@ -856,10 +838,10 @@ const StepPreviewDiet = ({
                   render={({ field: { value, onChange } }) => (
                     <Autocomplete
                       onChange={(event, newValue) => {
-                        onChange(newValue) // Update the form value
+                        onChange(newValue)
                       }}
                       defaultValue={initialValues.feed_uom_name ? initialValues.feed_uom_name : null}
-                      options={transformedArray} // List of options with value and label
+                      options={transformedArray}
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                       renderInput={params => (
@@ -918,7 +900,6 @@ const StepPreviewDiet = ({
           </Box>
 
           <Grid container spacing={5} sx={{ px: 5 }}>
-            {/* First Grid item */}
             <Grid item size={{ xs: 12, sm: 4 }}>
               <div
                 item
@@ -968,7 +949,7 @@ const StepPreviewDiet = ({
                 </CardContent>
               </div>
             </Grid>
-            {/* Second Grid item */}
+
             <Grid item size={{ xs: 10, sm: 7.5 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography>
@@ -1205,25 +1186,8 @@ const StepPreviewDiet = ({
                             >
                               <Typography>GENERIC</Typography>
                             </TableCell>
-                            {/* {formData.child?.map((all, index) => {
-                              return (
-                                <TableCell
-                                  key={index}
-                                  sx={{
-                                    border: 'none',
-                                    backgroundColor: '#C1D3D099',
-                                    height: '40px',
-                                    width: '140px',
-                                    borderRight: '1px solid #C3CEC7',
-                                    textAlign: 'center'
-                                  }}
-                                >
-                                  <Typography>{all}</Typography>
-                                </TableCell>
-                              )
-                            })} */}
+
                             <TableCell
-                              //colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1236,7 +1200,6 @@ const StepPreviewDiet = ({
                               <Typography>Juvenile </Typography>
                             </TableCell>
                             <TableCell
-                              // colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1249,7 +1212,6 @@ const StepPreviewDiet = ({
                               <Typography>Young</Typography>
                             </TableCell>
                             <TableCell
-                              // colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1262,7 +1224,6 @@ const StepPreviewDiet = ({
                               <Typography>Adult</Typography>
                             </TableCell>
                             <TableCell
-                              //colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1386,8 +1347,6 @@ const StepPreviewDiet = ({
                                   background: theme.palette.secondary.contrastText,
                                   height: '185px',
 
-                                  //display: 'flex',
-                                  //flexDirection: 'column',
                                   justifyContent: 'center',
                                   alignItems: 'center',
                                   overflow: 'hidden'
@@ -1401,13 +1360,11 @@ const StepPreviewDiet = ({
                                     top: '80px',
                                     transform: 'translateY(-50%)',
 
-                                    //display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     width: '70%'
                                   }}
                                 >
-                                  {/* Meal Name */}
                                   <Typography
                                     sx={{
                                       textAlign: 'center',
@@ -1473,7 +1430,6 @@ const StepPreviewDiet = ({
                                 </span>
                               </TableCell>
 
-                              {/* Recipe module start  */}
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
@@ -1494,10 +1450,6 @@ const StepPreviewDiet = ({
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText,
                                           pl: '1.25rem !important'
-
-                                          //float: 'left',
-                                          // display: 'flex',
-                                          // flexDirection: 'row'
                                         }}
                                       >
                                         <Box
@@ -1506,7 +1458,6 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: theme.palette.background.OnBackground,
                                             backgroundColor: theme.palette.background.OnBackground,
                                             borderRadius: '8px',
                                             p: '12px',
@@ -1578,44 +1529,6 @@ const StepPreviewDiet = ({
                                               </Box>
                                               <Divider />
                                               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                                                {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: theme.palette.customColors.secondaryBg,
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 400,
-                                                      fontSize: '14px',
-                                                      display: 'flex',
-                                                      flexWrap: 'wrap'
-                                                    }}
-                                                  >
-                                                    {item?.ingredient_name.map((name, index) => (
-                                                      <Box
-                                                        key={index}
-                                                        sx={{
-                                                          display: 'flex',
-                                                          alignItems: 'center',
-                                                          marginRight: '10px'
-                                                        }}
-                                                      >
-                                                        {name}
-                                                        <Typography
-                                                          component='span'
-                                                          sx={{
-                                                            fontWeight: 'bold',
-                                                            marginLeft: '2px',
-                                                            fontSize: '14px',
-                                                            lineHeight: '1.7rem'
-                                                          }}
-                                                        >
-                                                          {parseFloat(item?.quantity[index])}
-                                                          {''}
-                                                          {item?.quantity_type[index] === 'percentage' ? '%' : ''}
-                                                        </Typography>
-                                                      </Box>
-                                                    ))}
-                                                  </Typography>
-                                                )} */}
                                                 <Typography
                                                   sx={{
                                                     color: theme.palette.customColors.OnSurfaceVariant,
@@ -1653,7 +1566,7 @@ const StepPreviewDiet = ({
                                                           sx={{
                                                             fontSize: '14px',
                                                             lineHeight: '1.7rem',
-                                                            color: '#000'
+                                                            color: theme.palette.common.black
                                                           }}
                                                         >
                                                           {`${name?.ingredient_name || ''} | ${
@@ -1667,7 +1580,7 @@ const StepPreviewDiet = ({
                                                             fontSize: '14px',
                                                             lineHeight: '1.7rem',
                                                             marginLeft: '2px',
-                                                            color: '#000'
+                                                            color: theme.palette.common.black
                                                           }}
                                                         >
                                                           {` ${parseFloat(name?.quantity) || 0}${' ' + name?.uom_text}`}
@@ -1890,14 +1803,6 @@ const StepPreviewDiet = ({
                                                 textAlign: 'center'
                                               }}
                                             >
-                                              {/* {item.meal_type
-                                                ? item.meal_type.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : ''
-                                                  })
-                                                : 'Add'} */}
                                               {item.meal_type
                                                 ? item.meal_type
                                                     .map((meal, i) => {
@@ -1980,25 +1885,6 @@ const StepPreviewDiet = ({
                                                       textAlign: 'center'
                                                     }}
                                                   >
-                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          } else {
-                                                            return ''
-                                                          }
-                                                        })
-                                                      : item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          return meal.meal_value_header === all
-                                                            ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            : ''
-                                                        })
-                                                      : 'Add'} */}
                                                     {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type
                                                           .map((meal, i) => {
@@ -2137,9 +2023,6 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* Recipe module end */}
-
-                              {/* Combo module start  */}
 
                               <>
                                 {itemd?.combo?.map((item, index) => {
@@ -2240,76 +2123,9 @@ const StepPreviewDiet = ({
                                                     </Typography>
                                                   </>
                                                 )}
-                                                {/* 
-                                                {item?.ingredients.map(all =>
-                                                  all ? (
-                                                    <Typography
-                                                      sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '14px',
-                                                        lineHeight: '18px',
-                                                        color: theme.palette.secondary.dark
-                                                      }}
-                                                    >
-                                                      &nbsp;-&nbsp; {all?.preparation_type}
-                                                      &nbsp;-&nbsp;
-                                                      {item?.master_cut_size}
-                                                    </Typography>
-                                                  ) : (
-                                                    <Typography
-                                                      sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '14px',
-                                                        lineHeight: '18px',
-                                                        color: theme.palette.secondary.dark
-                                                      }}
-                                                    >
-                                                      &nbsp;-&nbsp; {all?.preparation_type}
-                                                    </Typography>
-                                                  )
-                                                )} */}
                                               </Box>
                                               <Divider />
                                               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                                                {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: theme.palette.customColors.secondaryBg,
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 400,
-                                                      fontSize: '14px',
-                                                      display: 'flex',
-                                                      flexWrap: 'wrap'
-                                                    }}
-                                                  >
-                                                    {item?.ingredient_name.map((name, index) => (
-                                                      <Box
-                                                        key={index}
-                                                        sx={{
-                                                          display: 'flex',
-                                                          alignItems: 'center',
-                                                          marginRight: '10px'
-                                                        }}
-                                                      >
-                                                        {name}
-                                                        <Typography
-                                                          component='span'
-                                                          sx={{
-                                                            fontWeight: 'bold',
-                                                            marginLeft: '2px',
-                                                            fontSize: '14px',
-                                                            lineHeight: '1.7rem'
-                                                          }}
-                                                        >
-                                                          {parseFloat(item?.quantity[index])}
-                                                          {''}
-                                                          {item?.quantity_type[index] === 'percentage' ? '%' : ''}
-                                                        </Typography>
-                                                      </Box>
-                                                    ))}
-                                                  </Typography>
-                                                )} */}
-
                                                 <Typography
                                                   sx={{
                                                     color: theme.palette.customColors.OnSurfaceVariant,
@@ -2347,7 +2163,7 @@ const StepPreviewDiet = ({
                                                           sx={{
                                                             fontSize: '14px',
                                                             lineHeight: '1.7rem',
-                                                            color: '#000'
+                                                            color: theme.palette.common.black
                                                           }}
                                                         >
                                                           {`${name?.ingredient_name || ''} | ${
@@ -2361,7 +2177,7 @@ const StepPreviewDiet = ({
                                                             fontSize: '14px',
                                                             lineHeight: '1.7rem',
                                                             marginLeft: '2px',
-                                                            color: '#000'
+                                                            color: theme.palette.common.black
                                                           }}
                                                         >
                                                           {` ${parseFloat(name?.quantity) || 0}${
@@ -2666,25 +2482,6 @@ const StepPreviewDiet = ({
                                                       textAlign: 'center'
                                                     }}
                                                   >
-                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          } else {
-                                                            return ''
-                                                          }
-                                                        })
-                                                      : item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          return meal.meal_value_header === all
-                                                            ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            : ''
-                                                        })
-                                                      : 'Add'} */}
                                                     {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type
                                                           .map((meal, i) => {
@@ -2823,9 +2620,7 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* Combo module end */}
 
-                              {/* ingredient module start */}
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   return (
@@ -2858,7 +2653,6 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: theme.palette.background.OnBackground,
                                             backgroundColor: '#00d6c957',
                                             borderRadius: '8px',
                                             p: '12px',
@@ -3163,14 +2957,6 @@ const StepPreviewDiet = ({
                                                 textAlign: 'center'
                                               }}
                                             >
-                                              {/* {item.meal_type
-                                                ? item.meal_type.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : ''
-                                                  })
-                                                : 'Add'} */}
                                               {item.meal_type
                                                 ? item.meal_type
                                                     .map((meal, i) => {
@@ -3253,25 +3039,6 @@ const StepPreviewDiet = ({
                                                       textAlign: 'center'
                                                     }}
                                                   >
-                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          } else {
-                                                            return ''
-                                                          }
-                                                        })
-                                                      : item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          return meal.meal_value_header === all
-                                                            ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            : ''
-                                                        })
-                                                      : 'Add'} */}
                                                     {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type
                                                           .map((meal, i) => {
@@ -3411,7 +3178,6 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-                              {/* ingredient module end  */}
 
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
@@ -3433,10 +3199,6 @@ const StepPreviewDiet = ({
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText,
                                           pl: '1.25rem !important'
-
-                                          //float: 'left',
-                                          // display: 'flex',
-                                          // flexDirection: 'row'
                                         }}
                                       >
                                         <Box
@@ -3445,7 +3207,6 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: theme.palette.background.OnBackground,
                                             backgroundColor: '#00d6c957',
                                             borderRadius: '8px',
                                             p: '12px',
@@ -3716,14 +3477,6 @@ const StepPreviewDiet = ({
                                                 textAlign: 'center'
                                               }}
                                             >
-                                              {/* {item.meal_type
-                                                ? item.meal_type.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : ''
-                                                  })
-                                                : 'Add'} */}
                                               {item.meal_type
                                                 ? item.meal_type
                                                     .map((meal, i) => {
@@ -3807,25 +3560,6 @@ const StepPreviewDiet = ({
                                                       textAlign: 'center'
                                                     }}
                                                   >
-                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          } else {
-                                                            return ''
-                                                          }
-                                                        })
-                                                      : item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          return meal.meal_value_header === all
-                                                            ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            : ''
-                                                        })
-                                                      : 'Add'} */}
                                                     {formData.diet_type_name === 'By Weight' && item.meal_type
                                                       ? item.meal_type
                                                           .map((meal, i) => {
@@ -3967,10 +3701,10 @@ const StepPreviewDiet = ({
                             </TableRow>
                             <TableRow
                               sx={{
-                                width: '100%', // Ensure the row spans the full width of the table
-                                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, // Add border directly to the row
-                                minHeight: '48px', // Optional: set a minimum height for the row
-                                display: 'table-row', // Default behavior for TableRow
+                                width: '100%',
+                                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                minHeight: '48px',
+                                display: 'table-row',
                                 '&:hover': {
                                   backgroundColor: theme.palette.secondary.contrastText,
                                   boxShadow: 'none'
@@ -3984,7 +3718,7 @@ const StepPreviewDiet = ({
                                     {itemd.notes}
                                   </>
                                 ) : (
-                                  <></> // Render nothing if no notes are available
+                                  <></>
                                 )}
                               </TableCell>
                             </TableRow>
@@ -4007,8 +3741,8 @@ const StepPreviewDiet = ({
                         label='Remarks (Optional)'
                         name='remarks'
                         onChange={e => {
-                          onChange(e) // Update react-hook-form state
-                          onRemarksChange(e.target.value) // Update formData state in AddDiet
+                          onChange(e)
+                          onRemarksChange(e.target.value)
                         }}
                         id='textarea-outlined'
                         rows={5}
@@ -4031,13 +3765,7 @@ const StepPreviewDiet = ({
               >
                 Go back
               </Button>
-              {/* <Button
-                onClick={finalhandleSubmit}
-                variant='contained'
-                endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
-              >
-                Submit
-              </Button> */}
+
               <Button
                 onClick={finalhandleSubmit}
                 variant='contained'

@@ -20,6 +20,7 @@ const documentSchema = yup.object().shape({
     .max(50, 'Reference number must be less than 50 characters'),
   document_file: yup
     .mixed()
+    .required('File is required')
     .test('fileRequired', 'File is required', function (value) {
       if (!this.parent.documentData && !value) return false
 
@@ -57,7 +58,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
   const fileValue = watch('document_file')
 
   useEffect(() => {
-    if (documentData?.reference_number && documentData?.issued_date) {
+    if (documentData?.file_original_name) {
       setValue('reference_number', documentData.reference_number || '')
       setValue('issued_date', dayjs(documentData?.issued_date))
       setValue(

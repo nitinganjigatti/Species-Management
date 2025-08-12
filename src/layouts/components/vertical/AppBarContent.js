@@ -31,7 +31,6 @@ const AppBarContent = props => {
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const { selectedPharmacy } = usePharmacyContext()
   const router = useRouter()
-  console.log(router?.pathname, 'qwer')
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

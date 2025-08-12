@@ -59,7 +59,6 @@ const NewForm = ({
         position: 'relative'
       }}
     >
-      {/* Scrollable Form Content */}
       <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{
@@ -230,10 +229,10 @@ const NewForm = ({
               fontSize: '20px',
               mb: 2,
               '&.Mui-focused': {
-                color: theme.palette.customColors.OnSurfaceVariant // prevent focus color change
+                color: theme.palette.customColors.OnSurfaceVariant 
               },
               '&.Mui-error': {
-                color: theme.palette.customColors.OnSurfaceVariant // prevent error color change
+                color: theme.palette.customColors.OnSurfaceVariant 
               }
             }}
           >
@@ -300,10 +299,14 @@ const NewForm = ({
                           </Box>
                         }
                         sx={{
-                          border: `1px solid ${field.value?.includes(option) ? '#37BD69' : '#D0D5DD'}`,
+                          border: `1px solid ${field.value?.includes(option) ? theme.palette.primary.main : '#D0D5DD'}`,
                           borderRadius: '4px',
                           p: 2,
-                          bgcolor: `${field.value?.includes(option) ? '#F2FFF8' : '#fff'}`,
+                          bgcolor: `${
+                            field.value?.includes(option)
+                              ? theme.palette.customColors.Surface
+                              : theme.palette.common.white
+                          }`,
                           display: 'flex',
                           alignItems: 'center',
                           minWidth: '30%'

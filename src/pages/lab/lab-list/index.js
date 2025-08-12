@@ -67,53 +67,59 @@ const ListOfLab = () => {
     // },
     {
       flex: 0.3,
-      minWidth: 20,
+      minWidth: 200,
       field: 'lab_name',
       headerName: 'LAB NAME',
       renderCell: params => (
-        <Box>
+        <>
           <Box>
             {params.row.is_default === '1' ? (
               <Badge color='success' badgeContent='Default' style={{ left: '28px', position: 'relative' }}></Badge>
             ) : null}
           </Box>
-
-          <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}>
-            {params.row.lab_name}{' '}
-          </Typography>
-        </Box>
+          <Tooltip title={params.row.lab_name || ""}>
+            <Typography variant='body2' sx={{
+              color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer', overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {params.row.lab_name || ""}{' '}
+            </Typography></Tooltip>
+        </>
       )
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'type',
       headerName: 'Type',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            textTransform: 'capitalize',
-
-            fontFamily: 'Inter'
-          }}
-        >
-          <span alt={params.row.type}>{params.row.type}</span>
-        </Typography>
+        <Tooltip title={params.row?.type ? params.row?.type : '-'}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              textTransform: 'capitalize',
+              fontFamily: 'Inter',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+          >
+            <span alt={params.row.type}>{params.row.type}</span>
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
       flex: 0.4,
-      minWidth: 20,
+      minWidth: 160,
       field: 'address',
       headerName: 'Address',
       renderCell: params => (
         <Tooltip title={params.row?.address ? params.row?.address : '-'}>
-          <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', }}>
             {params?.row?.address ? params?.row?.address : '-'}
           </Typography>
         </Tooltip>
@@ -133,17 +139,17 @@ const ListOfLab = () => {
     // },
     authData?.userData?.roles?.settings?.add_lab
       ? {
-          flex: 0.2,
-          minWidth: 20,
-          field: 'Action',
-          sortable: false,
-          headerName: 'Action',
-          renderCell: params => (
-            <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          )
-        }
+        flex: 0.2,
+        minWidth: 70,
+        field: 'Action',
+        sortable: false,
+        headerName: 'Action',
+        renderCell: params => (
+          <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
+        )
+      }
       : null
   ].filter(column => column !== null)
 

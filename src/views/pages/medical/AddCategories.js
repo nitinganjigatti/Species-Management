@@ -69,7 +69,7 @@ const AddCategories = props => {
     await handleSubmitData(payload)
   }
 
-  const title = type === 'complaints' ? 'Complaints' : type === 'diagnosis' ? 'Diagnosis' : 'Category'
+  const title = type === 'complaints' ? 'Symptoms' : type === 'diagnosis' ? 'Clinical assessment' : 'Category'
 
   return (
     <>

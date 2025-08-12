@@ -18,7 +18,6 @@ import {
   FormControl,
   FormHelperText,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   DialogContentText
@@ -102,7 +101,7 @@ const ListOfSpeciesMapped = ({
       }
       try {
         const response = await deleteSpeciesFromDiet(payload)
-        console.log(response, 'response')
+
         if (response.success === true) {
           await refreshSpeciesData()
           setPageNo(1)
@@ -127,13 +126,9 @@ const ListOfSpeciesMapped = ({
   const handelClose = () => {
     setIsOpennew(false)
 
-    //refreshDietDetails()
     setspeciesview('')
     setStartDate(null)
     setEndDate(null)
-
-    //setSearchQuery('')
-    // setPrimaryStatus({}) // Reset primary status when closing
   }
 
   const searchClose = () => {
@@ -151,7 +146,6 @@ const ListOfSpeciesMapped = ({
   }
 
   const handleAdd = async () => {
-    // Prepare payload based on selection type
     const payloadData = tempSelectedSpecies.map(id => ({
       [selectionType === 'species' ? 'species_id' : 'animal_id']: id,
       is_primary: primaryStatus[id] ? '1' : '0'
@@ -169,7 +163,7 @@ const ListOfSpeciesMapped = ({
 
     try {
       const response = await addAssigntoDiet(payload, selectionType)
-      console.log('API Response:', response)
+
       if (response.success === true) {
         Toaster({
           type: 'success',
@@ -202,7 +196,6 @@ const ListOfSpeciesMapped = ({
     }
   }
 
-  // Handle date changes
   const handleStartDateChange = date => {
     setStartDate(date)
     if (endDate && date > endDate) {
@@ -221,7 +214,6 @@ const ListOfSpeciesMapped = ({
     }
   }
 
-  // Format date for display in TextField
   const formatDisplayDate = date => {
     return date ? format(date, 'yyyy-MM-dd') : ''
   }
@@ -384,9 +376,6 @@ const ListOfSpeciesMapped = ({
                       sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
                     }
                   }}
-                  // primaryTypographyProps={{
-                  //   sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
-                  // }}
                   secondary={
                     <Typography
                       variant='body2'
@@ -456,7 +445,7 @@ const ListOfSpeciesMapped = ({
                           }}
                         />
                       }
-                      maxDate={endDate || new Date()}
+                      maxDate={endDate}
                     />
                     {errors.startDate && (
                       <FormHelperText sx={{ color: 'error.main' }}>{errors.startDate}</FormHelperText>
@@ -503,7 +492,7 @@ const ListOfSpeciesMapped = ({
                         />
                       }
                       minDate={startDate}
-                      maxDate={new Date()}
+                      //maxDate={new Date()}
                     />
                     {errors.endDate && <FormHelperText sx={{ color: 'error.main' }}>{errors.endDate}</FormHelperText>}
                   </FormControl>
@@ -517,7 +506,14 @@ const ListOfSpeciesMapped = ({
                       pb: 1
                     }}
                   >
-                    {tempSelectedSpecies?.length} Species Selected
+                    {tempSelectedSpecies?.length}{' '}
+                    {selectionType === 'species'
+                      ? tempSelectedSpecies?.length === 1
+                        ? 'Specie Selected'
+                        : 'Species Selected'
+                      : tempSelectedSpecies?.length === 1
+                      ? 'Animal Selected'
+                      : 'Animals Selected'}
                   </Typography>
                 ) : (
                   <Typography
@@ -578,7 +574,7 @@ const ListOfSpeciesMapped = ({
                             pl: 3
                           }}
                         >
-                          Species
+                          {selectionType === 'species' ? 'Species' : 'Animals'}
                         </Typography>
                         <Typography
                           variant='body1'
@@ -628,7 +624,15 @@ const ListOfSpeciesMapped = ({
                             }}
                           >
                             {/* Species Image and Name */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 2,
+                                width: '50%',
+                                minHeight: '100%'
+                              }}
+                            >
                               <Avatar
                                 src={species.default_icon ? species.default_icon : '/icons/species.svg'}
                                 alt={species.scientific_name}
@@ -642,7 +646,8 @@ const ListOfSpeciesMapped = ({
                                       : 'unset',
                                   height: '44px',
                                   width: '44px',
-                                  mr: 2
+                                  mr: 2,
+                                  mt: 2.5
                                 }}
                               />
                               <ListItemText
@@ -717,7 +722,15 @@ const ListOfSpeciesMapped = ({
                             }}
                           >
                             {/* Species Image and Name */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 2,
+                                width: '50%',
+                                minHeight: '100%'
+                              }}
+                            >
                               <Avatar
                                 src={species.default_icon ? species.default_icon : '/icons/species.svg'}
                                 alt={species.scientific_name}
@@ -728,7 +741,11 @@ const ListOfSpeciesMapped = ({
                                       ? 'unset'
                                       : species?.default_icon
                                       ? '50%'
-                                      : 'unset'
+                                      : 'unset',
+                                  height: '44px',
+                                  width: '44px',
+                                  mr: 2,
+                                  mt: 2.5
                                 }}
                               />
                               <ListItemText
@@ -790,6 +807,26 @@ const ListOfSpeciesMapped = ({
                                         fontWeight: 500
                                       }}
                                     >
+                                      Encl: {species.user_enclosure_name ? species.user_enclosure_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
+                                      Sec: {species.section_name ? species.section_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
                                       Site: {species.site_name ? species.site_name : '-'}
                                     </Typography>
                                   </>
@@ -800,7 +837,6 @@ const ListOfSpeciesMapped = ({
                             {/* Toggle for Mark as Primary */}
                             <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                               <Switch
-                                //checked={!!primaryStatus[species.species_id]}
                                 checked={
                                   primaryStatus[
                                     selectionType === 'species' ? species.species_id : species.animal_id
@@ -812,7 +848,6 @@ const ListOfSpeciesMapped = ({
                               />
                             </Box>
 
-                            {/* Remove Icon */}
                             <Box sx={{ width: '12%', textAlign: 'right' }}>
                               <IconButton
                                 edge='end'
@@ -868,9 +903,6 @@ const ListOfSpeciesMapped = ({
           py: 9
         }}
       >
-        {/* Informational Text */}
-
-        {/* Buttons Container */}
         <Box
           sx={{
             display: 'flex',
@@ -878,7 +910,6 @@ const ListOfSpeciesMapped = ({
             gap: 2
           }}
         >
-          {/* Cancel Button */}
           <Button
             variant='outlined'
             size='large'
@@ -893,12 +924,10 @@ const ListOfSpeciesMapped = ({
             CANCEL
           </Button>
 
-          {/* Assign Diet Button */}
           <LoadingButton
             variant='contained'
             size='large'
             disabled={tempSelectedSpecies?.length === 0 || (startDate && !endDate)}
-            //onClick={handleAdd}
             onClick={handleClickOpen}
             sx={{ flex: 1, height: '45px' }}
           >
@@ -918,7 +947,6 @@ const ListOfSpeciesMapped = ({
             }
           }}
         >
-          {/* <DialogTitle id='alert-dialog-title'></DialogTitle> */}
           <DialogContent style={{ paddingBottom: '5px' }}>
             <DialogContentText id='alert-dialog-description'>
               <Box
@@ -940,7 +968,6 @@ const ListOfSpeciesMapped = ({
                   px: 2
                 }}
               >
-                {/* Icon */}
                 <Icon
                   icon='material-symbols:warning-outline-rounded'
                   fontSize={24}
@@ -948,7 +975,6 @@ const ListOfSpeciesMapped = ({
                   style={{ marginRight: '4px', position: 'relative', top: '-12px' }}
                 />
 
-                {/* Text */}
                 <Typography
                   sx={{
                     fontSize: '16px',
@@ -961,10 +987,7 @@ const ListOfSpeciesMapped = ({
               </Box>
             </DialogContentText>
           </DialogContent>
-          <DialogActions
-            //className='dialog-actions-dense'
-            style={{ paddingBottom: '25px', justifyContent: 'center' }}
-          >
+          <DialogActions style={{ paddingBottom: '25px', justifyContent: 'center' }}>
             <LoadingButton
               variant='outlined'
               onClick={handleClose}

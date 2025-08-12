@@ -25,16 +25,12 @@ import ClearIcon from '@mui/icons-material/Clear'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
-import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
-import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
 const AddIngredients = props => {
   const {
     open,
     handleSidebarClose: parentHandleSidebarClose,
     onChange,
-    childStateValue,
     checkid,
     allSelectedValues,
     formData,
@@ -106,13 +102,6 @@ const AddIngredients = props => {
 
       return prevSelectedDays
     })
-
-    // Use the updated selectedDays state
-    // setSelectedDays(currentSelectedDays => {
-    //   handelCardSelection(event, item, null, null, null, currentSelectedDays)
-
-    //   return currentSelectedDays
-    // })
   }
 
   const handleSidebarClose = () => {
@@ -279,7 +268,7 @@ const AddIngredients = props => {
 
         return selectedItem
       })
-      .filter(item => item !== undefined) // Filter out any undefined items
+      .filter(item => item !== undefined)
 
     setSelectedDays(updatedSelectedDays)
 
@@ -288,7 +277,6 @@ const AddIngredients = props => {
     }
   }
 
-  // card selection
   const [selectedCard, setSelectedCard] = useState([])
 
   useEffect(() => {
@@ -318,7 +306,6 @@ const AddIngredients = props => {
       const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
 
       if (!sizeValue) {
-        // toast.error('Cut size and size are required for chopped feed.')
         return
       }
     }
@@ -362,6 +349,7 @@ const AddIngredients = props => {
         duration: 1000
       })
     } else if (selectedCard?.length > 0) {
+      debouncedSearch('')
       handleSidebarClose()
       setSelectedCard(selectedCard)
       setSearchValue('')
@@ -373,8 +361,6 @@ const AddIngredients = props => {
   }
 
   useEffect(() => {
-    //getUnitsList()
-    //getUnitsListnew()
     setReachedEnd(true)
 
     try {
@@ -407,65 +393,14 @@ const AddIngredients = props => {
     }
   }, [ingredientId])
 
-  // Top Feed Type
-  // const fetchData = async () => {
-  //   const params = { page: 1, limit: 50, status: 1 }
-  //   try {
-  //     const response = await getFeedTypeList(params)
-
-  //     setFeedType(response?.data?.result)
-  //   } catch (error) {
-  //     console.log('error', error)
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   fetchData()
-  // }, [])
-
-  // const getUnitsList = async () => {
-  //   try {
-  //     const params = {
-  //       //type: ['length', 'weight'],
-  //       page: 1,
-  //       limit: 50
-  //     }
-  //     await getCutsizeList(params).then(res => {
-  //       setUom(res?.data?.result)
-  //       setUomprev(res?.data?.result)
-  //     })
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }
-
-  // const getUnitsListnew = async () => {
-  //   try {
-  //     const params = {
-  //       type: ['length', 'weight'],
-  //       page: 1,
-  //       limit: 50
-  //     }
-  //     await getUnitsForRecipe({ params: params }).then(res => {
-  //       setUomnew(res?.data?.result)
-  //       setUomprevnew(res?.data?.result)
-  //     })
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }
-
   const handleScroll = async e => {
     const container = e.target
     const threshold = 20
-    // Check if the user has reached the bottom
 
     if (totalCount > ingredientList.length) {
       const isNearBottom =
         container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
       if (isNearBottom) {
-        // User has reached the bottom, perform your action here
-
         setIngredientPage(++ingredientPage)
 
         setReachedEnd(true)
@@ -521,7 +456,6 @@ const AddIngredients = props => {
     })
     setSelectedDays(updatedSelectedDays)
 
-    // Update selectFeed state based on selectedValuesWithCheckId
     const newSelectFeed = {}
     const newRemarks = {}
     const newUom = {}
@@ -593,26 +527,6 @@ const AddIngredients = props => {
     setSearchValue('')
     debouncedSearch('')
   }
-
-  // const handelInputCutSize = (event, item) => {
-  //   event.stopPropagation()
-  //   const newCutSize = event.target.value
-
-  //   // Set cutSize state
-  //   setCutSize(prevState => ({
-  //     ...prevState,
-  //     [item.id]: {
-  //       id: event.target.value
-  //       // name: selectedFeedType.label
-  //     }
-  //   }))
-
-  //   if (newCutSize) {
-  //     handelCardSelection(event, item, null, newCutSize, null, selectedDays)
-  //   } else {
-  //     removeSelectedCard(event, item.id)
-  //   }
-  // }
 
   const removeSelectedCard = (event, itemId) => {
     event.stopPropagation()
@@ -787,12 +701,11 @@ const AddIngredients = props => {
           sx={{
             marginTop: fromrow === 'rowedit_ingredient' ? 0 : 35,
             paddingTop: fromrow !== 'rowedit_ingredient' ? 0 : 20,
-            //height: fromrow !== 'rowedit_ingredient' ? '65%' : '85%',
+
             height: fromrow !== 'rowedit_ingredient' ? 'calc(100vh - 245px)' : '85%',
             overflowY: 'auto',
             bgcolor: theme.palette.customColors.bodyBg
           }}
-          //onScroll={handleScroll}
           onScroll={fromrow !== 'rowedit_ingredient' ? handleScroll : undefined}
         >
           {loading ? (
@@ -824,7 +737,6 @@ const AddIngredients = props => {
                   }}
                 >
                   {selectedCard.some(card => card.ingredient_id === item.id) ? (
-                    // Render checkbox icon if card is selected
                     <Box
                       onClick={event => removeSelectedCard(event, item.id)}
                       sx={{
@@ -844,7 +756,6 @@ const AddIngredients = props => {
                       <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
                     </Box>
                   ) : (
-                    // Render image if card is not selected
                     <Box
                       sx={{
                         width: '68px',
@@ -863,7 +774,7 @@ const AddIngredients = props => {
                     >
                       <Avatar
                         variant='square'
-                        alt='Medicine Image'
+                        alt='Ingredient Image'
                         sx={{
                           width: 40,
                           height: 40,
@@ -980,21 +891,7 @@ const AddIngredients = props => {
                         <Divider mt={-2} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
                           <Typography>Enter cut size</Typography>
-                          {/* <Box sx={{ width: '160.5px' }}>
-                          <FormControl fullWidth>
-                            <TextField
-                              size='small'
-                              placeholder='Add Size'
-                              variant='outlined'
-                              value={cutSize[item.id]?.id || ''}
-                              onChange={event => handelInputCutSize(event, item)}
-                              error={
-                                visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                                !cutSize[item.id]?.id
-                              }
-                            />
-                          </FormControl>
-                        </Box> */}
+
                           <Box sx={{ pl: 5 }}>
                             <FormControl fullWidth>
                               <Select

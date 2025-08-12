@@ -37,6 +37,7 @@ import Search from 'src/views/utility/Search'
 import { AuthContext } from 'src/context/AuthContext'
 import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
 import AddImportSlider from 'src/views/pages/compliance/documents/masters/AddImportSlider'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Export', value: 'exports', component: '' },
@@ -60,7 +61,7 @@ const Exports = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [tradeContextTypes, setTradeContextTypes] = useState([])
@@ -207,12 +208,9 @@ const Exports = () => {
             <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row)} aria-label='Edit'>
               <Icon icon='mdi:pencil-outline' />
             </IconButton>
-            <Avatar
-              sx={{ width: '40%', height: '40%', borderRadius: '8px', cursor: 'pointer', mt: 1 }}
-              src={'/icons/delete_outlined.svg'}
-              variant='square'
-              onClick={() => handledelete(params.row)}
-            />
+            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handledelete(params.row)} aria-label='Delete'>
+              <Icon icon='mdi:delete-outline' />
+            </IconButton>
           </>
         )}
       </Box>
@@ -323,8 +321,7 @@ const Exports = () => {
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Exporter'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Exporter</Typography>}
           action={headerAction}
           sx={{ px: 5, display: 'flex', flexWrap: 'wrap', gap: 2 }}
         />
@@ -384,4 +381,4 @@ const Exports = () => {
   )
 }
 
-export default Exports
+export default enforceModuleAccess(Exports, 'compliance_module')

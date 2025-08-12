@@ -18,8 +18,6 @@ import AddIcon from '@mui/icons-material/Add'
 import Toaster from 'src/components/Toaster'
 
 const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesList, mastersData, counts, animals }) => {
-  // Get the current identifier type object
-
   const rawGenders = mastersData?.genders?.flat() || []
 
   const getValidGender = gender => {
@@ -134,7 +132,6 @@ const AddanimalCountDrawer = ({
 
   const [animals, setAnimals] = useState(
     currentSpecies?.animals?.map(animal => {
-      // Extract gender from nested array if needed
       let gender = animal.gender
       if (Array.isArray(gender)) {
         gender = gender[0] || 'unknown'
@@ -148,15 +145,12 @@ const AddanimalCountDrawer = ({
     }) || []
   )
 
-  // Reset states when currentSpeciesId changes
   useEffect(() => {
     if (currentSpeciesId) {
-      // Find the current species data
       const currentSpecies =
         selectedExportData.others.find(item => item.species?.tsn_id === currentSpeciesId)?.species ||
         selectedExportData.export.flatMap(exp => exp.species.filter(s => s.tsn_id === currentSpeciesId))[0]
 
-      // Reset to empty or populate with current species data
       setCounts({
         male: currentSpecies?.male_count || 0,
         female: currentSpecies?.female_count || 0,
@@ -175,10 +169,9 @@ const AddanimalCountDrawer = ({
             identifierType: animal.identifier_type || '',
             identifier: animal.identifier_value || ''
           }
-        }) || [] // Fallback to empty array if no animals
+        }) || []
       )
     } else {
-      // Clear everything if no species selected
       setCounts({ male: 0, female: 0, unknown: 0 })
       setAnimals([])
     }
@@ -209,7 +202,7 @@ const AddanimalCountDrawer = ({
   const getValidGender = gender => {
     if (typeof gender === 'string') return gender.toLowerCase()
     if (Array.isArray(gender) && gender.length > 0) return gender[0].toLowerCase()
-    return 'unknown' // Default fallback
+    return 'unknown'
   }
 
   // const handleChange = (index, field, value) => {
@@ -305,10 +298,9 @@ const AddanimalCountDrawer = ({
         }}
       >
         {/* Header */}
-        <Box sx={{ px: 5, pt: 4, pb: 2, background: '#fff' }}>
+        <Box sx={{ px: 5, pt: 4, pb: 2, background: theme.palette.common.white }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
-              {/* <Box component='img' src='/images/housing/Enclosure icon.png' alt='icon' sx={{ width: 32, height: 32 }} /> */}
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{title}</Typography>
             </Box>
             <IconButton onClick={onClose}>
@@ -322,13 +314,13 @@ const AddanimalCountDrawer = ({
           alignItems='center'
           gap={2}
           sx={{
-            background: '#fff',
+            background: theme.palette.common.white,
             mt: 3,
             mx: 5,
             px: 5,
             pt: 3,
             pb: 4,
-            border: '1px solid #C3CEC7',
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             borderRadius: '8px'
           }}
         >
@@ -337,10 +329,10 @@ const AddanimalCountDrawer = ({
             sx={{ width: 40, height: 40 }}
           />
           <Box sx={{ ml: 2 }}>
-            <Typography fontWeight={600} color='#44544A'>
+            <Typography fontWeight={600} color={theme.palette.customColors.OnSurfaceVariant}>
               {selectedSpeciesData.common_name || '-'}
             </Typography>
-            <Typography fontStyle='italic' color='#44544A' fontWeight={400}>
+            <Typography fontStyle='italic' color={theme.palette.customColors.OnSurfaceVariant} fontWeight={400}>
               {selectedSpeciesData.scientific_name || '-'}
             </Typography>
           </Box>
@@ -348,7 +340,7 @@ const AddanimalCountDrawer = ({
 
         <Box sx={{ px: 5, overflowY: 'auto', flexGrow: 1, height: '100vh' }}>
           {/* Total Animal Count */}
-          <Typography fontWeight={600} color='#44544A' sx={{ mb: 2, mt: 4 }}>
+          <Typography fontWeight={600} color={theme.palette.customColors.OnSurfaceVariant} sx={{ mb: 2, mt: 4 }}>
             Total Animal Count
           </Typography>
           <Paper elevation={1} sx={{ p: 3, mb: 4 }}>
@@ -431,9 +423,8 @@ const AddanimalCountDrawer = ({
             </Grid>
           </Paper>
 
-          {/* Animals with Identifier */}
           <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
-            <Typography fontWeight={600} color='#44544A'>
+            <Typography fontWeight={600} color={theme.palette.customColors.OnSurfaceVariant}>
               Animals with identifier
             </Typography>
             <Button
@@ -462,13 +453,18 @@ const AddanimalCountDrawer = ({
             ))
           ) : (
             <Typography
-              sx={{ background: '#0000000D', p: 12, textAlign: 'center', borderRadius: '8px', fontWeight: '500' }}
+              sx={{
+                background: theme.palette.customColors.mdAntzNeutral,
+                p: 12,
+                textAlign: 'center',
+                borderRadius: '8px',
+                fontWeight: '500'
+              }}
             >
               No Data Available
             </Typography>
           )}
         </Box>
-        {/* Sticky footer */}
         <Box
           sx={{
             position: 'sticky',

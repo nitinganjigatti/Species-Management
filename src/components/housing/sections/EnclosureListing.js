@@ -15,11 +15,21 @@ import AnimalDrawer from '../utils/AnimalDrawer'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 
-const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const EnclosureListing = ({
+  selectedTab,
+  setSelectedTab,
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData,
+  refetchEnclosure
+}) => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
   const auth = useAuth()
+
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
@@ -34,8 +44,8 @@ const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerTy
     sortOrder: 'asc'
   })
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['enclosures', id, filters],
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['enclosures', id, filters, refetchEnclosure],
     queryFn: () =>
       getEnclosureListSectionWise({
         section_id: id,
@@ -48,6 +58,12 @@ const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerTy
     enabled: !!id,
     keepPreviousData: true
   })
+
+  useEffect(() => {
+    if (refetchEnclosure) {
+      refetch()
+    }
+  }, [refetchEnclosure, refetch])
 
   const listing = data?.data?.list_items || []
   const total = data?.data?.total_count || 0
@@ -194,146 +210,113 @@ const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerTy
         />
       )
     },
-    {
-      width: 160,
-      field: 'species_count',
-      headerName: 'SPECIES',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-        >
-          {params.row.species_count || '-'}
-        </Typography>
-      )
-    },
-    {
-      width: 160,
-      field: 'enclosure_wise_animal_count',
-      headerName: 'ANIMALS',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('animals')
-            setDrawerData({
-              queryKey: 'section-detail-enclosure-animals-drawer',
-              id: params.row.enclosure_id,
-              name: params.row.user_enclosure_name,
-              image: params.row.image,
-              params: {
-                enclosure_id: params.row.enclosure_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.enclosure_wise_animal_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 160,
-      field: 'sub_enclosure_count',
-      headerName: 'SUB ENCLOSURES',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer'
-          }}
-          onClick={e => {
-            e.stopPropagation()
+    ...(insightsViewAccess
+      ? [
+          {
+            width: 160,
+            field: 'species_count',
+            headerName: 'SPECIES',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Typography
+                sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+              >
+                {params.row.species_count || '-'}
+              </Typography>
+            )
+          },
+          {
+            width: 160,
+            field: 'enclosure_wise_animal_count',
+            headerName: 'ANIMALS',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer'
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('animals')
+                  setDrawerData({
+                    queryKey: 'section-detail-enclosure-animals-drawer',
+                    id: params.row.enclosure_id,
+                    name: params.row.user_enclosure_name,
+                    image: params.row.image,
+                    params: {
+                      enclosure_id: params.row.enclosure_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.enclosure_wise_animal_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 160,
+            field: 'sub_enclosure_count',
+            headerName: 'SUB ENCLOSURES',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer'
+                }}
+                onClick={e => {
+                  e.stopPropagation()
 
-            // Need taxanomy id to display
-
-            // setDrawerType('sub-enclosures')
-            // setDrawerData({
-            //   queryKey: 'section-detail-sub-enclosures-drawer',
-            //   id: params.row.enclosure_id,
-            //   name: params.row.user_enclosure_name,
-            //   image: params.row.image,
-            //   params: {
-            //     ref_type: 'zoo',
-            //     data_type: 'enclosure',
-            //     ref_id: zooId,
-            //     taxonomy_id: '',
-            //     enclosure_id: params.row.enclosure_id,
-            //     include_sub_enclosure: 1
-            //   }
-            // })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.sub_enclosure_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 250,
-      field: 'site_name',
-      headerName: 'SITE',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-        >
-          {params.row.site_name || ''}
-        </Typography>
-      )
-    }
-
-    // {
-    //   width: 160,
-    //   field: 'actions',
-    //   headerName: 'Actions',
-    //   align: 'center',
-    //   headerAlign: 'center',
-    //   sortable: false,
-    //   renderCell: () => (
-    //     <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-    //       <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-    //       <Box
-    //         component='img'
-    //         src='/images/message.png'
-    //         alt='Message'
-    //         sx={{ width: 20, height: 20, cursor: 'pointer' }}
-    //       />
-    //     </Box>
-    //   )
-    // }
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.sub_enclosure_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 250,
+            field: 'site_name',
+            headerName: 'SITE',
+            sortable: false,
+            renderCell: params => (
+              <Typography
+                sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+              >
+                {params.row.site_name || ''}
+              </Typography>
+            )
+          }
+        ]
+      : [])
   ]
 
   const handleDownload = () => {

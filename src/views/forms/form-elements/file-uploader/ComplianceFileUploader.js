@@ -1,8 +1,40 @@
 import React from 'react'
 import { Box, Typography, IconButton } from '@mui/material'
 import Icon from 'src/@core/components/icon'
+import { useAuth } from 'src/hooks/useAuth'
 
 const FileUpload = ({ name, file, onFileUpload }) => {
+  const auth = useAuth()
+  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER // Get image paths from user data
+
+  const getFileIcon = () => {
+    const fileName = (file?.name || file?.file_original_name || '').toLowerCase()
+    const ext = fileName?.split('.')?.pop()?.toLowerCase()
+
+    if (!ext) return imgPath?.default // Fallback if no extension found
+
+    if (['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'].includes(ext)) {
+      return imgPath?.image
+    }
+
+    if (['pdf'].includes(ext)) {
+      return imgPath?.pdf
+    }
+
+    if (['xls', 'xlsx'].includes(ext)) {
+      return imgPath?.xls
+    }
+
+    if (['doc', 'docx'].includes(ext)) {
+      return imgPath?.document
+    }
+
+    if (['mp3', 'wav', 'ogg'].includes(ext)) {
+      return imgPath?.audio
+    }
+
+    return imgPath?.default
+  }
   const handleFileChange = event => {
     const selectedFile = event.target.files[0]
     onFileUpload(selectedFile || null)
@@ -15,7 +47,7 @@ const FileUpload = ({ name, file, onFileUpload }) => {
   return (
     <Box
       sx={{
-        border: '1px dashed #C3CEC7',
+        border: file?.file_original_name || file?.name ? '1px solid #C3CEC7' : '1px dashed #C3CEC7',
         padding: '13px',
         display: 'flex',
         alignItems: 'center',
@@ -25,10 +57,11 @@ const FileUpload = ({ name, file, onFileUpload }) => {
         position: 'relative',
         width: '100%',
         maxWidth: '215px',
-        height: '51px'
+        height: '51px',
+        background: file?.file_original_name || file?.name ? '#F2FFF8' : '#fff'
       }}
     >
-      {!file ? (
+      {file?.file_original_name === null || file === null ? (
         <>
           <img
             src='/icons/attach_file_add.svg'
@@ -60,20 +93,33 @@ const FileUpload = ({ name, file, onFileUpload }) => {
             width: '100%'
           }}
         >
-          <Typography
+          <Box
             sx={{
-              mr: 2,
               display: 'flex',
               alignItems: 'center',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '200px'
+              minWidth: 0, // This is crucial for text overflow to work
+              flex: 1
             }}
           >
-            <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
-            {file.name || file.file_original_name}
-          </Typography>
+            <img
+              src={getFileIcon()?.image_path}
+              width='18px'
+              style={{ marginRight: '8px', flexShrink: 0 }}
+              alt='File icon'
+            />
+            <Typography
+              sx={{
+                color: 'text.primary',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                flex: 1,
+                minWidth: 0 // This is crucial for text overflow to work
+              }}
+            >
+              {file?.name || file?.file_original_name}
+            </Typography>
+          </Box>
           <IconButton onClick={handleRemoveFile} sx={{ ml: 1, background: '#0000000D', p: 0 }}>
             <Icon icon={'ion:close-outline'} style={{ color: '#1F515B', fontSize: '20px' }} />
           </IconButton>

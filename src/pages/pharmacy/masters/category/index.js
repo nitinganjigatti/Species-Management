@@ -15,7 +15,6 @@ import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
-import Router from 'next/router'
 
 import AddCategory from 'src/views/pages/pharmacy/medicine/category/addCategory'
 import UserSnackbar from 'src/components/utility/snackbar'
@@ -25,7 +24,6 @@ const ListOfCategories = () => {
   const [categories, setCategories] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, status: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -99,7 +97,6 @@ const ListOfCategories = () => {
     setOpenDrawer(true)
   }
 
-  /***** Drawer  */
 
   const getCategoriesList = async () => {
     setLoader(true)
@@ -107,7 +104,6 @@ const ListOfCategories = () => {
     if (response?.length > 0) {
       console.log('list', response)
 
-      // response.sort((a, b) => a.id - b.id)
       let listWithId = response
         ? response.map((el, i) => {
             return { ...el, uid: i + 1 }
@@ -166,9 +162,7 @@ const ListOfCategories = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:eye-outline' />
-          </IconButton> */}
+         
           <IconButton
             size='small'
             sx={{ mr: 0.5 }}
@@ -177,9 +171,7 @@ const ListOfCategories = () => {
           >
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
-          {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
+         
         </Box>
       )
     }

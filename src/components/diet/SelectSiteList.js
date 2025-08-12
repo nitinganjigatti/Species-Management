@@ -39,7 +39,7 @@ const SelectSiteList = ({
   }
 
   const handleSiteCheckboxChange = site => {
-    const isSelected = pendingSelections.Site.includes(site.site_id)
+    const isSelected = pendingSelections?.Site?.includes(site.site_id)
 
     const updatedSelection = isSelected
       ? pendingSelections.Site.filter(id => id !== site.site_id)
@@ -83,7 +83,7 @@ const SelectSiteList = ({
       {/* header */}
       <Box
         sx={{
-          bgcolor: '#FFF',
+          bgcolor: theme.palette.common.white,
           borderRadius: '8px',
           overflow: 'hidden',
           width: '100%',
@@ -189,7 +189,9 @@ const SelectSiteList = ({
             <Checkbox
               checked={pendingSelections?.Site?.length === items?.Site?.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                root: { 'aria-label': 'Select all species' }
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -198,15 +200,6 @@ const SelectSiteList = ({
                   width: '19px',
                   height: '19px',
                   border: '2px dotted'
-
-                  //   borderColor:
-                  //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                  //       ? theme.palette.primary.main
-                  //       : '#44544A',
-                  //   color:
-                  //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                  //       ? theme.palette.primary.main
-                  //       : '#44544A'
                 },
                 mr: 1
               }}
@@ -233,7 +226,7 @@ const SelectSiteList = ({
             }
           }}
         >
-          {filteredSites.length > 0 ? (
+          {filteredSites?.length > 0 ? (
             filteredSites.map(site => (
               <ListItem
                 key={site.site_id}
@@ -242,21 +235,21 @@ const SelectSiteList = ({
                   pl: 3,
                   mb: 4,
                   border: '1px solid',
-                  borderColor: pendingSelections.Site.includes(site.site_id)
+                  borderColor: pendingSelections?.Site?.includes(site.site_id)
                     ? '#80E0A3'
                     : theme.palette.customColors.OutlineVariant,
                   borderRadius: '8px',
-                  bgcolor: pendingSelections.Site.includes(site.site_id)
+                  bgcolor: pendingSelections?.Site?.includes(site.site_id)
                     ? theme.palette.customColors.OnBackground
                     : 'transparent',
                   height: '70px'
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar src={site.image || '/default-site.jpg'} variant='rounded' />
+                  <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={site.site_name}
+                  primary={site?.site_name}
                   //secondary={site.location || '-'}
                   slotProps={{
                     secondary: {
@@ -271,12 +264,9 @@ const SelectSiteList = ({
                       }
                     }
                   }}
-
-                  // primaryTypographyProps={{ fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer }}
-                  // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                 />
                 <Checkbox
-                  checked={pendingSelections.Site.includes(site.site_id)}
+                  checked={pendingSelections?.Site?.includes(site.site_id)}
                   onChange={() => handleSiteCheckboxChange(site)}
                 />
               </ListItem>
@@ -293,7 +283,7 @@ const SelectSiteList = ({
             pt: 4,
             position: 'sticky',
             bottom: 0,
-            background: '#FFF',
+            background: theme.palette.common.white,
             zIndex: 1,
             pb: 4
           }}
@@ -301,9 +291,15 @@ const SelectSiteList = ({
           <Button
             variant='contained'
             fullWidth
-            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+            sx={{
+              bgcolor: '#28A745',
+              color: theme.palette.common.white,
+              p: 2,
+              borderRadius: '8px',
+              '&:hover': { bgcolor: '#218838' }
+            }}
             onClick={handleCloseDrawer}
-            disabled={pendingSelections.Site.length === 0}
+            disabled={pendingSelections?.Site?.length === 0}
           >
             CONTINUE
           </Button>

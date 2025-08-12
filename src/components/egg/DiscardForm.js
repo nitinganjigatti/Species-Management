@@ -194,14 +194,16 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
         setImgSrc('')
         setIsOpen(false)
         setLoader(false)
-        Toaster({ type: 'success', message: res?.message })
+        // Toaster({ type: 'success', message: res?.message || 'Egg discarded successfully' })
+        Toaster({ type: 'success', message: 'Egg discarded successfully' })
 
         if (callApi) callApi('')
         if (getDetails) getDetails(eggID)
         if (GetGalleryImgList) GetGalleryImgList({ ref_id: eggID, ref_type: 'egg' })
       } else {
         setLoader(false)
-        Toaster({ type: 'error', message: res?.message })
+        // Toaster({ type: 'error', message: res?.message || 'Failed to discard the egg' })
+        Toaster({ type: 'error', message: 'Failed to discard the egg' })
       }
     } catch (error) {
       console.error('Error while :', error)

@@ -25,6 +25,7 @@ import toast from 'react-hot-toast'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 import Error404 from 'src/pages/404'
+import Toaster from 'src/components/Toaster'
 
 // import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
@@ -498,17 +499,22 @@ const SpeciesList = () => {
         setSubmitLoader(false)
 
         if (typeof response?.message === 'object') {
-          toast.error(response.message?.cover_image || response.message?.species_image)
+          // toast.error(response.message?.cover_image || response.message?.species_image)
+          Toaster({ type: 'success', message: response.message?.cover_image || response.message?.species_image })
 
           // Utility.errorMessageExtractorFromObject(response.message?.cover_image)
         } else {
-          toast.error(response.message)
+          Toaster({ type: 'error', message: response.message })
+
+          // toast.error(response.message)
         }
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      toast.error(JSON.stringify(e))
+      Toaster({ type: 'error', message: JSON.stringify(e) })
+
+      // toast.error(JSON.stringify(e))
     }
   }
 

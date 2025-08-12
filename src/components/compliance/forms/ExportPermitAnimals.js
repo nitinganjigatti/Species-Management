@@ -149,7 +149,7 @@ const ExportPermitAnimals = ({
         2. Animals
       </Typography>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+      <Box sx={{ display: 'flex', gap: 6, mb: 4 }}>
         <Typography
           variant='body2'
           sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1.25rem', fontWeight: 500 }}
@@ -233,6 +233,7 @@ const ExportPermitAnimals = ({
                       getOptionLabel={option => option.label}
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
                       onChangeOverride={value => handleSpecieUpdate(speciesIndex, 'appendix', value)}
+                      formHelperTextBackgroundColor={alpha(theme.palette.customColors.displaybgPrimary, 0.4)}
                       sx={{ backgroundColor: theme.palette.common.white }}
                     />
                   </Grid>
@@ -330,7 +331,7 @@ const ExportPermitAnimals = ({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <ControlledAutocomplete
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].gender`}
-                            label='Gender'
+                            label='Gender*'
                             control={control}
                             errors={errors}
                             options={filteredGenderOptions}
@@ -339,6 +340,7 @@ const ExportPermitAnimals = ({
                             onChangeOverride={value =>
                               handleAnimalDetailChange(speciesIndex, animalIndex, 'gender', value)
                             }
+                            formHelperTextBackgroundColor={alpha(theme.palette.customColors.displaybgPrimary, 0.4)}
                             sx={{ backgroundColor: theme.palette.common.white }}
                           />
                         </Grid>
@@ -354,6 +356,7 @@ const ExportPermitAnimals = ({
                             onChangeOverride={value =>
                               handleAnimalDetailChange(speciesIndex, animalIndex, 'identifier_type', value)
                             }
+                            formHelperTextBackgroundColor={alpha(theme.palette.customColors.displaybgPrimary, 0.4)}
                             sx={{ backgroundColor: theme.palette.common.white }}
                           />
                         </Grid>

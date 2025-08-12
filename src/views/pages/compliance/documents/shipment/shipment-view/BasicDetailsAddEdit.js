@@ -9,13 +9,15 @@ import {
   Select,
   InputLabel,
   FormControl,
-  InputAdornment,
   CircularProgress
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import SingleDatePicker from 'src/components/SingleDatePicker'
-import { CalendarMonth } from '@mui/icons-material'
 import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { useTheme } from '@mui/material/styles'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import dayjs from 'dayjs'
 
 const BasicDetailsAddEdit = ({
   airwaybillvalue,
@@ -31,6 +33,7 @@ const BasicDetailsAddEdit = ({
   errors,
   setErrors
 }) => {
+  const theme = useTheme()
   const handleAirwaybillChange = event => {
     let inputValue = event.target.value.replace(/\D/g, '')
     if (inputValue.length > 11) inputValue = inputValue.slice(0, 11)
@@ -59,7 +62,7 @@ const BasicDetailsAddEdit = ({
 
   return (
     <>
-      <Grid container spacing={3}>
+      <Grid container spacing={2.8}>
         <Grid size={{ xs: 12, md: 2 }}>
           <FormControl fullWidth>
             {/* <InputLabel>Transport Type</InputLabel> */}
@@ -67,7 +70,23 @@ const BasicDetailsAddEdit = ({
               value={transportType}
               onChange={handleChange}
               label=''
-              sx={{ background: '#0000000D', border: 'none' }}
+              sx={{
+                background: theme.palette.customColors.mdAntzNeutral,
+                border: 'none',
+                color: theme.palette.customColors.Outline,
+                borderBottomRightRadius: '0px',
+                borderTopRightRadius: '0px',
+                '& .MuiSelect-select': {
+                  color: theme.palette.customColors.Outline
+                },
+                '&.Mui-disabled .MuiSelect-select': {
+                  color: theme.palette.customColors.Outline
+                },
+                '& fieldset': {
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                }
+              }}
+              disabled
             >
               <MenuItem value='airCargo'>Air Cargo</MenuItem>
               <MenuItem value='airCargo1'>Air Cargo 1</MenuItem>
@@ -77,79 +96,65 @@ const BasicDetailsAddEdit = ({
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
-          <TextField
-            fullWidth
-            label='Enter 11 digit (AWB) airway bill no.*'
-            variant='outlined'
-            value={airwaybillvalue}
-            onChange={handleAirwaybillChange}
-            error={Boolean(errors.airwaybillvalue)}
-            helperText={errors.airwaybillvalue}
-            slotProps={{
-              input: {
-                maxLength: 31,
-                style: { borderRadius: 6 }
-              }
-            }}
-          />
+          <Grid container spacing={3}>
+            <TextField
+              fullWidth
+              label='Enter 11 digit (AWB) airway bill no.*'
+              variant='outlined'
+              value={airwaybillvalue}
+              onChange={handleAirwaybillChange}
+              error={Boolean(errors.airwaybillvalue)}
+              helperText={errors.airwaybillvalue}
+              slotProps={{
+                input: {
+                  maxLength: 31,
+                  style: { borderRadius: 6, borderBottomLeftRadius: '0px', borderTopLeftRadius: '0px' }
+                }
+              }}
+            />
+          </Grid>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SingleDatePicker
-            selected={startDate}
-            onChange={handleDateChange}
-            maxDate={new Date()}
-            showMonthDropdown
-            showYearDropdown
-            customInput={
-              <TextField
-                label='Shipment Date'
-                placeholder={!startDate ? 'Shipment Date' : ''}
-                value={startDate ? startDate.toLocaleDateString() : ''}
-                error={Boolean(errors.startDate)}
-                helperText={errors.startDate}
-                slotProps={{
-                  inputLabel: {
-                    shrink: true
-                  },
-                  input: {
-                    sx: {
-                      height: '55px',
-                      padding: '0 14px',
-                      alignItems: 'center'
-                    },
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <CalendarMonth style={{ cursor: 'pointer' }} />
-                      </InputAdornment>
-                    )
+        <Grid size={{ xs: 12, md: 6 }} sx={{ ml: 0 }}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label='Shipment Date*'
+              value={startDate ? dayjs(startDate) : null}
+              onChange={handleDateChange}
+              maxDate={dayjs(new Date())}
+              views={['year', 'month', 'day']}
+              format='Do MMM YY'
+              slotProps={{
+                textField: {
+                  error: Boolean(errors.startDate),
+                  helperText: errors.startDate,
+                  sx: {
+                    '& .MuiInputBase-input': { padding: '17px' },
+                    '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#44544a82' } },
+                    width: '100%',
+                    height: '56px'
                   }
-                }}
-                sx={{
-                  '& .MuiInputBase-input': {
-                    padding: '14px'
-                  },
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: '#44544a82'
-                    }
-                  },
-                  width: '100%'
-                }}
-              />
-            }
-          />
+                }
+              }}
+            />
+          </LocalizationProvider>
         </Grid>
       </Grid>
 
-      <Grid container spacing={2} sx={{ mt: 2 }}>
+      <Grid container spacing={2} sx={{ mt: 4 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
-          {errors.uploadedFile && <Typography color='error'>{errors.uploadedFile}</Typography>}
+          {errors.uploadedFile && (
+            <Typography
+              sx={{ color: theme.palette.customColors.errorText, fontSize: '12px', fontWeight: '400', mt: 1 }}
+            >
+              {errors.uploadedFile}
+            </Typography>
+          )}
         </Grid>
       </Grid>
 
-      {/* Buttons */}
+  
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
         <Button
           variant='outlined'

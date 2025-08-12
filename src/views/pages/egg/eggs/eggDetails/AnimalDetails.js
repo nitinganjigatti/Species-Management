@@ -68,7 +68,7 @@ const AnimalDetails = ({ eggDetails }) => {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         wordWrap: 'break-word',
-                        wordBreak: 'break-word', // Change this to 'break-word'
+                        wordBreak: 'break-word', 
                         width: '100%'
                       }}
                     >
@@ -85,9 +85,9 @@ const AnimalDetails = ({ eggDetails }) => {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        whiteSpace: 'normal', // Change this to allow wrapping
+                        whiteSpace: 'normal', 
                         wordWrap: 'break-word',
-                        wordBreak: 'break-word', // Change this to 'break-word'
+                        wordBreak: 'break-word', 
                         width: '100%'
                       }}
                     >
@@ -105,17 +105,16 @@ const AnimalDetails = ({ eggDetails }) => {
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          whiteSpace: 'normal', // Change this to allow wrapping
+                          whiteSpace: 'normal', 
                           wordWrap: 'break-word',
-                          wordBreak: 'break-word', // Change this to 'break-word'
+                          wordBreak: 'break-word', 
                           width: '100%'
                         }}
                       >
                         {(eggDetails?.animal_data?.local_identifier_name &&
                           eggDetails?.animal_data?.local_identifier_value &&
-                          `${eggDetails?.animal_data?.local_identifier_name}:${eggDetails?.animal_data?.local_identifier_value}`) ||
-                          '-'}
-                      </Typography>
+                          `${eggDetails?.animal_data?.local_identifier_name} : ${eggDetails?.animal_data?.local_identifier_value}`)}
+                      </Typography> 
                     )}
                 </Box>
               </Box>
@@ -142,9 +141,9 @@ const AnimalDetails = ({ eggDetails }) => {
                       lineHeight: '19.36px',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
-                      whiteSpace: 'normal', // Change this to allow wrapping
+                      whiteSpace: 'normal', 
                       wordWrap: 'break-word',
-                      wordBreak: 'break-word', // Change this to 'break-word'
+                      wordBreak: 'break-word', 
                       textOverflow: 'ellipsis'
                     }}
                   >

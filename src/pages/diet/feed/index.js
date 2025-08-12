@@ -89,7 +89,7 @@ const FeedTypes = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn, status) => {
+    async (sort, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -98,7 +98,7 @@ const FeedTypes = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status
         }
 
@@ -148,7 +148,19 @@ const FeedTypes = () => {
       headerName: 'FEEDS',
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
+          <Avatar
+            variant='square'
+            alt='Feed Image'
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
+            src={params?.row?.image ? params?.row?.image : '/icons/feedtypes_dark.svg'}
+          ></Avatar>
           <Tooltip title={params.row.feed_type_name} placement='right'>
             <Typography
               variant='body2'
@@ -220,10 +232,10 @@ const FeedTypes = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async (sort, q, sortColumn, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn, status)
+        await fetchTableData(sort, q, sortColumn, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -236,7 +248,7 @@ const FeedTypes = () => {
 
     setSearchValue(value)
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
-    searchTableData(sort, value, sortColumning, status)
+    searchTableData(sort, value, sortColumning, status, paginationModel.pageSize)
   }
 
   const headerAction = (

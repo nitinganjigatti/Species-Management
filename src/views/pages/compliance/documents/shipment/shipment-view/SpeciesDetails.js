@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import { Box, Typography, Paper, Chip, Collapse, Divider, Icon } from '@mui/material'
+import { Box, Typography, Paper, Chip, Collapse, Divider, Icon, alpha } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ShippedAnimalsDrawer from '../drawer/ShippedAnimals'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
+import { useTheme } from '@mui/material/styles'
+import { useAuth } from 'src/hooks/useAuth'
 
 const SpeciesDetailsContainer = ({
   totalSpecies,
@@ -18,6 +20,9 @@ const SpeciesDetailsContainer = ({
 }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [shippedAnimalsDrawerOpen, setshippedAnimalsDrawerOpen] = useState(false)
+  const auth = useAuth()
+  const theme = useTheme()
+  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
 
   const handleShippedClick = () => {
     setshippedAnimalsDrawerOpen(true)
@@ -50,29 +55,46 @@ const SpeciesDetailsContainer = ({
       display='flex'
       justifyContent='space-between'
       // py={2}
-      sx={{ borderBottom: '1px solid #0000000D', px: 4, pb: 4, pt: 3 }}
+      sx={{
+        borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+        px: 4,
+        pb: 4,
+        pt: 3,
+        cursor: 'pointer',
+        '&:last-child': {
+          borderBottom: 'none'
+        }
+      }}
       onClick={() => handleAnimalClick(species, type)}
     >
       <Box className='export_dtl_list'>
-        <Typography fontWeight='medium' sx={{ color: '#44544A', fontWeight: 500, fontSize: '16px' }}>
+        <Typography
+          fontWeight='medium'
+          sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '16px' }}
+        >
           {species?.common_name || 'N/A'}
         </Typography>
-        <Typography fontStyle='italic' sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}>
+        <Typography
+          fontStyle='italic'
+          sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '14px' }}
+        >
           {species?.scientific_name || 'N/A'}
         </Typography>
       </Box>
       <Box display='flex' alignItems='center' gap={2} flex={1}>
-        <Typography sx={{ color: '#44544A', fontSize: '14px', fontWeight: 500, mr: 2 }}>
+        <Typography
+          sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 500, mr: 2 }}
+        >
           Count : {species?.total_count || 0}
         </Typography>
         <Chip
           label={`M - ${species?.male_count || 0}`}
           size='small'
           sx={{
-            background: '#AFEFEB80',
+            background: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
             borderRadius: '4px',
             px: 2,
-            color: '#00AFD6',
+            color: theme.palette.customColors.addPrimary,
             fontSize: '14px',
             fontWeight: 500
           }}
@@ -81,10 +103,10 @@ const SpeciesDetailsContainer = ({
           label={`F - ${species?.female_count || 0}`}
           size='small'
           sx={{
-            background: '#FA614026',
+            background: alpha(theme.palette.customColors.customDropdownColor, 0.15),
             borderRadius: '4px',
             px: 2,
-            color: '#FA6140',
+            color: theme.palette.formContent.tertiary,
             fontSize: '14px',
             fontWeight: 500
           }}
@@ -93,16 +115,19 @@ const SpeciesDetailsContainer = ({
           label={`U - ${species?.undeterminate_count || 0}`}
           size='small'
           sx={{
-            background: '#DDEBE9',
+            background: theme.palette.customColors.displaybgSecondary,
             borderRadius: '4px',
             px: 2,
-            color: '#1F515B',
+            color: theme.palette.customColors.OnPrimaryContainer,
             fontSize: '14px',
             fontWeight: 500
           }}
         />
       </Box>
-      <ChevronRightIcon sx={{ fontSize: '30px', mt: 2 }} />
+
+      <Box display='flex' alignItems='center'>
+        <ChevronRightIcon sx={{ fontSize: '30px' }} />
+      </Box>
     </Box>
   )
 
@@ -121,16 +146,29 @@ const SpeciesDetailsContainer = ({
     return (
       <>
         <Box>
-          {/* Others Header */}
+         
           <Box
             display='flex'
             justifyContent='space-between'
             alignItems='center'
-            bgcolor={isCollapsed ? '#fff' : '#EFF5F2'}
-            sx={{ px: 4, py: 4 }}
+            bgcolor={isCollapsed ? theme.palette.common.white : theme.palette.customColors.lightBg}
+            sx={{
+              px: 4,
+              py: 4,
+
+              borderBottomLeftRadius: '8px',
+              borderBottomRightRadius: '8px'
+            }}
           >
-            <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '14px' }}>
-              <Box component='span' fontWeight={600} sx={{ color: '#006D35', fontSize: '14px' }}>
+            <Typography fontWeight={500} sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}>
+              <Box
+                component='span'
+                fontWeight={600}
+                sx={{
+                  color: theme.palette.primary.dark,
+                  fontSize: '14px'
+                }}
+              >
                 Other Animals
               </Box>{' '}
               ({totalAnimals} Animals)
@@ -138,7 +176,16 @@ const SpeciesDetailsContainer = ({
           </Box>
 
           <Collapse in={!isCollapsed}>
-            <Paper elevation={0} sx={{ borderRadius: 0 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0,
+                '&:last-child': {
+                  borderBottomLeftRadius: '8px',
+                  borderBottomRightRadius: '8px'
+                }
+              }}
+            >
               {data?.map((item, index) => {
                 const species = item.species
                 return (
@@ -164,12 +211,12 @@ const SpeciesDetailsContainer = ({
             </Paper>
           </Collapse>
         </Box>
-        <Divider />
+        {/* <Divider /> */}
       </>
     )
   }
 
-  const ExportSection = ({ data, isCollapsed }) => {
+  const ExportSection = ({ data, isCollapsed, isLast }) => {
     const totalAnimals = data?.species?.reduce((sum, species) => {
       const totalCount = parseInt(species?.total_count)
       const male = parseInt(species?.male_count) || 0
@@ -178,24 +225,59 @@ const SpeciesDetailsContainer = ({
 
       return sum + (isNaN(totalCount) ? male + female + undetermined : totalCount)
     }, 0)
+    const getFileIcon = () => {
+      const fileName = (data?.attachment?.name || data?.attachment?.file_original_name || '').toLowerCase()
+      const ext = fileName?.split('.')?.pop()?.toLowerCase()
+
+      if (!ext) return imgPath?.default // Fallback if no extension found
+
+      if (['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'].includes(ext)) {
+        return imgPath?.image
+      }
+
+      if (['pdf'].includes(ext)) {
+        return imgPath?.pdf
+      }
+
+      if (['xls', 'xlsx'].includes(ext)) {
+        return imgPath?.xls
+      }
+
+      if (['doc', 'docx'].includes(ext)) {
+        return imgPath?.document
+      }
+
+      if (['mp3', 'wav', 'ogg'].includes(ext)) {
+        return imgPath?.audio
+      }
+
+      return imgPath?.default
+    }
     return (
       <>
         <Box>
-          {/* Export Header */}
           <Box
             display='flex'
             justifyContent='space-between'
             alignItems='center'
-            bgcolor={isCollapsed ? '#fff' : '#EFF5F2'}
-            sx={{ px: 4, py: 4 }}
+            bgcolor={isCollapsed ? theme.palette.common.white : theme.palette.customColors.lightBg}
+            sx={{
+              px: 4,
+              py: 4,
+              borderBottomLeftRadius: isLast ? '8px' : '0px',
+              borderBottomRightRadius: isLast ? '8px' : '0px'
+            }}
           >
-            <Typography fontWeight={500} sx={{ color: '#44544A', fontSize: '14px' }}>
-              <Box component='span' fontWeight={600} sx={{ color: '#006D35', fontWeight: 500, fontSize: '14px' }}>
+            <Typography fontWeight={500} sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}>
+              <Box
+                component='span'
+                fontWeight={600}
+                sx={{ color: theme.palette.primary.dark, fontWeight: 500, fontSize: '14px' }}
+              >
                 Export ID : <span>{data.export_number}</span>
               </Box>{' '}
               ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
             </Typography>
-            {console.log(data, 'data')}
             {data?.attachment?.file_original_name ? (
               <Box display='flex' alignItems='center' gap={1}>
                 <Typography
@@ -209,7 +291,7 @@ const SpeciesDetailsContainer = ({
                     maxWidth: '200px'
                   }}
                 >
-                  <img src='/icons/pdf_icon2.svg' width='18px' />
+                  <img src={getFileIcon()?.image_path} width='18px' />
                 </Typography>
                 {/* <Typography
                   variant='body2'
@@ -223,7 +305,7 @@ const SpeciesDetailsContainer = ({
                   target='_blank'
                   rel='noopener noreferrer'
                   style={{
-                    color: '#006D35',
+                    color: theme.palette.primary.dark,
                     fontSize: '14px',
                     fontWeight: 500,
                     cursor: 'pointer',
@@ -238,16 +320,22 @@ const SpeciesDetailsContainer = ({
             )}
           </Box>
 
-          {/* Collapsible Species */}
           <Collapse in={!isCollapsed}>
-            <Paper elevation={0} sx={{ borderRadius: 0 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0,
+                borderBottomLeftRadius: isLast && selectedExportData?.others?.length <= 0 ? '8px' : '0px',
+                borderBottomRightRadius: isLast && selectedExportData?.others?.length <= 0 ? '8px' : '0px'
+              }}
+            >
               {data.species.map((s, i) => (
                 <SpeciesRow key={i} species={s} type={'export'} />
               ))}
             </Paper>
           </Collapse>
         </Box>
-        <Divider />
+        {!isLast || selectedExportData?.others?.length > 0 ? <Divider /> : ''}
       </>
     )
   }
@@ -256,14 +344,13 @@ const SpeciesDetailsContainer = ({
     <>
       <Box
         sx={{
-          background: '#E8F4F2',
+          background: theme.palette.customColors.tableHeaderBg,
           borderRadius: '8px',
-          border: '1px solid #C3CEC7',
-          borderBottomLeftRadius: '4px',
-          borderBottomRightRadius: '4px'
+          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+          borderBottomLeftRadius: '8px',
+          borderBottomRightRadius: '8px'
         }}
       >
-        {/* Header with Toggle */}
         <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ px: 4, py: 3 }}>
           <Typography
             fontWeight={500}
@@ -271,7 +358,7 @@ const SpeciesDetailsContainer = ({
             onClick={handleShippedClick}
           >
             {totalSpecies} Species • {totalAnimals} Animals
-            <ChevronRightIcon sx={{ fontSize: '22px', color: '#37BD69' }} />
+            <ChevronRightIcon sx={{ fontSize: '22px', color: theme.palette.primary.main }} />
           </Typography>
 
           <Typography
@@ -281,7 +368,7 @@ const SpeciesDetailsContainer = ({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '10px',
-              color: '#1F515B',
+              color: theme.palette.customColors.OnPrimaryContainer,
               fontWeight: 500,
               fontSize: '14px',
               cursor: 'pointer'
@@ -293,7 +380,12 @@ const SpeciesDetailsContainer = ({
         </Box>
 
         {selectedExportData?.export?.map((exp, idx) => (
-          <ExportSection key={idx} data={exp} isCollapsed={collapsed} />
+          <ExportSection
+            key={idx}
+            data={exp}
+            isCollapsed={collapsed}
+            isLast={idx === selectedExportData?.export?.length - 1}
+          />
         ))}
 
         {selectedExportData?.others?.length > 0 && (

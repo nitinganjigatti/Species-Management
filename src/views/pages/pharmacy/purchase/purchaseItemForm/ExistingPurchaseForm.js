@@ -23,7 +23,6 @@ import { useForm, Controller } from 'react-hook-form'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { getValue } from '@mui/system'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
 
@@ -76,7 +75,6 @@ const ExistingPurchaseForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
-  console.log('first,', nestedRowMedicine)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -139,7 +137,6 @@ const ExistingPurchaseForm = props => {
     setValue,
     watch,
     getValues
-    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -710,7 +707,6 @@ const ExistingPurchaseForm = props => {
           </Box>
         </Grid>
 
-        {/* // file uploader */}
         <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right' }}>
             {medicineItemId ? (

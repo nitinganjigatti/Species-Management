@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useCallback } from 'react'
+
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -9,7 +11,6 @@ import {
   ListItemText,
   ListItemAvatar,
   Checkbox,
-  Avatar,
   InputAdornment,
   IconButton,
   debounce,
@@ -17,8 +18,8 @@ import {
   CircularProgress
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import React, { useState, useEffect, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getSectionsList } from 'src/lib/api/diet/dietList'
 
 const SelectSectionList = ({
@@ -136,7 +137,7 @@ const SelectSectionList = ({
       {/* header */}
       <Box
         sx={{
-          bgcolor: '#FFF',
+          bgcolor: theme.palette.common.white,
           borderRadius: '8px',
           overflow: 'hidden',
           width: '100%',
@@ -212,7 +213,7 @@ const SelectSectionList = ({
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-            {loading ? '' : `Selected ${selectedSections.length}/${sectionsData.length}`}
+            {loading ? '' : `Selected ${selectedSections?.length}/${sectionsData?.length}`}
           </Typography>
           <Box
             sx={{
@@ -224,7 +225,7 @@ const SelectSectionList = ({
               size='small'
               sx={{
                 color:
-                  selectedSections.length === sectionsData.length && sectionsData.length > 0
+                  selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                     ? theme.palette.primary.main
                     : theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '12px',
@@ -238,10 +239,12 @@ const SelectSectionList = ({
             </Button>
 
             <Checkbox
-              checked={selectedSections.length === sectionsData.length && sectionsData.length > 0}
-              indeterminate={selectedSections.length > 0 && selectedSections.length < sectionsData.length}
+              checked={selectedSections?.length === sectionsData?.length && sectionsData?.length > 0}
+              indeterminate={selectedSections?.length > 0 && selectedSections?.length < sectionsData?.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                root: { 'aria-label': 'Select all sections' }
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -251,11 +254,11 @@ const SelectSectionList = ({
                   height: '19px',
                   border: '2px dotted',
                   borderColor:
-                    selectedSections.length === sectionsData.length && sectionsData.length > 0
+                    selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                       ? theme.palette.primary.main
                       : theme.palette.customColors.OnSurfaceVariant,
                   color:
-                    selectedSections.length === sectionsData.length && sectionsData.length > 0
+                    selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                       ? theme.palette.primary.main
                       : theme.palette.customColors.OnSurfaceVariant
                 },
@@ -296,20 +299,29 @@ const SelectSectionList = ({
                     mb: 4,
                     height: '70px',
                     border: '1px solid',
-                    borderColor: selectedSections.includes(section.section_id)
+                    borderColor: selectedSections?.includes(section.section_id)
                       ? '#80E0A3'
                       : theme.palette.customColors.OutlineVariant,
                     borderRadius: '8px',
-                    bgcolor: selectedSections.includes(section.section_id)
+                    bgcolor: selectedSections?.includes(section.section_id)
                       ? theme.palette.customColors.OnBackground
                       : 'transparent'
                   }}
                 >
                   <ListItemAvatar>
-                    <Avatar src={section.image || '/default-site.jpg'} variant='rounded' />
+                    {/* <Avatar sx={{ backgroundColor: theme.palette.customColors.displaybgPrimary, p: section?.default_icon ? 0 : 2 }} src={section.default_icon || '/images/housing/site-icon-colored.svg'} variant='rounded' /> */}
+                    <FallbackAvatar
+                      src={section.default_icon}
+                      fallback='/images/housing/site-icon-colored.svg'
+                      variant='rounded'
+                      sx={{
+                        backgroundColor: theme.palette.customColors.displaybgPrimary,
+                        p: section?.default_icon ? 0 : 2
+                      }}
+                    />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={section.section_name}
+                    primary={section?.section_name}
                     // secondary={section.location || '-'}
                     slotProps={{
                       primary: {
@@ -332,7 +344,7 @@ const SelectSectionList = ({
                     // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
-                    checked={selectedSections.includes(section.section_id)}
+                    checked={selectedSections?.includes(section.section_id)}
                     onChange={() => handleSiteCheckboxChange(section.section_id)}
                   />
                 </ListItem>
@@ -356,7 +368,7 @@ const SelectSectionList = ({
             pt: 4,
             position: 'sticky',
             bottom: 0,
-            background: '#FFF',
+            background: theme.palette.common.white,
             zIndex: 1,
             pb: 4
           }}
@@ -364,9 +376,15 @@ const SelectSectionList = ({
           <Button
             variant='contained'
             fullWidth
-            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+            sx={{
+              bgcolor: '#28A745',
+              color: theme.palette.common.white,
+              p: 2,
+              borderRadius: '8px',
+              '&:hover': { bgcolor: '#218838' }
+            }}
             onClick={() => onSelectSections(selectedSections)}
-            disabled={selectedSections.length <= 0}
+            disabled={selectedSections?.length <= 0}
           >
             CONTINUE
           </Button>

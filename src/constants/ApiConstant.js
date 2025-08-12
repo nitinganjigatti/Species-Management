@@ -56,6 +56,8 @@ export const STATES = 'state'
 
 export const PURCHASE = 'purchase'
 
+export const INVOICE_PRINT = 'print'
+
 export const PAYMENT_LIST = 'supplier-ledger'
 
 export const STORE = 'store'
@@ -275,6 +277,10 @@ export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bul
 export const STOCK_LIST = 'stock-item'
 
 export const VARIANTS_MAPPING_FOR_BATCH = 'variantMappingBatch'
+
+export const GET_ALL_SHIPMENTS = 'shipment/receive/show'
+
+export const INCOMING_AND_OUTGOING_SHIPMENTS = 'outgoing-incoming-shipment/show'
 
 export const FEED_DETAILS = 'details'
 
@@ -540,6 +546,22 @@ export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 
 export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
 
+export const GET_SITES_LIST_CLUSTER_WISE = `cluster/get-site-list-for-cluster-assign`
+
+export const ADD_CLUSTER = `cluster/add-cluster`
+
+export const ADD_SECTION = `/zoos/createsection`
+
+export const CREATE_SITE = '/zoos/createZooSite'
+
+export const ADD_ENCLOSURE_TO_HOUSING = `/enclosure/create-enclosure`
+
+export const GET_ENCLOSURE_SETTINGS = `/enclosure/settings`
+
+export const GET_SECTION_FOR_ENCLOSURE = `zoos/getsections`
+
+export const GET_PARENT_ENCLOSURE = `/enclosures`
+
 // Compliance  module
 
 export const GET_DOCUMENT_TYPE_LIST = 'v1/document-types'
@@ -595,3 +617,65 @@ export const GET_SHIPMENT_SPECIES_DATA = 'v1/trade/shipments-species'
 export const UPDATE_SHIPMENT_SPECIES = 'v1/trade/shipments-species/update'
 
 export const GET_LINKED_DOCUMENTS_SHIPMENT = 'v1/trade/shipments/documents'
+
+export const GET_MEAL_GROUP_WISE_REPORT = `diet-report/meal-group-report`
+
+export const GET_MEAL_GROUP_SUMMARY_REPORT = `diet-report/meal-group-type-time-wise`
+
+export const GET_IMPORTS_LIST = 'v1/trade/imports'
+
+export const GET_EXPORTS_LIST_FOR_IMPORTS = 'v1/trade/exports/list'
+
+export const CREATE_IMPORTS_SPECIES = 'v1/trade/imports'
+
+export const UPDATE_IMPORTS_SPECIES = 'v1/trade/imports/update'
+
+export const GET_LINKED_DOCUMENTS_IMPORTS = 'v1/trade/imports/linked-shipments'
+
+export const GET_ALL_USERS = 'zoo/users/listing'
+
+export const GET_KEEPER_REPORT = 'v1/keepers/dairy/report'
+
+export const GET_ANIMAL_LIST_FOR_OBSERVATION_REPORT = `v1/collection/animal/list`
+
+export const GET_OBSERVATION_REPORT = `v1/notes/observation`
+
+export const GET_ANIMAL_FILTERS_LISTS = `/v1/collection/animal/stats`
+
+export const ANIMAL_DETAILS_OVERVIEW = `animal/get-common-data-by-animal-id-new`
+
+export const ANIMAL_DETAILS_INCIDENT_LIST = `animal/incidentlist/`
+
+export const ANIMAL_INCIDENT_DETAILS = `animal/incident/`
+
+export const ANIMAL_CREATE_INCIDENT = `animal/create-incident-report`
+
+export const ANIMAL_UPDATE_INCIDENT = `animal/incident/edit`
+
+export const ANIMAL_DETAILS_IDENTIFIER_LIST = `animal/identifier-list`
+
+export const ADD_ANIMAL_IDENTIFIER = `add/animalidentifier`
+
+export const EDIT_ANIMAL_IDENTIFIER = `edit/animalidentifier`
+
+export const DELETE_ANIMAL_IDENTIFIER = `delete/animalidentifier`
+
+export const GET_ANIMAL_MORTALITY = `animal/getmortalityrecords`
+
+export const EDIT_ANIMAL_MORTALITY = `v2/animal/editanimalmortality`
+
+export const REVOKE_ANIMAL_MORTALITY = `/mortality/revoke-mortality`
+
+export const MANNER_OF_DEATH = `masters/mannerofDeath`
+
+export const CARCASS_CONDITION = `masters/carcassCondition`
+
+export const CARCASS_DEPOSITION = `masters/carcassDisposition`
+
+export const ANIMAL_DIET_LIST = `diet/get-species-detail`
+
+export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
+
+export const ANIMAL_HISTORY = `animal-log-history`
+
+export const ANIMAL_MEDIA = `animal/media-list`

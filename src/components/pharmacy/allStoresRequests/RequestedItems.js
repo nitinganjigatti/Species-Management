@@ -42,7 +42,6 @@ import TabContext from '@mui/lab/TabContext'
 import { alpha } from '@mui/material'
 import { ExportButton } from 'src/views/utility/render-snippets'
 
-// import Drawer from '@mui/material/Drawer'
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
@@ -208,7 +207,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 25
+    pageSize: parseInt(router.query.limit) || 50
   })
   function loadServerRows(currentPage, data) {
     return data
@@ -411,7 +410,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         //   setLoading(false)
         // }
         if (res?.success === true && res?.data?.list_items?.length > 0) {
-          const updatedListItems = res?.data?.list_items.map(item => {
+          const updatedListItems = res?.data?.list_items?.map(item => {
             const parentQuantityStatus = generateQuantityStats(item)
 
             const altParentStats =
@@ -651,7 +650,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     updateUrlParams({
       requestedItemsSubTab: requestedItemsSubTab
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [requestedItemsSubTab])
 
   const handleExport = async () => {
@@ -947,13 +946,13 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           setRequestedItemsSubTab(newValue)
           setPaginationModel({
             page: 0,
-            pageSize: 25
+            pageSize: 50
           })
 
           updateUrlParams({
             requestedItemsSubTab: newValue,
             page: 0,
-            limit: 25
+            limit: 50
           })
         }}
         sx={{

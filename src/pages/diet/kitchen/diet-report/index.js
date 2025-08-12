@@ -27,7 +27,8 @@ import {
 import { getTaxonomyList } from 'src/lib/api/diet/dietList'
 import Utility from 'src/utility'
 import CustomOptionDateRangePickers from 'src/components/custom-date-picker/CustomOptionDateRangePickers'
-import { minWidth, width } from '@mui/system'
+import { alignItems, minWidth, width } from '@mui/system'
+import Toaster from 'src/components/Toaster'
 
 const DietReportPage = () => {
   const initialRows = [
@@ -211,6 +212,11 @@ const DietReportPage = () => {
 
       if (data?.success) {
         Utility.downloadFileFromURL(data.data)
+      } else {
+        Toaster({
+          type: 'error',
+          message: data?.message
+        })
       }
     } catch (error) {
       console.error('Download failed:', error)
@@ -222,9 +228,13 @@ const DietReportPage = () => {
   // ** Column Definitions
   const columns = [
     {
-      width: 40,
+      width: 80,
       field: 'id',
-      headerName: 'ID',
+      headerName: 'SL.NO',
+      headerAlign: 'center',
+      alignItems: 'center',
+      align: 'center',
+      sortable: false,
       renderCell: params => params.value
     },
     {
@@ -232,6 +242,7 @@ const DietReportPage = () => {
       minWidth: 300,
       field: 'reportName',
       headerName: 'Report Name',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
           <Typography sx={{ color: 'customColors.OnSecondaryContainer', fontSize: '14px', fontWeight: '400px' }}>
@@ -256,6 +267,7 @@ const DietReportPage = () => {
       headerName: 'Download',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
       renderCell: params => (
         <>
           {!params?.row.downloadStatus ? (
@@ -315,7 +327,6 @@ const DietReportPage = () => {
   const debouncedSearch = useMemo(
     search =>
       debounce(async (search, page_no) => {
-        debugger
         await getTaxonomyListFunc(search, page_no)
       }, 1000),
     []
@@ -345,14 +356,15 @@ const DietReportPage = () => {
         <Card>
           <CardHeader
             title={RenderUtility.pageTitle('Diet Reports')}
-            sx={{
-              '& .MuiCardHeader-title': {
-                color: theme => theme.palette.primary.main
-              }
-            }}
-            slotProps={{
-              title: { variant: 'h5' }
-            }}
+
+            // sx={{
+            //   '& .MuiCardHeader-title': {
+            //     color: theme => theme.palette.primary.main
+            //   }
+            // }}
+            // slotProps={{
+            //   title: { variant: 'h5' }
+            // }}
           />
           <CardContent>
             <Box

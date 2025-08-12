@@ -46,7 +46,7 @@ const EditAlternativeMedicineDrawer = ({
       }
     }}
   >
-    {/* Header */}
+  
     <Box
       sx={{
         display: 'flex',
@@ -69,7 +69,7 @@ const EditAlternativeMedicineDrawer = ({
     </Box>
     <Divider />
 
-    {/* Content */}
+   
     <Box
       sx={{
         p: 4,
@@ -128,7 +128,7 @@ const EditAlternativeMedicineDrawer = ({
       </Card>
     </Box>
 
-    {/* Footer */}
+   
     <Box sx={{ p: 4, borderTop: '1px solid #ddd' }}>
       <Button type='submit' variant='contained' fullWidth onClick={handleSubmit(onSubmit)}>
         Save

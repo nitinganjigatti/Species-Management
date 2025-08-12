@@ -96,7 +96,6 @@ const ValidateImportPurchase = () => {
       setLoader(true)
       const result = await saveImportFileData(uploadedFileData)
       setSubmitLoader(true)
-      console.log('result', result)
 
       if (result?.message === 'Saved the purchase entries successfully' && result?.success === true) {
         toast.success(result.message)
@@ -133,14 +132,12 @@ const ValidateImportPurchase = () => {
 
       const result = await ValidateUploadPurchaseFile(formData)
       setSubmitLoader(true)
-      console.log('newData', result)
 
       if (result?.success === false && result?.error?.length > 0) {
         setFileUploadErrors(result?.error)
         setSubmitLoader(false)
         setLoader(false)
 
-        console.log('newData', result)
 
         if (result?.data.length > 0) {
           const newData = result?.data?.map((item, index) => ({

@@ -13,17 +13,18 @@ const fontSizes = {
   large: '1.125rem' // 18px
 }
 
-const TreatmentTypeRadioButons = ({
+const TreatmentTypeRadioButtons = ({
   label,
   isSelected = false,
   onClick = () => {},
   radioPosition = 'left',
   backgroundColor = '#f0f9f4',
-  borderColor = '#10b981',
+  selectedBorderColor = '#10b981',
   textColor = '#374151',
   radioColor = '#10b981',
   disabled = false,
-  size = 'medium'
+  size = 'medium',
+  borderColor
 }) => {
   const theme = useTheme()
   const radioDiameter = radioSizes[size]
@@ -43,12 +44,12 @@ const TreatmentTypeRadioButons = ({
         py: 4,
         width: '100%',
         borderRadius: 0.5,
-        border: 2,
-        borderColor: isSelected ? borderColor : 'transparent',
+        border: 1,
+        borderColor: isSelected ? selectedBorderColor : borderColor,
         backgroundColor: backgroundColor,
         transition: 'border-color 0.2s, box-shadow 0.2s',
         '&:hover': {
-          borderColor: disabled ? borderColor : borderColor
+          borderColor: disabled ? selectedBorderColor : selectedBorderColor
         },
         gap: 4
       }}
@@ -100,4 +101,4 @@ const TreatmentTypeRadioButons = ({
   )
 }
 
-export default TreatmentTypeRadioButons
+export default TreatmentTypeRadioButtons

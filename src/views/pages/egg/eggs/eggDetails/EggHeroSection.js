@@ -14,7 +14,6 @@ import {
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 
-// ** Third Party Components
 import clsx from 'clsx'
 import moment from 'moment'
 import { useKeenSlider } from 'keen-slider/react'
@@ -37,7 +36,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
     settings: { direction }
   } = useSettings()
 
-  // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -135,7 +133,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
     }
   }, [])
 
-  // internally used components
   const TimeCard = () => (
     <Box
       sx={{

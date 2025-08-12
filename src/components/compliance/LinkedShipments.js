@@ -77,7 +77,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
                 Shipment ID
               </Typography>
               <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1.25rem' }}>
-                {shipment?.shipment_id || ''}
+                {shipment?.shipment_id || (shipment?.shipment_number).replace(/\s+/g, '') || ''}
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -103,14 +103,21 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
             }}
           >
             <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.Antz_Minor_Medium }}>
-              Shipped Animals: {shipment.total_shipped_animals} / {totalAllowed}
+              Shipped Animals: {totalShipped} / {totalAllowed}
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {shipment?.file_original_name && (
-                <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
-              )}
-              <Typography sx={{ fontWeight: 500, fontSize: '1rem' }}>{shipment?.file_original_name || ''}</Typography>
-            </Box>
+            {shipment?.file_original_name && shipment?.file_path && (
+              <a
+                href={shipment.file_path}
+                target='_blank'
+                rel='noopener noreferrer'
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <img src='/icons/pdf_icon2.svg' width='18px' style={{ marginRight: '8px' }} />
+                  <Typography sx={{ fontWeight: 500, fontSize: '1rem' }}>{shipment.file_original_name}</Typography>
+                </Box>
+              </a>
+            )}
           </Box>
           {/* Animals List */}
           {shipment.species.map((specie, specieIndex) => (
@@ -132,9 +139,9 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
                 onClick={() => handleOpenDrawer(shipment, specieIndex)}
               >
                 <Box sx={{ flex: 1.8 }}>
-                  <Typography sx={{ fontWeight: 500 }}>{specie?.common_name || ''}</Typography>
+                  <Typography sx={{ fontWeight: 500 }}>{specie?.common_name || 'N/A'}</Typography>
                   <Typography sx={{ fontStyle: 'italic', fontSize: '0.875rem' }}>
-                    {specie?.scientific_name || ''}
+                    {specie?.scientific_name || '-'}
                   </Typography>
                 </Box>
                 <Box

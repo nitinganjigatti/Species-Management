@@ -6,7 +6,8 @@ import {
   VALIDATE_PURCHASE,
   PRODUCT_MAPPING_FOR_ML,
   MEDICINE,
-  VARIANTS_MAPPING_FOR_BATCH
+  VARIANTS_MAPPING_FOR_BATCH,
+  INVOICE_PRINT
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
@@ -215,4 +216,13 @@ export async function variantMappingForProductBatch(payload) {
 
     return error
   }
+}
+
+export async function printPurchaseInvoice(purchaseId) {
+  const response = await axiosGet({
+    url: `${PHARMACY_BASE_URL}${PURCHASE}/${INVOICE_PRINT}/${purchaseId}`,
+    pharmacy: true
+  })
+
+  return response.data
 }

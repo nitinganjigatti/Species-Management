@@ -14,8 +14,17 @@ import RenderUtility, { CellInfo, SectionCellRenderer } from 'src/utility/render
 import EnclosureDrawer from '../utils/EnclosureDrawer'
 import SpeciesDrawer from '../utils/SpeciesDrawer'
 import AnimalDrawer from '../utils/AnimalDrawer'
+import { useAuth } from 'src/hooks/useAuth'
 
-const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const SectionListing = ({
+  selectedTab,
+  setSelectedTab,
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData,
+  addSuccessCheck
+}) => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
@@ -33,7 +42,10 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
     sortOrder: 'asc'
   })
 
-  const { data, isFetching } = useQuery({
+  const auth = useAuth()
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
+
+  const { data, isFetching, refetch } = useQuery({
     queryKey: ['sections', id, filters],
     queryFn: () =>
       getAllSections({
@@ -211,6 +223,12 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
     setDrawerData(null)
   }
 
+  useEffect(() => {
+    if (addSuccessCheck) {
+      refetch()
+    }
+  }, [addSuccessCheck, refetch])
+
   const columns = [
     {
       width: 90,
@@ -252,145 +270,140 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
           value={params.row.section_name}
           subtitle={''}
           imgUrl={params.row.images?.[0]?.file}
-          defaultImage={'/images/housing/sections.svg'}
+          defaultImage={'/images/housing/section-icon-colored.png'}
           defaultImageAlt={'Section'}
           avatarUrl={''}
           inchagename={''}
         />
       )
     },
-    {
-      width: 180,
-      field: 'species',
-      headerName: 'Species',
-      align: 'left',
-      headerAlign: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer',
-            justifyContent: 'left'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('species')
-            setDrawerData({
-              queryKey: 'section-species-drawer',
-              id: params.row.section_id,
-              name: params.row.section_name,
-              image: params.row.images?.[0]?.file,
-              params: {
-                section_id: params.row.section_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.species_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-
-    {
-      width: 150,
-      field: 'animals',
-      headerName: 'Animals',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer',
-            justifyContent: 'left'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('animals')
-            setDrawerData({
-              queryKey: 'section-animals-drawer',
-              id: params.row.section_id,
-              name: params.row.section_name,
-              image: params.row.images?.[0]?.file,
-              params: {
-                section_id: params.row.section_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600
-            }}
-          >
-            {params.row.animal_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 150,
-      field: 'enclosures',
-      headerName: 'Enclosures',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'default',
-            justifyContent: 'left'
-          }}
-          onClick={e => {
-            e.stopPropagation()
-
-            // setDrawerType('enclosures')
-            // setDrawerData({
-            //   queryKey: 'section-enclosures-drawer',
-            //   id: params.row.section_id,
-            //   name: params.row.section_name,
-            //   image: params.row.images?.[0]?.file,
-            //   params: {
-            //     section_id: params.row.section_id
-            //   }
-            // })
-          }}
-        >
-          <Typography
-            sx={{
-              color: theme.palette.primary.OnSurface,
-              fontSize: '16px',
-              fontWeight: 600,
-              cursor: 'default'
-            }}
-          >
-            {params.row.enclosure_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
+    ...(insightsViewAccess
+      ? [
+          {
+            width: 180,
+            field: 'species',
+            headerName: 'Species',
+            align: 'left',
+            headerAlign: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  justifyContent: 'left',
+                  pl: 2
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('species')
+                  setDrawerData({
+                    queryKey: 'section-species-drawer',
+                    id: params.row.section_id,
+                    name: params.row.section_name,
+                    image: params.row.images?.[0]?.file,
+                    params: {
+                      section_id: params.row.section_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.species_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'animals',
+            headerName: 'Animals',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  justifyContent: 'left',
+                  pl: 2
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('animals')
+                  setDrawerData({
+                    queryKey: 'section-animals-drawer',
+                    id: params.row.section_id,
+                    name: params.row.section_name,
+                    image: params.row.images?.[0]?.file,
+                    params: {
+                      section_id: params.row.section_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  {params.row.animal_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'enclosures',
+            headerName: 'Enclosures',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'default',
+                  justifyContent: 'left',
+                  pl: 2
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.OnSurface,
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    cursor: 'default'
+                  }}
+                >
+                  {params.row.enclosure_count || 0}
+                </Typography>
+              </Box>
+            )
+          }
+        ]
+      : []),
     {
       width: 180,
       field: 'incharge',
@@ -436,9 +449,9 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
         return isSmallScreen ? (
           phoneNumber ? (
             <Box
+              display='flex'
+              gap={4}
               sx={{
-                display: 'flex',
-                gap: 4,
                 width: '100%',
                 height: '100%',
                 display: 'flex',
@@ -462,7 +475,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
               {/* Message Icon */}
               <Box
                 component='img'
-                src='/images/message.png' // <-- Replace with your message icon path
+                src='/images/message.png'
                 alt='Message'
                 sx={{ width: 20, height: 20, cursor: 'pointer' }}
                 onClick={() => window.open(`sms:${phoneNumber}`)}

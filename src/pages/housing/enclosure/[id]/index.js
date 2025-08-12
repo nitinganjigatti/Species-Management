@@ -7,6 +7,8 @@ import React, { useEffect, useState } from 'react'
 import EnclosureWiseEnclosure from 'src/components/housing/enclosure/EnclosureWiseEnclosure'
 import EnclosureWiseSpecies from 'src/components/housing/enclosure/EnclosureWiseSpecies'
 import MediaListing from 'src/components/housing/enclosure/MediaListing'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
+import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureWiseStat } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
@@ -17,6 +19,9 @@ const EnclsouerDetails = () => {
 
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
+
+  const auth = useAuth()
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['site-detail', id],
@@ -78,10 +83,10 @@ const EnclsouerDetails = () => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={() => router.back()}>
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
             Enclosures
           </Typography>
-          <Typography sx={{ color: 'text.primary' }}>Enclosure Details</Typography>
+          <Typography color='text.primary'>Enclosure Details</Typography>
         </Breadcrumbs>
         <InsightsCard
           data={data?.data}
@@ -91,6 +96,7 @@ const EnclsouerDetails = () => {
           zooName={data?.data?.user_enclosure_name}
           subtitle={data?.data?.enclosure_desc}
           userName={data?.data?.incharge_name}
+          haveInsightsViewAccess={insightsViewAccess}
           onCallClick={() => {
             const phoneNumber = data?.data?.incharge_phone_no || '' // Adjust path as needed
             if (phoneNumber) {
@@ -126,4 +132,4 @@ const EnclsouerDetails = () => {
   )
 }
 
-export default EnclsouerDetails
+export default enforceModuleAccess(EnclsouerDetails, 'enable_housing_in_web')

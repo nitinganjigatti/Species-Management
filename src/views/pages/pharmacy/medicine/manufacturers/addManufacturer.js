@@ -16,14 +16,11 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getManufacturerById } from 'src/lib/api/pharmacy/manufacturer'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   manufacturer_name: yup
@@ -40,10 +37,8 @@ const defaultValues = {
 }
 
 const AddManufacturer = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
-  // ** States
   const [values, setValues] = useState(defaultValues)
 
   const {

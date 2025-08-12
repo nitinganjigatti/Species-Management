@@ -44,7 +44,6 @@ const CreateMealGroup = ({
   mealId,
   handleEditSearch
 }) => {
-  console.log('editeditems >', editeditems, selectedItems, mealType)
 
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
@@ -53,12 +52,12 @@ const CreateMealGroup = ({
   const [loading, setLoading] = useState(false)
 
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] // Get the item being removed
+    const itemToRemove = selectedItems[index] 
     const updatedItems = selectedItems.filter((_, i) => i !== index)
     const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
 
     setSelectedItems(updatedItems)
-    setCheckedRows(updatedChecked) // or setSelectedCheckboxes(updatedChecked) if that's your setter
+    setCheckedRows(updatedChecked) 
   }
 
   console.log('Group NMW >', groupName)
@@ -101,7 +100,7 @@ const CreateMealGroup = ({
     }
     setGroupNameError(false)
 
-    if (loading) return // Prevent multiple calls
+    if (loading) return 
 
     setLoading(true)
     try {
@@ -132,9 +131,8 @@ const CreateMealGroup = ({
     debounce(async q => {
       setSearchTerm(q)
       if (q.trim() === '') {
-        // Search field is cleared — restore from unmapped list using checkedRows
-        const data = [...selectedItems] // your original full unmapped list (store this when fetching the full list)
-        const filteredData = data.filter(item => checkedRows.includes(item.id)) // adjust key if needed
+        const data = [...selectedItems] 
+        const filteredData = data.filter(item => checkedRows.includes(item.id)) 
         setSelectedItems(filteredData)
 
         return
@@ -155,7 +153,7 @@ const CreateMealGroup = ({
         console.log(err)
       }
     }, 1000),
-    [selectedOption] // 👈 now includes these dependencies
+    [selectedOption] 
   )
 
   const handleCreateSearch = value => {
@@ -164,7 +162,6 @@ const CreateMealGroup = ({
   }
 
   const handleUpdateGroup = async () => {
-    console.log('EditItems >', editeditems, removedEnclosures)
     const updatedEnclosure = editeditems?.map(item => item?.enclosure_id)
     if (!groupName.trim()) {
       setGroupNameError(true)
@@ -200,7 +197,7 @@ const CreateMealGroup = ({
   const handleEnclosureRemove = async index => {
     console.log('index >', index)
 
-    const itemToRemove = editeditems[index] // Get the item being removed
+    const itemToRemove = editeditems[index] 
 
     const updatedEditedEnclosures = editeditems.filter((_, i) => i !== index)
     const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
@@ -209,7 +206,7 @@ const CreateMealGroup = ({
     setRemovedEnclosures([...removedEnclosures, itemToRemove?.enclosure_id])
 
     setEditItems(updatedEditedEnclosures)
-    setCheckedRows(updatedChecked) // or setSelectedCheckboxes
+    setCheckedRows(updatedChecked) 
   }
 
   // const selectedObj = editeditems[index]
@@ -588,8 +585,8 @@ const CreateMealGroup = ({
                   gap: 2,
                   overflowY: 'auto',
                   overflowX: 'hidden',
-                  pr: 1, // Optional: adds some padding to the right to prevent content cutoff
-                  height: '80vh' // Makes sure the Box respects the Card height
+                  pr: 1, 
+                  height: '80vh' 
                 }}
               >
                 {loader ? (

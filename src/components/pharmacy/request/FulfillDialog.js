@@ -42,8 +42,8 @@ import { addDispatch } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { useRouter } from 'next/router'
-import { border, color, width } from '@mui/system'
-import { he } from 'date-fns/locale'
+
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
 const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails, reqColor }) => {
   const defaultValues = {
@@ -468,19 +468,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   const removeSaltButton = index => {
     return (
-      // <Button
-      //   variant='outlined'
-      //   color='error'
-      //   startIcon={<Icon icon='material-symbols-light:close' />}
-      //   onClick={() => {
-      //     var tempDefaultSalts = defaultSalts
-      //     tempDefaultSalts.splice(index, 1)
-      //     setDefaultSalts(tempDefaultSalts)
-      //     remove(index)
-      //   }}
-      // >
-      //   {/* Remove */}
-      // </Button>
       <Box
         sx={{
           display: 'flex',
@@ -1103,7 +1090,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                       {batchItems[index]?.stock_type === 'non_medical' ? null : (
                         <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
-                          <FormControl fullWidth sx={{ position: 'relative' }}>
+                          {/* <FormControl fullWidth sx={{ position: 'relative' }}>
                             <Controller
                               name={`product_batches[${index}].expiry_date`}
                               control={control}
@@ -1126,8 +1113,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 sx={{
                                   color: 'error.main',
 
-                                  // position: 'absolute',
-                                  // bottom: '-16px',
                                   left: 0,
                                   width: '100%',
                                   ml: 0
@@ -1136,7 +1121,16 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 {errors?.product_batches?.[index]?.expiry_date?.message}
                               </FormHelperText>
                             )}
-                          </FormControl>
+                          </FormControl> */}
+                          <ControlledTextField
+                            name={`product_batches[${index}].expiry_date`}
+                            label='Expiry Date*'
+                            control={control}
+                            errors={errors}
+                            readOnly={true}
+                            dateReader={true}
+                            sx={{ backgroundColor: 'white', borderRadius: 1 }}
+                          />
                         </Grid>
                       )}
                       <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
@@ -1171,7 +1165,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             rules={{
                               required: true,
                               validate: {
-                                positiveNumber: value => ParseInt(value) > 0 || 'Please enter a number greater than 0'
+                                positiveNumber: value =>
+                                  parseInt(value, 10) > 0 || 'Please enter a number greater than 0'
                               }
                             }}
                             render={({ field: { value, onChange } }) => (

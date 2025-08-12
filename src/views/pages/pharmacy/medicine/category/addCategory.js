@@ -18,13 +18,10 @@ import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
 import { getCategoryById } from 'src/lib/api/pharmacy/getCategories'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup.string().required('Category Name is Required'),
@@ -37,10 +34,8 @@ const defaultValues = {
 }
 
 const AddCategory = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
-  // ** States
   const [values, setValues] = useState(defaultValues)
 
   // const router = useRouter()

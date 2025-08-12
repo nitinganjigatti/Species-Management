@@ -44,7 +44,7 @@ const ControlledFileUpload = ({
   }
 
   const handleRemoveFile = e => {
-    e.stopPropagation() // Prevent triggering the file open when removing
+    e.stopPropagation()
     onChange(null)
     const input = document.getElementById(`file-upload-${name}`)
     if (input) input.value = ''
@@ -58,11 +58,11 @@ const ControlledFileUpload = ({
       const fileURL = URL.createObjectURL(value)
       window.open(fileURL, '_blank')
 
-      // Clean up the object URL when done
+     
       setTimeout(() => URL.revokeObjectURL(fileURL), 100)
     }
 
-    // If it's an existing file with path (from API)
+   
     else if (value.file_path) {
       window.open(value.file_path, '_blank')
     }
@@ -70,7 +70,6 @@ const ControlledFileUpload = ({
 
   const hasError = Boolean(errors?.[name] || error)
 
-  // Get file name whether it's a File object or API response object
   const getFileName = () => {
     if (!value) return ''
 
@@ -87,7 +86,7 @@ const ControlledFileUpload = ({
           alignItems: 'center',
           cursor: 'pointer',
           mt: 1,
-          borderRadius: '10px',
+          borderRadius: '8px',
           position: 'relative',
           width: '100%',
           height: '50px',

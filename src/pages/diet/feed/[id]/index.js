@@ -32,6 +32,7 @@ import Drawer from '@mui/material/Drawer'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import Tooltip from '@mui/material/Tooltip'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
+import { useTheme } from '@mui/material/styles'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
@@ -67,6 +68,7 @@ const FeedDetails = () => {
   const router = useRouter()
   const { id } = router.query
   const { query } = router
+  const theme = useTheme()
   const [value, setValue] = useState('1')
   const [FeedDetailsValue, setFeedDetails] = useState([])
   const [loader, setLoader] = useState(true)
@@ -441,7 +443,7 @@ const FeedDetails = () => {
                                     variant='body2'
                                     sx={{
                                       width: '100%',
-                                      color: '#7A8684',
+                                      color: theme.palette.customColors.secondaryBg,
                                       overflow: 'hidden',
                                       textOverflow: 'ellipsis',
                                       display: '-webkit-box',
@@ -461,7 +463,7 @@ const FeedDetails = () => {
                                         fontSize: '13px',
                                         textDecoration: 'underline',
 
-                                        color: '#000',
+                                        color: theme.palette.common.black,
                                         cursor: 'pointer'
                                       }}
                                     >
@@ -476,7 +478,7 @@ const FeedDetails = () => {
                               )}
 
                               <div>
-                                <Divider sx={{ mt: 4, borderColor: '#C3CEC7' }} />
+                                <Divider sx={{ mt: 4, borderColor: theme.palette.customColors.OutlineVariant }} />
                                 <Box className='demo-space-x' sx={{ display: 'flex' }}>
                                   <Avatar
                                     src={
@@ -492,12 +494,18 @@ const FeedDetails = () => {
                                   >
                                     {!FeedDetailsValue.created_by_user ? <Icon icon='mdi:user' /> : null}
                                   </Avatar>
-                                  <Typography sx={{ color: '#000000' }}>
+                                  <Typography sx={{ color: theme.palette.customColors.deepDark }}>
                                     {FeedDetailsValue?.created_by_user
                                       ? FeedDetailsValue?.created_by_user?.user_name
                                       : '-'}{' '}
                                     <br />
-                                    <div style={{ color: '#44544A', fontSize: 12, margin: 0 }}>
+                                    <div
+                                      style={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: 12,
+                                        margin: 0
+                                      }}
+                                    >
                                       {'Created on' + ' ' + moment(FeedDetailsValue?.created_at).format('DD/MM/YYYY')}
                                     </div>
                                   </Typography>
@@ -506,7 +514,11 @@ const FeedDetails = () => {
                                     onClick={() => setActivitySidebarOpen(true)}
                                     sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}
                                   >
-                                    <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
+                                    <Typography
+                                      sx={{ color: theme.palette.customColors.deepDark, my: 3, fontSize: 14 }}
+                                    >
+                                      Activity Log
+                                    </Typography>
                                     <Icon
                                       icon='ph:clock'
                                       style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }}

@@ -151,17 +151,14 @@ const AddIngredient = () => {
           })
           setValue('waterPercentage', res?.data?.water_percentage)
           setValue('dryMatterPercentage', res?.data?.water_dry_matter)
-          setValue('nutritionalValuesPer', res?.data?.standard_unit)
+          setValue('nutritionalValuesPer', res?.data?.standard_unit || '')
 
-          // console.log('res?.data?.standard_unit', res?.data?.standard_unit)
-          // console.log('res?.data?.uom', res?.data?.uom)
-          // console.log('res?', res)
           setDefaultUom({
             id: res?.data?.uom_id,
-            name: res?.data?.uom
+            name: res?.data?.uom || ''
           })
           setValue('uom', res?.data?.uom_id)
-          setValue('calorie', res?.data?.calorie)
+          setValue('calorie', res?.data?.calorie || '')
           setValue('description', res?.data?.desc)
           setValue('ingredientImg', res?.data?.image === null || undefined || '' ? '' : res?.data?.image)
           setImgSrc(res?.data?.image === null || undefined || '' ? '' : res?.data?.image)
@@ -885,7 +882,7 @@ const AddIngredient = () => {
                               >
                                 <Icon
                                   icon='material-symbols-light:close'
-                                  color='#fff'
+                                  color={theme.palette.common.white}
                                   onClick={() => removeSelectedImage()}
                                 >
                                   {' '}

@@ -24,13 +24,10 @@ import { useRouter } from 'next/router'
 
 import { getStorageById } from 'src/lib/api/pharmacy/storage'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup
@@ -47,7 +44,6 @@ const defaultValues = {
 }
 
 const AddStorage = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {

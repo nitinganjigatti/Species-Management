@@ -1,13 +1,15 @@
 import React from 'react'
 import HeaderCard from './InsightsHeaderCard'
 import InfoStatCard from './InfoStatCard'
-import { alpha, Box, Card, Grid, IconButton, Typography } from '@mui/material'
+import { alpha, Box, Button, Card, Grid, IconButton, Typography } from '@mui/material'
 import UserInfoCard from './UserInfoCard'
 import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
 import InsertCommentOutlinedIcon from '@mui/icons-material/InsertCommentOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import InsightsCardSkeleton from './InsightsCardSkeleton'
+import Icon from 'src/@core/components/icon'
+import { AddBoxOutlined } from '@mui/icons-material'
 
 const InsightsCard = ({
   data,
@@ -24,6 +26,7 @@ const InsightsCard = ({
   description,
   userImage,
   image,
+  haveInsightsViewAccess,
   statsData = []
 }) => {
   const theme = useTheme()
@@ -32,8 +35,8 @@ const InsightsCard = ({
 
   if (error) {
     return (
-      <Card sx={{ p: 3, bgcolor: 'error' }}>
-        <Typography sx={{ color: 'error' }} variant='body1'>
+      <Card sx={{ p: 3, bgcolor: '#ffe6e6' }}>
+        <Typography color='error' variant='body1'>
           {error}
         </Typography>
       </Card>
@@ -76,47 +79,19 @@ const InsightsCard = ({
           }}
         />
       )}
+
       {/* Foreground content */}
       <Box sx={{ position: 'relative', zIndex: 2, p: 6 }}>
-        {isListingPage && (
-          <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            {/* <Box
-              sx={{
-                p: 2,
-                borderRadius: '50%',
-                backgroundColor: alpha(theme.palette.common.white, 0.16),
-                color: theme.palette.customColors.PrimaryContainer,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 'fit-content',
-                height: 'fit-content'
-              }}
-            >
-              <InsightsOutlinedIcon />
-            </Box> */}
-            <Typography
-              sx={{
-                fontWeight: 600,
-                color: theme => theme.palette.common.white,
-                fontSize: '1.5rem'
-              }}
-            >
-              {pageTitle || ''}
-            </Typography>
-          </Box>
-        )}
-        {showHeader && <HeaderCard title={zooName || ''} subtitle={subtitle || ''} {...actions} />}
-
+        <HeaderCard
+          title={isListingPage ? pageTitle : zooName}
+          isListingPage={isListingPage}
+          subtitle={subtitle || ''}
+          {...actions}
+        />
         {showUserInfo && (
           <Box sx={{ mt: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <UserInfoCard avatarUrl={userImage || ''} name={userName || ''} description={description || ''} />
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 2
-              }}
-            >
+            <Box display='flex' gap={2}>
               {onCallClick && (
                 <IconButton
                   onClick={onCallClick}
@@ -146,8 +121,7 @@ const InsightsCard = ({
             </Box>
           </Box>
         )}
-
-        {Array.isArray(statsData) && statsData.length > 0 && (
+        {haveInsightsViewAccess && Array.isArray(statsData) && statsData.length > 0 && (
           <Box
             sx={{
               mt: 10,
@@ -159,13 +133,7 @@ const InsightsCard = ({
               WebkitBackdropFilter: 'blur(0.5rem)'
             }}
           >
-            <Grid
-              container
-              spacing={3}
-              sx={{
-                justifyContent: 'flex-start'
-              }}
-            >
+            <Grid container spacing={3} justifyContent='flex-start'>
               {statsData.map((item, index) => {
                 const length = statsData.length
 
@@ -186,14 +154,7 @@ const InsightsCard = ({
                 }
 
                 return (
-                  <Grid
-                    size={{ xs: xs, sm: sm, md: md }}
-                    key={index}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-start'
-                    }}
-                  >
+                  <Grid item size={{ xs: xs, sm: sm, md: md }} key={index} display='flex' justifyContent='flex-start'>
                     <InfoStatCard
                       imagePath={item.imagePath}
                       value={item.value}

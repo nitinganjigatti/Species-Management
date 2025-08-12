@@ -23,7 +23,6 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { getDrugById } from 'src/lib/api/pharmacy/getDrugs'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup
@@ -40,10 +39,8 @@ const defaultValues = {
 }
 
 const AddDrugClass = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
-  // ** States
   const [values, setValues] = useState(defaultValues)
 
   // const router = useRouter()

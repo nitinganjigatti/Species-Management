@@ -26,7 +26,6 @@ export const ProductDetail = ({
   const { selectedPharmacy } = usePharmacyContext()
   const [visibleArea, setVisibleArea] = useState(false)
 
-  console.log('Selected Pharmacy: ', selectedPharmacy)
 
   const router = useRouter()
 

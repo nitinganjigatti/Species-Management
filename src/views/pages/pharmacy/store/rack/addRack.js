@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, Fragment, useRef } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -21,15 +21,12 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio, TextareaAutosize } from '@mui/material'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getRackListById } from 'src/lib/api/pharmacy/getRackList'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup.string().required('Rack name is required'),
@@ -49,7 +46,6 @@ const defaultValues = {
 }
 
 const AddRack = props => {
-  // ** Props
   const {
     addEventSidebarOpen,
     handleSidebarClose,
@@ -62,7 +58,6 @@ const AddRack = props => {
 
   console.log('props', props)
 
-  // ** States
   const [values, setValues] = useState(defaultValues)
   const [stores, setStores] = useState([])
 
@@ -80,6 +75,16 @@ const AddRack = props => {
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (addEventSidebarOpen) {
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+    }
+  }, [addEventSidebarOpen])
 
   const onSubmit = async params => {
     const { name, position, shelf, status } = { ...params }
@@ -228,6 +233,7 @@ const AddRack = props => {
                   placeholder='Rack Name'
                   error={Boolean(errors.name)}
                   name='name'
+                  inputRef={inputRef}
                 />
               )}
             />
@@ -270,7 +276,7 @@ const AddRack = props => {
             />
             {errors.shelf && <FormHelperText sx={{ color: 'error.main' }}>{errors.shelf.message}</FormHelperText>}
           </FormControl> */}
-          {console.log('shelf', editParams.shelf)}
+         
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='shelf'

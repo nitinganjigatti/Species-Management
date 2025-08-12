@@ -23,6 +23,7 @@ const ComposeNavigation = () => {
   const userSettings = authData?.userData?.permission?.user_settings
 
   const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const complianceModule = authData?.userData?.roles?.settings?.compliance_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const egg_nursery = authData?.userData?.permission?.user_settings?.add_nursery_permisson
@@ -36,11 +37,16 @@ const ComposeNavigation = () => {
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
+  const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
+
+  const userRole = authData?.userData?.roles?.role_name
+
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
 
   const navigationArray = []
-  const dashboardNav = dashboardNavigation()
+  const dashboardNav = dashboardNavigation({ userRole })
   navigationArray.push(...dashboardNav)
 
   if (reports_module) {
@@ -81,8 +87,10 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
-  const housingnav = housingNavigation()
-  navigationArray.push(...housingnav)
+  if (housingModule) {
+    const housingNav = housingNavigation(housingModuleCluster)
+    navigationArray.push(...housingNav)
+  }
 
   const hospitalNav = hospitalNavigation()
   navigationArray.push(...hospitalNav)
@@ -92,8 +100,10 @@ const ComposeNavigation = () => {
   })
   navigationArray.push(...medicalNav)
 
-  const complianceNav = complianceNavigation()
-  navigationArray.push(...complianceNav)
+  if (complianceModule) {
+    const complianceNav = complianceNavigation()
+    navigationArray.push(...complianceNav)
+  }
 
   return navigationArray
 }

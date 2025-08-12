@@ -307,7 +307,7 @@ function OrderReceiveForm({ shipmentId }) {
         item.id === itemId ? { ...item, [name]: value } : item
       )
     }
-    // console.log('updatedData', updatedData)
+ 
     setDisputeItemDetails(updatedData)
   }
 
@@ -629,7 +629,6 @@ function OrderReceiveForm({ shipmentId }) {
     return result
   }
 
-  console.log(listComments, 'listComments')
 
   async function markAsReceived(itemId) {
     if (!itemId) {
@@ -638,16 +637,13 @@ function OrderReceiveForm({ shipmentId }) {
       return
     }
     console.log(itemId, 'itemId')
-    // Update the status of the specific item to "Received"
     disputeItemDetails.item_details = disputeItemDetails.item_details.map(item =>
       item.id === itemId ? { ...item, status: 'Received' } : item
     )
-    // Call updateStatus to handle the rest of the logic
     await updateStatus()
     closeCommentDialog()
   }
 
-  // Usage in button click
 
   const commentDialogBox = () => {
     console.log(markReceived, 'markReceived')
@@ -685,7 +681,6 @@ function OrderReceiveForm({ shipmentId }) {
                         </Typography>
                       </Box>
 
-                      {/* Comment Card */}
                       <Box
                         sx={{
                           mb: 2,
@@ -726,7 +721,6 @@ function OrderReceiveForm({ shipmentId }) {
                 )}
               </Box>
 
-              {/* Mark as Received Button */}
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
                 <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
                   Mark as Received
@@ -1080,7 +1074,7 @@ function OrderReceiveForm({ shipmentId }) {
                       padding: 0, // Add padding if required
                       m: 0,
                       '& .MuiGrid-item': {
-                        padding: '3px 4px !important' // Specifically target Grid item padding,
+                        padding: '3px 4px !important' 
                       }
                     }}
                   >
@@ -1366,7 +1360,7 @@ function OrderReceiveForm({ shipmentId }) {
                               }
                               onChange={event => handleStatusChange(params.row.id, event)}
                               sx={{
-                                backgroundColor: 'customColors.displaybgPrimary' // Apply the background color to the Select component
+                                backgroundColor: 'customColors.displaybgPrimary'
                               }}
                             >
                               <MenuItem value='' disabled>
@@ -1386,7 +1380,7 @@ function OrderReceiveForm({ shipmentId }) {
                             </Select>
                           </FormControl>
                         )}
-                        {/* in dispute wrong count case after denied end */}
+                    
 
                         {params.row.status === 'Wrong Count - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Closed' ||
@@ -1431,7 +1425,7 @@ function OrderReceiveForm({ shipmentId }) {
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>
-                        {/* {params.row.status} */}
+                      
                         {params.row.status === 'Wrong Count' ||
                         params.row.status === 'Shortage - Accepted' ||
                         params.row.status === 'Excess - Accepted'
@@ -1541,14 +1535,14 @@ function OrderReceiveForm({ shipmentId }) {
     setChecked(isChecked)
 
     if (isChecked) {
-      setSubmitLoader(true) // Disable checkbox during submission
+      setSubmitLoader(true) 
       try {
-        await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(shipmentId) // Refresh the data only after updating status
+        await bulkStatusUpdate() 
+        await getOrderDetails(shipmentId) 
       } catch (error) {
         console.error('Error in bulk status update: ', error)
       } finally {
-        setSubmitLoader(false) // Re-enable checkbox after submission
+        setSubmitLoader(false) 
       }
     }
   }

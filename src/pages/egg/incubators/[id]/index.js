@@ -714,7 +714,14 @@ const IncubatorDetails = () => {
     debounce(async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, status, allocation_date, collected_date, taxonomy_id)
+        await fetchTableData(
+          sort,
+          q,
+          status,
+          allocation_date,
+          collected_date != null ? dayjs(collected_date).format('YYYY-MM-DD') : null,
+          taxonomy_id
+        )
       } catch (error) {
         console.error(error)
       }

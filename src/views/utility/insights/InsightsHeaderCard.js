@@ -6,7 +6,7 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import AddIcon from '@mui/icons-material/Add'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 
-const HeaderCard = ({ title, subtitle, onEdit, onDelete, onAddNew, onTimeClick }) => {
+const HeaderCard = ({ title, subtitle, isListingPage, onEdit, onDelete, onAddNew, onTimeClick }) => {
   const theme = useTheme()
 
   return (
@@ -29,6 +29,7 @@ const HeaderCard = ({ title, subtitle, onEdit, onDelete, onAddNew, onTimeClick }
           <Typography sx={{ mt: 0.5, color: theme.palette.common.white, fontSize: '0.875rem' }}>{subtitle}</Typography>
         )}
       </Box>
+
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
         {onTimeClick && (
           <IconButton
@@ -70,20 +71,13 @@ const HeaderCard = ({ title, subtitle, onEdit, onDelete, onAddNew, onTimeClick }
         )}
 
         {onAddNew && (
-          <Stack
-            direction='row'
-            spacing={2}
-            sx={{
-              alignItems: 'center'
-            }}
-          >
+          <Stack direction='row' spacing={2} alignItems='center' sx={{ cursor: 'pointer' }} onClick={onAddNew}>
             <Typography
               sx={{ color: theme.palette.customColors.PrimaryContainer, fontSize: '0.875rem', whiteSpace: 'nowrap' }}
             >
               Add new
             </Typography>
             <IconButton
-              onClick={onAddNew}
               sx={{
                 border: '1px solid',
                 borderColor: theme.palette.customColors.PrimaryContainer,

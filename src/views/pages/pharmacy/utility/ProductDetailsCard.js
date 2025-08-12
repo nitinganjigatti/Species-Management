@@ -1,8 +1,9 @@
 import React from 'react'
 import { Box, Paper, Typography, useTheme } from '@mui/material'
 import { LoaderIcon } from 'react-hot-toast'
+import Utility from 'src/utility'
 
-const ProductDetailsCard = ({ packageDetails, manufacture, totalAvailableCount, batchLoading }) => {
+const ProductDetailsCard = ({ packageDetails, manufacture, totalAvailableCount, batchLoading, unitPrice }) => {
   const theme = useTheme()
 
   if (!packageDetails) return null
@@ -22,6 +23,29 @@ const ProductDetailsCard = ({ packageDetails, manufacture, totalAvailableCount, 
         <InfoRow label='Package:' value={packageDetails} />
         <InfoRow label='Manufactured by:' value={manufacture} />
         <InfoRow label='Availability:' value={batchLoading ? <LoaderIcon /> : totalAvailableCount} />
+        {unitPrice && (
+          <Box
+            sx={{
+              backgroundColor: 'customColors.OnPrimaryContainer',
+              borderRadius: '16px',
+              padding: '5px 15px',
+              width: 'fit-content',
+              color: 'customColors.OnPrimary'
+            }}
+          >
+            <Typography
+              variant='body1'
+              component='div'
+              sx={{
+                fontSize: '12px',
+                fontWeight: 400,
+                color: 'customColors.OnPrimary'
+              }}
+            >
+              Unit Price - {Utility.formatAmountToReadableDigit(unitPrice)}
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Paper>
   )

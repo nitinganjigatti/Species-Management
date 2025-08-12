@@ -1,113 +1,113 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react'
-import { Card, CardHeader, Grid, Box, Breadcrumbs, Typography } from '@mui/material'
-import { AddButton } from 'src/components/Buttons'
-import Search from 'src/views/utility/Search'
+import React, { useState, useCallback, useEffect } from 'react'
+import { Badge, Box, Breadcrumbs, Button, Card, CardHeader, Grid, Typography } from '@mui/material'
+import { useRouter } from 'next/router'
+import Router from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import { debounce } from 'lodash'
-import { AuthContext } from 'src/context/AuthContext'
-import Toaster from 'src/components/Toaster'
-import { useForm } from 'react-hook-form'
+import Search from 'src/views/utility/Search'
 import { AddButtonContained } from 'src/components/ButtonContained'
-
-// Mock APIs
-const getImportCountries = async () => ({
-  success: true,
-  data: [
-    { label: 'Country A', value: 'A' },
-    { label: 'Country B', value: 'B' }
-  ]
-})
-
-const getSpecies = async () => ({
-  success: true,
-  data: [
-    { label: 'Species X', value: 'X' },
-    { label: 'Species Y', value: 'Y' }
-  ]
-})
-
-const getImportList = async (params) => ({
-  success: true,
-  data: {
-    total: 3,
-    records: [
-      { id: 1, title: 'Import Alpha', uploaded_at: '2025-06-02', tags: [{ label: 'A', value: 'A' }] },
-      { id: 2, title: 'Import Beta', uploaded_at: '2025-06-04', tags: [{ label: 'B', value: 'B' }] },
-      { id: 3, title: 'Import Gamma', uploaded_at: '2025-06-06', tags: [{ label: 'X', value: 'X' }] }
-    ]
-  }
-})
-
-const addImport = async (id, data) => ({ success: true, message: 'Import added' })
-const updateImport = async (id, data) => ({ success: true, message: 'Import updated' })
+import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
+import { debounce } from 'lodash'
+import Toaster from 'src/components/Toaster'
+import { getImportsList } from 'src/lib/api/compliance/imports'
+import moment from 'moment'
+import RenderUtility from 'src/utility/render'
+import Utility from 'src/utility'
+import { useTheme } from '@mui/material/styles'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
+import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
+import { format, subMonths } from 'date-fns'
 
 const ImportsPage = () => {
-  const { userData } = useContext(AuthContext)
-  const canEdit = userData?.roles?.settings?.import_module === 'EDIT'
-
+  const router = useRouter()
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+  const [selectedId, setSelectedId] = useState(null)
   const [sortModel, setSortModel] = useState([])
-  const [filterDate, setFilterDate] = useState({})
-  const [countryOptions, setCountryOptions] = useState([])
-  const [speciesOptions, setSpeciesOptions] = useState([])
-  const [openDrawer, setOpenDrawer] = useState(false)
-  const [editImport, setEditImport] = useState(null)
 
-  const { control, watch } = useForm({
-    defaultValues: {
-      importingCountry: null,
-      species: null
-    }
+  const [filterDate, setFilterDate] = useState({
+    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+    endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
-  const selectedTag = watch('importingCountry')
 
-  const fetchCountries = async () => {
-    const res = await getImportCountries()
-    if (res.success) setCountryOptions(res.data)
+  // Filter states
+  const [filterCount, setFilterCount] = useState(0)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    Species: [],
+    'Exporting country': [],
+    Exporter: [],
+    Importer: [],
+    Documents: []
+  })
+
+  const theme = useTheme()
+
+  // Apply filters
+  const applyFilters = async selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setOpenFilterDrawer(false)
   }
 
-  const fetchSpecies = async () => {
-    const res = await getSpecies()
-    if (res.success) setSpeciesOptions(res.data)
+  const handleFilterDrawerOpen = async () => {
+    setOpenFilterDrawer(true)
   }
 
-  const fetchImports = useCallback(async () => {
+  const fetchExportPermits = useCallback(async () => {
     setLoading(true)
     try {
+      const formatDate = dateString => {
+        if (!dateString) return null
+
+        return new Date(dateString).toISOString().split('T')[0]
+      }
+
+      const prepareFilterParams = key => {
+        return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+      }
+
       const params = {
         q: searchValue,
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
-        sort: sortModel[0]?.sort,
-        sortBy: sortModel[0]?.field,
-        from_date: filterDate.startDate,
-        to_date: filterDate.endDate,
-        tag: selectedTag?.value
+        sort: sortModel?.[0]?.sort,
+        sortBy: sortModel?.[0]?.field,
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        species: prepareFilterParams('Species'),
+        exporting_country: prepareFilterParams('Exporting country'),
+        exporter: prepareFilterParams('Exporter'),
+        importer: prepareFilterParams('Importer'),
+        missing_docs: prepareFilterParams('Documents')
       }
-      const res = await getImportList(params)
+      const res = await getImportsList(params)
       const start = paginationModel.page * paginationModel.pageSize
-      setRows(res.data.records.map((r, i) => ({ ...r, uid: start + i + 1 })))
-      setTotal(res.data.total)
-    } catch (e) {
-      console.error(e)
+      setRows(
+        res.data.records.map((r, i) => ({
+          ...r,
+          uid: start + i + 1,
+          import_number: r.import_number || '-',
+          import_date: r.import_date || '-',
+          exports_count: r.exports_count || '-',
+          species_count: r.species_count || '-',
+          animals_count: r.animals_count || '-',
+          documents_count: r.documents_count || '-'
+        }))
+      )
+      setTotal(res.data.count)
+    } catch (error) {
+      Toaster({ type: 'error', message: 'Failed to fetch export permits' })
     }
     setLoading(false)
-  }, [searchValue, paginationModel, sortModel, filterDate, selectedTag])
+  }, [searchValue, paginationModel, sortModel, filterDate, selectedOptions])
 
   useEffect(() => {
-    fetchCountries()
-    fetchSpecies()
-  }, [])
-
-  useEffect(() => {
-    fetchImports()
-  }, [fetchImports])
+    fetchExportPermits()
+  }, [fetchExportPermits])
 
   const debouncedSearch = useCallback(
     debounce(val => {
@@ -116,153 +116,209 @@ const ImportsPage = () => {
     []
   )
 
-  const handleSearch = val => debouncedSearch(val)
+  const handleSearch = val => {
+    debouncedSearch(val)
+  }
+
+  const handleRowClick = params => {
+    setSelectedId(params.row.id)
+
+    Router.push(`/compliance/documents/imports/AddEditImport/?id=${params.row.id}&action=details`)
+  }
 
   const columns = [
-    { field: 'uid', headerName: 'SL No', sortable: false, flex: 0.07 },
-    { field: 'title', headerName: 'Title', flex: 0.3 },
-    { field: 'uploaded_at', headerName: 'Uploaded At', flex: 0.2 },
     {
-      field: 'tags',
-      headerName: 'Tags',
-      flex: 0.3,
-      renderCell: params => <Box>{(params.row.tags || []).map(t => t.label).join(', ')}</Box>
+      flex: 0.12,
+      minWidth: 300,
+      field: 'import_number',
+      headerName: 'Import ID',
+      renderCell: params => {
+        return (
+          <Typography
+            sx={{
+              cursor: 'pointer',
+              px: 3,
+              width: '100%'
+            }}
+          >
+            {params.value || ''}
+          </Typography>
+        )
+      }
     },
     {
-      field: 'action',
-      headerName: 'Action',
-      sortable: false,
       flex: 0.15,
-      renderCell: params =>
-        canEdit && (
-          <AddButton
-            title='Edit'
-            action={() => {
-              setEditImport(params.row)
-              setOpenDrawer(true)
-            }}
-            small
-          />
-        )
+      minWidth: 150,
+      field: 'import_date',
+      headerName: 'Issued',
+      renderCell: params => (
+        <Typography sx={{ px: 0, width: '100%' }}>
+          {params?.value !== null ? moment(params.value).format('DD MMM YYYY') : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.08,
+      minWidth: 100,
+      field: 'exports_count',
+      headerName: 'EXPORTS',
+      renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
+    },
+
+    {
+      flex: 0.08,
+      minWidth: 100,
+      field: 'species_count',
+      headerName: 'SPECIES',
+      renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
+    },
+    {
+      flex: 0.08,
+      minWidth: 100,
+      field: 'animals_count',
+      headerName: 'ANIMALS',
+      renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
+    },
+    {
+      flex: 0.1,
+      minWidth: 120,
+      field: 'documents_count',
+      headerName: 'DOCUMENTS',
+      renderCell: params => <Typography sx={{ width: '100%', pl: 4 }}>{params.value}</Typography>
+    },
+    {
+      flex: 0.3,
+      minWidth: 180,
+      field: 'created_by_user_name',
+      headerName: 'Created By',
+      renderCell: params => (
+        <Box sx={{ px: 2 }}>
+          {params.row.created_by_user_name
+            ? RenderUtility.renderUserAvatarDetails(
+                params.row.created_user_profile_pic,
+                params.row.created_by_user_name,
+                Utility.formatDisplayDate(params.row.created_at),
+                theme.palette.customColors.OnSurfaceVariant,
+                '14px'
+              )
+            : null}
+        </Box>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 180,
+      field: 'updated_by_user_name',
+      headerName: 'Updated By',
+      renderCell: params => (
+        <Box sx={{ px: 2 }}>
+          {params.row.updated_by_user_name
+            ? RenderUtility.renderUserAvatarDetails(
+                params.row.updated_user_profile_pic,
+                params.row.updated_by_user_name,
+                Utility.formatDisplayDate(params.row.updated_at),
+                theme.palette.customColors.OnSurfaceVariant,
+                '14px'
+              )
+            : null}
+        </Box>
+      )
     }
   ]
 
-  const handleSubmit = async (data, editId) => {
-    const apiFn = editId ? updateImport : addImport
-  
-    try {
-      const res = await apiFn(editId, data)
-      Toaster({ type: res.success ? 'success' : 'error', message: res.message || 'Something went wrong' })
-  
-      if (res.success) {
-        setOpenDrawer(false)
-        fetchImports()
-      }
-    } catch (error) {
-      console.error('Import submit error:', error)
-      Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
-    }
-  }
-  
-
   return (
     <>
-    <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>
-              Documents
-            </Typography>
-    
-            <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>
-              Import
-            </Typography>
-          </Breadcrumbs>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Documents</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Imports</Typography>
+      </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Import Documents'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Import Documents</Typography>}
           action={
             <AddButtonContained
-              title='ADD NEW'
-              action={() => {
-                setEditImport(null)
-                setOpenDrawer(true)
-              }}
+              title='Add New'
+              action={() => router.push('/compliance/documents/imports/AddEditImport')}
             />
           }
-          sx={{ px: 5 }}
         />
-        <Grid container spacing={4} sx={{ px: 5, py: 2 }} alignItems="center">
-          <Grid item xs={12} md={3}>
+        <Grid container columnSpacing={4} rowSpacing={1} sx={{ px: 5, pt: 2 }} alignItems='center'>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              gap: 4,
+              flexWrap: 'wrap'
+            }}
+          >
             <Search
-              placeholder='Search imports...'
+              placeholder='Search'
               onChange={e => handleSearch(e.target.value)}
               onClear={() => handleSearch('')}
             />
-          </Grid>
-          <Grid item xs={12} md={0.5} />
-          <Grid item xs={12} md={4.5}>
-            <CommonDateRangePickers
-              filterDates={filterDate}
-              onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
-            />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <ControlledAutocomplete
-              name='importingCountry'
-              label='Importing Country'
-              control={control}
-              errors={{}}
-              options={countryOptions}
-              getOptionLabel={o => o.label}
-              isOptionEqualToValue={(o, v) => o.value === v.value}
-              textFieldProps={{
-                size: 'small',
-                InputProps: { sx: { fontSize: '0.875rem', height: 40 } },
-                InputLabelProps: { sx: { fontSize: '0.875rem' } }
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <ControlledAutocomplete
-              name='species'
-              label='Species'
-              control={control}
-              errors={{}}
-              options={speciesOptions}
-              getOptionLabel={o => o.label}
-              isOptionEqualToValue={(o, v) => o.value === v.value}
-              textFieldProps={{
-                size: 'small',
-                InputProps: { sx: { fontSize: '0.875rem', height: 40 } },
-                InputLabelProps: { sx: { fontSize: '0.875rem' } }
-              }}
-            />
-          </Grid>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+              <Box>
+                <CommonDateRangePickers
+                  filterDates={filterDate}
+                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                />
+              </Box>
+              <Button
+                variant='outlined'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  borderColor: theme.palette.customColors.OutlineVariant,
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+                startIcon={
+                  <TuneRoundedIcon
+                    sx={{ height: '24px', width: '24px' }}
+                    color={theme.palette.customColors.OnSurfaceVariant}
+                  />
+                }
+                endIcon={
+                  <Badge
+                    badgeContent={filterCount}
+                    color='primary'
+                    invisible={filterCount === 0}
+                    sx={{ ml: 2, mr: 2 }}
+                  />
+                }
+                onClick={handleFilterDrawerOpen}
+              >
+                Filter
+              </Button>
+            </Box>
+          </Box>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <CommonTable
               columns={columns}
               indexedRows={rows}
               total={total}
               paginationModel={paginationModel}
               setPaginationModel={setPaginationModel}
-              handleSortModel={mod => setSortModel(mod)}
+              handleSortModel={newModel => setSortModel(newModel)}
               loading={loading}
+              onRowClick={handleRowClick}
             />
           </Grid>
         </Grid>
       </Card>
-      {/* Add your AddImportDrawer component here */}
-      {/* {openDrawer && (
-        <AddImportDrawer
-          open={openDrawer}
-          initialData={editImport}
-          onClose={() => setOpenDrawer(false)}
-          onSubmit={handleSubmit}
-        />
-      )} */}
+      <FiltersDrawer
+        openFilterDrawer={openFilterDrawer}
+        onCloseFilterDrawer={() => setOpenFilterDrawer(false)}
+        onSubmitLoading={loading}
+        onApplyFilters={applyFilters}
+        setFilterCount={setFilterCount}
+        initialSelectedOptions={selectedOptions}
+        contextId={'2'}
+      />
     </>
   )
 }
 
-export default ImportsPage
+export default enforceModuleAccess(ImportsPage, 'compliance_module')

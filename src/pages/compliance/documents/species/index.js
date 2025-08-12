@@ -136,8 +136,7 @@ const SpeciesPage = () => {
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Species'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Species</Typography>}
           sx={{ px: 5 }}
           action={
             <AddButtonContained

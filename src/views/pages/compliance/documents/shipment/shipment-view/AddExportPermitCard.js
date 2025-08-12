@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, CardContent, Typography, Grid, Box, Button } from '@mui/material'
 import { ChevronRight } from '@mui/icons-material'
 import AddAnimalsDrawer from '../drawer/AddAnimalsDrawer'
+import { useTheme } from '@mui/material/styles'
 import { getExportAnimalList } from 'src/lib/api/compliance/shipment'
 
 const ExportCard = ({
@@ -18,8 +19,11 @@ const ExportCard = ({
   setSelectedExportData,
   setexportPermitDrawerOpen,
   draftData,
-  setDraftData
+  setDraftData,
+  setSearchValue,
+  shipmentId
 }) => {
+  const theme = useTheme()
   const [addAnimalsDrawerOpen, setAddAnimalsDrawerOpen] = useState(false)
   const [exportID, setexportID] = useState('')
   const [exportAnimalData, setexportAnimalData] = useState([])
@@ -34,7 +38,7 @@ const ExportCard = ({
     try {
       setLoading(true)
       if (exportID) {
-        const response = await getExportAnimalList(exportID)
+        const response = await getExportAnimalList(exportID, shipmentId)
         console.log(response, 'response')
         setLoading(false)
         setexportAnimalData(response.data)
@@ -60,21 +64,29 @@ const ExportCard = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           mb: 4,
-          border: '1px solid #C3CEC7',
+          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
           borderRadius: '8px',
-          backgroundColor: '#fff',
+          backgroundColor: theme.palette.common.white,
           boxShadow: 'none'
         }}
         onClick={() => handleClickAnimals(exportId)}
       >
-        {/* Left Section */}
+      
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
-          <Typography variant='subtitle2' color='#7A8684' fontWeight='400'>
-            Export ID : <span style={{ color: '#44544A', fontWeight: '500' }}>{exportNumber}</span>
+          <Typography
+            variant='subtitle2'
+            color={theme.palette.customColors.secondaryBg}
+            fontWeight='400'
+            sx={{ mb: 1 }}
+          >
+            Export ID :{' '}
+            <span style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
+              {exportNumber}
+            </span>
           </Typography>
-          <Typography variant='body2' color='#7A8684' fontWeight='400'>
+          <Typography variant='body2' color={theme.palette.customColors.secondaryBg} fontWeight='400' sx={{ mb: 3 }}>
             Exporter :{' '}
-            <span style={{ color: '#44544A', fontWeight: '500' }}>
+            <span style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
               {exporter},{exporterCountry}
             </span>
           </Typography>
@@ -83,8 +95,8 @@ const ExportCard = ({
               <Button
                 size='small'
                 sx={{
-                  backgroundColor: '#EFF5F2',
-                  color: '#44544A',
+                  backgroundColor: theme.palette.customColors.lightBg,
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   textTransform: 'none',
                   borderRadius: '26px',
                   minWidth: '80px',
@@ -101,8 +113,8 @@ const ExportCard = ({
               <Button
                 size='small'
                 sx={{
-                  backgroundColor: '#EFF5F2',
-                  color: '#44544A',
+                  backgroundColor: theme.palette.customColors.lightBg,
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   textTransform: 'none',
                   borderRadius: '26px',
                   minWidth: '80px',
@@ -118,10 +130,9 @@ const ExportCard = ({
           </Grid>
         </CardContent>
 
-        {/* Right Section */}
         <Box
           sx={{
-            background: '#F2FFF8',
+            background: theme.palette.customColors.Surface,
             height: '117px',
             width: '45px',
             display: 'flex',
@@ -129,7 +140,7 @@ const ExportCard = ({
             justifyContent: 'center'
           }}
         >
-          <ChevronRight sx={{ color: '#44544A', fontSize: '24px' }} />
+          <ChevronRight sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px' }} />
         </Box>
       </Card>
       <AddAnimalsDrawer
@@ -148,6 +159,7 @@ const ExportCard = ({
         setDraftData={setDraftData}
         draftData={draftData}
         setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+        setSearchValue={setSearchValue}
       />
     </>
   )

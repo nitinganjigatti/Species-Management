@@ -123,7 +123,7 @@ function convertUTCToLocal(date) {
 
 function convertUTCToLocalDateTime(date) {
   var stillUtc = moment.utc(date).toDate()
-  var local = moment(stillUtc).local(true).format('DD MMM YYYY hh:mm A')
+  var local = moment(stillUtc).local(true).format('DD MMM YYYY | hh:mm A')
 
   return local
 }
@@ -131,6 +131,13 @@ function convertUTCToLocalDateTime(date) {
 function convertUTCToLocalDate(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('YYYY-MM-DD')
+
+  return local
+}
+
+function convertUtcToLocalReadableDate(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('DD MMM YYYY')
 
   return local
 }
@@ -301,6 +308,45 @@ const getUpcomingHours = (count = 6) => {
   return hours
 }
 
+export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) => {
+  try {
+    // Call the API to get the download URL
+    const response = await apiCall(params)
+
+    if (response?.success && response?.data?.download_url) {
+      // Fetch the file as a blob
+      const fileResponse = await fetch(response.data.download_url, {
+        method: 'GET',
+        headers
+      })
+
+      if (!fileResponse.ok) {
+        throw new Error(`HTTP error! status: ${fileResponse.status}`)
+      }
+
+      const blob = await fileResponse.blob()
+      const url = window.URL.createObjectURL(blob)
+
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName || `download_${Date.now()}.pdf` // Default filename if not provided
+      document.body.appendChild(link)
+
+      // Trigger the download
+      link.click()
+
+      // Clean up
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } else {
+      console.error('Failed to download the file')
+    }
+  } catch (error) {
+    console.error('Error while downloading the file:', error)
+  }
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -314,6 +360,7 @@ const Utility = {
   convertUTCToLocal,
   convertUTCToLocalDate,
   convertUTCToLocaltime,
+  convertUtcToLocalReadableDate,
   convertUTCToLocalDateTime,
   extractHoursAndMinutes,
   formatNumberToDisplay,
@@ -327,7 +374,8 @@ const Utility = {
   decryptData,
   formatIdentifierType,
   hexToHex8,
-  getUpcomingHours
+  getUpcomingHours,
+  downloadPDF
 }
 
 export default Utility

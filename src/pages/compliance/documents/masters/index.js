@@ -255,8 +255,7 @@ const DocumentTypes = () => {
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Document Types'
-          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Document Types</Typography>}
           action={headerAction}
           sx={{ px: 5, display: 'flex', flexWrap: 'wrap', gap: 2 }}
         />

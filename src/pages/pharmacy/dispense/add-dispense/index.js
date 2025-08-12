@@ -50,7 +50,7 @@ function AddDispense() {
   const [currentDate] = useState(() => {
     const today = new Date()
     const year = today.getFullYear()
-    const month = String(today.getMonth() + 1).padStart(2, '0') // Months are zero-based
+    const month = String(today.getMonth() + 1).padStart(2, '0') 
     const day = String(today.getDate()).padStart(2, '0')
 
     return `${year}-${month}-${day}`
@@ -152,37 +152,33 @@ function AddDispense() {
     setValue('dispense_item_details', data)
   }
 
-  // Example usage: Assuming you have an identifier available when handling the edit action
   const editRowData = index => {
     const rowData = productArrayUi[index]
     setSelectedIndex(index)
     if (rowData) {
       setEditMode(true)
 
-      // Print or use the rowData as needed
-      // Perform edit action using the rowData
       setDataForEditRow(rowData)
     } else {
       console.error('Data not found')
     }
   }
 
-  // Function to remove Dispense
+ 
   const deleteRowData = index => {
     const newArray = [...productArray]
     const newArrayUi = [...productArrayUi]
 
-    // Remove the element at the specified index
+  
     newArray.splice(index, 1)
     newArrayUi.splice(index, 1)
 
-    // Update the state with the modified array
+   
     setProductArray(newArray)
     setProductArrayUi(newArrayUi)
     setDispensesPayload(newArrayUi)
   }
 
-  // Function to remove Animal
   const deleteAnimalRow = index => {
     const newArray = [...animals_s]
     newArray.splice(index, 1)
@@ -219,7 +215,6 @@ function AddDispense() {
             // query: { id: res?.data }
           })
 
-          // Router.push('/pharmacy/dispense')
         } else {
           setSubmitLoading(false)
           setOpenSnackbar({
@@ -300,7 +295,6 @@ function AddDispense() {
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      // Router.push('/pharmacy/dispense')
                       Router.back()
                     }}
                     icon='ep:back'
@@ -438,7 +432,6 @@ function AddDispense() {
                   <TableHead
                     sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}
 
-                    // sx={{ backgroundColor: '#F5F5F7' }}
                   >
                     <TableRow>
                       <TableCell>Product Name</TableCell>

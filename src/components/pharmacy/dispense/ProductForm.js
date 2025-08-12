@@ -897,7 +897,7 @@ function ProductForm({
         {!editMode ? (
           <Grid
             sx={{
-              bgcolor: '#0000000D',
+              backgroundColor: 'customColors.neutral05',
               padding: 2,
               borderRadius: 1,
               width: '100%'
@@ -1138,7 +1138,7 @@ function ProductForm({
             columnSpacing={2}
             sx={{
               mb: 3,
-              bgcolor: '#0000000D',
+              backgroundColor: 'customColors.neutral05',
 
               padding: 2,
               borderRadius: 1,

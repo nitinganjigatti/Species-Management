@@ -15,6 +15,8 @@ import AnimalTreatmentListing from 'src/components/housing/sections/AnimalTreatm
 import { useAuth } from 'src/hooks/useAuth'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
+import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
@@ -35,7 +37,12 @@ const SectionDetails = () => {
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
+  const [addEnclosureDrawerOpen, setAddEnclosureDrawerOpen] = useState(false)
+  const [refetchEnclosure, setRefechEnclosure] = useState(false)
   const auth = useAuth()
+
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
+  const addEnclosureAccess = auth?.userData?.roles?.settings?.housing_add_enclosure
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
@@ -135,71 +142,89 @@ const SectionDetails = () => {
   // }, [router.query?.enclosureTab])
 
   return (
-    <Box>
-      {/* Breadcrumb */}
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleSectionListingClick}>
-          Section Listing
-        </Typography>
-        <Typography sx={{ color: 'text.primary' }}>Section Details</Typography>
-      </Breadcrumbs>
+    <>
+      <Box>
+        {/* Breadcrumb */}
+        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleSectionListingClick}>
+            Section Listing
+          </Typography>
+          <Typography color='text.primary'>Section Details</Typography>
+        </Breadcrumbs>
 
-      {/* Insights */}
-      <InsightsCard
-        data={data?.data}
-        loading={isLoading}
-        zooName={data?.data?.section_name}
-        // subtitle={data?.data?.site_description}
-        userName={data?.data?.incharge_name}
-        // description={data?.data?.incharges?.[0]?.full_name}
-        // userImage={data?.data?.incharges?.[0]?.user_profile_pic}
-        // actions={{
-        //   onEdit: () => console.log('Edit'),
-        //   onDelete: () => console.log('Delete'),
-        //   onAddNew: () => console.log('Add new'),
-        //   onTimeClick: () => console.log('Time clicked')
-        // }}
-        onCallClick={() => {
-          const phoneNumber = data?.data?.incharge_phone_number || '' // Adjust path as needed
-          if (phoneNumber) {
-            // window.location.href = `tel:${phoneNumber}`
-          } else {
-            return
-          }
-        }}
-        // onMessageClick={() => console.log('Message clicked')}
-        error={error}
-        statsData={statsData}
-      />
+        {/* Insights */}
+        <InsightsCard
+          data={data?.data}
+          loading={isLoading}
+          zooName={data?.data?.section_name}
 
-      {/* Tabs */}
-      <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-            {tabConfig.map(tab => (
-              <Tab key={tab.value} label={tab.label} value={tab.value} />
-            ))}
-          </Tabs>
-        </Box>
+          // subtitle={data?.data?.site_description}
+          userName={data?.data?.incharge_name}
 
-        {/* Selected Tab Content */}
-        <Box>
-          <SelectedComponent
-            selectedTab={selectedTab}
-            setSelectedTab={setSelectedTab}
-            drawerType={drawerType}
-            setDrawerType={setDrawerType}
-            drawerData={drawerData}
-            setDrawerData={setDrawerData}
-          />
-        </Box>
-      </Card>
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'enclosures' && (
-        <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+          // description={data?.data?.incharges?.[0]?.full_name}
+          // userImage={data?.data?.incharges?.[0]?.user_profile_pic}
+          actions={{
+            // onEdit: () => console.log('Edit'),
+            // onDelete: () => console.log('Delete'),
+            onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null
+
+            // onTimeClick: () => console.log('Time clicked')
+          }}
+          onCallClick={() => {
+            const phoneNumber = data?.data?.incharge_phone_number || '' // Adjust path as needed
+            if (phoneNumber) {
+              // window.location.href = `tel:${phoneNumber}`
+            } else {
+              return
+            }
+          }}
+          haveInsightsViewAccess={insightsViewAccess}
+
+          // onMessageClick={() => console.log('Message clicked')}
+          error={error}
+          statsData={statsData}
+        />
+
+        {/* Tabs */}
+        <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
+              {tabConfig.map(tab => (
+                <Tab key={tab.value} label={tab.label} value={tab.value} />
+              ))}
+            </Tabs>
+          </Box>
+
+          {/* Selected Tab Content */}
+          <Box>
+            <SelectedComponent
+              selectedTab={selectedTab}
+              setSelectedTab={setSelectedTab}
+              drawerType={drawerType}
+              setDrawerType={setDrawerType}
+              drawerData={drawerData}
+              setDrawerData={setDrawerData}
+              refetchEnclosure={refetchEnclosure}
+            />
+          </Box>
+        </Card>
+        {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+        {drawerType === 'enclosures' && (
+          <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+        )}
+      </Box>
+      {addEnclosureDrawerOpen && (
+        <AddEnclosureDrawer
+          open={addEnclosureDrawerOpen}
+          setAddEnclosureDrawerOpen={setAddEnclosureDrawerOpen}
+          sectionId={id}
+          zooId={zooId}
+          refetchEnclosure={refetchEnclosure}
+          setRefechEnclosure={setRefechEnclosure}
+        />
       )}
-    </Box>
+    </>
   )
 }
 
-export default SectionDetails
+export default enforceModuleAccess(SectionDetails, 'enable_housing_in_web')

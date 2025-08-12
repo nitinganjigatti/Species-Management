@@ -244,11 +244,11 @@ const ComplaintsDetails = () => {
                 cursor: 'pointer'
               }}
             >
-              Complaints
+              Symptoms
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Complaints List' action={headerAction} />
+            <CardHeader title='Symptoms List' action={headerAction} />
 
             <DataGrid
               //   hideFooterPagination={true}

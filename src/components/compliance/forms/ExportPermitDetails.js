@@ -26,7 +26,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
       }
       const res = await getMasterImports(params)
       if (res) {
-        const exportersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
+        const exportersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.id }))
         setExportersOptions(exportersOptions)
       }
     } catch (e) {
@@ -44,7 +44,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
       }
       const res = await getMasterImports(params)
       if (res) {
-        const importersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.name }))
+        const importersOptions = res?.data?.data?.map(item => ({ label: item.name, value: item.id }))
         setImportersOptions(importersOptions)
       }
     } catch (e) {
@@ -93,17 +93,6 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledDatePicker
-            name='valid_until'
-            label='Last day of validity*'
-            control={control}
-            errors={errors}
-            required
-            minDate={dayjs().startOf('day')} // Only allow future dates
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <ControlledDatePicker
             name='issued_date'
             label='Date of Issue*'
             maxDate={dayjs(new Date())}
@@ -114,23 +103,20 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <ControlledAutocomplete
-            name='origin_country'
-            label='Country of origin*'
+          <ControlledDatePicker
+            name='valid_until'
+            label='Last day of validity*'
             control={control}
             errors={errors}
-            options={countryOptions}
             required
-            fullWidth
-            isOptionEqualToValue={(option, value) => option.value === value?.value}
-            getOptionLabel={option => option.label || ''}
+            minDate={dayjs().startOf('day')} // Only allow future dates
           />
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
-            name='exporting_country'
-            label='Exporting Country*'
+            name='origin_country'
+            label='Country of origin*'
             control={control}
             errors={errors}
             options={countryOptions}
@@ -155,6 +141,20 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
             onKeyUp={e => exportersSearch(e.target.value)}
             onBlur={e => e.target.value && exportersSearch('')}
             onItemClear={() => exportersSearch('')}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <ControlledAutocomplete
+            name='exporting_country'
+            label='Exporting Country*'
+            control={control}
+            errors={errors}
+            options={countryOptions}
+            required
+            fullWidth
+            isOptionEqualToValue={(option, value) => option.value === value?.value}
+            getOptionLabel={option => option.label || ''}
           />
         </Grid>
 

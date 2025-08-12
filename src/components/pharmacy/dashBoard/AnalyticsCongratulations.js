@@ -18,7 +18,6 @@ const StyledGrid = styled(Grid)(({ theme }) => ({
   }
 }))
 
-// Styled component for the image
 const Img = styled('img')(({ theme }) => ({
   left: 0,
   bottom: 0,
@@ -32,7 +31,6 @@ const Img = styled('img')(({ theme }) => ({
 }))
 
 const AnalyticsCongratulations = () => {
-  // ** Hook
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
 

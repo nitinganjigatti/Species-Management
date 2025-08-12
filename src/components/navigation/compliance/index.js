@@ -12,36 +12,39 @@ const composeComplianceNavigation = () => {
 
   const exports = {
     title: 'Export',
-    path: '/compliance/documents/exports'
+    path: '/compliance/documents/exports',
+    activeWhen: ['/compliance/documents/exports', '/compliance/documents/exports/AddEditExportPermit']
   }
 
   const imports = {
     title: 'Import',
-    path: '/compliance/documents/imports'
+    path: '/compliance/documents/imports',
+    activeWhen: ['/compliance/documents/imports', '/compliance/documents/imports/AddEditImport']
   }
 
   const shipments = {
     title: 'Shipment',
-    path: '/compliance/documents/shipments'
+    path: '/compliance/documents/shipments',
+    activeWhen: ['/compliance/documents/shipments', '/compliance/documents/shipments/AddEditShipment']
   }
 
-  const files = {
-    title: 'Files',
-    path: '/compliance/documents/files'
-  }
+  // const files = {
+  //   title: 'Files',
+  //   path: '/compliance/documents/files'
+  // }
 
-  const species = {
-    title: 'Species',
-    path: '/compliance/documents/species'
-  }
+  // const species = {
+  //   title: 'Species',
+  //   path: '/compliance/documents/species'
+  // }
 
-  const animals = {
-    title: 'Animals',
-    path: '/compliance/documents/animals'
-  }
+  // const animals = {
+  //   title: 'Animals',
+  //   path: '/compliance/documents/animals'
+  // }
 
   const mastersParent = {
-    title: 'masters',
+    title: 'Masters',
     path: '/compliance/documents/masters',
     icon: '',
     children: []
@@ -62,10 +65,34 @@ const composeComplianceNavigation = () => {
     path: '/compliance/masters/exports'
   }
 
+  const reportsParent = {
+    title: 'Reports',
+    path: '/compliance/documents/reports',
+    icon: '',
+    children: []
+  }
+
+  const observation = {
+    title: 'Observation',
+    path: '/compliance/reports/observation'
+  }
+
+  const keeperDiary = {
+    title: 'Keepers Diary',
+    path: '/compliance/reports/keeperDiary'
+  }
+
+  const biologistDiary = {
+    title: 'Biologist Diary',
+    path: '/compliance/reports/biologistDiary'
+  }
+
   // Add all items under Documents
-  documentsParent.children.push(exports, imports, shipments, files, species, animals, mastersParent)
+  documentsParent.children.push(exports, imports, shipments, mastersParent, reportsParent)
 
   mastersParent.children.push(masterdocuments, masterimports, masterexports)
+
+  reportsParent.children.push(observation, keeperDiary, biologistDiary)
 
   const complianceNavigation = [complianceTitle, documentsParent]
 
