@@ -28,6 +28,7 @@ import { useTheme } from '@mui/material/styles'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import { AuthContext } from 'src/context/AuthContext'
+import RenderUtility from 'src/utility/render'
 
 // Styled TabList component
 
@@ -294,37 +295,12 @@ const RecipeList = () => {
       field: 'user_name',
       headerName: 'CREATED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
-            variant='square'
-            alt='Recipe Image'
-            sx={{
-              width: 30,
-              height: 30,
-              mr: 4,
-              borderRadius: '50%',
-              background: theme.palette.customColors.tableHeaderBg,
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.created_by_user?.profile_pic ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
-                alt='Profile'
-              />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
-            </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-            </Typography>
-          </Box>
+        <Box>
+          {RenderUtility.renderUserAvatarDetails({
+            profile_image: params?.row?.created_by_user?.profile_pic,
+            user_name: params?.row?.created_by_user?.user_name,
+            date: moment(params?.row?.created_at).format('YYYY-MM-DD')
+          })}
         </Box>
       )
     },
