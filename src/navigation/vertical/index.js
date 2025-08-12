@@ -12,6 +12,7 @@ import pariveshNavigation from 'src/components/navigation/parivesh/index'
 import reportNavigation from 'src/components/navigation/report'
 import medicalNavigation from 'src/components/navigation/medical'
 import housingNavigation from 'src/components/navigation/housing'
+import hospitalNavigation from 'src/components/navigation/hospital'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -90,6 +91,9 @@ const ComposeNavigation = () => {
     const housingNav = housingNavigation(housingModuleCluster)
     navigationArray.push(...housingNav)
   }
+
+  const hospitalNav = hospitalNavigation()
+  navigationArray.push(...hospitalNav)
 
   const medicalNav = medicalNavigation({
     userSettings
