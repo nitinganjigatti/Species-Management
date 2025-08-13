@@ -6,6 +6,7 @@ import React, { useState } from 'react'
 import ClinicalAssessment from 'src/views/pages/hospital/inpatient/ClinicalAssessment'
 import InpatientMedicalSummary from 'src/views/pages/hospital/inpatient/InpatientMedicalSummary'
 import InpatientOverview from 'src/views/pages/hospital/inpatient/InpatientOverview'
+import InpatientSurgery from 'src/views/pages/hospital/inpatient/InpatientSurgery'
 import InpatinetTreatmentMonitoring from 'src/views/pages/hospital/inpatient/InpatinetTreatmentMonitoring'
 import Symptoms from 'src/views/pages/hospital/inpatient/Symptoms'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
@@ -21,7 +22,8 @@ const InpatientDetails = () => {
     { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
     { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: InpatinetTreatmentMonitoring },
     { label: 'Symptoms', value: 'symptoms', component: Symptoms },
-    { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment }
+    { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
+    { label: 'Surgery', value: 'surgery', component: InpatientSurgery }
   ]
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
