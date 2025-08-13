@@ -527,6 +527,7 @@ export const AddProductForm = ({
                 required
                 disabled
                 sx={{ backgroundColor: 'white', borderRadius: '8px' }}
+                formHelperTextBackgroundColor={theme.palette.customColors.mdAntzNeutral}
               />
             </Grid>
             {getValues('stock_type') === 'non_medical' ? null : (
@@ -540,6 +541,7 @@ export const AddProductForm = ({
                   required
                   readOnly
                   sx={{ backgroundColor: 'white', borderRadius: '8px' }}
+                  formHelperTextBackgroundColor={theme.palette.customColors.mdAntzNeutral}
                 />
               </Grid>
             )}
