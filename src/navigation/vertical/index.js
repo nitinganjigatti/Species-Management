@@ -92,8 +92,8 @@ const ComposeNavigation = () => {
     navigationArray.push(...housingNav)
   }
 
-  const hospitalNav = hospitalNavigation()
-  navigationArray.push(...hospitalNav)
+  // const hospitalNav = hospitalNavigation()
+  // navigationArray.push(...hospitalNav)
 
   const medicalNav = medicalNavigation({
     userSettings
