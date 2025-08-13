@@ -265,8 +265,6 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWisePurchaseList(id)
       if (result?.success === true && result?.data) {
-       
-
         const adjustedData = {
           purchase_count: result.data.purchase_count,
           purchase_value: result.data.purchase_value
@@ -282,8 +280,6 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWiseDispatchList(id)
       if (result?.success === true && result?.data) {
-       
-
         const adjustedData = {
           dispatch_count: result.data.dispatch_count,
           dispatch_value: result.data.dispatch_value
@@ -380,13 +376,13 @@ const ProductDetailsList = () => {
                                   flexDirection: { md: 'row', xs: 'column', gap: 2 }
                                 }}
                               >
-                                <Button
+                                {/* <Button
                                   variant='contained'
                                   startIcon={<Icon icon='material-symbols-light:add' />}
                                   onClick={() => addEventSidebarOpen()}
                                 >
                                   Add Variant To Master
-                                </Button>
+                                </Button> */}
                                 <Button
                                   variant='contained'
                                   startIcon={<Icon icon='material-symbols:edit-outline' />}
@@ -403,7 +399,6 @@ const ProductDetailsList = () => {
                 </Grid>
 
                 <Grid container spacing={4}>
-                
                   <Grid
                     item
                     size={{ xs: 12, sm: 3 }}
@@ -425,7 +420,6 @@ const ProductDetailsList = () => {
                     />
                   </Grid>
 
-                 
                   <Grid item size={{ xs: 12, sm: 9 }}>
                     <Grid
                       container
@@ -532,7 +526,7 @@ const ProductDetailsList = () => {
                                 </Button>
                               )}
                           </Box>
-                         
+
                           <Box
                             sx={{
                               mt: 1,
@@ -562,7 +556,6 @@ const ProductDetailsList = () => {
                       </Grid>
                     </Grid>
 
-                 
                     <Box
                       sx={{
                         display: 'flex',
@@ -614,7 +607,6 @@ const ProductDetailsList = () => {
                             variant='body2'
                             sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
                           >
-                          
                             {productDetails?.storage_value || 'NA'}
                           </Typography>
                         </Grid>
