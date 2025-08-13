@@ -532,6 +532,7 @@ export const AddProductForm = ({
             {getValues('stock_type') === 'non_medical' ? null : (
               <Grid item size={{ xs: 12, sm: isEdit ? 3 : 2.5 }}>
                 <ControlledTextField
+                  dateReader={true}
                   name={`product_batches[${index}].expiry_date`}
                   label='Expiry Date*'
                   control={control}
