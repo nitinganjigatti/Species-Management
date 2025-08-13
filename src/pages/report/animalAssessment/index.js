@@ -31,6 +31,7 @@ import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
+import AnimalCard from 'src/views/utility/AnimalCard'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
@@ -253,7 +254,11 @@ const AnimalAssessment = () => {
         },
         disableColumnMenu: true,
         renderCell: params => {
-          return <AnimalParentCard sx={{ border: 'none' }} data={params?.row} />
+          return (
+            <Box sx={{ paddingY: '20px', paddingX: '16px' }}>
+              <AnimalCard sx={{ border: 'none' }} data={params?.row} />
+            </Box>
+          )
         }
       }
     }

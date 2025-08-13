@@ -14,7 +14,7 @@ import Error404 from 'src/pages/404'
 import StickyTable from 'src/views/table/sticky-table'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 
-import { getReportFilterList, getSpeciesListing } from 'src/lib/api/report'
+import { getReportFilterList } from 'src/lib/api/report'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const SpeciesReport = () => {
@@ -39,7 +39,7 @@ const SpeciesReport = () => {
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
-  const [speciesList, setSpeciesList] = useState([])
+  // const [speciesList, setSpeciesList] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
   const [sites, setSites] = useState(
@@ -94,17 +94,17 @@ const SpeciesReport = () => {
     await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
 
-  useEffect(() => {
-    const fetchSpeciesList = async () => {
-      const response = await getSpeciesListing()
-      if (response.success) {
-        setSpeciesList(response.data.result)
-      } else {
-        console.error('Error something went wrong')
-      }
-    }
-    fetchSpeciesList()
-  }, [])
+  // useEffect(() => {
+  //   const fetchSpeciesList = async () => {
+  //     const response = await getSpeciesListing()
+  //     if (response.success) {
+  //       setSpeciesList(response.data.result)
+  //     } else {
+  //       console.error('Error something went wrong')
+  //     }
+  //   }
+  //   fetchSpeciesList()
+  // }, [])
 
   const title = (
     <>
