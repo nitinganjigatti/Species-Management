@@ -29,9 +29,9 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import { fontSize, height, width } from '@mui/system'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
-import { right } from '@popperjs/core'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -58,8 +58,6 @@ const ListOfMedicine = () => {
 
   const handleEdit = async row => {
     const id = row?.id
-
-    // console.log('id', id)
 
     if (
       selectedPharmacy.type === 'central' &&
@@ -285,11 +283,11 @@ const ListOfMedicine = () => {
       headerName: 'Created by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     },
@@ -300,11 +298,11 @@ const ListOfMedicine = () => {
       headerName: 'Updated by',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.updated_by_user_name,
-            params?.row?.updated_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_updated_profile_pic}
+            user_name={params?.row?.updated_by_user_name}
+            date={params?.row?.updated_at}
+          />
         </>
       )
     },
@@ -359,8 +357,6 @@ const ListOfMedicine = () => {
     }
   ]
 
-  // /***** Serverside pagination */
-
   const [total, setTotal] = useState(0)
 
   const [sort, setSort] = useState(router.query.sort || 'asc')
@@ -370,10 +366,9 @@ const ListOfMedicine = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
-  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
   const [statusFilter, setStatusFilter] = useState(router.query.status || true)
@@ -519,7 +514,7 @@ const ListOfMedicine = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
     setStatusFilter(newValue)
   }
@@ -655,8 +650,7 @@ const ListOfMedicine = () => {
                       <Tab label='In-Active' value='false' />
                     </TabList>
                   </TabContext>
-                  {/* Search Field */}
-                  <Grid item xs={12} sm={8} md={7}>
+                  <Grid item size={{ xs: 12, sm: 8, md: 7 }}>
                     <Box
                       sx={{
                         display: 'flex',
@@ -686,12 +680,9 @@ const ListOfMedicine = () => {
                       />
                     </Box>
                   </Grid>
-
-                  {/* Tabs */}
                 </Box>
 
                 <TabContext value={tabValue}>
-                  {/* Tab Panels */}
                   <TabPanel value='all' sx={{ p: 0 }}>
                     {RenderTable()}
                   </TabPanel>

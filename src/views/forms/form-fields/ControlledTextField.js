@@ -2,6 +2,7 @@ import React from 'react'
 import { Controller } from 'react-hook-form'
 import get from 'lodash/get'
 import { TextField } from '@mui/material'
+import Utility from 'src/utility'
 
 const ControlledTextField = ({
   name,
@@ -18,9 +19,11 @@ const ControlledTextField = ({
   onKeyDown,
   onPaste,
   onInput,
+  dateReader = false,
+  formHelperTextBackgroundColor = 'inherit',
   sx = {}
 }) => {
-  const error = get(errors, name) //  safely access nested error
+  const error = get(errors, name)
   const helperText = error?.message || ''
 
   return (
@@ -32,15 +35,13 @@ const ControlledTextField = ({
         <TextField
           {...field}
           fullWidth={fullWidth}
-          value={field.value}
+          value={dateReader && field.value ? Utility?.formatDisplayDate(field.value) : field.value}
           type={type}
           label={label}
           onWheel={event => event.target.blur()}
           disabled={disabled}
-          InputProps={{ readOnly }}
           error={Boolean(error)}
           helperText={helperText}
-          inputProps={inputProps}
           onChange={e => {
             field.onChange(e)
             if (onChangeOverride) onChangeOverride(e)
@@ -49,6 +50,18 @@ const ControlledTextField = ({
           onPaste={onPaste}
           onInput={onInput}
           sx={sx}
+          slotProps={{
+            input: { readOnly },
+            htmlInput: inputProps,
+            formHelperText: {
+              sx: {
+                backgroundColor: formHelperTextBackgroundColor,
+                margin: 0,
+                px: '14px',
+                pt: '3px'
+              }
+            }
+          }}
         />
       )}
     />

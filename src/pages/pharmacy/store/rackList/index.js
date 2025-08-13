@@ -6,13 +6,11 @@ import AddRack from 'src/views/pages/pharmacy/store/rack/addRack'
 import toast from 'react-hot-toast'
 import ConfirmDialog from 'src/components/ConfirmationDialog'
 
-// ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box, CardHeader, TextField } from '@mui/material'
 import { useTheme } from '@emotion/react'
@@ -39,15 +37,13 @@ const ListOfRacks = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
-  // ** State
   const [open, setOpen] = useState(false)
   const handleClickOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, position: null, store_id: null, shelf: null, status: 'active' }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -448,7 +444,7 @@ const ListOfRacks = () => {
             alignItems: 'center'
           }}
         >
-          <Grid item xs={8} sx={{ width: { xs: '100%', sm: '240px' } }}>
+          <Grid item size={{ xs: 8 }} sx={{ width: { xs: '100%', sm: '240px' } }}>
             <Box
               sx={{
                 display: 'flex',

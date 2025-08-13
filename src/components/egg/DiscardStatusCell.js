@@ -1,7 +1,7 @@
-import { Icon } from '@iconify/react'
+import React from 'react'
 import { Avatar, Box, Button, Typography, Stack } from '@mui/material'
-import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
+import { Icon } from '@iconify/react'
 import moment from 'moment'
 
 const DiscardStatusCell = ({
@@ -13,19 +13,11 @@ const DiscardStatusCell = ({
   customButton,
   handleAction,
   condition
-
-  //  hover, setHover
 }) => {
   const theme = useTheme()
 
-  const [hover, setHover] = useState(false)
-
   return (
-    <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
-    >
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
       <Stack direction='row' className={customButton} spacing={2} sx={{}}>
         <Button
           variant='outlined'
@@ -41,9 +33,13 @@ const DiscardStatusCell = ({
           </Button>
         )}
       </Stack>
-
       <Box className={hideField} sx={{ display: 'flex', alignItems: 'center' }}>
-        <Stack direction='row' gap={'12px'}>
+        <Stack
+          direction='row'
+          sx={{
+            gap: '12px'
+          }}
+        >
           <Avatar
             variant='square'
             alt='Medicine Image'

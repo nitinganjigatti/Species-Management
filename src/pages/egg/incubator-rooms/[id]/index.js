@@ -93,6 +93,7 @@ const RoomDetails = () => {
   const fetchTableData = useCallback(
     async (q = '', availability) => {
       setLoading(true)
+
       const params = {
         sort,
         q,
@@ -760,7 +761,7 @@ const RoomDetails = () => {
               setOpenStatusDialog={setOpenStatusDialog}
               elements={total}
               statusLoading={statusLoading}
-              hatcheryStatusFunc={hatcheryStatusFunc}
+              toggleHatcheryStatus={hatcheryStatusFunc}
             />
             <EditRedirectionDialog
               refType={'incubator room'}

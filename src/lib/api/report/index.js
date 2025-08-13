@@ -56,7 +56,6 @@ export async function getAllAnimalReport(params) {
 }
 
 export async function getAnimalReportById(params) {
-  debugger
   const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
 
   return response.data

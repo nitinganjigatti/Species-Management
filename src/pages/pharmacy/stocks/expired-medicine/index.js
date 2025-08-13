@@ -35,14 +35,12 @@ const ExpiredMedicine = () => {
 
   const [loader, setLoader] = useState(false)
 
-  /***** Server side pagination */
-
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [excelLoader, setExcelLoader] = useState(false)
@@ -119,7 +117,6 @@ const ExpiredMedicine = () => {
     if (stores?.length === 0) {
       getStoresLists()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -326,9 +323,7 @@ const ExpiredMedicine = () => {
     return <FallbackSpinner />
   }
 
-  // if (isError) {
-  //   return <h1>{error.message}</h1>
-  // }
+ 
 
   return (
     <>
@@ -355,9 +350,7 @@ const ExpiredMedicine = () => {
               }}
               title={RenderUtility.pageTitle('Expired Products')}
 
-              // action={
-
-              // }
+              
             />
 
             <Grid
@@ -369,7 +362,7 @@ const ExpiredMedicine = () => {
                 mx: { xs: 2, sm: 6, md: 6, lg: 6 }
               }}
             >
-              <Grid item xs={12} md={8} lg={8}>
+              <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
                 <TextField
                   variant='outlined'
                   size='small'
@@ -377,22 +370,24 @@ const ExpiredMedicine = () => {
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{
                     borderRadius: '8px'
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Grid>
 
               <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
                 {selectedPharmacy.type === 'central' && (
-                  <Grid item xs={12} md={4} lg={4}>
+                  <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
                     <FormControl
                       sx={{
                         width: { xs: '100%', md: 200, lg: 200 },
@@ -439,9 +434,7 @@ const ExpiredMedicine = () => {
 
                 <Grid
                   item
-                  xs={12}
-                  md={4}
-                  lg={4}
+                  size={{ xs: 12, md: 4, lg: 4 }}
                   sx={{
                     my: selectedPharmacy.type === 'central' ? 0 : 2
                   }}

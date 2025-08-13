@@ -21,7 +21,6 @@ import Utility from 'src/utility'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import Icon from 'src/@core/components/icon'
@@ -34,6 +33,7 @@ import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import { STOCK_ADJUSTMENT_REASON_TYPES } from 'src/constants/PharmacyConstants'
 import LabelAndDescriptionWithElipsisModal from 'src/views/utility/LabelAndDescriptionWithElipsisModal'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -57,7 +57,7 @@ const ListOfStockAdjusted = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(router.query.reason || 'Missing stock')
@@ -65,8 +65,6 @@ const ListOfStockAdjusted = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setSearchValue('')
-
-    // Update status state and URL query
     setStatus(newValue)
   }
 
@@ -91,7 +89,6 @@ const ListOfStockAdjusted = () => {
         }
 
         await stocksAdjustedList({ params: params }).then(res => {
-          // console.log('stocksAdjustedList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -120,7 +117,6 @@ const ListOfStockAdjusted = () => {
       limit: paginationModel.pageSize,
       reason: status
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, status, paginationModel.page, paginationModel.pageSize])
 
   // useEffect(() => {
@@ -156,7 +152,7 @@ const ListOfStockAdjusted = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
 
       try {
         await fetchTableData(sort, q, column, status)
@@ -212,12 +208,15 @@ const ListOfStockAdjusted = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      minWidth: 70,
-
-      // field: 'sl',
-      headerName: 'S.NO',
-      renderCell: params => <Typography variant='body2'>{params.row.sl + '.'}</Typography>
+      width: 80,
+      headerName: 'SL.NO',
+      renderCell: params => (
+        <Box sx={{ display: 'flex' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {parseInt(params.row.sl) + '.'}
+          </Typography>
+        </Box>
+      )
     },
     {
       flex: 0.2,
@@ -275,12 +274,15 @@ const ListOfStockAdjusted = () => {
       minWidth: 160,
       field: 'created_by_user_name',
       headerName: 'Requested By',
-      renderCell: params =>
-        RenderUtility.renderUserAvatarDetails(
-          params?.row?.user_profile_pic,
-          params?.row?.created_by_user_name,
-          params?.row?.adjusted_at
-        )
+      renderCell: params => (
+        <>
+          <UserAvatarDetails
+            profile_image={params?.row?.user_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.adjusted_at}
+          />
+        </>
+      )
     }
   ]
 
@@ -308,8 +310,8 @@ const ListOfStockAdjusted = () => {
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start', // Align content to the left
-            alignItems: 'flex-start', // Align items to the top left
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
             gap: { xs: 3, sm: 0 },
             '& .MuiCardHeader-action': {
               width: { xs: '100% ', sm: 'auto' }
@@ -336,7 +338,7 @@ const ListOfStockAdjusted = () => {
         <Box
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
             alignItems: 'center',
             mx: { xs: 3, md: 5 }

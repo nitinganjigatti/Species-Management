@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Box, Card, Typography } from '@mui/material'
+import { Box, Typography, Grid } from '@mui/material'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
@@ -7,8 +7,9 @@ import Utility from 'src/utility'
 import { getAllShippedItemsOfSelectedStore } from 'src/lib/api/pharmacy/storeWiseRequest'
 import Icon from 'src/@core/components/icon'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
-export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, onExportClick }) {
+export default function ShippedItems({ updateUrlParams, setTotalShippedCounts }) {
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -26,8 +27,9 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
+  const [exportLoading, setExportLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -51,7 +53,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_id}</div>
+            {params.row.shipment_id}
           </Typography>
         </div>
       )
@@ -102,7 +104,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography component='div' variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -119,7 +121,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-            {/* /* This will show after shipping before receiving the request */}
+            {/* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
               (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (
@@ -266,6 +268,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
 
   const handleExport = async () => {
     try {
+      setExportLoading(true)
       const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
       const now = new Date()
 
@@ -286,30 +289,40 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
       const response = await getAllShippedItemsOfSelectedStore({ params: params }, currentStoreId)
       if (response?.success && response?.data) {
         Utility.downloadFileFromURL(response.data, `Requested_by_store_shipped_items ${timestamp}`)
+        setExportLoading(false)
       }
     } catch (error) {
       console.error('Problem downloading Excel File :', error)
+      setExportLoading(false)
     }
   }
 
-  useEffect(() => {
-    if (onExportClick) {
-      onExportClick(handleExport)
-    }
-  }, [total, searchValue, sort, sortColumn])
-
   return (
-    <CommonTable
-      // eslint-disable-next-line lines-around-comment
-      onRowClick={handleRowClick}
-      indexedRows={indexedRows}
-      total={total}
-      columns={shippedColumns}
-      paginationModel={paginationModel}
-      handleSortModel={handleSortModel}
-      setPaginationModel={setPaginationModel}
-      loading={loading}
-      searchValue={searchValue}
-    />
+    <>
+      <Grid
+        item
+        xs={12}
+        md={6}
+        sx={{
+          display: 'flex',
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' },
+          mr: 1
+        }}
+      >
+        <ExportButton onClick={handleExport} loading={exportLoading} disabled={total === 0} />
+      </Grid>
+      <CommonTable
+        // eslint-disable-next-line lines-around-comment
+        onRowClick={handleRowClick}
+        indexedRows={indexedRows}
+        total={total}
+        columns={shippedColumns}
+        paginationModel={paginationModel}
+        handleSortModel={handleSortModel}
+        setPaginationModel={setPaginationModel}
+        loading={loading}
+        searchValue={searchValue}
+      />
+    </>
   )
 }

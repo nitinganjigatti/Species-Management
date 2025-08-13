@@ -1,50 +1,24 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import {
-  CardContent,
   Grid,
   FormControl,
   Autocomplete,
   TextField,
   FormHelperText,
-  InputLabel,
-  Select,
-  MenuItem,
   Button,
   Typography,
   Paper,
-  Tooltip,
   Box
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import Chip from '@mui/material/Chip'
-
-import Table from '@mui/material/Table'
-import TableRow from '@mui/material/TableRow'
-
-import TableCell from '@mui/material/TableCell'
-import UserSnackbar from 'src/components/utility/snackbar'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-
-// import Table from '@mui/material/Table'
-// import TableRow from '@mui/material/TableRow'
-
-// import TableCell from '@mui/material/TableCell'
-
-// import TableHead from '@mui/material/TableHead'
-
-// import ConfirmDialog from 'src/components/ConfirmationDialog'
-
 import { LoaderIcon } from 'react-hot-toast'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CustomChip from 'src/@core/components/mui/chip'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
 const defaultValues = {
   request_item: {
@@ -348,7 +322,6 @@ export const AddItemsForm = ({
   //   )
   // }
   useEffect(() => {
-    console.log('available_item_qty in nested ', nestedMedicine)
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {
@@ -397,8 +370,8 @@ export const AddItemsForm = ({
         onSubmit={handleSubmit(onSubmit)}
         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
       >
-        <Grid container rowSpacing={4} columnSpacing={2} sm={12} xs={12}>
-          <Grid item xs={12} sm={12} lg={12}>
+        <Grid container rowSpacing={4} columnSpacing={2} size={{ xs: 12, sm: 12 }}>
+          <Grid item size={{ xs: 12, sm: 12, lg: 12 }}>
             <FormControl fullWidth>
               <Controller
                 name='request_item'
@@ -445,39 +418,31 @@ export const AddItemsForm = ({
                     onBlur={async () => {
                       await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
                     }}
-                    renderOption={(props, option) => (
-                      <li
-                        {...props}
-                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                      >
-                        <Box>
-                          {/* <Typography
-                            sx={{
-                              color: 'customColors.OnSecondaryContainer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              fontSize: '16px',
-                              fontWeight: 400
-                            }}
-                          >
+                    renderOption={(props, option) => {
+                      const { key, ...otherProps } = props
+
+                      return (
+                        <li
+                          key={`${option.value}-${option.label}`}
+                          {...otherProps}
+                          style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                        >
+                          <Box>
+                            <Typography component='div'>{option.label}</Typography>
+                            <Typography component='div' variant='body2'>
+                              {option.packageDetails}
+                            </Typography>
+                            <Typography component='div' variant='body2'>
+                              {option.manufacture}
+                            </Typography>
                             {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                            {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                            {option.label}
-                          </Typography> */}
-                          <Typography>{option.label}</Typography>
-                          {/* <Typography>{option.label}</Typography> */}
-                          <Typography variant='body2'>{option.packageDetails}</Typography>
-                          <Typography variant='body2'>{option.manufacture}</Typography>
-                          {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                          {/* {option.control_substance === true && (
-                            <CustomChip label='CS' skin='light' color='success' size='small' />
-                          )}{' '} */}
-                          {option.prescription_required === true && (
-                            <CustomChip label='PR' skin='light' color='success' size='small' />
-                          )}
-                        </Box>
-                      </li>
-                    )}
+                            {option.prescription_required === true && (
+                              <CustomChip label='PR' skin='light' color='success' size='small' />
+                            )}
+                          </Box>
+                        </li>
+                      )
+                    }}
                     loading={productLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (
@@ -548,14 +513,23 @@ export const AddItemsForm = ({
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
+                      component='div'
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px',
+                        mb: 1
+                      }}
                     >
                       Package:
                     </Typography>
                     <Typography
-                      color='primary.light'
+                      component='div'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {watch('packageDetails')}
                     </Typography>
@@ -563,14 +537,23 @@ export const AddItemsForm = ({
 
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
+                      component='div'
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px',
+                        mb: 1
+                      }}
                     >
                       Manufactured by:
                     </Typography>
                     <Typography
-                      color='primary.light'
+                      component='div'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {watch('manufacture')}
                     </Typography>
@@ -578,14 +561,22 @@ export const AddItemsForm = ({
 
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                      component='div'
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontFamily: 'Inter',
+                        fontSize: '12px'
+                      }}
                     >
                       Availability:
                     </Typography>
                     <Typography
-                      color='primary.light'
+                      component='div'
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                      sx={{
+                        color: 'primary.light'
+                      }}
                     >
                       {batchLoading ? <LoaderIcon /> : `${totalAvailableCount}`}
                     </Typography>
@@ -601,7 +592,7 @@ export const AddItemsForm = ({
                   >
                     <Typography
                       variant='body1'
-                      component='span'
+                      component='div'
                       sx={{
                         fontSize: '12px',
                         fontWeight: 400,
@@ -636,12 +627,16 @@ export const AddItemsForm = ({
               </Paper>
             )}
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Typography variant='subtitle1'>
               {getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'}
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+          <Grid
+            item
+            size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}
+            sm={getValues('stock_type') === 'non_medical' ? 6 : 4}
+          >
             {/* <FormControl fullWidth>
               <Controller
                 name='request_item_batch_no'
@@ -725,55 +720,76 @@ export const AddItemsForm = ({
                         error={Boolean(errors.request_item_batch_no)}
                       />
                     )}
-                    renderOption={(props, option) => (
-                      <Box
-                        component='li'
-                        {...props}
-                        sx={{
-                          border: '1px solid transparent',
-                          '&:last-child': {
-                            borderBottom: 'none'
-                          },
-                          m: 3,
-                          '&:hover': {
-                            border: `1px solid ${theme.palette.customColors.neutral05}`
-                          },
+                    renderOption={(props, option) => {
+                      const { key, ...otherProps } = props
 
-                          borderRadius: '2px'
-                        }}
-                      >
-                        <Box sx={{ p: 1 }}>
-                          <Typography
-                            variant='body2'
-                            color='customColors.customHeadingTextColor'
-                            sx={{ fontWeight: 600 }}
-                          >
-                            {option.label}
-                          </Typography>
-                          <Typography variant='body2' color='customColors.neutralSecondary'>
-                            Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
-                          </Typography>
-                          <Typography variant='body2' color='primary.main'>
-                            Availability: {option.available_item_qty}
-                          </Typography>
+                      return (
+                        <Box
+                          component='li'
+                          key={`${option.value}-${option.label}`}
+                          {...otherProps}
+                          sx={{
+                            border: '1px solid transparent',
+                            '&:last-child': {
+                              borderBottom: 'none'
+                            },
+                            m: 3,
+                            '&:hover': {
+                              border: `1px solid ${theme.palette.customColors.neutral05}`
+                            },
+                            borderRadius: '2px'
+                          }}
+                        >
+                          <Box sx={{ p: 1 }}>
+                            <Typography
+                              variant='body2'
+                              component='div'
+                              sx={{
+                                color: 'customColors.customHeadingTextColor',
+                                fontWeight: 600
+                              }}
+                            >
+                              {option.label}
+                            </Typography>
+                            <Typography
+                              variant='body2'
+                              component='div'
+                              sx={{
+                                color: 'customColors.neutralSecondary'
+                              }}
+                            >
+                              Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
+                            </Typography>
+                            <Typography
+                              variant='body2'
+                              component='div'
+                              sx={{
+                                color: 'primary.main'
+                              }}
+                            >
+                              Availability: {option.available_item_qty}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    )}
-                    PaperComponent={({ children, ...props }) => (
-                      <Paper
-                        {...props}
-                        elevation={3}
-                        sx={{
-                          mt: 1,
-                          '& .MuiAutocomplete-listbox': {
-                            p: 0,
-                            maxHeight: '300px'
-                          }
-                        }}
-                      >
-                        {children}
-                      </Paper>
-                    )}
+                      )
+                    }}
+                    slots={{
+                      paper: ({ children, ...props }) => (
+                        <Paper
+                          {...props}
+                          elevation={3}
+                          sx={{
+                            mt: 1,
+                            '& .MuiAutocomplete-listbox': {
+                              p: 0,
+                              maxHeight: '300px'
+                            }
+                          }}
+                        >
+                          {children}
+                        </Paper>
+                      )
+                    }}
                   />
                 )}
               />
@@ -787,7 +803,7 @@ export const AddItemsForm = ({
               ) : null}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
             <FormControl fullWidth>
               <Controller
                 name='multiplier'
@@ -812,8 +828,8 @@ export const AddItemsForm = ({
             </FormControl>
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item xs={12} sm={4}>
-              <FormControl fullWidth>
+            <Grid item size={{ xs: 12, sm: 4 }}>
+              {/* <FormControl fullWidth>
                 <Controller
                   name='expiry_date'
                   control={control}
@@ -829,25 +845,35 @@ export const AddItemsForm = ({
                       slotProps={{
                         textField: {
                           error: Boolean(errors.expiry_date)
-                        }
+                        },
+
+                        htmlInput: { disabled: true }
                       }}
-                      inputProps={{ disabled: true }}
                     />
                   )}
                 />
                 {errors.expiry_date && (
                   <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
                 )}
-              </FormControl>
+              </FormControl> */}
+              <ControlledTextField
+                name='expiry_date'
+                label='Expiry Date*'
+                control={control}
+                errors={errors}
+                required={true}
+                readOnly={true}
+                dateReader={true}
+              />
             </Grid>
           )}
           {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <Typography variant='subtitle1'> Quantity</Typography>
             </Grid>
           )}
 
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 12}>
+          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 12 }}>
             <FormControl fullWidth>
               <Controller
                 name='request_item_qty'
@@ -871,7 +897,7 @@ export const AddItemsForm = ({
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Box
               sx={{
                 backgroundColor: 'customColors.Surface',
@@ -884,7 +910,7 @@ export const AddItemsForm = ({
             >
               <Typography
                 variant='body1'
-                component='span'
+                component='div'
                 sx={{
                   fontSize: '12px',
                   fontWeight: 400,
@@ -898,11 +924,25 @@ export const AddItemsForm = ({
           </Grid>
 
           {quantityError && (
-            <Grid item xs={12}>
-              <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+            <Grid item size={{ xs: 12 }}>
+              <Typography
+                sx={{
+                  color: 'error.main'
+                }}
+              >
+                Quantity should be lesser than available Quantity.
+              </Typography>
             </Grid>
           )}
-          <Grid item xs={12} display={'flex'} justifyContent={'flex-end'} gap={4}>
+          <Grid
+            item
+            size={{ xs: 12 }}
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 4
+            }}
+          >
             <Button variant='outlined' onClick={() => closeDialog()}>
               Cancel
             </Button>

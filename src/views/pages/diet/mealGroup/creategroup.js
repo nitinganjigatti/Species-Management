@@ -14,12 +14,14 @@ import {
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { createMealGroup, getEnclosureListByGroup, updateMealGroup } from 'src/lib/api/diet/mealgroup'
 import toast from 'react-hot-toast'
 import { debounce } from 'lodash'
 import { fontSize } from '@mui/system'
 import { object } from 'yup'
+import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -42,51 +44,86 @@ const CreateMealGroup = ({
   mealId,
   handleEditSearch
 }) => {
-  console.log('editeditems >', editeditems, selectedItems, mealType)
 
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [removedEnclosures, setRemovedEnclosures] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] // Get the item being removed
+    const itemToRemove = selectedItems[index] 
     const updatedItems = selectedItems.filter((_, i) => i !== index)
     const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
 
     setSelectedItems(updatedItems)
-    setCheckedRows(updatedChecked) // or setSelectedCheckboxes(updatedChecked) if that's your setter
+    setCheckedRows(updatedChecked) 
   }
 
   console.log('Group NMW >', groupName)
+
+  // const handleCreateGroup = async () => {
+  //   if (!groupName.trim()) {
+  //     setGroupNameError(true)
+
+  //     return
+  //   }
+
+  //   setGroupNameError(false)
+
+  //   try {
+  //     const params = {
+  //       site_id: selectedOption,
+  //       enclosure_ids: JSON.stringify(checkedRows.map(Number)),
+  //       group_name: groupName
+  //     }
+
+  //     const response = await createMealGroup(params)
+
+  //     if (response?.success) {
+  //       handleCloseSideBar()
+  //       toast.success('Meal Group created Successfully')
+  //       setStatus('mealgroup')
+  //     } else {
+  //       toast.error(response?.message)
+  //     }
+  //   } catch (error) {
+  //     toast.error('Server error. Please try again.')
+  //     console.error('Create Meal Group Error:', error)
+  //   }
+  // }
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       setGroupNameError(true)
       return
     }
-
     setGroupNameError(false)
 
+    if (loading) return 
+
+    setLoading(true)
     try {
       const params = {
         site_id: selectedOption,
-        enclosure_ids: JSON.stringify(checkedRows.map(Number)), 
+        enclosure_ids: JSON.stringify(checkedRows.map(Number)),
         group_name: groupName
       }
 
       const response = await createMealGroup(params)
 
-      if (response) {
+      if (response?.success) {
         handleCloseSideBar()
         toast.success('Meal Group created Successfully')
         setStatus('mealgroup')
       } else {
-        toast.error('Something went wrong')
+        toast.error(response?.message)
       }
     } catch (error) {
       toast.error('Server error. Please try again.')
       console.error('Create Meal Group Error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -94,10 +131,10 @@ const CreateMealGroup = ({
     debounce(async q => {
       setSearchTerm(q)
       if (q.trim() === '') {
-        // Search field is cleared — restore from unmapped list using checkedRows
-        const data = [...selectedItems] // your original full unmapped list (store this when fetching the full list)
-        const filteredData = data.filter(item => checkedRows.includes(item.id)) // adjust key if needed
+        const data = [...selectedItems] 
+        const filteredData = data.filter(item => checkedRows.includes(item.id)) 
         setSelectedItems(filteredData)
+
         return
       }
 
@@ -116,7 +153,7 @@ const CreateMealGroup = ({
         console.log(err)
       }
     }, 1000),
-    [selectedOption] // 👈 now includes these dependencies
+    [selectedOption] 
   )
 
   const handleCreateSearch = value => {
@@ -125,10 +162,10 @@ const CreateMealGroup = ({
   }
 
   const handleUpdateGroup = async () => {
-    console.log('EditItems >', editeditems, removedEnclosures)
     const updatedEnclosure = editeditems?.map(item => item?.enclosure_id)
     if (!groupName.trim()) {
       setGroupNameError(true)
+
       return
     }
 
@@ -160,7 +197,7 @@ const CreateMealGroup = ({
   const handleEnclosureRemove = async index => {
     console.log('index >', index)
 
-    const itemToRemove = editeditems[index] // Get the item being removed
+    const itemToRemove = editeditems[index] 
 
     const updatedEditedEnclosures = editeditems.filter((_, i) => i !== index)
     const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
@@ -169,7 +206,7 @@ const CreateMealGroup = ({
     setRemovedEnclosures([...removedEnclosures, itemToRemove?.enclosure_id])
 
     setEditItems(updatedEditedEnclosures)
-    setCheckedRows(updatedChecked) // or setSelectedCheckboxes
+    setCheckedRows(updatedChecked) 
   }
 
   // const selectedObj = editeditems[index]
@@ -197,6 +234,8 @@ const CreateMealGroup = ({
   // }
 
   const theme = useTheme()
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   const RenderSidebarFooter = () => {
     return (
@@ -222,10 +261,12 @@ const CreateMealGroup = ({
           onClick={Object.keys(editParam).length > 0 ? handleUpdateGroup : handleCreateGroup}
           sx={{ height: '58px' }}
           fullWidth
+          disabled={loading}
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'
           size='large'
+
           //   loading={loading}
         >
           {Object.keys(editParam).length > 0 ? 'Update' : 'Create'}
@@ -234,7 +275,7 @@ const CreateMealGroup = ({
     )
   }
 
-  return (
+  return dietModule ? (
     <>
       <Drawer
         anchor='right'
@@ -264,6 +305,7 @@ const CreateMealGroup = ({
             //   lg: '562px'
             // },
             maxHeight: '100vh'
+
             // overflow: 'auto'
           }}
         >
@@ -293,6 +335,7 @@ const CreateMealGroup = ({
                 size='small'
                 onClick={() => {
                   handleCloseSideBar()
+
                   //   setSearchValue('')
                 }}
                 sx={{ color: theme.palette.primary.light }}
@@ -465,7 +508,14 @@ const CreateMealGroup = ({
               Selected enclosures
             </Typography>
             {mealType.type !== 'view' && (
-              <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  mt: 2,
+                  flexDirection: { xs: 'column', sm: 'row' }
+                }}
+              >
                 <TextField
                   placeholder='Search...'
                   value={Object.keys(editParam).length > 0 ? editSearchValue : searchTerm}
@@ -478,23 +528,25 @@ const CreateMealGroup = ({
                       handleCreateSearch(e.target.value)
                     }
                   }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    ),
-                    sx: {
-                      backgroundColor: 'white',
-                      borderRadius: '8px',
-                      m: { md: 5 },
-                      mt: { md: 0 },
-                      ml: { xs: 0, sm: 2, md: 1 },
-                      width: { xs: '96%', sm: '520px', md: '524px' },
-                      height: '48px',
-                      input: {
-                        color: theme.palette.customColors.Outline,
-                        padding: '10px 0'
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      ),
+                      sx: {
+                        backgroundColor: 'white',
+                        borderRadius: '8px',
+                        m: { md: 5 },
+                        mt: { md: 0 },
+                        ml: { xs: 0, sm: 2, md: 1 },
+                        width: { xs: '96%', sm: '520px', md: '524px' },
+                        height: '48px',
+                        input: {
+                          color: theme.palette.customColors.Outline,
+                          padding: '10px 0'
+                        }
                       }
                     }
                   }}
@@ -505,15 +557,19 @@ const CreateMealGroup = ({
             <Card
               sx={{
                 p: { xs: 2, sm: 5 },
+
                 // mt: 4,
                 width: { xs: '93vw', sm: '514px', md: '524px' },
+
                 //  width: '100%',
                 height: { xs: '100vh ', sx: 'calc(100dvh - 200px)', md: 'calc(100dvh - 100px)' },
+
                 // ml: 2,
                 mb: 10,
                 m: { xs: 2, sm: 3, md: 2 },
                 mt: { xs: 3, sm: 4, md: 0 },
                 ml: { xs: 0, sm: 2.5, md: 1 },
+
                 // mr:{xs:3},
                 boxShadow: 'none',
                 display: 'flex',
@@ -529,8 +585,8 @@ const CreateMealGroup = ({
                   gap: 2,
                   overflowY: 'auto',
                   overflowX: 'hidden',
-                  pr: 1, // Optional: adds some padding to the right to prevent content cutoff
-                  height: '80vh' // Makes sure the Box respects the Card height
+                  pr: 1, 
+                  height: '80vh' 
                 }}
               >
                 {loader ? (
@@ -651,6 +707,9 @@ const CreateMealGroup = ({
         {mealType.type !== 'view' && <RenderSidebarFooter />}
       </Drawer>
     </>
+  ) : (
+    <Error404 />
   )
 }
+
 export default CreateMealGroup

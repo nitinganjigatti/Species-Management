@@ -18,11 +18,11 @@ import Error404 from 'src/pages/404'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
-import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -54,8 +54,6 @@ const ListOfDiscardProducts = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, page, limit }) => {
-      console.log(page, 'page')
-
       try {
         setLoading(true)
 
@@ -68,7 +66,6 @@ const ListOfDiscardProducts = () => {
         }
 
         await getDiscardList({ params: params }).then(res => {
-          console.log('getDiscardList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -274,11 +271,11 @@ const ListOfDiscardProducts = () => {
       headerName: 'Discarded by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -347,8 +344,8 @@ const ListOfDiscardProducts = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', // Align content to the left
-                  alignItems: 'flex-start', // Align items to the top left
+                  justifyContent: 'flex-start',
+                  alignItems: 'flex-start',
                   gap: { xs: 3, sm: 0 },
                   '& .MuiCardHeader-action': {
                     width: { xs: '100% ', sm: 'auto' }
@@ -362,7 +359,7 @@ const ListOfDiscardProducts = () => {
               <Box
                 sx={{
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+                  flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'space-between'
                 }}
               >
@@ -416,8 +413,8 @@ const ListOfDiscardProducts = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', // Align content to the left
-                  alignItems: 'flex-start' // Align items to the top left
+                  justifyContent: 'flex-start',
+                  alignItems: 'flex-start'
                 }}
               />
               <Box
@@ -425,11 +422,10 @@ const ListOfDiscardProducts = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  flexWrap: 'wrap', // Allow wrapping on small screens
+                  flexWrap: 'wrap',
                   mx: { xs: 3, md: 5 }
                 }}
               >
-                {/* Left Box (Search Field) */}
                 <Box
                   sx={{
                     display: 'flex',
@@ -438,7 +434,7 @@ const ListOfDiscardProducts = () => {
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
-                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                    width: { xs: '100%', sm: '250px' },
                     height: '40px'
                   }}
                 >

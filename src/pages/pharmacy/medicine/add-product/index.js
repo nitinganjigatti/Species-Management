@@ -71,6 +71,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import GenericNamesList from '../../masters/generic'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -213,7 +214,6 @@ const AddMedicine = () => {
 
   const [packageQuantity, setPackageQuantity] = useState('')
 
-  //Default preSelected values on Edit
 
   const [defaultManufacturer, setDefaultManufacturer] = useState(null)
   const [defaultGenericName, setDefaultGenericName] = useState(null)
@@ -230,7 +230,6 @@ const AddMedicine = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
 
-  // states for Manufacturer and salt
 
   const [openManufacturer, setOpenManufacturer] = useState(false)
   const [openSalt, setOpenSalt] = useState(false)
@@ -290,8 +289,6 @@ const AddMedicine = () => {
       console.log(e)
     }
   }
-
-  console.log('Packeages ??', packages)
 
   const getProductForm = async ({ key, page, limit }) => {
     try {
@@ -735,30 +732,23 @@ const AddMedicine = () => {
     try {
       const response = await updateMedicineById(payload, id)
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
 
-        //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
 
         Router.replace(`/pharmacy/medicine/${id}`)
 
-        // Router.back()
       } else {
         setSubmitLoader(false)
 
-        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
         toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
       toast.error('error')
 
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
 
-      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 
@@ -767,10 +757,8 @@ const AddMedicine = () => {
       const response = await addMedicine(payload)
 
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
 
-        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
         if (shouldClearFieldsRef.current) {
@@ -788,24 +776,20 @@ const AddMedicine = () => {
         } else {
           debugger
 
-          // Router.push('/pharmacy/medicine/product-list')
           Router.replace(`/pharmacy/medicine/${response?.data?.stock_item_id}`)
         }
         setSubmitLoader(false)
       } else {
         setSubmitLoader(false)
 
-        // setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
         shouldClearFieldsRef.current = false
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
         toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
 
-      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+     
       toast.error('error')
 
       shouldClearFieldsRef.current = false
@@ -846,18 +830,6 @@ const AddMedicine = () => {
 
   const removeSaltButton = index => {
     return (
-      <Box>
-        <Icon
-          onClick={() => {
-            var tempDefaultSalts = defaultSalts
-            tempDefaultSalts.splice(index, 1)
-            setDefaultSalts(tempDefaultSalts)
-            remove(index)
-          }}
-          icon='material-symbols-light:close'
-        />
-      </Box>
-
       // <Button
       //   variant='outlined'
       //   color='error'
@@ -871,6 +843,17 @@ const AddMedicine = () => {
       // >
       //   {/* Remove */}
       // </Button>
+      <Box>
+        <Icon
+          onClick={() => {
+            var tempDefaultSalts = defaultSalts
+            tempDefaultSalts.splice(index, 1)
+            setDefaultSalts(tempDefaultSalts)
+            remove(index)
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
     )
   }
 
@@ -1023,14 +1006,14 @@ const AddMedicine = () => {
           ) : (
             <>
               <Grid container spacing={6} className='match-height'>
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Card>
                     <CardHeader
                       avatar={
                         <Icon
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
-                            //
+                            
                             Router.back()
                           }}
                           icon='ep:back'
@@ -1038,18 +1021,18 @@ const AddMedicine = () => {
                       }
                       title={id ? 'Edit Product' : 'Add New Product'}
                     />
-                    {console.log(fields, 'fields')}
+                  
                     <CardContent>
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>
-                          {/* <Grid item xs={12}> */}
+                          {/* <Grid item size={{xs: 12}}> */}
                           {/* <Grid container spacing={5}> */}
 
-                          {/* <Grid item xs={12} sm={12}>
+                          {/* <Grid item size={{xs: 12, sm: 12}}>
                             <div>Product</div>
                           </Grid> */}
                           {id ? (
-                            <Grid item xs={12} sm={12}>
+                            <Grid item size={{ xs: 12, sm: 12 }}>
                               <SwitchButton
                                 style={{ float: 'right' }}
                                 title='Active'
@@ -1061,7 +1044,7 @@ const AddMedicine = () => {
                               />
                             </Grid>
                           ) : null}
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.medicine_type)} id='medicine_type'>
                                 Product Type*
@@ -1104,9 +1087,8 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          {/* </Grid> */}
-                          {/* </Grid> */}
-                          <Grid item xs={12} sm={6}>
+                         
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='medicine_name'
@@ -1131,7 +1113,7 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
                           {medicineType !== 'non_medical' && (
-                            <Grid item xs={12} sm={6}>
+                            <Grid item size={{ xs: 12, sm: 6 }}>
                               <FormControl fullWidth>
                                 <Controller
                                   name='generic_name_id'
@@ -1183,7 +1165,14 @@ const AddMedicine = () => {
                             </Grid>
                           )}
                           {pharmacyRole && medicineType !== 'non_medical' && (
-                            <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                            <Grid
+                              item
+                              size={{ xs: 12, sm: 6 }}
+                              sx={{
+                                justifyContent: 'flex-end',
+                                alignSelf: 'center'
+                              }}
+                            >
                               <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
                                 <AddButton
                                   title='Add Generic Name'
@@ -1195,9 +1184,8 @@ const AddMedicine = () => {
                             </Grid>
                           )}
 
-                          {/* <Grid item xs={12} sm={12}> */}
-                          {/* <Grid container spacing={5}> */}
-                          <Grid item xs={12} sm={6}>
+                       
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='manufacturer'
@@ -1212,7 +1200,6 @@ const AddMedicine = () => {
                                     getOptionLabel={option => option.label}
                                     isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                     onChange={(e, val) => {
-                                      // setDefaultManufacturer(val)
 
                                       if (val === null) {
                                         setDefaultManufacturer(val)
@@ -1228,7 +1215,6 @@ const AddMedicine = () => {
                                     onKeyUp={e => {
                                       manufacturerSearch(e.target.value)
 
-                                      // getManufacturersList({ key: e.target.value })
                                     }}
                                     renderInput={params => (
                                       <TextField
@@ -1249,7 +1235,14 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
                           {pharmacyRole && (
-                            <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                            <Grid
+                              item
+                              size={{ xs: 12, sm: 6 }}
+                              sx={{
+                                justifyContent: 'flex-end',
+                                alignSelf: 'center'
+                              }}
+                            >
                               <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
                                 <AddButton
                                   title='Add Manufacturer'
@@ -1260,13 +1253,11 @@ const AddMedicine = () => {
                               </Box>
                             </Grid>
                           )}
-                          {/* </Grid> */}
-                          {/* </Grid> */}
-                          {/* Packages */}
-                          <Grid item xs={12} sm={12}>
+                        
+                          <Grid item size={{ xs: 12, sm: 12 }}>
                             <div>Package {getPackageString()}</div>
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid item size={{ xs: 12, sm: 3 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='package_type'
@@ -1313,7 +1304,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid item size={{ xs: 12, sm: 3 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='package_qty'
@@ -1338,7 +1329,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid item size={{ xs: 12, sm: 3 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='package_uom'
@@ -1386,7 +1377,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid item size={{ xs: 12, sm: 3 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='product_form'
@@ -1433,13 +1424,21 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          {/* //Package */}
-                          {/* Salt Composition */}
+                 
                           {medicineType !== 'non_medical' && (
-                            <Grid item xs={12} sm={12}>
+                            <Grid item size={{ xs: 12, sm: 12 }}>
                               <FormGroup>
-                                <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
-                                  <Grid item xs={6}>
+                                <Grid
+                                  container
+                                  item
+                                  xs={12}
+                                  sm={12}
+                                  spacing={2}
+                                  sx={{
+                                    alignItems: 'center'
+                                  }}
+                                >
+                                  <Grid item size={{ xs: 6 }}>
                                     <span style={{ marginRight: '10px' }}>Salt Composition</span>
                                     {pharmacyRole && (
                                       <span>
@@ -1456,7 +1455,7 @@ const AddMedicine = () => {
                                 </Grid>
                                 {fields.map((field, index) => (
                                   <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4 }}>
                                       <FormControl fullWidth>
                                         <Controller
                                           name={`salts[${index}].salt_id`}
@@ -1473,7 +1472,6 @@ const AddMedicine = () => {
                                                 disablePortal
                                                 id={`salts[${index}].salt_id`}
                                                 options={saltsList.filter(option => {
-                                                  // Assuming defaultSalts is an array of objects with a 'salt_id' property
                                                   const selectedSaltIds = defaultSalts.map(salt => salt?.salt_id)
 
                                                   return !selectedSaltIds.includes(option.salt_id)
@@ -1484,7 +1482,6 @@ const AddMedicine = () => {
                                                 }
                                                 onChange={(e, val) => {
                                                   if (val === null) {
-                                                    //setDefaultProductForm(undefined)
                                                     var saltComposition = defaultSalts
                                                     saltComposition[index] = null
                                                     setDefaultSalts(saltComposition)
@@ -1500,7 +1497,6 @@ const AddMedicine = () => {
                                                   }
                                                 }}
                                                 onKeyUp={e => {
-                                                  // getSaltsList({ key: e.target.value })
                                                   saltsListSearch(e.target.value)
                                                 }}
                                                 renderInput={params => {
@@ -1524,7 +1520,7 @@ const AddMedicine = () => {
                                         )}
                                       </FormControl>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4 }}>
                                       <FormControl fullWidth>
                                         <Controller
                                           name={`salts[${index}].salt_qty`}
@@ -1552,11 +1548,8 @@ const AddMedicine = () => {
                                     <Grid
                                       item
                                       xs={4}
-                                      // eslint-disable-next-line lines-around-comment
-                                      // justifyContent='flex-end'
-
-                                      alignSelf='center'
                                       sx={{
+                                        alignSelf: 'center',
                                         display: 'flex',
                                         justifyItems: 'center',
                                         alignItems: 'center'
@@ -1569,12 +1562,11 @@ const AddMedicine = () => {
                               </FormGroup>
                             </Grid>
                           )}
-                          {/* //Salt Composition */}
-                          {/* Others */}
-                          <Grid item xs={12} sm={12}>
+                     
+                          <Grid item size={{ xs: 12, sm: 12 }}>
                             <div>Others</div>
                           </Grid>
-                          {/* <Grid item xs={12} sm={6}>
+                          {/* <Grid item size={{xs: 12, sm: 6}}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.gst_slab)} id='gst_slab'>
                                 GST*
@@ -1609,7 +1601,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid> */}
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='drug_class'
@@ -1652,7 +1644,7 @@ const AddMedicine = () => {
                               />
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='storage'
@@ -1698,7 +1690,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             {console.log('errors', errors)}
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.controlled_substance)} id='controlled_substance'>
@@ -1740,7 +1732,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.prescription_required)} id='prescription_required'>
                                 Prescription Required
@@ -1770,7 +1762,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          {/* <Grid item xs={12} sm={6}>
+                          {/* <Grid item size={{xs: 12, sm: 6}}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.part_out_of_stock)} id='part_out_of_stock'>
                                 Part Out of Stock
@@ -1800,7 +1792,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid> */}
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='side_effects'
@@ -1825,7 +1817,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='uses'
@@ -1848,7 +1840,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='safety_advice'
@@ -1873,7 +1865,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='url'
@@ -1881,7 +1873,7 @@ const AddMedicine = () => {
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
-                                    value={value}
+                                    value={value || ''}
                                     label='Reference URL'
                                     name='safety_advice'
                                     onChange={onChange}
@@ -1894,7 +1886,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          {/* <Grid item xs={12} sm={6}>
+                          {/* <Grid item size={{xs: 12, sm: 6}}>
                             {id !== undefined ? (
                               <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
                                 <FormLabel>Status</FormLabel>
@@ -1927,7 +1919,7 @@ const AddMedicine = () => {
                               </FormControl>
                             ) : null}
                           </Grid> */}
-                          <Grid item xs={12}>
+                          <Grid item size={{ xs: 12 }}>
                             <Card>
                               <CardHeader title='Add Product Image' />
                               <CardContent>
@@ -1940,7 +1932,7 @@ const AddMedicine = () => {
                               </CardContent>
                             </Card>
                           </Grid>
-                          <Grid item xs={12}>
+                          <Grid item size={{ xs: 12 }}>
                             <Box sx={{ float: 'right' }}>
                               <LoadingButton
                                 size='large'

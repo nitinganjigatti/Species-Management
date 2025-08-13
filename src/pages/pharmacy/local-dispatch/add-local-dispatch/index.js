@@ -1,4 +1,3 @@
-/* eslint-disable lines-around-comment */
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
@@ -30,13 +29,9 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
+
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import CustomChip from 'src/@core/components/mui/chip'
 
 import { v4 as uuidv4 } from 'uuid'
 
@@ -55,7 +50,6 @@ import {
   updateDirectDispatchItems,
   cancelDirectDispatchItems
 } from 'src/lib/api/pharmacy/directDispatch'
-// import { deleteLineItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/dispatch/add-direct-dispatch-form'
 import Error404 from 'src/pages/404'
@@ -82,6 +76,7 @@ import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
+import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -89,6 +84,7 @@ const editParamsInitialState = {
 
   // from_store_id: '',
   to_store_id: '',
+
   // from_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
@@ -137,10 +133,10 @@ const AddLocalDispatch = () => {
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
-  // const [deleteItemId, setDeleteItemId] = useState('')
-  // const [deleteDialog, setDeleteDialog] = useState(false)
+
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
+  const [isEdit, setIsEdit] = useState(false)
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -180,10 +176,9 @@ const AddLocalDispatch = () => {
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
     setDuplicateMedError(false)
-    // Resetting State
     setOptionsBatchList([])
-    // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
+    if (isEdit) setIsEdit(false)
   }
 
   const showDialog = () => {
@@ -191,7 +186,6 @@ const AddLocalDispatch = () => {
     setVisibleExpiryField(false)
   }
 
-  // local nested items delete
   const removeItemsFromTable = itemId => {
     const updatedItems = editParams.request_item_details.filter(el => {
       return el.uuid != itemId
@@ -203,7 +197,7 @@ const AddLocalDispatch = () => {
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
   const addItemsToTable = params => {
-    const updatedNestedRows = [...editParams.request_item_details, params]
+    const updatedNestedRows = [...editParams.request_item_details, ...params]
     setEditParams({
       ...editParams,
       request_item_details: updatedNestedRows
@@ -242,14 +236,11 @@ const AddLocalDispatch = () => {
     if (!values.control_substance_file) {
       itemErrors.control_substance_file = 'This field is required'
     }
-    // if (values.control_substance) {
     if (values.control_substance === true) {
       if (values.control_substance_file.length === 0) {
         itemErrors.control_substance_file = 'This field is required'
       }
     }
-    // itemErrors.control_substance = 'This field is required'
-    // }
 
     return itemErrors
   }
@@ -257,9 +248,6 @@ const AddLocalDispatch = () => {
   const validateItems = values => {
     const errors = {}
 
-    // if (!values.from_store_id) {
-    //   errors.from_store_id = 'This field is required'
-    // }
     if (!values.to_store_id) {
       errors.to_store_id = 'This field is required'
     }
@@ -283,18 +271,22 @@ const AddLocalDispatch = () => {
 
     if (isMedicineAlreadyExists) {
       setDuplicateMedError(true)
-      console.log('Medicine already exists')
 
       return
     }
 
     setErrors({})
-    var tempParams = params
-    if (tempParams?.uuid === '') {
-      tempParams.uuid = uuidv4()
-      addItemsToTable(tempParams)
+
+    const allHaveUUIDs = params.every(item => item.uuid && item.uuid !== '')
+
+    const processedItems = params.map(item => ({
+      ...item,
+      uuid: allHaveUUIDs ? item.uuid : uuidv4()
+    }))
+    if (allHaveUUIDs) {
+      updateFormItems(processedItems[0])
     } else {
-      updateFormItems(params)
+      addItemsToTable(processedItems)
     }
 
     closeDialog()
@@ -325,6 +317,7 @@ const AddLocalDispatch = () => {
 
   const updateFormItems = params => {
     const HasErrors = !params.product_name || !params.request_item_qty || !params.priority_item
+
     // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(params))
@@ -381,11 +374,11 @@ const AddLocalDispatch = () => {
       const params = {
         sort: 'asc',
         q: searchText,
-        limit: 20
+        limit: 20,
+        is_specific: true
       }
 
       const searchResults = await getMedicineList({ params: params })
-      console.log('searchResults', searchResults)
       if (searchResults?.data?.list_items.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
@@ -519,17 +512,18 @@ const AddLocalDispatch = () => {
     }, 500),
     []
   )
+
   //  ****** debounce
 
   const getListOfItemsById = async id => {
     try {
       const result = await getDirectDispatchItemsListById(id)
-      console.log('direct dispatch items id ', result)
 
       if (result.success === true && result?.data?.request_item_details?.length > 0) {
         const lineItems = result?.data?.request_item_details.map(el => {
           return {
             request_item_medicine_id: el?.stock_item_id,
+
             // medicine_name: el?.stock_name,
             product_name: el?.stock_name,
             request_item_qty: el?.qty,
@@ -557,9 +551,11 @@ const AddLocalDispatch = () => {
           ...editParams,
           id: result.data.id,
           dispatch_id: result?.data?.dispatch_id,
+
           // from_store_id: result.data.from_store_id,
           to_store_id: result.data.to_store_id,
           ro_date: result.data.request_date,
+
           // from_store_type: result.data.from_store_type,
           to_store_type: result.data.to_store_type,
           user_id: result?.data?.user_id,
@@ -572,19 +568,20 @@ const AddLocalDispatch = () => {
     }
   }
 
-  // ****** edit section //////
   const editTableData = itemId => {
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
+    setIsEdit(true)
 
-    //
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
       request_item_medicine_id: getItems[0].request_item_medicine_id,
       request_item_batch_no: getItems[0].request_item_batch_no,
       expiry_date: getItems[0].expiry_date,
+      product_batches: [getItems[0]],
+
       // id: getItems[0].id,
       request_item_qty: getItems[0].request_item_qty,
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -599,6 +596,7 @@ const AddLocalDispatch = () => {
       multiplier: getItems[0]?.multiplier,
       unit_price: getItems[0]?.unit_price
     })
+
     // }
   }
 
@@ -607,11 +605,7 @@ const AddLocalDispatch = () => {
       //
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, action])
-
-  // ****** edit section //////
-  // data posting section
 
   const postItemsData = async () => {
     setSubmitLoader(true)
@@ -636,8 +630,6 @@ const AddLocalDispatch = () => {
       }
     } else {
       try {
-        console.log('postData', postData)
-
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {
           toast.success(response?.message)
@@ -655,18 +647,14 @@ const AddLocalDispatch = () => {
   }
 
   const cancelDirectDispatch = async id => {
-    console.log('id', id)
     if (id) {
       try {
         const result = await cancelDirectDispatchItems(id)
-        console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.replace(`/pharmacy/local-dispatch/`)
         } else {
           toast.error(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
         }
       } catch (error) {
         toast.error(error.data)
@@ -682,12 +670,10 @@ const AddLocalDispatch = () => {
   return (
     <>
       {selectedPharmacy.type === 'local' ? (
-        // (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <Card>
           <Grid
             container
-            sm={12}
-            xs={12}
+            size={{ xs: 12, sm: 12 }}
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -699,7 +685,6 @@ const AddLocalDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    // Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
                     Router.back()
                   }}
                   icon='ep:back'
@@ -714,7 +699,7 @@ const AddLocalDispatch = () => {
                 title={'Add Dispatch Item'}
                 dialogBoxStatus={show}
                 formComponent={
-                  <AddItemsForm
+                  <AddProductForm
                     searchBatchData={searchBatchData}
                     searchMedicineData={searchMedicineData}
                     productList={optionsMedicineList}
@@ -728,6 +713,7 @@ const AddLocalDispatch = () => {
                     totalQuantity={totalBatchQuantity}
                     editParams={editParams}
                     closeDialog={closeDialog}
+                    isEdit={isEdit}
                   />
                 }
                 close={closeDialog}
@@ -738,7 +724,7 @@ const AddLocalDispatch = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12}>
+                <Grid item size={{ xs: 12, sm: 12 }}>
                   <Typography
                     variant='subtitle2'
                     sx={{
@@ -751,7 +737,7 @@ const AddLocalDispatch = () => {
                     Dispatch to :
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ mb: 5, width: '100%' }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5, width: '100%' }}>
                   <FormControl fullWidth>
                     <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
                       Store*
@@ -770,8 +756,6 @@ const AddLocalDispatch = () => {
                         })
                         setErrors({})
                       }}
-                      // error={Boolean(errors?.state_id)}
-                      // labelId='state_id'
                     >
                       {toStocks?.map((item, index) => (
                         <MenuItem
@@ -791,7 +775,7 @@ const AddLocalDispatch = () => {
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
                   <Autocomplete
                     fullWidth
                     disablePortal
@@ -799,6 +783,15 @@ const AddLocalDispatch = () => {
                     value={users?.find(user => user?.value === editParams?.user_id) || null}
                     getOptionLabel={option => option?.label || ''}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
+                    renderOption={(props, option) => {
+                      const { key, ...otherProps } = props
+
+                      return (
+                        <li key={`${option.value}-${option.label}`} {...otherProps}>
+                          {option.label}
+                        </li>
+                      )
+                    }}
                     onKeyUp={e => {
                       searchUsersList(e.target.value)
                     }}
@@ -831,10 +824,9 @@ const AddLocalDispatch = () => {
                     }}
                   />
                 </Grid>
-                {/* </Grid>
-                </Grid> */}
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+
+                <Grid item size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                       &nbsp;
                     </Typography>
@@ -886,7 +878,6 @@ const AddLocalDispatch = () => {
               }}
             />
           </Grid> */}
-
           <Box
             sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6, mb: 4 }}
           >
@@ -929,7 +920,6 @@ const AddLocalDispatch = () => {
               }}
             />
           </Box>
-
           {editParams?.request_item_details.length ? (
             <Box>
               <Card
@@ -947,7 +937,6 @@ const AddLocalDispatch = () => {
                         <TableCell>Product Name</TableCell>
                         <TableCell>Batch No</TableCell>
                         <TableCell>Expiry Date</TableCell>
-                        <TableCell>Priority</TableCell>
                         <TableCell>Quantity</TableCell>
                         <TableCell>Unit Price</TableCell>
                         <TableCell>Total Value</TableCell>
@@ -971,13 +960,21 @@ const AddLocalDispatch = () => {
                                   >
                                     {el.product_name}
                                   </Typography>
-                                  {/* {el.control_substance ? (
-                                    <CustomChip label='CS' skin='light' color='success' size='small' />
-                                  ) : null} */}
-                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor'
+                                    }}
+                                  >
                                     {el.packageDetails}
                                   </Typography>
-                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor'
+                                    }}
+                                  >
                                     {el.manufacture}
                                   </Typography>
                                 </TableCell>
@@ -986,7 +983,6 @@ const AddLocalDispatch = () => {
                                     {el.request_item_batch_no}
                                   </Typography>
                                 </TableCell>
-
                                 <TableCell>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
                                     {el?.stock_type === 'non_medical'
@@ -994,8 +990,6 @@ const AddLocalDispatch = () => {
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
                                 </TableCell>
-                                <TableCell>{el.priority_item}</TableCell>
-
                                 <TableCell>{el.request_item_qty}</TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.unit_price)}
@@ -1003,19 +997,16 @@ const AddLocalDispatch = () => {
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}
                                 </TableCell>
-
                                 <TableCell>
                                   <IconButton
                                     size='small'
                                     sx={{ mr: 0.5 }}
                                     aria-label='Edit'
                                     onClick={() => {
-                                      //
                                       setMedicineItemId(el.request_item_medicine_id)
 
                                       editTableData(el.uuid)
                                       showDialog()
-                                      // }
                                     }}
                                   >
                                     <Icon icon='mdi:pencil-outline' />
@@ -1074,7 +1065,7 @@ const AddLocalDispatch = () => {
                   </Grid>
                 ) : null}
               </CardContent> */}
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Box sx={{ float: 'right', my: 4, mx: 6 }}>
                   {id ? (
                     <>
@@ -1082,6 +1073,7 @@ const AddLocalDispatch = () => {
                         title='Cancel Request'
                         action={() => {
                           openCancelDialog()
+
                           // setEditParams(editParamsInitialState)
                         }}
                       />

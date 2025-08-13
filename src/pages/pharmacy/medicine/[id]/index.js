@@ -40,11 +40,14 @@ import Overview from 'src/views/pages/pharmacy/product/product-details-list/over
 import Purchase from 'src/views/pages/pharmacy/product/product-details-list/purchase'
 import Dispatch from 'src/views/pages/pharmacy/product/product-details-list/dispatch'
 import Ledger from 'src/views/pages/pharmacy/product/product-details-list/ledger'
-import { getVariantFOrProduct, getVariants, mapVariantForProduct } from 'src/lib/api/pharmacy/variant'
+import { getVariantFOrProduct, getVariants, mapVariantForProduct, addVariant } from 'src/lib/api/pharmacy/variant'
 import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTheme } from '@emotion/react'
 import Error404 from 'src/pages/404'
+import AddVariant from 'src/views/pages/pharmacy/medicine/variant/addVariant'
+import toast from 'react-hot-toast'
+import Utility from 'src/utility'
 
 const ProductDetailsList = () => {
   const theme = useTheme()
@@ -62,19 +65,31 @@ const ProductDetailsList = () => {
 
   const defaultTab = 'overview'
   const [value, setValue] = React.useState(tab || defaultTab)
+  const [variantDrawer, setVariantDrawer] = useState(false)
+  const editParamsInitialState = { id: null, unit_multiplier: null, description: null, active: null }
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+  const [submitLoader, setSubmitLoader] = useState(false)
+
+  const addEventSidebarOpen = () => {
+    setEditParams(editParamsInitialState)
+    setVariantDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    setEditParams(editParamsInitialState)
+    setVariantDrawer(false)
+  }
 
   const updateUrlParams = useCallback(
     params => {
       const query = { ...router.query, ...params }
       router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
     },
-    [router.query.tab] // Only depend on router.query
+    [router.query.tab]
   )
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
-
-    // updateUrlParams({ tab: newValue })
   }
 
   const handleEdit = async row => {
@@ -154,14 +169,14 @@ const ProductDetailsList = () => {
       } catch (error) {
         console.error(error)
       }
-    }, 1000), // 1000ms delay
+    }, 1000),
     []
   )
 
   const handleSearchChange = event => {
     const query = event.target.value
     setSearchQuery(query)
-    searchVariant(query) // Trigger debounced function
+    searchVariant(query)
   }
 
   useEffect(() => {
@@ -183,10 +198,8 @@ const ProductDetailsList = () => {
   const handleToggle = variant => {
     setSelectedVariants(prev => {
       if (prev.some(item => item.id === variant.id)) {
-        // If the variant is already selected, remove it
         return prev.filter(item => item.id !== variant.id)
       } else {
-        // Otherwise, add it
         return [...prev, variant]
       }
     })
@@ -252,7 +265,7 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWisePurchaseList(id)
       if (result?.success === true && result?.data) {
-        // console.log(result.data, 'purchase')
+       
 
         const adjustedData = {
           purchase_count: result.data.purchase_count,
@@ -269,7 +282,7 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWiseDispatchList(id)
       if (result?.success === true && result?.data) {
-        // console.log(result.data, 'dispatch')
+       
 
         const adjustedData = {
           dispatch_count: result.data.dispatch_count,
@@ -282,6 +295,44 @@ const ProductDetailsList = () => {
     }
   }
 
+  const handleSubmitData = async payload => {
+    try {
+      setSubmitLoader(true)
+      var response
+
+      response = await addVariant(payload)
+
+      if (response?.success) {
+        toast.success(response?.message)
+
+        setSubmitLoader(false)
+        setVariantDrawer(false)
+        setEditParams(editParamsInitialState)
+        getAllVariantList()
+
+        return { success: true }
+      } else {
+        setSubmitLoader(false)
+
+        if (typeof response?.message === 'object') {
+          Utility.errorMessageExtractorFromObject(response.message)
+
+          return { success: false }
+        } else {
+          toast.error(response.message)
+
+          return { success: false }
+        }
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+
+      toast.error(JSON.stringify(e))
+
+      return { success: false }
+    }
+  }
   useEffect(() => {
     if (id != undefined) {
       productDashboardList(id)
@@ -300,7 +351,13 @@ const ProductDetailsList = () => {
             <>
               <Card sx={{ p: 6, mb: 4 }}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} mb={6}>
+                  <Grid
+                    item
+                    size={{ xs: 12 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <CardHeader
                       sx={{ p: 0, m: 0 }}
                       avatar={
@@ -317,13 +374,27 @@ const ProductDetailsList = () => {
                           {selectedPharmacy.type === 'central' &&
                             (selectedPharmacy.permission.key === 'allow_full_access' ||
                               selectedPharmacy.permission.key === 'ADD') && (
-                              <Button
-                                variant='contained'
-                                startIcon={<Icon icon='material-symbols:edit-outline' />}
-                                onClick={handleEdit}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: { md: 'row', xs: 'column', gap: 2 }
+                                }}
                               >
-                                Edit
-                              </Button>
+                                <Button
+                                  variant='contained'
+                                  startIcon={<Icon icon='material-symbols-light:add' />}
+                                  onClick={() => addEventSidebarOpen()}
+                                >
+                                  Add Variant To Master
+                                </Button>
+                                <Button
+                                  variant='contained'
+                                  startIcon={<Icon icon='material-symbols:edit-outline' />}
+                                  onClick={handleEdit}
+                                >
+                                  Edit
+                                </Button>
+                              </Box>
                             )}
                         </>
                       }
@@ -332,8 +403,14 @@ const ProductDetailsList = () => {
                 </Grid>
 
                 <Grid container spacing={4}>
-                  {/* Image Section */}
-                  <Grid item xs={12} sm={3} mb={6}>
+                
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 3 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <Avatar
                       variant='square'
                       src={uploadedImage}
@@ -348,15 +425,27 @@ const ProductDetailsList = () => {
                     />
                   </Grid>
 
-                  {/* Details Section */}
-                  <Grid item xs={12} sm={9}>
-                    <Grid container spacing={4} mb={6}>
-                      <Grid item xs={6}>
+                 
+                  <Grid item size={{ xs: 12, sm: 9 }}>
+                    <Grid
+                      container
+                      spacing={4}
+                      sx={{
+                        mb: 6
+                      }}
+                    >
+                      <Grid item size={{ xs: 6 }}>
                         <Box>
                           <Typography sx={{ color: 'secondary.dark', fontWeight: 500, fontSize: '20px' }}>
                             {productDetails?.name}
                           </Typography>
-                          <Typography variant='body2' component='div' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            component='div'
+                            sx={{
+                              color: 'text.secondary'
+                            }}
+                          >
                             <Box
                               component='span'
                               sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
@@ -373,8 +462,12 @@ const ProductDetailsList = () => {
                           </Typography>
                           <Typography
                             variant='body2'
-                            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 400, fontSize: '14px' }}
-                            mt={0.5}
+                            sx={{
+                              mt: 0.5,
+                              color: 'customColors.customHeadingTextColor',
+                              fontWeight: 400,
+                              fontSize: '14px'
+                            }}
                           >
                             Composition -{' '}
                             {productDetails?.salts && productDetails?.salts?.length > 0
@@ -390,10 +483,17 @@ const ProductDetailsList = () => {
                       </Grid>
 
                       {/* Package Options */}
-                      <Grid item xs={12} sm={6}>
+                      <Grid item size={{ xs: 12, sm: 6 }}>
                         <Box>
                           {/* Row with Available Packages and Add Variant Button */}
-                          <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              mb: 2
+                            }}
+                          >
                             <Typography variant='body2' component='div'>
                               <Box
                                 component='span'
@@ -432,8 +532,15 @@ const ProductDetailsList = () => {
                                 </Button>
                               )}
                           </Box>
-                          {/* Chips for Variant List */}
-                          <Box mt={1} display='flex' gap={1} flexWrap='wrap'>
+                         
+                          <Box
+                            sx={{
+                              mt: 1,
+                              display: 'flex',
+                              gap: 1,
+                              flexWrap: 'wrap'
+                            }}
+                          >
                             {variantProductList.map((option, inx) => (
                               <Chip
                                 key={option?.id}
@@ -455,7 +562,7 @@ const ProductDetailsList = () => {
                       </Grid>
                     </Grid>
 
-                    {/* Additional Info */}
+                 
                     <Box
                       sx={{
                         display: 'flex',
@@ -467,7 +574,7 @@ const ProductDetailsList = () => {
                       }}
                     >
                       <Grid container spacing={2}>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item size={{ xs: 12, sm: 4 }}>
                           <Typography
                             variant='caption'
                             sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
@@ -481,7 +588,7 @@ const ProductDetailsList = () => {
                             {productDetails?.manufacturer_name}
                           </Typography>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item size={{ xs: 12, sm: 4 }}>
                           <Typography
                             variant='caption'
                             sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
@@ -496,7 +603,7 @@ const ProductDetailsList = () => {
                             {productDetails?.drug_class_label || 'NA'}
                           </Typography>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item size={{ xs: 12, sm: 4 }}>
                           <Typography
                             variant='caption'
                             sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
@@ -507,7 +614,7 @@ const ProductDetailsList = () => {
                             variant='body2'
                             sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
                           >
-                            {/* Below 25°C */}
+                          
                             {productDetails?.storage_value || 'NA'}
                           </Typography>
                         </Grid>
@@ -517,7 +624,6 @@ const ProductDetailsList = () => {
                 </Grid>
               </Card>
               <Card sx={{ p: 6 }}>
-                {/* <TabsSimple productDetails={productDetails} /> */}
                 <TabContext value={value}>
                   <TabList
                     onChange={handleChange}
@@ -560,17 +666,18 @@ const ProductDetailsList = () => {
             anchor='right'
             open={isDrawerOpen}
             onClose={handleDrawerClose}
-            PaperProps={{
-              sx: {
-                width: 460,
-                backgroundColor: '#F5F9F6',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
+            slotProps={{
+              paper: {
+                sx: {
+                  width: 460,
+                  backgroundColor: '#F5F9F6',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }
               }
             }}
           >
-            {/* Sticky Header */}
             <Box
               sx={{
                 position: 'sticky',
@@ -581,7 +688,13 @@ const ProductDetailsList = () => {
                 py: 2
               }}
             >
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
                 <Typography variant='h6'>Select Variants</Typography>
                 <IconButton onClick={handleDrawerClose}>
                   <CloseIcon />
@@ -595,17 +708,18 @@ const ProductDetailsList = () => {
                   placeholder='Search Variants...'
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <SearchIcon />
-                      </InputAdornment>
-                    )
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <SearchIcon />
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Box>
             </Box>
-            {/* Scrollable Content */}
             <Box sx={{ p: 4, overflowY: 'auto', height: 'calc(100vh - 80px)' }}>
               <Card sx={{ p: 4 }}>
                 {mainLoader ? (
@@ -641,7 +755,12 @@ const ProductDetailsList = () => {
                   </List>
                 ) : (
                   <Box sx={{ textAlign: 'center', m: 4 }}>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary'
+                      }}
+                    >
                       No data found
                     </Typography>
                   </Box>
@@ -672,6 +791,14 @@ const ProductDetailsList = () => {
               </Button>
             </Box>
           </Drawer>
+          <AddVariant
+            drawerWidth={400}
+            addEventSidebarOpen={variantDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
         </>
       ) : (
         <Error404></Error404>

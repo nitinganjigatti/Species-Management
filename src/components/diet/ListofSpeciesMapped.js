@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Fragment } from 'react'
 import {
   Box,
   Drawer,
@@ -14,7 +14,13 @@ import {
   CardContent,
   CircularProgress,
   Switch,
-  Button
+  Button,
+  FormControl,
+  FormHelperText,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  DialogContentText
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -23,6 +29,8 @@ import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
 import Toaster from 'src/components/Toaster'
 import { useMediaQuery } from '@mui/material'
 import { addAssigntoDiet } from 'src/lib/api/diet/dietList'
+import SingleDatePicker from '../SingleDatePicker'
+import { format } from 'date-fns'
 
 const ListOfSpeciesMapped = ({
   isOpennew,
@@ -55,6 +63,15 @@ const ListOfSpeciesMapped = ({
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [loader, setLoader] = useState(false)
   const [primaryStatus, setPrimaryStatus] = useState({})
+  const [startDate, setStartDate] = useState(null)
+  const [endDate, setEndDate] = useState(null)
+  const [errors, setErrors] = useState({})
+  const [openModal, setOpenModal] = useState(false)
+
+  const handleClickOpen = () => {
+    setOpenModal(true)
+  }
+  const handleClose = () => setOpenModal(false)
 
   const handleSearch = event => {
     setSearchQuery(event.target.value)
@@ -84,7 +101,7 @@ const ListOfSpeciesMapped = ({
       }
       try {
         const response = await deleteSpeciesFromDiet(payload)
-        console.log(response, 'response')
+
         if (response.success === true) {
           await refreshSpeciesData()
           setPageNo(1)
@@ -108,10 +125,10 @@ const ListOfSpeciesMapped = ({
 
   const handelClose = () => {
     setIsOpennew(false)
-    //refreshDietDetails()
+
     setspeciesview('')
-    //setSearchQuery('')
-    // setPrimaryStatus({}) // Reset primary status when closing
+    setStartDate(null)
+    setEndDate(null)
   }
 
   const searchClose = () => {
@@ -129,7 +146,6 @@ const ListOfSpeciesMapped = ({
   }
 
   const handleAdd = async () => {
-    // Prepare payload based on selection type
     const payloadData = tempSelectedSpecies.map(id => ({
       [selectionType === 'species' ? 'species_id' : 'animal_id']: id,
       is_primary: primaryStatus[id] ? '1' : '0'
@@ -140,12 +156,14 @@ const ListOfSpeciesMapped = ({
 
     const payload = {
       diet_id: dietId,
+      start_date: formatDisplayDate(startDate),
+      end_date: formatDisplayDate(endDate),
       [selectionType === 'species' ? 'species_ids' : 'animal_ids']: JSON.stringify(payloadData)
     }
 
     try {
       const response = await addAssigntoDiet(payload, selectionType)
-      console.log('API Response:', response)
+
       if (response.success === true) {
         Toaster({
           type: 'success',
@@ -162,6 +180,9 @@ const ListOfSpeciesMapped = ({
         setSearchQuery('')
         setPrimaryStatus({})
         setLoader(false)
+        setOpenModal(false)
+        setStartDate(null)
+        setEndDate(null)
       } else {
         Toaster({
           type: 'error',
@@ -173,6 +194,28 @@ const ListOfSpeciesMapped = ({
       console.error('Error adding species to diet:', error)
       setLoader(false)
     }
+  }
+
+  const handleStartDateChange = date => {
+    setStartDate(date)
+    if (endDate && date > endDate) {
+      setErrors({ ...errors, startDate: 'Start date cannot be after end date' })
+    } else {
+      setErrors({ ...errors, startDate: null })
+    }
+  }
+
+  const handleEndDateChange = date => {
+    setEndDate(date)
+    if (startDate && date < startDate) {
+      setErrors({ ...errors, endDate: 'End date cannot be before start date' })
+    } else {
+      setErrors({ ...errors, endDate: null })
+    }
+  }
+
+  const formatDisplayDate = date => {
+    return date ? format(date, 'yyyy-MM-dd') : ''
   }
 
   const mappedSpecies =
@@ -224,7 +267,7 @@ const ListOfSpeciesMapped = ({
         </Box>
       </Box>
       {speciesview === 'details' ? (
-        <Grid item md={8} sm={8} xs={8}>
+        <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
           <Box
             sx={{
               bgcolor: theme.palette.background.paper,
@@ -259,9 +302,6 @@ const ListOfSpeciesMapped = ({
                   placeholder='Search'
                   value={searchQuery}
                   onChange={handleSearch}
-                  InputProps={{
-                    disableUnderline: false
-                  }}
                   sx={{
                     flex: 1,
                     mx: 1,
@@ -273,6 +313,11 @@ const ListOfSpeciesMapped = ({
                       }
                     }
                   }}
+                  slotProps={{
+                    input: {
+                      disableUnderline: false
+                    }
+                  }}
                 />
                 {searchQuery ? <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} /> : ''}
               </Box>
@@ -282,7 +327,6 @@ const ListOfSpeciesMapped = ({
       ) : (
         ''
       )}
-
       <Box
         sx={{
           backgroundColor: theme.palette.background.default,
@@ -327,8 +371,10 @@ const ListOfSpeciesMapped = ({
                 </ListItemAvatar>
                 <ListItemText
                   primary={dietDetails.diet_name}
-                  primaryTypographyProps={{
-                    sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                  slotProps={{
+                    primary: {
+                      sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                    }
                   }}
                   secondary={
                     <Typography
@@ -348,6 +394,110 @@ const ListOfSpeciesMapped = ({
               ''
             )}
             <>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'flex-end',
+                  px: '16px',
+                  mb: '26px',
+                  mt: '26px',
+                  mr: '30px'
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 5 }}>
+                  <FormControl sx={{ width: '200px' }}>
+                    <SingleDatePicker
+                      selected={startDate}
+                      onChange={handleStartDateChange}
+                      customInput={
+                        <TextField
+                          label='From Date'
+                          value={formatDisplayDate(startDate)}
+                          error={Boolean(errors.startDate)}
+                          sx={{
+                            '& .MuiInputBase-input': {
+                              padding: '14px'
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': {
+                                borderColor: '#44544a82'
+                              }
+                            },
+                            width: '100%'
+                          }}
+                          slotProps={{
+                            input: {
+                              sx: {
+                                mt: 1,
+                                height: '40px',
+                                padding: '0 14px',
+                                alignItems: 'center'
+                              }
+                            },
+
+                            inputLabel: {
+                              shrink: true,
+                              sx: {
+                                color: '#44544A'
+                              }
+                            }
+                          }}
+                        />
+                      }
+                      maxDate={endDate}
+                    />
+                    {errors.startDate && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.startDate}</FormHelperText>
+                    )}
+                  </FormControl>
+
+                  <FormControl sx={{ width: '200px' }}>
+                    <SingleDatePicker
+                      selected={endDate}
+                      onChange={handleEndDateChange}
+                      customInput={
+                        <TextField
+                          label='To Date'
+                          value={formatDisplayDate(endDate)}
+                          error={Boolean(errors.endDate)}
+                          sx={{
+                            '& .MuiInputBase-input': {
+                              padding: '14px'
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': {
+                                borderColor: '#44544a82'
+                              }
+                            },
+                            width: '100%'
+                          }}
+                          slotProps={{
+                            input: {
+                              sx: {
+                                mt: 1,
+                                height: '40px',
+                                padding: '0 14px',
+                                alignItems: 'center'
+                              }
+                            },
+
+                            inputLabel: {
+                              shrink: true,
+                              sx: {
+                                color: '#44544A'
+                              }
+                            }
+                          }}
+                        />
+                      }
+                      minDate={startDate}
+                      //maxDate={new Date()}
+                    />
+                    {errors.endDate && <FormHelperText sx={{ color: 'error.main' }}>{errors.endDate}</FormHelperText>}
+                  </FormControl>
+                </Box>
+              </Box>
               {!loading ? (
                 speciesview === 'select' ? (
                   <Typography
@@ -356,7 +506,14 @@ const ListOfSpeciesMapped = ({
                       pb: 1
                     }}
                   >
-                    {tempSelectedSpecies?.length} Species Selected
+                    {tempSelectedSpecies?.length}{' '}
+                    {selectionType === 'species'
+                      ? tempSelectedSpecies?.length === 1
+                        ? 'Specie Selected'
+                        : 'Species Selected'
+                      : tempSelectedSpecies?.length === 1
+                      ? 'Animal Selected'
+                      : 'Animals Selected'}
                   </Typography>
                 ) : (
                   <Typography
@@ -417,7 +574,7 @@ const ListOfSpeciesMapped = ({
                             pl: 3
                           }}
                         >
-                          Species
+                          {selectionType === 'species' ? 'Species' : 'Animals'}
                         </Typography>
                         <Typography
                           variant='body1'
@@ -459,6 +616,7 @@ const ListOfSpeciesMapped = ({
                                   : '',
                               px: 2,
                               py: 1.5,
+
                               // height: '70px',
                               borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                               borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
@@ -466,7 +624,15 @@ const ListOfSpeciesMapped = ({
                             }}
                           >
                             {/* Species Image and Name */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 2,
+                                width: '50%',
+                                minHeight: '100%'
+                              }}
+                            >
                               <Avatar
                                 src={species.default_icon ? species.default_icon : '/icons/species.svg'}
                                 alt={species.scientific_name}
@@ -480,7 +646,8 @@ const ListOfSpeciesMapped = ({
                                       : 'unset',
                                   height: '44px',
                                   width: '44px',
-                                  mr: 2
+                                  mr: 2,
+                                  mt: 2.5
                                 }}
                               />
                               <ListItemText
@@ -499,12 +666,14 @@ const ListOfSpeciesMapped = ({
                                   </Typography>
                                 }
                                 secondary={species.scientific_name ? species.scientific_name : '-'}
-                                secondaryTypographyProps={{
-                                  sx: {
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600,
-                                    lineHeight: 1.2
+                                slotProps={{
+                                  secondary: {
+                                    sx: {
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: 600,
+                                      lineHeight: 1.2
+                                    }
                                   }
                                 }}
                               />
@@ -553,7 +722,15 @@ const ListOfSpeciesMapped = ({
                             }}
                           >
                             {/* Species Image and Name */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 2,
+                                width: '50%',
+                                minHeight: '100%'
+                              }}
+                            >
                               <Avatar
                                 src={species.default_icon ? species.default_icon : '/icons/species.svg'}
                                 alt={species.scientific_name}
@@ -564,7 +741,11 @@ const ListOfSpeciesMapped = ({
                                       ? 'unset'
                                       : species?.default_icon
                                       ? '50%'
-                                      : 'unset'
+                                      : 'unset',
+                                  height: '44px',
+                                  width: '44px',
+                                  mr: 2,
+                                  mt: 2.5
                                 }}
                               />
                               <ListItemText
@@ -597,11 +778,13 @@ const ListOfSpeciesMapped = ({
                                     </Typography>
                                   </>
                                 }
-                                primaryTypographyProps={{
-                                  sx: {
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600
+                                slotProps={{
+                                  primary: {
+                                    sx: {
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: 600
+                                    }
                                   }
                                 }}
                                 secondary={
@@ -624,6 +807,26 @@ const ListOfSpeciesMapped = ({
                                         fontWeight: 500
                                       }}
                                     >
+                                      Encl: {species.user_enclosure_name ? species.user_enclosure_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
+                                      Sec: {species.section_name ? species.section_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
                                       Site: {species.site_name ? species.site_name : '-'}
                                     </Typography>
                                   </>
@@ -634,7 +837,6 @@ const ListOfSpeciesMapped = ({
                             {/* Toggle for Mark as Primary */}
                             <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                               <Switch
-                                //checked={!!primaryStatus[species.species_id]}
                                 checked={
                                   primaryStatus[
                                     selectionType === 'species' ? species.species_id : species.animal_id
@@ -646,7 +848,6 @@ const ListOfSpeciesMapped = ({
                               />
                             </Box>
 
-                            {/* Remove Icon */}
                             <Box sx={{ width: '12%', textAlign: 'right' }}>
                               <IconButton
                                 edge='end'
@@ -684,14 +885,12 @@ const ListOfSpeciesMapped = ({
           </>
         )}
       </Box>
-
       {/* bottom buttons */}
-
       <Box
         sx={{
           width: '100%',
           maxWidth: '562px',
-          height: '150px',
+          height: '127px',
           position: isSmallDevice ? 'absolute' : 'fixed',
           bottom: isSmallDevice ? 75 : 0,
           px: 4,
@@ -701,50 +900,9 @@ const ListOfSpeciesMapped = ({
           alignItems: 'center',
           boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
           zIndex: 123,
-          py: 2
+          py: 9
         }}
       >
-        {/* Informational Text */}
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            textAlign: 'left',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: theme.palette.customColors.OnTertiaryContainer,
-            mb: 3,
-            mt: 2,
-            pt: 2,
-            pb: 2,
-            background: '#FFBDA833',
-            borderRadius: '6px',
-            px: 2
-          }}
-        >
-          {/* Icon */}
-          <Icon
-            icon='material-symbols:warning-outline-rounded'
-            fontSize={24}
-            color={theme.palette.customColors.Tertiary}
-            style={{ marginRight: '4px', position: 'relative', top: '-12px' }}
-          />
-
-          {/* Text */}
-          <Typography
-            sx={{
-              fontSize: '16px',
-              fontWeight: 400,
-              color: theme.palette.customColors.OnTertiaryContainer
-            }}
-          >
-            This diet will override any previously set primary diet for the selected species
-          </Typography>
-        </Box>
-
-        {/* Buttons Container */}
         <Box
           sx={{
             display: 'flex',
@@ -752,7 +910,6 @@ const ListOfSpeciesMapped = ({
             gap: 2
           }}
         >
-          {/* Cancel Button */}
           <Button
             variant='outlined'
             size='large'
@@ -767,25 +924,107 @@ const ListOfSpeciesMapped = ({
             CANCEL
           </Button>
 
-          {/* Assign Diet Button */}
           <LoadingButton
             variant='contained'
             size='large'
-            disabled={tempSelectedSpecies?.length === 0}
-            onClick={handleAdd}
-            loading={loader}
+            disabled={tempSelectedSpecies?.length === 0 || (startDate && !endDate)}
+            onClick={handleClickOpen}
             sx={{ flex: 1, height: '45px' }}
-            loadingIndicator={
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                ASSIGN DIET
-                <CircularProgress size={20} sx={{ color: '#ccc' }} />
-              </span>
-            }
           >
-            {!loader && 'ASSIGN DIET'}
+            ASSIGN DIET
           </LoadingButton>
         </Box>
       </Box>
+      <Fragment>
+        <Dialog
+          open={openModal}
+          disableEscapeKeyDown
+          aria-labelledby='alert-dialog-title'
+          aria-describedby='alert-dialog-description'
+          onClose={(event, reason) => {
+            if (reason !== 'backdropClick') {
+              handleClose()
+            }
+          }}
+        >
+          <DialogContent style={{ paddingBottom: '5px' }}>
+            <DialogContentText id='alert-dialog-description'>
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnTertiaryContainer,
+                  mb: 3,
+                  mt: 2,
+                  pt: 4,
+                  pb: 4,
+                  background: '#FFBDA833',
+                  borderRadius: '6px',
+                  px: 2
+                }}
+              >
+                <Icon
+                  icon='material-symbols:warning-outline-rounded'
+                  fontSize={24}
+                  color={theme.palette.customColors.Tertiary}
+                  style={{ marginRight: '4px', position: 'relative', top: '-12px' }}
+                />
+
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    color: theme.palette.customColors.OnTertiaryContainer
+                  }}
+                >
+                  This diet will override any previously set primary diet for the selected species
+                </Typography>
+              </Box>
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions style={{ paddingBottom: '25px', justifyContent: 'center' }}>
+            <LoadingButton
+              variant='outlined'
+              onClick={handleClose}
+              sx={{
+                color: theme.palette.primary.main,
+                borderColor: theme.palette.primary.main,
+                mr: 4,
+                width: '120px',
+                height: '40px'
+              }}
+            >
+              Cancel
+            </LoadingButton>
+            <LoadingButton
+              variant='contained'
+              onClick={handleAdd}
+              sx={{
+                height: '40px',
+                mr: 4,
+                width: '120px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              loading={loader}
+              loadingIndicator={
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Proceed
+                  <CircularProgress size={20} sx={{ color: '#ccc' }} />
+                </span>
+              }
+            >
+              {!loader && 'Proceed'}
+            </LoadingButton>
+          </DialogActions>
+        </Dialog>
+      </Fragment>
     </Drawer>
   )
 }

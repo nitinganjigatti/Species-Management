@@ -8,7 +8,6 @@ import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 import Icon from 'src/@core/components/icon'
 
-// ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'
@@ -21,6 +20,7 @@ const TodaysCollection = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
   const [todaysCollection, setTodaysCollection] = useState(null)
+
   const series = [
     {
       // name: '',
@@ -32,6 +32,7 @@ const TodaysCollection = () => {
       ]
     }
   ]
+
   const options = {
     chart: {
       parentHeightOffset: 0,
@@ -138,7 +139,7 @@ const TodaysCollection = () => {
               gap: '24px'
             }}
             item
-            xl={2.985}
+            size={{ xl: 2.985 }}
           >
             <Box sx={{ display: 'flex', gap: '5px' }}>
               <Typography
@@ -158,15 +159,15 @@ const TodaysCollection = () => {
               </Typography>
             </Box>
             <Grid container spacing={17} columns={2}>
-              <Grid item md={1} xs={2}>
+              <Grid item size={{ xs: 2, md: 1 }}>
                 <ReactApexcharts type='bar' height={164} series={series} options={options} />
               </Grid>
-              <Grid item md={1} xs={2}>
+              <Grid item size={{ xs: 2, md: 1 }}>
                 <Grid spacing={6} container columns={2}>
                   <Grid
                     sx={{ py: '12px', px: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}
                     item
-                    xs={1}
+                    size={{ xs: 1 }}
                   >
                     <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                       <Box
@@ -190,7 +191,7 @@ const TodaysCollection = () => {
                   <Grid
                     sx={{ py: '12px', px: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}
                     item
-                    xs={1}
+                    size={{ xs: 1 }}
                   >
                     <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                       <Box
@@ -221,7 +222,7 @@ const TodaysCollection = () => {
                   <Grid
                     sx={{ py: '12px', px: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}
                     item
-                    xs={1}
+                    size={{ xs: 1 }}
                   >
                     <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                       <Box
@@ -245,7 +246,7 @@ const TodaysCollection = () => {
                   <Grid
                     sx={{ py: '12px', px: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}
                     item
-                    xs={1}
+                    size={{ xs: 1 }}
                   >
                     <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                       <Box

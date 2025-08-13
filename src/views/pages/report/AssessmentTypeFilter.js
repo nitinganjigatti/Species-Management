@@ -32,7 +32,6 @@ function AssessmentTypeFilter({
 
     try {
       const res = await getAssessmentCategoriesList({ ref_type: 'animal' })
-      //   console.log('res.data', res.data)
       const newList = res?.data || []
       setAssessmentCategoryList([
         {
@@ -150,9 +149,9 @@ function AssessmentTypeFilter({
             overflowX: 'auto',
             gap: 2,
             backgroundColor: 'background.default',
-            scrollbarWidth: 'none', // Firefox
+            scrollbarWidth: 'none', 
             '&::-webkit-scrollbar': {
-              display: 'none' // Chrome
+              display: 'none' 
             }
           }}
         >
@@ -276,9 +275,8 @@ function AssessmentTypeFilter({
                               display: 'flex',
                               justifyContent: 'center',
                               alignItems: 'center',
-                              border: `1.5px solid ${
-                                isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
-                              }`
+                              border: `1.5px solid ${isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
+                                }`
                             }}
                           >
                             {isSelected && (
@@ -287,11 +285,10 @@ function AssessmentTypeFilter({
                                   height: '10px',
                                   width: '10px',
                                   borderRadius: '50%',
-                                  border: `1.5px solid ${
-                                    isSelected
+                                  border: `1.5px solid ${isSelected
                                       ? theme.palette.primary.main
                                       : theme.palette.customColors.neutralSecondary
-                                  }`,
+                                    }`,
                                   bgcolor: isSelected ? theme.palette.primary.main : 'transparent'
                                 }}
                               ></Box>

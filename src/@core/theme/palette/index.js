@@ -1,8 +1,8 @@
 const DefaultPalette = (mode, skin) => {
   // ** Vars
   const whiteColor = '#FFF'
-  const lightColor = '76, 78, 100'
-  const darkColor = '234, 234, 255'
+  const lightColor = 'rgb(76, 78, 100)'
+  const darkColor = 'rgb(234, 234, 255)'
   const mainColor = mode === 'light' ? lightColor : darkColor
 
   const defaultBgColor = () => {
@@ -86,23 +86,37 @@ const DefaultPalette = (mode, skin) => {
       A700: '#616161'
     },
     text: {
-      primary: `rgba(${mainColor}, 0.87)`,
-      secondary: `rgba(${mainColor}, 0.6)`,
-      disabled: `rgba(${mainColor}, 0.38)`
+      // primary: `rgba(${mainColor}, 0.87)`,
+      primary: `rgba(76, 78, 100, 0.87)`,
+
+      // secondary: `rgba(${mainColor}, 0.6)`,
+      secondary: 'rgba(76, 78, 100, 0.6)',
+
+      // disabled: `rgba(${mainColor}, 0.38)`
+      disabled: 'rgba(76, 78, 100, 0.38)'
     },
-    divider: `rgba(${mainColor}, 0.12)`,
+
+    // divider: `rgba(${mainColor}, 0.12)`,
+    divider: `rgba(76, 78, 100, 0.12)`,
     background: {
       paper: mode === 'light' ? whiteColor : '#30334E',
       default: defaultBgColor()
     },
     action: {
-      active: `rgba(${mainColor}, 0.54)`,
-      hover: `rgba(${mainColor}, 0.05)`,
+      // active: `rgba(${mainColor}, 0.54)`,
+      // hover: `rgba(${mainColor}, 0.05)`,
       hoverOpacity: 0.05,
-      selected: `rgba(${mainColor}, 0.08)`,
-      disabled: `rgba(${mainColor}, 0.26)`,
-      disabledBackground: `rgba(${mainColor}, 0.12)`,
-      focus: `rgba(${mainColor}, 0.12)`
+
+      // selected: `rgba(${mainColor}, 0.08)`,
+      // disabled: `rgba(${mainColor}, 0.26)`,
+      // disabledBackground: `rgba(${mainColor}, 0.12)`,
+      // focus: `rgba(${mainColor}, 0.12)`
+      active: `rgba(76, 78, 100, 0.54)`,
+      hover: `rgba(76, 78, 100, 0.05)`,
+      selected: `rgba(76, 78, 100, 0.08)`,
+      disabled: `rgba(76, 78, 100, 0.26)`,
+      disabledBackground: `rgba(76, 78, 100, 0.12)`,
+      focus: `rgba(76, 78, 100, 0.12)`
     }
   }
 }

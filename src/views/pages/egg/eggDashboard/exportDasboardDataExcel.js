@@ -12,14 +12,12 @@ const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCa
   const [xlsxList, setXlsxList] = useState([])
   const [fileName, setFileName] = useState('Egg Table List')
 
-  // console.log('tab_Value :>> ', tab_Value)
 
   // useEffect(() => {}, [tab_Value, data])
 
   const handleExport = useCallback(
     data => {
       let formattedData
-      console.log('data', data)
       if (tab_Value === 'species') {
         setFileName('Species')
 
@@ -155,26 +153,20 @@ const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCa
           }))
         setXlsxList(formattedData)
       }
-      // Create a worksheet from the data
       const worksheet = XLSX.utils.json_to_sheet([])
 
-      // Add static header data
       const headerData = [
         // ['Egg Data Report'], // Header text
         // ['Name'] // Column header
       ]
 
-      // Add the header data to the worksheet
       XLSX.utils.sheet_add_aoa(worksheet, headerData, { origin: 'A1' })
 
-      // Add table data starting from row 3 (A3)
       XLSX.utils.sheet_add_json(worksheet, formattedData, { origin: 'A3' })
 
-      // Create a new workbook and append the worksheet
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Data')
 
-      // Convert the workbook to binary and create a blob
       const excelBuffer = XLSX.write(workbook, {
         bookType: 'xlsx',
         type: 'array'
@@ -184,7 +176,6 @@ const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCa
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       })
 
-      // Create a download link and trigger it
       const url = URL.createObjectURL(dataBlob)
       const link = document.createElement('a')
       link.href = url

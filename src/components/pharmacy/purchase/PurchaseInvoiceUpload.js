@@ -50,10 +50,9 @@ const PurchaseInvoiceUpload = ({
   const [file, setFile] = useState([])
   const [error, setError] = useState('')
 
-  const videoRef = useRef(null) // Reference to video element
-  const canvasRef = useRef(null) // Reference to canvas element
+  const videoRef = useRef(null) 
+  const canvasRef = useRef(null) 
   const browseButtonRef = useRef(null)
-
   const fileInputRef = useRef(null)
 
   const handleClick = () => {
@@ -73,13 +72,13 @@ const PurchaseInvoiceUpload = ({
     if (parts?.length === 3) {
       let [day, month, year] = parts
 
-      return `${year}-${month}-${day}` // Convert to YYYY-MM-DD
+      return `${year}-${month}-${day}` 
     }
 
     return ''
   }
 
-  // Request camera permission
+ 
   const requestCameraPermission = async () => {
     console.log('Requesting camera permission...')
 
@@ -94,7 +93,7 @@ const PurchaseInvoiceUpload = ({
       }
     } else {
       console.error('getUserMedia is not supported in this browser.')
-      setPermissionDenied(true) // If getUserMedia is not supported
+      setPermissionDenied(true) 
     }
   }
 
@@ -117,7 +116,7 @@ const PurchaseInvoiceUpload = ({
   const startCamera = async deviceId => {
     if (!deviceId) return
 
-    stopCamera() // Stop the previous camera if any
+    stopCamera() 
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -321,8 +320,7 @@ const PurchaseInvoiceUpload = ({
 
       const response = await invoiceProcessForPurchase(base64Images).then(async response => {
         setInvoiceSubmitLoader(false)
-        console.log('response,', response)
-        closeDialog()
+        // console.log('response,', response)
         let responseData = response?.data
 
         const payLoad = responseData?.product_details
@@ -352,6 +350,8 @@ const PurchaseInvoiceUpload = ({
           console.error('Error in variant mapping:', error)
         }
         if (responseData) {
+          closeDialog()
+
           const purchase_details = responseData?.product_details?.map((el, index) => {
             // Get GST values from invoice data
             const purchase_gst = el.purchase_gst || 0
@@ -494,10 +494,13 @@ const PurchaseInvoiceUpload = ({
             purchase_created_by: 'invoice_upload'
           })
           handleInputImageChange(file)
+
           toast.success('Invoice processed successfully')
+        } else {
+          toast.error('Invoice processed failed try again')
+          setInvoiceSubmitLoader(false)
         }
       })
-      console.log('Upload success:', response.data)
     } catch (error) {
       console.error('Error uploading images:', error)
 
@@ -604,7 +607,7 @@ const PurchaseInvoiceUpload = ({
       <TabContext value={tabStatus}>
         <TabPanel value='by_camera'>
           <Grid container>
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               {!hasPermission && !permissionDenied ? (
                 <div>
                   <Typography
@@ -650,7 +653,7 @@ const PurchaseInvoiceUpload = ({
                     <p>No cameras found.</p>
                   ) : (
                     <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Grid item xs={12} sm={3}>
+                      <Grid item size={{ xs: 12, sm: 3 }}>
                         <Typography
                           sx={{
                             fontWeight: 400,
@@ -688,8 +691,7 @@ const PurchaseInvoiceUpload = ({
                       </Grid>
                       <Grid
                         item
-                        xs={12}
-                        sm={5}
+                        size={{ xs: 12, sm: 5 }}
                         sx={{ borderRight: `1px solid ${theme.palette.customColors.neutral05}` }}
                       >
                         {currentCamera && (
@@ -771,8 +773,7 @@ const PurchaseInvoiceUpload = ({
                       </Grid>
                       <Grid
                         item
-                        xs={12}
-                        sm={3}
+                        size={{ xs: 12, sm: 3 }}
                         sx={{ overflowY: 'auto', overflowX: 'hidden', height: 400, ...customScrollbar }}
                       >
                         {Array.isArray(file) && file?.length > 0 && (
@@ -803,13 +804,13 @@ const PurchaseInvoiceUpload = ({
         <TabPanel value='by_input' sx={{ px: '24px' }}>
           <Grid
             container
-            gap={1}
             sx={{
+              gap: 1,
               display: 'flex',
               alignItems: 'center'
             }}
           >
-            <Grid item xs={12} md={5} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12, md: 5 }}>
               <FormControl fullWidth sx={{ my: 4 }}>
                 <input
                   type='file'
@@ -920,9 +921,7 @@ const PurchaseInvoiceUpload = ({
 
             <Grid
               item
-              xs={12}
-              md={6}
-              sm={12}
+              size={{ xs: 12, sm: 12, md: 6 }}
               sx={{
                 display: 'flex',
                 overflowX: 'auto',

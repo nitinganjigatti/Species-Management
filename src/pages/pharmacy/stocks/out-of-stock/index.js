@@ -31,7 +31,7 @@ const StockOut = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('low_stock')
   const [changeSwitch, setChangeSwitch] = useState()
@@ -49,7 +49,7 @@ const StockOut = () => {
         setLoading(true)
 
         const params = {
-          sort: sort || 'asc', // Default to 'asc'
+          sort: sort || 'asc', 
           q,
           column,
           page: paginationModel.page + 1,
@@ -76,7 +76,6 @@ const StockOut = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, changeSwitch])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -88,17 +87,16 @@ const StockOut = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const sortOrder = newModel[0]?.sort || 'asc' // Fallback to 'asc' if undefined
+      const sortOrder = newModel[0]?.sort || 'asc' 
       const sortField = newModel[0]?.field || ''
 
-      // Update state
       setSort(sortOrder)
       setSortColumn(sortField)
 
-      // Reset pagination to the first page
+     
       setPaginationModel(prev => ({ ...prev, page: 0 }))
 
-      // Fetch updated data with new sort
+     
       fetchTableData(sortOrder, searchValue, sortField, status)
     } else {
       console.log('No sort model applied')
@@ -353,9 +351,9 @@ const StockOut = () => {
           <CardHeader
             sx={{
               display: 'flex',
-              justifyContent: 'space-between', // Space between title and button
+              justifyContent: 'space-between', 
               alignItems: 'center',
-              px: { xs: 2, md: 5 }, // Responsive padding
+              px: { xs: 2, md: 5 }, 
               py: 2
             }}
             title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
@@ -369,8 +367,8 @@ const StockOut = () => {
               gap: 2
             }}
           >
-            {/* Left Box (Search Field) */}
-            <Grid item xs={12} sm={6}>
+        
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -405,8 +403,7 @@ const StockOut = () => {
 
             <Grid
               item
-              xs={12}
-              sm={6}
+              size={{ xs: 12, sm: 6 }}
               sx={{
                 textAlign: { xs: 'left', sm: 'right' },
                 ml: { xs: 3, sm: 6 },

@@ -108,7 +108,6 @@ const EggChart = ({ eggAnalytics, height }) => {
         <CardHeader
           title='Sales Country'
           subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
-          titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
           action={
             <OptionsMenu
               options={['Last 28 Days', 'Last Month', 'Last Year']}

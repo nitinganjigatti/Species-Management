@@ -18,7 +18,6 @@ const StyledGrid = styled(Grid)(({ theme }) => ({
   }
 }))
 
-// Styled component for the image
 const Img = styled('img')(({ theme }) => ({
   left: 0,
   bottom: 0,
@@ -32,7 +31,6 @@ const Img = styled('img')(({ theme }) => ({
 }))
 
 const AnalyticsCongratulations = () => {
-  // ** Hook
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -46,9 +44,11 @@ const AnalyticsCongratulations = () => {
         <Grid sx={{ display: 'flex', alignItems: 'center' }}>
           <StyledGrid
             item
-            xs={12}
-            md={selectedPharmacy.type === 'central' ? 3 : 2}
-            sm={selectedPharmacy.type === 'central' ? 4 : 4}
+            size={{
+              xs: 12,
+              md: selectedPharmacy.type === 'central' ? 3 : 2,
+              sm: selectedPharmacy.type === 'central' ? 4 : 4
+            }}
           >
             <Img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
           </StyledGrid>
@@ -56,7 +56,7 @@ const AnalyticsCongratulations = () => {
             <img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
           </Grid> */}
 
-          <Grid item xs={12} sm={7} md={9}>
+          <Grid item size={{ xs: 12, sm: 7, md: 9 }}>
             <Typography variant='h5' sx={{ mb: 4.5, color: 'white' }}>
               Simplify operations and enhance productivity
             </Typography>

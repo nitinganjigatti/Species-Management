@@ -1,24 +1,25 @@
-import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
-import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { useRouter } from 'next/router'
+
+import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Tooltip, Typography, debounce } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import Router from 'next/router'
+import { DataGrid } from '@mui/x-data-grid'
 import toast from 'react-hot-toast'
-import Toaster from 'src/components/Toaster'
-import AddLabTest from 'src/views/pages/lab/test/addTest'
-import { addLabTest, deleteLabTest, getLabTestList, updateLabTest } from 'src/lib/api/lab/master'
 import moment from 'moment'
-import TestDetails from 'src/views/pages/lab/test/testDetails'
-import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
-import Error404 from 'src/pages/404'
+
+import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
+import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import AddLabTest from 'src/views/pages/lab/test/addTest'
+import TestDetails from 'src/views/pages/lab/test/testDetails'
+
+import { addLabTest, deleteLabTest, getLabTestList, updateLabTest } from 'src/lib/api/lab/master'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const LabTest = () => {
   const theme = useTheme()
-  const router = useRouter()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
@@ -139,7 +140,6 @@ const LabTest = () => {
     setResetForm(true)
     setEditParams(params)
     setOpenDrawer(true)
-    console.log('params >>', params)
   }
 
   const confirmDeleteAction = async () => {
@@ -169,62 +169,62 @@ const LabTest = () => {
     console.log('Delete:', testId)
     setIsModalOpenDelete(true)
     setSelectedId(testId?.id)
-
-    // Add your logic to handle the delete action
   }
 
   const columns = [
     {
       flex: 0.3,
-      minWidth: 30,
+      minWidth: 200,
       sortable: false,
       field: 'LAB TEST NAME',
       headerName: 'LAB TEST NAME',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+        <Tooltip title={params.row.label ? params.row.label : '-'}>
+          <Typography noWrap variant='body2' sx={{
+            color: 'text.primary',
+            pl: 2,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
             {params.row.label ? params.row.label : '-'}
           </Typography>
-        </Box>
+        </Tooltip>
       )
     },
     {
       flex: 0.3,
-      Width: 30,
+      minWidth: 180,
       field: 'NO OF SAMPLES TYPES',
       headerName: 'NO OF SAMPLES TYPES',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-            {params.row.sample_type_count ? params.row.sample_type_count : '-'}
-          </Typography>
-        </Box>
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+          {params.row.sample_type_count ? params.row.sample_type_count : '-'}
+        </Typography>
       )
     },
     {
       flex: 0.3,
-      Width: 30,
+      minWidth: 170,
       field: 'NO OF SUB TESTS ',
       headerName: 'NO OF SUB TESTS ',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-            {params.row.sub_test_count ? params.row.sub_test_count : '-'}
-          </Typography>
-        </Box>
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+          {params.row.sub_test_count ? params.row.sub_test_count : '-'}
+        </Typography>
       )
     },
     {
       flex: 0.4,
-      minWidth: 40,
+      minWidth: 200,
       field: 'user_name',
       headerName: 'CREATED BY',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
@@ -245,30 +245,56 @@ const LabTest = () => {
             ) : (
               <Icon icon='mdi:user' />
             )}
-          </Avatar>
+          </Avatar> */}
+          <FallbackAvatar
+            variant='square'
+            alt='Medicine Image'
+            sx={{
+              width: 30,
+              height: 30,
+              borderRadius: '50%',
+              background: theme.palette.customColors.displaybgPrimary,
+              overflow: 'hidden'
+            }}
+            src={params?.row.created_by_user?.profile_pic}
+          />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
-            </Typography>
-            <Typography
-              noWrap
-              variant='body2'
-              sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}
-            >
-              {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
-            </Typography>
+            <Tooltip title={params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}>
+              <Typography noWrap variant='body2' sx={{
+                color: 'text.primary',
+                fontSize: 14,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+              </Typography>
+            </Tooltip>
+            <Tooltip title={params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  fontSize: 12,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )
     },
     {
       flex: 0.2,
-      minWidth: 30,
+      minWidth: 100,
       field: 'Action',
       headerName: 'Action',
       sortable: false,
-
-      // headerAlign: 'center',
       renderCell: params => (
         <>
           {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -321,12 +347,17 @@ const LabTest = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab Tests
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Lab Tests' action={headerAction} />
+            <CardHeader title='Lab Tests' sx={{ paddingX: 5 }} action={headerAction} />
 
             <DataGrid
               sx={{

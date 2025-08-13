@@ -11,7 +11,6 @@ import {
   List,
   ListItem,
   CardHeader,
-  Drawer,
   alpha,
   CircularProgress
 } from '@mui/material'
@@ -38,20 +37,18 @@ import {
   getProductExpiredBatchesList,
   getProductQuantityInStoresList
 } from 'src/lib/api/pharmacy/getMedicineList'
+
+// getAvailableMedicineByMedicineId
+import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 import FallbackSpinner from 'src/@core/components/spinner'
 import Utility from 'src/utility'
-import MonthlyChart from 'src/views/utility/monthlychart'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import {
   addNewAlternativeMedicineProducts,
   editNewAlternativeMedicineProducts,
   getAlternativeMedicineProducts
 } from 'src/lib/api/pharmacy/alternateMedicines'
-import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { debounce } from 'lodash'
-import ProductOption from 'src/views/pages/pharmacy/utility/ProductOption'
-import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import AlternativeMedicinesList from './AlternativeMedicinesList'
 import EditIcon from '@mui/icons-material/Edit'
 import EditAlternativeMedicineDrawer from './EditAlternativeMedicineDrawer'
 import AddAlternativeMedicineDrawer from './AddAlternativeMedicineDrawer'
@@ -72,14 +69,11 @@ const addValidationSchema = yup.object().shape({
             .test('is-unique', 'Duplicate Product Name selected', function (value) {
               const { options, parent, path } = this
 
-              // Skip validation if we are not on the updated field
               if (!parent || !path) return true
 
-              // Extract all alternatives (entire form array)
               const allAlternatives = options?.from?.[2]?.value?.alternatives || []
               const currentIndex = Number(path.match(/\d+/)?.[0])
 
-              // Ensure we're not validating the same field more than once
               const duplicates = allAlternatives.filter((item, idx) => {
                 const isSameProduct = item?.productName?.value === value
 
@@ -88,10 +82,7 @@ const addValidationSchema = yup.object().shape({
 
               const hasDuplicates = duplicates.length > 0
 
-              // console.log('Duplicate Count (excluding self):', duplicates.length)
-              // console.log('Validation Result:', !hasDuplicates)
-
-              return !hasDuplicates // Return false if duplicates exist, causing an error
+              return !hasDuplicates 
             })
         })
         .required('Product Name is required'),
@@ -114,7 +105,6 @@ const editValidationSchema = yup.object().shape({
 const Overview = props => {
   const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue, updateUrlParams } = props
   const theme = useTheme()
-
   const router = useRouter()
   const { id } = router.query
   const { selectedPharmacy } = usePharmacyContext()
@@ -147,13 +137,13 @@ const Overview = props => {
   )
 
   const handleProductChange = (selectedOption, index) => {
-    // Update productName field
+  
     setValue(`alternatives[${index}].productName`, selectedOption)
 
-    // Update or clear manufacturerName field
+  
     setValue(`alternatives[${index}].manufacturerName`, selectedOption?.manufacture || '')
 
-    // Re-trigger validation with current form context
+  
     trigger(undefined, {
       shouldFocus: false,
       context: {
@@ -168,7 +158,7 @@ const Overview = props => {
       setValue('status', option.status == 1 ? 'active' : 'inactive')
     } else {
       setValue('manufacturerName', '')
-      setValue('status', 'inactive') // fallback to 'inactive' if no option is selected
+      setValue('status', 'inactive')
     }
   }
 
@@ -240,16 +230,6 @@ const Overview = props => {
           const totalPages = Math.ceil(totalCount / limit)
           const hasMore = pageNum < totalPages
 
-          console.log('data setAlternativeMedicinesList', {
-            ...prev,
-            [tab]: {
-              list_items: updatedList,
-              total_count: totalCount,
-              page: pageNum,
-              hasMore
-            }
-          })
-
           return {
             ...prev,
             [tab]: {
@@ -307,7 +287,7 @@ const Overview = props => {
                 {selectedPharmacy.name}
                 {/* Central Pharmacy */}
               </Typography>
-              <Typography variant='body1' component='div'>
+              <Box>
                 <Typography
                   component='span'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
@@ -320,15 +300,19 @@ const Overview = props => {
                 >
                   {totalCentralQty}
                 </Typography>
-              </Typography>{' '}
+              </Box>
             </Box>
 
             {/* Table Section */}
             <Card sx={{ p: 4 }}>
               <Typography
                 variant='subtitle1'
-                marginBottom={2}
-                sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                sx={{
+                  marginBottom: 2,
+                  color: 'customColors.customHeadingTextColor',
+                  fontWeight: 500,
+                  fontSize: '14px'
+                }}
               >
                 Other Pharmacy Quantity Details
               </Typography>
@@ -555,6 +539,73 @@ const Overview = props => {
     </>
   )
 
+  const BatchQuantitiesContent = ({ data, isLoading }) => (
+    <>
+      {isLoading ? (
+        <FallbackSpinner />
+      ) : (
+        <Card
+          sx={{
+            border: '1px solid',
+            borderColor: 'customColors.customTableBorderBg',
+            boxShadow: 'none'
+          }}
+        >
+          <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ p: '6px' }}>BATCH ID</TableCell>
+                  <TableCell sx={{ p: '6px' }}>EXPIRY DATE</TableCell>
+                  <TableCell sx={{ p: '6px' }}>QUANTITY</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                {data.length === 0 ? (
+                  <TableRow
+                    sx={{
+                      '&:last-child td, &:last-child th': {
+                        border: 0
+                      }
+                    }}
+                  >
+                    <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
+                      No data found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.map((item, index) => {
+                    const value = (parseFloat(item.qty) * parseFloat(item.unit_price)).toFixed(2)
+
+                    const formattedValue = Number(value).toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })
+
+                    return (
+                      <TableRow
+                        key={index}
+                        sx={{
+                          '&:last-child td, &:last-child th': {
+                            border: 0
+                          }
+                        }}
+                      >
+                        <TableCell>{item.batch_no}</TableCell>
+                        <TableCell>{Utility.formatDisplayDate(Utility.convertUTCToLocal(item.expiry_date))}</TableCell>
+                        <TableCell>{item.qty}</TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+    </>
+  )
+
   const [activeDrawer, setActiveDrawer] = useState(null)
   const [drawerDataArray, setDrawerDataArray] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -579,6 +630,18 @@ const Overview = props => {
       totalQuantity: totalValue?.totalQuantity
     },
     {
+      name: 'batchQuantities',
+      title: 'Batch Details',
+      style: 'customColors.Background',
+      bgColor: theme.palette.customColors.neutral05,
+      icon: '/images/batchIcon.svg',
+      value: productDashboardData?.batch_count,
+      description: 'Batch Details',
+      totalBatches: productDashboardData?.batch_count
+
+      // totalQuantity: totalValue?.totalQuantity
+    },
+    {
       name: 'aboutToExpire',
       title: 'About to Expire',
       style: 'customColors.Background',
@@ -589,19 +652,21 @@ const Overview = props => {
       totalBatches: totalValue?.totalBatches,
       totalValue: totalValue?.totalValue
     },
-    {
-      name: 'expiredBatches',
-      title: 'Expired Batches',
-      style: 'customColors.Background',
-
-      // bgColor: '#E933531A',
-      bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
-      icon: '/images/Incubator_ICON.svg',
-      value: productDashboardData?.expired,
-      description: 'Expired Quantity',
-      totalBatches: totalValue?.totalBatches,
-      totalValue: totalValue?.totalValue
-    }
+    ...(productDetails?.stock_type !== 'non_medical'
+      ? [
+          {
+            name: 'expiredBatches',
+            title: 'Expired Batches',
+            style: 'customColors.Background',
+            bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
+            icon: '/images/Incubator_ICON.svg',
+            value: productDashboardData?.expired,
+            description: 'Expired Quantity',
+            totalBatches: totalValue?.totalBatches,
+            totalValue: totalValue?.totalValue
+          }
+        ]
+      : [])
   ]
 
   const closeDrawer = () => {
@@ -622,25 +687,30 @@ const Overview = props => {
       setIsLoading(true)
       let result
 
-      // Fetch data based on selected drawer ID
+    
       if (name === 'aboutToExpire') {
         result = await getProductAboutToExpireList(id)
       } else if (name === 'expiredBatches') {
         result = await getProductExpiredBatchesList(id)
       } else if (name === 'quantityInStores') {
         result = await getProductQuantityInStoresList(id)
+      } else if (name === 'batchQuantities') {
+        result = await getAvailableMedicineByMedicineId(id)
       }
-
       if (result?.success && result?.data) {
         setIsLoading(false)
-        setDrawerDataArray(result.data)
-        if (name === 'quantityInStores') {
+
+        // setDrawerDataArray(result?.data)
+        if (name === 'batchQuantities') {
+          setDrawerDataArray(result?.data.items)
+        } else if (name === 'quantityInStores') {
+          setDrawerDataArray(result?.data)
+
           const allStores = [...(result?.data?.central || []), ...(result?.data?.local || [])]
 
           const totalQuantity = allStores.reduce((sum, store) => sum + Number(store.total_qty), 0)
           const totalStores = allStores.length
 
-          // Set only totalValue and totalStores
           setTotalValue({
             totalQuantity,
             totalStores,
@@ -648,6 +718,8 @@ const Overview = props => {
             totalValue: 0
           })
         } else {
+          setDrawerDataArray(result?.data)
+
           const totalValue = result.data.reduce((acc, item) => {
             return acc + parseInt(item.qty) * parseInt(item.unit_price)
           }, 0)
@@ -664,6 +736,8 @@ const Overview = props => {
             totalValue
           })
         }
+      } else {
+        setIsLoading(false)
       }
     } catch (error) {
       setIsLoading(false)
@@ -681,7 +755,15 @@ const Overview = props => {
       return <AboutToExpireContent data={drawerDataArray} isLoading={isLoading} />
     }
     if (activeDrawer === 'expiredBatches') {
-      return <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+      return (
+        productDetails?.stock_type !== 'non_medical' && (
+          <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+        )
+      )
+    }
+
+    if (activeDrawer === 'batchQuantities') {
+      return <BatchQuantitiesContent data={drawerDataArray} isLoading={isLoading} />
     }
 
     return null
@@ -711,7 +793,6 @@ const Overview = props => {
     defaultValues: addDefaultValues
   })
 
-  // Watch alternatives field
   const alternatives = watch('alternatives')
 
   const handleAddAlternative = () => {
@@ -720,7 +801,6 @@ const Overview = props => {
 
   const handleDeleteLastAlternative = () => {
     if (alternatives.length > 1) {
-      // Only remove if more than one alternative exists
       setValue('alternatives', alternatives.slice(0, -1))
     }
   }
@@ -768,7 +848,6 @@ const Overview = props => {
       if (response.success) {
         toast.success(response?.message)
 
-        // Refetch first page of the relevant tab
         await getAlternativeMedicineList('active', 1)
         await getAlternativeMedicineList('inactive', 1)
         setEditMedicinesDrawerOpen(false)
@@ -801,7 +880,7 @@ const Overview = props => {
       id: medicine.id
     }
 
-    reset(defaultValues) // Prefill form
+    reset(defaultValues) 
     setEditMedicinesDrawerOpen(true)
   }
 
@@ -860,24 +939,41 @@ const Overview = props => {
 
   return (
     <>
-      <Grid container spacing={4} pt={5}>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          pt: 5,
+          display: 'flex',
+          justifyContent: 'space-between'
+        }}
+      >
         {drawerData.map(card => (
-          <StyleWithIconCardComponent
+          <Grid
             key={card.name}
-            value={card.value}
-            description={card.description}
-            icon={card.icon}
-            bgColor={card.bgColor}
-            onClick={() => openDrawer(card.name)}
-            showIcon={true}
-          />
+            item
+            size={{
+              xs: 6,
+              md: productDetails?.stock_type !== 'non_medical' ? 6 : 4,
+              sm: 6,
+              lg: productDetails?.stock_type !== 'non_medical' ? 3 : 4
+            }}
+          >
+            <StyleWithIconCardComponent
+              key={card.name}
+              value={card.value}
+              description={card.description}
+              icon={card.icon}
+              bgColor={card.bgColor}
+              onClick={() => openDrawer(card.name)}
+              showIcon={true}
+            />
+          </Grid>
         ))}
       </Grid>
-
       <Divider sx={{ my: 5 }} />
-
       <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'stretch' }}>
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             {/* <MonthlyChart
               title='Dispatch'
@@ -903,7 +999,7 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <ProductsChart
               title='Purchases'
@@ -919,44 +1015,41 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        {/* Apply similar structure to the rest of the cards */}
         <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              {/* Header Section */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography
-                  variant='body1'
+                <Box
                   sx={{
                     color: 'customColors.customHeadingTextColor',
                     fontSize: '16px',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
-                  <Box display='flex' alignItems='center'>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bgcolor: 'customColors.Tertiary',
-                        borderRadius: '4px',
-                        width: '30px',
-                        height: '24px',
-                        marginRight: '8px'
-                      }}
-                    >
-                      <Icon
-                        icon='clarity:child-arrow-line'
-                        style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }} // Icon color and size
-                      />
-                    </Box>
-                    Alternative Medicines{' '}
-                    {alternativeMedicinesList?.active?.total_count
-                      ? `(${alternativeMedicinesList?.active?.total_count})`
-                      : null}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      bgcolor: 'customColors.Tertiary',
+                      borderRadius: '4px',
+                      width: '30px',
+                      height: '24px',
+                      marginRight: '8px'
+                    }}
+                  >
+                    <Icon
+                      icon='clarity:child-arrow-line'
+                      style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}
+                    />
                   </Box>
-                </Typography>
+                  Alternative Medicines{' '}
+                  {alternativeMedicinesList?.active?.total_count
+                    ? `(${alternativeMedicinesList?.active?.total_count})`
+                    : null}
+                </Box>
 
                 <CardHeader
                   sx={{ p: 0, m: 0 }}
@@ -972,14 +1065,11 @@ const Overview = props => {
                 />
               </Box>
 
-              {/* Divider */}
               <Divider sx={{ my: 2 }} />
 
-              {/* Medicine List */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
                 {isLoading && !alternativeMedicinesList?.active?.list_items?.length ? (
                   <Typography
-                    color='primary.light'
                     style={{
                       fontWeight: 400,
                       fontSize: '0.875rem',
@@ -987,6 +1077,9 @@ const Overview = props => {
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center'
+                    }}
+                    sx={{
+                      color: 'primary.light'
                     }}
                   >
                     <CircularProgress />
@@ -1022,7 +1115,7 @@ const Overview = props => {
                       ))}
                     </List>
 
-                    {/* More Section - Only show if more than 5 */}
+                   
                     {alternativeMedicinesList?.active?.total_count > 5 && (
                       <Box>
                         <Button
@@ -1043,7 +1136,7 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -1161,25 +1254,23 @@ const Overview = props => {
           </Card>
         </Grid>
       </Grid>
-
       {activeDrawerData && (
         <CommonDrawerBox
-          title={activeDrawerData.title}
-          totalStores={activeDrawerData.totalStores}
-          totalQuantity={activeDrawerData.totalQuantity}
-          totalBatches={activeDrawerData.totalBatches}
-          totalValue={activeDrawerData.totalValue}
+          title={activeDrawerData?.title}
+          totalStores={activeDrawerData?.totalStores}
+          totalQuantity={activeDrawerData?.totalQuantity}
+          totalBatches={activeDrawerData?.totalBatches}
+          totalValue={activeDrawerData?.totalValue}
           drawerStatus={Boolean(activeDrawer)}
           close={closeDrawer}
           contentComponent={renderDrawerContent()}
-          style={activeDrawerData.style}
+          style={activeDrawerData?.style}
           width={700}
         />
       )}
-
       <CommonDrawerBox
-        imageUrl={'https://img.freepik.com/free-photo/colorful-design-with-spiral-design_188544-9588.jpg'}
-        title='Dolo 650 Tablet'
+        imageUrl={productDetails?.image}
+        title={productDetails?.name}
         drawerStatus={isAlternativeMedicinesDrawerOpen}
         close={() => setAlternativeMedicinesDrawerOpen(false)}
         contentComponent={
@@ -1192,7 +1283,6 @@ const Overview = props => {
         }
         style='customColors.Background'
       />
-
       {addMedicinesDrawerOpen && (
         <AddAlternativeMedicineDrawer
           open={addMedicinesDrawerOpen}
@@ -1210,7 +1300,6 @@ const Overview = props => {
           searchMedicineData={searchMedicineData}
         />
       )}
-
       {editMedicinesDrawerOpen && (
         <EditAlternativeMedicineDrawer
           open={editMedicinesDrawerOpen}
@@ -1229,4 +1318,4 @@ const Overview = props => {
   )
 }
 
-export default Overview
+export default React.memo(Overview)

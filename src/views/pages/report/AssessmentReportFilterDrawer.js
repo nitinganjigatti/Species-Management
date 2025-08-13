@@ -86,6 +86,20 @@ const AssessmentReportFilterDrawer = ({
 
   // const calculateFilterCount = () => {
   //   let count = 0
+  //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
+  //     if (Array.isArray(value)) {
+  //       count += value.length // For Site, Section, Enclosure, gender
+  //     } else if (typeof value === 'string' && value.trim() !== '') {
+  //       count += 1 // For accession_start and accession_end (non-empty strings)
+  //       // it will increase count by 2 in selection of 1 because on onchange is handling 2 keys
+  //     }
+  //   })
+
+  //   setFilterCount(count)
+  // }
+
+  // const calculateFilterCount = () => {
+  //   let count = 0
 
   //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
   //     if (Array.isArray(value)) {
@@ -170,6 +184,7 @@ const AssessmentReportFilterDrawer = ({
       })
     }
   }
+
   const selectAllGender = genderArray.every(item => tempSelectedItems.gender.includes(item.key))
 
   const handleSelectAllGender = () => {
@@ -186,7 +201,6 @@ const AssessmentReportFilterDrawer = ({
     }
   }
 
-  // Clear all data in tempSelectedItems & selectedItems
   const handleCancelAll = () => {
     setTempSelectedItems({
       Site: [],
@@ -261,7 +275,7 @@ const AssessmentReportFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
             {tabsforfilter.map(menu => {
               let count = 0
 
@@ -277,7 +291,7 @@ const AssessmentReportFilterDrawer = ({
                   (tempSelectedItems?.accession_start && tempSelectedItems?.accession_start.trim() !== '') ||
                   (tempSelectedItems?.accession_end && tempSelectedItems?.accession_end.trim() !== '')
                 ) {
-                  count = 1 // Show just "1" if date filter is applied
+                  count = 1 
                 }
               }
               return (
@@ -326,7 +340,8 @@ const AssessmentReportFilterDrawer = ({
               )
             })}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: theme.palette.primary.contrastText,
@@ -432,7 +447,6 @@ const AssessmentReportFilterDrawer = ({
                     )}
                   </Card>
 
-                  {/* Display selected sections */}
                   {tempSelectedItems?.Site?.length === 1 && (
                     <Card
                       sx={{

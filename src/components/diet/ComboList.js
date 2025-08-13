@@ -15,7 +15,6 @@ const ComboList = props => {
   const {
     addEventSidebarOpen,
     handleSidebarClose,
-    submitLoader,
     setSelectedCardCombo,
     selectedCardCombo,
     checkid,
@@ -42,6 +41,7 @@ const ComboList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
+
       const params = {
         page: ingredientPage,
         q: fromrow !== 'rowedit_combo' ? searchValue : comboName,
@@ -79,6 +79,7 @@ const ComboList = props => {
   const handleScroll = async e => {
     const container = e.target
     const threshold = 20
+
     // Check if user has reached the bottom and more data is available
     if (totalCount > ingredientList?.length && !reachedEnd) {
       const isNearBottom =
@@ -207,19 +208,6 @@ const ComboList = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <Icon
-                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                      icon={'ion:search-outline'}
-                    />
-                  ),
-                  endAdornment: searchValue && (
-                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                    </IconButton>
-                  )
-                }}
                 placeholder='Search combo'
                 onChange={handleSearchChange}
                 sx={{
@@ -230,6 +218,24 @@ const ComboList = props => {
                     }
                   }
                 }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <Icon
+                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                        icon={'ion:search-outline'}
+                      />
+                    ),
+                    endAdornment: searchValue && (
+                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                        <Icon
+                          icon={'ion:close-outline'}
+                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                        />
+                      </IconButton>
+                    )
+                  }
+                }}
               />
             </Box>
           </Box>
@@ -237,19 +243,17 @@ const ComboList = props => {
           ''
         )}
       </Box>
-
       {/* on scroll */}
       <Box
         className=''
         sx={{
           marginTop: fromrow !== 'rowedit_combo' ? 30 : 12,
-          //height: fromrow !== 'rowedit_combo' ? '70%' : '80%',
-          height: fromrow !== 'rowedit_combo' ? 'calc(100vh - 220px)' : '80%',
+
+          height: fromrow !== 'rowedit_combo' ? 'calc(100vh - 140px)' : '80%',
           overflowY: 'auto',
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4
         }}
-        //onScroll={handleScroll}
         onScroll={fromrow !== 'rowedit_combo' ? handleScroll : undefined}
       >
         <ComboCard
@@ -274,7 +278,7 @@ const ComboList = props => {
         />
 
         {/* End Card Section */}
-        {reachedEnd ? (
+        {reachedEnd && !loading ? (
           <Box
             sx={{
               display: 'flex',

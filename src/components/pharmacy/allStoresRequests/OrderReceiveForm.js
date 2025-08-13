@@ -55,7 +55,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 const LabelValues = ({ label, value }) => {
   return (
-    <Grid item md={2} sm={3} xs={6} sx={{ pt: 6 }}>
+    <Grid item size={{ md: 2, sm: 3, xs: 6 }} sx={{ pt: 6 }}>
       <p style={{ margin: '0px' }}> {label}</p>
       <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{value}</h4>
     </Grid>
@@ -77,11 +77,11 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
   return (
     <div ref={ref}>
       {disputeItemDetails?.item_details?.length > 0 ? (
-        <Grid container xs={12} sx={{ mx: 'auto' }}>
-          <Grid item xs={12}>
+        <Grid container size={{ xs: 12 }} sx={{ mx: 'auto' }}>
+          <Grid item size={{ xs: 12 }}>
             <Grid
               container
-              xs={12}
+              size={{ xs: 12 }}
               className='printable-container'
               sx={{ backgroundColor: 'customColors.bodyBg', pb: 6, px: 6, borderRadius: '10px' }}
             >
@@ -157,7 +157,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     </>
                   ) : null}
                 </Box>
-                <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+                <Grid size={{ xs: 12, sm: 12, md: 12 }} sx={{ my: 2 }}>
                   <Box sx={{ width: '100%', overflow: 'auto' }}>
                     <TableBasic
                       columns={columns}
@@ -307,7 +307,7 @@ function OrderReceiveForm({ shipmentId }) {
         item.id === itemId ? { ...item, [name]: value } : item
       )
     }
-    // console.log('updatedData', updatedData)
+ 
     setDisputeItemDetails(updatedData)
   }
 
@@ -629,7 +629,6 @@ function OrderReceiveForm({ shipmentId }) {
     return result
   }
 
-  console.log(listComments, 'listComments')
 
   async function markAsReceived(itemId) {
     if (!itemId) {
@@ -638,16 +637,13 @@ function OrderReceiveForm({ shipmentId }) {
       return
     }
     console.log(itemId, 'itemId')
-    // Update the status of the specific item to "Received"
     disputeItemDetails.item_details = disputeItemDetails.item_details.map(item =>
       item.id === itemId ? { ...item, status: 'Received' } : item
     )
-    // Call updateStatus to handle the rest of the logic
     await updateStatus()
     closeCommentDialog()
   }
 
-  // Usage in button click
 
   const commentDialogBox = () => {
     console.log(markReceived, 'markReceived')
@@ -685,7 +681,6 @@ function OrderReceiveForm({ shipmentId }) {
                         </Typography>
                       </Box>
 
-                      {/* Comment Card */}
                       <Box
                         sx={{
                           mb: 2,
@@ -717,16 +712,15 @@ function OrderReceiveForm({ shipmentId }) {
                     </Box>
                   ))
                 ) : (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <CircularProgress />
-                  </Box>
+                  </Box>)
 
                   // <Typography sx={{ px: 2 }}>No comments found for this request</Typography>
                   // <FallbackSpinner />
                 )}
               </Box>
 
-              {/* Mark as Received Button */}
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
                 <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
                   Mark as Received
@@ -793,7 +787,7 @@ function OrderReceiveForm({ shipmentId }) {
           //  </Box>
         }
       />
-    )
+    );
   }
 
   const columns = [
@@ -1080,13 +1074,13 @@ function OrderReceiveForm({ shipmentId }) {
                       padding: 0, // Add padding if required
                       m: 0,
                       '& .MuiGrid-item': {
-                        padding: '3px 4px !important' // Specifically target Grid item padding,
+                        padding: '3px 4px !important' 
                       }
                     }}
                   >
                     <Grid
                       item
-                      xs={5}
+                      size={{ xs: 5 }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1115,7 +1109,7 @@ function OrderReceiveForm({ shipmentId }) {
                     </Grid>
                     <Grid
                       item
-                      xs={5}
+                      size={{ xs: 5 }}
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                     >
                       <TextField
@@ -1158,10 +1152,16 @@ function OrderReceiveForm({ shipmentId }) {
                             })
                           }
                         }}
-                        inputProps={{ style: { fontSize: 12 } }}
+                        slotProps={{
+                          htmlInput: { style: { fontSize: 12 } }
+                        }}
                       />
                     </Grid>
-                    <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Grid
+                      item
+                      size={{ xs: 2 }}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
                       <Button
                         // sx={{ width: 2, maxWidth: 2 }}
                         sx={{ minWidth: 0, p: 1, m: 1, color: 'customColors.neutralSecondary' }}
@@ -1204,13 +1204,13 @@ function OrderReceiveForm({ shipmentId }) {
                       params?.row?.dispute_status === '' ||
                       params?.row?.dispute_status === undefined ||
                       params?.row?.dispute_status === 'Dispute Pending') ? (
-                      <Grid xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+                      <Grid size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', justifyContent: 'center' }}>
                         {/* in dispute wrong count case after denied */}
                         {params?.row?.status === 'Wrong Count - Deny Closed' ? (
                           <Grid container spacing={2} sx={{ py: 4 }}>
                             <Grid
                               item
-                              xs={5}
+                              size={{ xs: 5 }}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                               {!params?.row?.wrong_count_type === 'shortage' ? (
@@ -1248,7 +1248,7 @@ function OrderReceiveForm({ shipmentId }) {
                             </Grid>
                             <Grid
                               item
-                              xs={5}
+                              size={{ xs: 5 }}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                             >
                               {!params?.row?.wrong_count_type === 'shortage' ? (
@@ -1296,7 +1296,9 @@ function OrderReceiveForm({ shipmentId }) {
                                       })
                                     }
                                   }}
-                                  inputProps={{ style: { fontSize: 12 } }}
+                                  slotProps={{
+                                    htmlInput: { style: { fontSize: 12 } }
+                                  }}
                                 />
                               ) : (
                                 <Typography sx={{ color: 'error.main' }}> Denied</Typography>
@@ -1304,7 +1306,7 @@ function OrderReceiveForm({ shipmentId }) {
                             </Grid>
                             <Grid
                               item
-                              xs={2}
+                              size={{ xs: 2 }}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                               <Button
@@ -1358,7 +1360,7 @@ function OrderReceiveForm({ shipmentId }) {
                               }
                               onChange={event => handleStatusChange(params.row.id, event)}
                               sx={{
-                                backgroundColor: 'customColors.displaybgPrimary' // Apply the background color to the Select component
+                                backgroundColor: 'customColors.displaybgPrimary'
                               }}
                             >
                               <MenuItem value='' disabled>
@@ -1378,7 +1380,7 @@ function OrderReceiveForm({ shipmentId }) {
                             </Select>
                           </FormControl>
                         )}
-                        {/* in dispute wrong count case after denied end */}
+                    
 
                         {params.row.status === 'Wrong Count - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Closed' ||
@@ -1423,7 +1425,7 @@ function OrderReceiveForm({ shipmentId }) {
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>
-                        {/* {params.row.status} */}
+                      
                         {params.row.status === 'Wrong Count' ||
                         params.row.status === 'Shortage - Accepted' ||
                         params.row.status === 'Excess - Accepted'
@@ -1448,7 +1450,7 @@ function OrderReceiveForm({ shipmentId }) {
               </>
             )}
           </>
-        )
+        );
       }
     }
   ]
@@ -1533,14 +1535,14 @@ function OrderReceiveForm({ shipmentId }) {
     setChecked(isChecked)
 
     if (isChecked) {
-      setSubmitLoader(true) // Disable checkbox during submission
+      setSubmitLoader(true) 
       try {
-        await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(shipmentId) // Refresh the data only after updating status
+        await bulkStatusUpdate() 
+        await getOrderDetails(shipmentId) 
       } catch (error) {
         console.error('Error in bulk status update: ', error)
       } finally {
-        setSubmitLoader(false) // Re-enable checkbox after submission
+        setSubmitLoader(false) 
       }
     }
   }
@@ -1648,8 +1650,10 @@ function OrderReceiveForm({ shipmentId }) {
       ) : (
         <div>
           <Box sx={{ pb: 6 }}>
-            <Grid container justifyContent='space-between'>
-              <Grid item xs={12} sm='auto'>
+            <Grid container sx={{
+              justifyContent: 'space-between'
+            }}>
+              <Grid item size={{ xs: 12 }} sm='auto'>
                 <CardHeader
                   sx={{ padding: 0 }}
                   avatar={
@@ -1665,7 +1669,7 @@ function OrderReceiveForm({ shipmentId }) {
                 />
               </Grid>
 
-              <Grid container item xs={12} sm='auto' spacing={2}>
+              <Grid container item size={{ xs: 12, sm: 'auto' }} spacing={2}>
                 <Grid item>
                   <Button
                     size='large'
@@ -1722,7 +1726,7 @@ function OrderReceiveForm({ shipmentId }) {
         </div>
       )}
     </>
-  )
+  );
 }
 
 export default OrderReceiveForm

@@ -26,6 +26,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -56,7 +57,7 @@ const ListOfDiscardProducts = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
 
@@ -67,8 +68,6 @@ const ListOfDiscardProducts = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, page, limit, filterDates }) => {
-      console.log(page, 'page')
-
       try {
         setLoading(true)
         const isEmptyDates = filterDates?.startDate === '' && filterDates?.endDate === ''
@@ -78,7 +77,7 @@ const ListOfDiscardProducts = () => {
           q,
           column,
           ...(isEmptyDates
-            ? { from_date: '', to_date: '' } // Explicitly send empty values
+            ? { from_date: '', to_date: '' }
             : filterDates?.startDate && filterDates?.endDate
             ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
             : {}),
@@ -87,7 +86,6 @@ const ListOfDiscardProducts = () => {
         }
 
         await getDiscardList({ params: params }).then(res => {
-          console.log('getDiscardList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -181,7 +179,7 @@ const ListOfDiscardProducts = () => {
     debounce(async (sort, q, column, filterDates) => {
       setSearchValue(q)
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
 
       try {
         await fetchTableData({
@@ -326,11 +324,11 @@ const ListOfDiscardProducts = () => {
       headerName: 'Discarded by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -368,7 +366,6 @@ const ListOfDiscardProducts = () => {
       }
 
       const response = await getDiscardList({ params })
-      console.log('Response inventory>', response)
       setExcelLoader(false)
       if (response?.success === true && response?.data?.list_items?.length > 0) {
         const data = response?.data?.list_items?.map(el => ({
@@ -433,9 +430,9 @@ const ListOfDiscardProducts = () => {
     <Grid
       sx={{
         display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons vertically
-        gap: 2, // Add spacing between buttons
-        width: '100%' // Ensure full width
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 2,
+        width: '100%'
       }}
     >
       {/* <ExcelExportButton
@@ -483,7 +480,6 @@ const ListOfDiscardProducts = () => {
         from_date: formattedStartDate,
         to_date: formattedEndDate
       })
-      console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
         startDate: '',
@@ -493,7 +489,6 @@ const ListOfDiscardProducts = () => {
         from_date: '',
         to_date: ''
       })
-      console.log('Empty date range selected,', { startDate, endDate })
     }
   }
 
@@ -591,19 +586,24 @@ const ListOfDiscardProducts = () => {
                   mx: { xs: 3, md: 5 }
                 }}
               >
-                {/* Left Box (Search Field) */}
                 <Grid
                   container
                   spacing={4}
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Grid item xs={12} sm={6} md={5}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 5 }}>
                     <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
-                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                  <Grid item size={{ xs: 12, sm: 6 }}>
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{
+                        justifyContent: { xs: 'flex-end' }
+                      }}
+                    >
+                      <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
                           size='small'
@@ -611,19 +611,21 @@ const ListOfDiscardProducts = () => {
                           value={searchValue}
                           onChange={e => handleSearch(e.target.value)}
                           fullWidth
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position='start'>
-                                <Icon
-                                  icon='mi:search'
-                                  fontSize={24}
-                                  color={theme.palette.customColors.neutralSecondary}
-                                />
-                              </InputAdornment>
-                            )
-                          }}
                           sx={{
                             borderRadius: '8px'
+                          }}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position='start'>
+                                  <Icon
+                                    icon='mi:search'
+                                    fontSize={24}
+                                    color={theme.palette.customColors.neutralSecondary}
+                                  />
+                                </InputAdornment>
+                              )
+                            }
                           }}
                         />
                       </Grid>

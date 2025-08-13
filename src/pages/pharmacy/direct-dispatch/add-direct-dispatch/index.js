@@ -10,7 +10,7 @@ import TableBody from '@mui/material/TableBody'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import { Button, CardHeader } from '@mui/material'
@@ -30,18 +30,13 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
+
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import CustomChip from 'src/@core/components/mui/chip'
 
 import { v4 as uuidv4 } from 'uuid'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
-import SingleDatePicker from 'src/components/SingleDatePicker'
 import { debounce } from 'lodash'
 
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
@@ -55,7 +50,6 @@ import {
   updateDirectDispatchItems,
   cancelDirectDispatchItems
 } from 'src/lib/api/pharmacy/directDispatch'
-// import { deleteLineItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/dispatch/add-direct-dispatch-form'
 import Error404 from 'src/pages/404'
@@ -74,14 +68,15 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { boolean } from 'yup'
-import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+
+import { RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import { Stack } from '@mui/system'
 import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -89,7 +84,6 @@ const editParamsInitialState = {
 
   // from_store_id: '',
   to_store_id: '',
-  // from_store_type: '',
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
   priority_item: 'Normal',
@@ -136,10 +130,9 @@ const AddDirectDispatch = () => {
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
-  // const [deleteItemId, setDeleteItemId] = useState('')
-  // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
+  const [isEdit, setIsEdit] = useState(false)
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -175,6 +168,7 @@ const AddDirectDispatch = () => {
     setOptionsBatchList([])
     // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
+    if (isEdit) setIsEdit(false)
   }
 
   const showDialog = () => {
@@ -182,7 +176,6 @@ const AddDirectDispatch = () => {
     setVisibleExpiryField(false)
   }
 
-  // local nested items delete
   const removeItemsFromTable = itemId => {
     const updatedItems = editParams?.request_item_details?.filter(el => {
       return el.uuid != itemId
@@ -194,7 +187,7 @@ const AddDirectDispatch = () => {
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
 
   const addItemsToTable = params => {
-    const updatedNestedRows = [...editParams.request_item_details, params]
+    const updatedNestedRows = [...editParams.request_item_details, ...params]
     setEditParams({
       ...editParams,
       request_item_details: updatedNestedRows
@@ -262,7 +255,6 @@ const AddDirectDispatch = () => {
   }
 
   const submitItems = (params, type) => {
-    //
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams?.request_item_details?.some(
@@ -279,12 +271,18 @@ const AddDirectDispatch = () => {
     }
 
     setErrors({})
-    var tempParams = params
-    if (tempParams?.uuid === '') {
-      tempParams.uuid = uuidv4()
-      addItemsToTable(tempParams)
+
+    const allHaveUUIDs = params.every(item => item.uuid && item.uuid !== '')
+
+    const processedItems = params.map(item => ({
+      ...item,
+      uuid: allHaveUUIDs ? item.uuid : uuidv4()
+    }))
+
+    if (allHaveUUIDs) {
+      updateFormItems(processedItems[0])
     } else {
-      updateFormItems(params)
+      addItemsToTable(processedItems)
     }
 
     closeDialog()
@@ -315,7 +313,6 @@ const AddDirectDispatch = () => {
 
   const updateFormItems = params => {
     const HasErrors = !params.product_name || !params.request_item_qty || !params.priority_item
-    // ||!nestedRowMedicine.control_substance
     if (HasErrors) {
       setItemErrors(validate(params))
 
@@ -377,7 +374,6 @@ const AddDirectDispatch = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
-      console.log(searchResults, 'searchResults')
 
       if (searchResults?.data?.list_items?.length > 0) {
         setOptionsMedicineList(
@@ -514,7 +510,6 @@ const AddDirectDispatch = () => {
     }, 500),
     []
   )
-  //  ****** debounce
 
   const getListOfItemsById = async id => {
     try {
@@ -565,7 +560,6 @@ const AddDirectDispatch = () => {
     }
   }
 
-  // ****** edit section //////
   const editTableData = itemId => {
     //
     // if (id != undefined && action === 'edit') {
@@ -590,6 +584,8 @@ const AddDirectDispatch = () => {
     //     uuid: getItems[0].uuid
     //   })
     // } else {
+    setIsEdit(true)
+
     const getItems = editParams?.request_item_details?.filter(el => {
       return el.uuid === itemId
     })
@@ -601,6 +597,7 @@ const AddDirectDispatch = () => {
       request_item_medicine_id: getItems[0].request_item_medicine_id,
       request_item_batch_no: getItems[0].request_item_batch_no,
       expiry_date: getItems[0].expiry_date,
+      product_batches: [getItems[0]],
       // id: getItems[0].id,
       request_item_qty: getItems[0].request_item_qty,
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -623,11 +620,7 @@ const AddDirectDispatch = () => {
       //
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, action])
-
-  // ****** edit section //////
-  // data posting section
 
   const postItemsData = async () => {
     setSubmitLoader(true)
@@ -721,8 +714,8 @@ const AddDirectDispatch = () => {
           Router.replace(`/pharmacy/direct-dispatch/`)
         } else {
           toast.error(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
+          // setDeleteDialog(false)
+          // setDeleteItemId(null)
         }
       } catch (error) {
         toast.error(error.data)
@@ -754,8 +747,6 @@ const AddDirectDispatch = () => {
     return total + item.request_item_qty * parseFloat(item.unit_price)
   }, 0)
 
-  console.log(editParams.request_item_details, 'editParams')
-
   return (
     <>
       {selectedPharmacy.type === 'central' &&
@@ -763,8 +754,7 @@ const AddDirectDispatch = () => {
         <Card>
           <Grid
             container
-            sm={12}
-            xs={12}
+            size={{ xs: 12, sm: 12 }}
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -790,7 +780,7 @@ const AddDirectDispatch = () => {
                 title={'Add Dispatch Item'}
                 dialogBoxStatus={show}
                 formComponent={
-                  <AddItemsForm
+                  <AddProductForm
                     searchBatchData={searchBatchData}
                     searchMedicineData={searchMedicineData}
                     productList={optionsMedicineList}
@@ -804,6 +794,7 @@ const AddDirectDispatch = () => {
                     totalQuantity={totalBatchQuantity}
                     editParams={editParams}
                     closeDialog={closeDialog}
+                    isEdit={isEdit}
                   />
                 }
                 close={closeDialog}
@@ -814,7 +805,7 @@ const AddDirectDispatch = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12}>
+                <Grid item size={{ xs: 12, sm: 12 }}>
                   <Typography
                     variant='subtitle2'
                     sx={{
@@ -828,7 +819,7 @@ const AddDirectDispatch = () => {
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12} sm={6} sx={{ mb: 5, width: '100%' }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5, width: '100%' }}>
                   <FormControl fullWidth>
                     <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
                       Store*
@@ -847,8 +838,6 @@ const AddDirectDispatch = () => {
                         })
                         setErrors({})
                       }}
-                      // error={Boolean(errors?.state_id)}
-                      // labelId='state_id'
                     >
                       {toStocks?.map((item, index) => (
                         <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
@@ -865,7 +854,7 @@ const AddDirectDispatch = () => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} sm={6} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
                   <Autocomplete
                     fullWidth
                     disablePortal
@@ -876,6 +865,11 @@ const AddDirectDispatch = () => {
                     onKeyUp={e => {
                       searchUsersList(e.target.value)
                     }}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.value}>
+                        {option.label}
+                      </li>
+                    )}
                     renderInput={params => (
                       <TextField
                         fullWidth
@@ -1041,7 +1035,6 @@ const AddDirectDispatch = () => {
                 handleSubmit()
               }}
             />
-            {/* </Grid> */}
           </Box>
           {/* <Grid
             container
@@ -1080,7 +1073,7 @@ const AddDirectDispatch = () => {
                         <TableCell>Batch No</TableCell>
                         <TableCell>Expiry Date</TableCell>
                         <TableCell>Quantity</TableCell>
-                        <TableCell>Unit Price</TableCell>
+                        <TableCell>Net Unit Price</TableCell>
                         <TableCell>Total Value</TableCell>
                         <TableCell>Action</TableCell>
                       </TableRow>
@@ -1102,13 +1095,21 @@ const AddDirectDispatch = () => {
                                   >
                                     {el.product_name}
                                   </Typography>
-                                  {/* {el.control_substance ? (
-                                     <CustomChip label='CS' skin='light' color='success' size='small' />
-                                   ) : null} */}
-                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor'
+                                    }}
+                                  >
                                     {el.packageDetails}
                                   </Typography>
-                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor'
+                                    }}
+                                  >
                                     {el.manufacture}
                                   </Typography>
                                 </TableCell>
@@ -1117,7 +1118,6 @@ const AddDirectDispatch = () => {
                                     {el.request_item_batch_no}
                                   </Typography>
                                 </TableCell>
-
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
                                     {el?.stock_type === 'non_medical'
@@ -1125,7 +1125,6 @@ const AddDirectDispatch = () => {
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
                                 </TableCell>
-
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {el.request_item_qty}
                                 </TableCell>
@@ -1135,19 +1134,16 @@ const AddDirectDispatch = () => {
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}
                                 </TableCell>
-
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   <IconButton
                                     size='small'
                                     sx={{ mr: 0.5 }}
                                     aria-label='Edit'
                                     onClick={() => {
-                                      //
                                       setMedicineItemId(el.request_item_medicine_id)
 
                                       editTableData(el.uuid)
                                       showDialog()
-                                      // }
                                     }}
                                   >
                                     <Icon icon='mdi:pencil-outline' />
@@ -1155,11 +1151,7 @@ const AddDirectDispatch = () => {
 
                                   <IconButton
                                     onClick={() => {
-                                      // if (editParams?.request_item_details?.length === 1) {
-                                      //   openCancelDialog()
-                                      // } else {
                                       removeItemsFromTable(el.uuid)
-                                      // }
                                     }}
                                     size='small'
                                     sx={{ mr: 0.5 }}
@@ -1225,7 +1217,7 @@ const AddDirectDispatch = () => {
                    </Grid>
                  ) : null}
                </CardContent> */}
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Box sx={{ float: 'right', my: 4, mx: 6 }}>
                   {id ? (
                     <>
@@ -1233,7 +1225,6 @@ const AddDirectDispatch = () => {
                         title='Cancel Request'
                         action={() => {
                           openCancelDialog()
-                          // setEditParams(editParamsInitialState)
                         }}
                       />
                     </>

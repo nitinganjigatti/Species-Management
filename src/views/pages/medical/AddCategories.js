@@ -30,9 +30,11 @@ const schema = yup.object().shape({
 const AddCategories = props => {
   const { openDrawer, setOpenDrawer, editParams, resetForm, handleSubmitData, loading, type } = props
   const theme = useTheme()
+
   const defaultValues = {
     label_name: ''
   }
+
   const {
     control,
     handleSubmit,
@@ -67,7 +69,7 @@ const AddCategories = props => {
     await handleSubmitData(payload)
   }
 
-  const title = type === 'complaints' ? 'Complaints' : type === 'diagnosis' ? 'Diagnosis' : 'Category'
+  const title = type === 'complaints' ? 'Symptoms' : type === 'diagnosis' ? 'Clinical assessment' : 'Category'
 
   return (
     <>

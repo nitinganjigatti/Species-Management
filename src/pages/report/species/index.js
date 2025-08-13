@@ -1,48 +1,53 @@
-import {
-  Card,
-  CardHeader,
-  Typography,
-  Button,
-  Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Checkbox,
-  CircularProgress
-} from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
+import { useRouter } from 'next/router'
+
+import { Card, CardHeader, Typography, Button, Box, Checkbox, Tooltip, FormControl } from '@mui/material'
+import { Popover } from '@mui/material'
 import { TabContext, TabList } from '@mui/lab'
 import { useTheme } from '@emotion/react'
+
 import { AuthContext } from 'src/context/AuthContext'
-import { Popover, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
-import CheckIcon from '@mui/icons-material/Check'
+import { useAnimalContext } from 'src/context/AnimalContext'
+
 import toast from 'react-hot-toast'
-import { getReportFilterList } from 'src/lib/api/report'
 import Error404 from 'src/pages/404'
+import StickyTable from 'src/views/table/sticky-table'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
-import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
+
+import { getReportFilterList, getSpeciesListing } from 'src/lib/api/report'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const SpeciesReport = () => {
+  const router = useRouter()
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
 
+  const {
+    selectedAnimal,
+    setSelectedAnimal,
+    apiFilterParams,
+    setApiFilterParams,
+    selectedSites,
+    setSelectedSites,
+    selectedOptions,
+    setSelectedOptions
+  } = useAnimalContext()
   const [status, setStatus] = useState('statistics')
-  const [selectedSites, setSelectedSites] = useState([])
+
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
-  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [speciesList, setSpeciesList] = useState([])
+  const [searchValue, setSearchValue] = useState('')
 
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
-  const [selectedOptions, setSelectedOptions] = useState([])
+
   const [isDownloading, setIsDownloading] = useState(false)
 
   const [popoverData, setPopoverData] = useState({
@@ -61,24 +66,7 @@ const SpeciesReport = () => {
     ]
   })
 
-  const categories = ['Site']
-
-  const options = {
-    // Gender: ['Male', 'Female'],
-    // Weight: ['Light', 'Medium', 'Heavy'],
-    // Age: ['Young', 'Adult', 'Old'],
-    Site:
-      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
-      [] ||
-      []
-
-    // Section: ['North', 'South', 'East', 'West'],
-    // Enclosure: ['Enclosure 1', 'Enclosure 2'],
-    // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
-    // Breed: ['Breed A', 'Breed B']
-  }
-
-  const [apiFilterParams, setApiFilterParams] = useState({
+  const initialFilterParams = {
     include_housing: 0,
     include_enclosure: 0,
     include_section: 0,
@@ -88,9 +76,8 @@ const SpeciesReport = () => {
     include_order: 0,
     include_family: 0,
     include_genus: 0,
-    include_site: 0,
-    include_genus: 0
-  })
+    include_site: 0
+  }
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
@@ -105,20 +92,19 @@ const SpeciesReport = () => {
 
   const getStatisticsDataToExport = async () => {
     await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
-
-    // const params = {
-    //   response_type: 'csv',
-    //   ...Object.keys(apiFilterParams).reduce((acc, key) => {
-    //     if (apiFilterParams[key] === 1) {
-    //       acc[key] = 1
-    //     }
-
-    //     return acc
-    //   }, {})
-    // }
-
-    // debugger
   }
+
+  useEffect(() => {
+    const fetchSpeciesList = async () => {
+      const response = await getSpeciesListing()
+      if (response.success) {
+        setSpeciesList(response.data.result)
+      } else {
+        console.error('Error something went wrong')
+      }
+    }
+    fetchSpeciesList()
+  }, [])
 
   const title = (
     <>
@@ -140,6 +126,14 @@ const SpeciesReport = () => {
     try {
       setIsLoading(true)
       const response = await getReportFilterList(params)
+      const parsedParams = apiFilterParams || {}
+      if (selectedSites.includes('All Sites')) {
+        let updatedParams = { ...parsedParams }
+        delete updatedParams.site_ids
+
+        setApiFilterParams(updatedParams)
+        setSelectedSites([])
+      }
 
       if (responseType === 'csv' && response && response.data) {
         const csvUrl = response.data
@@ -152,17 +146,10 @@ const SpeciesReport = () => {
       } else if (response.success) {
         const { header, datalist, total_count } = response.data || {}
 
-        // setDataList(datalist || [])
-        // if (setHeaders) setHeaderList(header)
         setTotal(total_count)
-
         setIsLoading(false)
-
         setHeaderList(header)
         setAnchorEl(null)
-
-        // setDataList(datalist)
-
         setDataList(loadServerRows(paginationModel.page, datalist))
       } else {
         toast.error('Something went wrong')
@@ -214,86 +201,6 @@ const SpeciesReport = () => {
     })
   }
 
-  const handleSelectedSite = async selectedSiteIDs => {
-    let params = {}
-
-    if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
-      // "All Sites" selected and was not already selected
-      params = {
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-      setSelectedSites(['All Sites'])
-    } else if (selectedSiteIDs.includes('All Sites')) {
-      // Remove "All Sites" and use specific site IDs
-      const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
-      params = {
-        site_ids: filteredSiteIDs.toString(),
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-      setSelectedSites(filteredSiteIDs)
-    } else if (selectedSiteIDs.length === 0) {
-      // No sites selected, fallback to "All Sites"
-      params = {
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-      setSelectedSites(['All Sites'])
-    } else {
-      // Specific site IDs selected
-      params = {
-        site_ids: selectedSiteIDs.toString(),
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-      setSelectedSites(selectedSiteIDs)
-    }
-
-    // if (value.length > 1 && !value.includes('All Sites')) {
-    //   setPopoverData(prevData => {
-    //     const updatedData = {
-    //       ...prevData,
-    //       ['Housing']: prevData['Housing'].map((el, index) =>
-    //         el?.key === 'include_site' ? { ...el, checked: true } : el
-    //       )
-    //     }
-
-    //     return updatedData
-    //   })
-    //   params = { ...params, include_site: 1 }
-    // } else {
-    //   setPopoverData(prevData => {
-    //     const updatedData = {
-    //       ...prevData,
-    //       ['Housing']: prevData['Housing'].map((el, index) =>
-    //         el?.key === 'include_site' ? { ...el, checked: false } : el
-    //       )
-    //     }
-
-    //     return updatedData
-    //   })
-    //   params = { ...params, include_site: 0 }
-    // }
-    setPaginationModel({ ...paginationModel, page: 0 })
-    setApiFilterParams(params)
-
-    // Optionally fetch the data
-    // await fetchData({ ...params }, { ...paginationModel, page: 0 });
-  }
-
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -303,102 +210,101 @@ const SpeciesReport = () => {
 
   const initialLoad = useRef(true)
 
-  const fetchData = useCallback(
-    async (param, paginationModel) => {
-      const params = {
-        page: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        ...param
-      }
+  const fetchData = useCallback(async (param, q, paginationModel) => {
+    let params = {
+      page: paginationModel?.page + 1,
+      limit: paginationModel?.pageSize,
+      q,
+      ...param
+    }
 
-      setIsLoading(true)
-
-      await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
-
-      initialLoad.current = false
-    },
-    [paginationModel]
-  )
+    // Reset site filtering ONLY when switching from "Detail" back to "Listing"
+    setIsLoading(true)
+    await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
+    initialLoad.current = false
+  }, [])
 
   useEffect(() => {
-    if (reports_module && enable_specie_report) {
-      fetchData(apiFilterParams, paginationModel)
+    if (router.pathname === '/report/species' && reports_module && enable_specie_report && initialLoad.current) {
+      setSelectedSites([])
+      setSelectedOptions({})
+      setApiFilterParams(initialFilterParams)
+      fetchData(initialFilterParams, searchValue, paginationModel)
     }
-  }, [fetchData])
+  }, [router.pathname, reports_module, enable_specie_report])
 
-  const columns = headerList.map(header => {
+  useEffect(() => {
+    if (!initialLoad.current && reports_module && enable_specie_report) {
+      fetchData(apiFilterParams, searchValue, paginationModel)
+    }
+  }, [apiFilterParams, paginationModel])
+
+  const columns = headerList.map((header, index) => {
     if (header.key.includes('default_icon')) {
       return {
         field: 'speciesAndCommonName',
         headerName: header.label,
         isAvatar: true,
+        pinned: 'left',
         sortable: false,
         disableColumnMenu: true,
-        width: 400,
-        renderCell: params => (
-          <CardHeader
-            avatar={
-              <img
-                src={params.row.default_icon}
-                alt={params.row.common_name}
-                style={{ width: 40, height: 40, borderRadius: '50%' }}
-              />
-            }
-            title={
-              <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-                {params.row.common_name}
-              </Typography>
-            }
-            subheader={
-              <Typography
-                sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
-                variant='body2'
-              >
-                {params.row.scientific_name}
-              </Typography>
-            }
-          />
-        )
+        width: 320,
+        renderCell: params => <SpeciesCard species={params.row} />
       }
     }
 
+    const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
+
     return {
-      field: header.key,
+      field: fieldKey,
       headerName: header.label,
-      width: 200,
+      minWidth: 200,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
       renderCell: params => (
-        <Box
-          sx={{
-            width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
-            height: '25px',
-            backgroundColor: getCellBackgroundColor(header.label),
-            color: getCellTextColor(header.label),
-            fontWeight: 400,
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              ? 'center'
-              : header.label === 'total'
-              ? 'flex-end'
-              : 'flex-start',
-            textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              ? 'center'
-              : header.label === 'total'
-              ? 'right'
-              : 'left'
-          }}
+        <Tooltip
+          title={
+            params?.row
+              ? params?.row[header.key]
+              : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+                params?.row[header.key] === undefined
+              ? 0
+              : '-'
+          }
         >
-          {params?.value
-            ? params?.value
-            : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-              params?.value === undefined
-            ? 0
-            : '-'}
-        </Box>
+          <Box
+            sx={{
+              width: '140px',
+              height: '25px',
+              display: 'flex',
+              alignItems: 'center',
+              position: 'relative',
+              cursor: 'pointer'
+            }}
+          >
+            <Typography
+              sx={{
+                color: getCellTextColor(header.label),
+                backgroundColor: getCellBackgroundColor(header.label),
+                borderRadius: '4px',
+                padding: '4px 16px',
+                fontWeight: 400,
+                textAlign: 'left',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params?.row
+                ? params?.row[header.key]
+                : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+                  params?.row[header.key] === undefined
+                ? 0
+                : '-'}
+            </Typography>
+          </Box>
+        </Tooltip>
       )
     }
   })
@@ -406,13 +312,13 @@ const SpeciesReport = () => {
   const getCellBackgroundColor = label => {
     switch (label) {
       case 'Male':
-        return '#AFEFEB'
+        return theme.palette.customColors.SecondaryContainer
       case 'Female':
-        return '#FFD3D3'
+        return theme.palette.customColors.AntzTertiary
       case 'Undetermined':
-        return '#DDEBE9'
+        return theme.palette.customColors.displaybgSecondary
       case 'Indeterminate':
-        return '#DDEBE9'
+        return theme.palette.customColors.displaybgSecondary
       default:
         return 'transparent'
     }
@@ -422,13 +328,13 @@ const SpeciesReport = () => {
     switch (label) {
       case 'Male':
       case 'Female':
-        return '#1F415B'
+        return theme.palette.customColors.OnSecondaryContainer
       case 'Undetermined':
-        return '#E93353'
+        return theme.palette.customColors.Error
       case 'Indeterminate':
-        return '#44544A'
+        return theme.palette.customColors.OnSurfaceVariant
       default:
-        return '#44544A'
+        return theme.palette.customColors.OnSurfaceVariant
     }
   }
 
@@ -443,16 +349,83 @@ const SpeciesReport = () => {
   const handleConfirm = async () => {
     let updatedApiParams = { ...apiFilterParams }
 
-    // Process `popoverData` to extract selected options
     Object.keys(popoverData).forEach(category => {
       popoverData[category].forEach(option => {
-        updatedApiParams[option.key] = option.checked ? 1 : 0 // Add only selected options
+        updatedApiParams[option.key] = option.checked ? 1 : 0
       })
     })
 
-    // Update API parameters and reset pagination
     setApiFilterParams(updatedApiParams)
     setPaginationModel({ ...paginationModel, page: 0 })
+  }
+
+  const handleRowClick = params => {
+    const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
+    const hasSitesChanged = JSON.stringify(selectedSites) !== JSON.stringify(sites)
+
+    setSelectedAnimal({
+      default_icon: params?.default_icon,
+      scientific_name: params?.scientific_name,
+      common_name: params?.common_name
+    })
+
+    if (hasFilterChanged) setApiFilterParams(apiFilterParams)
+    if (hasSitesChanged) setSelectedSites(selectedSites)
+
+    setSelectedOptions(prev => ({
+      ...prev,
+      Site: selectedSites ? selectedSites : ''
+    }))
+
+    router.push(`/report/animalList?animalId=${params?.tsn_id}`)
+  }
+
+  const handleSelectedSite = async selectedSiteIDs => {
+    let params = {}
+
+    if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
+      params = {
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(['All Sites'])
+    } else if (selectedSiteIDs.includes('All Sites')) {
+      const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
+      params = {
+        site_ids: filteredSiteIDs.toString(),
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(filteredSiteIDs)
+    } else if (selectedSiteIDs.length === 0) {
+      params = {
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(['All Sites'])
+    } else {
+      params = {
+        site_ids: selectedSiteIDs.toString(),
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedSites(selectedSiteIDs)
+    }
+
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setApiFilterParams(params)
   }
 
   return (
@@ -462,37 +435,26 @@ const SpeciesReport = () => {
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
               <CardHeader title={title} />
-              <Button
+              <Typography
                 onClick={() => getStatisticsDataToExport()}
-                variant='contained'
                 sx={{
-                  width: '250px',
-                  height: '38px',
-                  fontSize: '14px',
+                  fontSize: '20px',
+                  fontWeight: '400',
                   fontFamily: 'Inter',
+                  color: theme.palette.primary.OnSurface,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  mr: 2,
-                  mt: 2
+                  cursor: 'pointer',
+                  mr: 4
                 }}
               >
-                {isDownloading ? (
-                  <CircularProgress size={20} sx={{ color: 'white' }} />
-                ) : (
-                  <>
-                    Download Report
-                    <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
-                  </>
-                )}
-              </Button>
+                Download report
+                <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+              </Typography>
             </Box>
 
             <TabContext value={status}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
-                {/* Tabs on the left */}
-                <TabList onChange={''}></TabList>
-
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', px: 2, pt: 2 }}>
                 {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                   <Box
                     sx={{
@@ -504,45 +466,10 @@ const SpeciesReport = () => {
                       mr: 2
                     }}
                   >
-                    {/* <FormControl fullWidth sx={{ maxWidth: '200px' }}>
-                      <InputLabel
-                        sx={{
-                          fontSize: '14px',
-                          fontFamily: 'Inter',
-                          fontWeight: 400,
-                          color: '#44544A',
-                          width: '152px',
-                          height: '17px',
-                          mt: 0.5
-                        }}
-                      >
-                        All Sites
-                      </InputLabel>
-                      <Select
-                        multiple
-                        value={selectedSite}
-                        onChange={handleSelectedSite}
-                        label='Site'
-                        sx={{
-                          height: '40px',
-                          mt: 2,
-                          width: '200px',
-                          borderRadius: '4px',
-                          mr: { sm: 1, xs: 0 }
-                        }}
-                      >
-                        <MenuItem value='All Sites'>All Sites</MenuItem>
-                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => (
-                          <MenuItem key={index} value={item?.site_id}>
-                            {item?.site_name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl> */}
-
                     <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
                       <Button
                         variant='outlined'
+                        disabled={isLoading}
                         onClick={() => setOpenSiteDrawer(true)}
                         sx={{
                           height: '40px',
@@ -554,7 +481,7 @@ const SpeciesReport = () => {
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          padding: '0 12px' // Ensure space for text and icon
+                          padding: '0 12px'
                         }}
                       >
                         <Box
@@ -563,8 +490,8 @@ const SpeciesReport = () => {
                             borderRadius: '8px',
                             whiteSpace: 'nowrap',
                             textOverflow: 'ellipsis',
-                            flex: 1, // Ensures it uses remaining space
-                            textAlign: 'left', // Align text to the left
+                            flex: 1,
+                            textAlign: 'left',
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
@@ -574,8 +501,8 @@ const SpeciesReport = () => {
                               borderRadius: '8px',
                               whiteSpace: 'nowrap',
                               textOverflow: 'ellipsis',
-                              flex: 1, // Ensures it uses remaining space
-                              textAlign: 'left', // Align text to the left
+                              flex: 1,
+                              textAlign: 'left',
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
@@ -613,41 +540,6 @@ const SpeciesReport = () => {
                       handleSelectedSite={handleSelectedSite}
                     />
 
-                    {/* <Button
-                      onClick={() => setOpenFilterDrawer(true)}
-                      variant='outlined'
-                      sx={{
-                        width: '120px',
-                        height: '40px',
-                        mt: 2,
-                        display: 'flex',
-                        color: '#44544A',
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        fontFamily: 'Inter',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 4,
-                        minWidth: '100px'
-                      }}
-                    >
-                      <img
-                        src='/images/filterIcon.png'
-                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
-                        alt='Filter Icon'
-                      />
-
-                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Filter</Typography>
-                    </Button> */}
-                    {/* <FilterSheet
-                      open={openFilterDrawer}
-                      setOpenFilterDrawer={setOpenFilterDrawer}
-                      categories={categories}
-                      options={options}
-                      selectedOptions={selectedOptions}
-                      setSelectedOptions={setSelectedOptions}
-                    /> */}
-
                     <Button
                       onClick={handleClick}
                       variant='outlined'
@@ -657,14 +549,12 @@ const SpeciesReport = () => {
                         mt: 2,
                         display: 'flex',
                         borderRadius: '4px',
-                        color: '#44544A',
+                        color: theme.palette.customColors.OnSurfaceVariant,
                         fontWeight: 400,
                         fontSize: '16px',
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
-
-                        // mr: 2,
                         gap: 1,
                         minWidth: '100px'
                       }}
@@ -680,7 +570,11 @@ const SpeciesReport = () => {
                         }}
                         alt='Filter Icon'
                       />
-                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                      <Typography
+                        sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
+                      >
+                        Show/Hide
+                      </Typography>
                     </Button>
                     <Popover
                       id={id}
@@ -749,58 +643,23 @@ const SpeciesReport = () => {
 
               <Box sx={{ width: '98%', margin: 4 }}>
                 <Box sx={{ borderRadius: '8px' }}>
-                  <DataGrid
-                    sx={{
-                      mt: 3,
-                      borderRadius: '8px',
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
-                      '& .MuiDataGrid-columnHeader': {
-                        backgroundColor: '#DDEBE9',
-                        color: '#1F415B',
-                        fontWeight: 600,
-                        fontSize: '12px',
-                        fontFamily: 'Inter',
-                        textTransform: 'capitalize',
-                        borderBottom: '2px solid #C3CEC7'
-                      },
-                      '.MuiDataGrid-main': {
-                        borderLeft: '1px solid #C3CEC7',
-                        borderRight: '1px solid #C3CEC7',
-                        borderTop: '1px solid #C3CEC7',
-                        borderBottom: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        overflow: 'hidden'
-                      },
-                      '& .MuiDataGrid-footerContainer': {
-                        borderTop: 'none'
-                      },
-
-                      '& .MuiDataGrid-cell': {
-                        fontFamily: 'Inter',
-                        fontSize: '14px',
-                        fontWeight: 400,
-                        lineHeight: '16.94px',
-                        textAlign: 'left',
-                        color: '#44544A'
-                      }
-                    }}
+                  <StickyTable
                     rows={reportRows}
-                    disableColumnSorting={true}
                     rowCount={total}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
+                    rowHeight={70}
+                    headerHeight={47}
+                    pagination={true}
+                    columns={columns.length && columns}
                     pageSizeOptions={[7, 10, 25, 50]}
+                    rowsInView={10}
+                    rowsInViewOptions={[5, 7, 10, 25, 50]}
                     paginationModel={paginationModel}
                     onPaginationModelChange={setPaginationModel}
                     loading={isLoading}
-                    autoHeight
-                    disableColumnFilter={false}
-                    hideFooterSelectedRowCount
-                    rowHeight={70}
-                    scrollbarSize={10}
+                    onRowClick={handleRowClick}
+                    downloadExcel
+                    headerName='Species'
+                    searchMode='server'
                   />
                 </Box>
               </Box>

@@ -15,13 +15,10 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { getDriverById } from 'src/lib/api/pharmacy/driver'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   driver_name: yup
@@ -48,7 +45,6 @@ const defaultValues = {
 }
 
 const AddDriver = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {

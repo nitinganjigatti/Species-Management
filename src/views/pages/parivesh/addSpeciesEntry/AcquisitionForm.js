@@ -47,6 +47,7 @@ const AcquisitionForm = ({
   const male_count = watch('male_count') || 0
   const female_count = watch('female_count') || 0
   const other_count = watch('other_count') || 0
+
   // Calculate total count
   const totalCount = Number(male_count) + Number(female_count) + Number(other_count)
 
@@ -99,6 +100,7 @@ const AcquisitionForm = ({
 
     if (filesArray.length + dgftDisplayFile.length > 2) {
       Toaster({ type: 'error', message: 'You can only upload up to 2 files.' })
+
       return
     }
 
@@ -172,6 +174,7 @@ const AcquisitionForm = ({
               fullWidth
               label='Which organization would you acquire?'
               error={Boolean(errors.organization_acquire)}
+
               //   helperText={errors.organization_acquire?.message}
             />
           )}
@@ -180,7 +183,6 @@ const AcquisitionForm = ({
           <FormHelperText sx={{ color: 'error.main' }}>{errors.organization_acquire?.message}</FormHelperText>
         )}
       </FormControl>
-
       {/* <FormControl fullWidth sx={{ mb: 6 }}>
         <Controller
           name='gender'
@@ -218,7 +220,6 @@ const AcquisitionForm = ({
           <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
         )}
       </FormControl> */}
-
       <FormControl fullWidth sx={{ mb: 6 }}>
         <Controller
           name='transaction_date'
@@ -244,8 +245,7 @@ const AcquisitionForm = ({
         )}
       </FormControl>
       <Divider />
-
-      <Grid item xs={12} sx={{ mb: 6, mt: 6 }}>
+      <Grid item size={{ xs: 12 }} sx={{ mb: 6, mt: 6 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant='h6' gutterBottom>
             Gender *
@@ -255,8 +255,7 @@ const AcquisitionForm = ({
           </Typography>
         </Box>
       </Grid>
-
-      <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+      <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
         <FormControl fullWidth>
           <Controller
             name='male_count'
@@ -283,13 +282,13 @@ const AcquisitionForm = ({
             <FormHelperText sx={{ color: 'error.main' }}>{errors.male_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
-      <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+      <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
         <FormControl fullWidth>
           <Controller
             name='female_count'
@@ -316,13 +315,13 @@ const AcquisitionForm = ({
             <FormHelperText sx={{ color: 'error.main' }}>{errors.female_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
-      <Grid item xs={12} sm={4}>
+      <Grid item size={{ xs: 12, sm: 4 }}>
         <FormControl fullWidth>
           <Controller
             name='other_count'
@@ -349,13 +348,12 @@ const AcquisitionForm = ({
             <FormHelperText sx={{ color: 'error.main' }}>{errors.other_count?.message}</FormHelperText>
           )}
           {errors.counts && (
-            <Grid item xs={12} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
               <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
             </Grid>
           )}
         </FormControl>
       </Grid>
-
       <>
         <Typography variant='h6' sx={{ mb: 2, mt: 6 }}>
           DGFT
@@ -371,6 +369,7 @@ const AcquisitionForm = ({
                 fullWidth
                 label='DGFT Number*'
                 error={Boolean(errors.dgft_number)}
+
                 // helperText={errors.dgft_number?.message}
               />
             )}
@@ -381,7 +380,7 @@ const AcquisitionForm = ({
         </FormControl>
 
         <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={4} md={3} lg={6}>
+          <Grid item size={{ xs: 12, sm: 4, md: 3, lg: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='dgft_attachments'
@@ -495,8 +494,9 @@ const AcquisitionForm = ({
           {/* {/ Uploaded files display /} */}
           {dgftDisplayFile.map((src, index) => {
             const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
+
             return (
-              <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
+              <Grid item size={{ xs: 12, sm: 'auto', md: 'auto', lg: 'auto' }} key={index}>
                 <FormControl fullWidth>
                   <Box
                     sx={{
@@ -590,6 +590,7 @@ const AcquisitionForm = ({
                 fullWidth
                 label='CITES required *'
                 error={Boolean(errors.cites_required)}
+
                 // helperText={errors.cites_required?.message}
               >
                 <MenuItem value='Yes'>Yes</MenuItem>
@@ -614,6 +615,7 @@ const AcquisitionForm = ({
                     fullWidth
                     label='Select Appendix'
                     error={Boolean(errors.select_appendix)}
+
                     //   helperText={errors.select_appendix?.message}
                   >
                     <MenuItem value='Appendix-1'>Appendix I</MenuItem>
@@ -637,6 +639,7 @@ const AcquisitionForm = ({
                     fullWidth
                     label='CITES Numbers'
                     error={Boolean(errors.cites_number)}
+
                     //   helperText={errors.cites_number?.message}
                   />
                 )}
@@ -649,7 +652,7 @@ const AcquisitionForm = ({
         )}
       </>
     </>
-  )
+  );
 }
 
 export default AcquisitionForm

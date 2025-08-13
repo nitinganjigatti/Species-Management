@@ -276,7 +276,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   return (
     <>
       <Grid container spacing={6}>
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}

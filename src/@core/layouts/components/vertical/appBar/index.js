@@ -4,6 +4,9 @@ import useScrollTrigger from '@mui/material/useScrollTrigger'
 import MuiAppBar from '@mui/material/AppBar'
 import MuiToolbar from '@mui/material/Toolbar'
 
+// ** Configs Imports
+import themeConfig from 'src/configs/themeConfig'
+
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
@@ -32,14 +35,14 @@ const Toolbar = styled(MuiToolbar)(({ theme }) => ({
 
 const LayoutAppBar = props => {
   // ** Props
-  const { settings, appBarProps, appBarContent: userAppBarContent } = props
+  const { settings, appBarProps, appBarContent: userAppBarContent, hidden } = props
 
   // ** Hooks
   const theme = useTheme()
   const scrollTrigger = useScrollTrigger({ threshold: 0, disableHysteresis: true })
 
   // ** Vars
-  const { skin, appBar, appBarBlur, contentWidth } = settings
+  const { skin, appBar, appBarBlur, contentWidth, navCollapsed } = settings
 
   const appBarFixedStyles = () => {
     return {
@@ -65,8 +68,15 @@ const LayoutAppBar = props => {
       elevation={0}
       color='default'
       className='layout-navbar'
-      sx={{ ...userAppBarStyle }}
-      position={appBar === 'fixed' ? 'sticky' : 'static'}
+      sx={{
+        ...userAppBarStyle,
+        ...(appBar === 'fixed' && {
+          width: hidden ? '100%' : `calc(100% - ${navCollapsed ? themeConfig.collapsedNavigationSize : themeConfig.navigationSize}px)`,
+          left: hidden ? 0 : `${navCollapsed ? themeConfig.collapsedNavigationSize : themeConfig.navigationSize}px`,
+          transition: 'width 0.25s ease-in-out, left 0.25s ease-in-out'
+        })
+      }}
+      position={appBar === 'fixed' ? 'fixed' : 'static'}
       {...userAppBarProps}
     >
       <Toolbar

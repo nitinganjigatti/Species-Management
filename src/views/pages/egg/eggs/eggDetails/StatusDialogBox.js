@@ -30,7 +30,15 @@ const StatusDialogBox = ({
           <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={theme.palette.customColors.Error} />
         </Box>
         <Box>
-          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 600 }}>
+          <Typography
+            sx={{
+              px: 3,
+              textAlign: 'center',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '24px',
+              fontWeight: 600
+            }}
+          >
             {elements > 0
               ? `You can't Deactivate this ${refType}`
               : `Do you want to ${active ? 'deactivate' : 'activate'} this ${refType}?`}
@@ -53,7 +61,13 @@ const StatusDialogBox = ({
         </Box>
 
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: 6, p: 4 }}>
-          <Button variant='outlined' fullWidth sx={{ p: 4 }} onClick={() => setOpenStatusDialog(false)}>
+          <Button
+            disabled={statusLoading}
+            variant='outlined'
+            fullWidth
+            sx={{ p: 4 }}
+            onClick={() => setOpenStatusDialog(false)}
+          >
             CANCEL
           </Button>
 

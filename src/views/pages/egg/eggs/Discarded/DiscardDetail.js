@@ -60,7 +60,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
       const res = await GetDiscardedSummary(params)
       setSummary(res?.data?.data)
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -72,7 +72,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
       const res = await GetDiscardedEggList(params)
       setEggList(res?.data?.data?.result)
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -85,7 +85,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
         }
       })
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -341,19 +341,19 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             maxHeight: 150,
                             overflowY: 'auto',
                             whiteSpace: 'normal',
-                            /* Firefox scrollbar */
+
+                        
                             scrollbarWidth: 'thin',
                             scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
                           }}
                         >
                           <div
                             style={{
-                              /* Webkit scrollbar styles (Chrome, Edge, Safari) */
                               display: 'inline-block',
                               width: '100%',
                               height: '100%',
                               scrollbarWidth: 'thin',
-                              /* These only apply in WebKit browsers */
+
                               WebkitScrollbarWidth: 'thin'
                             }}
                           >
@@ -410,7 +410,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     Added Photos
                   </Typography>
 
-                  {/* image gallery */}
                   <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
                     <AddGallery galleryList={galleryList} />
                   </Box>
@@ -430,7 +429,13 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     bottom: 0
                   }}
                 >
-                  <Stack direction='row' gap={2} alignItems={'center'}>
+                  <Stack
+                    direction='row'
+                    sx={{
+                      gap: 2,
+                      alignItems: 'center'
+                    }}
+                  >
                     <Box sx={{ width: '24px', height: '24px' }}>
                       <img src='/icons/pending_security_check_icon.png' style={{ width: '100%' }} alt='Pending' />
                     </Box>
@@ -518,7 +523,13 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     </Box>
                   </Box>
                   <Box>
-                    <Stack direction='row' gap={2} alignItems={'center'}>
+                    <Stack
+                      direction='row'
+                      sx={{
+                        gap: 2,
+                        alignItems: 'center'
+                      }}
+                    >
                       <Box sx={{ width: '24px', height: '24px' }}>
                         <img
                           src='/icons/security_check_icon.png'
@@ -625,7 +636,13 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       </Box>
                     </Box>
                     <Box>
-                      <Stack direction='row' gap={2} alignItems={'center'}>
+                      <Stack
+                        direction='row'
+                        sx={{
+                          gap: 2,
+                          alignItems: 'center'
+                        }}
+                      >
                         <Box sx={{ width: '24px', height: '24px' }}>
                           <img
                             src='/icons/pending_security_check_icon.png'

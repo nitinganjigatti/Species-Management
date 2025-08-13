@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext, useCallback } from 'react'
+import { useState, useEffect, useRef, useContext, useCallback } from 'react'
 import {
   Avatar,
   Box,
@@ -35,7 +35,6 @@ import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/repo
 const AnimalAssessment = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
-
   const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const [initialLoad, setInitialLoad] = useState(true)
@@ -98,9 +97,8 @@ const AnimalAssessment = () => {
     if (searchRef.current && document.activeElement !== searchRef.current) {
       searchRef.current.focus()
     }
-  }, [assessmentData]) // Or use isLoading, total, or whatever changes after search
+  }, [assessmentData])
 
-  // api call for table data
   const animalAssessmentReport = async (searchValue = search || '') => {
     setIsLoading(true)
 
@@ -136,12 +134,6 @@ const AnimalAssessment = () => {
     }
   }
 
-  // const debouncedSearch = useCallback(
-  //   debounce(searchValue => {
-  //     animalAssessmentReport(searchValue)
-  //   }, 500),
-  //   []
-  // )
   const debouncedSearch = useCallback(
     debounce(value => {
       animalAssessmentReport(value)
@@ -161,12 +153,7 @@ const AnimalAssessment = () => {
     }
   }, [paginationModel, filterDates, selectedItems])
 
-  useEffect(() => {
-    // if (assessmentData?.length) {
-    transformAnimalData()
-
-    // }
-  }, [assessmentData])
+  useEffect(() => transformAnimalData(), [assessmentData])
 
   // Transform raw animal data
   const transformAnimalData = () => {
@@ -187,19 +174,15 @@ const AnimalAssessment = () => {
         let parts = []
         if (years > 0) parts.push(`${years}y`)
         if (months > 0) parts.push(`${months}m`)
-        if (days > 0 || parts.length === 0) parts.push(`${days}d`) // always show days if nothing else
+        if (days > 0 || parts.length === 0) parts.push(`${days}d`)
 
         return parts.join(' ')
       })()
 
-      // need to check here time is right or wrong according to ISO
       const recordMap = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
-          value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${
-            // Number(assessment?.assessment_value) > 1 && assessment?.uom_abbr ? 's' : ''
-            ''
-          }`,
+          value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${''}`,
           date: moment(
             Utility.convertUTCToLocalDate(
               assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time
@@ -232,8 +215,6 @@ const AnimalAssessment = () => {
     })
 
     setDataList(transformed)
-
-    // setTotal(transformed.length)
     const headers = [
       { key: 'default_icon', label: 'ANIMAL DETAILS' },
       ...Array.from({ length: maxAssessmentCount }, (_, i) => ({
@@ -273,7 +254,7 @@ const AnimalAssessment = () => {
         },
         disableColumnMenu: true,
         renderCell: params => {
-          return <AnimalParentCard data={params?.row} />
+          return <AnimalParentCard sx={{ border: 'none' }} data={params?.row} />
         }
       }
     }
@@ -300,7 +281,6 @@ const AnimalAssessment = () => {
             onClick={() => {
               setAnimalDetailsData({
                 ...record,
-
                 default_icon: selectedSpecie?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
                 local_identifier_name: params?.row?.identifier_type,
                 local_identifier_value: params?.row?.identifier_value,
@@ -309,8 +289,6 @@ const AnimalAssessment = () => {
                 common_name: params?.row?.common_name,
                 scientific_name: params?.row?.scientific_name,
                 age: params.row.age,
-
-                // age,
                 total_animal: params?.row?.total_animal,
                 type: params?.row?.type,
                 breed_name: params?.row?.breed_name,
@@ -413,7 +391,6 @@ const AnimalAssessment = () => {
     }
   }
 
-  // for download data in csv
   const getDataToExport = async type => {
     if (selectedSpecie && selectedAssessmentType) {
       setIsLoading(true)
@@ -497,12 +474,8 @@ const AnimalAssessment = () => {
           >
             <Box
               sx={{
-                // minHeight: '121px',
-                // maxHeight: '600px',
                 bgcolor: theme.palette.customColors.lightBg,
                 borderRadius: '8px'
-                // padding: '10px',
-                // paddingLeft: '20px'
               }}
             >
               <AnimalParentCard backgroundColor={theme.palette.customColors.lightBg} data={animalDetailsData} />
@@ -610,7 +583,6 @@ const AnimalAssessment = () => {
                   flexWrap: 'wrap'
                 }}
               >
-                {/* Species Side Sheet */}
                 <Box
                   onClick={() => setOpenspeciesFilter(true)}
                   sx={{
@@ -683,7 +655,6 @@ const AnimalAssessment = () => {
                   </Box>
                 </Box>
 
-                {/* Assessment Side Sheet */}
                 <Box
                   onClick={() => setOpenAssessmentFilter(true)}
                   sx={{
@@ -754,7 +725,6 @@ const AnimalAssessment = () => {
                   </Box>
                 </Box>
 
-                {/* Generate Button */}
                 <Box sx={{ minWidth: 120 }}>
                   <Button
                     variant='contained'
@@ -805,11 +775,10 @@ const AnimalAssessment = () => {
                         }}
                         sx={{
                           backgroundColor: theme.palette.primary.contrastText,
-
                           // borderRadius: '40px', // Applies to the container
                           '& .MuiOutlinedInput-root': {
                             width: '240px',
-                            borderRadius: '4px' // Applies to the input field
+                            borderRadius: '4px'
                           }
                         }}
                       />
@@ -915,7 +884,7 @@ const AnimalAssessment = () => {
             </Box>
           </Card>
 
-          {!dataList?.length > 0 && (
+          {!dataList?.length > 0 && !isLoading && (
             <Box
               sx={{
                 mt: 4,
@@ -1002,68 +971,3 @@ const AnimalAssessment = () => {
 }
 
 export default AnimalAssessment
-
-{
-  /* {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      alignItems: 'center',
-                      borderRadius: '8px',
-                      mr: 1
-                    }}
-                  >
-                    <Button
-                      onClick={() => setOpenFilterDrawer(true)}
-                      variant='outlined'
-                      sx={{
-                        width: '129px',
-                        height: '40px',
-                        display: 'flex',
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        borderRadius: '4px',
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        fontFamily: 'Inter',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 2,
-                        minWidth: '100px'
-                      }}
-                    >
-                      <img
-                        src='/images/filterIcon.png'
-                        style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
-                        alt='Filter Icon'
-                      />
-
-                      <Typography
-                        sx={{ color: theme.palette.primary.light, textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
-                      >
-                        Filter
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '6px',
-                          width: '29px',
-                          height: '27px',
-                          borderRadius: '69%',
-                          backgroundColor: theme.palette.primary.light,
-                          color: theme.palette.primary.contrastText,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {filterCount}
-                      </Box>
-                    </Button>
-                  </Box>
-                )} */
-}

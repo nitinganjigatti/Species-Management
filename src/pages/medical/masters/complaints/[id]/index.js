@@ -238,12 +238,17 @@ const ComplaintsDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
               Category
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-              Complaints
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
+              Symptoms
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Complaints List' action={headerAction} />
+            <CardHeader title='Symptoms List' action={headerAction} />
 
             <DataGrid
               //   hideFooterPagination={true}

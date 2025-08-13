@@ -2,7 +2,6 @@
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 
-// Styled Components
 const MaskImg = styled('img')(({ theme }) => ({
   zIndex: -1,
   bottom: '7%',

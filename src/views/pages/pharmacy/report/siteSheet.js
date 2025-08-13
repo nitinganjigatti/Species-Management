@@ -1,8 +1,8 @@
-import { Button, Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextField, Typography } from '@mui/material'
+import { Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LoadingButton } from '@mui/lab'
 
 const SiteSheet = ({
@@ -12,17 +12,36 @@ const SiteSheet = ({
   setSites,
   selectedSites,
   setSelectedSites,
+  apiFilterParams,
   handleSelectedSite
 }) => {
   const [searchValue, setSearchValue] = useState('')
-  const [tempSelectedSites, setTempSelectedSites] = useState([...selectedSites])
+  const [tempSelectedSites, setTempSelectedSites] = useState([])
 
-  const handleSelectAll = event => {
-    if (event.target.checked) {
-      setTempSelectedSites(sites.map(site => site.site_id))
-    } else {
-      setTempSelectedSites([])
+  console.log('selected Sites >', selectedSites)
+
+  useEffect(() => {
+    if (openSiteDrawer) {
+      const storedSiteIds = selectedSites.includes('All Sites') ? ['All Sites'] : selectedSites
+
+      setTempSelectedSites(storedSiteIds)
     }
+  }, [openSiteDrawer, selectedSites])
+  const handleSelectAll = event => {
+    const filteredSiteIds = filteredSites.map(site => site.site_id)
+    if (event.target.checked) {
+      // Add only filteredSiteIds (merge with previous)
+      setTempSelectedSites(prev => [...new Set([...prev, ...filteredSiteIds])])
+    } else {
+      // Remove only filteredSiteIds from current selection
+      setTempSelectedSites(prev => prev.filter(site_id => !filteredSiteIds.includes(site_id)))
+    }
+  }
+
+  const handleClearFilter = () => {
+    setTempSelectedSites([]) // Clear temporary selection
+    setSearchValue('') // Clear search input
+    // setSelectedSites([]) // Clear selected sites in context
   }
 
   const handleToggleSite = siteId => {
@@ -36,33 +55,28 @@ const SiteSheet = ({
   const filteredSites = sites.filter(site => site.site_name.toLowerCase().includes(searchValue.toLowerCase()))
 
   const handleConfirmSelection = () => {
-    debugger
-    const totalSites = [...sites] // Assuming sites is an array of objects
-    const selectedArr = [...tempSelectedSites] // Array of selected site IDs
+    const totalSites = [...sites]
+    const selectedArr = [...tempSelectedSites]
 
-    // Sort the selected site IDs
     const sortedSelectedSites = selectedArr.sort((a, b) => a - b)
 
-    // Get unselected sites and sort them alphabetically
     const sortedUnSelectedSites = totalSites
       .filter(site => !sortedSelectedSites.includes(site.site_id))
       .sort((a, b) => a.site_name.localeCompare(b.site_name))
 
-    // Update selectedSites with merged and sorted list
     setSelectedSites([...sortedUnSelectedSites.map(site => site.site_id), ...sortedSelectedSites])
 
-    // Merge and update the `sites` prop
     const mergedSites = [
       ...totalSites.filter(site => sortedSelectedSites.includes(site.site_id)),
       ...sortedUnSelectedSites
     ]
 
-    setSites(mergedSites) // Assuming `setSites` is a state setter for `sites`
+    setSites(mergedSites)
 
     console.log('Merged and Sorted Sites:', mergedSites)
 
-    handleSelectedSite(sortedSelectedSites) // Additional action
-    setOpenSiteDrawer(false) // Close the drawer
+    handleSelectedSite(sortedSelectedSites)
+    setOpenSiteDrawer(false)
   }
 
   const theme = useTheme()
@@ -81,7 +95,6 @@ const SiteSheet = ({
         backgroundColor: 'background.default'
       }}
     >
-      {/* Header */}
       <Box
         className='sidebar-header'
         sx={{
@@ -103,13 +116,14 @@ const SiteSheet = ({
         </IconButton>
       </Box>
 
-      {/* Drawer Content */}
       <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto' }}>
         <Box
           sx={{
             p: 3,
             flex: 1,
             width: '100%',
+            // maxHeight: ' 100vh',
+            height: 'calc(100% - 100px)',
             display: 'flex',
             backgroundColor: '#FFFF !important',
             flexDirection: 'column',
@@ -117,7 +131,6 @@ const SiteSheet = ({
             borderRadius: '8px'
           }}
         >
-          {/* Search Field */}
           <TextField
             fullWidth
             placeholder='Search'
@@ -126,18 +139,29 @@ const SiteSheet = ({
             sx={{ mb: 2 }}
           />
 
-          {/* Select All */}
           {filteredSites.length > 0 && (
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={tempSelectedSites.length === sites.length}
+                  // checked={tempSelectedSites.length === sites.length}
                   onChange={handleSelectAll}
-                  indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
+                  // indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
+                  checked={filteredSites.every(site => tempSelectedSites.includes(site.site_id))}
+                  indeterminate={
+                    filteredSites.some(site => tempSelectedSites.includes(site.site_id)) &&
+                    !filteredSites.every(site => tempSelectedSites.includes(site.site_id))
+                  }
                 />
               }
               label={
-                <Typography sx={{ color: '#839D8D', fontSize: '16px', fontFamily: 'Inter', fontWeight: 400 }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.Outline,
+                    fontSize: '16px',
+                    fontFamily: 'Inter',
+                    fontWeight: 400
+                  }}
+                >
                   Select All
                 </Typography>
               }
@@ -146,7 +170,6 @@ const SiteSheet = ({
           )}
           <Divider sx={{ mb: 4 }} />
 
-          {/* Sites List */}
           <Box
             sx={{
               display: 'flex',
@@ -181,9 +204,9 @@ const SiteSheet = ({
                   sx={{
                     fontWeight: 400,
                     fontFamily: 'Inter',
-                    color: '#839D8D',
+                    color: theme.palette.customColors.Outline,
                     fontSize: '16px',
-                    flex: 1 // Allows text to grow naturally while respecting spacing
+                    flex: 1
                   }}
                 >
                   {site.site_name}
@@ -194,7 +217,6 @@ const SiteSheet = ({
         </Box>
       </Box>
 
-      {/* Bottom Buttons */}
       <Box
         sx={{
           height: '122px',
@@ -212,6 +234,9 @@ const SiteSheet = ({
           zIndex: 123
         }}
       >
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearFilter}>
+          CLEAR ALL
+        </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={() => handleConfirmSelection()}>
           Confirm
         </LoadingButton>

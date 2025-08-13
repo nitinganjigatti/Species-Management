@@ -25,9 +25,10 @@ import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 
 const steps = [
   {
-    title: 'Basic Information with Ingredients',
+    title: 'Basic Information with Items',
     subtitle: 'Enter details'
   },
+
   // {
   //   title: 'Add Ingredients',
   //   subtitle: 'Enter details'
@@ -89,8 +90,8 @@ const AddCombo = () => {
   useEffect(() => {
     getUnitsList()
     getCutsizeListdata()
-    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
-  }, [activeStep == 0])
+    callIngredientTypeList({ status: 1, page: 1, limit: 50 })
+  }, [activeStep])
 
   const getUnitsList = async () => {
     try {
@@ -134,6 +135,7 @@ const AddCombo = () => {
       const params = {
         //status,
         q,
+
         //active: 1,
         page,
         limit,
@@ -151,6 +153,7 @@ const AddCombo = () => {
       console.log(e)
     }
   }
+
   // const IngredientTypeListSearch = debounce(value => {
   //   console.log(value, 'value')
   //   if (value) {
@@ -175,7 +178,7 @@ const AddCombo = () => {
         feed_type_label: ''
       }))
     }))
-    callIngredientTypeList({ status: 1, page: 1, limit: 10, q: '' })
+    callIngredientTypeList({ status: 1, page: 1, limit: 50, q: '' })
   }
 
   const getIngredientsDetailval = async id => {
@@ -227,18 +230,21 @@ const AddCombo = () => {
           ...data.by_percentage.map(item => ({
             id: item.ingredient_id,
             ingredient_name: item.ingredient_name
-          })),
-          ...data.by_quantity.map(item => ({
-            id: item.ingredient_id,
-            ingredient_name: item.ingredient_name
           }))
+          // ...data.by_quantity.map(item => ({
+          //   id: item.ingredient_id,
+          //   ingredient_name: item.ingredient_name
+          // }))
         ]
 
         const uniqueIngredientList = combinedIngredients.filter(
           (item, index, self) => index === self.findIndex(i => i.id === item.id)
         )
         setLoader(false)
-        setFullIngredientList(uniqueIngredientList)
+        setFullIngredientList(prevList => [
+          ...prevList,
+          ...uniqueIngredientList.filter(newItem => !prevList.some(item => item.id === newItem.id))
+        ])
       }
     } catch (error) {
       console.log('Feed list', error)
@@ -308,6 +314,7 @@ const AddCombo = () => {
   const handleStepBillingSubmit = async () => {
     if (!id) {
       setLoader(true)
+
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -337,10 +344,12 @@ const AddCombo = () => {
         )
       }
       console.log(numericFormData, 'numericFormData')
+
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
         by_percentage: numericFormData.by_percentage,
+
         // by_quantity: numericFormData.by_quantity,
         by_quantity: [],
         recipe_image: numericFormData?.recipe_image?.[0] || null,
@@ -363,6 +372,7 @@ const AddCombo = () => {
       }
     } else if (id && urlType === 'copy') {
       setLoader(true)
+
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -395,6 +405,7 @@ const AddCombo = () => {
       const updatedFormData = {
         ...numericFormData,
         by_percentage: numericFormData.by_percentage,
+
         // by_quantity: numericFormData.by_quantity,
         by_quantity: [],
         meal_type: 'combo'
@@ -426,6 +437,7 @@ const AddCombo = () => {
       }
     } else {
       setLoader(true)
+
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -458,6 +470,7 @@ const AddCombo = () => {
       const updatedFormData = {
         ...numericFormData,
         by_percentage: numericFormData.by_percentage,
+
         // by_quantity: numericFormData.by_quantity,
         by_quantity: [],
         meal_type: 'combo'
@@ -544,9 +557,14 @@ const AddCombo = () => {
           Combo
         </Link>
 
-        <Typography color='text.primary'>{id ? 'Edit combo' : 'Add new combo'}</Typography>
+        <Typography
+          sx={{
+            color: 'text.primary'
+          }}
+        >
+          {id ? 'Edit combo' : 'Add new combo'}
+        </Typography>
       </Breadcrumbs>
-
       <Card>
         <CardContent>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -569,7 +587,11 @@ const AddCombo = () => {
             {steps.map((step, index) => {
               return (
                 <Step key={index}>
-                  <StepLabel StepIconComponent={StepperCustomDot}>
+                  <StepLabel
+                    slots={{
+                      icon: StepperCustomDot
+                    }}
+                  >
                     <div className='step-label'>
                       {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
                       <div>

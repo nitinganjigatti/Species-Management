@@ -70,12 +70,6 @@ const AddSpeciesSlideBar = ({
   BannerImages,
   setBannerImages
 }) => {
-  console.log('editValues >>', editVernacularNames, editCommonId, status)
-
-  console.log('Rows >>', rows)
-
-  console.log('Banner Images >>>', BannerImages)
-
   const [displayProfile, setDisplayProfile] = useState('')
   const [searchValue, setSearchValue] = useState('')
   const [searchLocality, setSeachLocality] = useState('')
@@ -192,8 +186,6 @@ const AddSpeciesSlideBar = ({
     }
   }
 
-  console.log('GET Values >>>', getValues())
-
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus()
@@ -203,7 +195,6 @@ const AddSpeciesSlideBar = ({
   const handleRemoveImage = async image => {
     try {
       if (image?.id) {
-        // Delete image using API because it has an id
         const response = await DeleteBannerById(image)
         if (response?.success) {
           const updatedBannerImages = BannerImages.filter(img => img.id !== image.id)
@@ -212,7 +203,6 @@ const AddSpeciesSlideBar = ({
           console.log('Error in Deleting:', response?.error)
         }
       } else {
-        // Remove image from selectedImages (assumed base64 images not yet uploaded)
         const updatedImages = selectedImages.filter(img => img !== image)
         setValue('banner_images', updatedImages) // Assuming this updates your form state
         setSelectedImages(updatedImages)
@@ -269,8 +259,6 @@ const AddSpeciesSlideBar = ({
     }
   }, [])
 
-  // console.log('selecteditems >>', selectedItems)
-
   useEffect(() => {
     if (status === 'hybrid' && editName) {
       const localityFetchData = async () => {
@@ -286,7 +274,7 @@ const AddSpeciesSlideBar = ({
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'taxonomyFields' // Name of your array in the form data
+    name: 'taxonomyFields'
   })
 
   console.log('Fields >', fields)
@@ -305,28 +293,21 @@ const AddSpeciesSlideBar = ({
     console.log('Field Value >>', index)
     console.log('taxonomyName', taxonomyName)
 
-    // Remove the field at the specified index
     remove(index)
 
-    // Get current form values
     const formValues = getValues()
     const fieldValues = fields
     console.log('Fields Final >>', fieldValues)
 
-    // Extract scientific and common names from the form values
     let scientificNames = formValues['scientificName']
     let commonNames = formValues['vernacular_name']
 
-    // Ensure scientificNames and commonNames are strings
     if (typeof scientificNames === 'string' && typeof commonNames === 'string') {
-      // Find the corresponding field value using the index
       const fieldToRemove = fieldValues[index]
       let scientificNameToRemove = fieldToRemove?.scientific_name
       let commonNameToRemove = fieldToRemove?.common_name
 
-      // If scientificNameToRemove or commonNameToRemove is undefined, remove the last added names
       if (!scientificNameToRemove || !commonNameToRemove) {
-        // Split the scientific and common names into parts and remove the last part
         const scientificParts = scientificNames.split(/\s+X\s+/)
         const commonParts = commonNames.split(/\s+X\s+/)
 
@@ -342,15 +323,12 @@ const AddSpeciesSlideBar = ({
       }
 
       if (scientificNameToRemove && commonNameToRemove) {
-        // Create a regex to remove the specific scientific name and common name
         const scientificregex = new RegExp(`\\s+X\\s+${scientificNameToRemove}\\b\\s*`, 'g')
         const commonregex = new RegExp(`\\s+X\\s+${commonNameToRemove}\\b\\s*`, 'g')
 
-        // Remove the scientific name and common name from their respective strings
         scientificNames = scientificNames.replace(scientificregex, '').trim()
         commonNames = commonNames.replace(commonregex, '').trim()
 
-        // Set the updated scientificNames and commonNames back in the form
         setValue('scientificName', scientificNames)
         setValue('vernacular_name', commonNames)
       }
@@ -361,12 +339,10 @@ const AddSpeciesSlideBar = ({
     const itemName = item.sub_taxon_name
 
     if (event.target.checked) {
-      // Add object to selectedItems if it's not already included
       if (!selectedItems.some(selectedItem => selectedItem.sub_taxon_name === itemName)) {
         setSelectedItems([...selectedItems, item])
       }
     } else {
-      // Remove object from selectedItems
       setSelectedItems(selectedItems.filter(selectedItem => selectedItem.sub_taxon_name !== itemName))
     }
   }
@@ -426,8 +402,6 @@ const AddSpeciesSlideBar = ({
     // setSelectedLocality(selectedLocality.filter(item => item.sub_taxon_name !== itemToRemove.sub_taxon_name))
   }
 
-  console.log('Slected Checkboxes >>', selectedItems)
-
   const onSubmit = async val => {
     val.vernacular_id = val.vernacular_id !== undefined && val.vernacular_id !== '' ? val.vernacular_id : null
 
@@ -442,7 +416,6 @@ const AddSpeciesSlideBar = ({
       banner_images: val.banner_images ? val.banner_images : [],
       zoo_id: 11
     }
-    console.log('Payload >>', payload)
 
     if (status === 'hybrid') {
       if (editName) {
@@ -636,8 +609,6 @@ const AddSpeciesSlideBar = ({
       toast.error('Something went wrong ')
     }
   }
-
-  console.log('Mutation List >>', morphList)
 
   const handlelocalityCard = async event => {
     event.stopPropagation()
@@ -986,12 +957,10 @@ const AddSpeciesSlideBar = ({
                             control={control}
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => {
-                              // Filter editVernacularNames based on rows state
                               const filteredVernacularNames = editVernacularNames.filter(item =>
                                 rows.some(row => row.default_common_name_id === item.id)
                               )
 
-                              // Determine selectedId based on filtered results or first item in editVernacularNames
                               const selectedId =
                                 value || (filteredVernacularNames.length > 0 && filteredVernacularNames[0].id)
 
@@ -1138,35 +1107,30 @@ const AddSpeciesSlideBar = ({
                           </IconButton>
                         </Box>
                       ))
-                    : selectedImages.map(
-                        (
-                          image,
-                          index // Render selected images if bannerImages is empty
-                        ) => (
-                          <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
-                            <img
-                              src={image}
-                              alt={`Image ${index}`}
-                              style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
-                            />
-                            <IconButton
-                              sx={{
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                width: 30,
-                                height: 30,
-                                mb: 5,
-                                color: 'white',
-                                backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                              }}
-                              onClick={() => handleRemoveImage(image)}
-                            >
-                              <CloseIcon />
-                            </IconButton>
-                          </Box>
-                        )
-                      )}
+                    : selectedImages.map((image, index) => (
+                        <Box key={index} sx={{ position: 'relative', marginRight: 2, margin: 4 }}>
+                          <img
+                            src={image}
+                            alt={`Image ${index}`}
+                            style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
+                          />
+                          <IconButton
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              width: 30,
+                              height: 30,
+                              mb: 5,
+                              color: 'white',
+                              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                            }}
+                            onClick={() => handleRemoveImage(image)}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Box>
+                      ))}
                 </Box>
               </Box>
 
@@ -1480,7 +1444,6 @@ const AddSpeciesSlideBar = ({
                                     </Box>
                                   </Box>
                                   {index < selectedItems.length - 1 && <Divider sx={{ mt: 1 }} />}
-                                  {/* Add Divider between items, but not after the last item */}
                                 </React.Fragment>
                               )
                             })}
@@ -1524,12 +1487,10 @@ const AddSpeciesSlideBar = ({
                               console.log('Item >>', item)
                               return (
                                 <React.Fragment key={item.id || index}>
-                                  {/* Use a unique identifier if available, otherwise fallback to index */}
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <Box sx={{ mt: 2 }}>
                                       <Typography sx={{ ml: 1 }}>
                                         {item?.sub_taxon_name || 'Fallback text'}
-                                        {/* Fallback text if sub_taxon_name is empty */}
                                       </Typography>
                                     </Box>
                                     <Box sx={{ mt: 1 }}>
@@ -1543,7 +1504,6 @@ const AddSpeciesSlideBar = ({
                                     </Box>
                                   </Box>
                                   {index < selectedLocality.length - 1 && <Divider sx={{ mt: 2 }} />}
-                                  {/* Add Divider between items, but not after the last item */}
                                 </React.Fragment>
                               )
                             })}
@@ -1568,7 +1528,7 @@ const AddSpeciesSlideBar = ({
                   name='species_image'
                 >
                   <input
-                    id='fileInput' // Add an id to the input element
+                    id='fileInput'
                     type='file'
                     accept='image/*'
                     onChange={e => handleInputImageChange(e)}

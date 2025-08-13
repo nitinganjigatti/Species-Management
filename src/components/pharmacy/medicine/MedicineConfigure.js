@@ -271,7 +271,11 @@ const MedicineConfigure = ({ configureMedId }) => {
 
   return (
     <>
-      <Grid container sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Grid
+        container
+        size={{ xs: 12, sm: 12 }}
+        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+      >
         <DialogConfirmation
           handleClose={handleClose}
           action={confirmDeleteAction}
@@ -343,7 +347,7 @@ const MedicineConfigure = ({ configureMedId }) => {
           </TableContainer>
         ) : null}
         {showQtyForm === false ? (
-          <Grid item xs={6} sm={12}>
+          <Grid item size={{ xs: 6, sm: 12 }}>
             <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
               <form autoComplete='off' onSubmit={handleSubmit(addMedicineConfiguration)}>
                 <FormControl fullWidth sx={{ mb: 6 }}>
@@ -459,7 +463,7 @@ const MedicineConfigure = ({ configureMedId }) => {
             </Box>
           </Grid>
         ) : (
-          <Grid item xs={6} sm={12}>
+          <Grid item size={{ xs: 6, sm: 12 }}>
             <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
               <form autoComplete='off' onSubmit={handleSubmit(addMinQuantity)}>
                 <FormControl fullWidth sx={{ mb: 6 }}>

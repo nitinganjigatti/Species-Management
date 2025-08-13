@@ -211,7 +211,6 @@ const VerticalNavHeader = props => {
           </HeaderTitle> */}
         </LinkStyled>
       )}
-
       {hidden ? (
         <IconButton
           disableRipple
@@ -236,13 +235,13 @@ const VerticalNavHeader = props => {
             )
           ) : (
             <Box
-              width={22}
               fill='none'
-              height={22}
               component='svg'
               viewBox='0 0 22 22'
               xmlns='http://www.w3.org/2000/svg'
               sx={{
+                width: 22,
+                height: 22,
                 transform: `rotate(${svgRotationDeg()}deg)`,
                 transition: 'transform .25s ease-in-out .35s'
               }}

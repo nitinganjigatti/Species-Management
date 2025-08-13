@@ -23,7 +23,6 @@ import { useForm, Controller } from 'react-hook-form'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { getValue } from '@mui/system'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
 
@@ -76,7 +75,6 @@ const ExistingPurchaseForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
-  console.log('first,', nestedRowMedicine)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -139,7 +137,6 @@ const ExistingPurchaseForm = props => {
     setValue,
     watch,
     getValues
-    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -365,10 +362,9 @@ const ExistingPurchaseForm = props => {
   useEffect(() => {
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate), { shouldValidate: true })
-      if(nestedRowMedicine?.purchase_variant_id != 0)
+      if (nestedRowMedicine?.purchase_variant_id != 0)
         setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id, { shouldValidate: true })
-      else
-        setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      else setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
       setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
       const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
       setValue('isVariantIdPresent', true)
@@ -419,7 +415,7 @@ const ExistingPurchaseForm = props => {
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='product'
@@ -429,18 +425,23 @@ const ExistingPurchaseForm = props => {
                   options={optionsMedicineList}
                   value={value}
                   getOptionLabel={option => option.label}
-                  renderOption={(props, option) => (
-                    <li
-                      {...props}
-                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                    >
-                      <Box>
-                        <Typography>{option.label}</Typography>
-                        <Typography variant='body2'>{option.package_details}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography>
-                      </Box>
-                    </li>
-                  )}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
+
+                    return (
+                      <li
+                        key={`${key}-${option.value}`}
+                        {...otherProps}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option.label}</Typography>
+                          <Typography variant='body2'>{option.package_details}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
+                        </Box>
+                      </li>
+                    )
+                  }}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
                     if (val === null) {
@@ -518,7 +519,7 @@ const ExistingPurchaseForm = props => {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_batch_no'
@@ -552,7 +553,7 @@ const ExistingPurchaseForm = props => {
         </Grid>
 
         {!nonMedicalProduct && (
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               {expiryDateLoader && (
                 <span style={{ position: 'absolute', right: '12px', top: '16px' }}>
@@ -588,7 +589,7 @@ const ExistingPurchaseForm = props => {
           </Grid>
         )}
 
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               error={Boolean(errors.purchase_unit_price)}
@@ -612,7 +613,7 @@ const ExistingPurchaseForm = props => {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <InputLabel error={Boolean(errors.purchase_variant_id)}>Product Variant*</InputLabel>
             <Controller
@@ -655,7 +656,7 @@ const ExistingPurchaseForm = props => {
             {errors?.purchase_variant_id && <FormHelperText error>{errors.purchase_variant_id.message}</FormHelperText>}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <Box
             sx={{
               width: '100%',
@@ -706,8 +707,7 @@ const ExistingPurchaseForm = props => {
           </Box>
         </Grid>
 
-        {/* // file uploader */}
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right' }}>
             {medicineItemId ? (
               <>

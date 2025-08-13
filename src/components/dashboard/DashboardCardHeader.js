@@ -38,17 +38,9 @@ const DashboardCardHeader = ({
             </Typography>
           )
         }
-        subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
-        // titleTypographyProps={{
-        //   sx: { letterSpacing: '0.15px' },
-        //   textAlign: 'start'
-        // }}
-        // action={
-        //   <OptionsMenu
-        //     options={timeOptions ? timeOptions : []}
-        //     iconButtonProps={{ size: 'small', className: 'card-more-options' }}
-        //   />
-        // }
+        slotProps={{
+          subheader: { sx: { lineHeight: 1.429 } }
+        }}
       />
       <CardContent
         sx={{
@@ -65,7 +57,7 @@ const DashboardCardHeader = ({
         {children}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default DashboardCardHeader

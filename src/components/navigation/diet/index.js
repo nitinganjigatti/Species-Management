@@ -7,21 +7,24 @@ const composeDietNavigation = () => {
     title: 'Feed Types',
     path: '/diet/feed',
     icon: <img src='/icons/feedtypes_dark.svg' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/feedtypes_white.svg' alt='Grocery Icon' />
+    activeIcon: <img src='/icons/feedtypes_white.svg' alt='Grocery Icon' />,
+    activeWhen: ['/diet/feed', '/diet/feed/add-feed']
   }
 
   const ingredientsList = {
-    title: 'Ingredient',
+    title: 'Item',
     path: '/diet/ingredient',
     icon: <img src='/icons/ingredient.png' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/icon_ingredient_white.png' alt='Grocery Icon' />
+    activeIcon: <img src='/icons/icon_ingredient_white.png' alt='Grocery Icon' />,
+    activeWhen: ['/diet/ingredient', '/diet/ingredient/add-ingredient']
   }
 
   const dietList = {
     title: 'Diet',
     path: '/diet/diet',
     icon: <img src='/icons/icon_diet_black.png' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
+    activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />,
+    activeWhen: ['/diet/diet', '/diet/add-diet']
   }
 
   const speciesDietList = {
@@ -35,14 +38,16 @@ const composeDietNavigation = () => {
     title: 'Recipe',
     path: '/diet/recipe',
     icon: <img src='/icons/icon_recipe_black.png' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />
+    activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />,
+    activeWhen: ['/diet/recipe', '/diet/recipe/add-recipe']
   }
 
   const comboList = {
     title: 'Combo',
     path: '/diet/combo',
     icon: <img src='/icons/icon_recipe_black.png' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />
+    activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />,
+    activeWhen: ['/diet/combo', '/diet/combo/add-combo']
   }
 
   const mealGroups = {
@@ -86,7 +91,12 @@ const composeDietNavigation = () => {
     path: '/diet/kitchen/diet-report'
   }
 
-  kitchenParent.children.push(dietReport)
+  const mealGroupReport = {
+    title: 'Meal Group Report',
+    path: '/diet/kitchen/meal-group-report'
+  }
+
+  kitchenParent.children.push(dietReport, mealGroupReport)
 
   settingsParent.children.push(preparationTypes, cutSize, dietCategory)
 

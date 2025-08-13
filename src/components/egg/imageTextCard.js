@@ -6,8 +6,6 @@ import { useTheme } from '@mui/material/styles'
 const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultName, completeName, eggIcon, tab }) => {
   const theme = useTheme()
 
-  // console.log('egg_status :>> ', egg_status)
-
   return (
     <Stack direction='row' spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
       <Box
@@ -55,8 +53,9 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
               style={{
                 width: '100%',
                 height: '100%',
-                padding: '3px',
-                objectFit: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? 'contain' : 'cover'
+                borderRadius: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? '' : '50%',
+                padding: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? '2px' : '0px',
+                objectFit: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? 'fill' : 'cover'
               }}
             />
           ) : (

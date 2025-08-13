@@ -64,6 +64,15 @@ const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   },
   '.MuiDataGrid-menuIcon': {
     display: 'none'
+  },
+  '.MuiDataGrid-main': {
+    borderLeft: '1px solid #0000000D',
+    borderRight: '1px solid #0000000D',
+    borderRadius: '8px',
+    border: '1px solid rgba(233, 233, 236, 1)'
+  },
+  '& .MuiDataGrid-footerContainer': {
+    borderTop: 'none'
   }
 }))
 
@@ -108,6 +117,7 @@ const IncubatorDetails = () => {
   const calculatePercentageChange = (value1, value2) => {
     // initial_weight
     const numValue1 = parseFloat(value1)
+
     // current_weight
     const numValue2 = parseFloat(value2)
 
@@ -134,39 +144,6 @@ const IncubatorDetails = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
-
-  // const hatcheryStatusFunc = () => {
-  //   setStatusLoading(true)
-  //   try {
-  //     hatcheryStatus({
-  //       ref_type: 'incubator',
-  //       ref_id: id,
-  //       status: active ? 'deactivate' : 'activate'
-  //     }).then(response => {
-  //       if (response.success) {
-  //         Toaster({
-  //           type: 'success',
-  //           message: active ? 'Incubator Deactivated Successfully' : 'Incubator Activated Successfully'
-  //         })
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //         setActive(!active)
-  //         getIncubatorDetailFunc()
-  //       } else {
-  //         Toaster({ type: 'error', message: response.message })
-  //         setEditMessage(response?.message)
-  //         setOpenRedirectionDialog(true)
-  //         getIncubatorDetailFunc()
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //       }
-  //     })
-  //   } catch (error) {
-  //     setOpenStatusDialog(false)
-  //     setStatusLoading(false)
-  //     Toaster({ type: 'error', message: response.message })
-  //   }
-  // }
 
   const hatcheryStatusFunc = async () => {
     setStatusLoading(true)
@@ -295,8 +272,6 @@ const IncubatorDetails = () => {
                       params.row.egg_status === 'Hatched'
                     ? theme.palette.customColors.lightBg
                     : theme.palette.customColors.lightBg,
-
-                // textAlign: 'center',
                 borderRadius: '4px',
                 display: 'inline-block'
               }}
@@ -644,46 +619,6 @@ const IncubatorDetails = () => {
     getspeciesFunc()
   }, [])
 
-  // const fetchTableData = useCallback(
-  //   async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         q,
-  //         page_no: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize,
-  //         nursery_id: '',
-  //         type: 'eggs_incubation',
-  //         allocate_date: allocation_date,
-  //         collected_date,
-  //         taxonomy_id,
-  //         incubator_id: id
-  //       }
-
-  //       await GetEggList({ params: params }).then(res => {
-  //         if (res?.data?.result) {
-  //           // Generate uid field based on the index
-  //           let listWithId = res.data.result.map((el, i) => {
-  //             return { ...el, uid: i + 1 }
-  //           })
-  //           setTotal(parseInt(res?.data?.total_count))
-  //           setRows(loadServerRows(paginationModel.page, listWithId))
-  //         } else {
-  //           setTotal(parseInt(res?.data?.total_count))
-  //           setRows([])
-  //         }
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       console.log(e)
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
-
   const fetchTableData = useCallback(
     async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
       setLoading(true)
@@ -779,7 +714,14 @@ const IncubatorDetails = () => {
     debounce(async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, status, allocation_date, collected_date, taxonomy_id)
+        await fetchTableData(
+          sort,
+          q,
+          status,
+          allocation_date,
+          collected_date != null ? dayjs(collected_date).format('YYYY-MM-DD') : null,
+          taxonomy_id
+        )
       } catch (error) {
         console.error(error)
       }
@@ -814,7 +756,12 @@ const IncubatorDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/incubators/')}>
               Incubator List
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Incubator Details
             </Typography>
           </Breadcrumbs>
@@ -833,7 +780,7 @@ const IncubatorDetails = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap',
-                  gap: 2
+                  gap: '8px'
                 }}
               >
                 <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -855,7 +802,15 @@ const IncubatorDetails = () => {
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', columnGap: '24px', rowGap: '8px', flexWrap: 'wrap' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    columnGap: '24px',
+                    rowGap: '8px',
+                    flexWrap: 'wrap'
+                  }}
+                >
                   <Box
                     onClick={() => setTransferIncubatorSideBar(true)}
                     sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -951,7 +906,6 @@ const IncubatorDetails = () => {
               <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                 <Box
                   sx={{
-                    width: 220,
                     display: 'flex',
                     alignItems: 'center',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -991,6 +945,12 @@ const IncubatorDetails = () => {
                         },
                         '& .MuiInputLabel-root': {
                           top: allocationDate ? -0 : -7
+                        },
+                        '& .MuiInputLabel-root': {
+                          top: -7
+                        },
+                        '& .MuiInputLabel-shrink': {
+                          top: 0
                         },
                         '& input': {
                           // position: 'relative'
@@ -1068,10 +1028,18 @@ const IncubatorDetails = () => {
                         width: '100%',
                         '& .MuiOutlinedInput-root': {
                           height: 40,
+                          // width: 200,
                           borderRadius: '4px'
                         },
                         '& .MuiInputLabel-root': {
                           top: collectedDate ? -0 : -7
+                        },
+
+                        '& .MuiInputLabel-root': {
+                          top: -7
+                        },
+                        '& .MuiInputLabel-shrink': {
+                          top: 0
                         },
                         '& input': {
                           // position: 'relative'
@@ -1148,11 +1116,16 @@ const IncubatorDetails = () => {
                     name='species'
                     value={defaultSpecie}
                     disablePortal
-                    id='species'
                     sx={{ width: 220 }}
+                    id='species'
                     options={speciesList?.length > 0 ? speciesList : []}
                     getOptionLabel={option => option.default_common_name}
                     isOptionEqualToValue={(option, value) => option?.taxonomy_id === value?.taxonomy_id}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.taxonomy_id}>
+                        {option.default_common_name}
+                      </li>
+                    )}
                     onChange={(e, val) => {
                       if (val === null) {
                         setDefaultSpecie(null)
@@ -1175,9 +1148,12 @@ const IncubatorDetails = () => {
                           '& .MuiInputLabel-root': {
                             top: -7
                           },
+                          '& .MuiInputLabel-shrink': {
+                            top: 0
+                          },
                           '& input': {
                             position: 'relative',
-                            top: -7
+                            top: -0
                           }
                         }}
                         onChange={e => {

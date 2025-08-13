@@ -38,7 +38,7 @@ const SpeciesList = () => {
   const [sortColumn, setSortColumn] = useState('scientific_name')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
@@ -499,14 +499,14 @@ const SpeciesList = () => {
         setSubmitLoader(false)
 
         if (typeof response?.message === 'object') {
-          //toast.error(response.message?.cover_image || response.message?.species_image)
+          // toast.error(response.message?.cover_image || response.message?.species_image)
           Toaster({ type: 'success', message: response.message?.cover_image || response.message?.species_image })
 
           // Utility.errorMessageExtractorFromObject(response.message?.cover_image)
         } else {
           Toaster({ type: 'error', message: response.message })
 
-          //toast.error(response.message)
+          // toast.error(response.message)
         }
       }
     } catch (e) {
@@ -593,7 +593,8 @@ const SpeciesList = () => {
               disableRowSelectionOnClick
               sx={{
                 width: '100%', // Adjust table width to 100% of its parent container
-                maxWidth: '1200px',
+                // maxWidth: '1200px',
+                px: 4,
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
@@ -615,7 +616,7 @@ const SpeciesList = () => {
 
                 overflowX: 'auto',
                 '& .MuiDataGrid-main': {
-                  margin: '16px',
+                  // margin: '16px',
                   borderRadius: '8px',
                   border: '1px solid rgba(233, 233, 236, 1)'
                 },

@@ -10,7 +10,12 @@ const AlternativeMedicinesList = ({ data = [], isLoading = false, onLoadMore, ha
   return (
     <Paper elevation={3}>
       {data?.list_items?.length === 0 && !isLoading ? (
-        <Box p={2} textAlign='center' color='customColors.neutralSecondary'>
+        <Box
+          sx={{
+            p: 2,
+            textAlign: 'center',
+            color: 'customColors.neutralSecondary'
+          }}>
           No items found.
         </Box>
       ) : (
@@ -20,13 +25,15 @@ const AlternativeMedicinesList = ({ data = [], isLoading = false, onLoadMore, ha
               <ListItemText
                 primary={medicine?.stock_name || ''}
                 secondary={medicine?.manufacturer_name || ''}
-                primaryTypographyProps={{
-                  sx: { color: 'primary.dark', fontWeight: 500, fontSize: '14px' }
-                }}
-                secondaryTypographyProps={{
-                  sx: { color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }
-                }}
-              />
+                slotProps={{
+                  primary: {
+                    sx: { color: 'primary.dark', fontWeight: 500, fontSize: '14px' }
+                  },
+
+                  secondary: {
+                    sx: { color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }
+                  }
+                }} />
               <Box
                 sx={{
                   display: 'flex',
@@ -41,14 +48,20 @@ const AlternativeMedicinesList = ({ data = [], isLoading = false, onLoadMore, ha
             </ListItem>
           ))}
           {hasMore && (
-            <Box ref={loaderRef} p={2} display='flex' justifyContent='center'>
+            <Box
+              ref={loaderRef}
+              sx={{
+                p: 2,
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
               <CircularProgress />
             </Box>
           )}
         </List>
       )}
     </Paper>
-  )
+  );
 }
 
 export default React.memo(AlternativeMedicinesList)

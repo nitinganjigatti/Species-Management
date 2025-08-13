@@ -90,7 +90,6 @@ const ConditionSlider = ({
   const [sexingTypeList, setSexingTypeList] = useState([])
   const [lifeStageList, setLifeStageList] = useState([])
   const [contraceptionTypeList, setContraceptionTypeList] = useState([])
-  //for enclosure
   const [open, setOpen] = useState(false)
   const [enclosureData, setEnclosureData] = useState({})
 
@@ -101,7 +100,6 @@ const ConditionSlider = ({
     try {
       await GetEggMaster().then(res => {
         if (res.success) {
-          // console.log('res?.data? master :>> ', res?.data)
           setEggMaster(res?.data)
         }
       })
@@ -170,10 +168,10 @@ const ConditionSlider = ({
               function (value) {
                 const { accessionType } = this.parent
                 if (accessionType === '2') {
-                  return !!value // Return true if value is not empty
+                  return !!value
                 }
 
-                return true // Otherwise, always pass validation
+                return true
               }
             ),
           accessionDate: yup.string().required('Accession date is required'),
@@ -200,9 +198,9 @@ const ConditionSlider = ({
               function (value) {
                 const { localIdentifierType } = this.parent
                 if (localIdentifierType && localIdentifierType.trim() !== '') {
-                  return !!value // Return true if value is not empty
+                  return !!value
                 }
-                return true // Otherwise, always pass validation
+                return true
               }
             )
         }
@@ -244,10 +242,8 @@ const ConditionSlider = ({
   useEffect(() => {
     if (statusID) {
       setStatusId(statusID)
-      // console.log('statusID :>> ', statusID)
       const filteredEggStatus = eggMaster?.egg_state?.filter(status => status?.egg_status_id === statusID)
       setEggStaged(filteredEggStatus)
-      // console.log('filteredEggStatus :>> ', filteredEggStatus)
     }
   }, [statusID, eggMaster])
 
@@ -278,7 +274,7 @@ const ConditionSlider = ({
   // }
 
   const { getRootProps, getInputProps } = useDropzone({
-    multiple: true, // changed to true for multiple files
+    multiple: true,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
     },
@@ -292,11 +288,9 @@ const ConditionSlider = ({
         reader.readAsDataURL(file)
       })
 
-      // Update filenames as comma-separated string
       const fileNames = acceptedFiles.map(file => file.name).join(', ')
       setDisplayFile(fileNames)
 
-      // Add all files to imgArr state
       setImgArr(prev => [...prev, ...acceptedFiles])
 
       setValue('image', acceptedFiles)
@@ -345,7 +339,6 @@ const ConditionSlider = ({
         setImgArr(prev => [...prev, fileItem])
       })
 
-      // Display filenames as comma-separated string
       const fileNames = Array.from(files)
         .map(f => f.name)
         .join(', ')
@@ -365,13 +358,11 @@ const ConditionSlider = ({
     setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
     setImgArr(prevArr => prevArr.filter((_, i) => i !== index))
 
-    // Update the form value accordingly
     setValue(
       'image',
       imgArr.filter((_, i) => i !== index)
     )
 
-    // If no images left, optionally reset display filename
     if (imgArr.length === 1) {
       setDisplayFile('')
       setValue('image', '')
@@ -507,7 +498,6 @@ const ConditionSlider = ({
           if (res.success) {
             setLoader(false)
 
-            // console.log('res on submit :>> ', res)
             setImgSrc('')
             reset()
 
@@ -528,8 +518,6 @@ const ConditionSlider = ({
           }
         })
       }
-
-      // Perform any additional operations, e.g., API call
     } catch (error) {
       setLoader(false)
       if (getDetails) {
@@ -563,6 +551,16 @@ const ConditionSlider = ({
     setValue('necropsy_Btn', eggDetails?.is_necropsy_needed)
     setValue('hatched_date', eggDetails?.hatched_date ? dayjs(eggDetails.hatched_date) : undefined)
   }, [eggDetails])
+
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'hatched_date' && value?.hatched_date) {
+        setValue('birthDate', value.hatched_date)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [watch])
 
   const getAccessionTypeFunc = () => {
     try {
@@ -977,7 +975,7 @@ const ConditionSlider = ({
                                 name='assisted_by'
                                 onChange={onChange}
                                 placeholder=''
-                                sx={{ width: '100%', mr: 12 }} // Adjusted sx prop
+                                sx={{ width: '100%', mr: 12 }}
                               />
                             )}
                           />
@@ -1018,7 +1016,7 @@ const ConditionSlider = ({
                           placeholder=''
                           multiline
                           rows={3}
-                          sx={{ width: '100%', mr: 12, mb: 3 }} // Adjusted sx prop
+                          sx={{ width: '100%', mr: 12, mb: 3 }}
                         />
                       )}
                     />
@@ -1058,56 +1056,55 @@ const ConditionSlider = ({
                       </Box>
                     </Grid>
                     {/* )} */}
-                  </Grid>
-                  <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <Stack direction='row' sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 3 }}>
-                      {imgSrc?.length > 0 &&
-                        imgSrc?.map((img, index) => (
-                          <Box
-                            key={index}
-                            sx={{
-                              position: 'relative',
-                              backgroundColor: theme.palette.customColors.tableHeaderBg,
-                              borderRadius: '10px',
-                              height: 121,
-                              padding: '10.5px',
-                              boxSizing: 'border-box'
-                            }}
-                          >
-                            <img
-                              style={{
-                                aspectRatio: 2 / 2,
-                                height: '100%',
-                                borderRadius: '5%'
-                              }}
-                              alt='Uploaded image'
-                              src={typeof img === 'string' ? img : img}
-                            />
+                    <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <Stack direction='row' sx={{ px: 0, display: 'flex', flexWrap: 'wrap', gap: 3, mt: 3 }}>
+                        {imgSrc?.length > 0 &&
+                          imgSrc?.map((img, index) => (
                             <Box
+                              key={index}
                               sx={{
-                                cursor: 'pointer',
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                zIndex: 10,
-                                height: '24px',
-                                borderRadius: 0.4,
-                                backgroundColor: theme.palette.customColors.secondaryBg
+                                position: 'relative',
+                                backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                borderRadius: '10px',
+                                height: 121,
+                                padding: '10.5px',
+                                boxSizing: 'border-box'
                               }}
                             >
-                              <Icon
-                                icon='material-symbols-light:close'
-                                color={theme.palette.primary.contrastText}
-                                onClick={() => removeSelectedImage(index)}
+                              <img
+                                style={{
+                                  aspectRatio: 2 / 2,
+                                  height: '100%',
+                                  borderRadius: '5%'
+                                }}
+                                alt='Uploaded image'
+                                src={typeof img === 'string' ? img : img}
+                              />
+                              <Box
+                                sx={{
+                                  cursor: 'pointer',
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10,
+                                  height: '24px',
+                                  borderRadius: 0.4,
+                                  backgroundColor: theme.palette.customColors.secondaryBg
+                                }}
                               >
-                                {' '}
-                              </Icon>
+                                <Icon
+                                  icon='material-symbols-light:close'
+                                  color={theme.palette.primary.contrastText}
+                                  onClick={() => removeSelectedImage(index)}
+                                >
+                                  {' '}
+                                </Icon>
+                              </Box>
                             </Box>
-                          </Box>
-                        ))}
-                    </Stack>
+                          ))}
+                      </Stack>
+                    </Grid>
                   </Grid>
-                  {/* {console.log('permission check', checkAddPermission())} */}
                   {statusID === '4' && checkAddPermission() && (
                     <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>

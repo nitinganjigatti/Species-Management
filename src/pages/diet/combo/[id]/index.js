@@ -183,7 +183,7 @@ const RecipeDetail = () => {
         </CardContent>
       ) : (
         <Grid container spacing={6}>
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
@@ -192,7 +192,13 @@ const RecipeDetail = () => {
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
                 Combo
               </Typography>
-              <Typography color='text.primary'>Combo Details</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                Combo Details
+              </Typography>
             </Breadcrumbs>
             {Object.keys(IngredientsDetailsval).length !== 0 ? (
               <>
@@ -220,8 +226,7 @@ const RecipeDetail = () => {
                                 width: 'auto',
                                 height: '100%',
                                 borderRadius: '8px',
-                                cursor: 'pointer',
-                                marginLeft: '10px'
+                                cursor: 'pointer'
                               }}
                               src={'/icons/icon_copy.svg'}
                               variant='square'
@@ -247,8 +252,7 @@ const RecipeDetail = () => {
                                   width: 'auto',
                                   height: '100%',
                                   borderRadius: '8px',
-                                  cursor: 'pointer',
-                                  marginLeft: '10px'
+                                  cursor: 'pointer'
                                 }}
                                 src={'/icons/pencil_outlined.svg'}
                                 variant='square'
@@ -286,17 +290,12 @@ const RecipeDetail = () => {
                                   width: 'auto',
                                   height: '100%',
                                   borderRadius: '8px',
-                                  cursor: 'pointer',
-                                  marginLeft: '10px'
+                                  cursor: 'pointer'
                                 }}
                                 src={'/icons/delete_outlined.svg'}
                                 variant='square'
                                 onClick={() => {
-                                  if (
-                                    Number(IngredientsDetailsval?.total_ingredients) +
-                                      Number(IngredientsDetailsval?.diet_count) >
-                                    0
-                                  ) {
+                                  if (Number(IngredientsDetailsval?.diet_count) > 0) {
                                     handleStatusClickOpen()
                                   } else {
                                     handleClickOpen()
@@ -317,7 +316,7 @@ const RecipeDetail = () => {
                         getRecipeDetailval={getRecipeDetailval}
                       />
 
-                      <Grid item md={8} xs={12}>
+                      <Grid item size={{ xs: 12, md: 8 }}>
                         <TabContext value={value}>
                           <TabList onChange={handleChange} aria-label='customized tabs example'>
                             <Tab

@@ -23,7 +23,6 @@ import { getPackages, addPackages, updatePackage } from 'src/lib/api/pharmacy/pa
 
 import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import toast from 'react-hot-toast'
 
@@ -44,7 +43,6 @@ const ManufacturerList = () => {
   const [packages, setPackages] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, active: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -89,7 +87,6 @@ const ManufacturerList = () => {
     setOpenDrawer(true)
   }
 
-  /***** Drawer  */
 
   const columns = [
     {
@@ -149,8 +146,7 @@ const ManufacturerList = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+        
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -169,13 +165,12 @@ const ManufacturerList = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -259,7 +254,6 @@ const ManufacturerList = () => {
         response = await addPackages(payload)
       }
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
@@ -274,12 +268,10 @@ const ManufacturerList = () => {
           toast.error(response.message)
         }
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
       setSubmitLoader(false)
 
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
       toast.error(JSON.stringify(e))
     }
   }
@@ -293,7 +285,6 @@ const ManufacturerList = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -305,8 +296,8 @@ const ManufacturerList = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
+                    justifyContent: 'flex-start', 
+                    alignItems: 'flex-start', 
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }

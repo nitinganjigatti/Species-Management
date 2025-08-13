@@ -57,12 +57,11 @@ const PurchaseDocsDrawer = ({
 
   const isPDF = title => title?.toLowerCase().endsWith('.pdf')
 
-  // console.log('isPDF', isPDF)
 
   const handleDelete = (e, index, doc) => {
     setSelectedDoc(doc)
     e.preventDefault()
-    e.stopPropagation() // Stop the event from propagating to the <a> tag
+    e.stopPropagation() 
 
     if (id) {
       if (doc?.id) {
@@ -94,8 +93,8 @@ const PurchaseDocsDrawer = ({
   return (
     <Drawer
       anchor='right'
-      open={openDocsDrawer} // Make sure this is a boolean
-      onClose={() => setOpenDocsDrawer(false)} // Trigger the close function when the drawer is clicked outside or swipe
+      open={openDocsDrawer}
+      onClose={() => setOpenDocsDrawer(false)} 
       sx={{
         '& .MuiDrawer-paper': {
           width: ['100%', '396px'],
@@ -121,7 +120,6 @@ const PurchaseDocsDrawer = ({
           flexDirection: 'column'
         }}
       >
-        {/* Header  */}
         <Box
           sx={{
             // borderBottom: 1,
@@ -142,7 +140,7 @@ const PurchaseDocsDrawer = ({
             <Icon icon='maki:cross' width='15' height='15' color={theme.palette.customColors.OnPrimaryContainer} />
           </IconButton>
         </Box>
-        {/* Media card */}
+      
 
         <Box
           sx={{
@@ -159,7 +157,7 @@ const PurchaseDocsDrawer = ({
                 key={index}
                 onClick={e => {
                   if (!isPDF(doc.title || fileArr[index]?.name)) {
-                    e.preventDefault() // Prevent default anchor behavior
+                    e.preventDefault() 
                     handleOpenDialog(doc, index)
                     setSelectedDoc(doc)
                   }
@@ -171,7 +169,7 @@ const PurchaseDocsDrawer = ({
                   rel='noopener noreferrer'
                   style={{ textDecoration: 'none' }}
                 >
-                  {/* {console.log(' doc[index]', doc)} */}
+                 
                   <Box
                     key={index}
                     elevation={3}
@@ -182,14 +180,14 @@ const PurchaseDocsDrawer = ({
                       flexDirection: 'column',
                       position: 'relative',
                       borderRadius: '8px',
-                      backgroundColor: '#fff' // Light background
+                      backgroundColor: '#fff' 
                     }}
                   >
-                    {/* Close Button */}
+                   
 
                     {closeButton(index, doc)}
 
-                    {/* Icon */}
+                  
                     {isPDF(doc.title || fileArr[index]?.name) ? (
                       <Box
                         sx={{
@@ -232,7 +230,6 @@ const PurchaseDocsDrawer = ({
                       </Box>
                     )}
 
-                    {/* Text */}
                     <Box sx={{ marginTop: -1, px: 2, pb: 1 }}>
                       <Typography
                         sx={{
@@ -259,7 +256,7 @@ const PurchaseDocsDrawer = ({
         </Box>
       </Box>
 
-      {/* Dialog */}
+     
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth='md'>
         <Box
           sx={{
@@ -270,23 +267,23 @@ const PurchaseDocsDrawer = ({
             alignItems: 'center',
             overflow: 'hidden',
             backgroundColor: '#f0f0f0',
-            position: 'relative' // Ensure the IconButton is positioned relative to this container
+            position: 'relative' 
           }}
         >
-          {/* Close Icon */}
+         
           <IconButton
             onClick={handleCloseDialog}
             sx={{
-              position: 'absolute', // Position it absolutely within the parent container
-              top: '10px', // Adjust top position
-              right: '10px', // Adjust right position
-              zIndex: 2 // Ensure it appears above the image
+              position: 'absolute',
+              top: '10px', 
+              right: '10px', 
+              zIndex: 2 
             }}
           >
             <Icon icon='solar:close-square-bold' width='40px' height='40px' color={'#7A8684'} />
           </IconButton>
 
-          {/* Image */}
+        
           <img
             src={selectedDoc?.transcript || selectedDoc}
             alt='Invoice doc'
@@ -294,7 +291,7 @@ const PurchaseDocsDrawer = ({
               maxWidth: '100%',
               minHeight: 400,
               maxHeight: '100%',
-              objectFit: 'contain' // Prevent cropping and fits the content within the container
+              objectFit: 'contain'
             }}
           />
         </Box>
@@ -323,7 +320,7 @@ const PurchaseDocsDrawer = ({
                 color: theme.palette.customColors.neutralSecondary,
                 '&:hover': {
                   borderColor: theme.palette.customColors.OutlineVariant,
-                  color: theme.palette.customColors.neutralSecondary // Color on hover
+                  color: theme.palette.customColors.neutralSecondary 
                 }
               }}
               onClick={() => setConfirmDeleteDialog(false)}
@@ -341,7 +338,7 @@ const PurchaseDocsDrawer = ({
               sx={{
                 bgcolor: theme.palette.customColors.Error,
                 '&:hover': {
-                  bgcolor: theme.palette.customColors.Error // Color on hover
+                  bgcolor: theme.palette.customColors.Error 
                 }
               }}
             >

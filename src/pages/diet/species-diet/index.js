@@ -1,7 +1,5 @@
-/* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback, useContext, useRef } from 'react'
 
-import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import {
@@ -16,25 +14,22 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-  Badge
+  Typography,
+  Card
 } from '@mui/material'
-
-// ** MUI Imports
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 
 import { AuthContext } from 'src/context/AuthContext'
+import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
+import Error404 from 'src/pages/404'
+
 import SpeciesDetails from '../../../components/diet/species-diet/speciesDetails'
 import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
-import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
-import Error404 from 'src/pages/404'
 import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
 import { FilterButton } from '../../../views/utility/render-snippets'
+
+import { getSpeciesList } from 'src/lib/api/diet/speciesDiet'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -60,27 +55,6 @@ const SpeciesDietList = () => {
   const [selectedOptions, setSelectedOptions] = useState({
     Class: []
   })
-
-  ///////////////////////Filter-Code////////////////////////////
-  // const [isSearchOpen, setIsSearchOpen] = useState(false)
-  // const [search, setSearch] = useState('')
-  // const [isFilterOpen, setIsFilterOpen] = useState(false)
-  // const [showFilters, setShowFilters] = useState(false)
-
-  // const [applyFilters, setApplyFilters] = useState({
-  //   Site: [],
-  //   Section: [],
-  //   Enclosure: []
-  // })
-
-  // const [selectedOptions, setSelectedOptions] = useState({
-  //   Site: [],
-  //   Section: [],
-  //   Enclosure: []
-  // })
-  // const [filterList, setFilterList] = useState([])
-  ///////////////////////////////////////////////////
-
   const [attachmentWidth, setAttachmentWidth] = useState(0)
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [speciesId, setspeciesId] = useState(null)
@@ -111,13 +85,6 @@ const SpeciesDietList = () => {
       window.removeEventListener('resize', updateGridWidth)
     }
   }, [])
-  ///////////////////////////////////////////////////
-
-  // const closeattachmentUploadConfirmDialog = () => {
-  //   setAttachmentUploadConfirmDialog(false)
-  // }
-
-  // const fileInputRef = useRef(null)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -131,18 +98,9 @@ const SpeciesDietList = () => {
     async (q, newModel) => {
       try {
         const classIds = selectedFiltersOptions?.Class?.map(option => option.id) || []
-        ///////////////////////Filter-Code////////////////////////////
-        // console.log('applyFilters', applyFilters)
-        // const siteIds = applyFilters.Site?.map(option => option.id)
-        // const sectionIds = applyFilters.Section?.map(option => option.id)
-        // const enclosureIds = applyFilters.Enclosure?.map(option => option.id)
         setLoading(true)
 
         const params = {
-          ///////////////////////Filter-Code////////////////////////////
-          // site_ids: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
-          // section_ids: sectionIds.length > 0 ? JSON.stringify(ids.sectionIds) : '',
-          // enclosure_ids: enclosureIds.length > 0 ? JSON.stringify(ids.enclosureIds) : '',
           q: q?.q ? q?.q : searchValue,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
@@ -159,8 +117,6 @@ const SpeciesDietList = () => {
 
           setTotal(parseInt(res?.data?.count))
           setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
       } catch (e) {
@@ -240,18 +196,33 @@ const SpeciesDietList = () => {
         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar
             variant='rounded'
-            alt='Medicine Image'
+            alt='Species Image'
             sx={{
               width: 40,
               height: 40,
-              // borderRadius: '50%',
-              background: 'none',
-              padding: '2px'
+              borderRadius: '50%',
+              background: theme.palette.customColors.tableHeaderBg,
+              padding:
+                params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
+                  ? '2px'
+                  : '0px'
             }}
           >
             {params.row.default_icon ? (
               <img
-                style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius:
+                    params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
+                      ? ''
+                      : '50%',
+
+                  objectFit:
+                    params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
+                      ? 'fill'
+                      : 'cover'
+                }}
                 src={params.row.default_icon}
                 alt='Profile'
               />
@@ -674,7 +645,7 @@ const SpeciesDietList = () => {
                 </Typography>
                 <Avatar
                   variant='square'
-                  alt='Medicine Image'
+                  alt='Specie Image'
                   sx={{ width: 20, height: 20, background: 'transparent', overflow: 'hidden' }}
                 >
                   <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.svg'} alt='Profile' />
@@ -690,13 +661,6 @@ const SpeciesDietList = () => {
   const handleExport = async () => {
     try {
       setExportLoading(true)
-
-      // const now = new Date()
-
-      // const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
-      //   2,
-      //   '0'
-      // )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
 
       const params = {
         // sort: sort,
@@ -725,6 +689,7 @@ const SpeciesDietList = () => {
     setSpeciesData({ default_icon, scientific_name, common_name })
     setspeciesId(e.row.species_id)
   }
+
   useEffect(() => {
     const totalColumnsWidth = colWidths.reduce((sum, col) => sum + (col || 0), 0)
     const newAttachmentWidth = gridWidth - (totalColumnsWidth + 30)
@@ -737,8 +702,12 @@ const SpeciesDietList = () => {
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography color='inherit'>Diet</Typography>
-
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Species Diet List
             </Typography>
           </Breadcrumbs>
@@ -753,7 +722,7 @@ const SpeciesDietList = () => {
                 rowGap: 4
               }}
             >
-              <Grid item xs={12} sm={3.5}>
+              <Grid item size={{ xs: 12, sm: 3.5 }}>
                 <Typography
                   sx={{
                     marginLeft: 4,
@@ -766,9 +735,9 @@ const SpeciesDietList = () => {
                   Species Diet
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={8}>
+              <Grid item size={{ xs: 12, sm: 8 }}>
                 <Grid container sx={{ justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
-                  <Grid item xs={12} sm={12} md={'auto'} xl={'auto'}>
+                  <Grid item size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginRight: { xs: 4, md: 0 } }}>
                       <FormControl sx={{ minWidth: 250 }}>
                         <InputLabel id='controlled-select-label'>Filter Species</InputLabel>
@@ -793,10 +762,7 @@ const SpeciesDietList = () => {
 
                   <Grid
                     item
-                    xs={12}
-                    sm={12}
-                    md={'auto'}
-                    xl={'auto'}
+                    size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}
                     sx={{ display: 'flex', justifyContent: 'flex-end', marginLeft: { xs: 4, md: 0 }, marginRight: 4 }}
                   >
                     <Box
@@ -824,11 +790,6 @@ const SpeciesDietList = () => {
                           onChange={event => handleSearch(event.target.value)}
                           variant='outlined'
                           placeholder='Search...'
-                          InputProps={
-                            {
-                              // disableUnderline: true
-                            }
-                          }
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               border: 'none',
@@ -836,6 +797,11 @@ const SpeciesDietList = () => {
                               '& fieldset': {
                                 border: 'none'
                               }
+                            }
+                          }}
+                          slotProps={{
+                            input: {
+                              // disableUnderline: true
                             }
                           }}
                         />
@@ -1008,6 +974,7 @@ const SpeciesDietList = () => {
               speciesData={speciesData}
               setspeciesId={setspeciesId}
               uploadDietDrawer={uploadDietDrawer}
+              handleSearch={handleSearch}
               setUploadDietDrawer={setUploadDietDrawer}
             />
           )}

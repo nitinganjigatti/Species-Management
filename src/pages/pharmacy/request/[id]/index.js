@@ -61,14 +61,13 @@ import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
 import CloseIcon from '@mui/icons-material/Close'
 import RenderUtility from 'src/utility/render'
 import { useTheme } from '@emotion/react'
-import { width } from '@mui/system'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
 const IndividualRequest = () => {
-  // Styled TabList component
   const TabLists = styled(MuiTabList)(({ theme }) => ({
     '& .MuiTabs-indicator': {
       display: 'none'
@@ -224,7 +223,6 @@ const IndividualRequest = () => {
       }))
       responseData['request_item_details'] = mappedWithUid
 
-      // setRequestItems(response.data)
       setRequestItems(responseData)
       setLoader(false)
       setPermissionView(true)
@@ -242,6 +240,7 @@ const IndividualRequest = () => {
 
       const data = responseData?.dispatch_items?.map((el, index) => {
         const items = {
+          ...el,
           sl_no: index + 1,
           id: index + 1,
           dispatch_id: el.dispatch_id,
@@ -277,7 +276,7 @@ const IndividualRequest = () => {
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
 
-      setDispatchedItems(responseData.dispatch_items)
+      setDispatchedItems(responseData?.dispatch_items)
 
       setLoader(false)
     } else {
@@ -855,7 +854,6 @@ const IndividualRequest = () => {
 
       renderCell: params => (
         <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.alternate_comments}>
-          {/* <Icon icon='uil:comments' style={{ color: 'primary.error' }} /> */}
           <Typography
             sx={{
               minWidth: 30,
@@ -866,8 +864,6 @@ const IndividualRequest = () => {
               textOverflow: 'ellipsis',
               WebkitLineClamp: 6,
               whiteSpace: 'nowrap'
-
-              // ...strikeOutTextStyle(params.row.request_status)
             }}
             onClick={() => {
               if (params.row?.alternate_comments) {
@@ -1001,7 +997,7 @@ const IndividualRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Tooltip title={params.row.medicin_name} placement='top'>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+            <Typography sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}>
               {params.row.medicin_name}
             </Typography>
           </Tooltip>
@@ -1048,7 +1044,7 @@ const IndividualRequest = () => {
       headerName: 'Packed Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
+          {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
     },
@@ -1070,7 +1066,6 @@ const IndividualRequest = () => {
       headerName: 'Action',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
-          {/* <Box sx={{ mr: 2 }}> */}
           <Button
             sx={{
               mr: 2,
@@ -1091,7 +1086,6 @@ const IndividualRequest = () => {
           >
             <Icon icon='mdi:delete-outline' />
           </Button>
-          {/* </Box> */}
         </Typography>
       )
     }
@@ -1115,7 +1109,7 @@ const IndividualRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_id}</div>
+            {params.row.shipment_id}
           </Typography>
         </div>
       )
@@ -1166,7 +1160,7 @@ const IndividualRequest = () => {
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography component='div' variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -1184,7 +1178,6 @@ const IndividualRequest = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-            {/* /* This will show after shipping before receiving the request */}
             {params?.row?.delivery_status === 'Not Delivered' &&
               params?.row?.request_status === '' &&
               (params?.row?.shipment_status === 'Shipped' || params?.row?.shipment_status === 'PickedUp') && (
@@ -1442,8 +1435,6 @@ const IndividualRequest = () => {
   //   }
   // }
 
-  console.log(shippedItems, 'shippedItems')
-
   const hasNotFulfilledItems = requestItems?.request_item_details?.some(
     el =>
       el?.dispatch_status === 'Not Fulfilled' &&
@@ -1550,7 +1541,6 @@ const IndividualRequest = () => {
                       sx={{
                         width: '100%',
                         height: '100%',
-
                         display: 'flex',
                         alignItems: 'center',
 
@@ -1639,14 +1629,13 @@ const IndividualRequest = () => {
                         sx={{
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '4px',
                           height: '46px',
                           gap: '10px',
 
                           textAlign: {
                             xs: 'left',
-                            sm: 'right',
-                            md: 'right',
+                            sm: 'left',
+                            md: 'left',
                             lg: 'left'
                           },
                           mb: {
@@ -1684,10 +1673,7 @@ const IndividualRequest = () => {
                         <Box
                           sx={{
                             display: 'flex',
-                            alignItems: 'center',
-                            marginLeft: { xs: 0, md: 0, sm: '47px' }
-
-                            // overflow: 'hidden' // optional, if you want to clip long content
+                            alignItems: 'center'
                           }}
                         >
                           <Typography
@@ -1697,8 +1683,7 @@ const IndividualRequest = () => {
                               fontWeight: '400',
                               lineHeight: '16.94px',
                               color: 'customColors.neutralSecondary',
-                              whiteSpace: 'nowrap' // optional if this label might wrap
-                              // ml: { xs: 0, sm: 0 }
+                              whiteSpace: 'nowrap'
                             }}
                           >
                             Total Requested Value:
@@ -1843,7 +1828,6 @@ const IndividualRequest = () => {
                               display: 'flex',
                               flexDirection: 'column',
 
-                              // height: '36px',
                               gap: '10px'
                             }}
                           >
@@ -1939,6 +1923,9 @@ const IndividualRequest = () => {
                                 selectedPharmacy={selectedPharmacy}
                               />
                             )}
+                            {requestItems?.request_item_details?.length === 0 && (
+                              <NoDataFound variant='Meerkat' height={200} width={200} />
+                            )}
                           </Box>
                         </TabPanel>
                         <TabPanel
@@ -1948,24 +1935,24 @@ const IndividualRequest = () => {
                           }}
                         >
                           <Box sx={{ my: 5 }}>
-                            {shippedItems?.length > 0 ? (
+                            {shippedItems?.length > 0 && (
                               <>
                                 <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
-                                  {/* <CardHeader title={`Shipments`}></CardHeader> */}
                                   <TableBasic
                                     columns={shippedColumns}
                                     rows={shippedItems}
                                     onRowClick={e => {
                                       setOrderId(e.id)
                                       Router.push({
-                                        pathname: `/pharmacy/request/${id}/shipment-details`,
+                                        pathname: `/pharmacy/shipments/incoming-shipments/${id}`,
                                         query: { orderId: e.id, requestId: id }
                                       })
                                     }}
-                                  ></TableBasic>
+                                  />
                                 </Card>
                               </>
-                            ) : null}
+                            )}
+                            {shippedItems?.length === 0 && <NoDataFound variant='Meerkat' height={200} width={200} />}
                           </Box>
                         </TabPanel>
                       </>
@@ -2030,6 +2017,12 @@ const IndividualRequest = () => {
                                       />
                                     )
                                   : null}
+                                {requestItems?.request_item_details?.length > 0 &&
+                                  requestItems?.request_item_details?.filter(
+                                    el =>
+                                      el?.dispatch_status === 'Not Fulfilled' &&
+                                      (el?.request_status !== 'Rejected' || el?.request_status !== 'Not Available')
+                                  )?.length === 0 && <NoDataFound variant='Meerkat' height={200} width={200} />}
                               </TabPanel>
                               <TabPanel
                                 value='All'
@@ -2049,6 +2042,9 @@ const IndividualRequest = () => {
                                     generateOptions={generateOptions}
                                     selectedPharmacy={selectedPharmacy}
                                   />
+                                )}
+                                {requestItems?.request_item_details.length === 0 && (
+                                  <NoDataFound variant='Meerkat' height={200} width={200} />
                                 )}
                               </TabPanel>
                             </TabContext>
@@ -2103,8 +2099,12 @@ const IndividualRequest = () => {
                                       action={
                                         (selectedPharmacy.permission.key === 'ADD' ||
                                           selectedPharmacy.permission.key === 'allow_full_access') &&
-                                        requestItems.status !== 'Cancelled' ? (
-                                          <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                        requestItems.status !== 'Cancelled' && (
+                                          <Grid
+                                            item
+                                            size={{ xs: 6 }}
+                                            style={{ display: 'flex', justifyContent: 'right' }}
+                                          >
                                             <Button
                                               size='big'
                                               variant='contained'
@@ -2121,15 +2121,14 @@ const IndividualRequest = () => {
                                               Ship All Items
                                             </Button>
                                           </Grid>
-                                        ) : null
+                                        )
                                       }
                                     ></CardHeader>
-                                    <TableBasic
-                                      rowHeight={90}
-                                      columns={fulfillColumns}
-                                      rows={dispatchedItems}
-                                    ></TableBasic>
+                                    <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems} />
                                   </Card>
+                                )}
+                                {dispatchedItems?.length === 0 && (
+                                  <NoDataFound variant='Meerkat' height={200} width={200} />
                                 )}
                               </TabPanel>
                               <TabPanel
@@ -2138,7 +2137,7 @@ const IndividualRequest = () => {
                                   padding: '0px !important'
                                 }}
                               >
-                                {shippedItems?.length > 0 ? (
+                                {shippedItems?.length > 0 && (
                                   <>
                                     <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
                                       <TableBasic
@@ -2154,7 +2153,10 @@ const IndividualRequest = () => {
                                       ></TableBasic>
                                     </Card>
                                   </>
-                                ) : null}
+                                )}
+                                {shippedItems?.length === 0 && (
+                                  <NoDataFound variant='Meerkat' height={200} width={200} />
+                                )}
                               </TabPanel>
                             </TabContext>
                           </Grid>
@@ -2420,8 +2422,6 @@ const IndividualRequest = () => {
                             fontWeight: 500
                           }}
                         >
-                          {/* {shippedItems[0]?.shipment_item_details?.value || '0'}
-                           */}
                           {requestItems?.shipped_amount}
                         </Box>
                       </Typography>
@@ -2517,8 +2517,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Shipping ID:
                                 </Typography>
@@ -2536,8 +2539,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Batch No:
                                 </Typography>
@@ -2555,8 +2561,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Shipped Quantity:
                                 </Typography>
@@ -2677,7 +2686,7 @@ const IndividualRequest = () => {
                   </>
                 }
               /> */}
-              {/* Fulfill Request Dialog */}
+
               <Dialog
                 fullWidth
                 open={show}
@@ -2690,7 +2699,6 @@ const IndividualRequest = () => {
                 }}
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeDialog()}
               >
                 <Grid
                   container
@@ -2712,7 +2720,6 @@ const IndividualRequest = () => {
                   close={closeFulfillDialog}
                 />
               </Dialog>
-              {/* Ship Request Dialog */}
               <Dialog
                 fullWidth
                 open={showShipDialog}
@@ -2720,7 +2727,6 @@ const IndividualRequest = () => {
                 scroll='body'
                 onClose={() => closeShipDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeShipDialog()}
               >
                 <Grid
                   container
@@ -2763,7 +2769,6 @@ const IndividualRequest = () => {
               >
                 Back to list
               </Button>
-              {/* <strong>check it out!</strong> */}
             </Alert>
           )}
         </>

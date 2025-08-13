@@ -1,32 +1,37 @@
-import { Avatar, Typography } from '@mui/material'
-import { Box, Stack } from '@mui/system'
 import React from 'react'
+import { Avatar, CircularProgress, Typography } from '@mui/material'
+import { Box, Stack } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 
-const DetailCard = ({ radius, DetailsListData }) => {
+const DetailCard = ({ loading = false, radius, DetailsListData }) => {
   const theme = useTheme()
 
   return (
-    <>
-      <Box>
-        <Stack
-          direction='row'
-          sx={{
-            px: '16px',
-            py: '14px',
-            display: 'flex',
-            columnGap: { md: 15, sx: 3, sm: 6 },
-            rowGap: 7,
-            // gap: { md: 15, sx: 3, sm: 6 },
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            bgcolor: theme.palette.customColors.Surface,
-            borderRadius: radius
-          }}
+    <Stack
+      direction='row'
+      sx={{
+        px: '16px',
+        py: '14px',
+        display: 'flex',
+        columnGap: { md: 15, sx: 3, sm: 6 },
+        rowGap: 7,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        bgcolor: theme.palette.customColors.Surface,
+        borderRadius: radius
+      }}
+    >
+      {loading ? (
+        <Box
+          sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}
         >
+          <CircularProgress size={40} />
+        </Box>
+      ) : (
+        <>
           {DetailsListData?.AvatarLeft && (
             <Box sx={{ display: 'flex', gap: '12px' }}>
               <Box
@@ -134,9 +139,9 @@ const DetailCard = ({ radius, DetailsListData }) => {
               </Box>
             </Box>
           )}
-        </Stack>
-      </Box>
-    </>
+        </>
+      )}
+    </Stack>
   )
 }
 
