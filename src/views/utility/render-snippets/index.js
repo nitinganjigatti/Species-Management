@@ -1,7 +1,7 @@
 import { Avatar, Badge, Box, CircularProgress, Paper, Tooltip, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { bgcolor } from '@mui/system'
+import { bgcolor, fontSize, fontWeight } from '@mui/system'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 export const ExportButton = ({
@@ -221,4 +221,89 @@ export const StatusCard = ({
       </Box>
     </Box>
   )
+}
+
+export const MedicalIdChip = ({ variant = 'default', medId }) => {
+  const theme = useTheme()
+
+  if (!medId) return null
+
+  const getChipStyles = () => {
+    const baseStyles = {
+      display: 'inline-flex',
+      alignItems: 'center',
+      borderRadius: '4px',
+      cursor: 'default',
+      p: '4px 6px',
+      gap: '4px'
+    }
+
+    switch (variant) {
+      case 'default':
+        return {
+          ...baseStyles,
+          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+          color: theme.palette.customColors.OnPrimaryContainer,
+          fontSize: '12px',
+          fontWeight: '600'
+        }
+
+      case 'withIconAndDot':
+        return {
+          ...baseStyles,
+          backgroundColor: 'transparent'
+        }
+
+      case 'withIconOnly':
+        return {
+          ...baseStyles,
+          backgroundColor: 'transparent'
+        }
+
+      default:
+        return baseStyles
+    }
+  }
+
+  const renderChipContent = () => {
+    switch (variant) {
+      case 'default':
+        return medId
+
+      case 'withIconAndDot':
+        return (
+          <>
+            <img src='/icons/medId_icon.svg' alt='med_id_icon' />
+            <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.primary.dark }}>
+              {medId}
+            </Typography>
+            <Box
+              style={{
+                width: '8px',
+                height: '8px',
+                backgroundColor: theme.palette.primary.main,
+                borderRadius: '50%'
+              }}
+            />
+          </>
+        )
+
+      case 'withIconOnly':
+        return (
+          <>
+            <img src='/icons/medId_icon.svg' alt='med_id_icon' />
+            <Typography
+              sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
+            >
+              {medId}
+            </Typography>
+          </>
+        )
+
+      default:
+        return medId
+    }
+  }
+
+  return <Box sx={getChipStyles()}>{renderChipContent()}</Box>
 }
