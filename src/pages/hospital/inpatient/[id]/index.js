@@ -3,6 +3,7 @@ import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
+import ClinicalNotes from 'src/components/hospital/inpatient/ClinicalNotes'
 import ClinicalAssessment from 'src/views/pages/hospital/inpatient/ClinicalAssessment'
 import InpatientMedicalSummary from 'src/views/pages/hospital/inpatient/InpatientMedicalSummary'
 import InpatientOverview from 'src/views/pages/hospital/inpatient/InpatientOverview'
@@ -23,6 +24,7 @@ const InpatientDetails = () => {
     { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: InpatinetTreatmentMonitoring },
     { label: 'Symptoms', value: 'symptoms', component: Symptoms },
     { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
+    { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
     { label: 'Surgery', value: 'surgery', component: InpatientSurgery }
   ]
 
