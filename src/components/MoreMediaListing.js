@@ -27,60 +27,33 @@ const MoreMediaListing = ({ mediaItems = [], maxVisibleItems = 2, onMoreClick = 
   }
 
   return (
-    <Box>
-      <Grid container spacing={3}>
-        {/* Visible Media Items */}
-        {visibleItems.map((item, index) => (
-          <Grid item xs={12} sm={6} md={4} key={item.id || index}>
-            <MediaCard media={mediaItems} isBorderedCard />
-          </Grid>
-        ))}
-        {remainingCount > 0 && (
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                cursor: 'pointer',
-                borderRadius: 1,
-                background: '#E8F4F299',
-                p: 6
-              }}
-              onClick={() => onMoreClick(mediaItems.slice(visibleItemsCount))}
-            >
-              <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    minHeight: 80
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: '#1F515B',
-                      fontWeight: 500,
-                      fontSize: isMobile ? '16px' : '14px'
-                    }}
-                  >
-                    +{remainingCount}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: '#1F515B',
-                      fontWeight: 500,
-                      fontSize: isMobile ? '16px' : '14px'
-                    }}
-                  >
-                    more
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-      </Grid>
+    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', flexWrap: 'nowrap' }}>
+      {/* Visible Media Items */}
+      {visibleItems.map((item, index) => (
+        <MediaCard key={item.id || index} media={item} isBorderedCard cardSize={{ width: 140, height: 100 }} />
+      ))}
+      {remainingCount > 0 && (
+        <Card
+          sx={{
+            width: 90,
+            height: 100,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 1,
+            background: '#E8F4F299'
+          }}
+          onClick={() => onMoreClick(mediaItems.slice(visibleItemsCount))}
+        >
+          <CardContent sx={{ p: 1 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '14px', color: '#1F515B', textAlign: 'center' }}>
+              +{remainingCount} <br />
+              more
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
     </Box>
   )
 }

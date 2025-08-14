@@ -101,7 +101,10 @@ const PatientAdmitForm = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2.5 }}>
-                    <MedicalIdChip variant='default' medId={'MED - 12345/22'} />
+                    <MedicalIdChip
+                      medId={'MED - 12345/22'}
+                      backgroundColor={theme.palette.customColors.mdAntzNeutral}
+                    />
                     <VisitType title={'Follow-up'} />
                   </Box>
                   <Typography

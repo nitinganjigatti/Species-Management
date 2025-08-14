@@ -6,39 +6,46 @@ import { renderUserAvatarDetails } from 'src/utility/render'
 
 const sampleMediaItems = [
   {
-    id: 1,
-    title: 'Antz Yelahanka Site Visit',
+    id: 'm1',
+    file_original_name: 'Antz Yelahanka Site Visit - Photos.jpg',
+    file: 'https://example.com/media/site-visit-photo.jpg',
     type: 'image',
-    timestamp: new Date().setHours(12, 23),
-    thumbnail: null
+    created_at: '2025-08-12T12:23:00Z'
   },
   {
-    id: 2,
-    title: 'Antz Yelahanka Site Report',
-    type: 'pdf',
-    timestamp: new Date().setHours(12, 23),
-    thumbnail: null
-  },
-  {
-    id: 3,
-    title: 'Project Video Overview',
-    type: 'video',
-    timestamp: new Date().setHours(14, 30),
-    thumbnail: null
-  },
-  {
-    id: 4,
-    title: 'Meeting Audio Recording',
-    type: 'audio',
-    timestamp: new Date().setHours(15, 45),
-    thumbnail: null
-  },
-  {
-    id: 5,
-    title: 'Additional Document',
+    id: 'm2',
+    file_original_name: 'Antz Yelahanka Site Visit - Report.pdf',
+    file: 'https://example.com/media/site-visit-report.pdf',
     type: 'document',
-    timestamp: new Date().setHours(16, 15),
-    thumbnail: null
+    created_at: '2025-08-12T12:23:00Z'
+  },
+  {
+    id: 'm3',
+    file_original_name: 'Antz Yelahanka Site Visit - Walkthrough.mp4',
+    file: 'https://example.com/media/walkthrough.mp4',
+    type: 'video',
+    created_at: '2025-08-12T12:23:00Z'
+  },
+  {
+    id: 'm4',
+    file_original_name: 'Antz Yelahanka Site Visit - Sheet.xlsx',
+    file: 'https://example.com/media/visit-sheet.xlsx',
+    type: 'document',
+    created_at: '2025-08-12T12:23:00Z'
+  },
+  {
+    id: 'm5',
+    file_original_name: 'Enclosure Reference Image.png',
+    file: 'https://example.com/media/enclosure.png',
+    type: 'image',
+    created_at: '2025-08-12T12:23:00Z'
+  },
+  {
+    id: 'm6',
+    file_original_name: 'Site Voice Note.m4a',
+    file: 'https://example.com/media/voice-note.m4a',
+    type: 'audio',
+    created_at: '2025-08-12T12:23:00Z'
   }
 ]
 
@@ -50,7 +57,7 @@ const InpatientOverview = () => {
       <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box></Box>
         <Grid container spacing={6} sx={{ borderRadius: 2, p: 4 }}>
-          <Grid size={{ xs: 12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Grid size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}>
               Reason for Admission
             </Typography>
@@ -69,7 +76,7 @@ const InpatientOverview = () => {
             </Box>
           </Grid>
           <Grid
-            size={{ xs: 12, md: 4 }}
+            size={{ xs: 12, md: 5 }}
             sx={{ pl: 6, pt: 6, pr: 6, borderLeft: { md: `0.5px solid ${theme.palette.divider}`, xs: 'none' } }}
           >
             <MoreMediaListing mediaItems={sampleMediaItems} maxVisibleItems={2} />

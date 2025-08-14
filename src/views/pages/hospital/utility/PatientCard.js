@@ -2,7 +2,6 @@ import { Card, Typography, Box, IconButton } from '@mui/material'
 import { Grid } from '@mui/material'
 import React from 'react'
 import Icon from 'src/@core/components/icon'
-import AnimalCard from '../../lab/AnimalCard'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import {
@@ -14,7 +13,17 @@ import {
   Schedule as ScheduleIcon
 } from '@mui/icons-material'
 import { StatusCard, VisitType } from 'src/views/utility/render-snippets'
-import { rgbaToHex } from 'src/@core/utils/rgba-to-hex'
+import AnimalCard from 'src/views/utility/AnimalCard'
+
+const animalData = {
+  sex: 'male',
+  animal_id: '6666/66',
+  common_name: 'Leopard',
+  scientific_name: 'Panthera pardus',
+  user_enclosure_name: 'Enclosure 4',
+  section_name: 'Leopard section',
+  site_name: 'Feline site'
+}
 
 const PatientCard = ({ patientData }) => {
   const theme = useTheme()
@@ -69,119 +78,85 @@ const PatientCard = ({ patientData }) => {
             Chief veterinarian: Nihal Mehta
           </Typography>
         </Grid>
-
+      </Grid>
+      <Grid
+        container
+        spacing={8}
+        sx={{
+          px: { xs: 2, sm: 6 },
+          py: { xs: 2, sm: 4 },
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}
+      >
         <Grid
-          size={{ xs: 3 }}
+          item
+          size={{ xs: 12, sm: 4 }}
           sx={{
-            display: 'flex',
-            justifyContent: 'flex-end'
+            px: { xs: 2, sm: 8 },
+            py: { xs: 3, sm: 6 },
+            borderRadius: 1,
+            background: 'linear-gradient(90deg, rgba(175,239,235,0.6), rgba(255,189,168,0.6))'
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                borderRadius: '999px',
-                backgroundColor: '#1F515B',
-                px: 4,
-                py: 3,
-                minWidth: 180,
-                position: 'relative'
-              }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <Typography
-                  sx={{
-                    color: '#fff',
-                    fontWeight: 600,
-                    fontSize: '1rem'
-                  }}
-                >
-                  1st Follow Up
-                </Typography>
-
-                <Typography
-                  sx={{
-                    color: '#6EFFA1',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    mt: 0.3
-                  }}
-                >
-                  Current visit
-                </Typography>
-              </Box>
-              <Icon icon={'mdi-chevron-down'} color='white' fontSize={34} />
-            </Box>
-            <IconButton>
-              <Icon icon={'mdi-dots-vertical'} fontSize={30} color='#44544A' />
-            </IconButton>
-          </Box>
+          <AnimalCard data={animalData} />
         </Grid>
-      </Grid>
-      <Grid container gap={2} sx={{ px: 6, py: 4, alignItems: 'center', justifyContent: 'space-between' }}>
-        <Grid size={{ sm: 4 }}>
-          <AnimalCard textColor={theme.palette.customColors.OnSurfaceVariant} />
-        </Grid>
-        <Grid size={{ sm: 7 }}>
-          <Grid container spacing={6}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid item size={{ xs: 12, sm: 8 }}>
+          <Grid container spacing={4}>
+            <Grid item size={{ xs: 6, sm: 6 }}>
               <StatusCard
                 icon={PersonIcon}
-                title={'Admitted on'}
-                subtitle={'12 Aug 2024'}
+                title='Admitted on'
+                subtitle='12 Aug 2024'
                 iconColor={theme.palette.primary.dark}
                 iconBgColor={theme.palette.customColors.OnBackground}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 6, sm: 6 }}>
               <StatusCard
                 icon={PersonIcon}
-                title={'Admitted By'}
-                subtitle={'Nihal Kishor'}
+                title='Admitted By'
+                subtitle='Nihal Kishor'
                 iconColor={theme.palette.primary.dark}
                 iconBgColor={theme.palette.customColors.OnBackground}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 6, sm: 6 }}>
               <StatusCard
                 icon={ScheduleIcon}
-                title={'Admitted For'}
-                subtitle={'4 days'}
+                title='Admitted For'
+                subtitle='4 days'
                 iconColor={theme.palette.customColors.moderateSecondary}
-                iconBgColor={'#FCF4AE99'}
+                iconBgColor='#FCF4AE99'
                 subtitleSx={{ fontWeight: 600 }}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid item size={{ xs: 6, sm: 6 }}>
               <StatusCard
                 icon={HomeIcon}
-                title={'Holding Location'}
-                subtitle={'Cage 1, Patient Wing 2'}
+                title='Holding Location'
+                subtitle='Cage 1, Patient Wing 2'
                 iconColor={theme.palette.customColors.moderateSecondary}
-                iconBgColor={'#FCF4AE99'}
+                iconBgColor='#FCF4AE99'
                 subtitleSx={{ fontWeight: 600 }}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid item size={{ xs: 6, sm: 6 }}>
               <StatusCard
                 icon={HomeIcon}
-                title={'Discharged On'}
-                subtitle={'12 Aug 2024'}
-                iconColor={'#FA6140'}
-                iconBgColor={'#FFBDA866'}
+                title='Discharged On'
+                subtitle='12 Aug 2024'
+                iconColor='#FA6140'
+                iconBgColor='#FFBDA866'
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid item size={{ xs: 6, sm: 6 }}>
               <StatusCard
                 icon={HomeIcon}
-                title={'Discharged By'}
-                subtitle={'Nihal Mehta'}
-                iconColor={'#FA6140'}
-                iconBgColor={'#FFBDA866'}
+                title='Discharged By'
+                subtitle='Nihal Mehta'
+                iconColor='#FA6140'
+                iconBgColor='#FFBDA866'
               />
             </Grid>
           </Grid>
