@@ -807,7 +807,7 @@ const AnimalList = () => {
                   onPaginationModelChange={setPaginationModel}
                   loading={isLoading}
                   downloadExcel
-                  headerName='Species'
+                  headerName='Animal Report List'
                   searchMode='server'
                   disableColumnSorting={true}
                 />

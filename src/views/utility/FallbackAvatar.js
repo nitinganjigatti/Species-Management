@@ -44,8 +44,8 @@ const FallbackAvatar = ({ src = '', fallback = '/branding/antz/Antz_logomark_h_c
         onError={handleError}
         sx={{
           display: isLoading ? 'none' : 'flex',
-          ...style,
-          padding: !src && 1
+          padding: !src && 2,
+          ...style
         }}
       />
     </>

@@ -658,7 +658,7 @@ const SpeciesReport = () => {
                     loading={isLoading}
                     onRowClick={handleRowClick}
                     downloadExcel
-                    headerName='Species'
+                    headerName='Species General Report'
                     searchMode='server'
                   />
                 </Box>
