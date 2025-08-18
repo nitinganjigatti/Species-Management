@@ -41,6 +41,7 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import toast from 'react-hot-toast'
 import Utility from 'src/utility'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -50,7 +51,6 @@ const ListOfPurchase = () => {
     const query = { ...router.query, ...params }
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
-
 
   const [loader, setLoader] = useState(false)
 
@@ -157,7 +157,6 @@ const ListOfPurchase = () => {
         supplier: selectedSupplier
       })
     }
-   
   }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates, selectedSupplier])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -381,11 +380,11 @@ const ListOfPurchase = () => {
       headerName: 'Created by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     },
@@ -395,11 +394,11 @@ const ListOfPurchase = () => {
       headerName: 'Updated by',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.updated_by_user_name,
-            params?.row?.updated_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_updated_profile_pic}
+            user_name={params?.row?.updated_by_user_name}
+            date={params?.row?.updated_at}
+          />
         </>
       )
     },
@@ -552,16 +551,15 @@ const ListOfPurchase = () => {
               action={headerAction}
             />
 
-        
             <CardContent sx={{ paddingTop: '4px' }}>
               <Box
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'space-between',
-                  alignItems: { xs: 'stretch', sm: 'center' }, 
-                  gap: { xs: 2, sm: 0 }, 
-                  width: '100%' 
+                  alignItems: { xs: 'stretch', sm: 'center' },
+                  gap: { xs: 2, sm: 0 },
+                  width: '100%'
                 }}
               >
                 <Grid
@@ -657,12 +655,12 @@ const ListOfPurchase = () => {
                   columns={columns}
                   paginationModel={paginationModel}
                   onPaginationModelChange={model => {
-                    setPaginationModel(model) 
+                    setPaginationModel(model)
                     router.replace({
                       pathname: router.pathname,
                       query: {
                         ...router.query,
-                        page: model.page + 1, 
+                        page: model.page + 1,
                         pageSize: model.pageSize,
                         searchValue,
                         sort,

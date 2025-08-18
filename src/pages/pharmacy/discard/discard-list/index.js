@@ -22,6 +22,7 @@ import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -53,7 +54,6 @@ const ListOfDiscardProducts = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, page, limit }) => {
-
       try {
         setLoading(true)
 
@@ -270,13 +270,13 @@ const ListOfDiscardProducts = () => {
       field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
-        (<>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
-        </>)
+        <>
+          <UserAvatarDetails
+            profile_image={params?.row?.user_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
+        </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
@@ -345,7 +345,7 @@ const ListOfDiscardProducts = () => {
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'flex-start',
-                  alignItems: 'flex-start', 
+                  alignItems: 'flex-start',
                   gap: { xs: 3, sm: 0 },
                   '& .MuiCardHeader-action': {
                     width: { xs: '100% ', sm: 'auto' }
@@ -359,7 +359,7 @@ const ListOfDiscardProducts = () => {
               <Box
                 sx={{
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' }, 
+                  flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'space-between'
                 }}
               >
@@ -413,8 +413,8 @@ const ListOfDiscardProducts = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', 
-                  alignItems: 'flex-start' 
+                  justifyContent: 'flex-start',
+                  alignItems: 'flex-start'
                 }}
               />
               <Box
@@ -422,11 +422,10 @@ const ListOfDiscardProducts = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  flexWrap: 'wrap', 
+                  flexWrap: 'wrap',
                   mx: { xs: 3, md: 5 }
                 }}
               >
-             
                 <Box
                   sx={{
                     display: 'flex',
@@ -435,7 +434,7 @@ const ListOfDiscardProducts = () => {
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
-                    width: { xs: '100%', sm: '250px' }, 
+                    width: { xs: '100%', sm: '250px' },
                     height: '40px'
                   }}
                 >

@@ -15,6 +15,7 @@ import { useTheme } from '@mui/material/styles'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
+import moment from 'moment'
 import { format, subMonths } from 'date-fns'
 
 const CitesExportPermitIndex = () => {
@@ -257,14 +258,12 @@ const CitesExportPermitIndex = () => {
       renderCell: params => (
         <Box sx={{ px: 2 }}>
           {params.row.created_by_user_name
-            ? RenderUtility.renderUserAvatarDetails(
-                params.row.created_user_profile_pic,
-                params.row.created_by_user_name,
-                Utility.formatDisplayDate(params.row.created_at),
-                theme.palette.customColors.OnSurfaceVariant,
-                '14px'
-              )
-            : null}
+            ? RenderUtility.renderUserAvatarDetails({
+                profile_image: params?.row?.created_user_profile_pic,
+                user_name: params?.row?.created_by_user_name,
+                date: moment(params?.row?.created_at).format('YYYY-MM-DD')
+              })
+            : '-'}
         </Box>
       )
     },
@@ -276,14 +275,12 @@ const CitesExportPermitIndex = () => {
       renderCell: params => (
         <Box sx={{ px: 2 }}>
           {params.row.updated_by_user_name
-            ? RenderUtility.renderUserAvatarDetails(
-                params.row.updated_user_profile_pic,
-                params.row.updated_by_user_name,
-                Utility.formatDisplayDate(params.row.updated_at),
-                theme.palette.customColors.OnSurfaceVariant,
-                '14px'
-              )
-            : null}
+            ? RenderUtility.renderUserAvatarDetails({
+                profile_image: params?.row?.updated_user_profile_pic,
+                user_name: params?.row?.updated_by_user_name,
+                date: moment(params?.row?.updated_at).format('YYYY-MM-DD')
+              })
+            : '-'}
         </Box>
       )
     }

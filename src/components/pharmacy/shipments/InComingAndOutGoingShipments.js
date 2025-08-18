@@ -25,6 +25,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import { useForm } from 'react-hook-form'
 import Search from 'src/views/utility/Search'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -208,17 +209,13 @@ function InComingAndOutGoingShipments({ type }) {
       field: 'created_by_user_name',
       headerName: 'Shipped by ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.created_at)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          <UserAvatarDetails
+            profile_image={params.row.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params.row.created_at}
+          />
+        </>
       )
     }
   ]

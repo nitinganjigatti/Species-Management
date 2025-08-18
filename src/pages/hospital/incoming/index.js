@@ -1,13 +1,27 @@
 import { useTheme } from '@emotion/react'
 import { Box, Button, Card, CardHeader, Grid, MenuItem, Select, Typography } from '@mui/material'
+import { useRouter } from 'next/router'
 import { useState } from 'react'
+import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import AnimalParentCard from 'src/views/utility/animalParentCard'
+import AnimalCard from 'src/views/utility/AnimalCard'
 import { VisitType } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 
+const animalData = {
+  sex: 'male',
+  animal_id: '6666/66',
+  common_name: 'Leopard',
+  scientific_name: 'Panthera pardus',
+  user_enclosure_name: 'Enclosure 4',
+  section_name: 'Leopard section',
+  site_name: 'Feline site'
+}
+
 const HospitalIncoming = () => {
   const theme = useTheme()
+  const router = useRouter()
+
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10
@@ -96,53 +110,35 @@ const HospitalIncoming = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography
-        sx={{
-          ml: 1.5,
-          fontSize: '20px',
-          fontWeight: 500,
-          fontFamily: 'Inter',
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        Incoming Patients
-      </Typography>
-    </>
-  )
-
   const columns = [
     {
-      flex: 0.4,
       minWidth: 20,
+      width: 80,
       sortable: false,
       field: 'NO',
       headerName: 'NO',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', p: 2 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
         </Typography>
       )
     },
 
-    // {
-    //   flex: 0.4,
-    //   minWidth: 20,
-    //   field: 'animal_name',
-    //   headerName: 'Animal Name & ID',
-    //   renderCell: params => (
-    //     <>
-    //     <AnimalParentCard data={params.row.}/>
-    //     </>
-    //     // <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //     //   {params.row.type_name ? params.row.type_name : ''}
-    //     // </Typography>
-    //   )
-    // },
+    {
+      width: 300,
+      minWidth: 20,
+      sortable: false,
+      field: 'animal_name',
+      headerName: 'Animal Name & ID',
+      renderCell: params => (
+        <>
+          <AnimalCard data={animalData} />
+        </>
+      )
+    },
 
     {
-      flex: 0.7,
+      width: 400,
       minWidth: 20,
       field: 'purpose',
       sortable: false,
@@ -160,7 +156,8 @@ const HospitalIncoming = () => {
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'normal'
+            whiteSpace: 'normal',
+            py: 4
           }}
         >
           <>
@@ -171,7 +168,7 @@ const HospitalIncoming = () => {
       )
     },
     {
-      flex: 0.4,
+      width: 200,
       minWidth: 20,
       field: 'visit_type',
       sortable: false,
@@ -184,7 +181,7 @@ const HospitalIncoming = () => {
     },
 
     // {
-    //   flex: 0.4,
+    //   width: 200,
     //   minWidth: 20,
     //   field: 'requested_by',
     //   headerName: 'Requested By',
@@ -196,14 +193,20 @@ const HospitalIncoming = () => {
     // },
 
     {
-      flex: 0.4,
+      width: 150,
       minWidth: 20,
       field: 'actions',
       sortable: false,
       headerName: 'Actions',
+      align: 'right',
+      headerAlign: 'right',
       renderCell: params => (
         <>
-          <Button sx={{ borderRadius: 6 }} variant='contained'>
+          <Button
+            sx={{ borderRadius: 6, px: 4, py: 2 }}
+            variant='contained'
+            onClick={() => handleAdmitClick(params.row.animalId)}
+          >
             Admit
           </Button>
         </>
@@ -211,10 +214,14 @@ const HospitalIncoming = () => {
     }
   ]
 
+  const handleAdmitClick = animalId => {
+    router.push(``)
+  }
+
   return (
     <>
       <Card>
-        <CardHeader title={title} />
+        <CardHeader title={RenderUtility?.pageTitle('Incoming Patient')} />
         <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
           <Box sx={{ ml: 2 }}>
             <Search borderRadius='4px' width='343px' placeholder='Search by medical Id or animal id' />
@@ -223,9 +230,7 @@ const HospitalIncoming = () => {
             <Select
               size='small'
               value={''}
-              // onChange={event => handleChangeSize(event, item)}
               displayEmpty
-              // error={visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && !size[item.id]?.id}
               sx={{
                 '& .MuiOutlinedInput-notchedOutline': {
                   borderColor: theme.palette.customColors.Outline
@@ -268,6 +273,11 @@ const HospitalIncoming = () => {
             loading={''}
             searchValue={''}
             getRowHeight={() => 'auto'}
+            externalTableStyle={{
+              '& .MuiDataGrid-cell': {
+                padding: 4
+              }
+            }}
           />
         </Grid>
       </Card>

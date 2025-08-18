@@ -41,6 +41,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ReturnRequestList = () => {
   const theme = useTheme()
@@ -138,7 +139,6 @@ const ReturnRequestList = () => {
 
   useEffect(() => {
     if (router.query.status !== status) {
-     
       setPaginationModel({ page: 0, pageSize: 50 })
       updateUrlParams({
         status: status,
@@ -335,7 +335,6 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-  
     const currentStatus = filterSwitch === true ? 'completed' : status
     const tabStatus = status === 'all' ? currentStatus : status
     fetchTableData(
@@ -359,8 +358,6 @@ const ReturnRequestList = () => {
       filterSwitch,
       store: filterByStoreId
     })
-
-   
   }, [
     status,
     filterSwitch,
@@ -369,7 +366,6 @@ const ReturnRequestList = () => {
     selectedPharmacy.id,
     paginationModel.page,
     paginationModel.pageSize
-
   ])
 
   const onRowClick = params => {
@@ -570,11 +566,11 @@ const ReturnRequestList = () => {
       headerAlign: 'left',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     }

@@ -30,6 +30,7 @@ import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import AllRequestedItemFilterDrawer from 'src/views/pages/pharmacy/reports/AllRequestedItemFilterDrawer'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const AllRequestedItemsReport = () => {
   const router = useRouter()
@@ -396,11 +397,11 @@ const AllRequestedItemsReport = () => {
       headerName: 'REQUESTED BY ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.requested_by_profile_pic,
-            params?.row?.requested_by,
-            params?.row?.requested_date
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.requested_by_profile_pic}
+            user_name={params?.row?.requested_by}
+            date={params?.row?.requested_date}
+          />
         </>
       )
     }

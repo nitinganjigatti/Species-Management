@@ -16,11 +16,20 @@ import { width } from '@mui/system'
 import { useRouter } from 'next/router'
 import React from 'react'
 import RenderUtility from 'src/utility/render'
-import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import AnimalParentCard from 'src/views/utility/animalParentCard'
+import AnimalCard from 'src/views/utility/AnimalCard'
 import { FilterButton, VisitType } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
+
+const animalData = {
+  sex: 'male',
+  animal_id: '6666/66',
+  common_name: 'Leopard',
+  scientific_name: 'Panthera pardus',
+  user_enclosure_name: 'Enclosure 4',
+  section_name: 'Leopard section',
+  site_name: 'Feline site'
+}
 
 const dummyData = [
   {
@@ -91,6 +100,8 @@ const HospitalInpatient = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const handleRowClick = params => router.push(`/hospital/inpatient/${params.row.id}`)
+
   const columns = [
     {
       width: 80,
@@ -102,7 +113,7 @@ const HospitalInpatient = () => {
       headerAlign: 'left',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
+        <Box sx={{ minWidth: 40, textAlign: 'left' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -110,7 +121,7 @@ const HospitalInpatient = () => {
       )
     },
     {
-      width: 200,
+      width: 300,
       minWidth: 20,
       field: 'animal',
       sortable: false,
@@ -121,7 +132,7 @@ const HospitalInpatient = () => {
       renderCell: params => (
         <>
           <Box>
-            <AnimalParentCard />
+            <AnimalCard data={animalData} />
           </Box>
         </>
       )
@@ -299,7 +310,18 @@ const HospitalInpatient = () => {
                 </Box>
               </Box>
               <Grid>
-                <CommonTable indexedRows={dummyData} columns={columns} rowHeight={100} />
+                <CommonTable
+                  indexedRows={dummyData}
+                  onRowClick={handleRowClick}
+                  columns={columns}
+                  rowHeight={100}
+                  getRowHeight={() => 'auto'}
+                  externalTableStyle={{
+                    '& .MuiDataGrid-cell': {
+                      padding: 4
+                    }
+                  }}
+                />
               </Grid>
             </CardContent>
           </Card>

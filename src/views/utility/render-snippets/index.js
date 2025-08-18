@@ -1,7 +1,7 @@
 import { Avatar, Badge, Box, CircularProgress, Paper, Tooltip, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { bgcolor } from '@mui/system'
+import { bgcolor, fontSize, fontWeight } from '@mui/system'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 export const ExportButton = ({
@@ -219,6 +219,53 @@ export const StatusCard = ({
           {subtitle}
         </Typography>
       </Box>
+    </Box>
+  )
+}
+
+export const MedicalIdChip = ({
+  medId,
+  leftImage = false,
+  rightDot = false,
+  backgroundColor,
+  textColor,
+  dotColor,
+  fontSize = '14px',
+  fontWeight = 500
+}) => {
+  const theme = useTheme()
+
+  if (!medId) return null
+
+  const chipStyles = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    borderRadius: 0.5,
+    cursor: 'default',
+    py: backgroundColor ? 1 : 0,
+    px: backgroundColor ? 2 : 0,
+    gap: 1,
+    backgroundColor: backgroundColor ? backgroundColor : 'transparent'
+  }
+
+  return (
+    <Box sx={chipStyles}>
+      {leftImage && <img src='/icons/medId_icon.svg' alt='med_id_icon' style={{ display: 'block' }} />}
+      <Typography
+        sx={{ fontSize, fontWeight, color: textColor ? textColor : theme.palette.customColors.OnPrimaryContainer }}
+      >
+        {medId}
+      </Typography>
+      {rightDot && (
+        <Box
+          sx={{
+            width: '8px',
+            height: '8px',
+            backgroundColor: dotColor ? dotColor : theme.palette.customColors.OnPrimaryContainer,
+            borderRadius: '50%'
+          }}
+        />
+      )}
     </Box>
   )
 }

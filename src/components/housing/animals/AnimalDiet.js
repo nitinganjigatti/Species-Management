@@ -364,7 +364,6 @@ const AnimalDiet = ({ animalDetails }) => {
               </Box>
             )) : <NoDataFound />
         }
-
         < UploadAnimalDiet
           animalId={animalId}
           setAnimalId={setAnimalId}
