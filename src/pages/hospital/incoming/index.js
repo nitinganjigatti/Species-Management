@@ -8,6 +8,16 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import { VisitType } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 
+const animalData = {
+  sex: 'male',
+  animal_id: '6666/66',
+  common_name: 'Leopard',
+  scientific_name: 'Panthera pardus',
+  user_enclosure_name: 'Enclosure 4',
+  section_name: 'Leopard section',
+  site_name: 'Feline site'
+}
+
 const HospitalIncoming = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -120,7 +130,11 @@ const HospitalIncoming = () => {
       sortable: false,
       field: 'animal_name',
       headerName: 'Animal Name & ID',
-      renderCell: params => <>{/* <AnimalCard data={visitData} /> */}</>
+      renderCell: params => (
+        <>
+          <AnimalCard data={animalData} />
+        </>
+      )
     },
 
     {
@@ -259,6 +273,11 @@ const HospitalIncoming = () => {
             loading={''}
             searchValue={''}
             getRowHeight={() => 'auto'}
+            externalTableStyle={{
+              '& .MuiDataGrid-cell': {
+                padding: 4
+              }
+            }}
           />
         </Grid>
       </Card>
