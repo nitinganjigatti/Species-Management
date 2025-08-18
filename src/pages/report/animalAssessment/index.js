@@ -25,12 +25,13 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 
 import Error404 from 'src/pages/401'
 import StickyTable from 'src/views/table/sticky-table'
-import AssessmentReportFilterDrawer from 'src/views/pages/report/AssessmentReportFilterDrawer'
-import AssessmentSpeciesFilter from 'src/views/pages/report/AssessmentSpeciesFilter'
-import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
+import AssessmentReportFilterDrawer from 'src/views/pages/report/AssessmentReportFilterDrawer'
+import AssessmentSpeciesListingDrawer from 'src/views/pages/report/AssessmentSpeciesListingDrawer'
+import AssessmentTypeListingDrawer from 'src/views/pages/report/AssessmentTypeListingDrawer'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
+import AnimalCard from 'src/views/utility/AnimalCard'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
@@ -254,7 +255,11 @@ const AnimalAssessment = () => {
         },
         disableColumnMenu: true,
         renderCell: params => {
-          return <AnimalParentCard sx={{ border: 'none' }} data={params?.row} />
+          return (
+            <Box sx={{ paddingY: '20px', paddingX: '16px' }}>
+              <AnimalCard sx={{ border: 'none' }} data={params?.row} />
+            </Box>
+          )
         }
       }
     }
@@ -946,7 +951,7 @@ const AnimalAssessment = () => {
             />
           )}
           {openspeciesFilter && (
-            <AssessmentSpeciesFilter
+            <AssessmentSpeciesListingDrawer
               selectedSpecie={selectedSpecie}
               setSelectedSpecie={setSelectedSpecie}
               openspeciesFilter={openspeciesFilter}
@@ -954,7 +959,7 @@ const AnimalAssessment = () => {
             />
           )}
           {openassessmentFilter && (
-            <AssessmentTypeFilter
+            <AssessmentTypeListingDrawer
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
               selectedAssessmentType={selectedAssessmentType}
