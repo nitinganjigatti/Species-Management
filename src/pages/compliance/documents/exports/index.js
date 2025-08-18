@@ -29,10 +29,11 @@ const CitesExportPermitIndex = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [sortModel, setSortModel] = useState([])
 
-  const [filterDate, setFilterDate] = useState({
-    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
-    endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
-  })
+  // const [filterDate, setFilterDate] = useState({
+  //   startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+  //   endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  // })
+  const [filterDate, setFilterDate] = useState({})
 
   // Filter states
   const [filterCount, setFilterCount] = useState(0)
