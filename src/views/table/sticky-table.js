@@ -37,18 +37,18 @@ const StickyTableChild = ({
   rowsInView = 5, // Number of rows visible in the viewport
   rowsInViewOptions = [5, 7, 10, 20], // Options for rows visible in the viewport
   paginationModel = { page: 0, pageSize: 10 }, // Initial pagination model
-  onPaginationModelChange = () => { }, // Fallback to a no-op function
-  onSortChange = () => { }, // Fallback to a no-op function
+  onPaginationModelChange = () => {}, // Fallback to a no-op function
+  onSortChange = () => {}, // Fallback to a no-op function
   loading = false, // Loading state
   onCellClick, // Fallback to a no-op function
   onRowClick, // Fallback to a no-op function
-  onRowSelect = () => { }, // Fallback to a no-op function
+  onRowSelect = () => {}, // Fallback to a no-op function
   rowSelection = false, // Enable or disable row selection
   downloadExcel = false,
   headerName = '',
   headerStyle = {},
   searchMode = 'local',
-  onSearch = () => { },
+  onSearch = () => {},
   modifyColumnPinning = false
 }) => {
   const theme = useTheme()
@@ -65,15 +65,21 @@ const StickyTableChild = ({
   const [searchText, setSearchText] = useState('')
   const [filteredRows, setFilteredRows] = useState(rows)
 
-  const [rearrangedColumns, setRearrangedColumns] = useState(columns)
+  const [rearrangedColumns, setRearrangedColumns] = useState(Array.isArray(columns) ? columns : [])
   const [anchorEl, setAnchorEl] = useState(null)
 
-  const hasSubHeader = rearrangedColumns.some(col => Array.isArray(col.subHeader) && col.subHeader.length > 0)
+  const hasSubHeader =
+    Array.isArray(rearrangedColumns) &&
+    rearrangedColumns.some(col => Array.isArray(col?.subHeader) && col?.subHeader?.length > 0)
   const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
 
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
     defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
   )
+
+  // Calculate minimum height to prevent layout shift during loading
+  const minTableHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+  const finalTableHeight = loading ? minTableHeight : Math.max(dynamicTableHeight, minTableHeight)
 
   useEffect(() => {
     if (filteredRows.length > 0) {
@@ -86,6 +92,12 @@ const StickyTableChild = ({
   }, [filteredRows, defaultRowsInView])
 
   useEffect(() => {
+    if (!Array.isArray(columns)) {
+      setRearrangedColumns([])
+
+      return
+    }
+
     const leftPinnedColumns = columns.filter(col => col.pinned === 'left')
     const rightPinnedColumns = columns.filter(col => col.pinned === 'right')
     const nonPinnedColumns = columns.filter(col => !col.pinned)
@@ -166,7 +178,6 @@ const StickyTableChild = ({
       setDefaultRowsInViewOption(validatedOptions)
     }
   }, [rowCount, rowPerPageCount, rowsInView, defaultRowsInView, userChangedRowsInView])
-
 
   // Utility function for text transformation
   const transformText = (text, transformType) => {
@@ -366,6 +377,7 @@ const StickyTableChild = ({
                 maxWidth: isGrouped ? widthWithSubHeader : col?.width,
                 fontWeight: 'bold',
                 color: theme.palette.customColors.OnSecondaryContainer,
+
                 // borderRight: '1px solid pink',
                 borderBottom: 'none',
                 ...pinnedStyle,
@@ -656,7 +668,6 @@ const StickyTableChild = ({
   }
 
   const renderTableBody = () => {
-
     // if (loading) {
     //   return (
     //     <TableRow>
@@ -715,6 +726,7 @@ const StickyTableChild = ({
             backgroundColor: 'white',
             position: 'relative',
             cursor: onRowClick && 'pointer'
+
             // '&:hover': {
             //   backgroundColor: !onCellClick && onRowClick && '#ECFFDC'
             // }
@@ -816,6 +828,7 @@ const StickyTableChild = ({
                       maxWidth: subCol.width,
                       backgroundColor: 'inherit',
                       cursor: onCellClick && 'pointer',
+
                       // '&:hover': {
                       //   backgroundColor: onCellClick && '#ECFFDC'
                       // },
@@ -847,6 +860,7 @@ const StickyTableChild = ({
 
                   backgroundColor: 'inherit',
                   cursor: onCellClick && 'pointer',
+
                   // '&:hover': {
                   //   backgroundColor: onCellClick && '#ECFFDC'
                   // },
@@ -1029,11 +1043,12 @@ const StickyTableChild = ({
           component={Paper}
           sx={{
             borderRadius: 2,
-            height: dynamicTableHeight,
+            height: finalTableHeight,
             overflowY: 'auto',
             position: 'relative',
             border: '1px solid #ddd',
             overflow: loading ? 'hidden' : 'auto'
+
             // '&::-webkit-scrollbar': { width: '0px', height: '0px' }
             // '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888' },
             // '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' }
@@ -1073,7 +1088,6 @@ const StickyTableChild = ({
   )
 }
 
-
 const StickyTable = ({
   rows = [], // Data rows for the table
   columns = [], // Column definitions
@@ -1086,24 +1100,22 @@ const StickyTable = ({
   rowsInView = 5, // Number of rows visible in the viewport
   rowsInViewOptions = [5, 7, 10, 20], // Options for rows visible in the viewport
   paginationModel = { page: 0, pageSize: 10 }, // Initial pagination model
-  onPaginationModelChange = () => { }, // Fallback to a no-op function
-  onSortChange = () => { }, // Fallback to a no-op function
+  onPaginationModelChange = () => {}, // Fallback to a no-op function
+  onSortChange = () => {}, // Fallback to a no-op function
   loading = true, // Loading state
   onCellClick, // Fallback to a no-op function
   onRowClick, // Fallback to a no-op function
-  onRowSelect = () => { }, // Fallback to a no-op function
+  onRowSelect = () => {}, // Fallback to a no-op function
   rowSelection = false, // Enable or disable row selection
   downloadExcel = false,
   headerName = '',
   headerStyle = {},
   searchMode = 'local',
-  onSearch = () => { },
+  onSearch = () => {},
   modifyColumnPinning = false
 }) => {
-
   const [initialLoader, setInitialLoader] = useState(true)
   const hasInitialLoaded = useRef(false)
-
 
   useEffect(() => {
     if (loading) {
@@ -1113,10 +1125,10 @@ const StickyTable = ({
     if (!loading && hasInitialLoaded.current) {
       // setTimeout(() => {
       setInitialLoader(false)
+
       // }, 20) // Optional delay for smoother UX
     }
   }, [loading])
-
 
   if (initialLoader) {
     return (
@@ -1153,7 +1165,6 @@ const StickyTable = ({
                   </TableCell>
                 </TableRow>
               </TableHead>
-
             </Table>
           </TableContainer>
           {loading && (
@@ -1176,11 +1187,10 @@ const StickyTable = ({
             </div>
           )}
           {/* {renderFooter()} */}
-        </div >
-      </>)
+        </div>
+      </>
+    )
   } else {
-
-
     return (
       <StickyTableChild
         rows={rows}
@@ -1211,7 +1221,5 @@ const StickyTable = ({
     )
   }
 }
-
-
 
 export default StickyTable
