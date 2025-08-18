@@ -20,6 +20,10 @@ const PatientCard = ({ patientData }) => {
   const theme = useTheme()
   const router = useRouter()
 
+  const handleclick = () => {
+    router.push('/hospital/symptoms')
+  }
+
   return (
     <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
       <Grid
@@ -121,7 +125,11 @@ const PatientCard = ({ patientData }) => {
             </IconButton>
           </Box>
         </Grid>
+        <Typography sx={{ cursor: 'pointer' }} onClick={handleclick}>
+          Click now
+        </Typography>
       </Grid>
+
       <Grid container gap={2} sx={{ px: 6, py: 4, alignItems: 'center', justifyContent: 'space-between' }}>
         <Grid size={{ sm: 4 }}>
           <AnimalCard textColor={theme.palette.customColors.OnSurfaceVariant} />
