@@ -263,48 +263,46 @@ const SpeciesReport = () => {
       disableColumnMenu: true,
       textAlign: 'center',
       renderCell: params => (
-        <Tooltip
-          title={
-            params?.row
-              ? params?.row[header.key]
-              : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-                params?.row[header.key] === undefined
-              ? 0
-              : '-'
-          }
-        >
-          <Box
-            sx={{
-              width: '140px',
-              height: '25px',
-              display: 'flex',
-              alignItems: 'center',
-              position: 'relative',
-              cursor: 'pointer'
-            }}
-          >
-            <Typography
-              sx={{
-                color: getCellTextColor(header.label),
-                backgroundColor: getCellBackgroundColor(header.label),
-                borderRadius: '4px',
-                padding: '4px 16px',
-                fontWeight: 400,
-                textAlign: 'left',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis'
-              }}
+        <>
+          {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null ? (
+            <Tooltip
+              title={
+                params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
+                  ? params?.row[header.key]
+                  : ''
+              }
             >
-              {params?.row
-                ? params?.row[header.key]
-                : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-                  params?.row[header.key] === undefined
-                ? 0
-                : '-'}
-            </Typography>
-          </Box>
-        </Tooltip>
+              <Box
+                sx={{
+                  width: '140px',
+                  height: '25px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  position: 'relative',
+                  cursor: 'pointer'
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: getCellTextColor(header.label),
+                    backgroundColor: getCellBackgroundColor(header.label),
+                    borderRadius: '4px',
+                    padding: '4px 16px',
+                    fontWeight: 400,
+                    textAlign: 'left',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
+                    ? params?.row[header.key]
+                    : ''}
+                </Typography>
+              </Box>
+            </Tooltip>
+          ) : null}
+        </>
       )
     }
   })
