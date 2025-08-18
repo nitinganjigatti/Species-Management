@@ -10,7 +10,6 @@ import { PolarArea } from 'react-chartjs-2'
 import OptionsMenu from 'src/@core/components/option-menu'
 
 const ChartjsPolarAreaChart = props => {
-  // ** Props
   const { info, grey, green, yellow, primary, warning, legendColor } = props
 
   const options = {

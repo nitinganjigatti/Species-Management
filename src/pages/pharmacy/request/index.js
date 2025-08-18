@@ -62,7 +62,7 @@ const RequestList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
@@ -84,7 +84,7 @@ const RequestList = () => {
     setTotal(0)
     setFilterSwitch(false)
     setFilterByStoreId('all')
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
     setSearchValue('')
@@ -254,7 +254,7 @@ const RequestList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate, filterByStoreId)
@@ -281,6 +281,17 @@ const RequestList = () => {
   const onRowClick = params => {
     Router.push({
       pathname: `/pharmacy/request/${params.row?.id}`
+    })
+  }
+
+  const routeToShipmentPage = params => {
+    debugger
+    Router.push({
+      pathname: `/pharmacy/request/${params.row?.id}`,
+      query: {
+        detailsTab: 'Shipped',
+        shipmentTab: 'Shipped'
+      }
     })
   }
 
@@ -317,10 +328,9 @@ const RequestList = () => {
   }
 
   const handleSwitchChange = event => {
-    console.log('event', event.target.checked)
     setTotal(0)
     setSearchValue('')
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterSwitch(prev => event.target.checked)
 
     if (event.target.checked === false) {
@@ -344,7 +354,7 @@ const RequestList = () => {
     setSearchValue('')
     if (days !== 'all') {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       const currentDate = new Date()
       const selectedDays = parseInt(days)
       let startDate
@@ -584,7 +594,13 @@ const RequestList = () => {
       field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Box variant='body2' sx={{ color: 'text.primary' }}>
+        <Box
+          onClick={() => {
+            routeToShipmentPage(params)
+          }}
+          variant='body2'
+          sx={{ color: 'text.primary' }}
+        >
           <Box style={{ display: 'flex', alignItems: 'center' }}>
             {params.row.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
@@ -691,7 +707,7 @@ const RequestList = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                justifyContent: 'space-between', // Space between title and button
+                justifyContent: 'space-between',
                 alignItems: 'center'
 
                 // px: { xs: 2, md: 5 }, // Responsive padding
@@ -714,21 +730,6 @@ const RequestList = () => {
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px',
-
-                  // ml: { sm: 4.5},
-                  width: { xs: '100%', md: '290px' },
-                  marginBottom: { xs: 2, md: 0 }
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
               <TextField
                 variant='outlined'
                 size='small'
@@ -784,7 +785,7 @@ const RequestList = () => {
                         label='Filter by Stores'
                         onChange={e => {
                           setTotal(0)
-                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setPaginationModel({ page: 0, pageSize: 50 })
                           setFilterByStoreId(e.target.value)
                           setSearchValue('')
                         }}

@@ -12,46 +12,37 @@ import moment from 'moment'
 import Router from 'next/router'
 import debounce from 'lodash/debounce'
 
-// Custom Components Imports
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import DashboardSlider from '../eggs/dashboardSlider'
 import DiscardEggSlider from '../eggs/discardEggSlider'
 
-// API Imports
 import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 import DashboardExelExportButton from './exportDasboardDataExcel'
 
 const Species = ({ openDiscard, setOpenDiscard }) => {
-  // Context and Theme
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
-  // Tab Status
   const [status, setStatus] = useState('species')
 
-  // Data Lists
   const [speciesList, setSpeciesList] = useState([])
   const [exportSpeciesList, setExportSpeciesList] = useState([])
   const [taxonomyList, setTaxonomyList] = useState([])
   const [nurseryList, setNurseryList] = useState([])
 
-  // Default Values
   const [defaultSpecies, setDefaultSpecies] = useState(null)
   const [defaultSite, setDefaultSite] = useState(null)
   const [defaultNursery, setDefaultNursery] = useState(null)
 
-  // Date Range
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTillDate] = useState(null)
 
-  // Pagination
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
 
-  // Drawer State
   const [openDrawer, setOpenDrawer] = useState(false)
   const [drawerHeading, setDrawerHeading] = useState('')
   const [drawerHeadingCount, setDrawerHeadingCount] = useState(0)
@@ -60,11 +51,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const [sortModel, setSortModel] = useState([{ field: 'complete_name', sort: 'DESC' }])
 
-  // Loading and Total Count
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
 
-  // Search Value
   const [searchValue, setSearchValue] = useState('')
 
   const TaxonomyList = async q => {
@@ -94,7 +83,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     }
   }
 
-  // Debounce wrapper for API calls
   const useDebouncedCallback = (callback, delay) => {
     return useCallback(debounce(callback, delay), [callback, delay])
   }
@@ -457,7 +445,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {/* {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'} */}
             {params.row.currently_in_nest ? params.row.currently_in_nest : '-'}
           </Typography>
         </Box>
@@ -1880,7 +1867,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     try {
       setLoading(true)
 
-      // console.log('sortModelcccc', sortModel)
+     
 
       const params = {
         ref_type: statuss || status,
@@ -1960,7 +1947,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 6, mb: '24px' }}
           // container
         >
-          {/* Search Box */}
+      
           <Box
             sx={{
               display: 'flex',
@@ -2153,7 +2140,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     )
   }
 
-  // Styles for DatePicker and Typography
   const datePickerStyles = {
     backgroundColor: '#fff',
     borderRadius: '8px',

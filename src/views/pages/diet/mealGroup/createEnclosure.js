@@ -41,7 +41,7 @@ const CreateEnclosure = ({
   searchValue,
   handleEnclosureSearch
 }) => {
-  console.log('selected Items >>', selectedItems, checkedRows)
+ 
 
   const [selectedEnclosureIds, setSelectedEnclosureIds] = useState([])
   const [groupList, setGroupList] = useState([])
@@ -81,7 +81,7 @@ const CreateEnclosure = ({
 
   const handleGroupChange = event => {
     const value = event.target.value
-    setGroupId(value) // value is string
+    setGroupId(value) 
   }
 
   const handleAddEnclosure = async () => {
@@ -94,7 +94,6 @@ const CreateEnclosure = ({
     setMealGroupError(false)
 
     try {
-      console.log('Selected Enclosure <>', selectedEnclosureIds, selectedOption, groupId)
 
       const params = {
         site_id: selectedOption,
@@ -195,17 +194,17 @@ const CreateEnclosure = ({
           <Button
             onClick={event => {
               event.stopPropagation()
-              setSelectedEnclosureIds([]) // ✅ clear enclosure-specific IDs
+              setSelectedEnclosureIds([]) 
               // setCheckedRows([]) // ✅ clear checkboxes
-              setSelectedItems([]) // ✅ clear selected rows
-              setEnclosureDrawer(false) // ✅ close the enclosure drawer
+              setSelectedItems([]) 
+              setEnclosureDrawer(false)
             }}
             variant='outlined'
             fullWidth
             sx={{
               height: { xs: '45px', sm: '58px' },
               width: { xs: '100%', sm: '140px' },
-              borderColor: hexToHex8(theme.palette.primary.main, 0.5), // ✅ call function here,
+              borderColor: hexToHex8(theme.palette.primary.main, 0.5),
               color: theme.palette.customColors.customTextColorGray2,
               opacity: 0.8,
               fontWeight: 500
@@ -260,7 +259,6 @@ const CreateEnclosure = ({
             height: 'calc(100dvh - 0px)'
           }}
         >
-          {/* Header */}
           <Box
             className='sidebar-header'
             sx={{
@@ -293,12 +291,9 @@ const CreateEnclosure = ({
             </IconButton>
           </Box>
 
-          {/* Body */}
           <Box sx={{ overflowY: 'auto' }}>
             {' '}
-            {/* Outer wrapper with padding from all sides */}
             <Box sx={{ p: 4, backgroundColor: '#EEF5F1', borderRadius: '8px', mt: 3 }}>
-              {/* Search */}
               <Box
                 sx={{
                   display: 'flex',
@@ -331,7 +326,6 @@ const CreateEnclosure = ({
                 />
               </Box>
 
-              {/* Group Dropdown */}
               {checkedRows.length > 0 && (
                 <Select
                   value={groupId}
@@ -366,17 +360,15 @@ const CreateEnclosure = ({
                 </Select>
               )}
 
-              {/* Card List */}
               <Box sx={{ height: '58vh' }}>
                 {' '}
-                {/* Outer Box with fixed height */}
                 <Card
                   sx={{
                     borderRadius: '8px',
                     boxShadow: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '100%', // fill full height of outer Box
+                    height: '100%', 
                     width: '100%'
                   }}
                 >

@@ -18,7 +18,6 @@ import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 
 import { debounce } from 'lodash'
 
@@ -90,7 +89,6 @@ const Salts = () => {
     setOpenDrawer(true)
   }
 
-  /***** Drawer  */
 
   const columns = [
     {
@@ -150,8 +148,7 @@ const Salts = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -171,13 +168,12 @@ const Salts = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -257,7 +253,6 @@ const Salts = () => {
         response = await addSalt(payload)
       }
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
@@ -267,7 +262,6 @@ const Salts = () => {
       } else {
         setSubmitLoader(false)
 
-        // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -278,7 +272,6 @@ const Salts = () => {
       console.log(e)
       setSubmitLoader(false)
 
-      // setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
       toast.error(JSON.stringify(e))
     }
   }
@@ -292,7 +285,6 @@ const Salts = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -304,8 +296,8 @@ const Salts = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
+                    justifyContent: 'flex-start', 
+                    alignItems: 'flex-start', 
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }

@@ -297,6 +297,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+  const pathname = router?.pathname
 
   const closeDisputeDialog = () => {
     setDisputeDialog(false)
@@ -357,8 +358,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       // api updated for normal request api
       let response
       setShowSpinner(true)
-      if (requestedFrom === 'requestByAllStores') {
+      if (requestedFrom === 'requestByAllStores' || pathname.includes('pharmacy/shipments/')) {
         // this function for all stores shipment request store details
+        // pathname.includes('pharmacy/shipments/') added this condition because use this api for incoming and outgoing shipments
         response = await getShipmentDetailOfOrder(orderId)
       } else {
         response = await getShipmentOrderDetailsOfRequests(orderId, requestId)
@@ -388,7 +390,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
             shipment_id: el?.shipment_id,
             total_deny_comments: el?.total_deny_comments,
             expiry_date: el?.expiry,
-            request_number: response?.data?.request_number
+            request_number: response?.data?.request_number ? response?.data?.request_number : el?.ro_no
           }
 
           return data
@@ -761,7 +763,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                 )}
               </Box>
 
-              {/* Mark as Received Button */}
+             
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
                 <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
                   Mark as Received
@@ -881,6 +883,15 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       return true
     }
   }
+
+  const getStatusLabel = status =>
+    status === 'Broken' || status === 'Expired'
+      ? `Received (${status})`
+      : status === 'Missing'
+      ? `Dispute (${status})`
+      : status === 'Wrong Count'
+      ? `Dispute (Wrong Qty)`
+      : status
 
   const columns = [
     {
@@ -1014,8 +1025,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                       ? `${
                           params?.row?.dispute_status === 'Dispute Resolved' ? 'Missing - Accepted' : 'Missing - Denied'
                         }`
-                      : params?.row?.status}
-                    {/* : params.row.status} */}
+                      : getStatusLabel(params?.row?.status)}
+
+                    {/* : params.row.status}  */}
                   </Typography>
                   {((params?.row?.dispute_status === 'Not Resolved' ||
                     params?.row?.dispute_status === 'Dispute Pending') &&
@@ -1472,7 +1484,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                 ? 'Missing - Accepted'
                                 : 'Missing - Denied'
                             }`
-                          : params?.row?.status}
+                          : getStatusLabel(params?.row?.status)}
                       </Typography>
                     )}
                   </Grid>

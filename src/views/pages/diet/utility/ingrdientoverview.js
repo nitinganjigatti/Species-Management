@@ -18,7 +18,6 @@ import { Box } from '@mui/system'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 
 const IngredientOverview = () => {
-  // Styled Grid component
   const StyledGrid = styled(Grid)(({ theme }) => ({
     display: 'flex',
     alignItems: 'flex-end',

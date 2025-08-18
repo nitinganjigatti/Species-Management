@@ -1,6 +1,6 @@
 import React from 'react'
-import { Card, CardContent, Typography, Grid, Box, Button, useTheme, Checkbox } from '@mui/material'
-
+import { Card, CardContent, Typography, Grid, Box, Button, Checkbox } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 const ExportCard = ({
   exportId,
   exportNumber,
@@ -41,20 +41,28 @@ const ExportCard = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           mb: 4,
-          border: '1px solid #C3CEC7',
+          border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
           borderRadius: '8px',
-          backgroundColor: '#fff',
+          backgroundColor: theme.palette.common.white,
           boxShadow: 'none'
         }}
       >
         {/* Left Section */}
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
-          <Typography variant='subtitle2' color='#7A8684' fontWeight='400' sx={{ mb: 1 }}>
-            Export ID : <span style={{ color: '#44544A', fontWeight: '500' }}>{exportNumber}</span>
+          <Typography
+            variant='subtitle2'
+            color={theme.palette.customColors.secondaryBg}
+            fontWeight='400'
+            sx={{ mb: 1 }}
+          >
+            Export ID :{' '}
+            <span style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
+              {exportNumber}
+            </span>
           </Typography>
-          <Typography variant='body2' color='#7A8684' fontWeight='400' sx={{ mb: 3 }}>
+          <Typography variant='body2' color={theme.palette.customColors.secondaryBg} fontWeight='400' sx={{ mb: 3 }}>
             Exporter :{' '}
-            <span style={{ color: '#44544A', fontWeight: '500' }}>
+            <span style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
               {exporter},{exporterCountry}
             </span>
           </Typography>
@@ -63,8 +71,8 @@ const ExportCard = ({
               <Button
                 size='small'
                 sx={{
-                  backgroundColor: '#EFF5F2',
-                  color: '#44544A',
+                  backgroundColor: theme.palette.customColors.lightBg,
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   textTransform: 'none',
                   borderRadius: '26px',
                   minWidth: '80px',
@@ -81,8 +89,8 @@ const ExportCard = ({
               <Button
                 size='small'
                 sx={{
-                  backgroundColor: '#EFF5F2',
-                  color: '#44544A',
+                  backgroundColor: theme.palette.customColors.lightBg,
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   textTransform: 'none',
                   borderRadius: '26px',
                   minWidth: '80px',
@@ -101,7 +109,7 @@ const ExportCard = ({
         {/* Right Section */}
         <Box
           sx={{
-            background: '#F2FFF8',
+            background: theme.palette.customColors.Surface,
             height: '121px',
             width: '45px',
             display: 'flex',
@@ -116,9 +124,9 @@ const ExportCard = ({
             checked={isSelected}
             disabled={species === '0'}
             sx={{
-              color: '#839D8D',
+              color: theme.palette.customColors.Outline,
               '&.Mui-checked': {
-                color: '#37BD69'
+                color: theme.palette.primary.main
               }
             }}
           />

@@ -16,7 +16,6 @@ function Dispatch({ tabValue, updateUrlParams }) {
   const router = useRouter()
   const { id } = router.query
 
-  console.log(router.query, 'router.queryD')
 
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
@@ -53,7 +52,6 @@ function Dispatch({ tabValue, updateUrlParams }) {
 
   useEffect(() => {
     if (router.query.tab !== tabValue) {
-      // debugger
       setPaginationModel({ page: 0, pageSize: 10 })
       setSortColumn('shipment_date')
       setFilterDates({ startDate: '', endDate: '' })
@@ -338,14 +336,12 @@ function Dispatch({ tabValue, updateUrlParams }) {
           limit: paginationModel.pageSize
         }
 
-        // Call the API to fetch data with the sorting and other params
         await getDispatchList(params, id).then(res => {
           if (res?.success) {
             console.log(res, 'res')
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
 
-            // Extract unique dispatched_to options
             const uniqueDispatchedTo = Array.from(
               new Map(
                 res?.data.map(item => [item.dispatched_to_id, { id: item.dispatched_to_id, name: item.dispatched_to }])
@@ -501,7 +497,6 @@ function Dispatch({ tabValue, updateUrlParams }) {
       })
       console.log('Date range selected:', { startDate, endDate })
     } else {
-      // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
       setFilterDates({
         startDate: '',
         endDate: ''
@@ -572,12 +567,11 @@ function Dispatch({ tabValue, updateUrlParams }) {
             justifyContent: { xs: 'center', sm: 'space-between' }
           }}
         >
-          {/* Date Picker */}
+        
           <Grid item size={{ xs: 12, sm: 'auto' }}>
             <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
           </Grid>
 
-          {/* Filters Section */}
           <Grid
             item
             container
@@ -590,7 +584,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
               justifyContent: { xs: 'center', sm: 'flex-end' }
             }}
           >
-            {/* Reference Type */}
+       
             <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <Autocomplete
@@ -610,7 +604,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
               </FormControl>
             </Grid>
 
-            {/* Dispatch To */}
+           
             <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <Autocomplete
@@ -628,7 +622,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
               </FormControl>
             </Grid>
 
-            {/* Requested By */}
+            
             <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <Autocomplete

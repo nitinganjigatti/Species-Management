@@ -116,7 +116,7 @@ const SpeciesAddEdit = ({
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          color: '#44544A',
+          color: theme.palette.customColors.OnSurfaceVariant,
           fontWeight: '500',
           fontSize: '18px',
           pb: '15px'
@@ -173,7 +173,9 @@ const SpeciesAddEdit = ({
         <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
           {errors.uploadedFile && (
-            <Typography sx={{ color: '#FF4D49', fontSize: '12px', fontWeight: '400', mt: 1 }}>
+            <Typography
+              sx={{ color: theme.palette.customColors.errorText, fontSize: '12px', fontWeight: '400', mt: 1 }}
+            >
               {errors.uploadedFile}
             </Typography>
           )}
@@ -184,7 +186,7 @@ const SpeciesAddEdit = ({
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            color: '#44544A',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: '500',
             fontSize: '18px',
             pb: '15px'
@@ -196,7 +198,7 @@ const SpeciesAddEdit = ({
           <Typography
             sx={{
               fontSize: '18px',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontWeight: 500
             }}
           >
@@ -205,7 +207,7 @@ const SpeciesAddEdit = ({
           <Typography
             sx={{
               fontSize: '18px',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontWeight: 500
             }}
           >
@@ -229,12 +231,26 @@ const SpeciesAddEdit = ({
                   ) || 0
 
                 return (
-                  <Box sx={{ bgcolor: '#E8F4F266', p: 4, border: '1px solid #C3CEC7', borderRadius: '8px', mb: 6 }}>
+                  <Box
+                    sx={{
+                      bgcolor: '#E8F4F266',
+                      p: 4,
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      mb: 6
+                    }}
+                  >
                     <Paper elevation={3} sx={{ p: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
                       {/* Header */}
                       <Box display='flex' justifyContent='space-between' alignItems='start' mb={3}>
                         <Box>
-                          <Typography sx={{ color: '#44544A', fontWeight: 500, fontSize: '20px' }}>
+                          <Typography
+                            sx={{
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 500,
+                              fontSize: '20px'
+                            }}
+                          >
                             Export ID : {all.export_number}
                           </Typography>
                         </Box>
@@ -252,11 +268,11 @@ const SpeciesAddEdit = ({
                         justifyContent='space-between'
                         sx={{
                           borderRadius: '8px',
-                          border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           px: 4,
                           pt: 3,
                           pb: 4,
-                          backgroundColor: '#fff',
+                          backgroundColor: theme.palette.common.white,
                           width: '100%',
                           margin: '0 auto',
                           boxShadow: 'none'
@@ -264,8 +280,10 @@ const SpeciesAddEdit = ({
                       >
                         {/* Exporter Section */}
                         <Box sx={{ width: '45%' }}>
-                          <Typography sx={{ color: '#7A8684', fontWeight: '400' }}>Exporter</Typography>
-                          <Typography sx={{ color: '#44544A', fontWeight: '500' }}>
+                          <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: '400' }}>
+                            Exporter
+                          </Typography>
+                          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
                             {all?.exporter_name || 'N/A'}, {all.origin_country || 'N/A'}
                           </Typography>
                         </Box>
@@ -275,8 +293,10 @@ const SpeciesAddEdit = ({
 
                         {/* Importer Section */}
                         <Box sx={{ width: '45%' }}>
-                          <Typography sx={{ color: '#7A8684', fontWeight: '400' }}>Importer</Typography>
-                          <Typography sx={{ color: '#44544A', fontWeight: 500 }}>
+                          <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: '400' }}>
+                            Importer
+                          </Typography>
+                          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
                             {all?.importer_name
                               ? `${all.importer_name}, ${all?.exporting_country || 'N/A'}`
                               : all?.exporting_country || 'N/A'}
@@ -288,7 +308,7 @@ const SpeciesAddEdit = ({
                       <Box
                         sx={{
                           borderRadius: '8px',
-                          border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           mb: 2,
                           mt: 5
                         }}
@@ -298,14 +318,20 @@ const SpeciesAddEdit = ({
                           justifyContent='space-between'
                           alignItems='center'
                           sx={{
-                            background: '#EFF5F2',
+                            background: theme.palette.customColors.lightBg,
                             px: 4,
                             py: 2,
                             borderTopLeftRadius: '10px',
                             borderTopRightRadius: '10px'
                           }}
                         >
-                          <Typography sx={{ color: '#44544A', fontSize: '16px', fontWeight: 500 }}>
+                          <Typography
+                            sx={{
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '16px',
+                              fontWeight: 500
+                            }}
+                          >
                             {all?.species?.length} Species • {totalAnimals} Animals
                           </Typography>
                         </Box>
@@ -315,7 +341,7 @@ const SpeciesAddEdit = ({
                         {/* Species List */}
                         <Box
                           sx={{
-                            background: '#fff',
+                            background: theme.palette.common.white,
                             pt: 1,
                             borderBottomLeftRadius: '10px',
                             borderBottomRightRadius: '10px'
@@ -327,25 +353,45 @@ const SpeciesAddEdit = ({
                               display='flex'
                               justifyContent='space-between'
                               // py={2}
-                              sx={{ borderBottom: '1px solid #0000000D', px: 4, py: 2, cursor: 'pointer' }}
+                              sx={{
+                                borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                                px: 4,
+                                py: 2,
+                                cursor: 'pointer'
+                              }}
                               onClick={() => handleAnimalClick(speciesdata, 'export')}
                             >
                               <Box className='export_dtl_list'>
                                 <Typography
                                   fontWeight='medium'
-                                  sx={{ color: '#44544A', fontWeight: 500, fontSize: '16px' }}
+                                  sx={{
+                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                    fontWeight: 500,
+                                    fontSize: '16px'
+                                  }}
                                 >
                                   {speciesdata.common_name || 'N/A'}
                                 </Typography>
                                 <Typography
                                   fontStyle='italic'
-                                  sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}
+                                  sx={{
+                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                    fontWeight: 400,
+                                    fontSize: '14px'
+                                  }}
                                 >
                                   {speciesdata.scientific_name || 'N/A'}
                                 </Typography>
                               </Box>
                               <Box display='flex' alignItems='center' gap={2} flex={1}>
-                                <Typography sx={{ color: '#44544A', fontSize: '14px', fontWeight: 500, mr: 2 }}>
+                                <Typography
+                                  sx={{
+                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    mr: 2
+                                  }}
+                                >
                                   Count :{' '}
                                   {Number(speciesdata.male_count) +
                                     Number(speciesdata.female_count) +
@@ -355,22 +401,23 @@ const SpeciesAddEdit = ({
                                   label={`M - ${speciesdata.male_count || 0}`}
                                   size='small'
                                   sx={{
-                                    background: '#AFEFEB80',
+                                    background: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
                                     borderRadius: '4px',
                                     px: 2,
-                                    color: '#00AFD6',
+                                    color: theme.palette.customColors.addPrimary,
                                     fontSize: '14px',
                                     fontWeight: 500
                                   }}
                                 />
+
                                 <Chip
                                   label={`F - ${speciesdata.female_count || 0}`}
                                   size='small'
                                   sx={{
-                                    background: '#FA614026',
+                                    background: alpha(theme.palette.customColors.customDropdownColor, 0.15),
                                     borderRadius: '4px',
                                     px: 2,
-                                    color: '#FA6140',
+                                    color: theme.palette.formContent.tertiary,
                                     fontSize: '14px',
                                     fontWeight: 500
                                   }}
@@ -379,10 +426,10 @@ const SpeciesAddEdit = ({
                                   label={`U - ${speciesdata.undeterminate_count || 0}`}
                                   size='small'
                                   sx={{
-                                    background: '#DDEBE9',
+                                    background: theme.palette.customColors.displaybgSecondary,
                                     borderRadius: '4px',
                                     px: 2,
-                                    color: '#1F515B',
+                                    color: theme.palette.primary.light,
                                     fontSize: '14px',
                                     fontWeight: 500
                                   }}

@@ -306,7 +306,6 @@ const StepAddIngredients = ({
   }, [])
 
   const onSubmit = async data => {
-    // Filter out incomplete entries
     data.by_percentage = data.by_percentage.filter(
       item => item.ingredient_id || item.quantity || item.preparation_type_id
     )
@@ -316,41 +315,41 @@ const StepAddIngredients = ({
 
     // Check for duplicate ingredients with same preparation type
     const checkRepeated = new Set()
+
     const hasDuplicates = data.by_percentage.some(item => {
       const key = `${item.ingredient_id}_${item.preparation_type_id}`
       if (checkRepeated.has(key)) {
         return true
       }
       checkRepeated.add(key)
+
       return false
     })
 
     if (hasDuplicates) {
       window.scrollTo(0, 0)
+
       return Toaster({
         type: 'error',
         message: 'The same ingredient with the same preparation type is not allowed'
       })
     }
 
-    // Function to find the first incomplete index
     const findFirstIncompleteIndex = (array, keys) => {
       return array.findIndex(item => keys.some(key => !item[key]))
     }
 
-    // Check if all entries in by_percentage have all required fields
     const isByPercentageValid = data.by_percentage.every(
       item => item.ingredient_id && item.quantity && item.preparation_type_id
     )
 
-    // Check if all entries in by_quantity have all required fields
     const isByQuantityValid = data.by_quantity.every(
       item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id
     )
 
-    // If both arrays are empty or have incomplete entries, show an error
     if (data.by_percentage.length === 0) {
       window.scrollTo(0, 0)
+
       return Toaster({
         type: 'error',
         message: 'Please fill in all fields for By Percentage'
@@ -364,6 +363,7 @@ const StepAddIngredients = ({
         'preparation_type_id'
       ])
       window.scrollTo(0, 0)
+
       return Toaster({
         type: 'error',
         message: `Please fill in all fields in By Percentage at index ${firstIncompleteIndex + 1}.`
@@ -372,12 +372,14 @@ const StepAddIngredients = ({
 
     if (calculateTotalQuantity() > 100 && data.by_percentage.length > 0) {
       window.scrollTo(0, 0)
+
       return Toaster({
         type: 'error',
         message: 'Please review and adjust percentages before adding new ingredients'
       })
     } else if (calculateTotalQuantity() < 100 && data.by_percentage.length > 0) {
       window.scrollTo(0, 0)
+
       return Toaster({
         type: 'error',
         message: 'Percentage added should be equal to 100%'
@@ -392,7 +394,6 @@ const StepAddIngredients = ({
         await schema.validate(data, { abortEarly: false })
         const imageData = await handleImageUpload()
 
-        // Merge the image data with other form data
         const formDataWithImage = {
           ...data,
           recipe_image: uploadedImage

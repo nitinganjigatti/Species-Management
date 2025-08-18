@@ -22,7 +22,9 @@ const CommonTable = ({
   maxHeight,
   rowHeight = 52,
   externalTableStyle,
-  getRowHeight
+  getRowHeight,
+  handleSearch,
+  getRowClassName // New prop for conditional row styling
 }) => {
   const theme = useTheme()
 
@@ -85,8 +87,8 @@ const CommonTable = ({
         pageSizeOptions && pageSizeOptions.length > 0
           ? pageSizeOptions
           : disablePagination
-          ? [total]
-          : [7, 10, 25, 50, 100]
+            ? [total]
+            : [7, 10, 25, 50, 100]
       }
       onCellClick={onCellClick ? onCellClick : null}
       // paginationModel={paginationModel}
@@ -111,6 +113,7 @@ const CommonTable = ({
       onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
       rowSelectionModel={selectedRows ? selectedRows : []}
       getRowHeight={getRowHeight ? getRowHeight : null}
+      getRowClassName={getRowClassName ? getRowClassName : undefined}
     />
   )
 }

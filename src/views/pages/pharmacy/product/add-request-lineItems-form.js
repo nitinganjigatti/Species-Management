@@ -85,7 +85,6 @@ export const AddRequestLineItemsForm = ({
     reValidateMode: 'onChange'
   })
 
-  console.log('edit Product Values ?????', editValues?.product_image)
 
   const { fields, append, remove, insert } = useFieldArray({
     control,
@@ -235,7 +234,7 @@ export const AddRequestLineItemsForm = ({
 
   return (
     <>
-      {/* <CardContent> */}
+      
       <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
         <Grid container spacing={5} size={{ xs: 12 }}>
           <Grid item size={{ xs: 12, sm: 6 }}>
@@ -405,11 +404,10 @@ export const AddRequestLineItemsForm = ({
               </Box>
             )}
 
-            {/* </Box> */}
+         
           </Grid>
 
-          {/* salt composition */}
-
+         
           <Grid item size={{ xs: 12, sm: 12 }}>
             <FormGroup>
               <Grid container item size={{ xs: 12, sm: 12 }} spacing={2} sx={{
@@ -502,7 +500,6 @@ export const AddRequestLineItemsForm = ({
           </Grid>
         </Grid>
       </form>
-      {/* </CardContent> */}
     </>
   );
 }

@@ -46,13 +46,10 @@ const DiscardedTableView = ({
 
   const fetchTableData = useCallback(
     async (sort, q, selectedFiltersOptions = {}, filterByNurseryId) => {
-      // console.log('selectedFiltersOptions discard :>> ', selectedFiltersOptions)
 
-      // debugger
       try {
         setLoading(true)
 
-        // Extracting IDs from selectedFiltersOptions, with a fallback to empty arrays
         // const nurseryIds = selectedFiltersOptions?.Nursery?.map(option => option.id)
 
         // const eggStateIds = selectedFiltersOptions?.Stage?.map(option => option.id) || []
@@ -104,7 +101,6 @@ const DiscardedTableView = ({
   )
 
   useEffect(() => {
-    // debugger
 
     fetchTableData(sort, searchValue, selectedFiltersOptions, filterByNurseryId)
   }, [fetchTableData, selectedFiltersOptions, filterByNurseryId])
@@ -386,7 +382,6 @@ const DiscardedTableView = ({
                 alt='Profile'
               />
             )}
-            {/* </Avatar> */}
 
             <Box sx={{ display: 'flex', flexDirection: 'column', m: 1 }}>
               {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (

@@ -39,18 +39,17 @@ const ResetPassword = () => {
   const newPassword = watch('newPassword')
   const confirmPassword = watch('confirmPassword')
 
-  // Show validation as soon as the user types anything in the password field
   useEffect(() => {
     if (newPassword && !isInteracted) {
       setIsInteracted(true)
     }
   }, [newPassword, isInteracted])
 
-  // Password validation status
+ 
   const validations = {
     minChars: newPassword.length >= 8,
 
-    // upperCase: /[A-Z]/.test(newPassword),
+   
     numerical: /[0-9]/.test(newPassword),
     special: /[@#$&*]/.test(newPassword),
     passwordMismatch: confirmPassword ? confirmPassword !== newPassword : false
@@ -59,8 +58,7 @@ const ResetPassword = () => {
   const onSubmit = async data => {
     console.log('Form submitted successfully', data)
 
-    // Handle form submission logic here
-
+   
     const payload = {
       user_id: verifyOtpData?.user_id,
       new_password: data.newPassword

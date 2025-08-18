@@ -1,5 +1,5 @@
 import React from 'react'
-import { Typography, Box, Drawer, IconButton, Paper, Grid, Chip, Avatar } from '@mui/material'
+import { Typography, Box, Drawer, IconButton, Paper, Grid, Chip, Avatar, alpha } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import Icon from 'src/@core/components/icon'
@@ -49,7 +49,7 @@ const AnimalDetailsDrawer = ({
             {detailtype === 'others' && action !== 'details' ? (
               <Typography
                 sx={{
-                  color: '#006D35',
+                  color: theme.palette.primary.dark,
                   fontSize: '14px',
                   fontWeight: 500,
                   display: 'flex',
@@ -64,7 +64,7 @@ const AnimalDetailsDrawer = ({
                     fontSize: '18px',
                     cursor: 'pointer',
                     marginRight: '8px',
-                    color: '#006D35'
+                    color: theme.palette.primary.dark
                   }}
                   icon='bx:pencil'
                 />
@@ -85,7 +85,7 @@ const AnimalDetailsDrawer = ({
             sx={{
               fontWeight: 500,
               fontSize: '18px',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               mb: 4
             }}
           >
@@ -97,32 +97,52 @@ const AnimalDetailsDrawer = ({
             sx={{
               borderRadius: '10px',
               padding: 4,
-              border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               boxShadow: 'none'
             }}
           >
             <Grid container spacing={2}>
               <Grid size={{ xs: 6 }}>
-                <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Species Name</Typography>
-                <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
+                <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
+                  Species Name
+                </Typography>
+                <Typography
+                  fontWeight={500}
+                  sx={{ mt: 0.5, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
+                >
                   {animalDetails?.common_name || 'N/A'}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6 }}>
-                <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Scientific Name</Typography>
-                <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
+                <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
+                  Scientific Name
+                </Typography>
+                <Typography
+                  fontWeight={500}
+                  sx={{ mt: 0.5, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
+                >
                   {animalDetails?.scientific_name || 'N/A'}
                 </Typography>
               </Grid>
               <Grid sx={{ mt: 3 }} size={{ xs: 6 }}>
-                <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>CITES</Typography>
-                <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
+                <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
+                  CITES
+                </Typography>
+                <Typography
+                  fontWeight={500}
+                  sx={{ mt: 0.5, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
+                >
                   {animalDetails?.cites || 'N/A'}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6 }} sx={{ mt: 3 }}>
-                <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Animal count</Typography>
-                <Typography fontWeight={500} sx={{ mt: 0.5, color: '#44544A', fontSize: '16px' }}>
+                <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
+                  Animal count
+                </Typography>
+                <Typography
+                  fontWeight={500}
+                  sx={{ mt: 0.5, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
+                >
                   {animalDetails?.total_count ||
                     animalDetails?.male_count + animalDetails?.female_count + animalDetails?.undeterminate_count ||
                     '-'}
@@ -130,16 +150,18 @@ const AnimalDetailsDrawer = ({
               </Grid>
 
               <Grid size={{ xs: 12 }} sx={{ mt: 3 }}>
-                <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '16px' }}>Gender & Count</Typography>
+                <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
+                  Gender & Count
+                </Typography>
                 <Box display='flex' gap={1} sx={{ mt: 1 }}>
                   <Chip
                     label={`M - ${animalDetails?.male_count || 0}`}
                     size='small'
                     sx={{
-                      background: '#AFEFEB80',
+                      background: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
                       borderRadius: '4px',
                       px: 3,
-                      color: '#00AFD6',
+                      color: theme.palette.customColors.addPrimary,
                       fontSize: '14px',
                       fontWeight: 500,
                       mr: 2
@@ -149,10 +171,10 @@ const AnimalDetailsDrawer = ({
                     label={`F - ${animalDetails?.female_count || 0}`}
                     size='small'
                     sx={{
-                      background: '#FA614026',
+                      background: alpha(theme.palette.customColors.customDropdownColor, 0.15),
                       borderRadius: '4px',
                       px: 3,
-                      color: '#FA6140',
+                      color: theme.palette.customColors.customDropdownColor,
                       fontSize: '14px',
                       fontWeight: 500,
                       mr: 2
@@ -162,10 +184,10 @@ const AnimalDetailsDrawer = ({
                     label={`U - ${animalDetails?.undeterminate_count || 0}`}
                     size='small'
                     sx={{
-                      background: '#DDEBE9',
+                      background: theme.palette.customColors.displaybgSecondary,
                       borderRadius: '4px',
                       px: 3,
-                      color: '#1F515B',
+                      color: theme.palette.customColors.OnPrimaryContainer,
                       fontSize: '14px',
                       fontWeight: 500
                     }}
@@ -181,14 +203,21 @@ const AnimalDetailsDrawer = ({
             sx={{
               fontWeight: 500,
               fontSize: '18px',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               mb: 4,
               mt: 4
             }}
           >
             Animals with identifier ( {animalDetails?.animals?.length || 0} )
           </Typography>
-          <Box sx={{ backgroundColor: '#FFFFFF', p: 4, borderRadius: '8px', border: '1px solid #C3CEC7' }}>
+          <Box
+            sx={{
+              backgroundColor: theme.palette.customColors.OnPrimary,
+              p: 4,
+              borderRadius: '8px',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+            }}
+          >
             {animalDetails?.animals?.length > 0 ? (
               animalDetails?.animals?.map((animal, index) => (
                 <Box
@@ -197,8 +226,8 @@ const AnimalDetailsDrawer = ({
                     display: 'flex',
                     alignItems: 'center',
                     padding: '12px',
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #C3CEC7',
+                    backgroundColor: theme.palette.customColors.OnPrimary,
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     mb: 3
                   }}
@@ -208,19 +237,19 @@ const AnimalDetailsDrawer = ({
                     sx={{
                       backgroundColor:
                         animal.gender === 'male'
-                          ? '#AFEFEB80'
+                          ? alpha(theme.palette.customColors.SecondaryContainer, 0.5)
                           : animal.gender === 'female'
-                          ? '#FA614026'
+                          ? alpha(theme.palette.customColors.customDropdownColor, 0.15)
                           : animal.gender === 'unknown'
-                          ? '#DDEBE9'
+                          ? theme.palette.customColors.displaybgSecondary
                           : '',
                       color:
                         animal.gender === 'male'
-                          ? '#00AFD6'
+                          ? theme.palette.customColors.addPrimary
                           : animal.gender === 'female'
-                          ? '#FA6140'
+                          ? theme.palette.customColors.customDropdownColor
                           : animal.gender === 'unknown'
-                          ? '#1F515B'
+                          ? theme.palette.customColors.OnPrimaryContainer
                           : '',
                       fontWeight: '500',
                       marginRight: '16px',
@@ -236,16 +265,37 @@ const AnimalDetailsDrawer = ({
 
                   {/* Animal Info */}
                   <Box sx={{ flexGrow: 1 }}>
-                    <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px', mb: 0.5 }}>
+                    <Typography
+                      sx={{
+                        fontWeight: '400',
+                        color: theme.palette.customColors.secondaryBg,
+                        fontSize: '14px',
+                        mb: 0.5
+                      }}
+                    >
                       Species :{' '}
-                      <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                      <span
+                        style={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '14px',
+                          fontWeight: 500
+                        }}
+                      >
                         {animalDetails?.common_name || 'N/A'}
                       </span>
                     </Typography>
 
-                    <Typography sx={{ fontWeight: '400', color: '#7A8684', fontSize: '14px' }}>
+                    <Typography
+                      sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
+                    >
                       {animal.identifier_type} :
-                      <span style={{ color: '#44544A', fontSize: '14px', fontWeight: 500 }}>
+                      <span
+                        style={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '14px',
+                          fontWeight: 500
+                        }}
+                      >
                         {' '}
                         {animal.identifier_value}
                       </span>
@@ -255,7 +305,13 @@ const AnimalDetailsDrawer = ({
               ))
             ) : (
               <Typography
-                sx={{ background: '#0000000D', p: 12, textAlign: 'center', borderRadius: '8px', fontWeight: '500' }}
+                sx={{
+                  background: theme.palette.customColors.mdAntzNeutral,
+                  p: 12,
+                  textAlign: 'center',
+                  borderRadius: '8px',
+                  fontWeight: '500'
+                }}
               >
                 No Animals to show
               </Typography>

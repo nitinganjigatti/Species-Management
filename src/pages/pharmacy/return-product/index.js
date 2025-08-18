@@ -75,7 +75,7 @@ const ReturnRequestList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
@@ -138,8 +138,8 @@ const ReturnRequestList = () => {
 
   useEffect(() => {
     if (router.query.status !== status) {
-      // debugger
-      setPaginationModel({ page: 0, pageSize: 10 })
+     
+      setPaginationModel({ page: 0, pageSize: 50 })
       updateUrlParams({
         status: status,
         page: 0,
@@ -158,7 +158,7 @@ const ReturnRequestList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
@@ -279,7 +279,7 @@ const ReturnRequestList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       const currentStatus = filterSwitch === true ? 'completed' : status
       try {
@@ -310,7 +310,7 @@ const ReturnRequestList = () => {
 
   const handleSwitchChange = event => {
     setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterSwitch(prev => event.target.checked)
     if (event.target.checked === false) {
       setStatus(prev => 'all')
@@ -335,8 +335,7 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-    // debugger
-    // if (router.query.status === status) {
+  
     const currentStatus = filterSwitch === true ? 'completed' : status
     const tabStatus = status === 'all' ? currentStatus : status
     fetchTableData(
@@ -361,10 +360,7 @@ const ReturnRequestList = () => {
       store: filterByStoreId
     })
 
-    // }
-
-    // }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [
     status,
     filterSwitch,
@@ -374,7 +370,6 @@ const ReturnRequestList = () => {
     paginationModel.page,
     paginationModel.pageSize
 
-    // router.query.status
   ])
 
   const onRowClick = params => {
@@ -411,8 +406,6 @@ const ReturnRequestList = () => {
   const columns = [
     {
       width: 80,
-
-      // field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography
@@ -605,7 +598,7 @@ const ReturnRequestList = () => {
 
     if (days !== 'all') {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       const currentDate = new Date()
       const selectedDays = parseInt(days)
       let startDate
@@ -677,7 +670,6 @@ const ReturnRequestList = () => {
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
               <TextField
                 variant='outlined'
                 size='small'
@@ -730,7 +722,7 @@ const ReturnRequestList = () => {
                         label='Filter by Stores'
                         onChange={e => {
                           setTotal(0)
-                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setPaginationModel({ page: 0, pageSize: 50 })
                           setFilterByStoreId(e.target.value)
                           setSearchValue('')
                         }}

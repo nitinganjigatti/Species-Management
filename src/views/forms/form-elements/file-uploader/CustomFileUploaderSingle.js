@@ -15,7 +15,6 @@ import { useDropzone } from 'react-dropzone'
 import Icon from 'src/@core/components/icon'
 import { position } from 'stylis'
 
-// Styled component for the upload image inside the dropzone area
 const Img = styled('img')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
     marginRight: theme.spacing(10)
@@ -142,9 +141,7 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
         <Box
           {...getRootProps({ className: 'dropzone' })}
           sx={uploadedImage.length ? { position: 'absolute', width: '34%' } : {}}
-        >
-          {/* Dropzone content */}
-        </Box>
+        ></Box>
       )}
     </>
   )

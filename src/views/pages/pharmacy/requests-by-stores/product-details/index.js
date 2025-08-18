@@ -238,7 +238,6 @@ const RequestedProductDetails = props => {
                     nestedChildElm?.request_status !== 'Not Available' &&
                     nestedChildElm?.request_status !== 'Rejected' &&
                     selectedPharmacy.type !== 'local' && (
-                      // eslint-disable-next-line lines-around-comment
 
                       <MenuWithDots
                         options={generateOptions(nestedChildElm, nestedChildElm?.id)}

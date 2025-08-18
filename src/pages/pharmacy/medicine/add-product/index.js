@@ -214,7 +214,6 @@ const AddMedicine = () => {
 
   const [packageQuantity, setPackageQuantity] = useState('')
 
-  //Default preSelected values on Edit
 
   const [defaultManufacturer, setDefaultManufacturer] = useState(null)
   const [defaultGenericName, setDefaultGenericName] = useState(null)
@@ -231,7 +230,6 @@ const AddMedicine = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [severity, setSeverity] = useState('success')
 
-  // states for Manufacturer and salt
 
   const [openManufacturer, setOpenManufacturer] = useState(false)
   const [openSalt, setOpenSalt] = useState(false)
@@ -291,8 +289,6 @@ const AddMedicine = () => {
       console.log(e)
     }
   }
-
-  console.log('Packeages ??', packages)
 
   const getProductForm = async ({ key, page, limit }) => {
     try {
@@ -736,30 +732,23 @@ const AddMedicine = () => {
     try {
       const response = await updateMedicineById(payload, id)
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
 
-        //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
 
         Router.replace(`/pharmacy/medicine/${id}`)
 
-        // Router.back()
       } else {
         setSubmitLoader(false)
 
-        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
         toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
       toast.error('error')
 
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
 
-      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 
@@ -768,10 +757,8 @@ const AddMedicine = () => {
       const response = await addMedicine(payload)
 
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
 
-        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
         if (shouldClearFieldsRef.current) {
@@ -789,24 +776,20 @@ const AddMedicine = () => {
         } else {
           debugger
 
-          // Router.push('/pharmacy/medicine/product-list')
           Router.replace(`/pharmacy/medicine/${response?.data?.stock_item_id}`)
         }
         setSubmitLoader(false)
       } else {
         setSubmitLoader(false)
 
-        // setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
         shouldClearFieldsRef.current = false
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
         toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
 
-      // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+     
       toast.error('error')
 
       shouldClearFieldsRef.current = false
@@ -1030,7 +1013,7 @@ const AddMedicine = () => {
                         <Icon
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
-                            //
+                            
                             Router.back()
                           }}
                           icon='ep:back'
@@ -1038,7 +1021,7 @@ const AddMedicine = () => {
                       }
                       title={id ? 'Edit Product' : 'Add New Product'}
                     />
-                    {console.log(fields, 'fields')}
+                  
                     <CardContent>
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>
@@ -1104,8 +1087,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          {/* </Grid> */}
-                          {/* </Grid> */}
+                         
                           <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
@@ -1202,8 +1184,7 @@ const AddMedicine = () => {
                             </Grid>
                           )}
 
-                          {/* <Grid item size={{xs: 12, sm: 12}}> */}
-                          {/* <Grid container spacing={5}> */}
+                       
                           <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
@@ -1219,7 +1200,6 @@ const AddMedicine = () => {
                                     getOptionLabel={option => option.label}
                                     isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                     onChange={(e, val) => {
-                                      // setDefaultManufacturer(val)
 
                                       if (val === null) {
                                         setDefaultManufacturer(val)
@@ -1235,7 +1215,6 @@ const AddMedicine = () => {
                                     onKeyUp={e => {
                                       manufacturerSearch(e.target.value)
 
-                                      // getManufacturersList({ key: e.target.value })
                                     }}
                                     renderInput={params => (
                                       <TextField
@@ -1274,9 +1253,7 @@ const AddMedicine = () => {
                               </Box>
                             </Grid>
                           )}
-                          {/* </Grid> */}
-                          {/* </Grid> */}
-                          {/* Packages */}
+                        
                           <Grid item size={{ xs: 12, sm: 12 }}>
                             <div>Package {getPackageString()}</div>
                           </Grid>
@@ -1447,8 +1424,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          {/* //Package */}
-                          {/* Salt Composition */}
+                 
                           {medicineType !== 'non_medical' && (
                             <Grid item size={{ xs: 12, sm: 12 }}>
                               <FormGroup>
@@ -1496,7 +1472,6 @@ const AddMedicine = () => {
                                                 disablePortal
                                                 id={`salts[${index}].salt_id`}
                                                 options={saltsList.filter(option => {
-                                                  // Assuming defaultSalts is an array of objects with a 'salt_id' property
                                                   const selectedSaltIds = defaultSalts.map(salt => salt?.salt_id)
 
                                                   return !selectedSaltIds.includes(option.salt_id)
@@ -1507,7 +1482,6 @@ const AddMedicine = () => {
                                                 }
                                                 onChange={(e, val) => {
                                                   if (val === null) {
-                                                    //setDefaultProductForm(undefined)
                                                     var saltComposition = defaultSalts
                                                     saltComposition[index] = null
                                                     setDefaultSalts(saltComposition)
@@ -1523,7 +1497,6 @@ const AddMedicine = () => {
                                                   }
                                                 }}
                                                 onKeyUp={e => {
-                                                  // getSaltsList({ key: e.target.value })
                                                   saltsListSearch(e.target.value)
                                                 }}
                                                 renderInput={params => {
@@ -1589,8 +1562,7 @@ const AddMedicine = () => {
                               </FormGroup>
                             </Grid>
                           )}
-                          {/* //Salt Composition */}
-                          {/* Others */}
+                     
                           <Grid item size={{ xs: 12, sm: 12 }}>
                             <div>Others</div>
                           </Grid>

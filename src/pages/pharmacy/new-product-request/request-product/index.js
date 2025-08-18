@@ -35,7 +35,6 @@ import { useTheme } from '@mui/material/styles'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import React, { useRef, useState, useEffect, Fragment } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
-import CommonDialogBox from 'src/components/CommonDialogBox'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { AddRequestLineItemsForm } from 'src/views/pages/pharmacy/product/add-request-lineItems-form'
@@ -270,7 +269,6 @@ export default function AddProduct() {
       ]
     }
 
-    console.log(payload)
 
     let response
 
@@ -287,7 +285,6 @@ export default function AddProduct() {
         toast.success(toastMessage)
         router.back()
 
-        // router.push('/pharmacy/new-product-request/')
       } else {
         setSubmitLoader(false)
       }
@@ -307,7 +304,6 @@ export default function AddProduct() {
     } else {
       router.back()
 
-      // router.push('/pharmacy/new-product-request/')
     }
   }
 
@@ -439,7 +435,7 @@ export default function AddProduct() {
     } else {
       router.back()
 
-      // router.push('/pharmacy/new-product-request/')
+    
     }
   }
 
@@ -458,7 +454,7 @@ export default function AddProduct() {
                     onClick={() => {
                       isDirty || imgSrcChange || previousPrescriptionLength ? handleCancelDialogBox() : router.back()
 
-                      // router.push('/pharmacy/new-product-request/')
+                  
                     }}
                     icon='ep:back'
                   />
@@ -677,9 +673,9 @@ export default function AddProduct() {
                           <Box
                             sx={{
                               display: 'flex',
-                              alignItems: 'center', // Align items vertically in the center
-                              flexWrap: 'wrap', // Allow wrapping on smaller screens
-                              gap: 2 // Add spacing between items
+                              alignItems: 'center', 
+                              flexWrap: 'wrap', 
+                              gap: 2 
                             }}
                           >
                             <img
@@ -696,8 +692,8 @@ export default function AddProduct() {
 
                             <Typography
                               sx={{
-                                marginTop: { xs: '8px', sm: 0 }, // Adjust margin for smaller screens
-                                wordBreak: 'break-word' // Prevent text overflow
+                                marginTop: { xs: '8px', sm: 0 }, 
+                                wordBreak: 'break-word' 
                               }}
                             >
                               {responseImage ? responseImage.slice(-10) : displayFile}
@@ -706,7 +702,7 @@ export default function AddProduct() {
                             <Box
                               sx={{
                                 cursor: 'pointer',
-                                marginTop: { xs: '8px', sm: 0 } // Adjust margin for smaller screens
+                                marginTop: { xs: '8px', sm: 0 } 
                               }}
                             >
                               <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()} />
@@ -719,10 +715,9 @@ export default function AddProduct() {
                           size={{ xs: 12, sm: 12 }}
                           sx={{
                             position: 'relative',
-                            width: { xs: '100%', sm: '300px' }, // Full width on small screens, fixed on larger ones
+                            width: { xs: '100%', sm: '300px' }, 
                             height: '50px'
 
-                            // marginLeft: { xs: '0', sm: '150px' } // Remove margin on smaller screens
                           }}
                         >
                           <input
@@ -774,7 +769,6 @@ export default function AddProduct() {
                           content={'Are you sure you want to cancel?'}
                           closeDialog={() => setConfirmationBox(false)}
                           action={() => {
-                            // router.push('/pharmacy/new-product-request/')
                             router.back()
                           }}
                         />
@@ -787,9 +781,9 @@ export default function AddProduct() {
                           size={{ xs: 12, sm: 12 }}
                           sx={{
                             position: 'relative',
-                            width: '300px', // Adjust container width as needed
-                            height: '50px', // Adjust height to match the button
-                            // marginLeft: '180px',
+                            width: '300px', 
+                            height: '50px', 
+                          
                             marginTop: '20px'
                           }}
                         >
@@ -803,10 +797,10 @@ export default function AddProduct() {
                               position: 'absolute',
                               top: 0,
                               left: 0,
-                              width: '100%', // Cover the whole button area
+                              width: '100%', 
                               height: '100%',
-                              opacity: 0, // Make it invisible
-                              cursor: 'pointer', // Ensure pointer cursor for better UX
+                              opacity: 0, 
+                              cursor: 'pointer',
                               zIndex: 2
                             }}
                           />
@@ -814,10 +808,10 @@ export default function AddProduct() {
                             styles={{
                               position: 'absolute',
                               top: '0px',
-                              left: '10px', // Shift the button slightly to the right
-                              width: '100%', // Match container width
-                              height: '100%', // Match container height
-                              zIndex: 1 // Ensure the button is under the input
+                              left: '10px', 
+                              width: '100%', 
+                              height: '100%', 
+                              zIndex: 1 
                             }}
                             title='Add Prescription'
                           />

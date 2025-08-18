@@ -1,4 +1,5 @@
-import { useContext, useEffect } from 'react'
+import { forwardRef, useState, useRef, useContext, useEffect } from 'react'
+
 import {
   Box,
   Button,
@@ -8,14 +9,18 @@ import {
   CircularProgress,
   FormControl,
   FormHelperText,
-  Grid,
   Popover,
   TextField,
   Typography
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
-import { forwardRef, useState, useRef } from 'react'
+import { useTheme } from '@emotion/react'
+
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SingleDatePicker from 'src/components/SingleDatePicker'
+import Toaster from 'src/components/Toaster'
+
 import {
   getAnimalReport,
   getReportTitle,
@@ -24,15 +29,11 @@ import {
   getAnimalAssessment,
   getEnclosureAssessment
 } from 'src/lib/api/report'
-import { AuthContext } from 'src/context/AuthContext'
-import Error404 from 'src/pages/404'
-import { useTheme } from '@emotion/react'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-import Toaster from 'src/components/Toaster'
 
 const Animal = () => {
   const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
+  const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
@@ -48,19 +49,13 @@ const Animal = () => {
   const endDateRef = useRef()
 
   useEffect(() => {
-    // Calculate yesterday's date
     const yesterday = new Date()
 
-    // yesterday.setDate(yesterday.getDate() - 1)
-
-    // Format the date as YYYY-MM-DD
     const year = yesterday.getFullYear()
     const month = String(yesterday.getMonth() + 1).padStart(2, '0') // Months are zero-based
     const day = String(yesterday.getDate()).padStart(2, '0')
-
     const formattedDate = `${year}-${month}-${day}`
 
-    // Set the formatted date
     setStartDate(formattedDate)
     setEndDate(formattedDate)
   }, [])
@@ -88,7 +83,6 @@ const Animal = () => {
   const jsonToCsv = jsonData => {
     if (!jsonData || jsonData.length === 0) return 'No data available'
 
-    // Extract keys from the first object to use as headers
     const keys = Object.keys(jsonData[0])
     const header = keys.join(',')
 
@@ -101,15 +95,22 @@ const Animal = () => {
 
   useEffect(() => {
     if (enable_daily_report && reports_module && enable_daily_report) {
+      setLoading(true)
       const fetchReportType = async () => {
-        const response = await getReportTitle({
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        })
-        if (response) {
-          setReportData(response)
-        } else {
-          console.error('error >')
+        try {
+          const response = await getReportTitle({
+            page_no: paginationModel.page + 1,
+            limit: paginationModel.pageSize
+          })
+          if (response) {
+            setReportData(response)
+          } else {
+            console.error('error >')
+          }
+        } catch (error) {
+          console.error('Error fetching report titles:', error)
+        } finally {
+          setLoading(false)
         }
       }
       fetchReportType()
@@ -118,7 +119,6 @@ const Animal = () => {
 
   const downloadNewCSVFile = csvContent => {
     try {
-      // const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
       const url = csvContent
       const link = document.createElement('a')
       link.href = url
@@ -196,7 +196,6 @@ const Animal = () => {
     const day = String(date.getDate()).padStart(2, '0')
     const formattedDate = `${year}-${month}-${day}`
 
-    // Update end date
     setEndDate(formattedDate)
 
     if (startDate && new Date(formattedDate) < new Date(startDate)) {
@@ -209,14 +208,12 @@ const Animal = () => {
   const handleConfirm = async () => {
     let updatedApiParams = { ...apiFilterParams }
 
-    // Process `popoverData` to extract selected options
     Object.keys(popoverData).forEach(category => {
       popoverData[category].forEach(option => {
-        updatedApiParams[option.key] = option.checked ? 1 : 0 // Add only selected options
+        updatedApiParams[option.key] = option.checked ? 1 : 0
       })
     })
 
-    // Update API parameters and reset pagination
     setApiFilterParams(updatedApiParams)
     setPaginationModel({ ...paginationModel, page: 0 })
     setAnchorEl(null)
@@ -289,18 +286,16 @@ const Animal = () => {
   ]
 
   const title = (
-    <>
-      <Typography
-        sx={{
-          fontSize: '24px',
-          fontWeight: 500,
-          fontFamily: 'Inter',
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        Daily Report
-      </Typography>
-    </>
+    <Typography
+      sx={{
+        fontSize: '24px',
+        fontWeight: 500,
+        fontFamily: 'Inter',
+        color: theme.palette.customColors.OnSurfaceVariant
+      }}
+    >
+      Daily Report
+    </Typography>
   )
 
   return (
@@ -378,8 +373,8 @@ const Animal = () => {
                   variant='outlined'
                   aria-describedby={'popoverButton'}
                   sx={{
-                    width: '140px', // Width of Show/Hide button
-                    height: '45px', // Height of Show/Hide button
+                    width: '140px',
+                    height: '45px',
                     display: 'flex',
                     borderRadius: '8px',
                     color: theme.palette.customColors.OnSurfaceVariant,
@@ -470,62 +465,11 @@ const Animal = () => {
           </Box>
           <Box sx={{ width: '98%', margin: 4 }}>
             <Box sx={{ borderRadius: '8px' }}>
-              {/* <DataGrid
-                sx={{
-                  mt: 3,
-                  mx: 2,
-                  borderRadius: '8px',
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-                  '& .MuiDataGrid-columnHeader': {
-                    backgroundColor: '#DDEBE9',
-                    color: '#1F415B',
-                    fontWeight: 600,
-                    fontSize: '12px',
-                    fontFamily: 'Inter',
-                    textTransform: 'capitalize',
-                    borderBottom: '2px solid #C3CEC7'
-                  },
-                  '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #C3CEC7',
-                    borderRight: '1px solid #C3CEC7',
-                    borderTop: '1px solid #C3CEC7',
-                    borderBottom: '1px solid #C3CEC7',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: 'none'
-                  },
-
-                  '& .MuiDataGrid-cell': {
-                    fontFamily: 'Inter',
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    lineHeight: '16.94px',
-                    textAlign: 'left',
-                    color: '#44544A'
-                  }
-                }}
-                rows={reportRows}
-                disableColumnSorting={true}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onPaginationModelChange={setPaginationModel}
-                autoHeight
-                disableColumnFilter={false}
-                hideFooterSelectedRowCount
-                rowHeight={70}
-                scrollbarSize={10}
-              /> */}
               <CommonTable
                 setPaginationModel={setPaginationModel}
                 indexedRows={reportRows}
                 total={''}
+                loading={loading}
                 disableColumnSorting={true}
                 columns={columns}
                 paginationModel={paginationModel}

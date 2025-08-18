@@ -179,7 +179,6 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
   }, [eggDetails])
 
   const onSubmit = async values => {
-    // console.log('values', values)
 
     try {
       setLoader(true)

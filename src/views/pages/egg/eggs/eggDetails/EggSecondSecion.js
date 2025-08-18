@@ -105,20 +105,20 @@ const EggSecondSecion = ({
         eggDetails?.parent_list?.mother_list?.length === 0
           ? 'NA'
           : eggDetails?.parent_list?.mother_list?.length > 1
-          ? `Probable (${eggDetails?.parent_list?.mother_list?.length})`
-          : eggDetails?.parent_list?.mother_list[0]?.local_id_type &&
-            eggDetails?.parent_list?.mother_list[0]?.local_identifier_value
-          ? `${eggDetails?.parent_list?.mother_list[0]?.local_id_type}: ${eggDetails?.parent_list?.mother_list[0]?.local_identifier_value}`
-          : eggDetails?.parent_list?.mother_list[0]?.animal_id,
+            ? `Probable (${eggDetails?.parent_list?.mother_list?.length})`
+            : eggDetails?.parent_list?.mother_list[0]?.local_id_type &&
+              eggDetails?.parent_list?.mother_list[0]?.local_identifier_value
+              ? `${eggDetails?.parent_list?.mother_list[0]?.local_id_type}: ${eggDetails?.parent_list?.mother_list[0]?.local_identifier_value}`
+              : eggDetails?.parent_list?.mother_list[0]?.animal_id,
       'Father id':
         eggDetails?.parent_list?.father_list?.length === 0
           ? 'NA'
           : eggDetails?.parent_list?.father_list?.length > 1
-          ? `Probable (${eggDetails?.parent_list?.father_list?.length})`
-          : eggDetails?.parent_list?.father_list[0]?.local_id_type &&
-            eggDetails?.parent_list?.father_list[0]?.local_identifier_value
-          ? `${eggDetails?.parent_list?.father_list[0]?.local_id_type}: ${eggDetails?.parent_list?.father_list[0]?.local_identifier_value}`
-          : eggDetails?.parent_list?.father_list[0]?.animal_id,
+            ? `Probable (${eggDetails?.parent_list?.father_list?.length})`
+            : eggDetails?.parent_list?.father_list[0]?.local_id_type &&
+              eggDetails?.parent_list?.father_list[0]?.local_identifier_value
+              ? `${eggDetails?.parent_list?.father_list[0]?.local_id_type}: ${eggDetails?.parent_list?.father_list[0]?.local_identifier_value}`
+              : eggDetails?.parent_list?.father_list[0]?.animal_id,
 
       'Collected on': Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date)),
       'Lay Date': eggDetails?.lay_date
@@ -197,7 +197,7 @@ const EggSecondSecion = ({
       position: 'top',
       horizontalAlign: 'center'
     },
-    colors: [theme.palette.primary.main] // Colors for the lines (green and blue)
+    colors: [theme.palette.primary.main] 
   }
 
   const columns = [
@@ -313,7 +313,7 @@ const EggSecondSecion = ({
   })
 
   const onError = errors => {
-    // console.error('Form errors', errors)
+  
   }
 
   const onSubmit = val => {
@@ -422,7 +422,6 @@ const EggSecondSecion = ({
     fetchTableData()
   }, [fetchTableData])
 
-  // internal used components
   const ViewAllWeightSideBar = () => (
     <Drawer
       anchor='right'
@@ -553,7 +552,6 @@ const EggSecondSecion = ({
                             onChange={event => {
                               const newValue = event.target.value
 
-                              // Validate the input to ensure it contains only numbers
                               if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
                                 onChange(event)
                               }
@@ -605,7 +603,7 @@ const EggSecondSecion = ({
   )
 
   return (
-    <>
+    <Box>
       <Grid
         container
         spacing={6}
@@ -1232,7 +1230,7 @@ const EggSecondSecion = ({
         getDetails={getDetails}
         egg_id={egg_id}
       />
-    </>
+    </Box>
   )
 }
 

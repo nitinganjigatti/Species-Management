@@ -131,6 +131,7 @@ const UserThemeOptions = () => {
 
         TertiaryLight: '#FFD3D399',
         Tertiary30: '#FFBDA84D',
+        Tertiary20: '#FFBDA833',
         OnBackground: '#E1F9ED',
         BgTeritary: '#ffebe5',
         Primary10: '#37BD691A',
@@ -309,7 +310,7 @@ const UserThemeOptions = () => {
             },
             ':not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
               borderColor: '#D8D8DD'
-            },
+            }
           }
         }
       }

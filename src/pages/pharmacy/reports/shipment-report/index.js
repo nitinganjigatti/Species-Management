@@ -179,7 +179,6 @@ const ShipmentReport = () => {
     })
   }, [paginationModel.page, paginationModel.pageSize, filterDates, sort, sortColumn, selectedPharmacy?.id])
 
-  //   console.log('rows data :', rows)
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 

@@ -63,7 +63,7 @@ const DocumentTypeForm = ({
         position: 'relative'
       }}
     >
-      {/* Scrollable Form Content */}
+    
       <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{
@@ -173,11 +173,15 @@ const DocumentTypeForm = ({
                           </Box>
                         }
                         sx={{
-                          border: `1px solid ${field.value?.includes(opt.id) ? '#37BD69' : '#D0D5DD'}`,
+                          border: `1px solid ${field.value?.includes(opt.id) ? theme.palette.primary.main : '#D0D5DD'}`,
                           m: 1.7,
                           borderRadius: '4px',
                           p: 2,
-                          bgcolor: `${field.value?.includes(opt.id) ? '#F2FFF8' : '#fff'}`,
+                          bgcolor: `${
+                            field.value?.includes(opt.id)
+                              ? theme.palette.customColors.Surface
+                              : theme.palette.common.white
+                          }`,
                           display: 'inline-flex',
                           alignItems: 'center'
                         }}

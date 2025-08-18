@@ -50,34 +50,27 @@ const RecipeCard = ({
   ]
 
   useEffect(() => {
-    // Filter out duplicates based on id and mealid
     const uniqueSelectedValues = allRecipeSelectedValues?.filter(
       (value, index, self) =>
         index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.mealid === value?.mealid)
     )
 
-    // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
 
-    // Initialize a new array to store the updated selectedCardRecipe
     let updatedSelectedCardRecipe = []
 
-    // Iterate over rows and check for matches
     rows.forEach(row => {
       const match = selectedValuesWithCheckId?.find(item => String(item.recipe_id) === row.id)
       if (match) {
-        // Construct a new object with keys from the row object and values from the match object
         const updatedRow = {}
         for (const key in row) {
           updatedRow[key] = match[key] !== undefined ? match[key] : row[key]
         }
 
-        // Add the updated row object to updatedSelectedCardRecipe
         updatedSelectedCardRecipe.push(updatedRow)
       }
     })
 
-    // Update selectedCardRecipe with merged objects
     const currentSelectedCardRecipe = selectedCardRecipe || []
 
     const updatedSelectedCard = [
@@ -144,7 +137,6 @@ const RecipeCard = ({
       const days = selectedValuesWithCheckId.map(item => item.days_of_week)
       const updatedRemarks = { ...remarks }
 
-      // Create updatedSelectedDays for the new selection
       const updatedSelectedDays = []
       cardIds.forEach((cardId, index) => {
         updatedSelectedDays.push({
@@ -157,7 +149,6 @@ const RecipeCard = ({
         })
       })
 
-      // Merge updatedSelectedDays with the existing selectedDays state
       const finalSelectedDays = rows.map(row => {
         const updatedDay = updatedSelectedDays?.find(updated => updated.cardId === row.id)
 
@@ -172,7 +163,6 @@ const RecipeCard = ({
 
       setSelectedDays(finalSelectedDays)
 
-      // Update remarks for the selected cards
       selectedValuesWithCheckId?.forEach(item => {
         if (item.mealid === checkid) {
           updatedRemarks[item.recipe_id] = item.remarks || ''
@@ -189,7 +179,6 @@ const RecipeCard = ({
       const finalSelectedDays = rows.map(row => {
         const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
-        // If no match with checkid, enable all days
         const enabledAllDays = Day.map(day => ({
           id: day.id,
           name: day.name,
@@ -219,12 +208,10 @@ const RecipeCard = ({
     } else if (selectedCardRecipe?.length > 0 && allRecipeSelectedValues && allRecipeSelectedValues?.length <= 0) {
       const previousSelectedDays = selectedDays || []
 
-      // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
         const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
-          // If the card has previously selected days, retain them
           return previousDay
         } else {
           return {
@@ -242,12 +229,10 @@ const RecipeCard = ({
     } else if (searchValue !== '' && !dietid) {
       const previousSelectedDays = selectedDays || []
 
-      // Map over rows to retain previously selected days for matching cards
       const updatedSelectedDays = rows.map(row => {
         const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
 
         if (previousDay) {
-          // If the card has previously selected days, retain them
           return previousDay
         } else {
           return {
@@ -365,26 +350,19 @@ const RecipeCard = ({
     }
 
     const filteredItems = selectedCardRecipe.map(item => {
-      // Find the selected days for the current item
-
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
 
-      // Extract the selected day names and ids
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
-      // Find the remarks for the current item
       const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
 
-      // Extract ingredient details
       const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
       const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
       const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
 
-      // Find the existing card in selectedCardRecipe to preserve previous data
       const existingCard = selectedCardRecipe.find(card => card.id === item.id)
 
-      // Preserve the previous days_of_week if new ones are not selected
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
 
       return {
@@ -440,7 +418,6 @@ const RecipeCard = ({
 
   let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
 
-  // Filter sortedRecipeList based on remarks and fromrow condition
   if (fromrow !== '' && fromrow === 'rowedit_recipe') {
     sortedRecipeList = sortedRecipeList.filter(item => item.id === recipeid && item.recipe_name === recipeName)
   }
@@ -597,8 +574,6 @@ const RecipeCard = ({
                           pt: 1
                         }}
                       >
-                        {/* Ingredient Image */}
-
                         <Avatar
                           variant='square'
                           alt={ingredient.ingredient_name}
@@ -624,8 +599,6 @@ const RecipeCard = ({
                             // }}
                           />
                         </Avatar>
-
-                        {/* Ingredient Details */}
 
                         <Box sx={{ flex: 1 }}>
                           <Tooltip
@@ -801,7 +774,6 @@ const RecipeCard = ({
           maxWidth: '562px',
           position: 'fixed',
           bottom: 0,
-
           px: 4,
           bgcolor: 'white',
           alignItems: 'center',
@@ -819,7 +791,6 @@ const RecipeCard = ({
           </Button>
         )}
       </Box>
-      {/* )} */}
     </Box>
   )
 }

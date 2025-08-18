@@ -1,53 +1,60 @@
 import React from 'react'
-import { Typography, Grid, Box, Paper, Chip } from '@mui/material'
+import { Typography, Grid, Box, Paper, Chip, alpha } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 
 const ShipmentCard = ({ shipment }) => {
+  const theme = useTheme()
   return (
     <Box mb={6}>
       {/* Shipment ID */}
-      <Typography sx={{ fontSize: '18px', color: '#44544A', fontWeight: 500, mb: 3 }}>
+      <Typography sx={{ fontSize: '18px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, mb: 3 }}>
         Shipment ID :{' '}
-        <Box component='span' sx={{ fontSize: '18px', fontWeight: 500, color: '#006D35' }}>
+        <Box component='span' sx={{ fontSize: '18px', fontWeight: 500, color: theme.palette.primary.dark }}>
           {shipment.id}
         </Box>
       </Typography>
 
-      {/* Shipment Details Card */}
       <Paper
         elevation={1}
         sx={{
           mt: 1,
           borderRadius: '8px',
-          backgroundColor: '#fff',
+          backgroundColor: theme.palette.common.white,
           px: 4,
           py: 3,
-          border: '1px solid #C3CEC7',
+          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
           boxShadow: 'none'
         }}
       >
         <Grid container spacing={2}>
-          {/* Left Column */}
           <Grid size={{ xs: 7 }}>
             <Box mb={4}>
-              <Typography sx={{ fontSize: '16px', color: '#7A8684', fontWeight: 400 }}>Shipment Date</Typography>
-              <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+              <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.secondaryBg, fontWeight: 400 }}>
+                Shipment Date
+              </Typography>
+              <Typography
+                sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
                 {moment(shipment.shipment_date).format('DD/MM/YYYY')}
               </Typography>
             </Box>
             <Box>
-              <Typography sx={{ fontSize: '16px', color: '#7A8684', fontWeight: 400 }}>Total Species</Typography>
-              <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+              <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.secondaryBg, fontWeight: 400 }}>
+                Total Species
+              </Typography>
+              <Typography
+                sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
                 {shipment.species_count}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Right Column aligned with "Total Species" */}
           <Grid size={{ xs: 5 }} display='flex' flexDirection='column' justifyContent='flex-end'>
             <Box mt='28px'>
               {' '}
-              <Typography sx={{ fontSize: '14px', color: '#7A7A7A', fontWeight: 400 }}>
+              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.statusText, fontWeight: 400 }}>
                 Animals Part of Shipment
               </Typography>
               <Box display='flex' gap={1} mt={0.5}>
@@ -55,10 +62,10 @@ const ShipmentCard = ({ shipment }) => {
                   label={`M - ${shipment.male_count}`}
                   size='small'
                   sx={{
-                    background: '#AFEFEB80',
+                    background: alpha(theme.palette.customColors.SecondaryContainer, 0.5),
                     borderRadius: '4px',
                     px: 2,
-                    color: '#00AFD6',
+                    color: theme.palette.customColors.addPrimary,
                     fontSize: '14px',
                     fontWeight: 500
                   }}
@@ -67,10 +74,10 @@ const ShipmentCard = ({ shipment }) => {
                   label={`F - ${shipment.female_count}`}
                   size='small'
                   sx={{
-                    background: '#FA614026',
+                    background: alpha(theme.palette.customColors.customDropdownColor, 0.15),
                     borderRadius: '4px',
                     px: 2,
-                    color: '#FA6140',
+                    color: theme.palette.formContent.tertiary,
                     fontSize: '14px',
                     fontWeight: 500
                   }}
@@ -79,10 +86,10 @@ const ShipmentCard = ({ shipment }) => {
                   label={`U - ${shipment.undeterminate_count}`}
                   size='small'
                   sx={{
-                    background: '#DDEBE9',
+                    background: theme.palette.customColors.displaybgSecondary,
                     borderRadius: '4px',
                     px: 2,
-                    color: '#1F515B',
+                    color: theme.palette.customColors.OnPrimaryContainer,
                     fontSize: '14px',
                     fontWeight: 500
                   }}

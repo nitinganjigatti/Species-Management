@@ -2,7 +2,6 @@
 // ** React Imports
 import { useState, useEffect, forwardRef, useCallback, Fragment } from 'react'
 
-// ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import Select from '@mui/material/Select'
@@ -26,10 +25,8 @@ import { useRouter } from 'next/router'
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup

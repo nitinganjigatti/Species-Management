@@ -8,7 +8,6 @@ import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 import Icon from 'src/@core/components/icon'
 
-// ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'

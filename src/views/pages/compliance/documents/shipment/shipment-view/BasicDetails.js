@@ -2,10 +2,12 @@ import React, { useState } from 'react'
 import { Box, Typography, TextField, Button, Grid, CircularProgress, CardContent } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import moment from 'moment'
+import { useTheme } from '@mui/material/styles'
 import { useAuth } from 'src/hooks/useAuth'
 
 const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, loader }) => {
   const rawValue = airwaybillvalue || ''
+  const theme = useTheme()
   const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
   const formattedValue =
     removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
@@ -51,27 +53,25 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
             padding: '1px',
             background: '#EFF5F266',
             borderRadius: '10px',
-            border: '1px solid #C3CEC7',
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             p: 8
           }}
         >
           <Grid container spacing={2}>
-            {/* Shipment ID */}
             <Grid size={{ xs: 6, md: 4 }}>
-              <Typography fontWeight='400' color='#7A8684' fontSize='16px'>
+              <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
                 Shipment ID
               </Typography>
-              <Typography color={'#44544A'} sx={{ pt: 1 }}>
+              <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
                 {formattedValue}
               </Typography>
             </Grid>
 
-            {/* Date Of Issue */}
             <Grid size={{ xs: 6, md: 4 }}>
-              <Typography fontWeight='400' color='#7A8684' fontSize='16px'>
+              <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
                 Date Of Issue
               </Typography>
-              <Typography color='#44544A' sx={{ pt: 1 }}>
+              <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
                 {moment(startDate).format('DD/MM/yyyy')}
               </Typography>
             </Grid>
@@ -92,7 +92,7 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
                   padding: '8px 12px',
                   border: '1px solid #E0E0E0',
                   borderRadius: '10px',
-                  backgroundColor: '#FFF',
+                  backgroundColor: theme.palette.common.white,
                   minWidth: '280px',
                   cursor: 'pointer'
                 }}
@@ -103,7 +103,7 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
                   width='18%'
                   style={{
                     marginRight: '8px',
-                    background: '#FFBDA84D',
+                    background: theme.palette?.customColors?.Tertiary30,
                     borderRadius: '6px',
                     padding: '10px'
                   }}

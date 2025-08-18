@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react'
+
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -9,12 +11,11 @@ import {
   ListItemText,
   ListItemAvatar,
   Checkbox,
-  Avatar,
   InputAdornment,
-  IconButton
+  IconButton,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import React, { useState, useEffect } from 'react'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import Icon from 'src/@core/components/icon'
 
 const SelectSites = ({
@@ -94,7 +95,7 @@ const SelectSites = ({
           minHeight: 0
         }}
       >
-        {/* Header */}
+     
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             <Typography
@@ -115,7 +116,7 @@ const SelectSites = ({
           </IconButton>
         </Box>
 
-        {/* Search */}
+       
         <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
           <TextField
             fullWidth
@@ -154,7 +155,7 @@ const SelectSites = ({
           />
         </Box>
 
-        {/* Selected Count */}
+       
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
             Selected {pendingSelections?.Site?.length} / {siteData?.length}
@@ -203,7 +204,7 @@ const SelectSites = ({
           </Box>
         </Box>
 
-        {/* Sites List */}
+        
         <Box
           className=''
           sx={{
@@ -221,50 +222,61 @@ const SelectSites = ({
           }}
         >
           {filteredSites.length > 0 ? (
-            filteredSites.map(site => (
-              <ListItem
-                key={site.site_id}
-                sx={{
-                  pr: 1.5,
-                  pl: 3,
-                  mb: 4,
-                  border: '1px solid',
-                  borderColor: pendingSelections?.Site?.includes(site.site_id)
-                    ? theme.palette.primary.main
-                    : theme.palette.customColors.OutlineVariant,
-                  borderRadius: '8px',
-                  bgcolor: pendingSelections?.Site?.includes(site.site_id)
-                    ? theme.palette.customColors.OnBackground
-                    : 'transparent',
-                  height: '70px'
-                }}
-              >
-                <ListItemAvatar>
-                  <Avatar src={site.image || '/images/housing/site-icon-colored.svg'} variant='rounded' />
-                </ListItemAvatar>
-                <ListItemText
-                  sx={{ wordWrap: 'break-word' }}
-                  primary={site.site_name}
-                  slotProps={{
-                    primary: {
-                      fontWeight: 'bold',
-                      color: theme.palette.customColors.OnPrimaryContainer
-                    },
-                    secondary: { color: theme.palette.customColors.onSurfaceVariant }
+            filteredSites.map(site => {
+              return (
+                <ListItem
+                  key={site.site_id}
+                  sx={{
+                    pr: 1.5,
+                    pl: 3,
+                    mb: 4,
+                    border: '1px solid',
+                    borderColor: pendingSelections?.Site?.includes(site.site_id)
+                      ? theme.palette.primary.main
+                      : theme.palette.customColors.OutlineVariant,
+                    borderRadius: '8px',
+                    bgcolor: pendingSelections?.Site?.includes(site.site_id)
+                      ? theme.palette.customColors.OnBackground
+                      : 'transparent',
+                    height: '70px'
                   }}
-                />
-                <Checkbox
-                  checked={pendingSelections?.Site?.includes(site.site_id)}
-                  onChange={() => handleSiteCheckboxChange(site)}
-                />
-              </ListItem>
-            ))
+                >
+                  <ListItemAvatar>
+                    {/* <Avatar sx={{ backgroundColor: theme.palette.customColors.displaybgPrimary, p: site?.site_image ? 0 : 2 }} fallback='/images/housing/site-icon-colored.svg' src={site.site_image} variant='rounded' /> */}
+                    <FallbackAvatar
+                      src={site.site_image}
+                      fallback='/images/housing/site-icon-colored.svg'
+                      variant='rounded'
+                      sx={{
+                        backgroundColor: theme.palette.customColors.displaybgPrimary,
+                        p: site?.site_image ? 0 : 2
+                      }}
+                    />
+                  </ListItemAvatar>
+                  <ListItemText
+                    sx={{ wordWrap: 'break-word' }}
+                    primary={site.site_name}
+                    slotProps={{
+                      primary: {
+                        fontWeight: 'bold',
+                        color: theme.palette.customColors.OnPrimaryContainer
+                      },
+                      secondary: { color: theme.palette.customColors.onSurfaceVariant }
+                    }}
+                  />
+                  <Checkbox
+                    checked={pendingSelections?.Site?.includes(site.site_id)}
+                    onChange={() => handleSiteCheckboxChange(site)}
+                  />
+                </ListItem>
+              )
+            })
           ) : (
             <Typography sx={{ textAlign: 'center', mt: 15 }}>No Site's found</Typography>
           )}
         </Box>
 
-        {/* Footer Button */}
+      
         <Box
           sx={{
             p: 2,

@@ -201,7 +201,6 @@ const AssessmentReportFilterDrawer = ({
     }
   }
 
-  // Clear all data in tempSelectedItems & selectedItems
   const handleCancelAll = () => {
     setTempSelectedItems({
       Site: [],
@@ -292,7 +291,7 @@ const AssessmentReportFilterDrawer = ({
                   (tempSelectedItems?.accession_start && tempSelectedItems?.accession_start.trim() !== '') ||
                   (tempSelectedItems?.accession_end && tempSelectedItems?.accession_end.trim() !== '')
                 ) {
-                  count = 1 // Show just "1" if date filter is applied
+                  count = 1 
                 }
               }
               return (
@@ -448,7 +447,6 @@ const AssessmentReportFilterDrawer = ({
                     )}
                   </Card>
 
-                  {/* Display selected sections */}
                   {tempSelectedItems?.Site?.length === 1 && (
                     <Card
                       sx={{

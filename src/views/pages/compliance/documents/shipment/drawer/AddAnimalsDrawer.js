@@ -25,7 +25,6 @@ const AddAnimalsDrawer = ({
   const theme = useTheme()
 
   const handleCancel = () => {
-    // Discard draft without saving
     setDraftData({ export: [], others: [] })
     onClose()
   }
@@ -47,7 +46,7 @@ const AddAnimalsDrawer = ({
         }}
       >
         {/* Header */}
-        <Box sx={{ px: 5, pt: 4, pb: 2, background: '#fff' }}>
+        <Box sx={{ px: 5, pt: 4, pb: 2, background: theme.palette.common.white }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
               {/* <Box component='img' src='/images/housing/Enclosure icon.png' alt='icon' sx={{ width: 32, height: 32 }} /> */}
@@ -60,21 +59,20 @@ const AddAnimalsDrawer = ({
         </Box>
 
         {!loading ? (
-          <Box sx={{ backgroundColor: '#fff', px: 5, pb: 6, pt: 2 }}>
+          <Box sx={{ backgroundColor: theme.palette.common.white, px: 5, pb: 6, pt: 2 }}>
             <Box
               sx={{
-                backgroundColor: '#1F515B0D',
-                color: '#FFFFFF',
+                backgroundColor: theme.palette.customColors.OnPrimarycontainer10,
+                color: theme.palette.customColors.OnPrimary,
                 borderRadius: '8px',
                 padding: '16px',
                 width: '100%'
               }}
             >
-              {/* Export ID */}
               <Typography
                 sx={{
                   fontWeight: '500',
-                  color: '#1F415B',
+                  color: theme.palette.customColors.OnSecondaryContainer,
                   marginBottom: '3px',
                   fontSize: '16px'
                 }}
@@ -86,7 +84,7 @@ const AddAnimalsDrawer = ({
               {/* Animals Available */}
               <Typography
                 sx={{
-                  color: '#44544A', // Golden-yellow color for emphasis
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   fontWeight: '500',
                   fontSize: '14px'
                 }}

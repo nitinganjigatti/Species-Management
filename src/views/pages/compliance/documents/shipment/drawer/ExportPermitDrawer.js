@@ -43,7 +43,6 @@ const ExportPermitDrawer = ({
           backgroundColor: theme.palette.customColors.Background
         }}
       >
-        {/* Header */}
         <Box sx={{ px: 5, pt: 4, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
@@ -56,7 +55,6 @@ const ExportPermitDrawer = ({
           </Box>
         </Box>
 
-        {/* Scrollable content */}
         <Box
           sx={{ px: 5, flex: 1, mt: 2, overflowY: 'auto', height: '600px' }}
           onScroll={handleScroll}
@@ -88,7 +86,6 @@ const ExportPermitDrawer = ({
             }}
           >
             <Box>
-              {/* Initial loader */}
               {loader ? (
                 <Box sx={{ padding: 6, textAlign: 'center' }}>
                   <CircularProgress size={28} />
@@ -121,7 +118,6 @@ const ExportPermitDrawer = ({
                     />
                   ))}
 
-                  {/* Infinite scroll loader */}
                   {isLoading && (
                     <Box sx={{ padding: 2, textAlign: 'center' }}>
                       <CircularProgress size={20} />
@@ -131,7 +127,7 @@ const ExportPermitDrawer = ({
               ) : (
                 <Typography
                   sx={{
-                    background: '#0000000D',
+                    background: theme.palette.customColors.mdAntzNeutral,
                     p: 12,
                     textAlign: 'center',
                     borderRadius: '8px',
