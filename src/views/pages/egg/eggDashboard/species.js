@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box } from '@mui/system'
 import { Autocomplete, Avatar, Fade, FormControl, Tab, TextField, Tooltip, Typography } from '@mui/material'
@@ -55,6 +55,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const [total, setTotal] = useState(0)
 
   const [searchValue, setSearchValue] = useState('')
+
+  // Ref for search input to enable auto-focus
+  const searchInputRef = useRef(null)
 
   const TaxonomyList = async q => {
     try {
@@ -1867,8 +1870,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     try {
       setLoading(true)
 
-     
-
       const params = {
         ref_type: statuss || status,
         q,
@@ -1910,6 +1911,28 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     getspeciesFunc(status)
   }, [getspeciesFunc])
 
+  // Auto-focus search input when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus()
+      }
+    }, 100) // Small delay to ensure DOM is ready
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Also focus when loading completes
+  useEffect(() => {
+    if (!loading && searchInputRef.current) {
+      const timer = setTimeout(() => {
+        searchInputRef.current.focus()
+      }, 50)
+
+      return () => clearTimeout(timer)
+    }
+  }, [loading])
+
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
     getspeciesFunc(status, searchValue, fromDate, tillDate, getIdBasedOnStatus(), newModel[0])
@@ -1925,29 +1948,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       searchTableData(status, searchValue, fromDate, tillDate, getIdBasedOnStatus())
     }
 
-    // const handleFromDateChange = newDate => {
-    //   if (newDate) {
-    //     const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-    //     setFromDate(formattedDate)
-    //     getspeciesFunc(status, searchValue, formattedDate, tillDate, getIdBasedOnStatus())
-    //   }
-    // }
-
-    // const handleTillDateChange = newDate => {
-    //   if (newDate) {
-    //     const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-    //     setTillDate(formattedDate)
-    //     getspeciesFunc(status, searchValue, fromDate, formattedDate, getIdBasedOnStatus())
-    //   }
-    // }
-
     return (
       <>
-        <Box
-          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 6, mb: '24px' }}
-          // container
-        >
-      
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 6, mb: '24px' }}>
           <Box
             sx={{
               display: 'flex',
@@ -1964,6 +1967,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               variant='outlined'
               placeholder='Search'
               onChange={handleSearchChange}
+              inputRef={searchInputRef}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',

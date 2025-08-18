@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
   Drawer,
@@ -39,6 +39,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [listCount, setListCount] = useState('')
   const [search, setSearch] = useState('')
   const [date, setDate] = useState({ to_date: '', from_date: '' })
+
+  // Ref for search input to enable auto-focus
+  const searchInputRef = useRef(null)
   const [page, setPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [loader, setLoader] = useState(false)
@@ -217,6 +220,17 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setDiscardList([])
   }, [selectedDropDown])
 
+  // Auto-focus search input when search is opened
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      const timer = setTimeout(() => {
+        searchInputRef.current.focus()
+      }, 100) // Small delay to ensure DOM is ready
+
+      return () => clearTimeout(timer)
+    }
+  }, [isSearchOpen])
+
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -281,7 +295,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 id='dropdown'
                 value={selectedDropDown}
                 onChange={event => {
-                  handleDropDownChange(event) 
+                  handleDropDownChange(event)
                 }}
                 sx={{ height: '36px' }}
               >
@@ -346,6 +360,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                     setSearch(e.target.value)
                     handleSearch(e.target.value)
                   }}
+                  inputRef={searchInputRef}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       border: 'none',
@@ -452,12 +467,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                       fontWeight: '500',
                       lineHeight: '19.36px',
                       overflow: 'hidden',
-                      whiteSpace: 'nowrap',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {list?.egg_code}
                   </Typography>
-
 
                   {list?.egg_condition && (
                     <Box
@@ -471,16 +485,16 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                           list?.egg_condition === 'Rotten'
                             ? theme.palette.customColors.AntzTertiary
                             : list?.egg_condition === 'Broken'
-                              ? theme.palette.customColors.AntzTertiary
-                              : list?.egg_condition === 'Cracked'
-                                ? theme.palette.customColors.AntzTertiary
-                                : list?.egg_condition === 'Discard'
-                                  ? theme.palette.customColors.AntzTertiary
-                                  : list?.egg_condition === 'Thin-Shelled'
-                                    ? theme.palette.customColors.displaybgPrimary
-                                    : list?.egg_condition === 'Fertile'
-                                      ? theme.palette.customColors.displaybgPrimary
-                                      : theme.palette.customColors.OnBackground
+                            ? theme.palette.customColors.AntzTertiary
+                            : list?.egg_condition === 'Cracked'
+                            ? theme.palette.customColors.AntzTertiary
+                            : list?.egg_condition === 'Discard'
+                            ? theme.palette.customColors.AntzTertiary
+                            : list?.egg_condition === 'Thin-Shelled'
+                            ? theme.palette.customColors.displaybgPrimary
+                            : list?.egg_condition === 'Fertile'
+                            ? theme.palette.customColors.displaybgPrimary
+                            : theme.palette.customColors.OnBackground
                       }}
                     >
                       <Typography
@@ -489,18 +503,18 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                             list?.egg_condition === 'Fresh'
                               ? theme.palette.primary.dark
                               : list?.egg_condition === 'Rotten'
-                                ? theme.palette.customColors.Tertiary
-                                : list?.egg_condition === 'Broken'
-                                  ? theme.palette.customColors.Tertiary
-                                  : list?.egg_condition === 'Cracked'
-                                    ? theme.palette.customColors.moderateSecondary
-                                    : list?.egg_condition === 'Discard'
-                                      ? theme.palette.customColors.Tertiary
-                                      : list?.egg_condition === 'Hatched'
-                                        ? theme.palette.customColors.antzInfo60
-                                        : list?.egg_condition === 'Thin-Shelled'
-                                          ? theme.palette.primary.light
-                                          : theme.palette.primary.dark,
+                              ? theme.palette.customColors.Tertiary
+                              : list?.egg_condition === 'Broken'
+                              ? theme.palette.customColors.Tertiary
+                              : list?.egg_condition === 'Cracked'
+                              ? theme.palette.customColors.moderateSecondary
+                              : list?.egg_condition === 'Discard'
+                              ? theme.palette.customColors.Tertiary
+                              : list?.egg_condition === 'Hatched'
+                              ? theme.palette.customColors.antzInfo60
+                              : list?.egg_condition === 'Thin-Shelled'
+                              ? theme.palette.primary.light
+                              : theme.palette.primary.dark,
                           fontSize: '14px',
                           fontWeight: '500'
                         }}
@@ -524,7 +538,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         lineHeight: '16.94px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       {list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'}
