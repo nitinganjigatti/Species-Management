@@ -1,7 +1,7 @@
 import { Avatar, Breadcrumbs, Button, Card, Chip, Tooltip, Typography } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import { useRouter } from 'next/router'
-import React from 'react'
+import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
@@ -9,8 +9,11 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import Icon from 'src/@core/components/icon'
 import { LocalizationProvider } from '@mui/lab'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 
 // ✅ Validation schema
 const schema = yup.object().shape({
@@ -22,7 +25,7 @@ const schema = yup.object().shape({
   surgicalApproach: yup.string().required('Surgical approach is required'),
   notes: yup.string().required('Surgery notes are required'),
   complication: yup.string().required('Complication is required'),
-  diet: yup.string().required('Diet instructions are required'),
+  dietInstructions: yup.string().required('Diet instructions are required'),
   restrictions: yup.string().required('Restriction activities are required'),
   additionalNotes: yup.string().required('Additional notes are required')
 })
@@ -30,6 +33,29 @@ const schema = yup.object().shape({
 const AddSurgeryRecord = () => {
   const router = useRouter()
   const theme = useTheme()
+
+  const templates = [
+    'appendix surgery',
+    'ovariohysterectomy',
+    'ovariohysterectomies',
+    'ovariohysterect',
+    'hernia repair',
+    'spay surgery',
+    'neuter surgery',
+    'orthopedic surgery',
+    'soft tissue surgery',
+    'dental extraction',
+    'tumor removal',
+    'eye surgery',
+    'ear surgery',
+    'cesarean section',
+    'fracture repair',
+    'wound closure',
+    'foreign body removal',
+    'skin graft',
+    'joint surgery',
+    'biopsy'
+  ]
 
   const data = {
     animal: {
@@ -57,16 +83,18 @@ const AddSurgeryRecord = () => {
       date: null,
       startTime: null,
       endTime: null,
-      procedure: 'Ovariohysterectomy',
-      typeOfSurgery: 'Elective',
-      surgicalApproach: 'Midline abdominal incision',
+      procedure: '',
+      typeOfSurgery: '',
+      surgicalApproach: '',
       notes: '',
       complication: 'None',
-      diet: '',
+      dietInstructions: '',
       restrictions: '',
       additionalNotes: ''
     }
   })
+
+  const [activeTemplate, setActiveTemplate] = useState(templates[0])
 
   const onSubmit = data => {
     console.log('Form Data:', data)
@@ -199,7 +227,11 @@ const AddSurgeryRecord = () => {
           ))}
         </Grid>
       </Card>
-      <Box component='form' onSubmit={handleSubmit(onSubmit)}>
+      <Box
+        sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+        component='form'
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <Card sx={{ p: '16px 24px', borderRadius: '8px' }}>
           <Grid container spacing={'24px'}>
             <Grid item size={{ xs: 12 }}>
@@ -261,64 +293,215 @@ const AddSurgeryRecord = () => {
           </Grid>
         </Card>
 
-        {/* <Card sx={{ p: '16px 24px', borderRadius: '8px' }}>
-          <Grid container spacing={2} mb={2}>
-            <Typography variant='h6' mb={2}>
-              Surgery details
-            </Typography>
-            <Grid item xs={12} sm={4}>
-              <Controller
-                name='procedure'
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel>Name of procedure</InputLabel>
-                    <Select {...field} error={!!errors.procedure}>
-                      <MenuItem value='Ovariohysterectomy'>Ovariohysterectomy</MenuItem>
-                      <MenuItem value='Appendix Surgery'>Appendix Surgery</MenuItem>
-                    </Select>
-                    {errors.procedure && (
-                      <Typography color='error' variant='caption'>
-                        {errors.procedure.message}
-                      </Typography>
-                    )}
-                  </FormControl>
-                )}
-              />
+        <Card sx={{ display: 'flex', flexDirection: 'column', gap: '24px', p: '16px 24px', borderRadius: '8px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '20px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Surgery details
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <ControlledAutocomplete control={control} loading={true} errors={errors} name={'procedure'} />
             </Grid>
-            <Grid item xs={12} sm={4}>
-              <Controller
-                name='typeOfSurgery'
-                control={control}
-                render={({ field }) => (
-                  <ControlledTextField
-                    label='Type of surgery'
-                    {...field}
-                    fullWidth
-                    error={!!errors.typeOfSurgery}
-                    helperText={errors.typeOfSurgery?.message}
-                  />
-                )}
-              />
+            <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <ControlledTextField name={'typeOfSurgery'} label='Type of surgery' control={control} />
             </Grid>
-            <Grid item xs={12} sm={4}>
-              <Controller
-                name='surgicalApproach'
-                control={control}
-                render={({ field }) => (
-                  <ControlledTextField
-                    label='Surgical approach'
-                    {...field}
-                    fullWidth
-                    error={!!errors.surgicalApproach}
-                    helperText={errors.surgicalApproach?.message}
-                  />
-                )}
-              />
+            <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <ControlledTextField name={'surgicalApproach'} label='Surgical approach' control={control} />
             </Grid>
           </Grid>
-        </Card> */}
+
+          <Box
+            sx={{
+              backgroundColor: '#E8F4F266', // need to define
+              padding: '20px',
+              borderRadius: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Enter surgery notes
+              </Typography>
+
+              <ControlledTextArea
+                placeholder={'Enter text'}
+                control={control}
+                name={'notes'}
+                rows={3}
+                errors={errors}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mb: '8px' }}>
+              <Avatar
+                src='/icons/FloppyDisk.svg'
+                variant='square'
+                sx={{ objectFit: 'contain', height: '24px', width: '24px' }}
+              />
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '16px',
+                  letterSpacing: 0,
+                  color: theme.palette.primary.dark
+                }}
+              >
+                Save as template
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  Select from templates
+                </Typography>
+                <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <Typography sx={{ color: theme.palette.primary.dark }}>See all</Typography>
+                  <Icon icon='fa:angle-right' color={theme.palette.primary.dark} fontSize={24} />
+                </Box>
+              </Box>
+              {/* LEFT: takes remaining space + horizontal scroll */}
+              <Box
+                sx={{
+                  flex: '1 1 auto',
+                  minWidth: 0,
+                  overflowX: 'auto',
+                  scrollbarColor: 'transparent transparent'
+                }}
+              >
+                <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
+                  {templates.map(template => (
+                    <Box
+                      key={template}
+                      onClick={() => setActiveTemplate(template)}
+                      sx={{
+                        flexShrink: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        px: '16px',
+                        height: '48px',
+                        borderRadius: '8px',
+                        backgroundColor:
+                          activeTemplate === template
+                            ? theme.palette.secondary.dark
+                            : theme.palette.customColors.mdAntzNeutral,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color:
+                            activeTemplate === template
+                              ? theme.palette.primary.contrastText
+                              : theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {template}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+
+          <ControlledTextField name={'complication'} control={control} errors={errors} label={'Complication'} />
+        </Card>
       </Box>
+
+      <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '20px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Anaesthesia details
+        </Typography>
+      </Card>
+
+      <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '24px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Care Instructions
+        </Typography>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Enter diet instructions
+          </Typography>
+          <ControlledTextField control={control} name={'dietInstructions'} errors={errors} placeholder={'Enter text'} />
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Enter restriction activities with duration
+          </Typography>
+          <ControlledTextField control={control} name={'restrictions'} errors={errors} placeholder={'Enter text'} />
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Additional notes
+          </Typography>
+          <ControlledTextField
+            sx={{ backgroundColor: '#FCF4AE99' }}
+            placeholder={'Enter text'}
+            control={control}
+            name={'additionalNotes'}
+            errors={errors}
+          />
+        </Box>
+      </Card>
       {/* <Box
         component='form'
         onSubmit={handleSubmit(onSubmit)}
@@ -329,46 +512,9 @@ const AddSurgeryRecord = () => {
        
         
 
-        <Controller
-          name='notes'
-          control={control}
-          render={({ field }) => (
-            <ControlledTextField
-              label='Enter surgery notes'
-              multiline
-              rows={3}
-              fullWidth
-              {...field}
-              error={!!errors.notes}
-              helperText={errors.notes?.message}
-              sx={{ mb: 2 }}
-            />
-          )}
-        />
+       
 
-        <Box mb={2}>
-          <Typography variant='subtitle2'>Select from templates</Typography>
-          <Box mt={1} sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            <Chip label='appendix surgery' color='primary' />
-            <Chip label='ovariohysterectomy' variant='outlined' />
-          </Box>
-        </Box>
-
-        <Controller
-          name='complication'
-          control={control}
-          render={({ field }) => (
-            <ControlledTextField
-              label='Complication'
-              fullWidth
-              {...field}
-              error={!!errors.complication}
-              helperText={errors.complication?.message}
-              sx={{ mb: 3 }}
-            />
-          )}
-        />
-
+        
         <Typography variant='h6' mb={2}>
           Anaesthesia details
         </Typography>
