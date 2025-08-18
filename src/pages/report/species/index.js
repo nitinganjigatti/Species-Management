@@ -39,6 +39,7 @@ const SpeciesReport = () => {
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
+
   // const [speciesList, setSpeciesList] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
@@ -265,42 +266,53 @@ const SpeciesReport = () => {
       renderCell: params => (
         <>
           {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null ? (
-            <Tooltip
-              title={
-                params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
-                  ? params?.row[header.key]
-                  : ''
-              }
+            <Box
+              sx={{
+                width: '140px',
+                height: '25px',
+                display: 'flex',
+                alignItems: 'center',
+                position: 'relative',
+                cursor: 'pointer',
+                '&:hover::after': {
+                  content: `"${
+                    params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
+                      ? params?.row[header.key]
+                      : ''
+                  }"`,
+                  position: 'absolute',
+                  top: '-30px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                  zIndex: 9999,
+                  pointerEvents: 'none'
+                }
+              }}
             >
-              <Box
+              <Typography
                 sx={{
-                  width: '140px',
-                  height: '25px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  position: 'relative',
-                  cursor: 'pointer'
+                  color: getCellTextColor(header.label),
+                  backgroundColor: getCellBackgroundColor(header.label),
+                  borderRadius: '4px',
+                  padding: '4px 16px',
+                  fontWeight: 400,
+                  textAlign: 'left',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis'
                 }}
               >
-                <Typography
-                  sx={{
-                    color: getCellTextColor(header.label),
-                    backgroundColor: getCellBackgroundColor(header.label),
-                    borderRadius: '4px',
-                    padding: '4px 16px',
-                    fontWeight: 400,
-                    textAlign: 'left',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
-                    ? params?.row[header.key]
-                    : ''}
-                </Typography>
-              </Box>
-            </Tooltip>
+                {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
+                  ? params?.row[header.key]
+                  : ''}
+              </Typography>
+            </Box>
           ) : null}
         </>
       )
