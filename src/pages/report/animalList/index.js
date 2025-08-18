@@ -13,10 +13,10 @@ import { usePariveshContext } from 'src/context/PariveshContext'
 
 import Error404 from 'src/pages/404'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
-import SpeciesCard from 'src/views/utility/SpeciesCard'
 import StickyTable from 'src/views/table/sticky-table'
 
-import { getAllAnimalReport, getAnimalReportById, getSpeciesListing } from 'src/lib/api/report'
+import { getAllAnimalReport, getAnimalReportById } from 'src/lib/api/report'
+import AnimalCard from 'src/views/utility/AnimalCard'
 
 const AnimalList = () => {
   const router = useRouter()
@@ -34,7 +34,6 @@ const AnimalList = () => {
 
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
-  const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const {
@@ -56,7 +55,7 @@ const AnimalList = () => {
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [speciesList, setSpeciesList] = useState([])
+  // const [speciesList, setSpeciesList] = useState([])
   const [isLoader, setIsLoader] = useState(false)
 
   const [popoverData, setPopoverData] = useState({
@@ -134,25 +133,25 @@ const AnimalList = () => {
     }
   }, [router.pathname])
 
-  useEffect(() => {
-    const fetchSpeciesList = async () => {
-      setIsLoader(true)
-      try {
-        const response = await getSpeciesListing()
-        if (response.success) {
-          setIsLoader(false)
-          setSpeciesList(response.data.result)
-        } else {
-          console.error('Error: Something went wrong')
-        }
-      } catch (error) {
-        console.error('Error fetching species:', error)
-      } finally {
-        setIsLoader(false)
-      }
-    }
-    fetchSpeciesList()
-  }, [])
+  // useEffect(() => {
+  //   const fetchSpeciesList = async () => {
+  //     setIsLoader(true)
+  //     try {
+  //       const response = await getSpeciesListing()
+  //       if (response.success) {
+  //         setIsLoader(false)
+  //         setSpeciesList(response.data.result)
+  //       } else {
+  //         console.error('Error: Something went wrong')
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching species:', error)
+  //     } finally {
+  //       setIsLoader(false)
+  //     }
+  //   }
+  //   fetchSpeciesList()
+  // }, [])
 
   const handleSelection = async (selectedIDs, category) => {
     let params = {}
@@ -384,79 +383,9 @@ const AnimalList = () => {
         disableColumnMenu: true,
         width: 300,
         renderCell: params => (
-          // <CardHeader
-          //   avatar={
-          //     <img
-          //       src={params.row.default_icon}
-          //       alt={params.row.common_name}
-          //       style={{ width: 40, height: 40, borderRadius: '50%' }}
-          //     />
-          //   }
-          //   title={
-          //     params.row.primary_identifier_value ? (
-          //       <Typography
-          //         sx={{
-          //           fontSize: '14px',
-          //           fontWeight: 500,
-          //           fontFamily: 'Inter',
-          //           color: theme.palette.primary.OnSurface
-          //         }}
-          //       >
-          //         {params.row.primary_identifier_type}: {params.row.primary_identifier_value}
-          //       </Typography>
-          //     ) : null
-          //   }
-          //   subheader={
-          //     <>
-          //       <Tooltip
-          //         title={params.row.scientific_name.length > 25 ? params.row.scientific_name : null}
-          //         placement='bottom'
-          //       >
-          //         <Typography
-          //           sx={{
-          //             cursor: 'pointer',
-          //             fontSize: '14px',
-          //             fontWeight: 500,
-          //             fontFamily: 'Inter',
-          //             color: theme.palette.customColors.customHeadingTextColor,
-          //             whiteSpace: 'nowrap',
-          //             overflow: 'hidden',
-          //             textOverflow: 'ellipsis',
-          //             textAlign: 'left',
-          //             overflow: 'hidden',
-          //             whiteSpace: 'nowrap',
-          //             textOverflow: 'ellipsis'
-          //           }}
-          //           variant='body2'
-          //         >
-          //           {truncateText(params.row.scientific_name, 25)}
-          //         </Typography>
-          //       </Tooltip>
-          //       <Tooltip title={params.row.common_name.length > 25 ? params.row.common_name : null} placement='bottom'>
-          //         <Typography
-          //           sx={{
-          //             cursor: 'pointer',
-          //             fontSize: '14px',
-          //             fontWeight: 500,
-          //             fontFamily: 'Inter',
-          //             color: theme.palette.customColors.customHeadingTextColor,
-          //             whiteSpace: 'nowrap',
-          //             overflow: 'hidden',
-          //             textOverflow: 'ellipsis',
-          //             textAlign: 'left',
-          //             overflow: 'hidden',
-          //             whiteSpace: 'nowrap',
-          //             textOverflow: 'ellipsis'
-          //           }}
-          //           variant='body2'
-          //         >
-          //           {truncateText(params.row.common_name, 25)}
-          //         </Typography>
-          //       </Tooltip>
-          //     </>
-          //   }
-          // />
-          <SpeciesCard species={params.row} />
+          <Box sx={{ paddingY: '20px' }}>
+            <AnimalCard data={params.row} />
+          </Box>
         )
       }
     }
@@ -504,6 +433,7 @@ const AnimalList = () => {
 
   const reportRows = (animalId ? animalList : dataList)?.map((item, index) => ({
     id: index + 1,
+    sex: item.gender || item.sex,
     ...item,
     sl_no: getSlNo(index)
   }))
@@ -877,7 +807,7 @@ const AnimalList = () => {
                   onPaginationModelChange={setPaginationModel}
                   loading={isLoading}
                   downloadExcel
-                  headerName='Species'
+                  headerName='Animal Report List'
                   searchMode='server'
                   disableColumnSorting={true}
                 />
