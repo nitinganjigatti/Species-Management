@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { Box, TextField, FormControlLabel, Checkbox, InputAdornment, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 
 export default function SymptomsList({ symptoms, temporarilySelected, selectedSymptoms, onSelect }) {
+  const theme = useTheme()
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredSymptoms = symptoms.filter(symptom => symptom.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -29,13 +31,13 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
 
       <Typography
         sx={{
-          color: '#000000',
+          color: theme.palette.customColors.deepDark,
           fontSize: '12px',
           fontWeight: 600,
           p: 3.7,
           borderRadius: '4px',
           mt: 3,
-          background: '#0000000D'
+          background: theme.palette.customColors.mdAntzNeutral
         }}
       >
         Symptoms
@@ -50,13 +52,14 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
             <Box
               key={index}
               sx={{
-                background: isSelected || isTemporarilySelected ? '#E1F9ED' : 'transparent',
+                background:
+                  isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
                 borderRadius: '1px',
                 px: 1,
                 py: 3.7,
                 display: 'flex',
                 alignItems: 'center',
-                borderBottom: '1px solid #C3CEC7'
+                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
               }}
             >
               <FormControlLabel
@@ -75,7 +78,7 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
                   flex: 1,
                   m: 0,
                   '& .MuiFormControlLabel-label': {
-                    color: '#44544A',
+                    color: theme.palette.customColors.OnSurfaceVariant,
                     fontSize: '16px',
                     fontWeight: 600
                   }

@@ -1,14 +1,20 @@
 import React, { useState } from 'react'
 import { Box, Grid, Typography } from '@mui/material'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
+import { useTheme } from '@mui/material/styles'
 import SymptomsList from 'src/components/hospital/SymptomsList'
 import SelectedSymptoms from 'src/components/hospital/SelectedSymptoms'
 import AddEditSymptomDrawer from 'src/components/hospital/drawer/AddEditSymptomDrawer'
 
 export default function AddSymptomsPage() {
+  const theme = useTheme()
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
+  const [severity, setSeverity] = useState('Medium')
+  const [durationValue, setDurationValue] = useState('')
+  const [durationUnit, setDurationUnit] = useState('Days')
+  const [notes, setNotes] = useState('')
 
   const allSymptoms = [
     'Labored Breathing',
@@ -58,7 +64,11 @@ export default function AddSymptomsPage() {
         ageGender='2y 5m . male'
       />
 
-      <Grid container spacing={5} sx={{ mt: 5, background: '#fff', px: 6, py: 4, borderRadius: '8px' }}>
+      <Grid
+        container
+        spacing={5}
+        sx={{ mt: 5, background: theme.palette.common.white, px: 6, py: 4, borderRadius: '8px' }}
+      >
         <Grid size={{ xs: 12 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
             Add Symptoms
@@ -82,6 +92,14 @@ export default function AddSymptomsPage() {
           open={symptomDrawerOpen}
           onClose={cancelSymptomSelection}
           selectedSymptom={temporarilySelected}
+          severity={severity}
+          setSeverity={setSeverity}
+          durationValue={durationValue}
+          setDurationValue={setDurationValue}
+          durationUnit={durationUnit}
+          setDurationUnit={setDurationUnit}
+          notes={notes}
+          setNotes={setNotes}
           onSave={addSymptomDetails}
         />
       )}

@@ -10,18 +10,28 @@ import {
   Paper,
   Drawer,
   Divider,
-  InputAdornment
+  InputAdornment,
+  alpha
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import EditIcon from '@mui/icons-material/Edit'
 
-const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
+const AddEditSymptomDrawer = ({
+  open,
+  onClose,
+  selectedSymptom,
+  onSave,
+  severity,
+  setSeverity,
+  durationValue,
+  setDurationValue,
+  durationUnit,
+  setDurationUnit,
+  notes,
+  setNotes
+}) => {
   const theme = useTheme()
-  const [severity, setSeverity] = useState('Medium')
-  const [durationValue, setDurationValue] = useState('')
-  const [durationUnit, setDurationUnit] = useState('Days')
-  const [notes, setNotes] = useState('')
 
   const handleSave = () => {
     onSave({
@@ -49,10 +59,10 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#fff'
+          backgroundColor: theme.palette.common.white
         }}
       >
-        <Box sx={{ px: 5, pt: 4, pb: 2, borderBottom: '1px solid #C3CEC7' }}>
+        <Box sx={{ px: 5, pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{selectedSymptom}</Typography>
@@ -63,20 +73,30 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
           </Box>
         </Box>
 
-        <Box sx={{ pt: 4, pb: 2, borderBottom: '1px solid #C3CEC7' }}>
-          <Box sx={{ p: 5, background: '#fff', color: '#fff', px: 5 }}>
-            <Typography sx={{ color: '#1F515B', fontWeight: 500, fontSize: '16px' }}>MED-00023</Typography>
-            <Typography sx={{ color: '#44544A', mb: 3, fontWeight: 400, fontSize: '14px' }}>
+        <Box sx={{ pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
+          <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
+            <Typography
+              sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 500, fontSize: '16px' }}
+            >
+              MED-00023
+            </Typography>
+            <Typography
+              sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 3, fontWeight: 400, fontSize: '14px' }}
+            >
               Dr Nitin Ashok Ganjigatti • 12:05 PM • 19 May 2025
             </Typography>
 
-            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#000000', pb: 1, mt: 6 }}>Status</Typography>
+            <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
+            >
+              Status
+            </Typography>
             <Select
               value='Active'
               fullWidth
               sx={{
-                background: '#fff',
-                color: '#000',
+                background: theme.palette.common.white,
+                color: theme.palette.common.black,
                 mb: 0,
                 borderRadius: '4px',
                 '& .MuiSelect-select': { py: 4.0 }
@@ -92,7 +112,7 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
                   sx={{
                     fontSize: '14px',
                     fontWeight: 400,
-                    color: '#000000',
+                    color: theme.palette.customColors.deepDark,
                     mb: 1.7
                   }}
                 >
@@ -105,12 +125,12 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
                   sx={{
                     backgroundColor:
                       severity === 'High'
-                        ? '#FFBDA826'
+                        ? alpha(theme.palette.customColors.TertiaryContainer, 0.15)
                         : severity === 'Extreme'
-                        ? '#FFD3D366'
+                        ? alpha(theme.palette.customColors.ErrorContainer, 0.4)
                         : severity === 'Medium'
-                        ? '#FCF4AEB2'
-                        : '#E8F4F2',
+                        ? theme.palette.customColors.antzNotesLight
+                        : theme.palette.customColors.tableHeaderBg,
                     fontWeight: 500,
                     height: 56,
                     borderRadius: '4px',
@@ -119,34 +139,34 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
                       border: '1px solid',
                       borderColor:
                         severity === 'High'
-                          ? ' #FA6140'
+                          ? theme.palette.customColors.customDropdownColor
                           : severity === 'Extreme'
-                          ? '#E93353'
+                          ? theme.palette.customColors.Error
                           : severity === 'Medium'
-                          ? '#E4B819'
-                          : '#00AFD6'
+                          ? theme.palette.customColors.moderateSecondary
+                          : theme.palette.customColors.addPrimary
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
                       borderColor:
                         severity === 'High'
-                          ? '#FA6140'
+                          ? theme.palette.customColors.customDropdownColor
                           : severity === 'Extreme'
-                          ? '#E93353'
+                          ? theme.palette.customColors.Error
                           : severity === 'Medium'
-                          ? '#E4B819'
-                          : '#00AFD6'
+                          ? theme.palette.customColors.moderateSecondary
+                          : theme.palette.customColors.addPrimary
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
                       borderColor:
                         severity === 'High'
-                          ? '#FA6140'
+                          ? theme.palette.customColors.customDropdownColor
                           : severity === 'Extreme'
-                          ? '#E93353'
+                          ? theme.palette.customColors.Error
                           : severity === 'Medium'
-                          ? '#E4B819'
-                          : '#00AFD6'
+                          ? theme.palette.customColors.moderateSecondary
+                          : theme.palette.customColors.addPrimary
                     }
                   }}
                 >
@@ -162,7 +182,7 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
                   sx={{
                     fontSize: '14px',
                     fontWeight: 400,
-                    color: '#000000',
+                    color: theme.palette.customColors.deepDark,
                     mb: 1.7
                   }}
                 >
@@ -205,7 +225,11 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
               </Box>
             </Box>
 
-            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#000000', pb: 1, mt: 6 }}>Notes</Typography>
+            <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
+            >
+              Notes
+            </Typography>
             <TextField
               placeholder='Add notes'
               fullWidth
@@ -213,29 +237,54 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
               rows={3}
               onChange={e => setNotes(e.target.value)}
               sx={{
-                background: '#fff',
+                background: theme.palette.common.white,
                 mb: 3
               }}
             />
           </Box>
-          <Divider color='#C3CEC7' />
+          <Divider color={theme.palette.customColors.OutlineVariant} />
 
           <Box sx={{ px: 5, py: 5 }}>
             <Typography sx={{ fontWeight: 600, mb: 2 }}>Activity</Typography>
 
-            <Paper sx={{ p: 3, mb: 3, background: '#EFF5F2', boxShadow: 'none', border: 'none', borderRadius: '8px' }}>
-              <Typography sx={{ fontWeight: 400, color: '#44544A', fontSize: '14px' }}>Status Update</Typography>
-              <Typography sx={{ color: '#7A8684', mb: 3, fontWeight: 400, fontSize: '12px' }}>
+            <Paper
+              sx={{
+                p: 3,
+                mb: 3,
+                background: theme.palette.customColors.bodyBg,
+                boxShadow: 'none',
+                border: 'none',
+                borderRadius: '8px'
+              }}
+            >
+              <Typography
+                sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}
+              >
+                Status Update
+              </Typography>
+              <Typography
+                sx={{ color: theme.palette.customColors.neutralSecondary, mb: 3, fontWeight: 400, fontSize: '12px' }}
+              >
                 Dr. Nitin • 12:05 PM • 19 May 2025
               </Typography>
-              <Typography sx={{ mb: 1, color: '#44544A', fontWeight: 400, fontSize: '12px' }}>
+              <Typography
+                sx={{ mb: 1, color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '12px' }}
+              >
                 Severity: <strong>Medium</strong>
               </Typography>
-              <Typography sx={{ mb: 2, color: '#44544A', fontWeight: 400, fontSize: '12px' }}>
+              <Typography
+                sx={{ mb: 2, color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '12px' }}
+              >
                 Status: <strong>Active</strong>
               </Typography>
-              <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '12px' }}>Comment</Typography>
-              <Typography sx={{ color: '#44544A', fontWeight: 400, fontSize: '14px' }}>
+              <Typography
+                sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 400, fontSize: '12px' }}
+              >
+                Comment
+              </Typography>
+              <Typography
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '14px' }}
+              >
                 Mild oral plaque formation inside beak noted; no concurrent bacterial infections detected
               </Typography>
             </Paper>
@@ -246,7 +295,7 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
                 sx={{
                   p: 3,
                   mb: 3,
-                  background: '#FCF4AE66',
+                  background: alpha(theme.palette.customColors.antzNotes, 0.4),
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
@@ -256,11 +305,20 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
                 }}
               >
                 <Box>
-                  <Typography sx={{ fontWeight: 400, color: '#44544A', fontSize: '14px' }}>
+                  <Typography
+                    sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}
+                  >
                     Beak deformity present with overgrowth and surface cracking; patient shows signs of
                     immunosuppression
                   </Typography>
-                  <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '12px', mt: 1.5 }}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.neutralSecondary,
+                      fontWeight: 400,
+                      fontSize: '12px',
+                      mt: 1.5
+                    }}
+                  >
                     Dr. Nitin • 12:05 PM • 19 May 2025
                   </Typography>
                 </Box>
@@ -276,8 +334,8 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
           sx={{
             position: 'sticky',
             bottom: 1,
-            backgroundColor: '#fff',
-            borderTop: '1px solid #C3CEC7',
+            backgroundColor: theme.palette.common.white,
+            borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             px: 5,
             py: 6,
             display: 'flex',
@@ -290,10 +348,10 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
             sx={{
               flex: 1,
               py: 4,
-              border: '1px solid #1F515B',
+              border: `1px solid ${theme.palette.customColors.OnPrimaryContainer}`,
               borderRadius: '8px',
               backgroundColor: 'transparent',
-              color: '#1F515B',
+              color: theme.palette.customColors.OnPrimaryContainer,
               fontWeight: 600,
               cursor: 'pointer'
             }}
@@ -307,8 +365,8 @@ const AddEditSymptomDrawer = ({ open, onClose, selectedSymptom, onSave }) => {
               flex: 1,
               py: 4,
               borderRadius: '8px',
-              backgroundColor: '#1F515B',
-              color: '#fff',
+              backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+              color: theme.palette.common.white,
               fontWeight: 600,
               cursor: 'pointer',
               border: 'none'
