@@ -2,22 +2,12 @@ import React from 'react'
 import { Box, Typography, IconButton, alpha } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
+import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 
 export default function SelectedSymptoms({ selected, onRemove, severity }) {
   const theme = useTheme()
-  const severityBgColors = {
-    High: alpha(theme.palette.customColors.TertiaryContainer, 0.15),
-    Extreme: alpha(theme.palette.customColors.ErrorContainer, 0.4),
-    Medium: theme.palette.customColors.antzNotesLight,
-    Low: alpha(theme.palette.customColors.SecondaryContainer, 0.4),
-    Default: theme.palette.customColors.tableHeaderBg
-  }
-  const severityColors = {
-    High: theme.palette.customColors.customDropdownColor,
-    Extreme: theme.palette.customColors.Error,
-    Medium: theme.palette.customColors.moderateSecondary,
-    Default: theme.palette.customColors.addPrimary
-  }
+  const { getSymptomsSeverityColor } = useHospitalColorUtils()
+
   return (
     <Box
       sx={{
@@ -32,7 +22,7 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
         sx={{
           color: theme.palette.customColors.OnSurfaceVariant,
           fontSize: '20px',
-          fontWeight: 500,
+          fontWeight: 400,
           textAlign: 'left',
           mb: 5
         }}
@@ -67,7 +57,8 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
             height: 500,
             borderRadius: '8px',
             display: 'flex',
-            p: 7
+            p: 7,
+            overflow: 'auto'
             //py: 10
           }}
         >
@@ -75,7 +66,7 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
             <Box
               key={idx}
               sx={{
-                backgroundColor: severityBgColors[selected[idx]?.severity] || severityBgColors.Default,
+                backgroundColor: getSymptomsSeverityColor(selected[idx]?.severity).bgColor,
                 p: 4,
                 borderRadius: '8px',
                 display: 'flex',
@@ -85,10 +76,11 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
             >
               <Box>
                 <Typography
-                  fontWeight={500}
+                  fontWeight={400}
                   sx={{
-                    color: severityColors[selected[idx]?.severity] || severityColors.Default,
-                    fontSize: '14px'
+                    color: getSymptomsSeverityColor(selected[idx]?.severity).color,
+                    fontSize: '14px',
+                    textAlign: 'left'
                   }}
                 >
                   {symptom.name}
@@ -98,7 +90,7 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
                   sx={{
                     textAlign: 'left',
                     background: theme.palette.common.white,
-                    color: severityColors[selected[idx]?.severity] || severityColors.Default,
+                    color: getSymptomsSeverityColor(selected[idx]?.severity).color,
                     borderRadius: '4px',
                     mt: 2,
                     mb: 1,

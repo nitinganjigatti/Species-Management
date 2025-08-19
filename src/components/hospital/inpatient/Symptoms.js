@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Button, Typography, FormControlLabel } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
+import { useRouter } from 'next/router'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
@@ -16,7 +17,7 @@ const symptomsRecords = [
     severity: 'Low',
     category: 'Chronic',
     activity: '+2',
-    days: 10, 
+    days: 10,
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
     lastUpdated: '12:05 PM • 19 May 2025',
@@ -34,7 +35,7 @@ const symptomsRecords = [
     severity: 'Medium',
     category: 'Chronic',
     activity: '+2',
-    days: 10, 
+    days: 10,
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
     lastUpdated: '12:05 PM • 19 May 2025',
@@ -52,11 +53,12 @@ const symptomsRecords = [
     severity: 'High',
     category: 'Chronic',
     activity: '+2',
-    days: 10, 
+    days: 10,
     clinicalAssessment: 'Differential → Diagnosis',
     chronic: 'No',
     prognosis: 'Favourable',
-    notes: 'Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted',
+    notes:
+      'Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted',
     lastUpdated: '12:05 PM • 19 May 2025',
     resolvedBy: {
       name: 'Jordan Stevenson',
@@ -72,7 +74,7 @@ const symptomsRecords = [
     severity: 'Extreme',
     category: 'Chronic',
     activity: '+2',
-    days: 10, 
+    days: 10,
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
     lastUpdated: '12:05 PM • 19 May 2025',
@@ -90,7 +92,7 @@ const symptomsRecords = [
     severity: 'Low',
     category: 'Chronic',
     activity: '+2',
-    days: 10, 
+    days: 10,
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
     lastUpdated: '12:05 PM • 19 May 2025',
@@ -108,7 +110,7 @@ const symptomsRecords = [
     severity: 'Medium',
     category: 'Chronic',
     activity: '+2',
-    days: 10, 
+    days: 10,
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
     lastUpdated: '12:05 PM • 19 May 2025',
@@ -126,7 +128,7 @@ const symptomsRecords = [
     severity: 'Extreme',
     category: null,
     activity: '+2',
-    days: 10, 
+    days: 10,
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
     lastUpdated: '12:05 PM • 19 May 2025',
@@ -135,6 +137,7 @@ const symptomsRecords = [
 ]
 
 const Symptoms = () => {
+  const router = useRouter()
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
@@ -235,7 +238,7 @@ const Symptoms = () => {
 
           <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
             <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-            <Button variant='contained' startIcon={<AddIcon />}>
+            <Button variant='contained' startIcon={<AddIcon />} onClick={() => router.push('/hospital/symptoms')}>
               ADD NEW
             </Button>
           </Box>

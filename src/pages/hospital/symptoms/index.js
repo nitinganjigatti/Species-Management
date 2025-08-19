@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, Typography, Button } from '@mui/material'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
 import SymptomsList from 'src/components/hospital/SymptomsList'
 import SelectedSymptoms from 'src/components/hospital/SelectedSymptoms'
 import AddEditSymptomDrawer from 'src/components/hospital/drawer/AddEditSymptomDrawer'
+import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 
 export default function AddSymptomsPage() {
   const theme = useTheme()
@@ -67,7 +68,7 @@ export default function AddSymptomsPage() {
       <Grid
         container
         spacing={5}
-        sx={{ mt: 5, background: theme.palette.common.white, px: 6, py: 4, borderRadius: '8px' }}
+        sx={{ mt: 5, mb: 8, background: theme.palette.common.white, px: 6, py: 4, borderRadius: '8px' }}
       >
         <Grid size={{ xs: 12 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
@@ -83,9 +84,11 @@ export default function AddSymptomsPage() {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <SelectedSymptoms selected={selectedSymptoms} onRemove={removeSymptom} />
+          <SelectedSymptoms selected={selectedSymptoms} onRemove={removeSymptom} severity={severity} />
         </Grid>
       </Grid>
+
+      <ActionButtons />
 
       {temporarilySelected && (
         <AddEditSymptomDrawer

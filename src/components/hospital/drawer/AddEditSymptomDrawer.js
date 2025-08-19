@@ -16,6 +16,8 @@ import {
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import EditIcon from '@mui/icons-material/Edit'
+import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
+import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 
 const AddEditSymptomDrawer = ({
   open,
@@ -32,7 +34,8 @@ const AddEditSymptomDrawer = ({
   setNotes
 }) => {
   const theme = useTheme()
-
+  const { getSymptomsSeverityColor } = useHospitalColorUtils()
+  const activities = [1, 2, 3]
   const handleSave = () => {
     onSave({
       severity,
@@ -123,50 +126,23 @@ const AddEditSymptomDrawer = ({
                   value={severity}
                   onChange={e => setSeverity(e.target.value)}
                   sx={{
-                    backgroundColor:
-                      severity === 'High'
-                        ? alpha(theme.palette.customColors.TertiaryContainer, 0.15)
-                        : severity === 'Extreme'
-                        ? alpha(theme.palette.customColors.ErrorContainer, 0.4)
-                        : severity === 'Medium'
-                        ? theme.palette.customColors.antzNotesLight
-                        : theme.palette.customColors.tableHeaderBg,
+                    backgroundColor: getSymptomsSeverityColor(severity).bgColor,
+
                     fontWeight: 500,
                     height: 56,
                     borderRadius: '4px',
                     width: '260px',
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor:
-                        severity === 'High'
-                          ? theme.palette.customColors.customDropdownColor
-                          : severity === 'Extreme'
-                          ? theme.palette.customColors.Error
-                          : severity === 'Medium'
-                          ? theme.palette.customColors.moderateSecondary
-                          : theme.palette.customColors.addPrimary
+                      borderColor: getSymptomsSeverityColor(severity).color
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor:
-                        severity === 'High'
-                          ? theme.palette.customColors.customDropdownColor
-                          : severity === 'Extreme'
-                          ? theme.palette.customColors.Error
-                          : severity === 'Medium'
-                          ? theme.palette.customColors.moderateSecondary
-                          : theme.palette.customColors.addPrimary
+                      borderColor: getSymptomsSeverityColor(severity).color
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       border: '1px solid',
-                      borderColor:
-                        severity === 'High'
-                          ? theme.palette.customColors.customDropdownColor
-                          : severity === 'Extreme'
-                          ? theme.palette.customColors.Error
-                          : severity === 'Medium'
-                          ? theme.palette.customColors.moderateSecondary
-                          : theme.palette.customColors.addPrimary
+                      borderColor: getSymptomsSeverityColor(severity).color
                     }
                   }}
                 >
@@ -244,90 +220,7 @@ const AddEditSymptomDrawer = ({
           </Box>
           <Divider color={theme.palette.customColors.OutlineVariant} />
 
-          <Box sx={{ px: 5, py: 5 }}>
-            <Typography sx={{ fontWeight: 600, mb: 2 }}>Activity</Typography>
-
-            <Paper
-              sx={{
-                p: 3,
-                mb: 3,
-                background: theme.palette.customColors.bodyBg,
-                boxShadow: 'none',
-                border: 'none',
-                borderRadius: '8px'
-              }}
-            >
-              <Typography
-                sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}
-              >
-                Status Update
-              </Typography>
-              <Typography
-                sx={{ color: theme.palette.customColors.neutralSecondary, mb: 3, fontWeight: 400, fontSize: '12px' }}
-              >
-                Dr. Nitin • 12:05 PM • 19 May 2025
-              </Typography>
-              <Typography
-                sx={{ mb: 1, color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '12px' }}
-              >
-                Severity: <strong>Medium</strong>
-              </Typography>
-              <Typography
-                sx={{ mb: 2, color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '12px' }}
-              >
-                Status: <strong>Active</strong>
-              </Typography>
-              <Typography
-                sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 400, fontSize: '12px' }}
-              >
-                Comment
-              </Typography>
-              <Typography
-                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '14px' }}
-              >
-                Mild oral plaque formation inside beak noted; no concurrent bacterial infections detected
-              </Typography>
-            </Paper>
-
-            {[1, 2, 3].map((_, i) => (
-              <Paper
-                key={i}
-                sx={{
-                  p: 3,
-                  mb: 3,
-                  background: alpha(theme.palette.customColors.antzNotes, 0.4),
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  boxShadow: 'none',
-                  border: 'none',
-                  borderRadius: '8px'
-                }}
-              >
-                <Box>
-                  <Typography
-                    sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}
-                  >
-                    Beak deformity present with overgrowth and surface cracking; patient shows signs of
-                    immunosuppression
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: theme.palette.customColors.neutralSecondary,
-                      fontWeight: 400,
-                      fontSize: '12px',
-                      mt: 1.5
-                    }}
-                  >
-                    Dr. Nitin • 12:05 PM • 19 May 2025
-                  </Typography>
-                </Box>
-                <IconButton size='small' style={{ padding: 1 }}>
-                  <EditIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Paper>
-            ))}
-          </Box>
+          <ActivityList activities={activities} />
         </Box>
 
         <Box
