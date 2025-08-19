@@ -47,6 +47,7 @@ const composeComplianceNavigation = () => {
     title: 'Masters',
     path: '/compliance/documents/masters',
     icon: '',
+    key: 'compliance-masters',
     children: []
   }
 

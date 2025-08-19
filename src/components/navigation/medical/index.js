@@ -7,6 +7,7 @@ const composeMedicalNavigation = ({ userSettings }) => {
     title: 'Masters',
     path: '/medical/masters/',
     icon: 'uil:setting',
+    key: 'medical-masters',
     children: []
   }
 
@@ -35,7 +36,7 @@ const composeMedicalNavigation = ({ userSettings }) => {
 
   // medicalNavigationArray.push(Title)
   // mastersMedicalParent.children.push(complaints, diagnosis)
-  medicalNavigationArray.push(mastersMedicalParent)
+    medicalNavigationArray.push(mastersMedicalParent)
 
   return medicalNavigationArray
 }
