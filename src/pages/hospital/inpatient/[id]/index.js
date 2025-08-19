@@ -11,6 +11,7 @@ import InpatientSurgery from 'src/views/pages/hospital/inpatient/InpatientSurger
 import InpatinetTreatmentMonitoring from 'src/views/pages/hospital/inpatient/InpatinetTreatmentMonitoring'
 import Symptoms from 'src/components/hospital/inpatient/Symptoms'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
+import InpatientDischarge from 'src/views/pages/hospital/inpatient/InpatientDischarge'
 
 const InpatientDetails = () => {
   const router = useRouter()
@@ -25,7 +26,8 @@ const InpatientDetails = () => {
     { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
     { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
     { label: 'Symptoms', value: 'symptoms', component: Symptoms },
-    { label: 'Surgery', value: 'surgery', component: InpatientSurgery }
+    { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
+    { label: 'Discharge', value: 'discharge', component: InpatientDischarge }
   ]
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)

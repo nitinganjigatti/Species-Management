@@ -3,9 +3,9 @@ import { Box, Button, Card, CardHeader, Grid, MenuItem, Select, Typography } fro
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import RenderUtility from 'src/utility/render'
+import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
-import { VisitType } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 
 const animalData = {

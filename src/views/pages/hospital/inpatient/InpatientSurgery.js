@@ -149,6 +149,7 @@ const MediaScroller = () => {
 function InpatientSurgery() {
   const theme = useTheme()
   const router = useRouter()
+
   const handleAddSurgeryRecord = () => {
     router.push(`/hospital/inpatient/AddSurgeryRecord`)
   }
