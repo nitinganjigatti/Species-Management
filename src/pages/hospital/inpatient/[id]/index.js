@@ -4,12 +4,12 @@ import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import ClinicalNotes from 'src/components/hospital/inpatient/ClinicalNotes'
-import ClinicalAssessment from 'src/views/pages/hospital/inpatient/ClinicalAssessment'
+import ClinicalAssessment from 'src/components/hospital/inpatient/ClinicalAssessment'
 import InpatientMedicalSummary from 'src/views/pages/hospital/inpatient/InpatientMedicalSummary'
 import InpatientOverview from 'src/views/pages/hospital/inpatient/InpatientOverview'
 import InpatientSurgery from 'src/views/pages/hospital/inpatient/InpatientSurgery'
 import InpatinetTreatmentMonitoring from 'src/views/pages/hospital/inpatient/InpatinetTreatmentMonitoring'
-import Symptoms from 'src/views/pages/hospital/inpatient/Symptoms'
+import Symptoms from 'src/components/hospital/inpatient/Symptoms'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 
 const InpatientDetails = () => {
@@ -22,9 +22,9 @@ const InpatientDetails = () => {
     { label: 'Overview', value: 'overview', component: InpatientOverview },
     { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
     { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: InpatinetTreatmentMonitoring },
-    { label: 'Symptoms', value: 'symptoms', component: Symptoms },
     { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
     { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
+    { label: 'Symptoms', value: 'symptoms', component: Symptoms },
     { label: 'Surgery', value: 'surgery', component: InpatientSurgery }
   ]
 
@@ -51,7 +51,7 @@ const InpatientDetails = () => {
           <Typography sx={{ color: 'text.primary' }}>Details</Typography>
         </Breadcrumbs>
         <PatientCard />
-        <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
+        <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
               {tabConfig.map(tab => (
