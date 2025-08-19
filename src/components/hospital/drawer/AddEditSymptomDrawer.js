@@ -31,13 +31,16 @@ const AddEditSymptomDrawer = ({
   durationUnit,
   setDurationUnit,
   notes,
-  setNotes
+  setNotes,
+  status,
+  setStatus
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
   const activities = [1, 2, 3]
   const handleSave = () => {
     onSave({
+      status,
       severity,
       durationValue,
       durationUnit,
@@ -95,7 +98,8 @@ const AddEditSymptomDrawer = ({
               Status
             </Typography>
             <Select
-              value='Active'
+              value={status}
+              onChange={e => setStatus(e.target.value)}
               fullWidth
               sx={{
                 background: theme.palette.common.white,
@@ -211,6 +215,7 @@ const AddEditSymptomDrawer = ({
               fullWidth
               multiline
               rows={3}
+              value={notes}
               onChange={e => setNotes(e.target.value)}
               sx={{
                 background: theme.palette.common.white,

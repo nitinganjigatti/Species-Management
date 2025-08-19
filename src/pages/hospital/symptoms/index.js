@@ -12,10 +12,11 @@ export default function AddSymptomsPage() {
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
-  const [severity, setSeverity] = useState('Medium')
+  const [severity, setSeverity] = useState('')
   const [durationValue, setDurationValue] = useState('')
-  const [durationUnit, setDurationUnit] = useState('Days')
+  const [durationUnit, setDurationUnit] = useState('')
   const [notes, setNotes] = useState('')
+  const [status, setStatus] = useState('')
 
   const allSymptoms = [
     'Labored Breathing',
@@ -102,6 +103,8 @@ export default function AddSymptomsPage() {
           durationUnit={durationUnit}
           setDurationUnit={setDurationUnit}
           notes={notes}
+          status={status}
+          setStatus={setStatus}
           setNotes={setNotes}
           onSave={addSymptomDetails}
         />
