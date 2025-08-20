@@ -1518,7 +1518,7 @@ const RequestDetails = () => {
                     type='lab_test_request'
                     id={requestId === null ? '0' : requestId}
                     handleCloseUploader={setOpenUploader}
-                    handleClosePopover={handleClosePopover}
+                    // handleClosePopover={handleClosePopover}
                     fetchRequestDetails={fetchRequestDetails}
                     buttonText='Submit Reports'
                     restrictExecutiveFiles={true}
