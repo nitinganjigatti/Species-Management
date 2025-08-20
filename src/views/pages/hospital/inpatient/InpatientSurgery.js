@@ -225,7 +225,11 @@ function InpatientSurgery() {
         </Box>
 
         {/* RIGHT: content-size only */}
-        <Button onClick={handleAddSurgeryRecord} variant='contained' sx={{ flex: '0 0 auto', whiteSpace: 'nowrap' }}>
+        <Button
+          onClick={handleAddSurgeryRecord}
+          variant='contained'
+          sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+        >
           Add SURGERY RECORD
         </Button>
       </Box>

@@ -1,20 +1,11 @@
-import {
-  Avatar,
-  Card,
-  Drawer,
-  IconButton,
-  Typography,
-  TextField,
-  List,
-  ListItem,
-  ListItemText,
-  Checkbox
-} from '@mui/material'
+import { Drawer, IconButton, Typography, TextField } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { useEffect, useState, useMemo } from 'react'
 import { LoadingButton } from '@mui/lab'
+import EditTemplateForm from '../../../../components/hospital/inpatient/EditTemplateForm'
+import SurgeryTemplateCard from './SurgeryTemplateCard'
 
 // Sample template data
 const sampleTemplates = [
@@ -143,10 +134,12 @@ const sampleTemplates = [
   }
 ]
 
-const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer }) => {
+const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer }) => {
   const theme = useTheme()
   const [searchValue, setSearchValue] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [openEditPopup, setOpenEditPopup] = useState(false)
+  const [editingTemplate, setEditingTemplate] = useState(null)
 
   // Filter templates based on search
   const filteredTemplates = useMemo(() => {
@@ -178,10 +171,33 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
   // Handle edit template
   const handleEditTemplate = () => {
     if (selectedTemplate) {
-      console.log('Edit template:', selectedTemplate)
-
-      // Add your logic here to edit the template
+      setEditingTemplate(selectedTemplate)
+      setOpenEditPopup(true)
     }
+  }
+
+  // Handle edit template from pencil button
+  const handleEditTemplateFromPencil = template => {
+    setEditingTemplate(template)
+    setOpenEditPopup(true)
+  }
+
+  // Handle update template
+  const handleUpdateTemplate = formData => {
+    console.log('Updating template:', formData)
+
+    // Add your API call here to update the template
+    setOpenEditPopup(false)
+    setEditingTemplate(null)
+  }
+
+  // Handle delete template
+  const handleDeleteTemplate = templateId => {
+    console.log('Deleting template:', templateId)
+
+    // Add your API call here to delete the template
+    setOpenEditPopup(false)
+    setEditingTemplate(null)
   }
 
   return (
@@ -195,6 +211,7 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
         display: 'flex',
         flexDirection: 'column',
         gap: '24px',
+
         backgroundColor: 'background.default'
       }}
     >
@@ -204,6 +221,7 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
@@ -213,9 +231,41 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
             All Templates - 12
           </Typography>
         </Box>
-        <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setOpenSurgeryTemplateDrawer(false)}>
-          <Icon icon='mdi:close' fontSize={24} />
+        <IconButton size='small' onClick={() => setOpenSurgeryTemplateDrawer(false)}>
+          <Icon color={theme.palette.primary.light} icon='mdi:close' fontSize={24} />
         </IconButton>
+      </Box>
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          mt: '12px',
+          mb: '24px',
+          px: '24px'
+        }}
+      >
+        <TextField
+          fullWidth
+          placeholder='Search'
+          value={searchValue}
+          onChange={e => setSearchValue(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <Icon
+                icon='mdi:magnify'
+                fontSize={20}
+                style={{ marginRight: 8, color: theme.palette.customColors.OnSurfaceVariant }}
+              />
+            )
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
+              borderColor: theme.palette.customColors.OutlineVariant,
+              borderRadius: '4px'
+            }
+          }}
+        />
       </Box>
 
       <Box
@@ -226,45 +276,10 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
           display: 'flex',
           flexDirection: 'column',
           gap: '16px',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`
         }}
       >
-        {/* Search Bar - Fixed at top */}
-        <Box
-          sx={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
-            backgroundColor: 'background.default',
-            pb: 2
-          }}
-        >
-          <TextField
-            fullWidth
-            placeholder='Search'
-            value={searchValue}
-            onChange={e => setSearchValue(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <Icon
-                  icon='mdi:magnify'
-                  fontSize={20}
-                  style={{ marginRight: 8, color: theme.palette.customColors.Outline }}
-                />
-              )
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '4px',
-                backgroundColor: 'white',
-                '& fieldset': {
-                  borderColor: theme.palette.customColors.Outline
-                }
-              }
-            }}
-          />
-        </Box>
-
         {/* Scrollable Template List */}
         <Box sx={{ flex: 1, overflow: 'hidden' }}>
           <Box
@@ -274,72 +289,18 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
               display: 'flex',
               flexDirection: 'column',
               gap: '16px',
-              paddingBottom: '120px'
+              paddingBottom: '80px'
             }}
           >
             {filteredTemplates.map(template => (
-              <Box
+              <SurgeryTemplateCard
                 key={template.id}
-                sx={{
-                  display: 'flex',
-                  gap: '12px',
-                  border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                  backgroundColor:
-                    selectedTemplate?.id === template.id
-                      ? theme.palette.customColors.OnBackground
-                      : theme.palette.primary.contrastText,
-                  padding: '16px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onClick={() => handleTemplateSelect(template)}
-              >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <Typography
-                    sx={{
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      letterSpacing: 0,
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    {template.title}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      letterSpacing: 0,
-                      //   textAlign: 'justify',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    {template.description}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                  <IconButton
-                    onClick={e => {
-                      e.stopPropagation()
-                      console.log('Edit template:', template)
-                    }}
-                    sx={{ height: '30px', width: '30px', p: 0, color: theme.palette.customColors.OnSurfaceVariant }}
-                  >
-                    <Icon icon='mdi:pencil' fontSize={20} />
-                  </IconButton>
-                  <IconButton
-                    onClick={e => {
-                      e.stopPropagation()
-                      console.log('Delete template:', template)
-                    }}
-                    sx={{ height: '30px', width: '30px', p: 0, color: theme.palette.primary.light }}
-                  >
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </Box>
-              </Box>
+                template={template}
+                selectedTemplate={selectedTemplate}
+                onSelect={handleTemplateSelect}
+                onEdit={handleEditTemplateFromPencil}
+                onDelete={template => console.log('Delete template:', template)}
+              />
             ))}
           </Box>
         </Box>
@@ -347,7 +308,7 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
 
       <Box
         sx={{
-          height: '122px',
+          height: '88px',
           width: '100%',
           maxWidth: '562px',
           position: 'fixed',
@@ -369,6 +330,7 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
           onClick={handleEditTemplate}
           sx={{
             flex: 1,
+            height: '56px',
             borderColor: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
             color: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
             '&:hover': {
@@ -386,6 +348,7 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
           onClick={handleApplyTemplate}
           sx={{
             flex: 1,
+            height: '56px',
             backgroundColor: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
             color: selectedTemplate ? 'white' : theme.palette.customColors.Outline,
             '&:hover': {
@@ -396,8 +359,21 @@ const SurgeryRecordTemplate = ({ openSurgeryTemplateDrawer, setOpenSurgeryTempla
           APPLY
         </LoadingButton>
       </Box>
+
+      {/* Edit Template Popup */}
+      <EditTemplateForm
+        open={openEditPopup}
+        onClose={() => {
+          setOpenEditPopup(false)
+          setEditingTemplate(null)
+        }}
+        template={editingTemplate}
+        onUpdate={handleUpdateTemplate}
+        onDelete={handleDeleteTemplate}
+        loading={false}
+      />
     </Drawer>
   )
 }
 
-export default SurgeryRecordTemplate
+export default SurgeryRecordTemplateList
