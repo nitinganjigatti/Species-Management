@@ -180,7 +180,16 @@ const ClinicalAssessment = () => {
     <Box>
       {/* Header with Tabs and Controls */}
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 6 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: 6,
+            flexWrap: 'wrap',
+            rowGap: 4
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box
               sx={{
@@ -226,7 +235,7 @@ const ClinicalAssessment = () => {
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
             <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
             <Button variant='contained' startIcon={<AddIcon />}>
               ADD NEW

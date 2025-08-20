@@ -1,6 +1,5 @@
 import React from 'react'
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
-import { Circle as CircleIcon } from '@mui/icons-material'
 import { alpha, useTheme } from '@mui/material/styles'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
@@ -17,7 +16,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
           ? `1px solid ${theme.palette.customColors.amber}`
           : `1px solid ${theme.palette.customColors.OnPrimary}`,
         borderRadius: '8px',
-        padding: '24px',
+        padding: { xs: '16px', sm: '20px', md: '24px' },
         backgroundColor: isResolved
           ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
           : !isDifferential && getSeverityColor(record.severity).bgColor
@@ -26,9 +25,13 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: '1fr 2fr 1fr',
-          gap: 2,
-          alignItems: 'center'
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: '1fr 2fr',
+            md: '1fr 2fr 1fr'
+          },
+          gap: { xs: 1.5, sm: 2 },
+          alignItems: { xs: 'flex-start', sm: 'center' }
         }}
       >
         {/* Left Content */}
@@ -43,7 +46,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
           <Typography
             sx={{
               textDecoration: isResolved ? 'line-through' : 'none',
-              fontSize: '1.25rem',
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
               color: theme.palette.customColors.OnSurfaceVarient,
               fontWeight: 500
             }}
@@ -59,7 +62,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
                 backgroundColor: isResolved ? theme.palette.customColors.mdAntzNeutral : getTypeChipColor(record.type),
                 border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                 borderRadius: '4px',
-                fontSize: '1rem',
+                fontSize: { xs: '0.875rem', sm: '1rem' },
                 fontWeight: 600
               }}
             />
@@ -76,8 +79,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
                     ? theme.palette.customColors.neutralSecondary
                     : getSeverityColor(record.severity).color,
                   '&:before': {
-                    content: '"•"',
-                    marginRight: '4px',
+                    content: { xs: '""', sm: '"•"' },
+                    marginRight: { xs: 0, sm: '4px' },
                     fontSize: '1rem'
                   }
                 }}
@@ -96,8 +99,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
                   fontWeight: 500,
                   color: theme.palette.customColors.neutralSecondary,
                   '&:before': {
-                    content: '"•"',
-                    marginRight: '4px',
+                    content: { xs: '""', sm: '"•"' },
+                    marginRight: { xs: 0, sm: '4px' },
                     fontSize: '1rem',
                     color: theme.palette.customColors.neutralSecondary
                   }
@@ -110,8 +113,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
         </Box>
 
         {/* Middle Content */}
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+        <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
             <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
               Activity:
             </Typography>
@@ -121,7 +124,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
           </Box>
 
           {record.clinicalAssessment && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Clinical Assessment :{' '}
               </Typography>
@@ -134,7 +137,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
           )}
 
           {record.chronic && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Is it Chronic :{' '}
               </Typography>
@@ -147,7 +150,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
           )}
 
           {record.prognosis && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Prognosis :{' '}
               </Typography>
@@ -205,23 +208,34 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
         </Box>
 
         {/* Right Content - Resolved By */}
-        <Box>
-          {record.resolvedBy && (
-            <>
-              <Typography
-                sx={{ mb: 2, color: theme.palette.customColors.neutralSecondary, fontSize: '0.75rem', ml: 1 }}
-              >
-                Resolved by
-              </Typography>
-              <UserAvatarDetails
-                profile_image={record.resolvedBy.avatar}
-                user_name={record.resolvedBy.name}
-                date={record.resolvedBy.date}
-                show_time
-              />
-            </>
-          )}
-        </Box>
+        {record.resolvedBy && (
+          <Box
+            sx={{
+              gridColumn: { xs: '1', sm: '1 / span 2', md: '3' },
+              mt: { xs: 1, md: 0 },
+              borderTop: { xs: `1px solid ${alpha(theme.palette.divider, 0.1)}`, md: 'none' },
+              pt: { xs: 1.5, md: 0 }
+            }}
+          >
+            <Typography
+              sx={{
+                mb: { xs: 1, md: 2 },
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '0.75rem',
+                ml: { xs: 0, md: 1 }
+              }}
+            >
+              Resolved by
+            </Typography>
+            <UserAvatarDetails
+              profile_image={record.resolvedBy.avatar}
+              user_name={record.resolvedBy.name}
+              date={record.resolvedBy.date}
+              show_time
+              compact={true}
+            />
+          </Box>
+        )}
       </Box>
     </Box>
   )
