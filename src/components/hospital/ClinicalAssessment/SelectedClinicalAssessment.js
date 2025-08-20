@@ -139,7 +139,7 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                 )}
               </Box>
               <IconButton onClick={() => onRemove(symptom.name)}>
-                <CloseIcon />
+                <CloseIcon sx={{ color: '#1F515B', fontSize: '22px' }} />
               </IconButton>
             </Box>
           ))}

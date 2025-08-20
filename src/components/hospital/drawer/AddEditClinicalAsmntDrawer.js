@@ -1,11 +1,21 @@
-import React, { useState } from 'react'
-import { Box, Typography, Select, MenuItem, TextField, IconButton, Paper, Drawer, Divider, Switch } from '@mui/material'
+import React from 'react'
+import {
+  Box,
+  Typography,
+  Select,
+  MenuItem,
+  TextField,
+  IconButton,
+  Drawer,
+  Divider,
+  FormControlLabel
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
-import EditIcon from '@mui/icons-material/Edit'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 
 const AddEditClinicalAsmntDrawer = ({
   open,
@@ -41,11 +51,7 @@ const AddEditClinicalAsmntDrawer = ({
   }
 
   return (
-    <Drawer
-      open={open}
-      //onClose={onClose}
-      anchor='right'
-    >
+    <Drawer open={open} anchor='right'>
       <Box
         sx={{
           width: 570,
@@ -164,16 +170,23 @@ const AddEditClinicalAsmntDrawer = ({
                     padding: '8px 16px',
                     backgroundColor: '#fff',
                     width: 260,
+                    height: '56px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}
                 >
                   <Typography sx={{ marginRight: 2 }}>{chronicVal}</Typography>
-
-                  <Switch
-                    checked={chronicVal === 'Yes'}
-                    onChange={e => setChronicVal(e.target.checked ? 'Yes' : 'No')}
+                  <FormControlLabel
+                    control={
+                      <MUISwitch
+                        checked={chronicVal === 'Yes'}
+                        onChange={e => setChronicVal(e.target.checked ? 'Yes' : 'No')}
+                        size='medium'
+                      />
+                    }
+                    label=''
+                    sx={{ ml: 0.25 }}
                   />
                 </Box>
               </Box>

@@ -62,7 +62,7 @@ export default function ClinicalAssessmentList({ symptoms, temporarilySelected, 
           >
             <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
-              No Symptoms to show
+              No Clinical Assessment to show
             </Typography>
           </Box>
         ) : (
