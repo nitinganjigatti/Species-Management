@@ -12,8 +12,9 @@ import {
   Home as HomeIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material'
-import { StatusCard, VisitType } from 'src/views/utility/render-snippets'
+
 import AnimalCard from 'src/views/utility/AnimalCard'
+import { StatusCard, VisitType } from './hospitalSnippets'
 
 const animalData = {
   sex: 'male',

@@ -4,6 +4,7 @@ import { Circle as CircleIcon } from '@mui/icons-material'
 import { alpha, useTheme } from '@mui/material/styles'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
+import { MedicalIdChip } from '../utility/hospitalSnippets'
 
 const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) => {
   const theme = useTheme()
@@ -12,7 +13,9 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
   return (
     <Box
       sx={{
-        border: isDifferential ? `1px solid ${theme.palette.customColors.amber}` : `1px solid ${theme.palette.customColors.OnPrimary}`,
+        border: isDifferential
+          ? `1px solid ${theme.palette.customColors.amber}`
+          : `1px solid ${theme.palette.customColors.OnPrimary}`,
         borderRadius: '8px',
         padding: '24px',
         backgroundColor: isResolved
@@ -30,13 +33,13 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, isResolved }) 
       >
         {/* Left Content */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <CircleIcon sx={{ color: '#4CAF50', fontSize: 8 }} />
-            <Typography variant='body2' color='text.secondary'>
-              {record.id}
-            </Typography>
-          </Box>
-
+          <MedicalIdChip
+            leftImage
+            medId={record.id}
+            rightDot
+            dotColor={theme.palette.primary.main}
+            textColor={theme.palette.customColors.OnSurface}
+          />
           <Typography
             sx={{
               textDecoration: isResolved ? 'line-through' : 'none',

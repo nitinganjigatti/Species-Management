@@ -14,6 +14,10 @@ import { LocalizationProvider } from '@mui/lab'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
+import SurgeryRecordTemplate from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplate'
+import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
+import RenderUtility from 'src/utility/render'
 
 // ✅ Validation schema
 const schema = yup.object().shape({
@@ -90,15 +94,17 @@ const AddSurgeryRecord = () => {
       complication: 'None',
       dietInstructions: '',
       restrictions: '',
-      additionalNotes: ''
+      additionalNotes: '',
+      attachments: []
     }
   })
 
   const [activeTemplate, setActiveTemplate] = useState(templates[0])
+  const [openAddAnaesthesiaDrawer, setOpenAddAnaesthesiaDrawer] = useState(false)
+  const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
 
   const onSubmit = data => {
     console.log('Form Data:', data)
-    alert('Form submitted successfully!')
   }
 
   return (
@@ -133,60 +139,65 @@ const AddSurgeryRecord = () => {
       <Card sx={{ p: '24px', borderRadius: '8px' }}>
         {/* Animal Image */}
         <Grid container spacing={5} sx={{ mb: 3, alignItems: 'center' }}>
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }} sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Avatar
-              src={data.animal.image_url}
-              alt={data.animal.common_name}
-              style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }}
-            />
+          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+            <Box sx={{ maxWidth: '100%', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Avatar
+                src={data.animal.image_url}
+                alt={data.animal.common_name}
+                style={{ width: 56, height: 56, borderRadius: '8px', objectFit: 'cover' }}
+              />
 
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Tooltip title={data.animal.common_name}>
-                <Typography
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: '16px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {data.animal.common_name}
-                </Typography>
-              </Tooltip>
-              <Tooltip title={data.animal.scientific_name}>
-                <Typography
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    fontStyle: 'italic',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {data.animal.scientific_name}
-                </Typography>
-              </Tooltip>
-              <Tooltip title={`${data.animal.age} • ${data.animal.sex}`}>
-                <Typography
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {`${data.animal.age} • ${data.animal.sex}`}
-                </Typography>
-              </Tooltip>
+              <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                <Tooltip title={data.animal.common_name}>
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '100%'
+                    }}
+                  >
+                    {data.animal.common_name}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={data.animal.scientific_name}>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      fontStyle: 'italic',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '100%'
+                    }}
+                  >
+                    {data.animal.scientific_name}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={`${data.animal.age} • ${data.animal.sex}`}>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      letterSpacing: 0,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '100%'
+                    }}
+                  >
+                    {`${data.animal.age} • ${data.animal.sex}`}
+                  </Typography>
+                </Tooltip>
+              </Box>
             </Box>
           </Grid>
 
@@ -200,6 +211,8 @@ const AddSurgeryRecord = () => {
                     fontSize: '14px',
                     letterSpacing: 0,
                     color: theme.palette.customColors.OnSurfaceVariant,
+
+                    // ...RenderUtility.getEllipsisStyleForText()
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
@@ -215,6 +228,8 @@ const AddSurgeryRecord = () => {
                     fontSize: '16px',
                     letterSpacing: 0,
                     color: theme.palette.customColors.OnSurfaceVariant,
+
+                    // ...RenderUtility.getEllipsisStyleForText()
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
@@ -375,7 +390,10 @@ const AddSurgeryRecord = () => {
                 >
                   Select from templates
                 </Typography>
-                <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <Box
+                  onClick={() => setOpenSurgeryTemplateDrawer(true)}
+                  sx={{ display: 'flex', gap: '12px', alignItems: 'center', cursor: 'pointer' }}
+                >
                   <Typography sx={{ color: theme.palette.primary.dark }}>See all</Typography>
                   <Icon icon='fa:angle-right' color={theme.palette.primary.dark} fontSize={24} />
                 </Box>
@@ -442,6 +460,52 @@ const AddSurgeryRecord = () => {
         >
           Anaesthesia details
         </Typography>
+        <Box
+          onClick={() => setOpenAddAnaesthesiaDrawer(true)}
+          sx={{
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            width: '100%',
+            height: '54px',
+            paddingTop: '17px',
+            paddingBottom: '18px',
+            paddingLeft: '4px',
+            borderRadius: '4px',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '4px',
+              background: `
+                 linear-gradient(90deg, ${theme.palette.customColors.Outline} 0px 5px, transparent 5px 13px) 0 0 / 13px 1px,
+                 linear-gradient(180deg, ${theme.palette.customColors.Outline} 0px 5px, transparent 5px 13px) calc(100% - 1px) 0 / 1px 13px,
+                 linear-gradient(270deg, ${theme.palette.customColors.Outline} 0px 5px, transparent 5px 13px) 0 calc(100% - 1px) / 13px 1px,
+                 linear-gradient(0deg, ${theme.palette.customColors.Outline} 0px 5px, transparent 5px 13px) 0 0 / 1px 13px
+               `,
+              backgroundRepeat: 'repeat-x, repeat-y, repeat-x, repeat-y',
+              pointerEvents: 'none'
+            }
+          }}
+        >
+          <Icon icon='mdi:plus' color={theme.palette.customColors.OnSurfaceVariant} fontSize={24} />
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: '16px',
+              letterSpacing: 0,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Add anaesthesia record{' '}
+          </Typography>
+        </Box>
       </Card>
 
       <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -494,7 +558,7 @@ const AddSurgeryRecord = () => {
             Additional notes
           </Typography>
           <ControlledTextField
-            sx={{ backgroundColor: '#FCF4AE99' }}
+            sx={{ borderRadius: '12px', backgroundColor: '#FCF4AE99' }}
             placeholder={'Enter text'}
             control={control}
             name={'additionalNotes'}
@@ -502,81 +566,39 @@ const AddSurgeryRecord = () => {
           />
         </Box>
       </Card>
-      {/* <Box
-        component='form'
-        onSubmit={handleSubmit(onSubmit)}
-        p={2}
-        sx={{ backgroundColor: '#fff', borderRadius: '8px' }}
+
+      <Card
+        sx={{
+          borderRadius: '8px',
+          padding: '24px',
+          paddingTop: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
+        }}
       >
-
-       
-        
-
-       
-
-        
-        <Typography variant='h6' mb={2}>
-          Anaesthesia details
-        </Typography>
-        <Button variant='outlined' fullWidth sx={{ mb: 3 }}>
-          ➕ Add anaesthesia record
-        </Button>
-
-        <Typography variant='h6' mb={2}>
-          Care Instructions
-        </Typography>
-        <Controller
-          name='diet'
-          control={control}
-          render={({ field }) => (
-            <ControlledTextField
-              label='Enter diet instructions'
-              fullWidth
-              {...field}
-              error={!!errors.diet}
-              helperText={errors.diet?.message}
-              sx={{ mb: 2 }}
-            />
-          )}
-        />
-        <Controller
-          name='restrictions'
-          control={control}
-          render={({ field }) => (
-            <ControlledTextField
-              label='Enter restriction activities with duration'
-              fullWidth
-              {...field}
-              error={!!errors.restrictions}
-              helperText={errors.restrictions?.message}
-              sx={{ mb: 2 }}
-            />
-          )}
-        />
-        <Controller
-          name='additionalNotes'
-          control={control}
-          render={({ field }) => (
-            <ControlledTextField
-              label='Additional notes'
-              fullWidth
-              {...field}
-              error={!!errors.additionalNotes}
-              helperText={errors.additionalNotes?.message}
-              sx={{ mb: 2, backgroundColor: '#fffde7' }}
-            />
-          )}
-        />
-
-        <Typography variant='subtitle1' sx={{ mt: 2 }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '20px',
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
           Attachments
         </Typography>
 
-        <Button type='submit' variant='contained' color='primary' sx={{ mt: 3 }}>
-          Submit
-        </Button>
-      </Box> */}
-      {/* </Card> */}
+        <ControlledFileUpload name={'attachment'} control={control} errors={errors} />
+      </Card>
+
+      <AddAnaesthesiaRecordDrawer
+        setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
+        openAddAnaesthesiaDrawer={openAddAnaesthesiaDrawer}
+      />
+      <SurgeryRecordTemplate
+        setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
+        openSurgeryTemplateDrawer={openSurgeryTemplateDrawer}
+      />
     </Box>
   )
 }

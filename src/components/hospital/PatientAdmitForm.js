@@ -6,9 +6,9 @@ import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { renderUserAvatarDetails } from 'src/utility/render'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
+import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import AnimalCard from 'src/views/utility/AnimalCard'
-import { MedicalIdChip, VisitType } from 'src/views/utility/render-snippets'
 import * as yup from 'yup'
 
 const treatmentType = [

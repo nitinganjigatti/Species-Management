@@ -1,9 +1,9 @@
 import React from 'react'
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
-import { Circle as CircleIcon } from '@mui/icons-material'
 import { alpha, useTheme } from '@mui/material/styles'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
+import { MedicalIdChip } from '../utility/hospitalSnippets'
 
 const SymptomsCard = ({ record, isResolved }) => {
   const theme = useTheme()
@@ -29,13 +29,13 @@ const SymptomsCard = ({ record, isResolved }) => {
       >
         {/* Left Content */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <CircleIcon sx={{ color: '#4CAF50', fontSize: 8 }} />
-            <Typography variant='body2' color='text.secondary'>
-              {record.id}
-            </Typography>
-          </Box>
-
+          <MedicalIdChip
+            leftImage
+            medId={record.id}
+            rightDot
+            dotColor={theme.palette.primary.main}
+            textColor={theme.palette.customColors.OnSurface}
+          />
           <Typography
             sx={{
               textDecoration: isResolved ? 'line-through' : 'none',
