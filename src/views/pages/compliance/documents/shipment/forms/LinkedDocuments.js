@@ -15,7 +15,6 @@ const SectionBlock = ({ title, type, data }) => {
         overflow: 'hidden'
       }}
     >
- 
       <Box
         onClick={() => (data?.length > 0 ? setExpanded(!expanded) : null)}
         sx={{
@@ -61,7 +60,7 @@ const SectionBlock = ({ title, type, data }) => {
             }}
           >
             <Typography sx={{ fontWeight: 500, color: theme.palette.primary.dark }}>
-              {type} ID: {item.export_id || item.import_id}
+              {type} ID: {item.export_number || item.import_number}
             </Typography>
             <Typography
               sx={{

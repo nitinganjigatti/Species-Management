@@ -305,7 +305,7 @@ const AnimalsData = ({
         setSelectedExportData({ export: rawExports })
         setDraftData({ export: rawExports })
         setAirwaybillvalue(others.import_number)
-        setStartDate(dayjs(others.import_date))
+        setStartDate(others.import_date ? others.import_date : null)
         setUploadedFile(others.documents)
         setLoader(false)
       } else {
