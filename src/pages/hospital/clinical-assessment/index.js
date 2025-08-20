@@ -2,56 +2,56 @@ import React, { useState } from 'react'
 import { Box, Grid, Typography, Button } from '@mui/material'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
-import SymptomsList from 'src/components/hospital/Symptoms/SymptomsList'
-import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
-import AddEditSymptomDrawer from 'src/components/hospital/drawer/AddEditSymptomDrawer'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
+import ClinicalAssessmentList from 'src/components/hospital/ClinicalAssessment/ClinicalAssessmentList'
+import SelectedClinicalAssessment from 'src/components/hospital/ClinicalAssessment/SelectedClinicalAssessment'
+import AddEditClinicalAsmntDrawer from 'src/components/hospital/drawer/AddEditClinicalAsmntDrawer'
 
-export default function AddSymptomsPage() {
+export default function AddClinicalAssessmentPage() {
   const theme = useTheme()
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
-  const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
+  const [clinicalDrawerOpen, setClinicalDrawerOpen] = useState(false)
   const [severity, setSeverity] = useState('')
   const [durationValue, setDurationValue] = useState('')
   const [durationUnit, setDurationUnit] = useState('')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('')
 
-  const allSymptoms = [
-    'Labored Breathing',
-    'Loss of appetite',
-    'Limping or abnormal gait',
-    'Swelling',
-    'Lumps',
-    'Nasal or eye discharge',
-    'Coughing',
-    'Skin lesions',
-    'Seizures',
-    'Loss of balance or coordination'
+  const allAssessments = [
+    { label: 'Labored Breathing', type: 'Respiratory' },
+    { label: 'Loss of appetite', type: 'Digestive' },
+    { label: 'Limping or abnormal gait', type: 'Musculoskeletal' },
+    { label: 'Swelling', type: 'General' },
+    { label: 'Lumps', type: 'General' },
+    { label: 'Nasal or eye discharge', type: 'Respiratory' },
+    { label: 'Coughing', type: 'Respiratory' },
+    { label: 'Skin lesions', type: 'Dermatological' },
+    { label: 'Seizures', type: 'Neurological' },
+    { label: 'Loss of balance or coordination', type: 'Neurological' }
   ]
 
   const handleSymptomSelect = symptom => {
     setTemporarilySelected(symptom)
-    setSymptomDrawerOpen(true)
+    setClinicalDrawerOpen(true)
   }
 
   const addSymptomDetails = details => {
     setSelectedSymptoms(prev => [...prev, { name: temporarilySelected, ...details }])
     setTemporarilySelected(null)
-    setSymptomDrawerOpen(false)
+    setClinicalDrawerOpen(false)
   }
 
   const cancelSymptomSelection = () => {
     setTemporarilySelected(null)
-    setSymptomDrawerOpen(false)
+    setClinicalDrawerOpen(false)
   }
 
   const removeSymptom = symptomName => {
     setSelectedSymptoms(prev => prev.filter(s => s.name !== symptomName))
   }
 
-  const availableSymptoms = allSymptoms.filter(symptom => !selectedSymptoms.some(s => s.name === symptom))
+  const availableSymptoms = allAssessments.filter(symptom => !selectedSymptoms.some(s => s.name === symptom.label))
 
   return (
     <Box sx={{ p: 3 }}>
@@ -73,11 +73,11 @@ export default function AddSymptomsPage() {
       >
         <Grid size={{ xs: 12 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
-            Add Symptoms
+            Add Clinical assessment
           </Typography>
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <SymptomsList
+          <ClinicalAssessmentList
             symptoms={availableSymptoms}
             temporarilySelected={temporarilySelected}
             selectedSymptoms={selectedSymptoms.map(s => s.name)}
@@ -85,7 +85,7 @@ export default function AddSymptomsPage() {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <SelectedSymptoms selected={selectedSymptoms} onRemove={removeSymptom} severity={severity} />
+          <SelectedClinicalAssessment selected={selectedSymptoms} onRemove={removeSymptom} severity={severity} />
         </Grid>
       </Grid>
 
@@ -99,8 +99,8 @@ export default function AddSymptomsPage() {
       />
 
       {temporarilySelected && (
-        <AddEditSymptomDrawer
-          open={symptomDrawerOpen}
+        <AddEditClinicalAsmntDrawer
+          open={clinicalDrawerOpen}
           onClose={cancelSymptomSelection}
           selectedSymptom={temporarilySelected}
           severity={severity}

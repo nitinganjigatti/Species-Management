@@ -4,6 +4,7 @@ import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
+import { useRouter } from 'next/router'
 import ClinicalAssessmentCard from '../../../views/pages/hospital/inpatient/ClinicalAssessmentCard'
 
 // Sample medical records data
@@ -53,7 +54,8 @@ const medicalRecords = [
     clinicalAssessment: 'Differential → Diagnosis',
     chronic: 'No',
     prognosis: 'Favourable',
-    notes: 'Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted',
+    notes:
+      'Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted',
     lastUpdated: '12:05 PM • 19 May 2025',
     resolvedBy: {
       name: 'Jordan Stevenson',
@@ -128,6 +130,7 @@ const medicalRecords = [
 ]
 
 const ClinicalAssessment = () => {
+  const router = useRouter()
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
@@ -228,7 +231,11 @@ const ClinicalAssessment = () => {
 
           <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
             <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-            <Button variant='contained' startIcon={<AddIcon />}>
+            <Button
+              variant='contained'
+              startIcon={<AddIcon />}
+              onClick={() => router.push('/hospital/clinical-assessment')}
+            >
               ADD NEW
             </Button>
           </Box>

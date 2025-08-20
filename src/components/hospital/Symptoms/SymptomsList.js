@@ -40,7 +40,7 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
           background: theme.palette.customColors.mdAntzNeutral
         }}
       >
-        Symptoms
+        SYMPTOMS
       </Typography>
 
       <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>

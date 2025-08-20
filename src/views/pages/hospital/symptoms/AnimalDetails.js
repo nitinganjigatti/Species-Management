@@ -16,7 +16,6 @@ export default function AnimalDetails({ image, name, scientificName, ageGender, 
         gap: { xs: 4, md: 12 }
       }}
     >
-      {/* first section start - now responsive */}
       <Box
         sx={{
           display: 'flex',
@@ -73,9 +72,7 @@ export default function AnimalDetails({ image, name, scientificName, ageGender, 
           </Typography>
         </Box>
       </Box>
-      {/* first section end */}
 
-      {/* Grid section - now responsive */}
       <Grid
         container
         spacing={{ xs: 2, md: 6 }}

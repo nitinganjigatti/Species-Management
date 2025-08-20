@@ -2,7 +2,7 @@ import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box, Button, useMediaQuery } from '@mui/material'
 
-export default function ActionButtons() {
+export default function ActionButtons({ cancelLabel, addLabel, onCancel, onAdd, Width, Height }) {
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('lg'))
   return (
@@ -20,11 +20,13 @@ export default function ActionButtons() {
         borderRadius: '6px 6px 0 0',
         zIndex: 1200,
         mt: 4,
-        width: isSmallDevice ? '100%' : '82%'
+        boxShadow: '0 -4px 6px rgba(0,0,0,0.1)',
+        width: isSmallDevice ? '100%' : 'auto'
       }}
     >
       <Button
         variant='outlined'
+        onClick={onCancel}
         sx={{
           borderRadius: '8px',
           textTransform: 'uppercase',
@@ -32,24 +34,26 @@ export default function ActionButtons() {
           fontSize: '15px',
           color: theme.palette.customColors.OnSurfaceVariant,
           borderColor: theme.palette.customColors.OnSurfaceVariant,
-          px: 24,
-          py: 3
+          width: Width,
+          height: Height
         }}
       >
-        Cancel
+        {cancelLabel}
       </Button>
 
       <Button
         variant='contained'
+        onClick={onAdd}
         sx={{
           borderRadius: '8px',
           textTransform: 'uppercase',
           fontWeight: 500,
           fontSize: '15px',
-          px: 28
+          width: Width,
+          height: Height
         }}
       >
-        Add
+        {addLabel}
       </Button>
     </Box>
   )
