@@ -93,7 +93,7 @@ const ShipmentPage = () => {
           uid: start + i + 1,
           shipment_number: r.shipment_number || '-',
           shipment_state: r.shipment_state || '-',
-          shipment_date: r.shipment_date || '-',
+          shipment_date: r.shipment_date ? r.shipment_date : '-',
           export_count: r.export_count || '-',
           species_count: r.species_count || '-',
           animal_counts: r.animal_counts || '-',
@@ -138,13 +138,13 @@ const ShipmentPage = () => {
       field: 'shipment_number',
       headerName: 'Shipment ID',
       renderCell: params => {
-        const rawValue = params.value || ''
-        const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+        // const rawValue = params.value || ''
+        // const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
 
-        const formattedValue =
-          removeSpaceValue.length > 3
-            ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}`
-            : removeSpaceValue
+        // const formattedValue =
+        //   removeSpaceValue.length > 3
+        //     ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}`
+        //     : removeSpaceValue
 
         return (
           <Typography
@@ -153,10 +153,8 @@ const ShipmentPage = () => {
               px: 3,
               width: '100%'
             }}
-
-            //onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
           >
-            {formattedValue}
+            {params.value}
           </Typography>
         )
       }
@@ -194,7 +192,7 @@ const ShipmentPage = () => {
       headerName: 'Shipment Date',
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>
-          {params.value !== null ? moment(params.value).format('DD MMM YYYY') : '-'}
+          {moment(params?.value, 'YYYY-MM-DD', true).isValid() ? moment(params?.value).format('DD MMM YYYY') : '-'}
         </Typography>
       )
     },
