@@ -4,9 +4,9 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 
-export default function SelectedClinicalAssessment({ selected, onRemove, severity }) {
+export default function SelectedClinicalAssessment({ selected, onRemove, clinicalAsmnt }) {
   const theme = useTheme()
-  const { getSymptomsSeverityColor } = useHospitalColorUtils()
+  const { getSeverityColor } = useHospitalColorUtils()
 
   return (
     <Box
@@ -66,21 +66,24 @@ export default function SelectedClinicalAssessment({ selected, onRemove, severit
             <Box
               key={idx}
               sx={{
-                backgroundColor: getSymptomsSeverityColor(selected[idx]?.severity).bgColor,
+                backgroundColor: getSeverityColor(selected[idx]?.prognosisVal).bgColor,
                 p: 4,
                 borderRadius: '8px',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                textAlign: 'left'
               }}
             >
               <Box>
                 <Typography
                   fontWeight={400}
                   sx={{
-                    color: getSymptomsSeverityColor(selected[idx]?.severity).color,
-                    fontSize: '14px',
-                    textAlign: 'left'
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '20px',
+                    textAlign: 'left',
+                    fontWeight: 500,
+                    mb: 1
                   }}
                 >
                   {symptom.name}
@@ -89,23 +92,51 @@ export default function SelectedClinicalAssessment({ selected, onRemove, severit
                   variant='body2'
                   sx={{
                     textAlign: 'left',
-                    background: theme.palette.common.white,
-                    color: getSymptomsSeverityColor(selected[idx]?.severity).color,
+                    background: theme.palette.customColors.tableHeaderBg,
+                    color: theme.palette.customColors.OnSecondaryContainer,
                     borderRadius: '4px',
-                    mt: 2,
-                    mb: 1,
+                    border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                     px: 3.5,
-                    py: 0.5,
+                    py: 1,
                     width: 'fit-content',
-                    minWidth: 'auto'
+                    minWidth: 'auto',
+                    display: 'inline'
                   }}
                 >
-                  {symptom.severity}
+                  {symptom.clinicalAsmnt}
                 </Typography>
-                {/* <Typography variant='body2'>
-                  Duration: {symptom.durationValue} {symptom.durationUnit}
+
+                <Typography
+                  variant='body2'
+                  sx={{
+                    textAlign: 'left',
+                    color: getSeverityColor(selected[idx]?.prognosisVal).color,
+                    display: 'inline',
+                    ml: 2,
+                    fontSize: '14px',
+                    fontWeight: 500
+                  }}
+                >
+                  • {symptom.prognosisVal}
                 </Typography>
-                {symptom.notes && <Typography variant='body2'>Notes: {symptom.notes}</Typography>} */}
+
+                {selected[idx]?.chronicVal === 'Yes' ? (
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      textAlign: 'left',
+                      color: theme.palette.customColors.secondaryBg,
+                      display: 'inline',
+                      ml: 2,
+                      fontSize: '14px',
+                      fontWeight: 500
+                    }}
+                  >
+                    • Chronic
+                  </Typography>
+                ) : (
+                  ''
+                )}
               </Box>
               <IconButton onClick={() => onRemove(symptom.name)}>
                 <CloseIcon />

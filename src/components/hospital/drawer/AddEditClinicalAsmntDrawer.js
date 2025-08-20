@@ -1,49 +1,37 @@
 import React, { useState } from 'react'
-import {
-  Box,
-  Typography,
-  Select,
-  MenuItem,
-  TextField,
-  Grid,
-  IconButton,
-  Paper,
-  Drawer,
-  Divider,
-  InputAdornment,
-  alpha
-} from '@mui/material'
+import { Box, Typography, Select, MenuItem, TextField, IconButton, Paper, Drawer, Divider, Switch } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import EditIcon from '@mui/icons-material/Edit'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
+import SideSheetActionButtons from '../SideSheetActionButtons'
 
 const AddEditClinicalAsmntDrawer = ({
   open,
   onClose,
   selectedSymptom,
   onSave,
-  severity,
-  setSeverity,
-  durationValue,
-  setDurationValue,
-  durationUnit,
-  setDurationUnit,
+  clinicalAsmnt,
+  setClinicalAsmnt,
+  setPrognosisValue,
+  prognosisVal,
+  setChronicVal,
+  chronicVal,
   notes,
   setNotes,
   status,
   setStatus
 }) => {
   const theme = useTheme()
-  const { getSymptomsSeverityColor } = useHospitalColorUtils()
+  const { getSeverityColor } = useHospitalColorUtils()
   const activities = [1, 2, 3]
   const handleSave = () => {
     onSave({
       status,
-      severity,
-      durationValue,
-      durationUnit,
+      clinicalAsmnt,
+      prognosisVal,
+      chronicVal,
       notes
     })
   }
@@ -136,8 +124,8 @@ const AddEditClinicalAsmntDrawer = ({
                 </Typography>
 
                 <Select
-                  value={status}
-                  onChange={e => setStatus(e.target.value)}
+                  value={clinicalAsmnt}
+                  onChange={e => setClinicalAsmnt(e.target.value)}
                   fullWidth
                   sx={{
                     background: theme.palette.common.white,
@@ -149,7 +137,7 @@ const AddEditClinicalAsmntDrawer = ({
                   }}
                 >
                   <MenuItem value='Diagnosis'>Diagnosis</MenuItem>
-                  <MenuItem value='Weeks'>Differential</MenuItem>
+                  <MenuItem value='Differential'>Differential</MenuItem>
                 </Select>
               </Box>
             </Box>
@@ -164,38 +152,30 @@ const AddEditClinicalAsmntDrawer = ({
                     mb: 1.7
                   }}
                 >
-                  Severity
+                  Is it Chronic?
                 </Typography>
-
-                <Select
-                  value={severity}
-                  onChange={e => setSeverity(e.target.value)}
+                <Box
+                  display='flex'
+                  alignItems='center'
+                  justifyContent='flex-start'
                   sx={{
-                    backgroundColor: getSymptomsSeverityColor(severity).bgColor,
-
-                    fontWeight: 500,
-                    height: 56,
+                    border: '1px solid #C3CEC7',
                     borderRadius: '4px',
-                    width: '260px',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid',
-                      borderColor: getSymptomsSeverityColor(severity).color
-                    }
+                    padding: '8px 16px',
+                    backgroundColor: '#fff',
+                    width: 260,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
                   }}
                 >
-                  <MenuItem value='Low'>Low</MenuItem>
-                  <MenuItem value='Medium'>Medium</MenuItem>
-                  <MenuItem value='High'>High</MenuItem>
-                  <MenuItem value='Extreme'>Extreme</MenuItem>
-                </Select>
+                  <Typography sx={{ marginRight: 2 }}>{chronicVal}</Typography>
+
+                  <Switch
+                    checked={chronicVal === 'Yes'}
+                    onChange={e => setChronicVal(e.target.checked ? 'Yes' : 'No')}
+                  />
+                </Box>
               </Box>
 
               <Box>
@@ -207,42 +187,39 @@ const AddEditClinicalAsmntDrawer = ({
                     mb: 1.7
                   }}
                 >
-                  Duration
+                  Prognosis
                 </Typography>
-                <TextField
-                  type='number'
-                  value={durationValue}
-                  onChange={e => setDurationValue(e.target.value)}
-                  sx={{ width: 260 }}
-                  slotProps={{
-                    input: {
-                      sx: { height: 56, borderRadius: '4px' },
-                      endAdornment: (
-                        <InputAdornment position='end' sx={{ p: 0, m: 0 }}>
-                          <Select
-                            value={durationUnit}
-                            onChange={e => setDurationUnit(e.target.value)}
-                            variant='standard'
-                            disableUnderline
-                            sx={{
-                              fontSize: 14,
-                              ml: 1,
-                              textAlign: 'right',
 
-                              '& .MuiSelect-select': {
-                                paddingRight: '24px'
-                              }
-                            }}
-                          >
-                            <MenuItem value='Days'>Days</MenuItem>
-                            <MenuItem value='Weeks'>Weeks</MenuItem>
-                            <MenuItem value='Months'>Months</MenuItem>
-                          </Select>
-                        </InputAdornment>
-                      )
+                <Select
+                  value={prognosisVal}
+                  onChange={e => setPrognosisValue(e.target.value)}
+                  sx={{
+                    backgroundColor: getSeverityColor(prognosisVal).bgColor,
+
+                    fontWeight: 500,
+                    height: 56,
+                    borderRadius: '4px',
+                    width: '260px',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid',
+                      borderColor: getSeverityColor(prognosisVal).color
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid',
+                      borderColor: getSeverityColor(prognosisVal).color
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid',
+                      borderColor: getSeverityColor(prognosisVal).color
                     }
                   }}
-                />
+                >
+                  <MenuItem value='Guarded'>Guarded</MenuItem>
+                  <MenuItem value='Favourable'>Favourable</MenuItem>
+                  <MenuItem value='Doubtful'>Doubtful</MenuItem>
+                  <MenuItem value='Poor'>Poor</MenuItem>
+                  <MenuItem value='Grave'>Grave</MenuItem>
+                </Select>
               </Box>
             </Box>
 
@@ -269,51 +246,14 @@ const AddEditClinicalAsmntDrawer = ({
           <ActivityList activities={activities} />
         </Box>
 
-        <Box
-          sx={{
-            position: 'sticky',
-            bottom: 1,
-            backgroundColor: theme.palette.common.white,
-            borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-            px: 5,
-            py: 6,
-            display: 'flex',
-            gap: 2
-          }}
-        >
-          <Box
-            component='button'
-            onClick={handleCancel}
-            sx={{
-              flex: 1,
-              py: 4,
-              border: `1px solid ${theme.palette.customColors.OnPrimaryContainer}`,
-              borderRadius: '8px',
-              backgroundColor: 'transparent',
-              color: theme.palette.customColors.OnPrimaryContainer,
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            CANCEL
-          </Box>
-          <Box
-            component='button'
-            onClick={handleSave}
-            sx={{
-              flex: 1,
-              py: 4,
-              borderRadius: '8px',
-              backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-              color: theme.palette.common.white,
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: 'none'
-            }}
-          >
-            ADD
-          </Box>
-        </Box>
+        <SideSheetActionButtons
+          addLabel='UPDATE'
+          cancelLabel='CANCEL'
+          onAdd={handleSave}
+          onCancel={handleCancel}
+          width={260}
+          height={50}
+        />
       </Box>
     </Drawer>
   )

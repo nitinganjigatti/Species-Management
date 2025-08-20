@@ -12,9 +12,9 @@ export default function AddClinicalAssessmentPage() {
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [clinicalDrawerOpen, setClinicalDrawerOpen] = useState(false)
-  const [severity, setSeverity] = useState('')
-  const [durationValue, setDurationValue] = useState('')
-  const [durationUnit, setDurationUnit] = useState('')
+  const [clinicalAsmnt, setClinicalAsmnt] = useState('')
+  const [prognosisVal, setPrognosisValue] = useState('')
+  const [chronicVal, setChronicVal] = useState('No')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('')
 
@@ -85,7 +85,11 @@ export default function AddClinicalAssessmentPage() {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <SelectedClinicalAssessment selected={selectedSymptoms} onRemove={removeSymptom} severity={severity} />
+          <SelectedClinicalAssessment
+            selected={selectedSymptoms}
+            onRemove={removeSymptom}
+            clinicalAsmnt={clinicalAsmnt}
+          />
         </Grid>
       </Grid>
 
@@ -103,12 +107,12 @@ export default function AddClinicalAssessmentPage() {
           open={clinicalDrawerOpen}
           onClose={cancelSymptomSelection}
           selectedSymptom={temporarilySelected}
-          severity={severity}
-          setSeverity={setSeverity}
-          durationValue={durationValue}
-          setDurationValue={setDurationValue}
-          durationUnit={durationUnit}
-          setDurationUnit={setDurationUnit}
+          clinicalAsmnt={clinicalAsmnt}
+          setClinicalAsmnt={setClinicalAsmnt}
+          setPrognosisValue={setPrognosisValue}
+          prognosisVal={prognosisVal}
+          setChronicVal={setChronicVal}
+          chronicVal={chronicVal}
           notes={notes}
           status={status}
           setStatus={setStatus}

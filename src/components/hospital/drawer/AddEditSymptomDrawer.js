@@ -18,6 +18,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import EditIcon from '@mui/icons-material/Edit'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
+import SideSheetActionButtons from '../SideSheetActionButtons'
 
 const AddEditSymptomDrawer = ({
   open,
@@ -228,51 +229,14 @@ const AddEditSymptomDrawer = ({
           <ActivityList activities={activities} />
         </Box>
 
-        <Box
-          sx={{
-            position: 'sticky',
-            bottom: 1,
-            backgroundColor: theme.palette.common.white,
-            borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-            px: 5,
-            py: 6,
-            display: 'flex',
-            gap: 2
-          }}
-        >
-          <Box
-            component='button'
-            onClick={handleCancel}
-            sx={{
-              flex: 1,
-              py: 4,
-              border: `1px solid ${theme.palette.customColors.OnPrimaryContainer}`,
-              borderRadius: '8px',
-              backgroundColor: 'transparent',
-              color: theme.palette.customColors.OnPrimaryContainer,
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            CANCEL
-          </Box>
-          <Box
-            component='button'
-            onClick={handleSave}
-            sx={{
-              flex: 1,
-              py: 4,
-              borderRadius: '8px',
-              backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-              color: theme.palette.common.white,
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: 'none'
-            }}
-          >
-            ADD
-          </Box>
-        </Box>
+        <SideSheetActionButtons
+          addLabel='UPDATE'
+          cancelLabel='CANCEL'
+          onAdd={handleSave}
+          onCancel={handleCancel}
+          width={260}
+          height={50}
+        />
       </Box>
     </Drawer>
   )
