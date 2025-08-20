@@ -299,6 +299,17 @@ const IngredientsList = () => {
       )
     },
     {
+      //flex: 0.54,
+      width: 200,
+      field: 'feed_type_label',
+      headerName: 'Feed Type',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.feed_type_label}
+        </Typography>
+      )
+    },
+    {
       //flex: 0.85,
       width: 200,
       field: 'ingredient_alias',
@@ -342,7 +353,7 @@ const IngredientsList = () => {
     {
       //flex: 0.4,
       width: 150,
-      field: 'protein',
+      field: 'preparation_type_count',
       headerName: 'PREPARATION TYPES',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
