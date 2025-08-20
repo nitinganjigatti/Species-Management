@@ -77,7 +77,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
                 Shipment ID
               </Typography>
               <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1.25rem' }}>
-                {shipment?.shipment_id || (shipment?.shipment_number).replace(/\s+/g, '') || ''}
+                {(shipment?.shipment_number).replace(/\s+/g, '') || shipment?.shipment_number || ''}
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
