@@ -26,6 +26,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -76,7 +77,7 @@ const ListOfDiscardProducts = () => {
           q,
           column,
           ...(isEmptyDates
-            ? { from_date: '', to_date: '' } 
+            ? { from_date: '', to_date: '' }
             : filterDates?.startDate && filterDates?.endDate
             ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
             : {}),
@@ -323,11 +324,11 @@ const ListOfDiscardProducts = () => {
       headerName: 'Discarded by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -429,9 +430,9 @@ const ListOfDiscardProducts = () => {
     <Grid
       sx={{
         display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' }, 
-        gap: 2, 
-        width: '100%' 
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 2,
+        width: '100%'
       }}
     >
       {/* <ExcelExportButton
@@ -585,7 +586,6 @@ const ListOfDiscardProducts = () => {
                   mx: { xs: 3, md: 5 }
                 }}
               >
-              
                 <Grid
                   container
                   spacing={4}

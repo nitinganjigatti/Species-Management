@@ -32,6 +32,7 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
@@ -92,7 +93,6 @@ const DirectDispatchList = () => {
           : router.query.status
       )
     }
-   
   }, [selectedPharmacy.type])
 
   const handleChange = (event, newValue) => {
@@ -159,7 +159,6 @@ const DirectDispatchList = () => {
       setSort(newSort)
       setSortColumn(newColumn)
 
-     
       router.push(
         {
           pathname: router.pathname,
@@ -170,7 +169,7 @@ const DirectDispatchList = () => {
           }
         },
         undefined,
-        { shallow: true } 
+        { shallow: true }
       )
 
       fetchTableData(newSort, searchValue, newColumn, currentStatus)
@@ -222,8 +221,6 @@ const DirectDispatchList = () => {
   useEffect(() => {
     const currentStatus = filterSwitch === true ? 'completed' : status
 
-   
-
     fetchTableData(sort, searchValue, sortColumn, currentStatus)
     updateUrlParams({
       sort,
@@ -234,7 +231,6 @@ const DirectDispatchList = () => {
       limit: paginationModel.pageSize,
       filterSwitch
     })
-   
   }, [status, filterSwitch, selectedPharmacy.id, paginationModel.page, paginationModel.pageSize])
 
   const onRowClick = params => {
@@ -255,8 +251,8 @@ const DirectDispatchList = () => {
               })
             }
             sx={{
-              mt: { xs: 2, sm: 0 }, 
-              alignSelf: { xs: 'flex-start', sm: 'center' } 
+              mt: { xs: 2, sm: 0 },
+              alignSelf: { xs: 'flex-start', sm: 'center' }
             }}
             fullWidth='fullWidth'
           />
@@ -401,7 +397,6 @@ const DirectDispatchList = () => {
                     <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
                   </Box>
                   <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  
                     <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                   </Box>
                 </>
@@ -433,11 +428,11 @@ const DirectDispatchList = () => {
       headerName: 'Dispatched by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     }
@@ -478,14 +473,12 @@ const DirectDispatchList = () => {
                 action={headerAction}
               />
 
-            
               <Box
                 sx={{
                   mx: { xs: 2, sm: 4, md: 5 }
                 }}
               >
                 <Grid container spacing={3}>
-                 
                   <Grid
                     item
                     size={{ xs: 12, sm: 6 }}

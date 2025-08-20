@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react'
+import React, { useState, useEffect, useContext, useCallback, useRef } from 'react'
 
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Checkbox,
+  CircularProgress,
   debounce,
   Divider,
   Drawer,
@@ -56,8 +57,12 @@ const DashboardFilter = ({
   const [eggMaster, setEggMaster] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
   const [taxonomyList, setTaxonomyList] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const [tempSelectedOptions, setTempSelectedOptions] = useState(selectedOptions)
+
+  // Ref for search input to enable auto-focus
+  const searchInputRef = useRef(null)
 
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
@@ -114,6 +119,7 @@ const DashboardFilter = ({
 
   const NurseryList = async q => {
     try {
+      setLoading(true)
       const params = {
         // type: ['length', 'weight'],
         search: q ? q : ''
@@ -125,6 +131,8 @@ const DashboardFilter = ({
       })
     } catch (e) {
       console.error(e)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -144,6 +152,7 @@ const DashboardFilter = ({
 
   const getTaxonomyListFunc = async q => {
     try {
+      setLoading(true)
       const params = {
         q: q ? q : ''
       }
@@ -154,11 +163,15 @@ const DashboardFilter = ({
       })
     } catch (error) {
       console.error('error', error)
+    } finally {
+      setLoading(false)
     }
   }
 
   const getBatchList = async q => {
     try {
+      setLoading(true)
+
       const params = {
         q
       }
@@ -169,6 +182,8 @@ const DashboardFilter = ({
       })
     } catch (e) {
       console.error(e)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -343,6 +358,17 @@ const DashboardFilter = ({
     setIsFilterOpen(false)
   }
 
+  // Auto-focus search input when loading completes
+  useEffect(() => {
+    if (!loading && searchInputRef.current && isFilterOpen) {
+      const timer = setTimeout(() => {
+        searchInputRef.current.focus()
+      }, 100) // Small delay to ensure DOM is ready
+
+      return () => clearTimeout(timer)
+    }
+  }, [loading, isFilterOpen])
+
   const searchData = useCallback(
     debounce(async search => {
       setSearchQuery(search)
@@ -489,6 +515,8 @@ const DashboardFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearchChange}
+                      inputRef={searchInputRef}
+                      disabled={loading}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -523,33 +551,39 @@ const DashboardFilter = ({
 
               {selectedMenu && (
                 <Box sx={{ mt: 2 }}>
-                  {getOptionsForMenu(selectedMenu)?.map((option, index) => (
-                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                      <Checkbox
-                        // checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
-                        checked={tempSelectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
-                        onChange={() => handleCheckboxChange(option.id, option.name)}
-                        inputProps={{ 'aria-label': 'controlled' }}
-                      />
-                      <Tooltip title={option.name}>
-                        <Typography
-                          onClick={() => handleCheckboxChange(option.id, option.name)}
-                          sx={{
-                            fontSize: '16px',
-                            fontWeight: 400,
-                            cursor: 'pointer',
-                            color: theme.palette.customColors.Outline,
-                            textTransform: 'capitalize',
-                            textOverflow: 'ellipsis',
-                            overflow: 'hidden',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {option.name}
-                        </Typography>
-                      </Tooltip>
+                  {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                      <CircularProgress size={40} />
                     </Box>
-                  ))}
+                  ) : (
+                    getOptionsForMenu(selectedMenu)?.map((option, index) => (
+                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Checkbox
+                          // checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
+                          checked={tempSelectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
+                          onChange={() => handleCheckboxChange(option.id, option.name)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                        <Tooltip title={option.name}>
+                          <Typography
+                            onClick={() => handleCheckboxChange(option.id, option.name)}
+                            sx={{
+                              fontSize: '16px',
+                              fontWeight: 400,
+                              cursor: 'pointer',
+                              color: theme.palette.customColors.Outline,
+                              textTransform: 'capitalize',
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {option.name}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
+                    ))
+                  )}
                 </Box>
               )}
             </Box>

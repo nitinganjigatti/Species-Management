@@ -1,41 +1,36 @@
-import { LoadingButton } from '@mui/lab'
-import {
-  Autocomplete,
-  Checkbox,
-  Drawer,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  IconButton,
-  TextField,
-  Typography
-} from '@mui/material'
-import { Box, Stack } from '@mui/system'
 import React, { useEffect, useRef, useState } from 'react'
-import Icon from 'src/@core/components/icon'
-import { useTheme } from '@mui/material/styles'
-import { speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
-import Toaster from 'src/components/Toaster'
+import Image from 'next/image'
 import imageUploader from 'public/images/gallery_add_Icon.png'
-import { DatePicker, LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
+
+import { Drawer, FormControl, FormHelperText, IconButton, Typography } from '@mui/material'
+import { Box } from '@mui/system'
+import { LoadingButton } from '@mui/lab'
+import { useTheme } from '@mui/material/styles'
 import dayjs from 'dayjs'
+import moment from 'moment'
 
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-import Image from 'next/image'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { createAnimalIncident, updateAnimalIncident } from 'src/lib/api/housing'
+
+import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
+
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { read, readAsync } from 'src/lib/windows/utils'
-import moment from 'moment'
+import { createAnimalIncident, updateAnimalIncident } from 'src/lib/api/housing'
 
 const defaultValues = {
   incident_date: dayjs(),
   incident_time: dayjs(),
-  reported_by: '',
+  reported_by: {
+    user_id: '',
+    user_name: ''
+  },
   notes: '',
   attachment: '',
   animal_behaviour_before_incident: '',
@@ -46,10 +41,13 @@ const defaultValues = {
 const schema = yup.object().shape({
   incident_date: yup.date().required('Date is required'),
   incident_time: yup.date().required('Time is required'),
-  reported_by: yup.string().required('Reporter is required')
-
-  // notes: yup.string().required('Notes are required'),
-  // attachment: yup.string().required('Attachment is required'),
+  reported_by: yup
+    .object({
+      user_id: yup.string().required('Reporter is required'),
+      user_name: yup.string().nullable()
+    })
+    .nullable()
+    .required('Reporter is required')
 })
 
 const CreateMissingIncident = ({
@@ -65,13 +63,13 @@ const CreateMissingIncident = ({
   const timeInputRef = useRef(null)
 
   const [incidenceId, setIncidenceId] = useState(null)
-  const [reported_byUsers, setreported_byUsers] = useState([])
-  const [defaultreported_by, setDefaultreported_by] = useState(null)
+  const [reportedByUsers, setReportedByUsers] = useState([])
+  const [defaultReportedBy, setDefaultReportedBy] = useState(null)
 
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFileName, setSelectedFileName] = useState(null)
 
-  const [previewUrl, setPreviewUrl] = useState(null) // ADD THIS
+  const [previewUrl, setPreviewUrl] = useState(null)
 
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
 
@@ -95,14 +93,10 @@ const CreateMissingIncident = ({
 
   const getUserData = () => {
     const result = read('userDetails')
-    console.log('result', result)
-    setDefaultreported_by({
+    setValue('reported_by', {
       user_id: result?.user?.user_id,
       user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}`
     })
-    setValue('reported_by', result?.user?.user_id)
-
-    // setUserData(result)
   }
 
   useEffect(() => {
@@ -114,7 +108,7 @@ const CreateMissingIncident = ({
 
   useEffect(() => {
     if (animalIncidentForm && isEdit && editData) {
-      console.log('editData', editData)
+      // console.log('editData', editData)
       setIncidenceId(editData?.id)
       setValue('incident_date', editData.incident_date ? dayjs(editData.incident_date) : null)
       setValue('incident_time', editData.incident_time ? dayjs(editData.incident_time, 'hh:mm A') : null)
@@ -134,7 +128,7 @@ const CreateMissingIncident = ({
       const zoo_id = userDetails?.user?.zoos[0].zoo_id
       const Users = await getUserList({ zoo_id })
 
-      setreported_byUsers(Users?.data)
+      setReportedByUsers(Users?.data)
     } catch (error) {
       Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
     }
@@ -161,7 +155,7 @@ const CreateMissingIncident = ({
 
   const handleCloseFormDrawer = () => {
     reset()
-    setDefaultreported_by(null)
+    setDefaultReportedBy(null)
     setAnimalIncidentForm(false)
     setSelectedFile(null)
     setSelectedFileName(null)
@@ -182,29 +176,11 @@ const CreateMissingIncident = ({
       steps_to_prevent
     } = data
 
-    // const payload = {
-    //   incident_type: 'missing',
-    //   incident_date: moment(incident_date).format('YYYY-MM-DD'),
-    //   incident_time: moment(incident_time).format('HH:mm:ss'),
-    //   reported_by,
-    //   notes,
-    //   images: selectedFile,
-    //   additional_info: JSON.stringify({
-    //     last_seen,
-    //     animal_behaviour_before_incident,
-    //     action_taken,
-    //     steps_to_prevent
-    //   }),
-    //   ...(isEdit
-    //     ? { incident_details_id: incidenceId, }
-    //     : { ref_id: animalId, }),
-    // }
-
     const formData = new FormData()
     formData.append('incident_type', 'missing')
     formData.append('incident_date', moment(incident_date).format('YYYY-MM-DD'))
     formData.append('incident_time', moment(incident_time).format('HH:mm:ss'))
-    formData.append('reported_by', reported_by)
+    formData.append('reported_by', reported_by.user_id)
     formData.append('notes', notes)
     formData.append(
       'additional_info',
@@ -228,7 +204,7 @@ const CreateMissingIncident = ({
 
     setUploadingAttachment(true)
     try {
-      console.log('second', formData)
+      // console.log('second', formData)
       if (isEdit) {
         const res = await updateAnimalIncident(formData)
         if (res.success) {
@@ -310,9 +286,6 @@ const CreateMissingIncident = ({
   )
 
   const basicStyle = {
-    // backgroundColor: theme.palette.primary.contrastText,
-    // borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-    // width: '100%',
     '& .MuiOutlinedInput-root': {
       borderRadius: '4px'
     }
@@ -377,106 +350,22 @@ const CreateMissingIncident = ({
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
                 >
-                  <FormControl fullWidth>
-                    <Controller
-                      name='incident_date'
-                      control={control}
-                      defaultValue={dayjs()} // or null
-                      render={({ field }) => (
-                        <LocalizationProvider LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <DatePicker
-                            sx={{
-                              ...basicStyle
-                            }}
-
-                            // value={allocationDate}
-                            onChange={newDate => {
-                              if (newDate) {
-                                const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-                              }
-                            }}
-                            {...field} // ✅ use the actual field from react-hook-form
-                            label='Date'
-                            maxDate={dayjs()}
-                            format='DD/MM/YYYY'
-                          />
-                        </LocalizationProvider>
-                      )}
-                    />
-                  </FormControl>
-                  {/* <FormControl fullWidth>
-                    <Controller
-                      name='incident_time'
-                      control={control}
-                      // defaultValue={dayjs()} // or null
-                      render={({ field }) => (
-                        <LocalizationProvider LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <TimePicker
-                            {...field}
-                            label='Time'
-                            format='hh:mm A'
-                            sx={{
-                              ...basicStyle,
-                            }}
-                            slotProps={{
-                              textField: {
-                                fullWidth: true,
-                                error: Boolean(errors.incident_time),
-                                helperText: errors.incident_time?.message,
-                                InputProps: {
-                                  endAdornment: (
-                                    <IconButton
-                                      edge="end"
-                                      onClick={() => {
-                                        // Focus the time picker when icon is clicked
-                                        const input = document.querySelector('input[name="incident_time"]')
-                                        if (input) input.focus()
-                                      }}
-                                    >
-                                      <Icon icon='mdi:clock-outline' />
-                                    </IconButton>
-                                  )
-                                }
-                              }
-                            }}
-                          />
-                        </LocalizationProvider>
-                      )}
-                    />
-                  </FormControl> */}
-                  <Controller
+                  <ControlledDatePicker
+                    name='incident_date'
+                    control={control}
+                    errors={errors}
+                    defaultValue={dayjs()}
+                    sx={{
+                      ...basicStyle
+                    }}
+                  />
+                  <ControlledTimePicker
                     name='incident_time'
                     control={control}
-                    render={({ field }) => (
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <TimePicker
-                          {...field}
-                          label='Time'
-                          format='hh:mm A'
-                          slotProps={{
-                            textField: {
-                              fullWidth: true,
-                              error: Boolean(errors.incident_time),
-                              helperText: errors.incident_time?.message,
-                              inputRef: timeInputRef,
-                              InputProps: {
-                                endAdornment: (
-                                  <IconButton
-                                    edge='end'
-                                    onClick={() => {
-                                      timeInputRef.current?.focus()
-                                    }}
-                                  >
-                                    <Icon icon='mdi:clock-outline' />
-                                  </IconButton>
-                                )
-                              }
-                            }
-                          }}
-                          sx={basicStyle}
-                        />
-                      </LocalizationProvider>
-                    )}
+                    errors={errors}
+                    sx={{
+                      ...basicStyle
+                    }}
                   />
                 </Box>
               </Box>
@@ -505,62 +394,22 @@ const CreateMissingIncident = ({
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
                 >
-                  <FormControl fullWidth>
-                    <Controller
-                      name='reported_by'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Autocomplete
-                          value={defaultreported_by}
-                          options={reported_byUsers}
-                          getOptionLabel={option => option.user_name}
-                          isOptionEqualToValue={(option, value) => option?.user_id === value?.user_id}
-                          onChange={(e, val) => {
-                            setDefaultreported_by(val)
-                            onChange(val?.user_id || '')
-                          }}
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              label='Reported by *'
-                              placeholder='Search & Select'
-                              error={Boolean(errors.reported_by)}
-                              helperText={errors?.reported_by?.message}
-                              sx={{
-                                ...basicStyle
-                              }}
-                            />
-                          )}
-                        />
-                      )}
-                    />
-                    {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>
-                        {errors?.localIdentifierType?.message}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-
-                  {/* <ControlledAutocomplete
+                  <ControlledAutocomplete
                     name='reported_by'
                     control={control}
-                    rules={{ required: true }}
-                    label='Reported by *'
-                    error={Boolean(errors.reported_by)}
-                    helperText={errors?.reported_by?.message}
-                    // value={defaultreported_by}
-                    options={reported_byUsers}
+                    options={reportedByUsers}
                     getOptionLabel={option => option.user_name}
-                    isOptionEqualToValue={(option, value) => option?.user_id === value?.user_id}
-                    onChange={(e, val) => {
-                      // setDefaultreported_by(val)
-                      onChange(val?.user_id || '')
-                    }}
+                    isOptionEqualToValue={(option, value) =>
+                      option?.user_id ? option?.user_id === value?.user_id : false
+                    }
+                    label='Reported by *'
+                    placeholder='Search & Select'
+                    errors={errors}
+                    required
                     sx={{
-                      ...basicStyle,
+                      ...basicStyle
                     }}
-                  /> */}
+                  />
                 </Box>
               </Box>
 
@@ -588,32 +437,7 @@ const CreateMissingIncident = ({
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
                 >
-                  <FormControl fullWidth>
-                    <Controller
-                      name='notes'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          multiline
-                          rows={3}
-                          label='Write notes here'
-                          placeholder='Write notes here'
-                          error={Boolean(errors.notes)}
-                          helperText={errors.notes?.message}
-                          sx={{
-                            ...basicStyle
-                          }}
-                        />
-                      )}
-                    />
-                    {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-
-                  {/* <ControlledTextField
+                  <ControlledTextField
                     name='notes'
                     control={control}
                     rules={{ required: true }}
@@ -621,12 +445,11 @@ const CreateMissingIncident = ({
                     rows={3}
                     label='Write notes here'
                     placeholder='Write notes here'
-                    error={Boolean(errors.notes)}
-                    helperText={errors.notes?.message}
+                    errors={errors}
                     sx={{
-                      ...basicStyle,
+                      ...basicStyle
                     }}
-                  /> */}
+                  />
                   <FormControl fullWidth>
                     <Controller
                       name='attachment'
@@ -661,8 +484,6 @@ const CreateMissingIncident = ({
                               height: '48px',
                               border: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
                               borderRadius: '10px'
-
-                              // padding: 3
                             }}
                           >
                             <Image alt={'filename'} src={imageUploader} width={32} height={32} />
@@ -757,22 +578,6 @@ const CreateMissingIncident = ({
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }}
                 >
-                  {/* <Controller
-                    name='last_seen'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        sx={{ ...basicStyle }}
-                        label='Last Seen/Escaped From'
-                        placeholder='Last Seen/Escaped From'
-                        error={Boolean(errors.last_seen)}
-                        helperText={errors.last_seen?.message}
-                      />
-                    )}
-                  /> */}
-
                   <ControlledTextField
                     name='last_seen'
                     control={control}
@@ -846,10 +651,6 @@ const CreateMissingIncident = ({
             variant='contained'
             size='large'
             sx={{ height: '58px', width: '514px', mx: 4 }}
-
-            // onClick={() => {
-            //   handleSubmit()
-            // }}
             disabled={uploadingAttachment}
             loading={uploadingAttachment}
           >

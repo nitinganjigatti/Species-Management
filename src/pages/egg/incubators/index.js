@@ -7,7 +7,6 @@ import {
   Tooltip,
   Box,
   Breadcrumbs,
-  Grid,
   TextField,
   FormControl,
   Autocomplete,
@@ -136,7 +135,7 @@ const IncubatorsList = () => {
 
   const columns = [
     {
-      minWidth: 80,
+      width: 70,
       field: 'id',
       headerName: 'SL.NO',
       align: 'center',
@@ -265,7 +264,7 @@ const IncubatorsList = () => {
     },
     {
       flex: 0.12,
-      minWidth: 20,
+      minWidth: 60,
       sortable: false,
       align: 'right',
       field: 'no_of_eggs',

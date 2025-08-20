@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Avatar, Box, Tooltip } from '@mui/material'
 import { SlideshowLightbox } from 'lightbox.js-react'
+import 'lightbox.js-react/dist/index.css'
 
 // import 'lightbox.js-react/dist/index.css'
 

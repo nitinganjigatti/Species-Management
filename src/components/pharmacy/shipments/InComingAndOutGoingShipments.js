@@ -1,20 +1,13 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
-
 import { Box, CardHeader, Grid, Typography, Card } from '@mui/material'
-
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
-import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
-
-import Fade from '@mui/material/Fade'
 import { styled } from '@mui/material/styles'
-
 import MuiTabList from '@mui/lab/TabList'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
@@ -25,10 +18,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 import { useForm } from 'react-hook-form'
 import Search from 'src/views/utility/Search'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-
-const Transition = forwardRef(function Transition(props, ref) {
-  return <Fade ref={ref} {...props} />
-})
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const TabLists = styled(MuiTabList)(({ theme }) => ({
   '& .MuiTabs-indicator': {
@@ -57,6 +47,11 @@ function InComingAndOutGoingShipments({ type }) {
   const { id } = router.query
   const { selectedPharmacy } = usePharmacyContext()
 
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+
   const { control, watch, setValue } = useForm({
     defaultValues: {
       selectedStore: null,
@@ -75,7 +70,7 @@ function InComingAndOutGoingShipments({ type }) {
   const [loading, setLoading] = useState(false)
 
   const [sortColumn, setSortColumn] = useState('label')
-  const [shipmentTab, setShipmentTab] = useState('pending')
+  const [shipmentTab, setShipmentTab] = useState(router.query.shipmentTab || 'pending')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -93,21 +88,21 @@ function InComingAndOutGoingShipments({ type }) {
       minWidth: 120,
       field: 'sl_no',
       headerName: 'Sl.No',
+      align: 'left',
+      headerAlign: 'left',
 
-      renderCell: (params, rowId) => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no}
-        </Typography>
-      )
+      renderCell: (params, rowId) => <Typography sx={{ color: 'text.primary' }}>{params?.row?.sl_no}</Typography>
     },
     {
-      width: 200,
+      width: 130,
       field: 'shipment_id',
       headerName: 'Shipment Id',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: (params, rowId) => (
         <div>
           <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 500, fontSize: '14px' }}>
-            {params.row.shipment_id}
+            {params?.row?.shipment_id}
           </Typography>
         </div>
       )
@@ -115,10 +110,13 @@ function InComingAndOutGoingShipments({ type }) {
     {
       width: 120,
       field: 'ro_no',
-      headerName: 'Belongs to',
+      headerName: type === 'outing' && selectedPharmacy.type === 'central' ? 'Type' : 'Belongs To',
+      align: 'left',
+      headerAlign: 'left',
+
       renderCell: params => (
         <Typography sx={{ color: 'primary.OnSurface', fontWeight: 500, fontSize: '14px' }}>
-          {params.row.ro_no}
+          {Number(params?.row?.request_count) > 1 ? '-' : params?.row?.ro_no}
         </Typography>
       )
     },
@@ -127,6 +125,8 @@ function InComingAndOutGoingShipments({ type }) {
       minWidth: 200,
       field: 'from_store',
       headerName: type === 'outing' ? 'Shipped To' : 'Shipped From',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -146,9 +146,11 @@ function InComingAndOutGoingShipments({ type }) {
       width: 120,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 500, fontSize: '14px' }}>
-          {params.row.vehicle_no ? params.row.vehicle_no : 'NA'}
+          {params?.row?.vehicle_no ? params?.row?.vehicle_no : 'NA'}
         </Typography>
       )
     },
@@ -156,14 +158,15 @@ function InComingAndOutGoingShipments({ type }) {
       width: 140,
       field: 'person_shipping',
       headerName: 'Driver Name',
-      textAlign: 'left',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Box sx={{ py: 2 }}>
           <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 400, fontSize: '14px' }}>
-            {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
+            {params?.row?.person_shipping ? params?.row?.person_shipping : params?.row?.receiver_name}
           </Typography>
           <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}>
-            {params.row.phone_number ? params.row.phone_number : 'NA'}
+            {params?.row?.phone_number ? params?.row?.phone_number : 'NA'}
           </Typography>
         </Box>
       )
@@ -173,6 +176,8 @@ function InComingAndOutGoingShipments({ type }) {
       width: 160,
       field: 'status',
       headerName: 'Status',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography component='div' variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -207,18 +212,16 @@ function InComingAndOutGoingShipments({ type }) {
       width: 200,
       field: 'created_by_user_name',
       headerName: 'Shipped by ',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.created_at)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
+        </>
       )
     }
   ]
@@ -245,6 +248,14 @@ function InComingAndOutGoingShipments({ type }) {
           if (res?.success === true && res?.data?.items?.length > 0) {
             setTotal(parseInt(res?.data?.total))
             setRows(loadServerRows(paginationModel?.page, res?.data?.items))
+            updateUrlParams({
+              sort,
+              q: searchValue,
+              column: column,
+              shipmentTab: shipmentTab,
+              page: paginationModel?.page,
+              limit: paginationModel?.pageSize
+            })
           } else {
             setTotal(0)
             setRows([])
@@ -364,6 +375,12 @@ function InComingAndOutGoingShipments({ type }) {
         setPaginationModel={setPaginationModel}
         loading={loading}
         searchValue={searchValue}
+        externalTableStyle={{
+          '& .MuiDataGrid-cell': {
+            paddingLeft: '16px',
+            paddingRight: '16px'
+          }
+        }}
       />
     )
   }

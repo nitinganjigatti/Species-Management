@@ -28,6 +28,7 @@ import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ShipmentReport = () => {
   const router = useRouter()
@@ -178,7 +179,6 @@ const ShipmentReport = () => {
       endDate: filterDates?.endDate
     })
   }, [paginationModel.page, paginationModel.pageSize, filterDates, sort, sortColumn, selectedPharmacy?.id])
-
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -608,11 +608,11 @@ const ShipmentReport = () => {
       headerName: 'Created by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.shipment_created_by_user_name,
-            params?.row?.shipment_created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.shipment_created_by_user_name}
+            date={params?.row?.shipment_created_at}
+          />
         </>
       )
     },
@@ -623,11 +623,11 @@ const ShipmentReport = () => {
       headerName: 'Updated by',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.shipment_updated_by_user_name,
-            params?.row?.shipment_updated_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_updated_profile_pic}
+            user_name={params?.row?.shipment_updated_by_user_name}
+            date={params?.row?.shipment_updated_at}
+          />
         </>
       )
     }
@@ -822,9 +822,13 @@ const ShipmentReport = () => {
               </Grid>
 
               <Grid item sm={7} size={{ xs: 12, sm: 7 }}>
-                <Grid container spacing={2} sx={{
-                  justifyContent: { xs: 'flex-end' }
-                }}>
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{
+                    justifyContent: { xs: 'flex-end' }
+                  }}
+                >
                   <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                     <TextField
                       variant='outlined'
@@ -840,7 +844,11 @@ const ShipmentReport = () => {
                         input: {
                           startAdornment: (
                             <InputAdornment position='start'>
-                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                              <Icon
+                                icon='mi:search'
+                                fontSize={24}
+                                color={theme.palette.customColors.neutralSecondary}
+                              />
                             </InputAdornment>
                           )
                         }
@@ -904,7 +912,7 @@ const ShipmentReport = () => {
         />
       )}
     </>
-  );
+  )
 }
 
 export default ShipmentReport
