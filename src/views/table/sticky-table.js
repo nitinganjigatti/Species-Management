@@ -365,6 +365,7 @@ const StickyTableChild = ({
                 maxWidth: isGrouped ? widthWithSubHeader : col?.width,
                 fontWeight: 'bold',
                 color: theme.palette.customColors.OnSecondaryContainer,
+
                 // borderRight: '1px solid pink',
                 borderBottom: 'none',
                 ...pinnedStyle,
@@ -713,6 +714,7 @@ const StickyTableChild = ({
             backgroundColor: 'white',
             position: 'relative',
             cursor: onRowClick && 'pointer'
+
             // '&:hover': {
             //   backgroundColor: !onCellClick && onRowClick && '#ECFFDC'
             // }
@@ -814,6 +816,7 @@ const StickyTableChild = ({
                       maxWidth: subCol.width,
                       backgroundColor: 'inherit',
                       cursor: onCellClick && 'pointer',
+
                       // '&:hover': {
                       //   backgroundColor: onCellClick && '#ECFFDC'
                       // },
@@ -831,7 +834,7 @@ const StickyTableChild = ({
               })
             ) : (
               <TableCell
-                style={{ paddingLeft: 0, paddingTop: 0, paddingBottom: 0 }}
+                style={{ paddingTop: 0, paddingBottom: 0 }}
                 onClick={e => {
                   if (onCellClick) {
                     onCellClick({ cell: row[col.field], row })
@@ -845,6 +848,7 @@ const StickyTableChild = ({
 
                   backgroundColor: 'inherit',
                   cursor: onCellClick && 'pointer',
+
                   // '&:hover': {
                   //   backgroundColor: onCellClick && '#ECFFDC'
                   // },
@@ -1032,6 +1036,7 @@ const StickyTableChild = ({
             position: 'relative',
             border: '1px solid #ddd',
             overflow: loading ? 'hidden' : 'auto'
+
             // '&::-webkit-scrollbar': { width: '0px', height: '0px' }
             // '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888' },
             // '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' }
@@ -1108,6 +1113,7 @@ const StickyTable = ({
     if (!loading && hasInitialLoaded.current) {
       // setTimeout(() => {
       setInitialLoader(false)
+
       // }, 20) // Optional delay for smoother UX
     }
   }, [loading])

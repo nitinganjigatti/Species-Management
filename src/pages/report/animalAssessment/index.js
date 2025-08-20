@@ -91,7 +91,6 @@ const AnimalAssessment = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Inside your component
   const searchRef = useRef(null)
 
   useEffect(() => {
@@ -216,6 +215,7 @@ const AnimalAssessment = () => {
     })
 
     setDataList(transformed)
+
     const headers = [
       { key: 'default_icon', label: 'ANIMAL DETAILS' },
       ...Array.from({ length: maxAssessmentCount }, (_, i) => ({
@@ -267,8 +267,8 @@ const AnimalAssessment = () => {
     return {
       field: header.key,
       headerName: header.label,
-      sortable: false,
       width: 240,
+      sortable: false,
       disableColumnMenu: true,
       headerStyle: i === 1 && { position: 'sticky', left: 300, zIndex: 1000, p: 0, m: 0 },
       columnStyle: {
@@ -780,6 +780,7 @@ const AnimalAssessment = () => {
                         }}
                         sx={{
                           backgroundColor: theme.palette.primary.contrastText,
+
                           // borderRadius: '40px', // Applies to the container
                           '& .MuiOutlinedInput-root': {
                             width: '240px',
