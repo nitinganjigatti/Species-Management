@@ -65,15 +65,21 @@ const StickyTableChild = ({
   const [searchText, setSearchText] = useState('')
   const [filteredRows, setFilteredRows] = useState(rows)
 
-  const [rearrangedColumns, setRearrangedColumns] = useState(columns)
+  const [rearrangedColumns, setRearrangedColumns] = useState(Array.isArray(columns) ? columns : [])
   const [anchorEl, setAnchorEl] = useState(null)
 
-  const hasSubHeader = rearrangedColumns.some(col => Array.isArray(col.subHeader) && col.subHeader.length > 0)
+  const hasSubHeader =
+    Array.isArray(rearrangedColumns) &&
+    rearrangedColumns.some(col => Array.isArray(col?.subHeader) && col?.subHeader?.length > 0)
   const tableTotalHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
 
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
     defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
   )
+
+  // Calculate minimum height to prevent layout shift during loading
+  const minTableHeight = defaultRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+  const finalTableHeight = loading ? minTableHeight : Math.max(dynamicTableHeight, minTableHeight)
 
   useEffect(() => {
     if (filteredRows.length > 0) {
@@ -86,6 +92,12 @@ const StickyTableChild = ({
   }, [filteredRows, defaultRowsInView])
 
   useEffect(() => {
+    if (!Array.isArray(columns)) {
+      setRearrangedColumns([])
+
+      return
+    }
+
     const leftPinnedColumns = columns.filter(col => col.pinned === 'left')
     const rightPinnedColumns = columns.filter(col => col.pinned === 'right')
     const nonPinnedColumns = columns.filter(col => !col.pinned)
@@ -1031,7 +1043,7 @@ const StickyTableChild = ({
           component={Paper}
           sx={{
             borderRadius: 2,
-            height: dynamicTableHeight,
+            height: finalTableHeight,
             overflowY: 'auto',
             position: 'relative',
             border: '1px solid #ddd',

@@ -22,6 +22,7 @@ const ControlledAutocomplete = ({
   textFieldProps = {},
   autocompleteProps = {},
   formHelperTextBackgroundColor = 'inherit',
+  inputBackgroundColor = 'inherit',
   sx = {}
 }) => {
   if (!options) return
@@ -53,7 +54,12 @@ const ControlledAutocomplete = ({
             loading={loading}
             noOptionsText='Type to search'
             renderOption={renderOption}
-            sx={sx}
+            sx={{
+              '& .MuiInputBase-root': {
+                backgroundColor: inputBackgroundColor,
+              },
+              ...sx
+            }}
             {...autocompleteProps}
             renderInput={params => (
               <TextField
@@ -67,7 +73,6 @@ const ControlledAutocomplete = ({
                   ...textFieldProps.slotProps,
                   formHelperText: {
                     sx: {
-                      backgroundColor: formHelperTextBackgroundColor, // Inherit background color from parent
                       margin: 0,
                       px: '14px',
                       pt: '3px',

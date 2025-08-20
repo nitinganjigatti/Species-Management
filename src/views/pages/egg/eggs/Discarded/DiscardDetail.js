@@ -342,7 +342,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             overflowY: 'auto',
                             whiteSpace: 'normal',
 
-                        
                             scrollbarWidth: 'thin',
                             scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
                           }}

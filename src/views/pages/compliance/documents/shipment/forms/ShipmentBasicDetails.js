@@ -12,13 +12,11 @@ import {
 } from 'src/lib/api/compliance/shipment'
 
 const validationSchema = yup.object({
-  airwaybillvalue: yup
-    .string()
-    .required('Airway bill number is required')
-    .test('valid-awb', 'Enter a valid 11-digit airway bill number', value => {
-      const strippedValue = value.replace(/\s/g, '')
-      return /^\d{11}$/.test(strippedValue)
-    }),
+  airwaybillvalue: yup.string().required('Airway bill number is required'),
+  // .test('valid-awb', 'Enter a valid 11-digit airway bill number', value => {
+  //   const strippedValue = value.replace(/\s/g, '')
+  //   return /^\d{11}$/.test(strippedValue)
+  // }),
   startDate: yup.date().nullable().required('Shipment date is required'),
   uploadedFile: yup
     .mixed()
@@ -97,17 +95,17 @@ const ShipmentBasicDetails = ({
       setLoader(true)
       const response = await getShipmentBasicDetails(id)
       if (response?.success) {
-        const formatAirwayBill = (value = '') => {
-          const inputValue = value.replace(/\D/g, '').slice(0, 11)
-          return inputValue
-            .split('')
-            .map((digit, index) => (index === 2 ? digit + '    ' : digit + '  '))
-            .join('')
-            .trim()
-        }
+        // const formatAirwayBill = (value = '') => {
+        //   const inputValue = value.replace(/\D/g, '').slice(0, 11)
+        //   return inputValue
+        //     .split('')
+        //     .map((digit, index) => (index === 2 ? digit + '    ' : digit + '  '))
+        //     .join('')
+        //     .trim()
+        // }
         setLoader(false)
-        setAirwaybillvalue(formatAirwayBill(response?.data?.shipment_number))
-        setStartDate(dayjs(response?.data?.shipment_date))
+        setAirwaybillvalue(response?.data?.shipment_number)
+        setStartDate(response?.data?.shipment_date ? response?.data?.shipment_date : null)
         setTransportType(response?.data?.transport_type)
         setUploadedFile(response?.data?.documents[0])
         setStatus(response?.data?.shipment_state)
@@ -125,7 +123,8 @@ const ShipmentBasicDetails = ({
     if (isValid) {
       const isFileObject = uploadedFile instanceof File
       const transformedData = {
-        shipment_number: airwaybillvalue.replace(/\s+/g, '') || '',
+        //shipment_number: airwaybillvalue.replace(/\s+/g, '') || '',
+        shipment_number: airwaybillvalue || '',
         shipment_date: dayjs(startDate).format('YYYY-MM-DD') || '',
         transport_type: transportType || '',
         shipment_state: status || '',

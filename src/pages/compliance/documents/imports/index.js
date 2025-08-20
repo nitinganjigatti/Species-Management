@@ -28,10 +28,11 @@ const ImportsPage = () => {
   const [selectedId, setSelectedId] = useState(null)
   const [sortModel, setSortModel] = useState([])
 
-  const [filterDate, setFilterDate] = useState({
-    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
-    endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
-  })
+  // const [filterDate, setFilterDate] = useState({
+  //   startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+  //   endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  // })
+  const [filterDate, setFilterDate] = useState({})
 
   // Filter states
   const [filterCount, setFilterCount] = useState(0)
@@ -91,7 +92,7 @@ const ImportsPage = () => {
           ...r,
           uid: start + i + 1,
           import_number: r.import_number || '-',
-          import_date: r.import_date || '-',
+          import_date: r.import_date ? r.import_date : '-',
           exports_count: r.exports_count || '-',
           species_count: r.species_count || '-',
           animals_count: r.animals_count || '-',
@@ -153,7 +154,7 @@ const ImportsPage = () => {
       headerName: 'Issued',
       renderCell: params => (
         <Typography sx={{ px: 0, width: '100%' }}>
-          {params?.value !== null ? moment(params.value).format('DD MMM YYYY') : '-'}
+          {moment(params?.value, 'YYYY-MM-DD', true).isValid() ? moment(params?.value).format('DD MMM YYYY') : '-'}
         </Typography>
       )
     },

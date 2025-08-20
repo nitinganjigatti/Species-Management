@@ -73,6 +73,7 @@ const ConditionSlider = ({
 
   const [eggStaged, setEggStaged] = useState([])
   const [eggMaster, setEggMaster] = useState([])
+  const [eggMasterLoading, setEggMasterLoading] = useState(true)
   const [displayFile, setDisplayFile] = useState('')
   const [imgArr, setImgArr] = useState([])
   const [statusId, setStatusId] = useState('')
@@ -98,6 +99,7 @@ const ConditionSlider = ({
 
   const getEggMasterData = async () => {
     try {
+      setEggMasterLoading(true)
       await GetEggMaster().then(res => {
         if (res.success) {
           setEggMaster(res?.data)
@@ -105,6 +107,8 @@ const ConditionSlider = ({
       })
     } catch (e) {
       console.error(e)
+    } finally {
+      setEggMasterLoading(false)
     }
   }
 
@@ -125,6 +129,7 @@ const ConditionSlider = ({
     assisted_by: '',
     image: [],
     hatched_date: null,
+
     ////////////////
     species: '',
     accessionType: '',
@@ -157,6 +162,7 @@ const ConditionSlider = ({
             hatched === 'assisted_hatch'
               ? yup.string().trim().required('Assisted by is required')
               : yup.string().notRequired(),
+
           ////////////////////////////////////////////////////////////////////
           species: yup.string().required('Species / Taxonomy is required'),
           accessionType: yup.string().required('Accession type is required'),
@@ -177,6 +183,7 @@ const ConditionSlider = ({
           accessionDate: yup.string().required('Accession date is required'),
           hatched_date: yup
             .mixed()
+
             // .nullable()
             .required('Hatched date is required')
             .test('valid-date', 'Invalid date', value => value && dayjs(value).isValid())
@@ -200,6 +207,7 @@ const ConditionSlider = ({
                 if (localIdentifierType && localIdentifierType.trim() !== '') {
                   return !!value
                 }
+
                 return true
               }
             )
@@ -230,6 +238,7 @@ const ConditionSlider = ({
       ...defaultValues,
       hatched_date: null
     },
+
     // defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
@@ -387,6 +396,7 @@ const ConditionSlider = ({
         type: 'manual',
         message: 'Hatched date is required'
       })
+
       return
     }
     try {
@@ -425,6 +435,7 @@ const ConditionSlider = ({
           comment: getValues('comment'),
           egg_assisted_by: getValues('assisted_by'),
           egg_attachment: imgArr,
+
           // hatched_date: values.hatched_date ? dayjs(values.hatched_date).format('YYYY-MM-DD') : null
           hatched_date: values.hatched_date ? combinedDateTime : null
         }
@@ -483,12 +494,14 @@ const ConditionSlider = ({
                 Toaster({ type: 'success', message: res.message })
               } else {
                 setLoader(false)
+
                 // setDefaultSpecies(null)
                 Toaster({ type: 'error', message: res.message })
               }
             })
           } else {
             setLoader(false)
+
             // setDefaultSpecies(null)
             Toaster({ type: 'error', message: res?.message })
           }
@@ -691,6 +704,7 @@ const ConditionSlider = ({
         setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
+
     // eggDetails?.enclosure_data
   }, [eggDetails])
 
@@ -769,7 +783,7 @@ const ConditionSlider = ({
                   fullWidth
                 >
                   <FormControl sx={{ width: '100%', mb: 4 }}>
-                    <InputLabel id='current_state'>Select State*</InputLabel>
+                    <InputLabel id='current_state'>{eggMasterLoading ? 'Loading...' : 'Select State*'}</InputLabel>
                     <Controller
                       name='current_state'
                       control={control}
@@ -777,7 +791,7 @@ const ConditionSlider = ({
                       render={({ field: { value, onChange } }) => (
                         <Select
                           name='current_state'
-                          value={value}
+                          value={eggMasterLoading ? '' : value}
                           label='Current State'
                           onChange={onChange}
                           labelId='current_state'
@@ -788,6 +802,7 @@ const ConditionSlider = ({
                               {status?.egg_status}
                             </MenuItem>
                           ))}
+                          {eggMasterLoading && <MenuItem>Loading...</MenuItem>}
                         </Select>
                       )}
                     />
@@ -907,6 +922,7 @@ const ConditionSlider = ({
                               sx={{
                                 width: '100%',
                                 mr: 12,
+
                                 // Hiding the spinner controls
                                 '& input[type=number]': {
                                   '-moz-appearance': 'textfield'
@@ -1872,6 +1888,7 @@ const ConditionSlider = ({
 
 const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
   const theme = useTheme()
+
   return (
     <Box
       sx={{

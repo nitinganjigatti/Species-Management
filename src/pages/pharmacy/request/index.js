@@ -286,7 +286,6 @@ const RequestList = () => {
   }
 
   const routeToShipmentPage = params => {
-    debugger
     Router.push({
       pathname: `/pharmacy/request/${params.row?.id}`,
       query: {
