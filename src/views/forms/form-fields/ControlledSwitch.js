@@ -86,7 +86,8 @@ const ControlledSwitch = ({
                     onChangeOverride(value, e)
                   }}
                   disabled={disabled}
-                  ownerState={{ size, switchColor }}
+                  size={size}
+                  switchColor={switchColor}
                 />
               }
               label={labelNode}
