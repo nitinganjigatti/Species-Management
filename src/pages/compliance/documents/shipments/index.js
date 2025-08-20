@@ -72,7 +72,7 @@ const ShipmentPage = () => {
       }
 
       const params = {
-        q: searchValue.replace(/[\s-]+/g, ''),
+        q: searchValue,
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
         sort: sortModel?.[0]?.sort,
