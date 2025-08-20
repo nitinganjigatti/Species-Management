@@ -98,8 +98,8 @@ export default function AddClinicalAssessmentPage() {
         addLabel='ADD'
         onCancel={() => console.log('Cancelled')}
         onAdd={() => console.log('Added')}
-        Width={200}
-        Height={50}
+        width={200}
+        height={50}
       />
 
       {temporarilySelected && (
