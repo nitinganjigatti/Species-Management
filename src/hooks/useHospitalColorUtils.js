@@ -4,13 +4,13 @@ import { useTheme } from '@mui/material'
 const useHospitalColorUtils = () => {
   const theme = useTheme()
 
-  const getSeverityColor = (severity) => {
+  const getSeverityColor = severity => {
     switch (severity) {
       case 'Guarded':
         return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
       case 'Favourable':
         return {
-          bgColor: alpha(theme.palette.customColors.addPrimary, 0.08),
+          bgColor: alpha(theme.palette.customColors.moderateSecondary, 0.2),
           color: theme.palette.customColors.moderateSecondary
         }
       case 'Doubtful':
@@ -30,7 +30,7 @@ const useHospitalColorUtils = () => {
     }
   }
 
-  const getTypeChipColor = (type) => {
+  const getTypeChipColor = type => {
     switch (type) {
       case 'Diagnosis':
         return theme.palette.customColors.displaybgPrimary
@@ -41,13 +41,13 @@ const useHospitalColorUtils = () => {
     }
   }
 
-  const getSymptomsSeverityColor = (severity) => {
+  const getSymptomsSeverityColor = severity => {
     switch (severity) {
       case 'Low':
         return { bgColor: theme.palette.customColors.displaybgPrimary, color: theme.palette.customColors.addPrimary }
       case 'Medium':
         return {
-          bgColor: alpha(theme.palette.customColors.addPrimary, 0.08),
+          bgColor: alpha(theme.palette.customColors.moderateSecondary, 0.2),
           color: theme.palette.customColors.moderateSecondary
         }
       case 'High':
