@@ -244,7 +244,7 @@ const Symptoms = () => {
           </Box>
         </Box>
 
-        <FormControlLabel
+        {/* <FormControlLabel
           control={
             <MUISwitch
               checked={currentRecordOnly}
@@ -254,7 +254,7 @@ const Symptoms = () => {
           }
           label='Current Medical Record Only'
           sx={{ ml: 0.5 }}
-        />
+        /> */}
       </Box>
 
       {/* Records List */}
