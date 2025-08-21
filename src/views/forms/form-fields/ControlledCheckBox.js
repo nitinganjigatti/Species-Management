@@ -57,7 +57,7 @@ const ControlledCheckBox = ({
   const errorMessage = fieldError?.message
 
   const composedLabel = (
-    <Box display='flex' alignItems='center' gap={1}>
+    <Box display='flex' alignItems='center' gap={2}>
       {image && (
         <CustomAvatar
           src={image}
