@@ -174,9 +174,9 @@ const AnimalsData = ({
   }
 
   useEffect(() => {
-    fetchExportList()
+    //fetchExportList()
     fetchMastersData()
-  }, [fetchExportList])
+  }, [])
 
   useEffect(() => {
     fetchExportList(true)
