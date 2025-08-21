@@ -61,7 +61,7 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  recipe_name: yup.string().required('Combo name is required')
+  recipe_name: yup.string().required('Mix name is required')
 })
 
 const StepAddIngredients = ({
