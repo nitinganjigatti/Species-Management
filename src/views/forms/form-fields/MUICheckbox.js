@@ -2,8 +2,6 @@ import React from 'react'
 import { Checkbox, FormControlLabel, Box, Typography, FormHelperText } from '@mui/material'
 
 /**
- * MUICheckbox - simple controlled checkbox with label and error
- *
  * Props:
  * - checked: boolean (required)
  * - onChange: function (required) — (checked, event) => {}
@@ -45,7 +43,7 @@ const MUICheckbox = ({
             disabled={disabled}
             size={size}
             color={checkBoxColor}
-            sx={{ ...(labelPlacement === 'end' && { pl: 0 }), ...checkboxStyle }}
+            sx={{ p: 0, ...checkboxStyle }}
           />
         }
         label={
@@ -55,6 +53,7 @@ const MUICheckbox = ({
               fontSize: '1rem',
               fontWeight: 600,
               color: 'customColors.OnSurfaceVariant',
+              pl: 3,
               ...labelStyle
             }}
           >
