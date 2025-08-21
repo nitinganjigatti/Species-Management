@@ -1,5 +1,5 @@
 import React from 'react'
-import { Avatar, Box, Typography, useTheme } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 export const symptomsPriorityChips = ({ label, fontColor, disabled, backgroundColor }) => {
@@ -75,75 +75,6 @@ export const MedicalIdChip = ({
           }}
         />
       )}
-    </Box>
-  )
-}
-
-export const StatusCard = ({
-  icon: Icon,
-  iconColor,
-  iconBgColor,
-  title,
-  subtitle,
-  titleSx = {},
-  subtitleSx = {},
-  containerSx = {},
-  iconSize = 24
-}) => {
-  const theme = useTheme()
-
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 3,
-        borderRadius: 2,
-        ...containerSx
-      }}
-    >
-      <Avatar
-        sx={{
-          width: 45,
-          height: 45,
-          backgroundColor: iconBgColor,
-          borderRadius: 0.4,
-          p: 1.4
-        }}
-      >
-        <Icon
-          sx={{
-            fontSize: iconSize,
-            color: iconColor
-          }}
-        />
-      </Avatar>
-
-      <Box sx={{ flex: 1 }}>
-        <Typography
-          variant='caption'
-          sx={{
-            color: theme.palette.customColors.secondaryBg,
-            fontWeight: 400,
-            fontSize: '0.75rem',
-            ...titleSx
-          }}
-        >
-          {title}
-        </Typography>
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontWeight: 500,
-            fontSize: '0.875rem',
-            ...subtitleSx
-          }}
-        >
-          {subtitle}
-        </Typography>
-      </Box>
     </Box>
   )
 }
