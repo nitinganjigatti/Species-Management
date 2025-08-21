@@ -250,6 +250,7 @@ const SpeciesReport = () => {
         sortable: false,
         disableColumnMenu: true,
         width: 320,
+        headerStyle: { zIndex: 147483647 },
         renderCell: params => <SpeciesCard species={params.row} />
       }
     }
@@ -268,7 +269,7 @@ const SpeciesReport = () => {
           {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null ? (
             <Box
               sx={{
-                width: '140px',
+                width: '100px',
                 height: '25px',
                 display: 'flex',
                 alignItems: 'center',
@@ -313,7 +314,16 @@ const SpeciesReport = () => {
                   : ''}
               </Typography>
             </Box>
-          ) : null}
+          ) : (
+            <Typography
+              sx={{
+                color: getCellTextColor(header.label),
+                padding: '4px 16px'
+              }}
+            >
+              -
+            </Typography>
+          )}
         </>
       )
     }
@@ -651,27 +661,25 @@ const SpeciesReport = () => {
                 )}
               </Box>
 
-              <Box sx={{ width: '98%', margin: 4 }}>
-                <Box sx={{ borderRadius: '8px' }}>
-                  <StickyTable
-                    rows={reportRows}
-                    rowCount={total}
-                    rowHeight={70}
-                    headerHeight={47}
-                    pagination={true}
-                    columns={columns.length && columns}
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    rowsInView={10}
-                    rowsInViewOptions={[5, 7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={isLoading}
-                    onRowClick={handleRowClick}
-                    downloadExcel
-                    headerName='Species General Report'
-                    searchMode='server'
-                  />
-                </Box>
+              <Box sx={{ padding: 5 }}>
+                <StickyTable
+                  rows={reportRows}
+                  rowCount={total}
+                  rowHeight={70}
+                  headerHeight={47}
+                  pagination={true}
+                  columns={columns.length && columns}
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  rowsInView={10}
+                  rowsInViewOptions={[5, 7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={isLoading}
+                  onRowClick={handleRowClick}
+                  downloadExcel
+                  headerName='Species General Report'
+                  searchMode='server'
+                />
               </Box>
             </TabContext>
           </Card>
