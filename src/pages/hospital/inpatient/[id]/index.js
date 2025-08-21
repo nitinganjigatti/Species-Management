@@ -8,10 +8,10 @@ import ClinicalAssessment from 'src/components/hospital/inpatient/ClinicalAssess
 import InpatientMedicalSummary from 'src/views/pages/hospital/inpatient/InpatientMedicalSummary'
 import InpatientOverview from 'src/views/pages/hospital/inpatient/InpatientOverview'
 import InpatientSurgery from 'src/views/pages/hospital/inpatient/InpatientSurgery'
-import InpatinetTreatmentMonitoring from 'src/views/pages/hospital/inpatient/InpatinetTreatmentMonitoring'
 import Symptoms from 'src/components/hospital/inpatient/Symptoms'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 import InpatientDischarge from 'src/views/pages/hospital/inpatient/InpatientDischarge'
+import PrescriptionLayout from 'src/components/hospital/prescriptionMonitoring/PrescriptionLayout'
 
 const InpatientDetails = () => {
   const router = useRouter()
@@ -22,7 +22,7 @@ const InpatientDetails = () => {
   const tabConfig = [
     { label: 'Overview', value: 'overview', component: InpatientOverview },
     { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
-    { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: InpatinetTreatmentMonitoring },
+    { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: PrescriptionLayout },
     { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
     { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
     { label: 'Symptoms', value: 'symptoms', component: Symptoms },
