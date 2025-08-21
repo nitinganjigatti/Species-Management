@@ -531,7 +531,7 @@ const RequestDetails = () => {
               {shouldShowDropdown && handleRowPermission({ params }) ? (
                 <FormControl fullWidth variant='outlined'>
                   <Select
-                    disabled={isSelected}
+                    // disabled={isSelected}
                     size='small'
                     labelId='demo-simple-select-label'
                     id='demo-simple-select'
@@ -549,11 +549,11 @@ const RequestDetails = () => {
                         params.row.status === 'completed_insufficient_samples' ||
                         params.row.status === 'sample_haemolysed' ||
                         params.row.status === 'sample_rejected'
-                          ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                          ? 'rgba(255, 0, 0, 0.1)'
                           : params.row.status === 'completed'
-                          ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                          ? 'rgba(0, 128, 0, 0.1)'
                           : params.row.status === 'inprogress'
-                          ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                          ? 'rgba(228, 184, 25, 0.1)'
                           : params.row.status === 'sample_received'
                           ? 'rgba(0, 128, 0, 0.1)'
                           : 'rgba(0, 128, 0, 0.1)',
@@ -1478,6 +1478,15 @@ const RequestDetails = () => {
                 },
                 '& .MuiDataGrid-row .customButton': {
                   display: 'none'
+                },
+                '& .MuiDataGrid-row.Mui-selected': {
+                  backgroundColor: 'white !important'
+                },
+                '& .MuiDataGrid-row.Mui-selected:hover': {
+                  backgroundColor: 'white !important'
+                },
+                '& .MuiDataGrid-row.Mui-selected.MuiDataGrid-row--focused': {
+                  backgroundColor: 'white !important'
                 }
               }}
               autoHeight
