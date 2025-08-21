@@ -11,8 +11,6 @@ import ErrorScreen from 'src/pages/Error'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import Icon from 'src/@core/components/icon'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import CommonDialogBox from 'src/components/CommonDialogBox'
-import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import { getLabList } from 'src/lib/api/lab/addLab'
 
 const ListOfLab = () => {
@@ -29,14 +27,6 @@ const ListOfLab = () => {
     const Data = window.localStorage.getItem('userDetails')
     setStoredData(JSON.parse(Data))
   }, [])
-
-  const closeDialog = () => {
-    setShow(false)
-  }
-
-  const showDialog = () => {
-    setShow(true)
-  }
 
   const handleEdit = async (e, params) => {
     e.stopPropagation()
@@ -179,7 +169,7 @@ const ListOfLab = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: router?.query?.page ? parseInt(router?.query?.page) : 0,
-    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
+    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 50
   })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -271,8 +261,6 @@ const ListOfLab = () => {
           onClick={() => {
             Router.push({
               pathname: '/lab/lab-list/add-Lab',
-
-              // query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
               query: { page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
             })
           }}
@@ -329,8 +317,8 @@ const ListOfLab = () => {
                   Lab list
                 </Typography>
               </Breadcrumbs>
-              <Card>
-                <CardHeader title='Lab List' sx={{ paddingX: 5 }} action={headerAction} />
+              <Card sx={{ paddingX: 5 }}>
+                <CardHeader sx={{ paddingX: 0 }} title='Lab List' action={headerAction} />
                 <DataGrid
                   autoHeight
                   pagination
@@ -346,6 +334,19 @@ const ListOfLab = () => {
                   onPaginationModelChange={handlePaginationModelChange}
                   loading={loading}
                   onCellClick={onCellClick}
+                  sx={{
+                    borderTopLeftRadius: '8px',
+                    '& .MuiBox-root': {
+                      paddingX: 0
+                    },
+                    '.MuiDataGrid-main': {
+                      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                      borderRadius: '8px'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      border: 'none !important'
+                    }
+                  }}
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'
