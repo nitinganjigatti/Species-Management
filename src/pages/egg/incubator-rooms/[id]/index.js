@@ -60,7 +60,7 @@ const RoomDetails = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [detailsData, setDetailsData] = useState({})
 
@@ -711,13 +711,16 @@ const RoomDetails = () => {
               <Box>
                 <DataGrid
                   sx={{
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
+                    paddingX: 4,
+                    borderTopLeftRadius: '8px',
+                    '& .MuiBox-root': { paddingX: 0 },
+                    '.MuiDataGrid-main': {
+                      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                      borderRadius: '8px'
                     },
-
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
-                    }
+                    '& .MuiDataGrid-footerContainer': { border: 'none !important' },
+                    '.MuiDataGrid-cell:focus': { outline: 'none' },
+                    '& .MuiDataGrid-row:hover': { cursor: 'pointer' }
                   }}
                   columnVisibilityModel={{
                     sl_no: false

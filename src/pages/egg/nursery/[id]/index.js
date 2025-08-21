@@ -62,7 +62,7 @@ const NurseryDetails = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [isPreFilled, setIsPreFilled] = useState({})
   const [disabledAddRoomBtn, setdisabledAddRoomBtn] = useState(true)
 
