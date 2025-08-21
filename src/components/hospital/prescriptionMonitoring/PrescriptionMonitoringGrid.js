@@ -105,8 +105,7 @@ const MetricCardWraper = styled(Box)(({ theme }) => ({
 
   // marginBottom: theme.spacing(2),
   width: '266px',
-
-  gap: '8px'
+  gap: '4px'
 }))
 
 const MetricLabel = styled(Box, {
@@ -127,7 +126,7 @@ const MetricLabel = styled(Box, {
   marginBottom: theme.spacing(2),
   width: '234px',
   borderRadius: '8px',
-  padding: '8px 12px'
+  padding: '8px 12px '
 }))
 
 const MetricName = styled(Typography)(({ theme }) => ({
@@ -733,7 +732,11 @@ const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => 
           {displayMetrics.map(metric => (
             <MetricCardWraper key={metric.id}>
               {/* <CheckBox /> */}
-              <MUICheckbox />
+              <MUICheckbox
+                sx={{
+                  border: '1px solid white'
+                }}
+              />
               <MetricLabel
                 config={prescriptionCardColorsConfig(metric)}
                 sx={
@@ -756,7 +759,7 @@ const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => 
                       fontSize: '16px',
                       lineHeight: '100%',
                       letterSpacing: 0,
-                      verticalAlign: 'middle',
+                      verticalAlign: 'bottom',
                       fontStyle: 'normal',
 
                       width: '210px',
@@ -788,7 +791,7 @@ const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => 
                     )}
                     {metric.name}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 3 }}>
                     <Icon icon='wi:time-9' width='12px' height='12px' />
                     <Typography
                       sx={{
