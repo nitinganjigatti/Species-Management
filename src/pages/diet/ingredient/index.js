@@ -213,29 +213,6 @@ const IngredientsList = () => {
     </>
   )
 
-  const handleSwitchChange = async (event, rowData) => {
-    console.log(event.target.checked, 'lll')
-    console.log(rowData, 'rowData')
-    const newIsActive = event.target.checked ? 1 : 0
-    try {
-      const response = await updateIngredientStatus(rowData?.id, { status: newIsActive })
-      console.log(response, 'response')
-      if (response.success === true) {
-        fetchTableData(sort, searchValue, sortColumning, status)
-        Toaster({
-          type: 'success',
-          message: `Ingredient ${'ING' + rowData.id} has been successfully ${
-            newIsActive === 1 ? 'actiavted' : 'deactivated'
-          }`
-        })
-      } else {
-        Toaster({ type: 'error', message: 'something went wrong' })
-      }
-    } catch (error) {
-      console.error('Error updating ingredient status:', error)
-    }
-  }
-
   const handleSearch = value => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
@@ -412,23 +389,6 @@ const IngredientsList = () => {
         />
       )
     }
-
-    // {
-    //   //flex: 0.3,
-    //   minWidth: 20,
-    //   field: 'switch',
-    //   headerName: '',
-    //   disableColumnMenu: true, // Exclude from column menu
-    //   renderCell: params => (
-    //     <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-    //       <Switch
-    //         checked={params.row.active === '0' ? false : true}
-    //         onChange={event => handleSwitchChange(event, params.row)}
-    //         fontSize={2}
-    //       />
-    //     </Box>
-    //   )
-    // }
   ]
 
   const onCellClick = params => {
@@ -578,12 +538,13 @@ const IngredientsList = () => {
               <TabPanel value='0'>{tableData()}</TabPanel>
             </TabContext>
           </Grid>
-
-          <AddIngredients
-            open={openIngredient}
-            handleSidebarClose={handleSidebarClose}
-            setSelectedIngredient={setSelectedIngredient}
-          />
+          {openIngredient && (
+            <AddIngredients
+              open={openIngredient}
+              handleSidebarClose={handleSidebarClose}
+              setSelectedIngredient={setSelectedIngredient}
+            />
+          )}
         </>
       ) : (
         <>

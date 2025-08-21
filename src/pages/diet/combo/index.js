@@ -297,7 +297,7 @@ const RecipeList = () => {
       headerName: 'MIX ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.id ? 'MIX' + params.row.id : '-'}
+          {params.row.id ? 'CMB' + params.row.id : '-'}
         </Typography>
       )
     },

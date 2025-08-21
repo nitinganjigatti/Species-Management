@@ -1590,7 +1590,7 @@ const StepBasicDetails = ({
                                   <Typography
                                     sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '12px', pl: 3 }}
                                   >
-                                    {'MIX' + all?.recipe_id}
+                                    {'CMB' + all?.recipe_id}
                                   </Typography>
                                 </Grid>
 
