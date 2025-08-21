@@ -250,7 +250,7 @@ const SpeciesReport = () => {
         sortable: false,
         disableColumnMenu: true,
         width: 320,
-        headerStyle: { zIndex: 147483647 },
+        headerStyle: { zIndex: 1099 },
         renderCell: params => <SpeciesCard species={params.row} />
       }
     }

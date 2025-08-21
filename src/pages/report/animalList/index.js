@@ -382,7 +382,7 @@ const AnimalList = () => {
         sortable: false,
         disableColumnMenu: true,
         width: 300,
-        headerStyle: { zIndex: 147483647 },
+        headerStyle: { zIndex: 1099 },
         renderCell: params => (
           <Box sx={{ paddingY: '20px' }}>
             <AnimalCard data={params.row} />
