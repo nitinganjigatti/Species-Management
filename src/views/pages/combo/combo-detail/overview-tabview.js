@@ -95,7 +95,7 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
         </Box>
         <ActivityLogs
           activitySidebarOpen={activitySidebarOpen}
-          activity_type='combo'
+          activity_type='mix'
           detailsValue={IngredientsDetailsval}
           searchValue={searchValue}
           setSearchValue={setSearchValue}

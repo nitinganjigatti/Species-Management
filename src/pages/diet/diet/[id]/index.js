@@ -1848,7 +1848,7 @@ const DietDetail = () => {
                                                                               display: 'block'
                                                                             }}
                                                                           >
-                                                                            Combo
+                                                                            Mix
                                                                           </Typography>
                                                                           <Typography
                                                                             sx={{

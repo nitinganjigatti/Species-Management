@@ -251,7 +251,7 @@ const RecipeList = () => {
       //flex: 1,
       width: 300,
       field: 'recipe_name',
-      headerName: 'COMBO',
+      headerName: 'MIX',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -294,10 +294,10 @@ const RecipeList = () => {
       //flex: 0.4,
       width: 130,
       field: 'id',
-      headerName: 'COMBO ID',
+      headerName: 'MIX ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.id ? 'CMB' + params.row.id : '-'}
+          {params.row.id ? 'MIX' + params.row.id : '-'}
         </Typography>
       )
     },
@@ -422,7 +422,7 @@ const RecipeList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title='Combo' action={headerAction} sx={{ px: 5 }} />
+            <CardHeader title='Mix' action={headerAction} sx={{ px: 5 }} />
 
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <DataGrid
