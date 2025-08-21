@@ -107,7 +107,8 @@ const AnimalsData = ({
           const params = {
             q: searchValue,
             page_no: nextPage,
-            limit: paginationModel.pageSize
+            limit: paginationModel.pageSize,
+            excludeShipped: 1
           }
 
           const response = await getExportList(params)
@@ -136,7 +137,8 @@ const AnimalsData = ({
         const params = {
           q: searchValue,
           page_no: reset ? 1 : paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          excludeShipped: 1
         }
 
         const response = await getExportList(params)
