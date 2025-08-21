@@ -1,5 +1,5 @@
-import React from 'react'
-import { Box, Card, Grid, Typography, Avatar } from '@mui/material'
+import React, { useState } from 'react'
+import { Box, Card, Grid, Typography, Avatar, TextField, Button, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
@@ -8,6 +8,94 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
+
+// Save Template UI Component
+const SaveTemplateUI = ({ onClose, onSave }) => {
+  const theme = useTheme()
+  const [templateName, setTemplateName] = useState('')
+
+  const handleSave = () => {
+    if (templateName.trim()) {
+      onSave(templateName)
+      setTemplateName('')
+    }
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: { xs: 'start', sm: 'center' },
+        gap: '16px',
+        flexDirection: { xs: 'column', sm: 'row' }
+      }}
+    >
+      <TextField
+        size='small'
+        placeholder='Enter template name'
+        value={templateName}
+        onChange={e => setTemplateName(e.target.value)}
+        sx={{
+          maxWidth: '413px',
+          minWidth: { xs: '100%', sm: '200px' },
+          height: '48px',
+          flex: 1,
+          borderRadius: '4px',
+          borderColor: theme.palette.customColors.OutlineVariant,
+          backgroundColor: theme.palette.customColors.Surface,
+          '& .MuiOutlinedInput-root': {
+            height: '48px',
+            '& fieldset': {}
+          }
+        }}
+      />
+      <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <Button
+          variant='contained'
+          onClick={handleSave}
+          startIcon={
+            <Avatar
+              src='/icons/FloppyDisk.svg'
+              variant='square'
+              sx={{
+                objectFit: 'contain',
+                height: '24px',
+                width: '24px',
+                filter: 'brightness(0) invert(1)'
+              }}
+            />
+          }
+          sx={{
+            height: '48px',
+            width: '104px',
+            backgroundColor: theme.palette.primary.main,
+            color: 'white',
+            borderRadius: '6px',
+            textTransform: 'uppercase',
+            fontWeight: 500,
+            fontSize: 15,
+            '&:hover': {
+              backgroundColor: theme.palette.primary.dark
+            }
+          }}
+        >
+          Save
+        </Button>
+        <IconButton
+          onClick={onClose}
+          sx={{
+            color: theme.palette.primary.light,
+            '&:hover': {
+              backgroundColor: 'rgba(0,0,0,0.04)'
+            }
+          }}
+        >
+          <Icon icon='mdi:close' fontSize={19} />
+        </IconButton>
+      </Box>
+    </Box>
+  )
+}
 
 const SurgeryRecordForm = ({
   control,
@@ -19,6 +107,13 @@ const SurgeryRecordForm = ({
   setOpenAddAnaesthesiaDrawer
 }) => {
   const theme = useTheme()
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+
+  const handleSaveTemplate = templateName => {
+    // Handle saving template logic here
+    console.log('Saving template:', templateName)
+    setShowSaveTemplate(false)
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -130,23 +225,30 @@ const SurgeryRecordForm = ({
 
             <ControlledTextArea placeholder={'Enter text'} control={control} name={'notes'} rows={3} errors={errors} />
           </Box>
-          <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mb: '8px' }}>
-            <Avatar
-              src='/icons/FloppyDisk.svg'
-              variant='square'
-              sx={{ objectFit: 'contain', height: '24px', width: '24px' }}
-            />
-            <Typography
-              sx={{
-                fontWeight: 600,
-                fontSize: '16px',
-                letterSpacing: 0,
-                color: theme.palette.primary.dark
-              }}
-            >
-              Save as template
-            </Typography>
-          </Box>
+
+          {showSaveTemplate ? (
+            <SaveTemplateUI onClose={() => setShowSaveTemplate(false)} onSave={handleSaveTemplate} />
+          ) : (
+            <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mb: '8px', cursor: 'pointer' }}>
+              <Avatar
+                src='/icons/FloppyDisk.svg'
+                variant='square'
+                sx={{ objectFit: 'contain', height: '24px', width: '24px' }}
+              />
+              <Typography
+                onClick={() => setShowSaveTemplate(true)}
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '16px',
+                  letterSpacing: 0,
+                  color: theme.palette.primary.dark
+                }}
+              >
+                Save as template
+              </Typography>
+            </Box>
+          )}
+
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography

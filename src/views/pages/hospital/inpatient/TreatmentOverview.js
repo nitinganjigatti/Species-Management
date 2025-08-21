@@ -1,17 +1,10 @@
 import React from 'react'
-import { Box, Typography, Grid, Avatar, Divider } from '@mui/material'
-import {
-  MonitorHeart,
-  Assignment,
-  LocalPharmacy,
-  Image,
-  PictureAsPdf,
-  Add
-} from '@mui/icons-material'
+import { Box, Typography, Grid, Avatar, Divider, Tooltip } from '@mui/material'
+import { MonitorHeart, Assignment, LocalPharmacy, Image, PictureAsPdf, Add } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 
 // Reusable Stats Card Component
-const StatsCard = ({ icon: Icon, count, label, color = 'primary' }) => {
+const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor }) => {
   const theme = useTheme()
 
   return (
@@ -23,32 +16,56 @@ const StatsCard = ({ icon: Icon, count, label, color = 'primary' }) => {
         padding: '1rem 1rem 1rem 2rem', // extra left padding for icon overlap
         minHeight: '80px', // adjust as needed
         borderRadius: '8px',
-        backgroundColor: '#FCF4AE99'
+        backgroundColor
       }}
     >
       {/* Overlapping Icon Box */}
       <Box
         sx={{
+          height: '56px',
+          width: '56px',
+          borderRadius: '16px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+
+          // padding: '12px',
           position: 'absolute',
           left: 0,
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          backgroundColor: '#fff', // optional for background
-          padding: '0.25rem',
+          backgroundColor: theme.palette.primary.contrastText, // optional for background
           zIndex: 1,
-          boxShadow: '0px 4px 10px #0000001A', // Add subtle drop shadow
-          borderRadius: '8px' // optional: for smoother look
+          boxShadow: `0px 0px 6px 0px ${theme.palette.customColors.shadowColor}`
         }}
       >
-        <Icon sx={{ fontSize: 40, color: `${color}.main` }} />
+        <Avatar variant='square' src={icon} sx={{ height: '32px', width: '32px', objectFit: 'contain' }} />
       </Box>
 
       {/* Text Content */}
-      <Box sx={{ pl: 2 }}>
-        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '20px', fontWeight: 500 }}>
+      <Box sx={{ pl: 2, flex: 1, minWidth: 0 }}>
+        <Typography
+          sx={{
+            color,
+            fontSize: '20px',
+            fontWeight: 500
+          }}
+        >
           {count}
         </Typography>
-        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}>{label}</Typography>
+        <Tooltip title={label} arrow>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '14px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {label}
+          </Typography>
+        </Tooltip>
       </Box>
     </Box>
   )
@@ -106,30 +123,36 @@ const SectionHeader = ({ title, children }) => (
 
 // Main Healthcare Overview Component
 const HealthcareOverview = () => {
+  const theme = useTheme()
+
   const statsData = [
     {
-      icon: MonitorHeart,
+      icon: '/icons/hospital/TreatmentMonitoring.svg',
       count: 12,
       label: 'Treatment Monitoring',
-      color: 'error'
+      color: theme.palette.customColors.Error,
+      backgroundColor: '#FFD3D333'
     },
     {
-      icon: MonitorHeart,
+      icon: '/icons/hospital/ActiveSymptoms.svg',
       count: 12,
       label: 'Active Clinical assessment',
-      color: 'success'
+      color: theme.palette.primary.dark,
+      backgroundColor: '#FCF4AE99'
     },
     {
-      icon: Assignment,
+      icon: '/icons/hospital/ActiveClinicalAassesment.svg',
       count: 12,
       label: 'Active Symptoms',
-      color: 'success'
+      color: theme.palette.primary.main,
+      backgroundColor: '#E1F9EDCC'
     },
     {
-      icon: LocalPharmacy,
+      icon: '/icons/hospital/Prescription.svg',
       count: 12,
       label: 'Prescription',
-      color: 'info'
+      color: theme.palette.customColors.addPrimary,
+      backgroundColor: theme.palette.customColors.bodyBg
     }
   ]
 
@@ -151,9 +174,9 @@ const HealthcareOverview = () => {
   }
 
   return (
-    <Box sx={{ py: 3, px: 4, maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ py: 3, pl: 8 }}>
       {/* Stats Cards */}
-      <Grid container spacing={9}>
+      <Grid container spacing={'40px'}>
         {statsData.map((stat, index) => (
           <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
             <StatsCard {...stat} />
@@ -162,14 +185,14 @@ const HealthcareOverview = () => {
       </Grid>
 
       {/* Reason for Admission Section */}
-      <SectionHeader title='Reason for Admission'>
+      {/* <SectionHeader title='Reason for Admission'>
         <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
           magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
           consequat. Duis aute irure dolor
         </Typography>
-       
-      </SectionHeader>
+
+      </SectionHeader> */}
     </Box>
   )
 }

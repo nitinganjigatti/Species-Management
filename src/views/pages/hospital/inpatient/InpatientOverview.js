@@ -3,6 +3,7 @@ import { Box, Grid } from '@mui/system'
 import React from 'react'
 import MoreMediaListing from 'src/components/MoreMediaListing'
 import { renderUserAvatarDetails } from 'src/utility/render'
+import HealthcareOverview from './TreatmentOverview'
 
 const sampleMediaItems = [
   {
@@ -55,7 +56,9 @@ const InpatientOverview = () => {
   return (
     <>
       <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <Box></Box>
+        <Box>
+          <HealthcareOverview />
+        </Box>
         <Grid container spacing={6} sx={{ borderRadius: 2, p: 4 }}>
           <Grid size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}>
