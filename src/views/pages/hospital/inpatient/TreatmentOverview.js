@@ -39,7 +39,15 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor }) =
           boxShadow: `0px 0px 6px 0px ${theme.palette.customColors.shadowColor}`
         }}
       >
-        <Avatar variant='square' src={icon} sx={{ height: '32px', width: '32px', objectFit: 'contain' }} />
+        <Avatar
+          variant='square'
+          src={icon}
+          sx={{
+            height: '32px',
+            width: icon === '/icons/hospital/TreatmentMonitoring.svg' ? '37px' : '32px',
+            objectFit: 'contain'
+          }}
+        />
       </Box>
 
       {/* Text Content */}
