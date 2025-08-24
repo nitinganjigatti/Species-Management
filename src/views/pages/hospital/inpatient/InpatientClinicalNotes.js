@@ -1,0 +1,152 @@
+import React from 'react'
+
+// ** MUI Imports
+import { Typography, Box, Button, IconButton } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+import { alpha, useTheme } from '@mui/material/styles'
+
+// ** Custom Core Components
+import Icon from 'src/@core/components/icon'
+
+// ** Form & Validation Setup
+import { useForm } from 'react-hook-form'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+// ** Utility Components
+import { MedicalIdChip } from '../utility/hospitalSnippets'
+
+// ** Custom Form Components
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+
+const defaultValues = {
+  clinical_note_name: ''
+}
+
+const schema = yup.object().shape({
+  clinical_note_name: yup.string().trim()
+})
+
+const InpatientClinicalNotes = props => {
+  const { clinicalNotesData, handleSubmitData, onDeleteNote, loading } = props
+  const theme = useTheme()
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const clinical_note_name = watch('clinical_note_name')
+
+  const onSubmit = async params => {
+    await handleSubmitData(params.clinical_note_name)
+
+    reset(defaultValues)
+  }
+
+  return (
+    <>
+      <Box
+        sx={{
+          p: 6,
+          backgroundColor: theme.palette.customColors.displaybgPrimary,
+          borderRadius: '12px',
+          mb: 6,
+          mt: 8
+        }}
+      >
+        <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.deepDark, mb: 4 }}>
+          Enter clinical notes
+        </Typography>
+
+        {/* Clinical Note Form */}
+        <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+          <ControlledTextArea
+            name='clinical_note_name'
+            control={control}
+            placeholder='Add notes'
+
+            // minRows={1}
+          />
+
+          {clinical_note_name?.trim() && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+              <Button
+                startIcon={<Icon icon='mdi:close' />}
+                variant='text'
+                sx={{ color: theme.palette.customColors.OnPrimaryContainer }}
+                onClick={() => reset(defaultValues)}
+                size='small'
+              >
+                Clear Text
+              </Button>
+              <LoadingButton
+                sx={{ padding: '10px 70px', borderRadius: '4px' }}
+                disabled={loading}
+                variant='contained'
+                loading={loading}
+                type='submit'
+                size='small'
+              >
+                Add
+              </LoadingButton>
+            </Box>
+          )}
+        </form>
+      </Box>
+      {/*  Clinical Notes List */}
+      {clinicalNotesData?.map(data => {
+        return (
+          <Box
+            key={data.id}
+            sx={{ p: 6, mb: 4, background: alpha(theme.palette.customColors.antzNotes80, 0.2), borderRadius: '8px' }}
+          >
+            <MedicalIdChip
+              leftImage
+              medId={data.id}
+              rightDot
+              dotColor={theme.palette.primary.main}
+              textColor={theme.palette.customColors.OnSurface}
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
+              <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVariant }}>
+                {data.note}
+              </Typography>
+
+              <Box sx={{ ml: 2, cursor: 'pointer' }}>
+                <IconButton
+                  size='small'
+                  onClick={() => onDeleteNote(data.id)}
+                  sx={{ color: theme.palette.customColors.Tertiary }}
+                >
+                  <CancelOutlinedIcon fontSize='small' />
+                </IconButton>
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '0.875rem' }}>
+                {data.author}
+              </Typography>
+              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '0.875rem' }}>
+                {data.date}
+              </Typography>
+              <MUISwitch />
+            </Box>
+          </Box>
+        )
+      })}
+    </>
+  )
+}
+
+export default InpatientClinicalNotes
