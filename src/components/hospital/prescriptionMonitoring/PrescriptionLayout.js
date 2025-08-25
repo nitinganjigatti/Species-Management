@@ -4,7 +4,10 @@ import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import PrescriptionMonitoringGrid from './PrescriptionMonitoringGrid'
 import { Button } from '@mui/material'
 
-function PrescriptionLayout() {
+function PrescriptionLayout({ drawerType }) {
+  // const { drawerType } = drawerType
+  console.log('drawerState', drawerType)
+
   return (
     <div>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 10, justifyContent: 'space-between' }}>
