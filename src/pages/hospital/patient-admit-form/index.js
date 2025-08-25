@@ -1,4 +1,4 @@
-import PatientAdmitForm from 'src/components/hospital/PatientAdmitForm'
+import PatientAdmitForm from 'src/components/hospital/PatientAdmissionForm/PatientAdmitForm'
 import React from 'react'
 
 const AdmitPatientForm = () => {
