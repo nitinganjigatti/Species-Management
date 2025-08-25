@@ -8,6 +8,7 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
+import RichTextEditor from 'src/components/RichTextEditor'
 
 // Save Template UI Component
 const SaveTemplateUI = ({ onClose, onSave }) => {
@@ -108,6 +109,7 @@ const SurgeryRecordForm = ({
 }) => {
   const theme = useTheme()
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+  const [richNote, setRichNote] = useState('')
 
   const handleSaveTemplate = templateName => {
     // Handle saving template logic here
@@ -223,7 +225,9 @@ const SurgeryRecordForm = ({
               Enter surgery notes
             </Typography>
 
-            <ControlledTextArea placeholder={'Enter text'} control={control} name={'notes'} rows={3} errors={errors} />
+            {/* <ControlledTextArea placeholder={'Enter text'} control={control} name={'notes'} rows={3} errors={errors} /> */}
+
+            <RichTextEditor value={richNote} onChange={setRichNote} placeholder='Enter text...' />
           </Box>
 
           {showSaveTemplate ? (
