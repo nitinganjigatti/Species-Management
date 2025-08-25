@@ -753,13 +753,23 @@ const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => 
 
               {displayMetrics.map(metric => (
                 <MetricCardWraper key={metric.id}>
+                  {/* <CheckBox /> */}
                   <MUICheckbox />
-                  <MetricLabel config={prescriptionCardColorsConfig(metric)}>
+                  <MetricLabel
+                    config={prescriptionCardColorsConfig(metric)}
+                    sx={
+                      {
+                        // borderLeft: metric.color_code ? `4px solid ${metric.color_code}` : 'none'
+                        // ...prescriptionCardColorsConfig(metric.status)
+                      }
+                    }
+                  >
                     <Box
                       onClick={() => {
                         console.log('metric left menu', metric)
                       }}
                     >
+                      {/* {renderStyledText(metric.name)} */}
                       <Typography
                         sx={{
                           fontFamily: 'Inter, sans-serif',
@@ -769,6 +779,7 @@ const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => 
                           letterSpacing: 0,
                           verticalAlign: 'middle',
                           fontStyle: 'normal',
+
                           width: '210px',
                           display: 'flex',
                           gap: 1
@@ -812,7 +823,7 @@ const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => 
                           sx={{
                             color: theme.palette.customColors.secondaryBg,
                             fontFamily: 'Inter',
-                            fontWeight: 600,
+                            fontWeight: 600, // Semi Bold
                             fontSize: '14px',
                             lineHeight: '100%',
                             letterSpacing: 0,

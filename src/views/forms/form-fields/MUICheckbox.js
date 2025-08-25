@@ -53,7 +53,7 @@ const MUICheckbox = ({
               fontSize: '1rem',
               fontWeight: 600,
               color: 'customColors.OnSurfaceVariant',
-              pl: 3,
+              pl: label ? 3 : 0,
               ...labelStyle
             }}
           >
