@@ -30,7 +30,7 @@ const treatmentType = [
 
 const medicalRecordType = [
   { label: 'Create a new ID', value: 'new' },
-  { label: 'Continue to existing ID', value: 'existing' }
+  { label: 'Add to existing ID', value: 'existing' }
 ]
 
 const schema = yup.object().shape({})
@@ -105,6 +105,9 @@ const AddPatientForm = () => {
                           label={item?.label}
                           isSelected={field.value === item?.value}
                           onClick={() => field.onChange(item?.value)}
+                          backgroundColor={theme.palette.customColors.Surface}
+                          borderColor={theme.palette.customColors.OutlineVariant}
+                          selectedBackgroundColor={theme.palette.customColors.Surface}
                         />
                       ))}
                     </Box>
@@ -215,6 +218,9 @@ const AddPatientForm = () => {
                             borderColor={theme.palette.customColors.Outline}
                             isSelected={field.value === item?.value}
                             onClick={() => field.onChange(item?.value)}
+                            selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
+                            selectedFontColor='#FFF'
+                            selectedBorderColor='none'
                           />
                         </Grid>
                       ))}
