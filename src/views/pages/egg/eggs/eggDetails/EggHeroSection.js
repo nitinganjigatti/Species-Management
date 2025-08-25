@@ -249,36 +249,82 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
             variant='square'
           ></Avatar>
         </Box>
-        <Box>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '18px',
-              lineHeight: '24.2px',
-              color: theme.palette.customColors.neutralSecondary
-            }}
-          >
-            {eggDetails?.assessments_data &&
-              (eggDetails?.assessments_data?.length === 0
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Tooltip
+            title={
+              eggDetails?.assessments_data?.length === 0
                 ? 'Not Added'
-                : eggDetails?.assessments_data[0]?.assessment_value + ' ' + eggDetails?.assessments_data[0]?.uom_abbr)}
-          </Typography>
-
-          <Typography
-            sx={{
-              fontWeight: 600,
-              fontSize: { xs: '14px', md: '14px', lg: '13px', xl: '14px' },
-              lineHeight: '16.94px',
-              color:
-                eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
-                  ? theme.palette.primary.main
-                  : displayTextColor
-            }}
+                : (() => {
+                    const value = Number(eggDetails?.assessments_data[0]?.assessment_value)
+                    if (value >= 1e6) {
+                      return `${value.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                    } else {
+                      return `${value.toFixed(2)} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                    }
+                  })()
+            }
+            placement='top'
           >
-            {eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
-              ? 'Current weight'
-              : displayText}
-          </Typography>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '18px',
+                lineHeight: '24.2px',
+                color: theme.palette.customColors.neutralSecondary,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '200px'
+              }}
+            >
+              {eggDetails?.assessments_data &&
+                (eggDetails?.assessments_data?.length === 0
+                  ? 'Not Added'
+                  : (() => {
+                      const value = Number(eggDetails?.assessments_data[0]?.assessment_value)
+                      if (value >= 1e6) {
+                        return `${value.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                      } else {
+                        return `${value.toFixed(2)} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                      }
+                    })())}
+            </Typography>
+          </Tooltip>
+
+          <Tooltip
+            title={
+              eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
+                ? 'Current weight'
+                : displayText
+            }
+            placement='top'
+          >
+            <Typography
+              sx={{
+                fontWeight: 600,
+                fontSize: { xs: '14px', md: '14px', lg: '13px', xl: '14px' },
+                lineHeight: '16.94px',
+                color:
+                  eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
+                    ? theme.palette.primary.main
+                    : displayTextColor,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '200px'
+              }}
+            >
+              {eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
+                ? 'Current weight'
+                : displayText}
+            </Typography>
+          </Tooltip>
         </Box>
       </Grid>
     </Box>
