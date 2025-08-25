@@ -1,11 +1,12 @@
 /* eslint-disable lines-around-comment */
 import React, { useEffect, useRef, useState, useMemo } from 'react'
-import { Box, Typography, IconButton } from '@mui/material'
+import { Box, Typography, IconButton, Grid, Button } from '@mui/material'
 import { alpha, styled } from '@mui/material/styles'
-import Icon from 'src/@core/components/icon' // Keep your Icon import as is
+import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { CheckBox } from '@mui/icons-material'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
+import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -54,22 +55,23 @@ const ScrollableContainer = styled(Box)(({ theme }) => ({
     height: 0
   },
   scrollbarWidth: 'none',
-  msOverflowStyle: 'none',
-  mt: 1
+  msOverflowStyle: 'none'
+  // mt: 1,
 }))
 
 const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
   display: 'grid',
   gridTemplateColumns: `repeat(${numColumns}, minmax(160px, 1fr))`,
+  // border: '1px solid yellow',
 
   gap: theme.spacing(2),
   alignItems: 'stretch',
   width: 'max-content',
-  marginBottom: theme.spacing(2),
-  [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: `repeat(${numColumns}, minmax(120px, 1fr))`,
-    gap: theme.spacing(1.5)
-  }
+  marginBottom: theme.spacing(2)
+  // [theme.breakpoints.down('md')]: {
+  //   gridTemplateColumns: `repeat(${numColumns}, minmax(120px, 1fr))`,
+  //   gap: theme.spacing(1.5)
+  // }
 }))
 
 const HeaderContainer = styled(Box)(({ theme }) => ({
@@ -88,9 +90,8 @@ const MetricCardWraper = styled(Box)(({ theme }) => ({
   display: 'flex',
 
   alignItems: 'center',
+  // backgroundColor: theme.palette.customColors.lightBg,
   justifyContent: 'center',
-
-  // border: '1px solid ',
 
   // justifyItems: 'space-between',
   // backgroundColor: 'gray',
@@ -99,14 +100,13 @@ const MetricCardWraper = styled(Box)(({ theme }) => ({
 
   // backgroundColor: theme.palette.customColors.lightBg,
   // borderRadius: 1,
-  height: '80px',
+  // height: '80px',
 
   // height: '72px',
 
-  // marginBottom: theme.spacing(2),
   width: '266px',
-
-  gap: '8px'
+  // gap: '4px'
+  marginBottom: theme.spacing(1.3)
 }))
 
 const MetricLabel = styled(Box, {
@@ -124,10 +124,14 @@ const MetricLabel = styled(Box, {
   border: config?.border,
   borderRadius: 1,
   height: '74px',
-  marginBottom: theme.spacing(2),
-  width: '234px',
-  borderRadius: '8px',
-  padding: '8px 12px'
+  maxHeight: '74px',
+  minHeight: '74px',
+
+  // marginBottom: theme.spacing(2),
+  width: '230px',
+  borderRadius: '8px'
+  // padding: '8px 12px '
+  // mt: 1,
 }))
 
 const MetricName = styled(Typography)(({ theme }) => ({
@@ -160,7 +164,9 @@ const TimeSlot = styled(Box)(({ theme }) => ({
   margin: 0,
   padding: 0,
   minWidth: '184px',
-  height: '72px',
+  height: '70px',
+  marginTop: theme.spacing(0.5),
+
   '&:hover': {
     backgroundColor: '#f8f9fa',
     borderColor: '#dee2e6'
@@ -698,232 +704,233 @@ const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => 
         border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`
       }
     } else {
-      return { backgroundColor: theme.palette.customColors.Background, border: 'none' }
+      return { backgroundColor: theme.palette.customColors.Background, border: '1px solid transparent' }
     }
   }
 
-  function renderStyledText(text, color = 'inherit') {
-    return (
-      <Typography
-        sx={{
-          fontFamily: 'Inter, sans-serif',
-          fontWeight: 500,
-          fontSize: '16px',
-          lineHeight: '100%',
-          letterSpacing: 0,
-          verticalAlign: 'middle',
-          fontStyle: 'normal',
-          color,
-          width: '210px'
-        }}
-      >
-        {text}
-      </Typography>
-    )
-  }
+  // function renderStyledText(text, color = 'inherit') {
+  //   return (
+  //     <Typography
+  //       sx={{
+  //         fontFamily: 'Inter, sans-serif',
+  //         fontWeight: 500,
+  //         fontSize: '16px',
+  //         lineHeight: '100%',
+  //         letterSpacing: 0,
+  //         verticalAlign: 'middle',
+  //         fontStyle: 'normal',
+  //         color,
+  //         width: '210px'
+  //       }}
+  //     >
+  //       {text}
+  //     </Typography>
+  //   )
+  // }
 
   return (
-    <DashboardContainer>
-      <MainContainer>
-        <FixedColumn>
-          <HeaderContainer>
-            <Typography>Medications</Typography>
-          </HeaderContainer>
+    <Grid container spacing={2} sx={{ alignItems: 'center', my: 10, justifyContent: 'space-between' }}>
+      <Grid item size={{ xs: 10, sm: 10 }}>
+        <HorizontalDateNav numberOfDays={7} />
+      </Grid>
+      <Grid item size={{ xs: 2, sm: 2 }}>
+        <Button sx={{ height: '48px', width: '100%' }} variant='contained'>
+          Add new
+        </Button>
+      </Grid>
+      <Grid item size={{ xs: 12, sm: 12 }}>
+        <MUICheckbox label='Select all' labelStyle={{ color: 'green' }} />
+        <MUISwitch label='Current medical records only' />
+      </Grid>
 
-          {displayMetrics.map(metric => (
-            <MetricCardWraper key={metric.id}>
-              {/* <CheckBox /> */}
-              <MUICheckbox />
-              <MetricLabel
-                config={prescriptionCardColorsConfig(metric)}
-                sx={
-                  {
-                    // borderLeft: metric.color_code ? `4px solid ${metric.color_code}` : 'none'
-                    // ...prescriptionCardColorsConfig(metric.status)
-                  }
-                }
-              >
-                <Box
-                  onClick={() => {
-                    console.log('metric left menu', metric)
-                  }}
-                >
-                  {/* {renderStyledText(metric.name)} */}
-                  <Typography
-                    sx={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      lineHeight: '100%',
-                      letterSpacing: 0,
-                      verticalAlign: 'middle',
-                      fontStyle: 'normal',
+      <Grid item size={{ xs: 12, sm: 12 }}>
+        <DashboardContainer>
+          <MainContainer>
+            <FixedColumn>
+              <HeaderContainer>
+                <Typography>Medications</Typography>
+              </HeaderContainer>
 
-                      width: '210px',
-                      display: 'flex',
-                      gap: 1
-
-                      // justifyContent: 'center'
-                    }}
-                  >
-                    {metric.status === 'stopped' && (
-                      <>
-                        <Icon
-                          icon='jam:stop-sign'
-                          color={theme.palette.customColors.Tertiary}
-                          width='16px'
-                          height='16px'
-                        />
-                      </>
-                    )}
-                    {metric.status === 'skipped' && (
-                      <>
-                        <Icon
-                          icon='mingcute:check-fill'
-                          color={theme.palette.customColors.OnSurface}
-                          width='16px'
-                          height='16px'
-                        />
-                      </>
-                    )}
-                    {metric.name}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
-                    <Icon icon='wi:time-9' width='12px' height='12px' />
-                    <Typography
-                      sx={{
-                        fontSize: '12px',
-                        color: theme.palette.customColors.secondaryBg
+              {displayMetrics.map(metric => (
+                <MetricCardWraper key={metric.id}>
+                  <MUICheckbox />
+                  <MetricLabel config={prescriptionCardColorsConfig(metric)}>
+                    <Box
+                      onClick={() => {
+                        console.log('metric left menu', metric)
                       }}
                     >
-                      {metric.frequency}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.secondaryBg,
-                        fontFamily: 'Inter',
-                        fontWeight: 600, // Semi Bold
-                        fontSize: '14px',
-                        lineHeight: '100%',
-                        letterSpacing: 0,
-                        textAlign: 'right',
-                        ml: 'auto'
-                      }}
-                    >
-                      {metric.progress}
-                    </Typography>
-                  </Box>
-                </Box>
-              </MetricLabel>
-            </MetricCardWraper>
-          ))}
-        </FixedColumn>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '100%',
+                          letterSpacing: 0,
+                          verticalAlign: 'middle',
+                          fontStyle: 'normal',
+                          width: '210px',
+                          display: 'flex',
+                          gap: 1
 
-        <ScrollableContainer ref={scrollContainerRef}>
-          <TimeSlotGrid numColumns={timeSlots.length}>
-            {timeSlots.map(time => {
-              const currentHour24 = currentTime.getHours()
-              const slotHour24 = convertLabelToHour24(time)
-              const isCurrentHour = slotHour24 === currentHour24
-
-              const currentMinutes = currentTime.getMinutes()
-              const positionPercentage = (currentMinutes / 60) * 100
-
-              return (
-                <TimeHeader
-                  onClick={() => {
-                    console.log('onclick of time slots', time)
-                  }}
-                  key={time}
-                  sx={{
-                    position: 'relative',
-                    width: '184px'
-                  }}
-                  ref={el => (hourRefs.current[time] = el)}
-                >
-                  {time}
-                  {isCurrentHour && (
-                    <TimeTooltip sx={{ left: `${positionPercentage}%` }}>
-                      {currentTime.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </TimeTooltip>
-                  )}
-                </TimeHeader>
-              )
-            })}
-          </TimeSlotGrid>
-
-          {displayMetrics.map(metric => (
-            <TimeSlotGrid
-              onClick={() => {
-                console.log('onclick of time slot grid', metric)
-              }}
-              key={metric.id}
-              numColumns={timeSlots.length}
-            >
-              {metric.timeSlots.map((timeSlot, index) => {
-                const slotKey = `${metric.id}-${index}`
-                const hasSchedule = timeSlot.isActive
-
-                // console.log('timeSlot', timeSlot)
-                // console.log('hasSchedulesssss', timeSlot?.value)
-
-                // debugger
-
-                return (
-                  <TimeSlot
-                    key={slotKey}
-                    onClick={() => {
-                      console.log('timeSlot grid', timeSlot)
-                      console.log('scheduledTime grid', timeSlot?.value?.scheduledTime)
-
-                      // debugger
-                      handleTimeSlotClick(metric.id, timeSlot)
-                    }}
-                    // onMouseEnter={() => setHoveredSlot(slotKey)}
-                    // onMouseLeave={() => setHoveredSlot(null)}
-                    sx={{
-                      transform: hoveredSlot === slotKey ? 'translateY(-1px)' : 'none',
-                      border: hasSchedule ? '1px solid green' : '1px dashed',
-
-                      backgroundColor: hasSchedule ? '#f0fff4' : 'white',
-
-                      // backgroundColor: 'yellow',
-
-                      color: hasSchedule ? 'green' : theme.palette.customColors.OutlineVariant
-
-                      // backgroundColor: timeCounts(timeSlot) ? 'red' : 'green' // red if duplicate
-                    }}
-                  >
-                    {hasSchedule ? (
-                      <Box
-                        sx={{ textAlign: 'center' }}
-                        onClick={() => {
-                          console.log('medicine scheduledTime', timeSlot?.value?.scheduledTime)
-                          console.log('slot time', timeSlot?.time)
+                          // justifyContent: 'center'
                         }}
                       >
-                        <Typography variant='caption' sx={{ fontWeight: 'bold' }}>
-                          {timeSlot.value.dosage}
+                        {metric.status === 'stopped' && (
+                          <>
+                            <Icon
+                              icon='jam:stop-sign'
+                              color={theme.palette.customColors.Tertiary}
+                              width='16px'
+                              height='16px'
+                            />
+                          </>
+                        )}
+                        {metric.status === 'skipped' && (
+                          <>
+                            <Icon
+                              icon='mingcute:check-fill'
+                              color={theme.palette.customColors.OnSurface}
+                              width='16px'
+                              height='16px'
+                            />
+                          </>
+                        )}
+                        {metric.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+                        <Icon icon='wi:time-9' width='12px' height='12px' />
+                        <Typography
+                          sx={{
+                            fontSize: '12px',
+                            color: theme.palette.customColors.secondaryBg
+                          }}
+                        >
+                          {metric.frequency}
                         </Typography>
-                        <Typography variant='caption' display='block'>
-                          {timeSlot.value.status}
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.secondaryBg,
+                            fontFamily: 'Inter',
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            lineHeight: '100%',
+                            letterSpacing: 0,
+                            textAlign: 'right',
+                            ml: 'auto'
+                          }}
+                        >
+                          {metric.progress}
                         </Typography>
                       </Box>
-                    ) : (
-                      <Icon icon={'mdi-plus'} fontSize={20} />
-                    )}
-                  </TimeSlot>
-                )
-              })}
-            </TimeSlotGrid>
-          ))}
-        </ScrollableContainer>
-      </MainContainer>
-    </DashboardContainer>
+                    </Box>
+                  </MetricLabel>
+                </MetricCardWraper>
+              ))}
+            </FixedColumn>
+
+            <ScrollableContainer ref={scrollContainerRef}>
+              <TimeSlotGrid numColumns={timeSlots.length}>
+                {timeSlots.map(time => {
+                  const currentHour24 = currentTime.getHours()
+                  const slotHour24 = convertLabelToHour24(time)
+                  const isCurrentHour = slotHour24 === currentHour24
+
+                  const currentMinutes = currentTime.getMinutes()
+                  const positionPercentage = (currentMinutes / 60) * 100
+
+                  return (
+                    <TimeHeader
+                      onClick={() => {
+                        console.log('onclick of time slots', time)
+                      }}
+                      key={time}
+                      sx={{
+                        position: 'relative',
+                        width: '184px'
+                      }}
+                      ref={el => (hourRefs.current[time] = el)}
+                    >
+                      {time}
+                      {isCurrentHour && (
+                        <TimeTooltip sx={{ left: `${positionPercentage}%` }}>
+                          {currentTime.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          })}
+                        </TimeTooltip>
+                      )}
+                    </TimeHeader>
+                  )
+                })}
+              </TimeSlotGrid>
+
+              {displayMetrics.map(metric => (
+                <TimeSlotGrid
+                  onClick={() => {
+                    console.log('onclick of time slot grid', metric)
+                  }}
+                  key={metric.id}
+                  numColumns={timeSlots.length}
+                >
+                  {metric.timeSlots.map((timeSlot, index) => {
+                    const slotKey = `${metric.id}-${index}`
+                    const hasSchedule = timeSlot.isActive
+
+                    return (
+                      <TimeSlot
+                        key={slotKey}
+                        onClick={() => {
+                          console.log('timeSlot grid', timeSlot)
+                          console.log('scheduledTime grid', timeSlot?.value?.scheduledTime)
+
+                          // debugger
+                          handleTimeSlotClick(metric.id, timeSlot)
+                        }}
+                        // onMouseEnter={() => setHoveredSlot(slotKey)}
+                        // onMouseLeave={() => setHoveredSlot(null)}
+                        sx={{
+                          transform: hoveredSlot === slotKey ? 'translateY(-1px)' : 'none',
+                          border: hasSchedule ? '1px solid green' : '1px dashed',
+
+                          backgroundColor: hasSchedule ? '#f0fff4' : 'white',
+
+                          // backgroundColor: 'yellow',
+
+                          color: hasSchedule ? 'green' : theme.palette.customColors.OutlineVariant
+
+                          // backgroundColor: timeCounts(timeSlot) ? 'red' : 'green' // red if duplicate
+                        }}
+                      >
+                        {hasSchedule ? (
+                          <Box
+                            sx={{ textAlign: 'center' }}
+                            onClick={() => {
+                              console.log('medicine scheduledTime', timeSlot?.value?.scheduledTime)
+                              console.log('slot time', timeSlot?.time)
+                            }}
+                          >
+                            <Typography variant='caption' sx={{ fontWeight: 'bold' }}>
+                              {timeSlot.value.dosage}
+                            </Typography>
+                            <Typography variant='caption' display='block'>
+                              {timeSlot.value.status}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Icon icon={'mdi-plus'} fontSize={20} />
+                        )}
+                      </TimeSlot>
+                    )
+                  })}
+                </TimeSlotGrid>
+              ))}
+            </ScrollableContainer>
+          </MainContainer>
+        </DashboardContainer>
+      </Grid>
+    </Grid>
   )
 }
 
