@@ -6,47 +6,49 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import { useTheme, styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { timelineOppositeContentClasses } from '@mui/lab'
-import { useMediaQuery } from '@mui/system'
 
 const defaultTimelineData = [
   {
-    id: 1,
-    time: '12:15 AM',
-    date: '1st Jan 2025',
-    title: 'Prescription added',
-    label_id: 'MED - 12345/25',
-    description: 'Dolo Tablet 650mg, Everyday, for 2weeks, 3 times\nLorem ipsum doalr sit amet',
-    doctor: 'Dr Prajwal Shetty'
+    date: '01 Jan 2025',
+    events: [
+      {
+        id: 1,
+        time: '12:15 AM',
+        title: 'Prescription added',
+        description: 'Dolo Tablet 650mg, Everyday, for 2weeks, 3 times\nLorem ipsum doalr sit amet',
+        doctor: 'Dr Prajwal Shetty'
+      },
+      {
+        id: 2,
+        time: '11:22 AM',
+        title: 'Vaccination Stopped',
+        description: 'Savavet kiwof plus\nReason for stopping lorem ipsum dolar sit amet',
+        doctor: 'Dr Prajwal Shetty'
+      }
+    ]
   },
   {
-    id: 2,
-    time: '11:22 AM',
-    date: '1st Jan 2025',
-    title: 'Vaccination Stopped',
-    label_id: 'VAC - 12345/25',
-    description: 'Savavet kiwof plus\nReason for stopping lorem ipsum dolar sit amet',
-    doctor: 'Dr Prajwal Shetty'
-  },
-  {
-    id: 3,
-    time: '12:15 AM',
-    date: '29th Dec 2024',
-    title: 'Prescription added',
-    label_id: 'MED - 12345/25',
-    description: 'Dolo Tablet 650mg, Everyday, for 2weeks, 3 times\nLorem ipsum doalr sit amet',
-    doctor: 'Dr Prajwal Shetty'
-  },
-  {
-    id: 4,
-    time: '11:22 AM',
-    date: '29th Dec 2024',
-    title: 'Vaccination Stopped',
-    label_id: 'VAC - 12345/25',
-    description: 'Savavet kiwof plus\nReason for stopping lorem ipsum dolar sit amet',
-    doctor: 'Dr Prajwal Shetty'
+    date: '29 Dec 2024',
+    events: [
+      {
+        id: 3,
+        time: '12:15 AM',
+        title: 'Prescription added',
+        description: 'Dolo Tablet 650mg, Everyday, for 2weeks, 3 times\nLorem ipsum doalr sit amet',
+        doctor: 'Dr Prajwal Shetty'
+      },
+      {
+        id: 4,
+        time: '11:22 AM',
+        title: 'Vaccination Stopped',
+        description: 'Savavet kiwof plus\nReason for stopping lorem ipsum dolar sit amet',
+        doctor: 'Dr Prajwal Shetty'
+      }
+    ]
   }
 ]
 
@@ -54,28 +56,20 @@ const TimelineEvent = ({ event, isFirst, isLast }) => {
   const theme = useTheme()
 
   return (
-    <TimelineItem sx={{ minHeight: '90px', alignItems: 'flex-start' }}>
+    <TimelineItem sx={{ minHeight: '80px' }}>
       <StyledTimelineOppositeContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-          <Typography
-            variant='body2'
-            sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 600, fontSize: '0.8rem' }}
-          >
-            {event.date}
-          </Typography>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontSize: '0.9rem' }}>
-            {event.time}
-          </Typography>
-        </Box>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontSize: '1rem' }}>
+          {event.time}
+        </Typography>
       </StyledTimelineOppositeContent>
-      <TimelineSeparator
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          minHeight: '100%'
-        }}
-      >
+      <TimelineSeparator>
+        <TimelineConnector
+          sx={{
+            visibility: isFirst ? 'hidden' : 'visible',
+            minHeight: isFirst ? 0 : '20px',
+            color: theme.palette.customColors.OnPrimaryContainer
+          }}
+        />
         <Box
           sx={{
             width: '2rem',
@@ -96,50 +90,18 @@ const TimelineEvent = ({ event, isFirst, isLast }) => {
           }}
         />
       </TimelineSeparator>
-      <StyledTimelineContent>
-        <Box
-          sx={{
-            width: { xs: '100%', sm: '30%', md: '25%' },
-            mb: { xs: 1, sm: 0 }
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: { xs: '14px', md: '16px' },
-              fontWeight: 600,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
+      <StyledTimelineContent borderTop={isFirst ? 0 : `1px solid ${theme.palette.customColors.OutlineVariant}`}>
+        <Box sx={{ width: '25%' }}>
+          <Typography variant='h6' component='span'>
             {event.title}
           </Typography>
-          <Typography
-            sx={{
-              fontSize: { xs: '11px', md: '12px' },
-              fontWeight: 400,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {event.label_id}
-          </Typography>
         </Box>
-        <Box
-          sx={{
-            width: { xs: '100%', sm: '40%', md: '50%' },
-            mb: { xs: 1, sm: 0 }
-          }}
-        >
-          <Typography
-            sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontSize: { xs: '0.9rem', md: '1rem' } }}
-          >
+        <Box sx={{ width: '50%' }}>
+          <Typography sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontSize: '1rem' }}>
             {event.description}
           </Typography>
         </Box>
-        <Box
-          sx={{
-            width: { xs: '100%', sm: '30%', md: '25%' },
-            textAlign: { xs: 'left', sm: 'right' }
-          }}
-        >
+        <Box sx={{ width: '25%', textAlign: 'right' }}>
           <Typography variant='caption'>{event.doctor}</Typography>
         </Box>
       </StyledTimelineContent>
@@ -147,19 +109,50 @@ const TimelineEvent = ({ event, isFirst, isLast }) => {
   )
 }
 
-const GroupedTimeline = ({ data = defaultTimelineData }) => {
+const TimelineSection = ({ section }) => {
   const theme = useTheme()
 
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
-  const isMediumOrLarger = useMediaQuery(theme.breakpoints.up('md'))
+  const sectionHeaderStyles = {
+    bgcolor: theme.palette.customColors.Background,
+    px: '1rem',
+    py: '0.75rem',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2
+  }
 
   return (
-    <Box sx={{ width: '100%', mt: '2rem' }}>
-      <StyledTimeline isMediumScreen={isMediumOrLarger}>
-        {data.map((event, index) => (
-          <TimelineEvent key={event.id} event={event} isFirst={index === 0} isLast={index === data.length - 1} />
+    <Box mb={3}>
+      <Box sx={sectionHeaderStyles}>
+        <CalendarTodayIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+        <Typography
+          variant='subtitle1'
+          sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
+        >
+          {section.date}
+        </Typography>
+      </Box>
+      <StyledTimeline>
+        {section.events.map((event, index) => (
+          <TimelineEvent
+            key={event.id}
+            event={event}
+            isFirst={index === 0}
+            isLast={index === section.events.length - 1}
+          />
         ))}
       </StyledTimeline>
+    </Box>
+  )
+}
+
+const GroupedTimeline = ({ data = defaultTimelineData }) => {
+  return (
+    <Box sx={{ width: '100%', mt: '2rem' }}>
+      {data.map(section => (
+        <TimelineSection key={section.date} section={section} />
+      ))}
     </Box>
   )
 }
@@ -167,10 +160,10 @@ const GroupedTimeline = ({ data = defaultTimelineData }) => {
 export default GroupedTimeline
 
 // Styled Components
-const StyledTimeline = styled(Timeline)(({ theme, isMediumScreen }) => ({
+const StyledTimeline = styled(Timeline)(({ theme }) => ({
   [`& .${timelineOppositeContentClasses.root}`]: {
-    flex: '0 0 120px',
-    minWidth: '120px',
+    flex: 0,
+    minWidth: '80px',
     padding: 0,
     margin: 0
   },
@@ -178,17 +171,6 @@ const StyledTimeline = styled(Timeline)(({ theme, isMediumScreen }) => ({
   margin: 0,
   '& .MuiTimelineItem-root:before': {
     display: 'none'
-  },
-  '& .MuiTimelineItem-root:not(:last-of-type) .MuiTimelineContent-root': {
-    marginBottom: 0
-  },
-  '& .MuiTimelineContent-root': {
-    paddingTop: 0,
-    paddingBottom: 0,
-    marginTop: 0
-  },
-  '& .MuiTimelineConnector-root': {
-    minHeight: isMediumScreen ? '60px' : '100px'
   }
 }))
 
@@ -197,11 +179,18 @@ const StyledTimelineOppositeContent = styled(TimelineOppositeContent)(({ theme }
   padding: 0,
   display: 'flex',
   justifyContent: 'center',
-  alignItems: 'flex-start'
+  alignItems: 'center'
 }))
 
-const StyledTimelineContent = styled(TimelineContent)(({ borderTop }) => ({
+const StyledTimelineContent = styled(TimelineContent)(({ theme, borderTop }) => ({
   display: 'flex',
-  alignItems: 'flex-start',
-  width: '100%'
+  alignItems: 'center',
+  margin: 0,
+  padding: 0,
+  paddingTop: '1rem',
+  paddingBottom: '1rem',
+  marginLeft: '1rem',
+  marginRight: '1rem',
+  width: '100%',
+  borderTop: borderTop || 'none'
 }))

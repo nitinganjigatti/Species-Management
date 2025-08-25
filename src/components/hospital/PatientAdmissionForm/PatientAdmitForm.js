@@ -11,6 +11,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
+import DoctorsDrawer from './DoctorsDrawer'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -55,6 +56,7 @@ const PatientAdmitForm = () => {
   const [doctors, setDoctors] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [selectedDoctor, setSelectedDoctor] = useState({})
+  const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
 
   const onSubmit = data => {
     console.log(data)
@@ -213,6 +215,7 @@ const PatientAdmitForm = () => {
                           minHeight: '56px',
                           cursor: 'pointer'
                         }}
+                        onClick={() => setDoctorDrawerOpen(true)}
                       >
                         <Typography
                           sx={{ fontSize: '1rem', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -279,6 +282,7 @@ const PatientAdmitForm = () => {
           </Button>
         </Box>
       </Box>
+      {doctorDrawerOpen && <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} doctors={doctors} />}
     </>
   )
 }
