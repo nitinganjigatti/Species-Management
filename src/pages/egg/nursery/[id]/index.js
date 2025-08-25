@@ -216,7 +216,7 @@ const NurseryDetails = () => {
 
   const columns = [
     {
-      minWidth: 80,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       headerAlign: 'center',
@@ -237,7 +237,7 @@ const NurseryDetails = () => {
     },
     {
       flex: 0.1,
-      minWidth: 10,
+      minWidth: 120,
       field: 'ROOMS',
       headerName: 'ROOMS',
       headerAlign: 'left',
@@ -259,7 +259,7 @@ const NurseryDetails = () => {
 
     {
       flex: 0.1,
-      minWidth: 10,
+      minWidth: 120,
       field: 'INCUBATORS',
       headerName: 'INCUBATORS',
       headerAlign: 'left',
@@ -281,7 +281,7 @@ const NurseryDetails = () => {
 
     {
       flex: 0.1,
-      minWidth: 10,
+      minWidth: 160,
       field: 'Eggs',
       headerName: 'Eggs in Incubator',
       headerAlign: 'left',
@@ -303,7 +303,7 @@ const NurseryDetails = () => {
 
     {
       flex: 0.1,
-      minWidth: 10,
+      minWidth: 120,
       field: 'SITE NAME',
       headerName: 'SITE NAME',
       headerAlign: 'left',
@@ -324,7 +324,7 @@ const NurseryDetails = () => {
     },
     {
       flex: 0.1,
-      minWidth: 20,
+      minWidth: 100,
       sortable: false,
       align: 'left',
       field: 'active',
@@ -348,7 +348,7 @@ const NurseryDetails = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 220,
       field: 'ADDED BY',
       headerName: 'ADDED BY',
       sortable: false,
@@ -507,13 +507,15 @@ const NurseryDetails = () => {
               )}
             </Box>
             <Box sx={{ px: '16px', my: '12px' }}>
+              {/* {!nurseryDataLoader && ( */}
               <DetailCard
-                loading={nurseryDataLoader}
+                // loading={nurseryDataLoader}
                 title='Nursery Details'
                 ButtonName={'ADD ROOM'}
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
-              />{' '}
+              />
+              {/* )}{' '} */}
               <Box sx={{ display: 'flex', gap: 4, mb: 6, mt: 6, flexWrap: 'wrap' }}>
                 <Box
                   sx={{

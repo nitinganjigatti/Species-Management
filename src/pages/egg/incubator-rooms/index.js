@@ -179,7 +179,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 10,
+      minWidth: 120,
       field: 'room',
       headerName: 'room',
       sortable: false,
@@ -202,7 +202,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.5,
-      minWidth: 30,
+      minWidth: 120,
       field: 'nursery_name',
       headerName: 'nursery name',
       sortable: false,
@@ -225,7 +225,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 10,
+      minWidth: 120,
       field: 'site',
       headerName: 'site',
       sortable: false,
@@ -248,7 +248,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 10,
+      minWidth: 120,
       field: 'Incubator',
       sortable: false,
       align: 'center',
@@ -272,7 +272,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       sortable: false,
       align: 'center',
       field: 'active',
@@ -296,7 +296,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.4,
-      minWidth: 60,
+      minWidth: 220,
       field: 'user_name',
       sortable: false,
       headerName: 'CREATED BY',
@@ -446,7 +446,7 @@ const RoomsList = () => {
                     <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
                     <TextField
                       variant='outlined'
-                      placeholder='Search...'
+                      placeholder='Search'
                       InputProps={
                         {
                           // disableUnderline: true
