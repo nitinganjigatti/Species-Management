@@ -735,7 +735,7 @@ const ConditionSlider = ({
   const searchSpecies = useCallback(
     debounce(async search => {
       try {
-        await getTaxonomyListFunc({ search })
+        getTaxonomyListFunc({ search })
       } catch (error) {
         console.error(error)
       }
@@ -788,8 +788,6 @@ const ConditionSlider = ({
         setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
-
-    // eggDetails?.enclosure_data
   }, [eggDetails])
 
   useEffect(() => {
@@ -1325,6 +1323,7 @@ const ConditionSlider = ({
                                   color: 'rgba(76, 78, 100, 0.87)'
                                 }
                               }}
+                              loading={!taxonomyList?.length}
                               name='species'
                               value={defaultSpecies}
                               disablePortal
