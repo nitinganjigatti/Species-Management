@@ -17,6 +17,7 @@ import { useTheme } from '@mui/material/styles'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
 import { format, subMonths } from 'date-fns'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ImportsPage = () => {
   const router = useRouter()
@@ -194,13 +195,13 @@ const ImportsPage = () => {
       headerName: 'Created By',
       renderCell: params => (
         <Box sx={{ px: 2 }}>
-          {params.row.created_by_user_name
-            ? RenderUtility.renderUserAvatarDetails({
-                profile_image: params?.row?.created_user_profile_pic,
-                user_name: params?.row?.created_by_user_name,
-                date: moment(params?.row?.created_at).format('YYYY-MM-DD')
-              })
-            : null}
+          {params.row.created_by_user_name ? (
+            <UserAvatarDetails
+              profile_image={params?.row?.created_user_profile_pic}
+              user_name={params?.row?.created_by_user_name}
+              date={params?.row?.created_at}
+            />
+          ) : null}
         </Box>
       )
     },
@@ -211,13 +212,15 @@ const ImportsPage = () => {
       headerName: 'Updated By',
       renderCell: params => (
         <Box sx={{ px: 2 }}>
-          {params.row.updated_by_user_name
-            ? RenderUtility.renderUserAvatarDetails({
-                profile_image: params?.row?.updated_user_profile_pic,
-                user_name: params?.row?.updated_by_user_name,
-                date: moment(params?.row?.updated_at).format('YYYY-MM-DD')
-              })
-            : '-'}
+          {params.row.updated_by_user_name ? (
+            <UserAvatarDetails
+              profile_image={params?.row?.updated_user_profile_pic}
+              user_name={params?.row?.updated_by_user_name}
+              date={params?.row?.updated_at}
+            />
+          ) : (
+            '-'
+          )}
         </Box>
       )
     }

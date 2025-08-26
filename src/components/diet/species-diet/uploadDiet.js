@@ -310,7 +310,7 @@ function UploadDiet({
                         renderInput={params => (
                           <TextField
                             {...params}
-                            label='Diet prepared by *'
+                            label='Nutritionist *'
                             placeholder='Search & Select'
                             error={Boolean(errors.dietitian_id)}
                           />

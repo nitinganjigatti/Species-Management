@@ -12,6 +12,7 @@ import Utility from 'src/utility'
 import UploadDiet from './uploadDiet'
 
 import { getSpecieDetailById, speciesAttachmentActive } from 'src/lib/api/diet/speciesDiet'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
@@ -76,6 +77,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         })
 
         Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+
         // Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -285,7 +287,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     maxWidth: '400px'
                   }}
                 >
-                  <DietitianAvatar item={item} />
+                  {/* <DietitianAvatar item={item} />
 
                   <Tooltip title={item?.dietitian_name ? item?.dietitian_name : '-'}>
                     <Typography
@@ -304,20 +306,28 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     >
                       {item?.dietitian_name ? item?.dietitian_name : '-'}
                     </Typography>
-                  </Tooltip>
+                  </Tooltip> */}
 
-                  <Typography
-                    sx={{
-                      color: theme.palette.customColors.Outline,
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      lineHeight: '100%',
-                      letterSpacing: '0.1px',
-                      display: 'flex'
-                    }}
-                  >
-                    <span style={{ margin: '0px 6px' }}>&#8226;</span> <span>Dietitian</span>
-                  </Typography>
+                  <UserAvatarDetails
+                    profile_image={item?.dietitian_by_profile}
+                    user_name={item?.dietitian_name}
+                    size='small'
+                  />
+                  {item?.dietitian_role_name && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.customColors.Outline,
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        lineHeight: '100%',
+                        letterSpacing: '0.1px',
+                        display: 'flex'
+                      }}
+                    >
+                      <span style={{ margin: '0px 8px 0px 0px' }}>&#8226;</span>{' '}
+                      <span>{item?.dietitian_role_name}</span>
+                    </Typography>
+                  )}
                 </Box>
                 {item?.notes && (
                   <Typography
@@ -558,7 +568,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             setspeciesId(specieDetails.species_id)
             setUploadDietDrawer(true)
           }}
-        // loading={loader}
+
+          // loading={loader}
         >
           UPLOAD NEW
         </LoadingButton>
