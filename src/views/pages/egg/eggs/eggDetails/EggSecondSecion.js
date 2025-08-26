@@ -1068,7 +1068,7 @@ const EggSecondSecion = ({
                   <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                     <Box
                       sx={{
-                        backgroundColor: theme.palette.customColors.addPrimary,
+                        backgroundColor: theme.palette.primary.main,
                         height: '10px',
                         width: '10px',
                         borderRadius: '10px'
