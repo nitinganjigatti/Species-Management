@@ -2107,7 +2107,7 @@ const StepPreviewDiet = ({
                                                         display: 'block'
                                                       }}
                                                     >
-                                                      Combo
+                                                      Mix
                                                     </Typography>
                                                     <Typography
                                                       sx={{

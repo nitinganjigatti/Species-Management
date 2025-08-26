@@ -236,7 +236,7 @@ const Diet = () => {
       //flex: 0.3,
       width: 130,
       field: 'no_meals',
-      headerName: 'No of combos',
+      headerName: 'No of mixes',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.combo ? params.row.combo : '-'}
