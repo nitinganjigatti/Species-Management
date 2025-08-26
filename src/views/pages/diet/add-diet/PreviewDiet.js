@@ -963,7 +963,7 @@ const StepPreviewDiet = ({
               </div>
               <div>
                 <Typography sx={{ mt: 2 }}>
-                  <span>Prepared by : </span>
+                  <span>Nutritionist : </span>
                   <span style={{ fontWeight: 600 }}>{formData.dietitian_name}</span>
                 </Typography>
               </div>

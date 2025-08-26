@@ -1081,7 +1081,7 @@ const StepBasicDetails = ({
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Prepared by *'
+                              label='Nutritionist *'
                               placeholder='Search & Select'
                               error={Boolean(errors.dietitian_id)}
                               name='dietitian_id'
