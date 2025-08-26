@@ -1,35 +1,29 @@
+import { useEffect, useState, useCallback } from 'react'
+
+import { Avatar, Box, Card, CardHeader, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@emotion/react'
-import {
-  Avatar,
-  Box,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
-import { useEffect, useState, useCallback, useMemo } from 'react'
-import Icon from 'src/@core/components/icon'
-import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { format, subMonths } from 'date-fns'
+import debounce from 'lodash/debounce'
+
+import Search from 'src/views/utility/Search'
+import { downloadPDF } from 'src/utility'
 import Utility from 'src/utility'
+
+import Icon from 'src/@core/components/icon'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import UserDrawer from 'src/views/pages/compliance/reports/keepers/UserDrawer'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { format, subMonths } from 'date-fns'
-import { getDiaryReportList } from 'src/lib/api/compliance/reports'
 import ObservationView from 'src/views/pages/compliance/reports/biologists/Observation'
-import debounce from 'lodash/debounce'
-import { downloadPDF } from 'src/utility'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
-import Search from 'src/views/utility/Search'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
+
+import { getDiaryReportList } from 'src/lib/api/compliance/reports'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
+
   const [userDrawer, setUserDrawer] = useState(false)
   const [userDetail, setUserDetail] = useState(null)
   const [biologistList, setBiologistList] = useState([])
@@ -41,12 +35,10 @@ const BiologistDiaryReport = () => {
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
-
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 50
   })
-
   const [searchValue, setSearchValue] = useState('')
 
   const eventHandler = () => {
@@ -54,60 +46,75 @@ const BiologistDiaryReport = () => {
   }
 
   // Main API call function
-  const getBiologistReport = useCallback(
-    async (search = '') => {
-      setLoading(true)
+  const getBiologistReport = async (search = '') => {
+    setLoading(true)
 
-      const params = {
-        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-        user_id: userDetail?.user_id,
-        page_no: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        report_type: 'json',
-        type: 'biologist',
-        ...(search && { q: search })
-      }
+    const params = {
+      ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+      ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+      user_id: userDetail?.user_id,
+      page_no: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      report_type: 'json',
+      type: 'biologist',
+      ...(search && { q: search })
+    }
 
-      try {
-        const response = await getDiaryReportList(params)
-        if (response?.success) {
-          setBiologistList(response?.data?.observationData)
-          setTotal(response?.data?.total)
-        } else {
-          console.log('error >>')
-        }
-      } catch (error) {
-        console.error('Error fetching biologist report:', error)
-      } finally {
-        setLoading(false)
+    try {
+      const response = await getDiaryReportList(params)
+      if (response?.success) {
+        setBiologistList(response?.data?.observationData)
+        setTotal(response?.data?.total)
+      } else {
+        console.log('error >>')
       }
-    },
-    [filterDates, userDetail?.user_id, paginationModel.page, paginationModel.pageSize]
+    } catch (error) {
+      console.error('Error fetching biologist report:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (paginationModel.page !== 0) {
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    }
+    if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+    }
+  }
+
+  const debouncedGetBiologistReport = useCallback(
+    debounce(q => {
+      setPaginationModel({ page: 0, pageSize: 10 }) // reset page on search
+    }, 800),
+    []
   )
 
-  // Create debounced function using useMemo to prevent recreation on every render
-  const debouncedGetBiologistReport = useMemo(
-    () =>
-      debounce(search => {
-        getBiologistReport(search)
-      }, 500),
-    [getBiologistReport]
-  )
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value) // Update input immediately for UI responsiveness
 
-  // Effect for initial load and when dependencies change (except search)
+    // Call debounced API function
+    debouncedGetBiologistReport(value)
+  }
+
+  // // Effect for initial load and when dependencies change (except search)
   useEffect(() => {
     if (userDetail) {
       getBiologistReport(searchValue)
     }
-  }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize, getBiologistReport])
-
-  // Cleanup debounced function on unmount
-  useEffect(() => {
-    return () => {
-      debouncedGetBiologistReport.cancel()
-    }
-  }, [debouncedGetBiologistReport])
+  }, [userDetail, filterDates, paginationModel])
 
   const UserSelectionCard = ({ user }) => {
     return (
@@ -166,14 +173,6 @@ const BiologistDiaryReport = () => {
     setUserDrawer(false)
   }
 
-  // const CardWrapper = ({ data }) => {
-  //   return (
-  //     <>
-  //       <UserSelectionCard user={data} />
-  //     </>
-  //   )
-  // }
-
   const handleDownloadReport = async () => {
     const params = {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
@@ -197,11 +196,7 @@ const BiologistDiaryReport = () => {
     }
   }
 
-  const headerAction = (
-    <>
-      <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
-    </>
-  )
+  const headerAction = <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
 
   const columns = [
     {
@@ -301,7 +296,6 @@ const BiologistDiaryReport = () => {
 
   const getSlNo = index => {
     const slNo = paginationModel.page * paginationModel.pageSize + index + 1
-
     return slNo < 10 ? `0${slNo}` : slNo
   }
 
@@ -311,36 +305,6 @@ const BiologistDiaryReport = () => {
     sl_no: getSlNo(index)
   }))
 
-  const handleDateRangeChange = (startDate, endDate) => {
-    if (startDate && endDate) {
-      const formattedStartDate = Utility.formatDate(startDate)
-      const formattedEndDate = Utility.formatDate(endDate)
-      setFilterDates({
-        startDate: formattedStartDate,
-        endDate: formattedEndDate
-      })
-    } else {
-      setFilterDates({
-        startDate: '',
-        endDate: ''
-      })
-    }
-  }
-
-  // Handle search input change
-  const handleSearchChange = e => {
-    const value = e.target.value
-    setSearchValue(value) // Update input immediately for UI responsiveness
-
-    // Reset to first page when searching
-    if (paginationModel.page !== 0) {
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
-    }
-
-    // Call debounced API function
-    debouncedGetBiologistReport(value)
-  }
-
   return (
     <>
       {userDetail ? (
@@ -349,46 +313,6 @@ const BiologistDiaryReport = () => {
           <Box sx={{ py: '16px', px: '22px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
-
-          {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0, px: 4 }}>
-            <Box>
-              <TextField
-                variant='outlined'
-                size='small'
-                value={searchValue}
-                onChange={handleSearchChange}
-                placeholder='Search by Entity or date'
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-                sx={{
-                  width: '320px',
-                  backgroundColor: '#fff',
-                  ml: 2,
-                  mt: 1,
-                  borderRadius: '4px',
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '4px'
-                  }
-                }}
-              />
-            </Box>
-
-            <Box sx={{ mr: 1.5 }}>
-              <CommonDateRangePickers
-                filterDates={filterDates}
-                onChange={handleDateRangeChange}
-                useCustomText={true}
-                customText='Select a Date Range'
-              />
-            </Box>
-          </Box> */}
 
           <Box
             sx={{
@@ -401,6 +325,10 @@ const BiologistDiaryReport = () => {
           >
             <Box sx={{ width: '100%', px: 6 }}>
               <Search
+                onClear={() => {
+                  setSearchValue('')
+                  debouncedGetBiologistReport('')
+                }}
                 onChange={handleSearchChange}
                 placeholder='Search by Entity or observation type'
                 value={searchValue}
