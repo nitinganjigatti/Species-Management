@@ -307,8 +307,15 @@ const UserThemeOptions = () => {
             '&:hover:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
               borderColor: '#C6C6CE'
             },
+
             ':not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
               borderColor: '#D8D8DD'
+            },
+            '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#FF4D49'
+            },
+            '&.Mui-error:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#FF4D49'
             }
           }
         }
