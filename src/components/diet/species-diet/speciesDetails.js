@@ -13,6 +13,7 @@ import UploadDiet from './uploadDiet'
 
 import { getSpecieDetailById, speciesAttachmentActive } from 'src/lib/api/diet/speciesDiet'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
@@ -127,76 +128,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   }
 
   //////////////////-Cards-//////////////////////////////////////////
-
-  const SpeciesDietCard = ({ default_icon, common_name, scientific_name, active_attachments_count }) => (
-    <Box
-      sx={{
-        backgroundColor: theme.palette.primary.contrastText,
-        borderRadius: '8px',
-        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-        padding: '20px 16px',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}
-    >
-      <Avatar
-        variant='rounded'
-        alt='Medicine Image'
-        sx={{
-          width: 35,
-          height: 35,
-          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-          borderRadius: '50%',
-          background: theme.palette.customColors.displaybgPrimary,
-          overflow: 'hidden'
-        }}
-      >
-        {default_icon ? (
-          <img style={{ width: '100%', height: '100%' }} src={default_icon} alt='Profile' />
-        ) : (
-          <Icon icon='mdi:user' />
-        )}
-      </Avatar>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <Tooltip title={scientific_name ? scientific_name : '-'}>
-          <Typography
-            sx={{
-              color: theme.palette.primary.light,
-              fontSize: '16px',
-              fontWeight: '500',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: 360
-            }}
-          >
-            {scientific_name ? scientific_name : '-'}
-          </Typography>
-        </Tooltip>
-        <Tooltip title={common_name ? common_name : '-'}>
-          <Typography
-            sx={{
-              color: theme.palette.primary.light,
-              fontStyle: 'italic',
-              fontSize: '14px',
-              fontWeight: '400',
-              lineHeight: '16.94px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: 360
-            }}
-          >
-            {common_name ? common_name : '-'}
-          </Typography>
-        </Tooltip>
-      </Box>
-    </Box>
-  )
 
   const DietCard = ({ item, type }) => {
     return (
@@ -490,7 +421,20 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           </Box>
         ) : (
           <>
-            {SpeciesDietCard(specieDetails)}
+            <Box
+              sx={{
+                backgroundColor: theme.palette.primary.contrastText,
+                borderRadius: '8px',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                padding: '20px 16px',
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <SpeciesCard species={specieDetails} />
+            </Box>
             <TabContext sx={{ width: '100%' }} value={status}>
               <TabList
                 sx={{ width: '100%', borderBottom: `1px solid ${theme.palette.customColors.Outline}` }}
