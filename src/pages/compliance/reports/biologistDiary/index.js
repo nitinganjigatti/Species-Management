@@ -20,6 +20,7 @@ import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 
 import { getDiaryReportList } from 'src/lib/api/compliance/reports'
+import { minWidth } from '@mui/system'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
@@ -35,6 +36,7 @@ const BiologistDiaryReport = () => {
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
+
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 50
@@ -200,9 +202,9 @@ const BiologistDiaryReport = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO.',
+      headerName: 'SL.NO',
       sortable: false,
       align: 'left',
       headerAlign: 'left',
@@ -231,15 +233,14 @@ const BiologistDiaryReport = () => {
       )
     },
     {
+      minWidth: 180,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
-      flex: 2,
       minWidth: 400,
       sortable: false,
       renderCell: params => <AnimalView data={params.row} />
     },
     {
-      flex: 1,
       minWidth: 250,
       field: 'observation',
       headerName: 'OBSERVATION',
@@ -247,7 +248,6 @@ const BiologistDiaryReport = () => {
       renderCell: params => <ObservationView data={params.row} />
     },
     {
-      flex: 2,
       minWidth: 350,
       field: 'details',
       headerName: 'DETAILS',
@@ -296,6 +296,7 @@ const BiologistDiaryReport = () => {
 
   const getSlNo = index => {
     const slNo = paginationModel.page * paginationModel.pageSize + index + 1
+
     return slNo < 10 ? `0${slNo}` : slNo
   }
 
@@ -383,7 +384,7 @@ const BiologistDiaryReport = () => {
           open={userDrawer}
           onClose={handleClose}
           setUserDetail={setUserDetail}
-          placeholder='Search by Biologist name or ID'
+          placeholder='Search by Biologist name'
           queryKey='user-biologist-Report'
           headerText='Select the Biologist'
           footerText='generate biologist Diary REPORT'

@@ -401,7 +401,7 @@ const KeeperDiaryReport = () => {
           open={userDrawer}
           onClose={handleClose}
           setUserDetail={setUserDetail}
-          placeholder='Search by Keeper name or ID'
+          placeholder='Search by Keeper name'
           title='Keepers'
         />
       )}
