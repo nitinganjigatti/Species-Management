@@ -1,9 +1,9 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Card, CardHeader, Typography, Button, Box, Checkbox, Tooltip, FormControl } from '@mui/material'
+import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl } from '@mui/material'
 import { Popover } from '@mui/material'
-import { TabContext, TabList } from '@mui/lab'
+import { TabContext } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 
 import { AuthContext } from 'src/context/AuthContext'
@@ -431,7 +431,8 @@ const SpeciesReport = () => {
           return acc
         }, {})
       }
-      setSelectedSites(['All Sites'])
+      // setSelectedSites(['All Sites'])
+      setSelectedSites([])
     } else {
       params = {
         site_ids: selectedSiteIDs.toString(),
