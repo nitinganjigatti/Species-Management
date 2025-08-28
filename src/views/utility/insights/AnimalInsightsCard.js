@@ -82,7 +82,7 @@ const AnimalInsightsCard = ({
             />
             <Box
               sx={{
-                mt: 10,
+                mt: 2,
                 p: { xs: 0.5, sm: 4 },
                 border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
                 borderRadius: 1,
