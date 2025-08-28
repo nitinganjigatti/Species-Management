@@ -30,6 +30,7 @@ import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFil
 import { FilterButton } from '../../../views/utility/render-snippets'
 
 import { getSpeciesList } from 'src/lib/api/diet/speciesDiet'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -194,7 +195,8 @@ const SpeciesDietList = () => {
       headerName: 'SPECIES',
       renderCell: params => (
         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Avatar
+          <SpeciesCard species={params?.row} />
+          {/* <Avatar
             variant='rounded'
             alt='Species Image'
             sx={{
@@ -265,7 +267,7 @@ const SpeciesDietList = () => {
                 {params.row?.common_name ? params.row?.common_name : '-'}
               </Typography>
             </Tooltip>
-          </Box>
+          </Box> */}
         </Box>
       )
     },

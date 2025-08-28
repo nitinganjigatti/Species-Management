@@ -46,7 +46,7 @@ function UploadDiet({
   fetchTableData,
   speciesData,
   getSpecieDetail,
-  handleSearch,
+  handleSearch = () => {},
   speciesDetailsDrawer
 }) {
   const theme = useTheme()
@@ -130,7 +130,7 @@ function UploadDiet({
       setDefaultPreparedBy(null)
       setSelectedFileName(null)
       setSelectedFile(null)
-      handleSearch('')
+      if (typeof handleSearch === 'function') handleSearch('')
       if (speciesDetailsDrawer) {
         getSpecieDetail(speciesId)
       }
@@ -292,6 +292,7 @@ function UploadDiet({
                         value={defaultPreparedBy}
                         disablePortal
                         id='dietitian_id'
+                        loading={!preparedByUsers?.length}
                         options={preparedByUsers}
                         getOptionLabel={option => option.user_name}
                         isOptionEqualToValue={(option, value) => option?.user_id === value?.user_id}

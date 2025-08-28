@@ -87,9 +87,13 @@ const CommonTable = ({
         pageSizeOptions && pageSizeOptions.length > 0
           ? pageSizeOptions
           : disablePagination
-            ? [total]
-            : [7, 10, 25, 50, 100]
+          ? [total]
+          : [7, 10, 25, 50, 100]
       }
+      localeText={{
+        noRowsLabel: 'No rows',
+        noResultsOverlayLabel: 'No rows' // 👈 override the "No results found" case
+      }}
       onCellClick={onCellClick ? onCellClick : null}
       // paginationModel={paginationModel}
       paginationModel={disablePagination ? undefined : paginationModel}
