@@ -26,6 +26,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const defaultValues = {
   dietitian_id: '',
@@ -157,62 +158,7 @@ function UploadDiet({
       }}
     >
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Avatar
-            variant='rounded'
-            alt='Medicine Image'
-            sx={{
-              width: 35,
-              height: 35,
-              border: '1px solid #C3CEC7',
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {speciesData.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={speciesData.default_icon} alt='Profile' />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={speciesData.scientific_name ? speciesData.scientific_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  maxWidth: 360
-                }}
-              >
-                {speciesData.scientific_name ? speciesData.scientific_name : '-'}
-              </Typography>
-            </Tooltip>
-            <Tooltip title={speciesData.common_name ? speciesData.common_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontStyle: 'italic',
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  maxWidth: 360
-                }}
-              >
-                {speciesData.common_name ? speciesData.common_name : '-'}
-              </Typography>
-            </Tooltip>
-          </Box>
-        </Box>
+        <SpeciesCard species={speciesData} />
       </Box>
       <IconButton
         size='small'

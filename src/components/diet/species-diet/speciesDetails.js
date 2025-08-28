@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 
 import { Avatar, CircularProgress, Drawer, IconButton, Switch, Tab, Tooltip, Typography } from '@mui/material'
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
@@ -14,10 +14,14 @@ import UploadDiet from './uploadDiet'
 import { getSpecieDetailById, speciesAttachmentActive } from 'src/lib/api/diet/speciesDiet'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { AuthContext } from 'src/context/AuthContext'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
   const fileInputRef = useRef(null)
+
+  const authData = useContext(AuthContext)
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [detailsLoader, setDetailsLoader] = useState(true)
   const [specieDetails, setSpecieDetails] = useState({})
@@ -205,6 +209,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         speciesAttachmentActiveFunc(speciesId, item.attachment_id)
                       }
                     }}
+                    disabled={dietModuleAccess === 'VIEW' || dietModuleAccess === 'ADD'}
                     defaultChecked={type === 'attach' ? true : false}
                   />
                 </Box>
@@ -512,7 +517,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             setspeciesId(specieDetails.species_id)
             setUploadDietDrawer(true)
           }}
-
+          disabled={dietModuleAccess === 'VIEW'}
           // loading={loader}
         >
           UPLOAD NEW
