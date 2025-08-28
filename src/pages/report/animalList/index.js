@@ -405,7 +405,7 @@ const AnimalList = () => {
             ? // ? moment(params?.row[header?.key]).format('DD-MMM-YYYY').toLocaleLowerCase()
               moment(params?.row[header?.key]).format('DD-MMM-YYYY')
             : truncateText(params?.row[header?.key], 20)
-          : ''
+          : '-'
 
         const showTooltip = params?.value?.length > 20
 
