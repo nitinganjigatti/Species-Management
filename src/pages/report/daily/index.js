@@ -471,6 +471,7 @@ const Animal = () => {
               loading={loading}
               disableColumnSorting={true}
               columns={columns}
+              hideFooterPagination
               paginationModel={paginationModel}
               disableColumnFilter={false}
               rowHeight={70}
