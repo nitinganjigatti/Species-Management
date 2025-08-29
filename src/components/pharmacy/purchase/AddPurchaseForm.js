@@ -645,8 +645,10 @@ const AddPurchaseForm = () => {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
         // const response = await updatePurchase(id, postData)
+        var payloadData = { ...postData }
+        payloadData.purchase_details = JSON.stringify(payloadData.purchase_details)
 
-        const response = await updatePurchasePrice(id, postData)
+        const response = await updatePurchasePrice(id, payloadData)
 
         if (response?.success) {
           toast.success(response.message)
@@ -663,7 +665,9 @@ const AddPurchaseForm = () => {
           console.log('error', response.message)
         }
       } else {
-        const response = await addPurchase(postData)
+        var payloadData = { ...postData }
+        payloadData.purchase_details = JSON.stringify(payloadData.purchase_details)
+        const response = await addPurchase(payloadData)
 
         if (response?.success) {
           toast.success(response.message)
