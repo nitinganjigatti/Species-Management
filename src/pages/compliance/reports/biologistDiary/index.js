@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 
-import { Avatar, Box, Card, CardHeader, Grid, IconButton, Tooltip, Typography } from '@mui/material'
+import { Avatar, Box, Card, CardHeader, CircularProgress, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { format, subMonths } from 'date-fns'
 import debounce from 'lodash/debounce'
@@ -19,11 +19,24 @@ import ObservationView from 'src/views/pages/compliance/reports/biologists/Obser
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 
-import { getDiaryReportList } from 'src/lib/api/compliance/reports'
-import { minWidth } from '@mui/system'
+import { getDiaryReportList, getUserListing } from 'src/lib/api/compliance/reports'
+import { useRouter } from 'next/router'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
+  const router = useRouter()
+
+  const handleUserSelect = user => {
+    setUserDetail(user)
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, user_id: user.user_id }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
 
   const [userDrawer, setUserDrawer] = useState(false)
   const [userDetail, setUserDetail] = useState(null)
@@ -31,6 +44,7 @@ const BiologistDiaryReport = () => {
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [userLoader, setUserLoader] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
@@ -43,6 +57,31 @@ const BiologistDiaryReport = () => {
   })
   const [searchValue, setSearchValue] = useState('')
 
+  useEffect(() => {
+    if (router.query.user_id && !userDetail) {
+      const fetchUser = async () => {
+        setUserLoader(true)
+        try {
+          const res = await getUserListing({
+            page_no: 1,
+            ref_type: 'total_user',
+            role_key: 'all_users',
+            user_id: router.query.user_id
+          })
+
+          if (res?.data?.result?.length) {
+            setUserDetail(res?.data?.result[0])
+            setUserLoader(false)
+          }
+        } catch (err) {
+          console.error('Error fetching user by id:', err)
+        }
+      }
+
+      fetchUser()
+    }
+  }, [router.query.user_id])
+
   const eventHandler = () => {
     setUserDrawer(true)
   }
@@ -54,7 +93,7 @@ const BiologistDiaryReport = () => {
     const params = {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-      user_id: userDetail?.user_id,
+      user_id: userDetail?.user_id || router.query.user_id,
       page_no: paginationModel.page + 1,
       limit: paginationModel.pageSize,
       report_type: 'json',
@@ -113,10 +152,24 @@ const BiologistDiaryReport = () => {
 
   // // Effect for initial load and when dependencies change (except search)
   useEffect(() => {
-    if (userDetail) {
+    if (userDetail?.user_id) {
       getBiologistReport(searchValue)
     }
   }, [userDetail, filterDates, paginationModel])
+
+  const clearUserSelection = () => {
+    setUserDetail(null)
+
+    const { user_id, ...rest } = router.query
+    router.push(
+      {
+        pathname: router.pathname,
+        query: rest
+      },
+      undefined,
+      { shallow: false }
+    )
+  }
 
   const UserSelectionCard = ({ user }) => {
     return (
@@ -163,7 +216,7 @@ const BiologistDiaryReport = () => {
             borderBottomRightRadius: '8px'
           }}
         >
-          <IconButton onClick={() => setUserDetail(null)}>
+          <IconButton onClick={clearUserSelection}>
             <Icon icon='mdi:close' color='red' fontSize={30} />
           </IconButton>
         </Box>
@@ -179,7 +232,7 @@ const BiologistDiaryReport = () => {
     const params = {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-      user_id: userDetail?.user_id,
+      user_id: userDetail?.user_id || router.query.user_id,
       report_type: 'pdf',
       type: 'biologist',
       ...(searchValue && { q: searchValue })
@@ -367,6 +420,10 @@ const BiologistDiaryReport = () => {
             />
           </Grid>
         </Card>
+      ) : userLoader ? (
+        <Box display='flex' justifyContent='center' alignItems='center'>
+          <CircularProgress />
+        </Box>
       ) : (
         <Card sx={{ p: 6 }}>
           <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
@@ -383,7 +440,7 @@ const BiologistDiaryReport = () => {
         <UserDrawer
           open={userDrawer}
           onClose={handleClose}
-          setUserDetail={setUserDetail}
+          setUserDetail={handleUserSelect}
           placeholder='Search by Biologist name'
           queryKey='user-biologist-Report'
           headerText='Select the Biologist'
