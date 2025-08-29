@@ -32,6 +32,7 @@ const AddEditShipment = () => {
   const [shipmentIdval, setshipmentIdVal] = useState('')
   const animalsEditRef = useRef()
   const basicDetailsEditRef = useRef()
+  const basicDetailsRef = useRef()
 
   useEffect(() => {
     if (isEdit && action === 'edit') {
@@ -39,6 +40,20 @@ const AddEditShipment = () => {
       setShowEditAnimals(true)
     }
   }, [isEdit, action])
+
+  const handleStatusChange = async newStatus => {
+    if (basicDetailsRef.current && typeof basicDetailsRef.current.handleSave === 'function') {
+      try {
+        const success = await basicDetailsRef.current.handleSave(newStatus)
+
+        if (success) {
+          setStatus(newStatus)
+        }
+      } catch (error) {
+        console.error('Error saving status:', error)
+      }
+    }
+  }
 
   const rawValue = airwaybillvalue || ''
   const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
@@ -178,7 +193,7 @@ const AddEditShipment = () => {
           ) : (
             <Select
               value={status}
-              onChange={e => setStatus(e.target.value)}
+              onChange={e => handleStatusChange(e.target.value)}
               size='small'
               sx={{
                 minWidth: 140,
@@ -209,14 +224,18 @@ const AddEditShipment = () => {
         }
         expanded={expanded.includes('permit-details')}
         onChange={handleAccordionChange}
-        editable={showEdit && expanded.includes('permit-details') && id && action === 'details'}
+        editable={expanded.includes('permit-details') && id && action === 'details'}
         handleEditClick={() => {
+          setExpanded(['permit - details'])
           basicDetailsEditRef.current?.()
-          router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
+          linkedDocumentsData?.exports_count > 0
+            ? router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=1`)
+            : router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
         }}
         type='shipment'
       >
         <ShipmentBasicDetails
+          ref={basicDetailsRef}
           onEditClick={basicDetailsEditRef}
           setShowEdit={setShowEdit}
           showEdit={showEdit}
@@ -226,6 +245,8 @@ const AddEditShipment = () => {
           setAirwaybillvalue={setAirwaybillvalue}
           setshipmentIdVal={setshipmentIdVal}
           shipmentIdval={shipmentIdval}
+          setExpanded={setExpanded}
+          linkedDocumentsData={linkedDocumentsData}
         />
       </CustomAccordion>
 
@@ -253,6 +274,7 @@ const AddEditShipment = () => {
             showEditAnimals && expanded.includes('animals-details') && id && action === 'details' && exportCount > 0
           }
           handleEditClick={() => {
+            setExpanded(['animals - details'])
             animalsEditRef.current?.()
             router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=${exportCount}`)
           }}
@@ -268,6 +290,9 @@ const AddEditShipment = () => {
               setTotalSpecies={setTotalSpecies}
               totalAnimals={totalAnimals}
               totalSpecies={totalSpecies}
+              setExpanded={setExpanded}
+              setShowEdit={setShowEdit}
+              fetchLinkedDocuments={fetchLinkedDocuments}
             />
           </Box>
         </CustomAccordion>

@@ -56,9 +56,9 @@ export async function updateShipmentBasicDetails(id, payload) {
   }
 }
 
-export const getShipmentBasicDetails = async (id, params) => {
+export const getShipmentBasicDetails = async (id, documentTypeId, params) => {
   const response = await axiosGet({
-    url: `${GET_SHIPMENT_BASICDETAILS}/${id}`,
+    url: `${GET_SHIPMENT_BASICDETAILS}/${id}?document_type_id=${documentTypeId}`,
     params
   })
 

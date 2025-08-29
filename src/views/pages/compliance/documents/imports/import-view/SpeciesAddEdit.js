@@ -151,7 +151,7 @@ const SpeciesAddEdit = ({
               onChange={handleDateChange}
               maxDate={dayjs(new Date())}
               views={['year', 'month', 'day']}
-              format='Do MMM YY'
+              format='Do MMM YYYY'
               slotProps={{
                 textField: {
                   error: Boolean(errors.startDate),
@@ -284,7 +284,7 @@ const SpeciesAddEdit = ({
                             Exporter
                           </Typography>
                           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
-                            {all?.exporter_name || 'N/A'}, {all.origin_country || 'N/A'}
+                            {all?.exporter_name || 'N/A'}, {all.exporting_country || 'N/A'}
                           </Typography>
                         </Box>
 
@@ -297,9 +297,7 @@ const SpeciesAddEdit = ({
                             Importer
                           </Typography>
                           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-                            {all?.importer_name
-                              ? `${all.importer_name}, ${all?.exporting_country || 'N/A'}`
-                              : all?.exporting_country || 'N/A'}
+                            {all?.importer_name || 'N/A'}
                           </Typography>
                         </Box>
                       </Box>

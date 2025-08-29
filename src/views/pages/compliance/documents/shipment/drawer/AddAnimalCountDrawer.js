@@ -37,15 +37,19 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
   // const availableGenders = normalizedGenders.filter(g => {
   //   const limit = Number(counts[g]) || 0
   //   const used = genderUsage[g] || 0
-  //   return used < limit
+
+  //   // Always allow already selected gender
+  //   return used < limit || animals.some(animal => animal.gender === g)
   // })
 
-  const availableGenders = normalizedGenders.filter(g => {
-    const limit = Number(counts[g]) || 0
-    const used = genderUsage[g] || 0
+  // Filter available genders based on counts
+  const availableGenders = normalizedGenders.filter(gender => {
+    const limit = Number(counts[gender]) || 0
+    const used = genderUsage[gender] || 0
 
-    // Always allow already selected gender
-    return used < limit || animals.some(animal => animal.gender === g)
+    const isCurrentAnimalGender = getValidGender(data.gender) === gender
+
+    return isCurrentAnimalGender || used < limit
   })
 
   const currentIdType = mastersData?.identifier_type?.find(type => type.key === data.identifierType)
@@ -60,10 +64,18 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
       </IconButton>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid size={{ xs: 12 }} sx={{ mb: 1 }}>
-          <Select fullWidth value={data.gender} onChange={e => onChange(index, 'gender', e.target.value)} displayEmpty>
-            <MenuItem value='' disabled>
-              Gender*
-            </MenuItem>
+          <Select
+            fullWidth
+            value={data.gender}
+            onChange={e => onChange(index, 'gender', e.target.value)}
+            displayEmpty
+            renderValue={selected => {
+              if (!selected) {
+                return <span style={{ color: '#9e9e9e' }}>Gender*</span>
+              }
+              return selected.charAt(0).toUpperCase() + selected.slice(1)
+            }}
+          >
             {availableGenders.map(gender => (
               <MenuItem key={gender} value={gender}>
                 {gender.charAt(0).toUpperCase() + gender.slice(1)}
@@ -80,10 +92,13 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
               onChange(index, 'identifierType', e.target.value)
             }}
             displayEmpty
+            renderValue={selected => {
+              if (!selected) {
+                return <span style={{ color: '#9e9e9e' }}>Select Identifier Type*</span>
+              }
+              return selected.charAt(0).toUpperCase() + selected.slice(1)
+            }}
           >
-            <MenuItem value='' disabled>
-              Select Identifier Type*
-            </MenuItem>
             {mastersData.identifier_type.map(idType => (
               <MenuItem key={idType.id} value={idType.key}>
                 {idType.label}
@@ -243,21 +258,24 @@ const AddanimalCountDrawer = ({
     if (genderTotals.male > genderCounts.male_count) {
       return Toaster({
         type: 'error',
-        message: `Animal details count for male gender (${genderTotals.male}) must be ≤ male count entered (${genderCounts.male_count})`
+        //message: `Animal details count for male gender (${genderTotals.male}) must be ≤ male count entered (${genderCounts.male_count})`
+        message: `The entered count does not match the selected animals. Please update to proceed`
       })
     }
 
     if (genderTotals.female > genderCounts.female_count) {
       return Toaster({
         type: 'error',
-        message: `Animal details count for female gender (${genderTotals.female}) must be ≤ female count entered (${genderCounts.female_count})`
+        // message: `Animal details count for female gender (${genderTotals.female}) must be ≤ female count entered (${genderCounts.female_count})`
+        message: `The entered count does not match the selected animals. Please update to proceed`
       })
     }
 
     if (genderTotals.unknown > genderCounts.undeterminate_count) {
       return Toaster({
         type: 'error',
-        message: `Animal details count for unknown gender (${genderTotals.unknown}) must be ≤ unknown count entered (${genderCounts.undeterminate_count})`
+        // message: `Animal details count for unknown gender (${genderTotals.unknown}) must be ≤ unknown count entered (${genderCounts.undeterminate_count})`
+        message: `The entered count does not match the selected animals. Please update to proceed`
       })
     }
 
@@ -354,6 +372,7 @@ const AddanimalCountDrawer = ({
                   type='number'
                   label='# Male'
                   value={counts.male}
+                  onWheel={e => e.target.blur()}
                   onChange={e => {
                     const value = e.target.value
                     if (value === '') {
@@ -378,6 +397,7 @@ const AddanimalCountDrawer = ({
                   type='number'
                   label='# Female'
                   value={counts.female}
+                  onWheel={e => e.target.blur()}
                   onChange={e => {
                     const value = e.target.value
                     if (value === '') {
@@ -402,6 +422,7 @@ const AddanimalCountDrawer = ({
                   type='number'
                   label='# Unknown'
                   value={counts.unknown}
+                  onWheel={e => e.target.blur()}
                   onChange={e => {
                     const value = e.target.value
                     if (value === '') {

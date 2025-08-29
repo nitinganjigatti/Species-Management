@@ -132,7 +132,7 @@ const AnimalDetailsDrawer = ({
                   fontWeight={500}
                   sx={{ mt: 0.5, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
                 >
-                  {animalDetails?.cites || 'N/A'}
+                  {animalDetails?.appendix || 'N/A'}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6 }} sx={{ mt: 3 }}>
