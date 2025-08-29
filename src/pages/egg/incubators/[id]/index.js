@@ -103,7 +103,7 @@ const IncubatorDetails = () => {
   const [speciesLoader, setSpeciesLoader] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
 
-  let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
+  let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -771,8 +771,9 @@ const IncubatorDetails = () => {
           </Breadcrumbs>
           <Card>
             <CardContent
-              style={{ paddingBottom: 0 }}
               sx={{
+                paddingBottom: 0,
+                paddingX: 4,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px'
