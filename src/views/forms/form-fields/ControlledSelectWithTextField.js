@@ -1,6 +1,17 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import { FormControl, OutlinedInput, InputAdornment, Select, MenuItem, FormHelperText, InputLabel } from '@mui/material'
+import {
+  FormControl,
+  OutlinedInput,
+  InputAdornment,
+  Select,
+  MenuItem,
+  FormHelperText,
+  InputLabel,
+  Typography,
+  Tooltip,
+  useTheme
+} from '@mui/material'
 import get from 'lodash/get'
 
 /*
@@ -54,11 +65,12 @@ const ControlledSelectWithTextField = ({
   sx = {},
   formHelperTextBackgroundColor = 'inherit'
 }) => {
+  const theme = useTheme()
   const error = get(errors, name)
   const fieldError = Boolean(error)
   const helperText = fieldError?.message || ''
 
-  const firstOptionValue = options.length > 0 ? getOptionValue(options[0]) : ''
+  const firstOptionValue = options.length > 0 ? getOptionValue(options[0]) : 'No options'
 
   const defaultValue = {
     text: '',
@@ -127,13 +139,27 @@ const ControlledSelectWithTextField = ({
                   displayEmpty
                   disabled={disabled}
                   sx={{
-                    minWidth: 60,
-                    '& .MuiSelect-select': { paddingRight: '24px', textAlign: 'right' }
+                    minWidth: 30,
+                    maxWidth: 100,
+                    '& .MuiSelect-select': { textAlign: 'center' }
                   }}
                 >
                   {options.map((option, index) => (
                     <MenuItem key={index} value={getOptionValue(option)} disabled={isOptionDisabled(option)}>
-                      {getOptionLabel(option)}
+                      <Tooltip title={getOptionLabel(option)} arrow placement='top'>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVarient,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: 'vertical'
+                          }}
+                        >
+                          {getOptionLabel(option)}
+                        </Typography>
+                      </Tooltip>
                     </MenuItem>
                   ))}
                 </Select>
