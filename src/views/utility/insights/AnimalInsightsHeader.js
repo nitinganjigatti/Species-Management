@@ -108,7 +108,7 @@ const AnimalInsightsHeader = ({
             gap: 6
           }}
         >
-          <Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.2 }}>
             <Typography sx={{ color: theme.palette.common.white, fontSize: '14px', fontWeight: '600' }}>
               Species
             </Typography>
@@ -120,7 +120,14 @@ const AnimalInsightsHeader = ({
                   </Typography>
                 )}
                 {scientificName && (
-                  <Typography sx={{ mt: 0.5, color: theme.palette.common.white, fontSize: '16px', fontWeight: 400 }}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.common.white,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      fontStyle: 'italic'
+                    }}
+                  >
                     {scientificName}
                   </Typography>
                 )}

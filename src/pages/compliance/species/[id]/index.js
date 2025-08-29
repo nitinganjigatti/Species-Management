@@ -25,6 +25,7 @@ import Utility from 'src/utility'
 import SpeciesShipmentDetailsDrawer from 'src/components/compliance/drawer/SpeciesShipmentDetailsDrawer'
 import Toaster from 'src/components/Toaster'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
+import { DownloadReport } from 'src/views/pages/compliance/utility'
 
 const SpeciesDetails = () => {
   const theme = useTheme()
@@ -372,7 +373,7 @@ const SpeciesDetails = () => {
 
   const headerAction = (
     <>
-      <ExportButton onClick={handleReportExport} loading={loading} tooltip='Download Report' />
+      <DownloadReport isDownloading={loading} handleDownloadReport={handleReportExport} />
     </>
   )
 
