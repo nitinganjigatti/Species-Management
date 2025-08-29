@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Card, CardHeader, Grid, IconButton, Tooltip, Typography } from '@mui/material'
+import { Avatar, Box, Card, CardHeader, CircularProgress, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { debounce } from 'lodash'
 import { format, subMonths } from 'date-fns'
 
@@ -17,16 +17,32 @@ import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
 
-import { getDiaryReportList } from 'src/lib/api/compliance/reports'
+import { getDiaryReportList, getUserListing } from 'src/lib/api/compliance/reports'
+import { useRouter } from 'next/router'
 
 const KeeperDiaryReport = () => {
   const theme = useTheme()
+  const router = useRouter()
+
+  const handleUserSelect = user => {
+    setUserDetail(user)
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, user_id: user.user_id }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   const [userDrawer, setUserDrawer] = useState(false)
   const [userDetail, setUserDetail] = useState(null)
   const [keeperList, setKeeperList] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [userLoader, setUserLoader] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
@@ -39,6 +55,33 @@ const KeeperDiaryReport = () => {
     pageSize: 50
   })
 
+  useEffect(() => {
+    if (router.query.user_id && !userDetail) {
+      const fetchUser = async () => {
+        setUserLoader(true)
+        try {
+          const res = await getUserListing({
+            page_no: 1,
+            ref_type: 'total_user',
+            role_key: 'all_users',
+            user_id: router.query.user_id
+          })
+
+          console.log('User fetch res:', res)
+
+          if (res?.data?.result?.length) {
+            setUserDetail(res?.data?.result[0])
+            setUserLoader(false)
+          }
+        } catch (err) {
+          console.error('Error fetching user by id:', err)
+        }
+      }
+
+      fetchUser()
+    }
+  }, [router.query.user_id])
+
   const eventHandler = () => {
     setUserDrawer(true)
   }
@@ -50,7 +93,7 @@ const KeeperDiaryReport = () => {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
       ...(q?.trim() !== '' && { q: q.trim() }),
-      user_id: userDetail?.user_id,
+      user_id: userDetail?.user_id || router.query.user_id,
       page_no: paginationModel.page + 1,
       limit: paginationModel.pageSize,
       report_type: 'json'
@@ -91,6 +134,22 @@ const KeeperDiaryReport = () => {
       getUserKeeperReport(searchValue)
     }
   }, [userDetail, paginationModel, filterDates])
+
+  const clearUserSelection = () => {
+    setUserDetail(null)
+    setKeeperList(null)
+    setTotal(null)
+
+    const { user_id, ...rest } = router.query
+    router.push(
+      {
+        pathname: router.pathname,
+        query: rest
+      },
+      undefined,
+      { shallow: false }
+    )
+  }
 
   const debouncedSearch = useCallback(
     debounce(q => {
@@ -152,7 +211,7 @@ const KeeperDiaryReport = () => {
             borderBottomRightRadius: '8px'
           }}
         >
-          <IconButton onClick={() => setUserDetail(null)}>
+          <IconButton onClick={clearUserSelection}>
             <Icon icon='mdi:close' color='red' fontSize={30} />
           </IconButton>
         </Box>
@@ -166,7 +225,7 @@ const KeeperDiaryReport = () => {
 
   const downloadKeeperDiaryReport = async () => {
     const params = {
-      user_id: userDetail?.user_id,
+      user_id: userDetail?.user_id || router.query.user_id,
       q: searchValue,
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -384,6 +443,10 @@ const KeeperDiaryReport = () => {
             />
           </Grid>
         </Card>
+      ) : userLoader ? (
+        <Box display='flex' justifyContent='center' alignItems='center'>
+          <CircularProgress />
+        </Box>
       ) : (
         <Card sx={{ p: 6 }}>
           <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
@@ -400,7 +463,7 @@ const KeeperDiaryReport = () => {
         <UserDrawer
           open={userDrawer}
           onClose={handleClose}
-          setUserDetail={setUserDetail}
+          setUserDetail={handleUserSelect}
           placeholder='Search by Keeper name'
           title='Keepers'
         />
