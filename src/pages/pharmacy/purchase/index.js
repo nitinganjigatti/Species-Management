@@ -493,7 +493,6 @@ const ListOfPurchase = () => {
             fullWidth='fullWidth'
           /> */}
           <ExcelExportButton
-            disabled={total === 0}
             action={() => {
               Router.push({
                 pathname: '/pharmacy/purchase/import-purchases/'
