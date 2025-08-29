@@ -158,6 +158,7 @@ const AddEditImport = () => {
         onChange={handleAccordionChange}
         editable={showEditAnimals && expanded.includes('animals-details') && id && action === 'details'}
         handleEditClick={() => {
+          setExpanded(['animals - details'])
           animalsEditRef.current?.()
           router.push(`/compliance/documents/imports/AddEditImport/?id=${id}&action=edit`)
         }}
