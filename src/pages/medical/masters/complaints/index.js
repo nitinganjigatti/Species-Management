@@ -243,7 +243,7 @@ const Complaints = () => {
             <DataGrid
               hideFooterPagination={true}
               sx={{
-                '.MuiDataGrid-cell:focus': {
+                '.MuiDataGrid-cell:focus-within': {
                   outline: 'none'
                 },
 
