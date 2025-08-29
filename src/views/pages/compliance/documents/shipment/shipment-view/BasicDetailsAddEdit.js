@@ -123,7 +123,7 @@ const BasicDetailsAddEdit = ({
               onChange={handleDateChange}
               maxDate={dayjs(new Date())}
               views={['year', 'month', 'day']}
-              format='Do MMM YY'
+              format='Do MMM YYYY'
               slotProps={{
                 textField: {
                   error: Boolean(errors.startDate),
