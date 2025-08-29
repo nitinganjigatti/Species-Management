@@ -22,7 +22,8 @@ const ControlledTextField = ({
   dateReader = false,
   formHelperTextBackgroundColor = 'inherit',
   placeholder,
-  sx = {}
+  sx = {},
+  size = 'large'
 }) => {
   const error = get(errors, name)
   const helperText = error?.message || ''
@@ -52,6 +53,7 @@ const ControlledTextField = ({
           onInput={onInput}
           placeholder={placeholder}
           sx={sx}
+          size={size}
           slotProps={{
             input: { readOnly },
             htmlInput: inputProps,

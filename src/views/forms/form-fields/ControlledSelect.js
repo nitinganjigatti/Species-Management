@@ -1,12 +1,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText
-} from '@mui/material'
+import { FormControl, InputLabel, Select, MenuItem, FormHelperText } from '@mui/material'
 import get from 'lodash/get'
 
 const ControlledSelect = ({
@@ -17,6 +11,7 @@ const ControlledSelect = ({
   options = [],
   required = false,
   fullWidth = true,
+  size = 'large',
   getOptionLabel = option => option,
   getOptionValue = option => option,
   isOptionDisabled = () => false,
@@ -27,7 +22,7 @@ const ControlledSelect = ({
   const fieldError = get(errors, name)
 
   return (
-    <FormControl fullWidth={fullWidth} error={Boolean(fieldError)}>
+    <FormControl size={size} fullWidth={fullWidth} error={Boolean(fieldError)}>
       <InputLabel
         id={`${name}-label`}
         sx={{

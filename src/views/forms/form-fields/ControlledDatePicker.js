@@ -2,6 +2,7 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import MUIDatePicker from './MUIDatePicker'
+import { size } from 'lodash'
 
 const ControlledDatePicker = ({
   name,
@@ -12,7 +13,8 @@ const ControlledDatePicker = ({
   maxDate,
   views,
   disabled = false,
-  sx = {}
+  sx = {},
+  size = 'large'
 }) => {
   return (
     <Controller
@@ -31,6 +33,7 @@ const ControlledDatePicker = ({
           error={!!error}
           helperText={error?.message}
           sx={sx}
+          size={size}
         />
       )}
     />
