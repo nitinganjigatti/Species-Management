@@ -2,7 +2,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import MUIDatePicker from './MUIDatePicker'
-import { size } from 'lodash'
 
 const ControlledDatePicker = ({
   name,
