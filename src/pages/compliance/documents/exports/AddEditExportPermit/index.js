@@ -66,6 +66,8 @@ const AddEditExportPermit = () => {
   const handleFormSubmit = exportId => {
     if (!isEdit) {
       fetchDocumentTypeList(exportId)
+    } else {
+      fetchDocumentTypeList(id)
     }
     setExpanded(['supporting-documents'])
   }

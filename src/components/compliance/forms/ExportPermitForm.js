@@ -379,8 +379,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       species: JSON.stringify(
         data.speciesList.map(item => ({
           taxonomy_id: item.species?.tsn_id || null,
-          export_species_id:
-            id && (item.species?.isFromAntzDatabase || item.species?.tsn_id) ? item.species?.export_species_id : null, // Only send export_species_id in edit mode
+          export_species_id: id && item.species?.export_species_id ? item.species?.export_species_id : null, // Only send export_species_id in edit mode
           common_name: item.species?.common_name || '',
           scientific_name: item.species?.scientific_name || '',
           default_icon: item?.species?.default_icon ? item.species.default_icon.split('path=')[1] : null,

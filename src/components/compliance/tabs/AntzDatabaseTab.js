@@ -47,7 +47,6 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }) =
           ...item,
           tsn_id: item.taxonomy_id,
           id: item.taxonomy_id,
-          export_species_id: item.id,
           isFromAntzDatabase: true
         })) || []
 
