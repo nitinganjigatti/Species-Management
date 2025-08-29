@@ -51,7 +51,7 @@ const ListOfRequest = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: router?.query?.page ? parseInt(router?.query?.page) : 0,
-    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
+    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 50
   })
   const [loading, setLoading] = useState(false)
 
@@ -609,6 +609,18 @@ const ListOfRequest = () => {
 
             <DataGrid
               sx={{
+                paddingX: 5,
+                borderTopLeftRadius: '8px',
+                '& .MuiBox-root': {
+                  paddingX: 0
+                },
+                '.MuiDataGrid-main': {
+                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                  borderRadius: '8px'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  border: 'none !important'
+                },
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }
