@@ -1,41 +1,50 @@
+import { useEffect, useState, useCallback } from 'react'
+
+import { Avatar, Box, Card, CardHeader, CircularProgress, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@emotion/react'
-import {
-  Avatar,
-  Box,
-  Card,
-  CardHeader,
-  Grid,
-  IconButton,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
-import { useEffect, useState, useCallback, useMemo } from 'react'
-import Icon from 'src/@core/components/icon'
-import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { format, subMonths } from 'date-fns'
+import debounce from 'lodash/debounce'
+
+import Search from 'src/views/utility/Search'
+import { downloadPDF } from 'src/utility'
 import Utility from 'src/utility'
+
+import Icon from 'src/@core/components/icon'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import UserDrawer from 'src/views/pages/compliance/reports/keepers/UserDrawer'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { format, subMonths } from 'date-fns'
-import { getDiaryReportList } from 'src/lib/api/compliance/reports'
 import ObservationView from 'src/views/pages/compliance/reports/biologists/Observation'
-import debounce from 'lodash/debounce'
-import { downloadPDF } from 'src/utility'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
-import Search from 'src/views/utility/Search'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
+
+import { getDiaryReportList, getUserListing } from 'src/lib/api/compliance/reports'
+import { useRouter } from 'next/router'
 
 const BiologistDiaryReport = () => {
   const theme = useTheme()
+  const router = useRouter()
+
+  const handleUserSelect = user => {
+    setUserDetail(user)
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, user_id: user.user_id }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   const [userDrawer, setUserDrawer] = useState(false)
   const [userDetail, setUserDetail] = useState(null)
   const [biologistList, setBiologistList] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [userLoader, setUserLoader] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
@@ -46,68 +55,121 @@ const BiologistDiaryReport = () => {
     page: 0,
     pageSize: 50
   })
-
   const [searchValue, setSearchValue] = useState('')
+
+  useEffect(() => {
+    if (router.query.user_id && !userDetail) {
+      const fetchUser = async () => {
+        setUserLoader(true)
+        try {
+          const res = await getUserListing({
+            page_no: 1,
+            ref_type: 'total_user',
+            role_key: 'all_users',
+            user_id: router.query.user_id
+          })
+
+          if (res?.data?.result?.length) {
+            setUserDetail(res?.data?.result[0])
+            setUserLoader(false)
+          }
+        } catch (err) {
+          console.error('Error fetching user by id:', err)
+        }
+      }
+
+      fetchUser()
+    }
+  }, [router.query.user_id])
 
   const eventHandler = () => {
     setUserDrawer(true)
   }
 
   // Main API call function
-  const getBiologistReport = useCallback(
-    async (search = '') => {
-      setLoading(true)
+  const getBiologistReport = async (search = '') => {
+    setLoading(true)
 
-      const params = {
-        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-        user_id: userDetail?.user_id,
-        page_no: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        report_type: 'json',
-        type: 'biologist',
-        ...(search && { q: search })
-      }
+    const params = {
+      ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+      ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+      user_id: userDetail?.user_id || router.query.user_id,
+      page_no: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      report_type: 'json',
+      type: 'biologist',
+      ...(search && { q: search })
+    }
 
-      try {
-        const response = await getDiaryReportList(params)
-        if (response?.success) {
-          setBiologistList(response?.data?.observationData)
-          setTotal(response?.data?.total)
-        } else {
-          console.log('error >>')
-        }
-      } catch (error) {
-        console.error('Error fetching biologist report:', error)
-      } finally {
-        setLoading(false)
+    try {
+      const response = await getDiaryReportList(params)
+      if (response?.success) {
+        setBiologistList(response?.data?.observationData)
+        setTotal(response?.data?.total)
+      } else {
+        console.log('error >>')
       }
-    },
-    [filterDates, userDetail?.user_id, paginationModel.page, paginationModel.pageSize]
+    } catch (error) {
+      console.error('Error fetching biologist report:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (paginationModel.page !== 0) {
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    }
+    if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+    }
+  }
+
+  const debouncedGetBiologistReport = useCallback(
+    debounce(q => {
+      setPaginationModel({ page: 0, pageSize: 10 }) // reset page on search
+    }, 800),
+    []
   )
 
-  // Create debounced function using useMemo to prevent recreation on every render
-  const debouncedGetBiologistReport = useMemo(
-    () =>
-      debounce(search => {
-        getBiologistReport(search)
-      }, 500),
-    [getBiologistReport]
-  )
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value) // Update input immediately for UI responsiveness
 
-  // Effect for initial load and when dependencies change (except search)
+    // Call debounced API function
+    debouncedGetBiologistReport(value)
+  }
+
+  // // Effect for initial load and when dependencies change (except search)
   useEffect(() => {
-    if (userDetail) {
+    if (userDetail?.user_id) {
       getBiologistReport(searchValue)
     }
-  }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize, getBiologistReport])
+  }, [userDetail, filterDates, paginationModel])
 
-  // Cleanup debounced function on unmount
-  useEffect(() => {
-    return () => {
-      debouncedGetBiologistReport.cancel()
-    }
-  }, [debouncedGetBiologistReport])
+  const clearUserSelection = () => {
+    setUserDetail(null)
+
+    const { user_id, ...rest } = router.query
+    router.push(
+      {
+        pathname: router.pathname,
+        query: rest
+      },
+      undefined,
+      { shallow: false }
+    )
+  }
 
   const UserSelectionCard = ({ user }) => {
     return (
@@ -154,7 +216,7 @@ const BiologistDiaryReport = () => {
             borderBottomRightRadius: '8px'
           }}
         >
-          <IconButton onClick={() => setUserDetail(null)}>
+          <IconButton onClick={clearUserSelection}>
             <Icon icon='mdi:close' color='red' fontSize={30} />
           </IconButton>
         </Box>
@@ -166,19 +228,11 @@ const BiologistDiaryReport = () => {
     setUserDrawer(false)
   }
 
-  // const CardWrapper = ({ data }) => {
-  //   return (
-  //     <>
-  //       <UserSelectionCard user={data} />
-  //     </>
-  //   )
-  // }
-
   const handleDownloadReport = async () => {
     const params = {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-      user_id: userDetail?.user_id,
+      user_id: userDetail?.user_id || router.query.user_id,
       report_type: 'pdf',
       type: 'biologist',
       ...(searchValue && { q: searchValue })
@@ -197,17 +251,13 @@ const BiologistDiaryReport = () => {
     }
   }
 
-  const headerAction = (
-    <>
-      <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
-    </>
-  )
+  const headerAction = <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
 
   const columns = [
     {
-      flex: 0.1,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO.',
+      headerName: 'SL.NO',
       sortable: false,
       align: 'left',
       headerAlign: 'left',
@@ -236,15 +286,14 @@ const BiologistDiaryReport = () => {
       )
     },
     {
+      minWidth: 180,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
-      flex: 2,
       minWidth: 400,
       sortable: false,
       renderCell: params => <AnimalView data={params.row} />
     },
     {
-      flex: 1,
       minWidth: 250,
       field: 'observation',
       headerName: 'OBSERVATION',
@@ -252,7 +301,6 @@ const BiologistDiaryReport = () => {
       renderCell: params => <ObservationView data={params.row} />
     },
     {
-      flex: 2,
       minWidth: 350,
       field: 'details',
       headerName: 'DETAILS',
@@ -311,36 +359,6 @@ const BiologistDiaryReport = () => {
     sl_no: getSlNo(index)
   }))
 
-  const handleDateRangeChange = (startDate, endDate) => {
-    if (startDate && endDate) {
-      const formattedStartDate = Utility.formatDate(startDate)
-      const formattedEndDate = Utility.formatDate(endDate)
-      setFilterDates({
-        startDate: formattedStartDate,
-        endDate: formattedEndDate
-      })
-    } else {
-      setFilterDates({
-        startDate: '',
-        endDate: ''
-      })
-    }
-  }
-
-  // Handle search input change
-  const handleSearchChange = e => {
-    const value = e.target.value
-    setSearchValue(value) // Update input immediately for UI responsiveness
-
-    // Reset to first page when searching
-    if (paginationModel.page !== 0) {
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
-    }
-
-    // Call debounced API function
-    debouncedGetBiologistReport(value)
-  }
-
   return (
     <>
       {userDetail ? (
@@ -349,46 +367,6 @@ const BiologistDiaryReport = () => {
           <Box sx={{ py: '16px', px: '22px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
-
-          {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0, px: 4 }}>
-            <Box>
-              <TextField
-                variant='outlined'
-                size='small'
-                value={searchValue}
-                onChange={handleSearchChange}
-                placeholder='Search by Entity or date'
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-                sx={{
-                  width: '320px',
-                  backgroundColor: '#fff',
-                  ml: 2,
-                  mt: 1,
-                  borderRadius: '4px',
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '4px'
-                  }
-                }}
-              />
-            </Box>
-
-            <Box sx={{ mr: 1.5 }}>
-              <CommonDateRangePickers
-                filterDates={filterDates}
-                onChange={handleDateRangeChange}
-                useCustomText={true}
-                customText='Select a Date Range'
-              />
-            </Box>
-          </Box> */}
 
           <Box
             sx={{
@@ -401,6 +379,10 @@ const BiologistDiaryReport = () => {
           >
             <Box sx={{ width: '100%', px: 6 }}>
               <Search
+                onClear={() => {
+                  setSearchValue('')
+                  debouncedGetBiologistReport('')
+                }}
                 onChange={handleSearchChange}
                 placeholder='Search by Entity or observation type'
                 value={searchValue}
@@ -438,6 +420,10 @@ const BiologistDiaryReport = () => {
             />
           </Grid>
         </Card>
+      ) : userLoader ? (
+        <Box display='flex' justifyContent='center' alignItems='center'>
+          <CircularProgress />
+        </Box>
       ) : (
         <Card sx={{ p: 6 }}>
           <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
@@ -454,8 +440,8 @@ const BiologistDiaryReport = () => {
         <UserDrawer
           open={userDrawer}
           onClose={handleClose}
-          setUserDetail={setUserDetail}
-          placeholder='Search by Biologist name or ID'
+          setUserDetail={handleUserSelect}
+          placeholder='Search by Biologist name'
           queryKey='user-biologist-Report'
           headerText='Select the Biologist'
           footerText='generate biologist Diary REPORT'

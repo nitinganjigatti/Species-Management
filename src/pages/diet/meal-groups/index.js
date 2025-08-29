@@ -1736,7 +1736,7 @@ const MealGroup = () => {
                           fontSize: '16px'
                         }}
                       >
-                        No record found
+                        No rows
                       </Typography>
                     </Box>
                   )

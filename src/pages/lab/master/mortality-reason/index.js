@@ -39,7 +39,7 @@ const MortalityReason = () => {
   const [data, setData] = useState([])
   const [searchText, setSearchText] = useState('')
   const [filteredData, setFilteredData] = useState([])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
 
   const medical_add_mortality_reasons = authData?.userData?.permission?.user_settings?.medical_add_mortality_reasons
 
@@ -292,6 +292,18 @@ const MortalityReason = () => {
             />
             <DataGrid
               sx={{
+                paddingX: 5,
+                borderTopLeftRadius: '8px',
+                '& .MuiBox-root': {
+                  paddingX: 0
+                },
+                '.MuiDataGrid-main': {
+                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                  borderRadius: '8px'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  border: 'none !important'
+                },
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },

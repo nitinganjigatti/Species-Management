@@ -264,7 +264,7 @@ const AnimalsData = ({
       if (response?.success) {
         setShowEditAnimals(true)
         setLoading(false)
-        router.push(`/compliance/documents/imports`)
+        router.push(`/compliance/documents/imports/AddEditImport/?id=${id}&action=details`)
         Toaster({ type: 'success', message: response?.message })
         //fetchImportspeciesDetails()
       } else {

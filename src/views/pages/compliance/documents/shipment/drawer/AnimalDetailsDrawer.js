@@ -40,7 +40,6 @@ const AnimalDetailsDrawer = ({
           backgroundColor: theme.palette.customColors.Background
         }}
       >
-     
         <Box sx={{ px: 5, pt: 4, pb: 4 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
@@ -133,7 +132,7 @@ const AnimalDetailsDrawer = ({
                   fontWeight={500}
                   sx={{ mt: 0.5, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
                 >
-                  {animalDetails?.cites || 'N/A'}
+                  {animalDetails?.appendix || 'N/A'}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6 }} sx={{ mt: 3 }}>
@@ -233,7 +232,6 @@ const AnimalDetailsDrawer = ({
                     mb: 3
                   }}
                 >
-               
                   <Avatar
                     sx={{
                       backgroundColor:

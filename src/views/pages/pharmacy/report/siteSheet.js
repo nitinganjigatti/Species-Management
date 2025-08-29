@@ -27,6 +27,7 @@ const SiteSheet = ({
       setTempSelectedSites(storedSiteIds)
     }
   }, [openSiteDrawer, selectedSites])
+
   const handleSelectAll = event => {
     const filteredSiteIds = filteredSites.map(site => site.site_id)
     if (event.target.checked) {
@@ -116,14 +117,13 @@ const SiteSheet = ({
         </IconButton>
       </Box>
 
-      <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto' }}>
+      <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto', height: 'calc(100% - 100px)' }}>
         <Box
           sx={{
             p: 3,
             flex: 1,
             width: '100%',
-            // maxHeight: ' 100vh',
-            height: 'calc(100% - 100px)',
+            height: 'calc(100% - 60px)',
             display: 'flex',
             backgroundColor: '#FFFF !important',
             flexDirection: 'column',

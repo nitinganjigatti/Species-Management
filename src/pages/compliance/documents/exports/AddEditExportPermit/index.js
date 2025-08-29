@@ -64,11 +64,12 @@ const AddEditExportPermit = () => {
   }
 
   const handleFormSubmit = exportId => {
-    console.log('id', exportId)
     if (!isEdit) {
-      setExpanded('supporting-documents')
       fetchDocumentTypeList(exportId)
+    } else {
+      fetchExportDetails()
     }
+    setExpanded(['supporting-documents'])
   }
 
   const fetchDocumentTypeList = async exportId => {
@@ -100,9 +101,8 @@ const AddEditExportPermit = () => {
 
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
-  const handleAddEditSuccess = data => {
-    const updatedList = documentList.map(item => (item.id === data?.id ? { ...item, ...data } : item))
-    setDocumentList(updatedList)
+  const handleAddEditSuccess = () => {
+    fetchDocumentTypeList()
   }
 
   return (
@@ -138,6 +138,7 @@ const AddEditExportPermit = () => {
         docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
         expanded={expanded.includes('supporting-documents')}
         onChange={handleAccordionChange}
+        shouldScrollToTop={id && true}
       >
         {!isEdit && !documentList?.length ? (
           <Box

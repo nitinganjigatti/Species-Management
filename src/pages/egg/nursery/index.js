@@ -40,7 +40,7 @@ const NurseryList = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [defaultSite, setDefaultSite] = useState(null)
 
   const fetchTableData = useCallback(
@@ -114,7 +114,7 @@ const NurseryList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 30,
+      minWidth: 140,
       sortable: false,
       field: 'Nursery Name',
       headerName: 'Nursery Name',
@@ -135,7 +135,7 @@ const NurseryList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       sortable: false,
       field: 'ROOMS',
       headerName: 'ROOMS',
@@ -156,7 +156,7 @@ const NurseryList = () => {
     },
     {
       flex: 0.24,
-      minWidth: 20,
+      minWidth: 120,
       sortable: false,
       field: 'INCUBATORS',
       align: 'left',
@@ -177,7 +177,7 @@ const NurseryList = () => {
     },
     {
       flex: 0.23,
-      minWidth: 20,
+      minWidth: 120,
       sortable: false,
       field: 'SITE NAME',
       align: 'left',
@@ -198,7 +198,7 @@ const NurseryList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       sortable: false,
       align: 'left',
       field: 'active',
@@ -223,7 +223,7 @@ const NurseryList = () => {
     },
     {
       flex: 0.5,
-      minWidth: 60,
+      minWidth: 220,
       sortable: false,
       field: 'added_by',
       headerName: 'ADDED BY',
@@ -334,7 +334,7 @@ const NurseryList = () => {
               <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
               <TextField
                 variant='outlined'
-                placeholder='Search...'
+                placeholder='Search'
                 onChange={e => {
                   setSearchValue(e.target.value)
                   searchTableData(e.target.value, defaultSite?.site_id)

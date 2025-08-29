@@ -1,5 +1,16 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Tooltip, Typography, debounce } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardHeader,
+  IconButton,
+  Tooltip,
+  Typography,
+  debounce
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
@@ -33,7 +44,7 @@ const LabSamples = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -41,7 +52,6 @@ const LabSamples = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
-
 
   function loadServerRows(currentPage, data) {
     return data
@@ -183,12 +193,17 @@ const LabSamples = () => {
       headerName: 'LAB SAMPLE NAME',
       renderCell: params => (
         <Tooltip title={params.row.label ? params.row.label : '-'}>
-          <Typography noWrap variant='body2' sx={{
-            color: 'text.primary', pl: 2,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
+          <Typography
+            noWrap
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              pl: 2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
             {params.row.label ? params.row.label : '-'}
           </Typography>
         </Tooltip>
@@ -257,18 +272,24 @@ const LabSamples = () => {
               width: 30,
               height: 30,
               borderRadius: '50%',
-              background: theme.palette.customColors.displaybgPrimary,
+              background: theme.palette.customColors.displaybgPrimary
               // overflow: 'hidden'
             }}
             src={params?.row.created_by_user?.profile_pic}
           />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Tooltip title={params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}>
-              <Typography noWrap variant='body2' sx={{
-                color: 'text.primary', fontSize: 14, overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{
+                  color: 'text.primary',
+                  fontSize: 14,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
                 {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
               </Typography>
             </Tooltip>
@@ -277,9 +298,11 @@ const LabSamples = () => {
                 noWrap
                 variant='body2'
                 sx={{
-                  color: theme.palette.customColors.neutralSecondary, fontSize: 12, overflow: 'hidden',
+                  color: theme.palette.customColors.neutralSecondary,
+                  fontSize: 12,
+                  overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {params.row.created_at ? moment(params.row.created_at).format('DD/MMM/YYYY') : '-'}
@@ -351,6 +374,18 @@ const LabSamples = () => {
 
             <DataGrid
               sx={{
+                paddingX: 5,
+                borderTopLeftRadius: '8px',
+                '& .MuiBox-root': {
+                  paddingX: 0
+                },
+                '.MuiDataGrid-main': {
+                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                  borderRadius: '8px'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  border: 'none !important'
+                },
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },

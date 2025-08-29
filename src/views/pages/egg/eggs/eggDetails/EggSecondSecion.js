@@ -267,17 +267,22 @@ const EggSecondSecion = ({
       field: 'assessment_value',
       headerName: 'ACTUAL',
       renderCell: params => (
-        <Typography
-          noWrap
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {`${params?.row?.assessment_value} ${params?.row?.uom_abbr}`}
-        </Typography>
+        <Tooltip title={`${params?.row?.assessment_value} ${params?.row?.uom_abbr}`} placement='top'>
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {`${params?.row?.assessment_value} ${params?.row?.uom_abbr}`}
+          </Typography>
+        </Tooltip>
       )
     }
   ]
@@ -1063,7 +1068,7 @@ const EggSecondSecion = ({
                   <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                     <Box
                       sx={{
-                        backgroundColor: theme.palette.customColors.addPrimary,
+                        backgroundColor: theme.palette.primary.main,
                         height: '10px',
                         width: '10px',
                         borderRadius: '10px'
@@ -1116,7 +1121,7 @@ const EggSecondSecion = ({
               <CustomTableContainer
                 style={{ border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`, borderRadius: '8px' }}
                 component={Paper}
-                sx={{ height: 175 }}
+                sx={{ height: 174 }}
               >
                 <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
                   <TableHead>
@@ -1132,7 +1137,17 @@ const EggSecondSecion = ({
                   <TableBody>
                     {eggDetails?.assessments_data?.map((row, key) => {
                       return (
-                        <TableRow key={key} sx={{ py: 1 }} hover>
+                        <TableRow
+                          bor
+                          key={key}
+                          sx={{
+                            py: 1,
+                            '& td': {
+                              border: key === 2 && 'none !important'
+                            }
+                          }}
+                          hover
+                        >
                           <TableCell
                             style={{
                               padding: '11px 12px 11px 12px',
@@ -1158,10 +1173,33 @@ const EggSecondSecion = ({
                               padding: '11px 12px 11px 12px',
                               fontSize: '12px',
                               fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              maxWidth: '150px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
                             }}
                           >
-                            {`${row?.assessment_value} ${row?.uom_abbr}`}
+                            <Tooltip
+                              title={`${Number(row?.assessment_value).toFixed(2)} ${row?.uom_abbr}`}
+                              placement='top'
+                            >
+                              <span>
+                                {(() => {
+                                  const value = Number(row?.assessment_value)
+                                  if (value >= 1e6) {
+                                    // For very large numbers, show in a more readable format
+                                    return `${value.toLocaleString('en-US', {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2
+                                    })} ${row?.uom_abbr}`
+                                  } else {
+                                    // For normal numbers, show with 2 decimal places
+                                    return `${value.toFixed(2)} ${row?.uom_abbr}`
+                                  }
+                                })()}
+                              </span>
+                            </Tooltip>
                           </TableCell>
                           <TableCell
                             style={{

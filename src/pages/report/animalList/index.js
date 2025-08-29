@@ -386,6 +386,7 @@ const AnimalList = () => {
         sortable: false,
         disableColumnMenu: true,
         width: 300,
+        headerStyle: { zIndex: 1099 },
         renderCell: params => (
           <Box sx={{ paddingY: '20px' }}>
             <AnimalCard data={params.row} />
@@ -397,7 +398,7 @@ const AnimalList = () => {
     return {
       field: fieldKey,
       headerName: header.label,
-      width: 210,
+      width: 170,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
@@ -408,7 +409,7 @@ const AnimalList = () => {
             ? // ? moment(params?.row[header?.key]).format('DD-MMM-YYYY').toLocaleLowerCase()
               moment(params?.row[header?.key]).format('DD-MMM-YYYY')
             : truncateText(params?.row[header?.key], 20)
-          : ''
+          : '-'
 
         const showTooltip = params?.value?.length > 20
 

@@ -29,7 +29,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
     // Ensure dates are properly formatted when setting current document data
     setCurrentDocumentData({
       ...document,
-      issued_date: document.issued_date ? dayjs(document.issued_date) : null
+      issued_date: document?.issued_date ? dayjs(document?.issued_date) : null
     })
     setDrawerOpen(true)
   }
@@ -183,7 +183,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                     gap: isMobile ? 2 : 0
                   }}
                 >
-                  <Typography sx={{ fontWeight: 500 }}>{document.name}</Typography>
+                  <Typography sx={{ fontWeight: 500 }}>{document?.name || ''}</Typography>
                   <Box
                     sx={{
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`,

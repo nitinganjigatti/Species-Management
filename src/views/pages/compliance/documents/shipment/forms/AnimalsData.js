@@ -16,7 +16,9 @@ const AnimalsData = ({
   totalSpecies,
   totalAnimals,
   setTotalAnimals,
-  setTotalSpecies
+  setTotalSpecies,
+  setExpanded,
+  fetchLinkedDocuments
 }) => {
   const router = useRouter()
   const { id, action, export: exportCount } = router.query
@@ -107,7 +109,8 @@ const AnimalsData = ({
           const params = {
             q: searchValue,
             page_no: nextPage,
-            limit: paginationModel.pageSize
+            limit: paginationModel.pageSize,
+            excludeShipped: 1
           }
 
           const response = await getExportList(params)
@@ -136,7 +139,8 @@ const AnimalsData = ({
         const params = {
           q: searchValue,
           page_no: reset ? 1 : paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          excludeShipped: 1
         }
 
         const response = await getExportList(params)
@@ -174,9 +178,9 @@ const AnimalsData = ({
   }
 
   useEffect(() => {
-    fetchExportList()
+    //fetchExportList()
     fetchMastersData()
-  }, [fetchExportList])
+  }, [])
 
   useEffect(() => {
     fetchExportList(true)
@@ -298,6 +302,7 @@ const AnimalsData = ({
           common_name: spec.common_name || '',
           scientific_name: spec.scientific_name || '',
           //default_icon: '', // or use spec.default_icon if available
+          shipment_species_id: spec?.shipment_species_id || '',
           appendix: spec.appendix || '',
           male_count: parseInt(spec.male_count) || 0,
           female_count: parseInt(spec.female_count) || 0,
@@ -322,8 +327,8 @@ const AnimalsData = ({
           taxonomy_id: item.species.taxonomy_id || '',
           common_name: item.species.common_name || '',
           scientific_name: item.species.scientific_name || '',
-          //default_icon: item.species.default_icon || '',
-          //appendix: '', // others might not have this
+          shipment_species_id: item.species.shipment_species_id || '',
+          default_icon: item.species.default_icon ? item.species.default_icon.split('path=')[1] : '',
           male_count: parseInt(item.species.male_count) || 0,
           female_count: parseInt(item.species.female_count) || 0,
           undeterminate_count: parseInt(item.species.undeterminate_count) || 0,
@@ -350,6 +355,8 @@ const AnimalsData = ({
         router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=details&export=1`)
         Toaster({ type: 'success', message: response?.message })
         fetchShipmentspeciesDetails()
+        setExpanded(['permit-details'])
+        fetchLinkedDocuments()
       } else {
         setLoading(false)
         Toaster({ type: 'error', message: response?.message })
@@ -395,6 +402,7 @@ const AnimalsData = ({
               tsn_id: spec.taxonomy_id || '',
               common_name: spec.common_name || '',
               scientific_name: spec.scientific_name || '',
+              shipment_species_id: spec?.shipment_species_id || '',
               male_count: parseInt(spec.male_count) || 0,
               female_count: parseInt(spec.female_count) || 0,
               undeterminate_count: parseInt(spec.undeterminate_count) || 0,

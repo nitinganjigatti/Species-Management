@@ -1099,31 +1099,50 @@ const EggList = () => {
       ),
 
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.current_weight ? params.row.current_weight : '-'}{' '}
-          {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
-            calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0' && (
-              <span
-                style={{
-                  borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  paddingLeft: 4,
-                  color:
-                    calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
-                      ? theme.palette.primary.main
-                      : theme.palette.formContent.tertiary
-                }}
-              >
-                {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+        <Tooltip
+          title={
+            <>
+              <span>{params.row.current_weight ? params.row.current_weight : '-'}</span>
+              <span> | </span>
+              <span style={{ color: theme.palette.success.main }}>
+                {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
+                calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0'
+                  ? `${calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%`
+                  : ''}
               </span>
-            )}
-        </Typography>
+            </>
+          }
+          placement='top'
+        >
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.current_weight ? params.row.current_weight : '-'}{' '}
+            {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
+              calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0' && (
+                <span
+                  style={{
+                    borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    paddingLeft: 4,
+                    color:
+                      calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
+                        ? theme.palette.primary.main
+                        : theme.palette.formContent.tertiary
+                  }}
+                >
+                  {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+                </span>
+              )}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -1965,6 +1984,7 @@ const EggList = () => {
       }
     )
   }
+
   // console.log('tab_Value', tab_Value)
   // console.log('subTab_value', subTab_value)
 
@@ -2267,6 +2287,7 @@ const EggList = () => {
 
                 <CommonTable
                   externalTableStyle={{
+                    paddingX: 4,
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
                     },
@@ -2320,6 +2341,7 @@ const EggList = () => {
                   />
 
                   <CommonTable
+                    externalTableStyle={{ paddingX: 4 }}
                     indexedRows={indexedRows || []}
                     total={total}
                     columns={ready_to_discard || []}
@@ -2420,7 +2442,7 @@ const EggList = () => {
                     loading={loading}
                     searchValue={searchValue}
                     maxHeight='70vh'
-                    externalTableStyle={{ mx: 0 }}
+                    externalTableStyle={{ mx: 0, paddingX: 4 }}
                   />
                 </Box>
               </TabPanel>
@@ -2501,6 +2523,7 @@ const EggList = () => {
                       />
 
                       <CommonTable
+                        externalTableStyle={{ paddingX: 4 }}
                         indexedRows={indexedRows || []}
                         total={total}
                         columns={discarded_Egg_Columns || []}

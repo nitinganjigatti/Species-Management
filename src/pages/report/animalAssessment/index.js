@@ -59,7 +59,7 @@ const AnimalAssessment = () => {
   const [maxAssessmentCount, setMaxAssessmentCount] = useState(0)
   const [headerList, setHeaderList] = useState([])
   const [dataList, setDataList] = useState([])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)

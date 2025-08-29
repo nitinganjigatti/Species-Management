@@ -56,7 +56,11 @@ const AnimalInsightsCard = ({
               <Grid container spacing={2}>
                 {[1, 2, 3].map(idx => (
                   <Grid key={idx} item size={{ xs: 12, md: 4 }}>
-                    <Skeleton variant='rectangular' height={90} sx={{ borderRadius: 1, backgroundColor: 'grey.900', mb: 1 }} />
+                    <Skeleton
+                      variant='rectangular'
+                      height={90}
+                      sx={{ borderRadius: 1, backgroundColor: 'grey.900', mb: 1 }}
+                    />
                     <Skeleton width='90%' sx={{ backgroundColor: 'grey.900' }} />
                     <Skeleton width='60%' sx={{ backgroundColor: 'grey.900' }} />
                   </Grid>
@@ -78,8 +82,8 @@ const AnimalInsightsCard = ({
             />
             <Box
               sx={{
-                mt: 10,
-                p: { xs: 1.5, sm: 6 },
+                mt: 4,
+                p: { xs: 0.5, sm: 4 },
                 border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
                 borderRadius: 1,
                 backgroundColor: alpha(theme.palette.common.black, 0.3),
@@ -123,42 +127,12 @@ const AnimalInsightsCard = ({
               )}
               {isSpecies && (
                 <>
-                  <Grid container alignItems='center' justifyContent='space-between' sx={{ mb: 2 }}>
-                    <Grid item xs={12} md='auto'>
-                      <Typography
-                        sx={{
-                          fontWeight: 400,
-                          fontSize: { xs: '1rem', md: '1.1rem' },
-                          opacity: 0.85
-                        }}
-                      >
-                        Population till date -{' '}
-                        <Box component='span' sx={{ fontWeight: 600, fontSize: '1.3rem', ml: 0.5 }}>
-                          1.3K
-                        </Box>
-                      </Typography>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={12}
-                      md='auto'
-                      sx={{
-                        display: 'flex',
-                        justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                        mt: { xs: 1, md: 0 }
-                      }}
-                    >
-                      <CommonDateRangePickers />
-                    </Grid>
-                  </Grid>
-                  <Grid container spacing={2}>
+                  <Grid container spacing={8}>
                     {statsData.map((item, idx) => (
                       <Grid
                         item
                         key={idx}
-                        xs={12}
-                        sm={6}
-                        md={3}
+                        size={{ xs: 12, sm: 6, md: 2 }}
                         sx={{
                           display: 'flex',
                           justifyContent: 'flex-start'
