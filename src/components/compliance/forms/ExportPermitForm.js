@@ -21,10 +21,10 @@ export const exportPermitValidationSchema = yup.object().shape({
   issued_date: yup.date().required('Issued date is required'),
 
   valid_until: yup
-  .date()
-  .typeError('Must be a valid date')
-  .required('Valid until date is required')
-  .min(yup.ref('issued_date'), 'Valid until date must be after issued date'),
+    .date()
+    .typeError('Must be a valid date')
+    .required('Last date of validity is required')
+    .min(yup.ref('issued_date'), 'Valid until date must be after issued date'),
 
   origin_country: yup
     .object()
@@ -284,9 +284,10 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         id: species.id,
         tsn_id: species.id,
         species: {
-          id: species.taxonomy_id,
+          id: species.id,
           tsn_id: species.taxonomy_id,
           common_name: species.common_name,
+          export_species_id: species.id,
           scientific_name: species.scientific_name
         },
         male_count: parseInt(species.male_count) || 0,
@@ -296,6 +297,8 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         appendix: { label: species.appendix, value: species.appendix },
         animalDetails: species.animals.map(animal => ({
           id: animal.id,
+          export_animal_id: animal?.id,
+          export_species_id: animal?.export_species_id,
           animal_type: animal.animal_type,
           animal_count: parseInt(animal.animal_count) || 0,
           gender: {
@@ -319,15 +322,17 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   const handleSpeciesSelect = selectedSpecies => {
     // Create new species items for those not already in the list
     const newSpeciesItems = selectedSpecies
-      .filter(species => !speciesList.some(existing => existing.species.tsn_id === species.tsn_id))
+      .filter(species => !speciesList.some(existing => existing.species.id === species.id))
       .map(species => ({
-        id: species.tsn_id,
+        id: species.id,
         species: {
-          id: species.tsn_id,
+          id: species.id,
           tsn_id: species.tsn_id,
+          export_species_id: species?.export_species_id || null,
           common_name: species.common_name,
           scientific_name: species.scientific_name || species.complete_name,
-          default_icon: species.default_icon
+          default_icon: species.default_icon,
+          isFromAntzDatabase: species.isFromAntzDatabase || false
         },
         male_count: 0,
         female_count: 0,
@@ -375,16 +380,19 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       document_type_id: DOCUMENT_TYPE_ID,
       species: JSON.stringify(
         data.speciesList.map(item => ({
-          taxonomy_id: item.species?.tsn_id || item.species?.id || '',
+          taxonomy_id: item.species?.tsn_id || null,
+          export_species_id: id && item.species?.export_species_id ? item.species?.export_species_id : null, // Only send export_species_id in edit mode
           common_name: item.species?.common_name || '',
           scientific_name: item.species?.scientific_name || '',
-          default_icon: item?.species?.default_icon,
+          default_icon: item?.species?.default_icon ? item.species.default_icon.split('path=')[1] : null,
           appendix: item.appendix?.value || '',
           male_count: parseInt(item.male_count) || 0,
           female_count: parseInt(item.female_count) || 0,
           undeterminate_count: parseInt(item.undeterminate_count) || 0,
           animals: item.animalDetails.map(detail => ({
             id: detail.id?.startsWith('new_') ? '' : detail.id || '',
+            export_animal_id: detail?.export_animal_id ? detail.export_animal_id : null,
+            export_species_id: detail?.export_species_id ? detail.export_species_id : null,
             gender: detail.gender?.value || '',
             identifier_type: detail.identifier_type?.label || '',
             identifier_value: detail.identifier_value || '',
@@ -420,6 +428,14 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
             query: {
               id: response?.data?.id,
               type: 'add'
+            }
+          })
+        } else {
+          router.push({
+            pathname: '/compliance/documents/exports/AddEditExportPermit',
+            query: {
+              id: id,
+              type: 'update'
             }
           })
         }
@@ -504,7 +520,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         open={speciesDrawerOpen}
         onClose={() => setSpeciesDrawerOpen(false)}
         onSelect={handleSpeciesSelect}
-        selectedSpecies={speciesList.map(item => item.species)}
+        selectedSpecies={speciesList?.map(item => item.species)}
         title='Select Species'
         data={{
           queryKey: 'export-permit-species',

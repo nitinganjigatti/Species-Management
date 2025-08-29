@@ -264,7 +264,7 @@ const ExportPermitAnimals = ({
                   <Grid size={{ xs: 12, md: 2.5 }}>
                     <ControlledTextField
                       name={`speciesList.${speciesIndex}.undeterminate_count`}
-                      label='# Undetermined'
+                      label='# Unknown'
                       type='number'
                       control={control}
                       errors={errors}
