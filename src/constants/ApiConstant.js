@@ -679,3 +679,7 @@ export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
 export const ANIMAL_HISTORY = `animal-log-history`
 
 export const ANIMAL_MEDIA = `animal/media-list`
+
+export const GET_TRADE_SPECIES_LISTING = `/v1/trade/species`
+
+export const GET_TRADE_SPECIES_SHIPMENT_LIST = `v1/trade/species/shipments/`

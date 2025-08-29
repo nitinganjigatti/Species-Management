@@ -103,7 +103,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
             }}
           >
             <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.Antz_Minor_Medium }}>
-              Shipped Animals: {totalShipped} / {totalAllowed}
+              Shipped Animals: {shipment?.total_shipped_animals || shipment?.total_animals} / {totalAllowed}
             </Typography>
             {shipment?.file_original_name && shipment?.file_path && (
               <a
