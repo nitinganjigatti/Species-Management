@@ -130,7 +130,7 @@ const KeeperDiaryReport = () => {
   }
 
   useEffect(() => {
-    if (userDetail) {
+    if (userDetail?.user_id) {
       getUserKeeperReport(searchValue)
     }
   }, [userDetail, paginationModel, filterDates])
