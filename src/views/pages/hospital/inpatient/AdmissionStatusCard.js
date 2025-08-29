@@ -105,7 +105,7 @@ const AdmissionStatusCard = ({ type = 'admitted_on', value }) => {
             borderRadius: 1
           }}
         >
-          <img src={config?.icon} alt={config?.label} />
+          <img src={config?.icon} alt={config?.label} height={26} width={26} />
         </Box>
         <Box
           sx={{
