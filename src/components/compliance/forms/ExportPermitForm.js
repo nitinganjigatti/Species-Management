@@ -297,6 +297,8 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
         appendix: { label: species.appendix, value: species.appendix },
         animalDetails: species.animals.map(animal => ({
           id: animal.id,
+          export_animal_id: animal?.id,
+          export_species_id: animal?.export_species_id,
           animal_type: animal.animal_type,
           animal_count: parseInt(animal.animal_count) || 0,
           gender: {
@@ -389,6 +391,8 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
           undeterminate_count: parseInt(item.undeterminate_count) || 0,
           animals: item.animalDetails.map(detail => ({
             id: detail.id?.startsWith('new_') ? '' : detail.id || '',
+            export_animal_id: detail?.export_animal_id ? detail.export_animal_id : null,
+            export_species_id: detail?.export_species_id ? detail.export_species_id : null,
             gender: detail.gender?.value || '',
             identifier_type: detail.identifier_type?.label || '',
             identifier_value: detail.identifier_value || '',

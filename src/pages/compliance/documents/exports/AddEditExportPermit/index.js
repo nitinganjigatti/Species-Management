@@ -67,7 +67,7 @@ const AddEditExportPermit = () => {
     if (!isEdit) {
       fetchDocumentTypeList(exportId)
     } else {
-      fetchDocumentTypeList(id)
+      fetchExportDetails()
     }
     setExpanded(['supporting-documents'])
   }
