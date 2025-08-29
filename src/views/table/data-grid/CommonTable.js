@@ -12,6 +12,7 @@ const CommonTable = ({
   setPaginationModel,
   pageSizeOptions,
   loading,
+  hideFooterPagination = false,
   searchValue,
   onCellClick,
   columnVisibilityModel,
@@ -80,6 +81,7 @@ const CommonTable = ({
       columns={columns}
       sortingMode='server'
       rowHeight={rowHeight}
+      hideFooterPagination={hideFooterPagination}
       // paginationMode='server'
       // pageSizeOptions={[7, 10, 25, 50]}
       paginationMode={disablePagination ? undefined : 'server'}
