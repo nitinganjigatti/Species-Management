@@ -52,7 +52,8 @@ const ShipmentBasicDetails = React.forwardRef(
       shipmentIdval,
       setshipmentIdVal,
       setExpanded,
-      linkedDocumentsData
+      linkedDocumentsData,
+      mastersData
     },
     ref
   ) => {
@@ -89,10 +90,10 @@ const ShipmentBasicDetails = React.forwardRef(
 
     useEffect(() => {
       if (onEditClick) onEditClick.current = handleEditClick
-      if (id) {
+      if (id && mastersData?.document_type_id) {
         fetchbasicDetails()
       }
-    }, [onEditClick, id])
+    }, [onEditClick, id, mastersData])
 
     useEffect(() => {
       if (shipmentIdval && status !== 'completed') {
@@ -107,7 +108,7 @@ const ShipmentBasicDetails = React.forwardRef(
     const fetchbasicDetails = async () => {
       try {
         setLoader(true)
-        const response = await getShipmentBasicDetails(id, '5')
+        const response = await getShipmentBasicDetails(id, mastersData?.document_type_id)
         if (response?.success) {
           // const formatAirwayBill = (value = '') => {
           //   const inputValue = value.replace(/\D/g, '').slice(0, 11)
@@ -134,13 +135,12 @@ const ShipmentBasicDetails = React.forwardRef(
 
     const handleSave = async statusToSave => {
       const isCalledViaRef = typeof statusToSave !== 'object'
-
       let saveStatus
       if (typeof statusToSave === 'string') {
         saveStatus = statusToSave
       } else if (statusToSave && typeof statusToSave === 'object') {
         if (statusToSave.target && typeof statusToSave.target.value === 'string') {
-          saveStatus = statusToSave.target.value
+          saveStatus = status
         } else {
           saveStatus = status
         }
@@ -157,7 +157,7 @@ const ShipmentBasicDetails = React.forwardRef(
           transport_type: transportType || '',
           shipment_state: saveStatus || '',
           notes: 'test' || '',
-          document_type_id: 5 || '',
+          document_type_id: mastersData?.document_type_id || 5,
           attachment: isFileObject ? uploadedFile : undefined,
           ...(isFileObject
             ? {}
