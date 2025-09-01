@@ -1148,26 +1148,38 @@ const EggSecondSecion = ({
                           }}
                           hover
                         >
-                          <TableCell
-                            style={{
-                              padding: '11px 12px 11px 12px',
-                              fontSize: '12px',
-                              fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
-                          </TableCell>
-                          <TableCell
-                            style={{
-                              padding: '11px 12px 11px 12px',
-                              fontSize: '12px',
-                              fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
-                          </TableCell>
+                          <Tooltip title={Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}>
+                            <TableCell
+                              style={{
+                                padding: '11px 12px 11px 12px',
+                                fontSize: '12px',
+                                fontWeight: '400',
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                overflow: 'hidden',
+                                maxWidth: '80px',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
+                            </TableCell>
+                          </Tooltip>
+                          <Tooltip title={Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}>
+                            <TableCell
+                              style={{
+                                padding: '11px 12px 11px 12px',
+                                fontSize: '12px',
+                                fontWeight: '400',
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                maxWidth: '80px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
+                            </TableCell>
+                          </Tooltip>
                           <TableCell
                             style={{
                               padding: '11px 12px 11px 12px',
