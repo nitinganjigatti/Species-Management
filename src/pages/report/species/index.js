@@ -301,7 +301,7 @@ const SpeciesReport = () => {
                   color: getCellTextColor(header.label),
                   backgroundColor: getCellBackgroundColor(header.label),
                   borderRadius: '4px',
-                  padding: '4px 16px',
+                  padding: getCellBackgroundColor(header.label) !== 'transparent' ? '4px 16px' : '0',
                   fontWeight: 400,
                   textAlign: 'left',
                   overflow: 'hidden',
@@ -431,6 +431,7 @@ const SpeciesReport = () => {
           return acc
         }, {})
       }
+
       // setSelectedSites(['All Sites'])
       setSelectedSites([])
     } else {
