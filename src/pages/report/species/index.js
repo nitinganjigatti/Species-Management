@@ -317,8 +317,8 @@ const SpeciesReport = () => {
           ) : (
             <Typography
               sx={{
-                color: getCellTextColor(header.label),
-                padding: '4px 16px'
+                color: getCellTextColor(header.label)
+                // padding: '4px 16px'
               }}
             >
               -
