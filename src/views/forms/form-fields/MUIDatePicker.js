@@ -23,9 +23,9 @@ const MUIDatePicker = ({
   disabled = false,
   error = false,
   helperText = '',
-  sx = {}
+  sx = {},
+  size
 }) => {
- 
   dayjs.locale(locale)
 
   return (
@@ -44,6 +44,7 @@ const MUIDatePicker = ({
             fullWidth: true,
             error,
             helperText,
+            size,
             sx: {
               '& .MuiInputAdornment-root .MuiIconButton-root': {
                 alignSelf: 'center'

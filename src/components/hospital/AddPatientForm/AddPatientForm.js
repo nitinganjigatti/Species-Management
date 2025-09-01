@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Typography, Box, Card, CardHeader, CardContent, Grid, Button } from '@mui/material'
+import { Breadcrumbs, Typography, Box, Card, CardHeader, CardContent, Grid, Button, alpha } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import RenderUtility from 'src/utility/render'
@@ -30,7 +30,7 @@ const treatmentType = [
 
 const medicalRecordType = [
   { label: 'Create a new ID', value: 'new' },
-  { label: 'Continue to existing ID', value: 'existing' }
+  { label: 'Add to existing ID', value: 'existing' }
 ]
 
 const schema = yup.object().shape({})
@@ -105,6 +105,9 @@ const AddPatientForm = () => {
                           label={item?.label}
                           isSelected={field.value === item?.value}
                           onClick={() => field.onChange(item?.value)}
+                          backgroundColor={theme.palette.customColors.Surface}
+                          borderColor={theme.palette.customColors.OutlineVariant}
+                          selectedBackgroundColor={theme.palette.customColors.Surface}
                         />
                       ))}
                     </Box>
@@ -127,7 +130,7 @@ const AddPatientForm = () => {
                 >
                   Enter basic details
                 </Typography>
-                <Grid container spacing={7}>
+                <Grid container spacing={7} alignItems={'baseline'}>
                   <Grid
                     size={{ xs: 12, sm: 6 }}
                     sx={{ display: 'flex', flexDirection: 'column', gap: 3, cursor: 'pointer' }}
@@ -190,7 +193,15 @@ const AddPatientForm = () => {
                   name='medicalRecordChoice'
                   control={control}
                   render={({ field }) => (
-                    <Grid container spacing={4} sx={{ background: '#AFEFEB29', p: 6, borderRadius: 1 }}>
+                    <Grid
+                      container
+                      spacing={4}
+                      sx={{
+                        background: alpha(theme.palette.customColors.SecondaryContainer, 0.16),
+                        p: 6,
+                        borderRadius: 1
+                      }}
+                    >
                       <Grid size={{ xs: 12 }}>
                         <Typography
                           sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -204,9 +215,12 @@ const AddPatientForm = () => {
                             label={item?.label}
                             radioPosition='right'
                             backgroundColor={theme.palette.customColors.OnPrimary}
-                            borderColor='#839D8D'
+                            borderColor={theme.palette.customColors.Outline}
                             isSelected={field.value === item?.value}
                             onClick={() => field.onChange(item?.value)}
+                            selectedBackgroundColor={theme.palette.customColors.OnPrimaryContainer}
+                            selectedFontColor='#FFF'
+                            selectedBorderColor='none'
                           />
                         </Grid>
                       ))}

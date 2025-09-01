@@ -7,6 +7,7 @@ import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const animalData = {
   sex: 'male',
@@ -160,10 +161,7 @@ const HospitalIncoming = () => {
             py: 4
           }}
         >
-          <>
-            {/* <VisitType title={params.row.medId} /> */}
-            {params.row.purpose || ''}
-          </>
+          <>{params.row.purpose || ''}</>
         </Typography>
       )
     },
@@ -179,18 +177,17 @@ const HospitalIncoming = () => {
         </>
       )
     },
-
-    // {
-    //   width: 200,
-    //   minWidth: 20,
-    //   field: 'requested_by',
-    //   headerName: 'Requested By',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.requestedBy}
-    //     </Typography>
-    //   )
-    // },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'requested_by',
+      headerName: 'Requested By',
+      renderCell: params => (
+        <>
+          <UserAvatarDetails date={params?.row?.requestedBy?.date} user_name={params?.row?.requestedBy?.name} />
+        </>
+      )
+    },
 
     {
       width: 150,

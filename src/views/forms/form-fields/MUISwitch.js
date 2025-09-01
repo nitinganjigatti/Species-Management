@@ -2,13 +2,15 @@ import React from 'react'
 import { styled } from '@mui/material/styles'
 import Switch from '@mui/material/Switch'
 
+import { FormControlLabel, Typography } from '@mui/material'
+
 const sizes = {
   small: { width: 32, height: 18, thumbSize: 14, translateX: 12 },
   medium: { width: 40, height: 24, thumbSize: 20, translateX: 14 },
   large: { width: 50, height: 28, thumbSize: 24, translateX: 20 }
 }
 
-const StyledSwitch = styled(({ switchColor, size = 'medium', ...rest }) => <Switch {...rest} />)(
+const StyledSwitch = styled(({ switchColor, size = 'medium', padding = 0, ...rest }) => <Switch {...rest} />)(
   ({ theme, switchColor, size }) => {
     const currentSize = sizes[size] || sizes.medium
     const trackColor = switchColor || theme.palette.primary.main
@@ -48,7 +50,28 @@ const StyledSwitch = styled(({ switchColor, size = 'medium', ...rest }) => <Swit
 )
 
 function MUISwitch(props) {
-  const { switchColor, size = 'medium', ...rest } = props
+  const { switchColor, label, size = 'medium', labelStyle = {}, ...rest } = props
+  if (label) {
+    return (
+      <FormControlLabel
+        control={<StyledSwitch switchColor={switchColor} size={size} {...rest} />}
+        label={
+          <Typography
+            component='span'
+            sx={{
+              fontSize: '1rem',
+              fontWeight: 600,
+              color: 'customColors.OnSurfaceVariant',
+              pl: 3,
+              ...labelStyle
+            }}
+          >
+            {label}
+          </Typography>
+        }
+      />
+    )
+  }
 
   return <StyledSwitch switchColor={switchColor} size={size} {...rest} />
 }

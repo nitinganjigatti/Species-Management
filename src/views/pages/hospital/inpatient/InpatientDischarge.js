@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Typography, useTheme } from '@mui/material'
+import { Box, Button, Divider, Grid, Typography, useTheme } from '@mui/material'
 import React, { useState } from 'react'
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -11,6 +11,8 @@ import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import RichTextEditor from 'src/components/RichTextEditor'
 import { SaveTemplateButton } from 'src/views/utility/render-snippets'
 import Icon from 'src/@core/components/icon'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
 const dischargeType = [
   { label: 'Mortality', value: 'mortality' },
@@ -29,13 +31,34 @@ const templates = [
   'reptilian summary'
 ]
 
+const necropsyPriorityList = [
+  { label: 'High', value: 'high' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'Low', value: 'low' }
+]
+
 const defaultValues = {
   dischargeType: 'mortality',
   dateOfDeath: null,
   timeOfDeath: null,
   causeOfDeath: '',
   carcassCondition: '',
-  carcassDeposition: ''
+  carcassDeposition: '',
+  requestNecropsy: true,
+  necropsyPriority: 'high',
+  noNecropsyReason: '',
+  hospital: '',
+  transferReason: '',
+  dischargeDate: '',
+  DischargeTime: '',
+  dietInstruction: '',
+  restrictionActivities: '',
+  additionalNotes: '',
+  transferSite: '',
+  transferSection: '',
+  transferEnclosure: '',
+  followUpDate: '',
+  followUpRequired: true
 }
 
 const schema = yup.object().shape({})
@@ -61,6 +84,9 @@ const InpatientDischarge = () => {
   const [carcassDeposition, setCarcassDeposition] = useState([])
   const [content, setContent] = useState('')
   const [activeTemplate, setActiveTemplate] = useState(templates[0])
+
+  const watchRequestNecropsy = watch('requestNecropsy')
+  const watchDischargeType = watch('dischargeType')
 
   return (
     <>
@@ -118,6 +144,8 @@ const InpatientDischarge = () => {
                   errors={errors}
                   label={'Cause of Death'}
                   options={deathCauses}
+                  getOptionLabel={option => option.label}
+                  getOptionValue={option => option.value}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -127,6 +155,8 @@ const InpatientDischarge = () => {
                   errors={errors}
                   label={'Carcass Condition'}
                   options={carcassCondition}
+                  getOptionLabel={option => option.label}
+                  getOptionValue={option => option.value}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -136,6 +166,8 @@ const InpatientDischarge = () => {
                   errors={errors}
                   label={'Carcass Deposition'}
                   options={carcassDeposition}
+                  getOptionLabel={option => option.label}
+                  getOptionValue={option => option.value}
                 />
               </Grid>
             </Grid>
@@ -203,6 +235,46 @@ const InpatientDischarge = () => {
               </Box>
             </Box>
           </Box>
+          <Divider />
+          <Grid container spacing={2}>
+            <Grid
+              size={{ sm: 12, md: 6 }}
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 4 }}
+            >
+              <StyledTypography fontSize={'20px'}>Request Necropsy</StyledTypography>
+              <ControlledSwitch
+                name={'requestNecropsy'}
+                label={'Yes'}
+                labelPlacement='right'
+                control={control}
+                errors={errors}
+                gap={4}
+              />
+            </Grid>
+            <Grid size={{ sm: 12, md: 6 }}>
+              {watchRequestNecropsy === true ? (
+                <ControlledSelect
+                  control={control}
+                  name={'necropsyPriority'}
+                  errors={errors}
+                  label={'Select Priority'}
+                  fullWidth
+                  options={necropsyPriorityList}
+                  getOptionLabel={option => option.label}
+                  getOptionValue={option => option.value}
+                />
+              ) : (
+                <ControlledTextField
+                  control={control}
+                  errors={errors}
+                  label={'Enter reason why necropsy will not be performed'}
+                  name={'noNecropsyReason'}
+                  placeholder={'Enter Reason'}
+                  fullWidth
+                />
+              )}
+            </Grid>
+          </Grid>
         </Box>
       </form>
     </>

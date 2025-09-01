@@ -1,15 +1,17 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Box, Breadcrumbs, Button, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
-import { useTheme } from '@mui/system'
+import { alpha, useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { renderUserAvatarDetails } from 'src/utility/render'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import * as yup from 'yup'
+import Icon from 'src/@core/components/icon'
+import DoctorsDrawer from './DoctorsDrawer'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -53,6 +55,8 @@ const PatientAdmitForm = () => {
 
   const [doctors, setDoctors] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
+  const [selectedDoctor, setSelectedDoctor] = useState({})
+  const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
 
   const onSubmit = data => {
     console.log(data)
@@ -76,17 +80,33 @@ const PatientAdmitForm = () => {
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>admit-patient</Typography>
         </Breadcrumbs>
         <Card sx={{ mb: 4 }}>
-          <CardHeader title={headerTitle} />
+          <CardHeader sx={{ pb: 1.5 }} title={headerTitle} />
           <CardContent>
             <Grid container sx={{ mb: 6 }} spacing={0}>
-              <Grid size={{ xs: 12, md: 4, sm: 5 }} sx={{ p: 6, background: '#AFEFEB4D' }}>
+              <Grid
+                size={{ xs: 12, md: 4, sm: 5 }}
+                sx={{
+                  p: 6,
+                  background: theme.palette.customColors.antzInfoLight,
+                  borderTopLeftRadius: '8px',
+                  borderBottomLeftRadius: { sm: '8px', xs: 0 },
+                  borderTopRightRadius: { sm: 0, xs: '8px' },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  height: 'auto'
+                }}
+              >
                 <AnimalCard data={animalData} />
               </Grid>
               <Grid
                 size={{ xs: 12, md: 8, sm: 7 }}
                 sx={{
                   p: 4,
-                  background: '#AFEFEB14'
+                  background: alpha(theme.palette.customColors.SecondaryContainer, 0.08),
+                  borderBottomLeftRadius: { sm: 0, xs: '8px' },
+                  borderTopRightRadius: { sm: '8px', xs: 0 },
+                  borderBottomRightRadius: '8px'
                 }}
               >
                 <Typography
@@ -111,15 +131,9 @@ const PatientAdmitForm = () => {
                     sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnPrimaryContainer }}
                   >
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-                    et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                    aliquip ex ea commodo consequat. Duis aute irure dolor
+                    et dolore magna aliqua. Ut enim ad minim
                   </Typography>
-                  {renderUserAvatarDetails({
-                    date: '14 Apr 2024',
-                    user_name: 'Ravi Sharma',
-                    show_time: '12:33 pm',
-                    size: 'medium'
-                  })}
+                  <UserAvatarDetails user_name={'Ravi Sharma'} date={'14 Apr 2024'} show_time size='medium' />
                 </Box>
               </Grid>
             </Grid>
@@ -156,6 +170,10 @@ const PatientAdmitForm = () => {
                             label={item?.label}
                             isSelected={field.value === item?.value}
                             onClick={() => field.onChange(item?.value)}
+                            backgroundColor={theme.palette.customColors.Surface}
+                            borderColor={theme.palette.customColors.SurfaceVariant}
+                            selectedBorderColor={theme.palette.customColors.SurfaceVariant}
+                            selectedBackgroundColor={theme.palette.customColors.Surface}
                           />
                         ))}
                       </Box>
@@ -185,14 +203,31 @@ const PatientAdmitForm = () => {
                       >
                         Attending chief doctor
                       </Typography>
-                      <ControlledSelect
-                        control={control}
-                        name={'chiefDoctor'}
-                        errors={errors}
-                        label={'Select Doctor'}
-                        options={doctors}
-                        sx={{ background: theme.palette.customColors.Surface }}
-                      />
+                      <Box
+                        sx={{
+                          background: theme.palette.customColors.Surface,
+                          borderRadius: 1,
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          p: 3,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          minHeight: '56px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setDoctorDrawerOpen(true)}
+                      >
+                        <Typography
+                          sx={{ fontSize: '1rem', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
+                        >
+                          Select doctor
+                        </Typography>
+                        <Icon
+                          icon='mdi:chevron-down'
+                          fontSize={24}
+                          color={theme.palette.customColors.OnSurfaceVariant}
+                        />
+                      </Box>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -247,6 +282,7 @@ const PatientAdmitForm = () => {
           </Button>
         </Box>
       </Box>
+      {doctorDrawerOpen && <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} doctors={doctors} />}
     </>
   )
 }
