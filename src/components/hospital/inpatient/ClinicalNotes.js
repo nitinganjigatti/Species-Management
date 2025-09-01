@@ -8,19 +8,19 @@ const dummyClinicalNotesData = [
     id: 'MED - 12345/25',
     note: 'Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Behavioral changes likely linked to minor environmental stress. No physical abnormalities.',
     author: 'Jordan Stevenson',
-    date: '02 Jan 2025 • 12 : 35 PM'
+    date: '02 Jan 2025'
   },
   {
     id: 'MED - 67890/26',
     note: 'Patient shows signs of recovery. Monitoring to continue for the next 48 hours.',
     author: 'Emily Clark',
-    date: '03 Jan 2025 • 10 : 20 AM'
+    date: '03 Jan 2025 '
   },
   {
     id: 'MED - 12345/27',
     note: 'Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Behavioral changes likely linked to minor environmental stress. No physical abnormalities. Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Behavioral changes likely linked to minor environmental stress. No physical abnormalities.Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Behavioral changes likely linked to minor environmental stress. No physical abnormalities.',
     author: 'Jordan Stevenson',
-    date: '02 Jan 2025 • 12 : 35 PM'
+    date: '02 Jan 2025 '
   }
 ]
 

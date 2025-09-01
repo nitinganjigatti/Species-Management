@@ -1,7 +1,7 @@
 import React from 'react'
 
 // ** MUI Imports
-import { Typography, Box, Button, IconButton } from '@mui/material'
+import { Typography, Box, Button, IconButton, Skeleton } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import { alpha, useTheme } from '@mui/material/styles'
@@ -16,10 +16,10 @@ import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Utility Components
 import { MedicalIdChip } from '../utility/hospitalSnippets'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 // ** Custom Form Components
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
-import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 
 const defaultValues = {
   clinical_note_name: ''
@@ -105,46 +105,64 @@ const InpatientClinicalNotes = props => {
         </form>
       </Box>
       {/*  Clinical Notes List */}
-      {clinicalNotesData?.map(data => {
-        return (
+      {loading ? (
+        Array.from({ length: 3 }).map((_, index) => (
           <Box
-            key={data.id}
-            sx={{ p: 6, mb: 4, background: alpha(theme.palette.customColors.antzNotes80, 0.2), borderRadius: '8px' }}
+            key={index}
+            sx={{
+              p: 6,
+              mb: 4,
+              background: alpha(theme.palette.customColors.antzNotes80, 0.2),
+              borderRadius: '8px'
+            }}
           >
-            <MedicalIdChip
-              leftImage
-              medId={data.id}
-              rightDot
-              dotColor={theme.palette.primary.main}
-              textColor={theme.palette.customColors.OnSurface}
-            />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-              <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVariant }}>
-                {data.note}
-              </Typography>
-
-              <Box sx={{ ml: 2, cursor: 'pointer' }}>
-                <IconButton
-                  size='small'
-                  onClick={() => onDeleteNote(data.id)}
-                  sx={{ color: theme.palette.customColors.Tertiary }}
-                >
-                  <CancelOutlinedIcon fontSize='small' />
-                </IconButton>
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '0.875rem' }}>
-                {data.author}
-              </Typography>
-              <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '0.875rem' }}>
-                {data.date}
-              </Typography>
-              <MUISwitch />
-            </Box>
+            <Skeleton variant='text' animation='wave' width='20%' height={24} sx={{ mb: 2 }} />
+            <Skeleton variant='rectangular' width='100%' animation='wave' height={60} sx={{ mb: 4 }} />
+            <Skeleton variant='text' animation='wave' width='20%' height={20} />
           </Box>
-        )
-      })}
+        ))
+      ) : (
+        <>
+          {clinicalNotesData?.map(data => {
+            return (
+              <Box
+                key={data.id}
+                sx={{
+                  p: 6,
+                  mb: 4,
+                  background: alpha(theme.palette.customColors.antzNotes80, 0.2),
+                  borderRadius: '8px'
+                }}
+              >
+                <MedicalIdChip
+                  leftImage
+                  medId={data.id}
+                  rightDot
+                  dotColor={theme.palette.primary.main}
+                  textColor={theme.palette.customColors.OnSurface}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
+                  <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVariant }}>
+                    {data.note}
+                  </Typography>
+
+                  <Box sx={{ ml: 2, cursor: 'pointer' }}>
+                    <IconButton
+                      size='small'
+                      onClick={() => onDeleteNote(data.id)}
+                      sx={{ color: theme.palette.customColors.Tertiary }}
+                    >
+                      <CancelOutlinedIcon fontSize='small' />
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                <UserAvatarDetails user_name={data.author} date={data.date} show_time size='medium' />
+              </Box>
+            )
+          })}
+        </>
+      )}
     </>
   )
 }
