@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl } from '@mui/material'
+import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl, Tooltip } from '@mui/material'
 import { Popover } from '@mui/material'
 import { TabContext } from '@mui/lab'
 import { useTheme } from '@emotion/react'
@@ -305,8 +305,8 @@ const SpeciesReport = () => {
                 ? 0
                 : '-'}
             </Typography>
-          )}
-        </>
+          </Box>
+        </Tooltip>
       )
     }
   })
@@ -413,6 +413,7 @@ const SpeciesReport = () => {
           return acc
         }, {})
       }
+
       // setSelectedSites(['All Sites'])
       setSelectedSites([])
     } else {
