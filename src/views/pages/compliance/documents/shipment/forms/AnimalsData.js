@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect, useRef } from 'react'
 import SpeciesDetailsContainer from '../shipment-view/SpeciesDetails'
 import SpeciesAddEdit from '../shipment-view/SpeciesAddEdit'
 import { getExportList } from 'src/lib/api/compliance/exports'
-import { getMastersData } from 'src/lib/api/compliance/exports'
 import { createShipmentSpecies, getShipmentSpeciesData, updateShipmentSpecies } from 'src/lib/api/compliance/shipment'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -18,7 +17,8 @@ const AnimalsData = ({
   setTotalAnimals,
   setTotalSpecies,
   setExpanded,
-  fetchLinkedDocuments
+  fetchLinkedDocuments,
+  mastersData
 }) => {
   const router = useRouter()
   const { id, action, export: exportCount } = router.query
@@ -34,7 +34,6 @@ const AnimalsData = ({
   const [loader, setLoader] = useState(false)
 
   const scrollContainerRef = useRef(null)
-  const [mastersData, setMastersData] = useState([])
   const [currentSpeciesId, setCurrentSpeciesId] = useState(null)
   const [selectedSpeciesData, setSelectedSpeciesData] = useState({})
   const [animalCountDrawerOpen, setanimalCountDrawerOpen] = useState(false)
@@ -163,24 +162,6 @@ const AnimalsData = ({
     },
     [searchValue, paginationModel.pageSize]
   )
-
-  const fetchMastersData = async () => {
-    try {
-      const res = await getMastersData()
-      if (res?.success) {
-        const data = res.data
-        setMastersData(data)
-      }
-    } catch (e) {
-      console.error(e)
-    } finally {
-    }
-  }
-
-  useEffect(() => {
-    //fetchExportList()
-    fetchMastersData()
-  }, [])
 
   useEffect(() => {
     fetchExportList(true)
