@@ -4,6 +4,7 @@ import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem, Button, alp
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { getDocumentTypeList } from 'src/lib/api/compliance/exports'
+import { getMastersData } from 'src/lib/api/compliance/exports'
 import Toaster from 'src/components/Toaster'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import AnimalsData from 'src/views/pages/compliance/documents/shipment/forms/AnimalsData'
@@ -21,6 +22,7 @@ const AddEditShipment = () => {
   const [expanded, setExpanded] = useState(['permit-details'])
   const [showEdit, setShowEdit] = useState(true)
   const [showEditAnimals, setShowEditAnimals] = useState(true)
+  const [mastersData, setMastersData] = useState([])
   const [status, setStatus] = useState('draft')
   const [totalCount, setTotalCount] = useState(0)
   const [isFetching, setIsFetching] = useState(false)
@@ -122,6 +124,23 @@ const AddEditShipment = () => {
           : [...prev, panelId] // Open if closed
     )
   }
+
+  const fetchMastersData = async () => {
+    try {
+      const res = await getMastersData()
+      if (res?.success) {
+        const data = res.data
+        setMastersData(data)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+    }
+  }
+
+  useEffect(() => {
+    fetchMastersData()
+  }, [])
 
   return (
     <>
@@ -247,6 +266,7 @@ const AddEditShipment = () => {
           shipmentIdval={shipmentIdval}
           setExpanded={setExpanded}
           linkedDocumentsData={linkedDocumentsData}
+          mastersData={mastersData}
         />
       </CustomAccordion>
 
@@ -293,6 +313,7 @@ const AddEditShipment = () => {
               setExpanded={setExpanded}
               setShowEdit={setShowEdit}
               fetchLinkedDocuments={fetchLinkedDocuments}
+              mastersData={mastersData}
             />
           </Box>
         </CustomAccordion>

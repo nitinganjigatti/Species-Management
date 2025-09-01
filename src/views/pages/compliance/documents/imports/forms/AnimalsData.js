@@ -3,6 +3,7 @@ import SpeciesDetailsContainer from '../import-view/SpeciesDetails'
 import SpeciesAddEdit from '../import-view/SpeciesAddEdit'
 import { getExportListForImports } from 'src/lib/api/compliance/imports'
 import { createImportSpecies, getImportSpeciesData, updateImportSpecies } from 'src/lib/api/compliance/imports'
+import { getMastersData } from 'src/lib/api/compliance/exports'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
@@ -57,6 +58,7 @@ const AnimalsData = ({
   const [exportsTotalCount, setexportsTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [loader, setLoader] = useState(false)
+  const [mastersData, setMastersData] = useState([])
   const scrollContainerRef = useRef(null)
   const [draftData, setDraftData] = useState({ export: [] })
   const [selectedExportData, setSelectedExportData] = useState({
@@ -84,10 +86,10 @@ const AnimalsData = ({
   // listen to parent instruction to trigger edit mode
   React.useEffect(() => {
     if (onEditClick) onEditClick.current = handleEditClick
-    if (importId) {
+    if (importId && mastersData?.document_type_id) {
       fetchImportspeciesDetails()
     }
-  }, [onEditClick, importId])
+  }, [onEditClick, importId, mastersData])
 
   const handleScroll = async e => {
     const container = e.target
@@ -254,7 +256,7 @@ const AnimalsData = ({
     let payload = {
       import_number: airwaybillvalue,
       import_date: dayjs(startDate).format('YYYY-MM-DD'),
-      document_type_id: 5,
+      document_type_id: mastersData.document_type_id,
       attachment: uploadedFile,
       exports: exportIds
     }
@@ -266,7 +268,7 @@ const AnimalsData = ({
         setLoading(false)
         router.push(`/compliance/documents/imports/AddEditImport/?id=${id}&action=details`)
         Toaster({ type: 'success', message: response?.message })
-        //fetchImportspeciesDetails()
+        fetchImportspeciesDetails()
       } else {
         setLoading(false)
         Toaster({ type: 'error', message: response?.message })
@@ -280,7 +282,7 @@ const AnimalsData = ({
   const fetchImportspeciesDetails = async () => {
     try {
       setLoader(true)
-      const response = await getImportSpeciesData(importId)
+      const response = await getImportSpeciesData(importId, mastersData?.document_type_id)
       if (response?.success) {
         const exports = response?.data?.exports || []
         const others = response?.data || []
@@ -325,6 +327,23 @@ const AnimalsData = ({
     setStartDate(null)
     setUploadedFile(null)
   }
+
+  const fetchMastersData = async () => {
+    try {
+      const res = await getMastersData()
+      if (res?.success) {
+        const data = res.data
+        setMastersData(data)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+    }
+  }
+
+  useEffect(() => {
+    fetchMastersData()
+  }, [])
 
   return (
     <>

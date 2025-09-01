@@ -315,6 +315,7 @@ const AnimalCardLayout = ({
                           size='small'
                           type='number'
                           value={speciesData.male_count ?? ''}
+                          onWheel={e => e.target.blur()}
                           onChange={e =>
                             handleCountChange(
                               card.master_species_id,
@@ -363,6 +364,7 @@ const AnimalCardLayout = ({
                           size='small'
                           type='number'
                           value={speciesData.female_count ?? ''}
+                          onWheel={e => e.target.blur()}
                           onChange={e =>
                             handleCountChange(
                               card.master_species_id,
@@ -410,6 +412,7 @@ const AnimalCardLayout = ({
                           size='small'
                           type='number'
                           value={speciesData.undeterminate_count ?? ''}
+                          onWheel={e => e.target.blur()}
                           onChange={e =>
                             handleCountChange(
                               card.master_species_id,
