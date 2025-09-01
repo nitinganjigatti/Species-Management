@@ -419,13 +419,12 @@ const TransferDischargeForm = props => {
           boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
           display: 'flex',
           justifyContent: 'flex-end',
-          zIndex: 1200,
-          borderRadius: '6px 6px 0 0'
+          zIndex: 1200
         }}
       >
         <LoadingButton
           variant='contained'
-          sx={{ backgroundColor: theme.palette.primary.main, px: 20, py: 4, borderRadius: 0.5 }}
+          sx={{ backgroundColor: theme.palette.primary.main, px: 6.5, py: 2, borderRadius: 0.5, fontWeight: 400 }}
           disabled={loading}
           loading={loading}
           type='submit'
