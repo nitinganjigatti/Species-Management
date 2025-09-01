@@ -176,6 +176,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
   const [speciesList, setSpeciesList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [disableSaveButton, setDisableSaveButton] = useState(false)
+  const [documentTypeId, setDocumentTypeId] = useState()
 
   const [mastersData, setMastersData] = useState({
     genders: [],
@@ -237,7 +238,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
             key: item.key,
             id: item.id
           })) || []
-
+        setDocumentTypeId(data?.document_type_id || null)
         setMastersData({
           genders: genderOptions,
           appendix: appendixOptions,
@@ -377,7 +378,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       export_purpose: data.export_purpose || '',
       issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
       valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
-      document_type_id: DOCUMENT_TYPE_ID,
+      document_type_id: documentTypeId,
       species: JSON.stringify(
         data.speciesList.map(item => ({
           taxonomy_id: item.species?.tsn_id || null,

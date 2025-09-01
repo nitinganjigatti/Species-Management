@@ -7,7 +7,8 @@ import {
   getDocumentTypeList,
   getExportDetails,
   getLinkedImportsDetails,
-  getLinkedShipmentDetails
+  getLinkedShipmentDetails,
+  getMastersData
 } from 'src/lib/api/compliance/exports'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { useTheme } from '@mui/material/styles'
@@ -16,7 +17,6 @@ import ExportPermitDetailsContent from 'src/views/pages/compliance/documents/exp
 import LinkedImports from 'src/components/compliance/LinkedImports'
 import LinkedShipments from 'src/components/compliance/LinkedShipments'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
-import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
 import countryList from 'react-select-country-list'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 
@@ -89,11 +89,27 @@ const ExportPermitDetails = () => {
     }
   }
 
+  const fetchMastersData = async () => {
+    try {
+      const res = await getMastersData()
+      if (res?.success) {
+        return res.data.document_type_id || null
+      }
+    } catch (error) {
+      console.error('Error fetching masters data:', error)
+      Toaster({ type: 'error', message: 'Error fetching masters data' })
+    }
+
+    return null
+  }
+
   const fetchExportDetails = async () => {
     setLoading(true)
     try {
+      const documentTypeIdFromRes = await fetchMastersData()
+
       const params = {
-        document_type_id: DOCUMENT_TYPE_ID
+        document_type_id: documentTypeIdFromRes
       }
       const res = await getExportDetails(id, params)
       if (res.success) {
