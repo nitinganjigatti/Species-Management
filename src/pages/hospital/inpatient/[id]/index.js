@@ -1,9 +1,16 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Card, Tab, Tabs, Typography, Box } from '@mui/material'
+import { Breadcrumbs, Card, Tab, Tabs, Typography, Box, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useState, Suspense, lazy, useMemo, useCallback } from 'react'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 import CircularProgress from '@mui/material/CircularProgress'
+
+import MenuIcon from '@mui/icons-material/Menu'
+import IconButton from '@mui/material/IconButton'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import CloseIcon from '@mui/icons-material/Close'
 
 const useDrawerState = () => {
   const [drawerType, setDrawerType] = useState(null)
@@ -34,12 +41,26 @@ const ClinicalAssessment = lazy(() => import('src/components/hospital/inpatient/
 const ClinicalNotes = lazy(() => import('src/components/hospital/inpatient/ClinicalNotes'))
 const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
-const InpatientDischarge = lazy(() => import('src/views/pages/hospital/inpatient/InpatientDischarge'))
+const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
 const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
 
 const InpatientDetails = () => {
   const router = useRouter()
   const theme = useTheme()
+
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+  const [anchorEl, setAnchorEl] = useState(null)
+  const openMenu = Boolean(anchorEl)
+
+  const handleMenuOpen = event => {
+    console.log(event.currentTarget)
+
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleMenuClose = () => {
+    setAnchorEl(null)
+  }
 
   const { id } = router.query
 
@@ -127,15 +148,99 @@ const InpatientDetails = () => {
         <PatientCard patientId={id} />
         <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs
-              value={selectedTab}
-              onChange={handleTabChange}
-              variant='scrollable'
-              scrollButtons='auto'
-              aria-label={`Inpatient details tabs`}
-            >
-              {tabElements}
-            </Tabs>
+            {isSmallScreen ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton
+                  size='large'
+                  edge='start'
+                  color='inherit'
+                  aria-label='menu'
+                  onClick={handleMenuOpen}
+                  sx={{ mb: 1 }}
+                >
+                  <MenuIcon />
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={openMenu}
+                  onClose={handleMenuClose}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        maxHeight: '60vh',
+                        overflowY: 'auto',
+                        maxWidth: '70vw',
+                        width: '70vw'
+                      }
+                    }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      p: 1,
+                      borderBottom: '1px solid #e0e0e0',
+                      position: 'sticky',
+                      top: 0,
+                      backgroundColor: 'background.paper',
+                      zIndex: 1
+                    }}
+                  >
+                    <IconButton onClick={handleMenuClose}>
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                  {tabConfig.map(tab => (
+                    <MenuItem
+                      key={tab.value}
+                      onClick={() => {
+                        setSelectedTab(tab.value)
+                        handleMenuClose()
+                      }}
+                    >
+                      <Tooltip title={tab.label} arrow placement='top'>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVarient,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: 'vertical'
+                          }}
+                        >
+                          {tab.label}
+                        </Typography>
+                      </Tooltip>
+                    </MenuItem>
+                  ))}
+                </Menu>
+
+                <Tabs
+                  value={selectedTab}
+                  onChange={handleTabChange}
+                  variant='scrollable'
+                  scrollButtons='auto'
+                  aria-label={`Inpatient details tabs`}
+                >
+                  {tabElements}
+                </Tabs>
+              </Box>
+            ) : (
+              <Tabs
+                value={selectedTab}
+                onChange={handleTabChange}
+                variant='scrollable'
+                scrollButtons='auto'
+                aria-label={`Inpatient details tabs`}
+              >
+                {tabElements}
+              </Tabs>
+            )}
           </Box>
           <Box role='tabpanel' aria-label={`${selectedLabel} content`}>
             <Suspense fallback={<TabContentLoader />}>
