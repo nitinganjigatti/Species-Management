@@ -530,7 +530,7 @@ const NurseryDetails = () => {
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                   <TextField
                     variant='outlined'
-                    placeholder='Search...'
+                    placeholder='Search'
                     onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
                     sx={{
                       '& .MuiOutlinedInput-root': {

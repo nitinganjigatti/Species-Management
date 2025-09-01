@@ -27,10 +27,7 @@ function SpeciesCard({ species }) {
             sx={{
               width: 40,
               height: 40,
-              padding:
-                species?.default_icon.includes('class_images') && species?.default_icon.endsWith('.svg')
-                  ? '2px'
-                  : '0px',
+              padding: species?.default_icon === '/branding/antz/Antz_logomark_h_color.svg' && '4px',
               '& img': {
                 objectFit: 'inherit'
               },

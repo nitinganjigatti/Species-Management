@@ -637,7 +637,7 @@ const RoomDetails = () => {
                   <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
                   <TextField
                     variant='outlined'
-                    placeholder='Search...'
+                    placeholder='Search'
                     InputProps={{
                       disableUnderline: true
                     }}

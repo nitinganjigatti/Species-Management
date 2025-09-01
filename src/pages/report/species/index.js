@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl } from '@mui/material'
+import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl, Tooltip } from '@mui/material'
 import { Popover } from '@mui/material'
 import { TabContext } from '@mui/lab'
 import { useTheme } from '@emotion/react'
@@ -301,7 +301,7 @@ const SpeciesReport = () => {
                   color: getCellTextColor(header.label),
                   backgroundColor: getCellBackgroundColor(header.label),
                   borderRadius: '4px',
-                  padding: '4px 16px',
+                  padding: getCellBackgroundColor(header.label) !== 'transparent' ? '4px 16px' : '0',
                   fontWeight: 400,
                   textAlign: 'left',
                   overflow: 'hidden',
@@ -317,8 +317,9 @@ const SpeciesReport = () => {
           ) : (
             <Typography
               sx={{
-                color: getCellTextColor(header.label),
-                padding: '4px 16px'
+                color: getCellTextColor(header.label)
+
+                // padding: '4px 16px'
               }}
             >
               -
@@ -431,6 +432,7 @@ const SpeciesReport = () => {
           return acc
         }, {})
       }
+
       // setSelectedSites(['All Sites'])
       setSelectedSites([])
     } else {
