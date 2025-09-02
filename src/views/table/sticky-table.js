@@ -1156,6 +1156,7 @@ const StickyTable = ({
                       justifyContent: 'center',
                       alignItems: 'center',
                       fontSize: '24px',
+                      height: '45px',
                       fontWeight: 'bold',
                       color: '#444',
                       ...headerStyle
