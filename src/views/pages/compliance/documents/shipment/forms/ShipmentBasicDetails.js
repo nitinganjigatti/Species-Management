@@ -106,8 +106,8 @@ const ShipmentBasicDetails = React.forwardRef(
     }, [shipmentIdval, showEdit])
 
     const fetchbasicDetails = async () => {
-      setLoader(true)
       try {
+        setLoader(true)
         const response = await getShipmentBasicDetails(id, mastersData?.document_type_id)
         if (response?.success) {
           // const formatAirwayBill = (value = '') => {
@@ -125,6 +125,7 @@ const ShipmentBasicDetails = React.forwardRef(
           setUploadedFile(response?.data?.documents[0])
           setStatus(response?.data?.shipment_state)
         } else {
+          setLoader(false)
           Toaster({ type: 'error', message: response?.message })
         }
       } catch (e) {
