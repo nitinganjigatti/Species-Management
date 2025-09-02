@@ -138,15 +138,20 @@ const CitesExportPermitIndex = () => {
       field: 'export_number',
       headerName: 'Export ID',
       renderCell: params => (
-        <Typography
-          sx={{
-            cursor: 'pointer',
-            px: 2,
-            width: '100%'
-          }}
-        >
-          {params.value}
-        </Typography>
+        <Tooltip title={params.value || ''}>
+          <Typography
+            sx={{
+              px: 2,
+              width: '100%',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              cursor: 'default'
+            }}
+          >
+            {params.value}
+          </Typography>
+        </Tooltip>
       )
     },
     {

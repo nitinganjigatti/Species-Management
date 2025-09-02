@@ -1,6 +1,7 @@
-import { alpha, Box, Chip, Drawer, Grid, IconButton, styled, Typography, useTheme } from '@mui/material'
-import React from 'react'
+import { alpha, Box, Chip, Drawer, Grid, IconButton, Skeleton, styled, Typography, useTheme } from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
+import { getSpeciesShipmentDetails } from 'src/lib/api/compliance/species'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
@@ -29,8 +30,30 @@ const getGenderChipProps = (gender, theme) => {
   }
 }
 
-const SpeciesShipmentDetailsDrawer = ({ open, onClose, shipmentData, speciesStats }) => {
+const SpeciesShipmentDetailsDrawer = ({ open, onClose, speciesId, shipmentId }) => {
   const theme = useTheme()
+
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    const getSpeciesDetails = async () => {
+      setLoading(true)
+      try {
+        await getSpeciesShipmentDetails({ speciesId, shipmentId }).then(res => {
+          if (res?.success === true) {
+            setData(res?.data)
+            setLoading(false)
+          }
+        })
+      } catch (error) {
+        console.error('Cannot fetch shipment details', error)
+        setLoading(false)
+      }
+    }
+
+    getSpeciesDetails()
+  }, [shipmentId, speciesId])
 
   const genderCount = () => {
     return (
@@ -42,9 +65,9 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, shipmentData, speciesStat
             gap: 2
           }}
         >
-          {shipmentData?.male_count && (
+          {data?.male_count && (
             <Chip
-              label={`M - ${shipmentData?.male_count}`}
+              label={`M - ${data?.male_count}`}
               size='small'
               sx={{
                 bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
@@ -54,9 +77,9 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, shipmentData, speciesStat
             />
           )}
 
-          {shipmentData?.female_count && (
+          {data?.female_count && (
             <Chip
-              label={`F - ${shipmentData?.female_count}`}
+              label={`F - ${data?.female_count}`}
               size='small'
               sx={{
                 bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
@@ -66,9 +89,9 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, shipmentData, speciesStat
             />
           )}
 
-          {shipmentData?.undeterminate_count && (
+          {data?.undeterminate_count && (
             <Chip
-              label={`U - ${shipmentData?.undeterminate_count}`}
+              label={`U - ${data?.undeterminate_count}`}
               size='small'
               sx={{
                 bgcolor: theme.palette.customColors.displaybgSecondary,
@@ -132,63 +155,86 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, shipmentData, speciesStat
               flexDirection: 'column'
             }}
           >
-            <Box
-              sx={{
-                p: 4,
-                background: alpha(theme.palette.customColors.SecondaryContainer, 0.2),
-                borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`
-              }}
-            >
-              <SpeciesCard
-                species={{
-                  common_name: speciesStats.common_name,
-                  scientific_name: speciesStats.scientific_name,
-                  default_icon: speciesStats.default_icon || '/images/branding/antz/Antz_logomark_h_color.svg'
+            {loading ? (
+              <Box sx={{ p: 4 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Skeleton variant='circular' width={48} height={48} />
+                  <Box>
+                    <Skeleton variant='text' width={120} height={24} />
+                    <Skeleton variant='text' width={200} height={20} />
+                  </Box>
+                </Box>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  p: 4,
+                  background: alpha(theme.palette.customColors.SecondaryContainer, 0.2),
+                  borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`
                 }}
-              />
-            </Box>
+              >
+                <SpeciesCard
+                  species={{
+                    common_name: data?.common_name,
+                    scientific_name: data?.scientific_name,
+                    default_icon: data?.default_icon || '/images/branding/antz/Antz_logomark_h_color.svg'
+                  }}
+                />
+              </Box>
+            )}
             <Box sx={{ px: 4, py: 5 }}>
-              <Grid container spacing={2} rowSpacing={4}>
-                <StyledGrid item size={{ xs: 12, sm: 6 }}>
-                  <StyledTypography>Shipment ID</StyledTypography>
-                  <StyledTypography fontWeight={500} color={theme.palette.primary.OnSurface}>
-                    {shipmentData?.shipment_number}
-                  </StyledTypography>
-                </StyledGrid>
-                <StyledGrid item size={{ xs: 12, sm: 6 }}>
-                  <StyledTypography>Date of Issue</StyledTypography>
-                  <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
-                    {Utility.formatDisplayDate(shipmentData?.issued_date)}
-                  </StyledTypography>
-                </StyledGrid>
-                <StyledGrid item size={{ xs: 12, sm: 6 }}>
-                  <StyledTypography>Animal Count</StyledTypography>
-                  <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
-                    {shipmentData?.total_animals}
-                  </StyledTypography>
-                </StyledGrid>
-                <StyledGrid item size={{ xs: 12, sm: 6 }}>
-                  <StyledTypography>Gender & Count</StyledTypography>
-                  {genderCount()}
-                </StyledGrid>
-                <StyledGrid item size={{ xs: 12, sm: 6 }}>
-                  <StyledTypography>Imports</StyledTypography>
-                  <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
-                    {shipmentData?.total_imports}
-                  </StyledTypography>
-                </StyledGrid>
-                <StyledGrid item size={{ xs: 12, sm: 6 }}>
-                  <StyledTypography>Exports</StyledTypography>
-                  <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
-                    {shipmentData?.total_exports}
-                  </StyledTypography>
-                </StyledGrid>
-              </Grid>
+              {loading ? (
+                <Grid container spacing={2} rowSpacing={4}>
+                  {[...Array(6)].map((_, idx) => (
+                    <StyledGrid item xs={12} sm={6} key={idx}>
+                      <Skeleton variant='text' width={100} height={20} />
+                      <Skeleton variant='text' width={160} height={28} />
+                    </StyledGrid>
+                  ))}
+                </Grid>
+              ) : (
+                <Grid container spacing={2} rowSpacing={4}>
+                  <StyledGrid item size={{ xs: 12, sm: 6 }}>
+                    <StyledTypography>Shipment ID</StyledTypography>
+                    <StyledTypography fontWeight={500} color={theme.palette.primary.OnSurface}>
+                      {data?.shipment_number}
+                    </StyledTypography>
+                  </StyledGrid>
+                  <StyledGrid item size={{ xs: 12, sm: 6 }}>
+                    <StyledTypography>Date of Issue</StyledTypography>
+                    <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
+                      {Utility.formatDisplayDate(data?.issued_date)}
+                    </StyledTypography>
+                  </StyledGrid>
+                  <StyledGrid item size={{ xs: 12, sm: 6 }}>
+                    <StyledTypography>Animal Count</StyledTypography>
+                    <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
+                      {data?.total_animals}
+                    </StyledTypography>
+                  </StyledGrid>
+                  <StyledGrid item size={{ xs: 12, sm: 6 }}>
+                    <StyledTypography>Gender & Count</StyledTypography>
+                    {genderCount()}
+                  </StyledGrid>
+                  <StyledGrid item size={{ xs: 12, sm: 6 }}>
+                    <StyledTypography>Imports</StyledTypography>
+                    <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
+                      {data?.total_imports}
+                    </StyledTypography>
+                  </StyledGrid>
+                  <StyledGrid item size={{ xs: 12, sm: 6 }}>
+                    <StyledTypography>Exports</StyledTypography>
+                    <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
+                      {data?.total_exports}
+                    </StyledTypography>
+                  </StyledGrid>
+                </Grid>
+              )}
             </Box>
           </Box>
-          <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', gap: 4, mb: 5 }}>
             <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Animals with identifier {shipmentData?.animals?.length > 0 ? `(${shipmentData?.animals?.length})` : ''}
+              Animals with identifier {data?.animals?.length > 0 ? `(${data?.animals?.length})` : ''}
             </Typography>
             <Box
               sx={{
@@ -201,12 +247,19 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, shipmentData, speciesStat
                 p: 4
               }}
             >
-              {shipmentData?.animals?.length > 0 ? (
-                shipmentData.animals.map((animal, idx) => {
-                  const chipProps = getGenderChipProps(animal.gender, theme)
+              {loading ? (
+                [...Array(3)].map((_, idx) => (
+                  <IdentifierCard key={idx}>
+                    <Skeleton variant='circular' width={40} height={40} sx={{ mr: 2 }} />
+                    <Skeleton variant='text' width={200} height={24} />
+                  </IdentifierCard>
+                ))
+              ) : data?.animals?.length > 0 ? (
+                data?.animals.map((animal, idx) => {
+                  const chipProps = getGenderChipProps(animal?.gender, theme)
 
                   return (
-                    <IdentifierCard key={animal.shipment_animal_id}>
+                    <IdentifierCard key={animal?.shipment_animal_id}>
                       <Chip
                         label={chipProps.label}
                         size='small'
@@ -225,7 +278,7 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, shipmentData, speciesStat
                         <Typography
                           sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 400 }}
                         >
-                          {animal.identifier_type} ID:{' '}
+                          {animal?.identifier_type} ID:{' '}
                           <span
                             style={{
                               fontWeight: 500,
@@ -233,7 +286,7 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, shipmentData, speciesStat
                               fontSize: '14px'
                             }}
                           >
-                            {animal.identifier_value}
+                            {animal?.identifier_value}
                           </span>
                         </Typography>
                       </Box>
