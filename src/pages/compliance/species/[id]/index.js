@@ -13,7 +13,6 @@ import {
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -36,14 +35,13 @@ const SpeciesDetails = () => {
   const [openFilter, setOpenFilter] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
-  const [loading, setLoading] = useState(false)
   const [openDetailsDrawer, setOpenDetailsDrawer] = useState(false)
   const [selectedRow, setSelectedRow] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
 
   const [filters, setFilters] = useState({
     page: 1,
-    limit: 10,
+    limit: 50,
     q: '',
     sort: 'asc',
     column: ''
@@ -373,7 +371,7 @@ const SpeciesDetails = () => {
 
   const headerAction = (
     <>
-      <DownloadReport isDownloading={loading} handleDownloadReport={handleReportExport} />
+      <DownloadReport isDownloading={exportLoading} handleDownloadReport={handleReportExport} />
     </>
   )
 
@@ -414,6 +412,7 @@ const SpeciesDetails = () => {
           >
             <Search
               placeholder='Search exports...'
+              value={searchValue}
               onChange={e => handleSearch(e.target.value)}
               onClear={() => handleSearch('')}
             />
@@ -474,7 +473,6 @@ const SpeciesDetails = () => {
         <SpeciesShipmentFilterDrawer
           open={openFilter}
           onClose={() => setOpenFilter(false)}
-          onSubmitLoading={loading}
           onApplyFilters={applyFilters}
           setFilterCount={setFilterCount}
           initialSelectedOptions={selectedOptions}
@@ -487,8 +485,8 @@ const SpeciesDetails = () => {
             setOpenDetailsDrawer(false)
             setSelectedRow(null)
           }}
-          shipmentData={selectedRow}
-          speciesStats={speciesStats}
+          speciesId={id}
+          shipmentId={selectedRow?.shipment_id}
         />
       )}
     </>

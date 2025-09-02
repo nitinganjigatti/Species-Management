@@ -74,6 +74,7 @@ const composeComplianceNavigation = () => {
   const reportsParent = {
     title: 'Reports',
     path: '/compliance/documents/reports',
+    key: 'compliance-reports',
     icon: '',
     children: []
   }

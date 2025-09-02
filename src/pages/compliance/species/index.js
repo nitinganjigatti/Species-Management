@@ -1,5 +1,4 @@
 import { Badge, Box, Breadcrumbs, Button, Card, CardContent, CardHeader, Typography, useTheme } from '@mui/material'
-import { width } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -7,7 +6,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import SpeciesShipmentFilterDrawer from 'src/components/compliance/drawer/SpeciesShipmentFilterDrawer'
 import { getSpeciesData } from 'src/lib/api/compliance/species'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { FilterButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
@@ -20,7 +18,7 @@ const Species = () => {
 
   const [filters, setFilters] = useState({
     page: 1,
-    limit: 10,
+    limit: 50,
     q: '',
     sort: 'asc',
     column: ''
@@ -34,7 +32,6 @@ const Species = () => {
   })
   const [filterCount, setFilterCount] = useState(0)
   const [openFilter, setOpenFilter] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
@@ -63,11 +60,11 @@ const Species = () => {
     queryKey: ['trade-species', filters, selectedOptions],
     queryFn: () =>
       getSpeciesData({
-        page: filters.page,
-        limit: filters.limit,
-        q: filters.q,
-        sort: filters.sort,
-        column: filters.column,
+        page: filters?.page,
+        limit: filters?.limit,
+        q: filters?.q,
+        sort: filters?.sort,
+        column: filters?.column,
         exporting_country: prepareFilterParams('Exporting country'),
         exporter: prepareFilterParams('Exporter'),
         importer: prepareFilterParams('Importer'),
@@ -177,7 +174,7 @@ const Species = () => {
               fontWeight: 500
             }}
           >
-            {parseInt(params.row.sl_no) + '.'}
+            {parseInt(params.row?.sl_no) + '.'}
           </Typography>
         </Box>
       )
@@ -194,9 +191,9 @@ const Species = () => {
           <Box sx={{ px: 2, py: 2 }}>
             <SpeciesCard
               species={{
-                common_name: params.row.common_name,
-                scientific_name: params.row.scientific_name,
-                default_icon: params.row.default_icon || '/images/branding/antz/Antz_logomark_h_color.svg'
+                common_name: params.row?.common_name,
+                scientific_name: params.row?.scientific_name,
+                default_icon: params.row?.default_icon || '/images/branding/antz/Antz_logomark_h_color.svg'
               }}
             />
           </Box>
@@ -219,7 +216,7 @@ const Species = () => {
             px: 2
           }}
         >
-          {params.row.total_shipments ? params.row.total_shipments : '-'}
+          {params.row?.total_shipments ? params.row?.total_shipments : '-'}
         </Typography>
       )
     },
@@ -239,7 +236,7 @@ const Species = () => {
             px: 2
           }}
         >
-          {params.row.total_exports ? params.row.total_exports : '-'}
+          {params.row?.total_exports ? params.row?.total_exports : '-'}
         </Typography>
       )
     },
@@ -259,7 +256,7 @@ const Species = () => {
             px: 2
           }}
         >
-          {params.row.total_animals_permitted ? params.row.total_animals_permitted : '-'}
+          {params.row?.total_animals_permitted ? params.row?.total_animals_permitted : '-'}
         </Typography>
       )
     },
@@ -279,7 +276,7 @@ const Species = () => {
             px: 2
           }}
         >
-          {params.row.total_animals_received ? params.row.total_animals_received : '-'}
+          {params.row?.total_animals_received ? params.row?.total_animals_received : '-'}
         </Typography>
       )
     }
@@ -293,7 +290,7 @@ const Species = () => {
 
   const handleRowClick = params => {
     router.push({
-      pathname: `/compliance/species/${params.row.species_id}`
+      pathname: `/compliance/species/${params.row?.species_id}`
     })
   }
 
@@ -355,7 +352,6 @@ const Species = () => {
         <SpeciesShipmentFilterDrawer
           open={openFilter}
           onClose={() => setOpenFilter(false)}
-          onSubmitLoading={loading}
           onApplyFilters={applyFilters}
           setFilterCount={setFilterCount}
           initialSelectedOptions={selectedOptions}
