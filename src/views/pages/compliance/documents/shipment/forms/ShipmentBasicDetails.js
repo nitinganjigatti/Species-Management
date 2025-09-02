@@ -106,8 +106,8 @@ const ShipmentBasicDetails = React.forwardRef(
     }, [shipmentIdval, showEdit])
 
     const fetchbasicDetails = async () => {
+      setLoader(true)
       try {
-        setLoader(true)
         const response = await getShipmentBasicDetails(id, mastersData?.document_type_id)
         if (response?.success) {
           // const formatAirwayBill = (value = '') => {
@@ -182,7 +182,6 @@ const ShipmentBasicDetails = React.forwardRef(
             if (!isCalledViaRef) {
               setExpanded(['animals-details'])
             }
-            fetchbasicDetails()
             return true
             //saveStatus === 'completed' ? router.push(`/compliance/documents/shipments`) : ''
           } else {

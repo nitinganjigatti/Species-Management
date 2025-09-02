@@ -270,7 +270,7 @@ const SpeciesAddEdit = ({
                               }
                             }}
                           >
-                            {`This export id is part of ${all.linked_shipments_count ?? all.shipment_count ?? 0} `}
+                            {`This export ID is part of ${all.linked_shipments_count ?? all.shipment_count ?? 0} `}
                             {`${
                               (all.linked_shipments_count ?? all.shipment_count ?? 0) === 1 ? 'shipment' : 'shipments'
                             }`}
