@@ -26,7 +26,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import { AddButtonContained } from 'src/components/ButtonContained'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
-import AddEnclosures from 'src/views/pages/hospital/roomsAndEnclosures/addEnclosures'
+import AddEnclosures from 'src/views/pages/hospital/roomsAndEnclosures/AddEnclosures'
 
 const tableDta = [
   { id: 1, enclosure_name: 'Enclosure name 1', area: 'Emergency Room ', floor: 'Ground', occupancy: 'Available' },
