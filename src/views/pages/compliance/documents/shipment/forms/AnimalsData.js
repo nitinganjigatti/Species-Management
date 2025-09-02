@@ -381,6 +381,7 @@ const AnimalsData = ({
             species: {
               id: spec.taxonomy_id || '',
               tsn_id: spec.taxonomy_id || '',
+              taxonomy_id: spec.taxonomy_id || '',
               common_name: spec.common_name || '',
               scientific_name: spec.scientific_name || '',
               shipment_species_id: spec?.shipment_species_id || '',
