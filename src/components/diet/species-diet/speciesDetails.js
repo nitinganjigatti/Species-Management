@@ -489,52 +489,54 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         )}
       </Box>
       {/* bottom buttons */}
-      <Box
-        sx={{
-          height: '122px',
-          width: '100%',
-          maxWidth: '562px',
-          position: 'fixed',
-          bottom: 0,
-          bgcolor: 'white',
-          alignItems: 'center',
-          justifyContent: 'center',
-          display: 'flex',
-          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
-          zIndex: 123
-        }}
-      >
-        <LoadingButton
-          fullWidth
-          variant='contained'
-          size='large'
-          sx={{ height: '58px', width: '514px', mx: 4 }}
-          onClick={() => {
-            const scientific_name = specieDetails.scientific_name
-            const common_name = specieDetails.common_name
-            const default_icon = specieDetails.default_icon
-            setSpeciesData({ default_icon, scientific_name, common_name })
-            setspeciesId(specieDetails.species_id)
-            setUploadDietDrawer(true)
+      {!detailsLoader && (
+        <Box
+          sx={{
+            height: '122px',
+            width: '100%',
+            maxWidth: '562px',
+            position: 'fixed',
+            bottom: 0,
+            bgcolor: 'white',
+            alignItems: 'center',
+            justifyContent: 'center',
+            display: 'flex',
+            boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+            zIndex: 123
           }}
-          disabled={dietModuleAccess === 'VIEW'}
-          // loading={loader}
         >
-          UPLOAD NEW
-        </LoadingButton>
+          <LoadingButton
+            fullWidth
+            variant='contained'
+            size='large'
+            sx={{ height: '58px', width: '514px', mx: 4 }}
+            onClick={() => {
+              const scientific_name = specieDetails.scientific_name
+              const common_name = specieDetails.common_name
+              const default_icon = specieDetails.default_icon
+              setSpeciesData({ default_icon, scientific_name, common_name })
+              setspeciesId(specieDetails.species_id)
+              setUploadDietDrawer(true)
+            }}
+            disabled={dietModuleAccess === 'VIEW'}
+            // loading={loader}
+          >
+            UPLOAD NEW
+          </LoadingButton>
 
-        <UploadDiet
-          fetchTableData={fetchTableData}
-          getSpecieDetail={getSpecieDetail}
-          speciesId={speciesId}
-          speciesData={speciesData}
-          setspeciesId={setspeciesId}
-          fileInputRef={fileInputRef}
-          uploadDietDrawer={uploadDietDrawer}
-          setUploadDietDrawer={setUploadDietDrawer}
-          speciesDetailsDrawer={speciesDetailsDrawer}
-        />
-      </Box>
+          <UploadDiet
+            fetchTableData={fetchTableData}
+            getSpecieDetail={getSpecieDetail}
+            speciesId={speciesId}
+            speciesData={speciesData}
+            setspeciesId={setspeciesId}
+            fileInputRef={fileInputRef}
+            uploadDietDrawer={uploadDietDrawer}
+            setUploadDietDrawer={setUploadDietDrawer}
+            speciesDetailsDrawer={speciesDetailsDrawer}
+          />
+        </Box>
+      )}
     </Drawer>
   )
 }
