@@ -247,7 +247,7 @@ const AddEditShipment = () => {
         handleEditClick={() => {
           setExpanded(['permit - details'])
           basicDetailsEditRef.current?.()
-          linkedDocumentsData?.exports_count > 0
+          linkedDocumentsData?.exports_count > 0 || exportCount > 0
             ? router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=1`)
             : router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
         }}
@@ -267,6 +267,7 @@ const AddEditShipment = () => {
           setExpanded={setExpanded}
           linkedDocumentsData={linkedDocumentsData}
           mastersData={mastersData}
+          exportCount={exportCount}
         />
       </CustomAccordion>
 

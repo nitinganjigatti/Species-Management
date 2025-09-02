@@ -53,7 +53,8 @@ const ShipmentBasicDetails = React.forwardRef(
       setshipmentIdVal,
       setExpanded,
       linkedDocumentsData,
-      mastersData
+      mastersData,
+      exportCount
     },
     ref
   ) => {
@@ -97,7 +98,7 @@ const ShipmentBasicDetails = React.forwardRef(
 
     useEffect(() => {
       if (shipmentIdval && status !== 'completed') {
-        if (linkedDocumentsData?.exports_count > 0) {
+        if (linkedDocumentsData?.exports_count > 0 || exportCount > 0) {
           router.push(`/compliance/documents/shipments/AddEditShipment/?id=${shipmentIdval}&action=edit&export=1`)
         } else {
           router.push(`/compliance/documents/shipments/AddEditShipment/?id=${shipmentIdval}&action=edit`)
