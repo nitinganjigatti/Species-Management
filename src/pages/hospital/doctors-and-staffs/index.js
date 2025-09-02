@@ -1,7 +1,8 @@
 import React from 'react'
+import DoctorsList from 'src/components/hospital/DoctorsAndStaffs/DoctorsList'
 
 const DoctorsAndStaffs = () => {
-  return <div>DoctorsAndStaffs</div>
+  return <DoctorsList />
 }
 
 export default DoctorsAndStaffs

@@ -21,13 +21,13 @@ const composeHospitalNavigation = () => {
   }
 
   const doctorsANdStaffs = {
-    title: 'Doctors And Staffs',
+    title: 'Doctors & Staffs',
     path: '/hospital/doctors-and-staffs',
     icon: 'tabler:align-box-top-left'
   }
 
   const roomsAndEnclosures = {
-    title: 'Rooms/Enclosures',
+    title: 'Rooms / Enclosures',
     path: '/hospital/rooms-and-enclosures',
     icon: 'tabler:align-box-top-left'
   }
