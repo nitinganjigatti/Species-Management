@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, Select, alpha } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, Select, alpha, Tabs, Tab } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { getDocumentTypeList } from 'src/lib/api/compliance/exports'
@@ -28,7 +28,12 @@ const AddEditImport = () => {
   const [linkedShipments, setLinkedShipments] = useState([])
   const [linkedShipmentsData, setLinkedShipmentsData] = useState()
   const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
+  const [activeTab, setActiveTab] = useState('uploaded')
   const animalsEditRef = useRef()
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
 
   useEffect(() => {
     if (isEdit && action === 'edit') {
@@ -213,13 +218,21 @@ const AddEditImport = () => {
               </Typography>
             </Box>
           ) : (
-            <SupportingDocuments
-              isFetching={isFetching}
-              documentList={documentList}
-              totalCount={totalCount}
-              onAddEditSuccess={handleAddEditSuccess}
-              type='2'
-            />
+            <Box sx={{ width: '100%' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+                <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
+                  <Tab label={`Uploaded (${documentList.length})`} value='uploaded' />
+                  <Tab label={`Pending (${documentList.length})`} value='pending' />
+                </Tabs>
+              </Box>
+              <SupportingDocuments
+                isFetching={isFetching}
+                documentList={documentList}
+                totalCount={totalCount}
+                onAddEditSuccess={handleAddEditSuccess}
+                type='2'
+              />
+            </Box>
           )}
         </CustomAccordion>
       )}

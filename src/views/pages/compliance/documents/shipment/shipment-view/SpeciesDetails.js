@@ -356,7 +356,8 @@ const SpeciesDetailsContainer = ({
             sx={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
             onClick={handleShippedClick}
           >
-            {totalSpecies} Species • {totalAnimals} Animals
+            {totalSpecies} Species • {totalAnimals} Animals • Importer name : {'India'} • Country Of origin :{' '}
+            {'Argentina'}
             <ChevronRightIcon sx={{ fontSize: '22px', color: theme.palette.primary.main }} />
           </Typography>
 

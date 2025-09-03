@@ -179,7 +179,7 @@ const CustomAccordion = ({
       </Box>
 
       <Collapse in={isExpanded}>
-        <Box sx={{ py: 8 }}>{children}</Box>
+        <Box sx={{ py: 4 }}>{children}</Box>
       </Collapse>
     </Box>
   )
