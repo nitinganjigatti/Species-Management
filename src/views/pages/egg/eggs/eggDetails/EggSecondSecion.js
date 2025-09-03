@@ -43,6 +43,7 @@ import { AddAssesment, EditAssesment, getWeightList } from 'src/lib/api/egg/egg'
 import EggActivityLogs from './EggActivityLogs'
 import ProbableParent from './ProbableParent'
 import TransferEgg from './TransferEgg'
+import Toaster from 'src/components/Toaster'
 
 const EggSecondSecion = ({
   activtyLogData,
@@ -267,7 +268,14 @@ const EggSecondSecion = ({
       field: 'assessment_value',
       headerName: 'ACTUAL',
       renderCell: params => (
-        <Tooltip title={`${params?.row?.assessment_value} ${params?.row?.uom_abbr}`} placement='top'>
+        <Tooltip
+          title={`${
+            Number(params?.row?.assessment_value || 0) % 1 === 0
+              ? Math.floor(Number(params?.row?.assessment_value || 0))
+              : Number(params?.row?.assessment_value || 0).toFixed(2)
+          } ${params?.row?.uom_abbr}`}
+          placement='top'
+        >
           <Typography
             noWrap
             sx={{
@@ -280,7 +288,11 @@ const EggSecondSecion = ({
               whiteSpace: 'nowrap'
             }}
           >
-            {`${params?.row?.assessment_value} ${params?.row?.uom_abbr}`}
+            {`${
+              Number(params?.row?.assessment_value || 0) % 1 === 0
+                ? Math.floor(Number(params?.row?.assessment_value || 0))
+                : Number(params?.row?.assessment_value || 0).toFixed(2)
+            } ${params?.row?.uom_abbr}`}
           </Typography>
         </Tooltip>
       )
@@ -338,7 +350,10 @@ const EggSecondSecion = ({
     if (editWeight) {
       try {
         EditAssesment(paramsEdit).then(res => {
+          // console.log(res, 'res')
           if (res.success) {
+            // Success toaster
+            Toaster({ type: 'success', message: res.message || 'Weight updated successfully!' })
             reset()
             setaddWeightSidebar(false)
             setEditWeight(false)
@@ -347,27 +362,37 @@ const EggSecondSecion = ({
             getDetails(egg_id)
             fetchTableData()
           } else {
+            // Error toaster with backend message
+            Toaster({ type: 'error', message: res.message || 'Failed to update weight' })
             setSubmitAssementloader(false)
           }
         })
       } catch (error) {
-        console.error(error)
+        // console.error(error)
+        Toaster({ type: 'error', message: 'Something went wrong while updating weight' })
+        setSubmitAssementloader(false)
       }
     } else {
       try {
         AddAssesment(params).then(res => {
           if (res.success) {
+            // Success toaster
+            Toaster({ type: 'success', message: res.message || 'Weight added successfully!' })
             reset()
             setaddWeightSidebar(false)
             setSubmitAssementloader(false)
             getDetails(egg_id)
             fetchTableData()
           } else {
+            // Error toaster with backend message
+            Toaster({ type: 'error', message: res.message || 'Failed to add weight' })
             setSubmitAssementloader(false)
           }
         })
       } catch (error) {
-        console.error(error)
+        // console.error(error)
+        Toaster({ type: 'error', message: 'Something went wrong while adding weight' })
+        setSubmitAssementloader(false)
       }
     }
   }
@@ -556,7 +581,7 @@ const EggSecondSecion = ({
                             onChange={event => {
                               const newValue = event.target.value
 
-                              if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
+                              if (/^[1-9]\d*(\.\d{0,2})?$/.test(newValue) || newValue === '') {
                                 onChange(event)
                               }
                             }}
@@ -1193,23 +1218,19 @@ const EggSecondSecion = ({
                             }}
                           >
                             <Tooltip
-                              title={`${Number(row?.assessment_value).toFixed(2)} ${row?.uom_abbr}`}
+                              title={`${
+                                Number(row?.assessment_value || 0) % 1 === 0
+                                  ? Math.floor(Number(row?.assessment_value || 0))
+                                  : Number(row?.assessment_value || 0).toFixed(2)
+                              } ${row?.uom_abbr}`}
                               placement='top'
                             >
                               <span>
-                                {(() => {
-                                  const value = Number(row?.assessment_value)
-                                  if (value >= 1e6) {
-                                    // For very large numbers, show in a more readable format
-                                    return `${value.toLocaleString('en-US', {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2
-                                    })} ${row?.uom_abbr}`
-                                  } else {
-                                    // For normal numbers, show with 2 decimal places
-                                    return `${value.toFixed(2)} ${row?.uom_abbr}`
-                                  }
-                                })()}
+                                {`${
+                                  Number(row?.assessment_value || 0) % 1 === 0
+                                    ? Math.floor(Number(row?.assessment_value || 0))
+                                    : Number(row?.assessment_value || 0).toFixed(2)
+                                } ${row?.uom_abbr}`}
                               </span>
                             </Tooltip>
                           </TableCell>
