@@ -177,7 +177,8 @@ function InpatientSurgery() {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { sm: 'center', xs: 'fl' },
+
+          // alignItems: { sm: 'center', xs: 'fl' },
           gap: '24px'
         }}
       >

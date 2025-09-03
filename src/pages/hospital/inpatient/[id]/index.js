@@ -43,12 +43,13 @@ const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms')
 const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
 const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
+const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMonitoring/TreatmentLayout'))
 
 const InpatientDetails = () => {
   const router = useRouter()
   const theme = useTheme()
 
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
   const [anchorEl, setAnchorEl] = useState(null)
   const openMenu = Boolean(anchorEl)
 
@@ -76,6 +77,7 @@ const InpatientDetails = () => {
     () => [
       { label: 'Overview', value: 'overview', component: InpatientOverview },
       { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
+      { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
       { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
       { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
       { label: 'Symptoms', value: 'symptoms', component: Symptoms },
