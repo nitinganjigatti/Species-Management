@@ -128,7 +128,7 @@ const ShipmentPage = () => {
     setSelectedId(params.row.id)
 
     Router.push(
-      `/compliance/documents/shipments/AddEditShipment/?id=${params.row.id}&action=details&export=${params.row.export_count}`
+      `/compliance/documents/shipments/AddEditShipment/?id=${params.row.id}&action=details&export=${params.row.species_count}`
     )
   }
 

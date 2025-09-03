@@ -53,7 +53,8 @@ const ShipmentBasicDetails = React.forwardRef(
       setshipmentIdVal,
       setExpanded,
       linkedDocumentsData,
-      mastersData
+      mastersData,
+      exportCount
     },
     ref
   ) => {
@@ -97,7 +98,7 @@ const ShipmentBasicDetails = React.forwardRef(
 
     useEffect(() => {
       if (shipmentIdval && status !== 'completed') {
-        if (linkedDocumentsData?.exports_count > 0) {
+        if (linkedDocumentsData?.exports_count > 0 || exportCount > 0) {
           router.push(`/compliance/documents/shipments/AddEditShipment/?id=${shipmentIdval}&action=edit&export=1`)
         } else {
           router.push(`/compliance/documents/shipments/AddEditShipment/?id=${shipmentIdval}&action=edit`)
@@ -125,6 +126,7 @@ const ShipmentBasicDetails = React.forwardRef(
           setUploadedFile(response?.data?.documents[0])
           setStatus(response?.data?.shipment_state)
         } else {
+          setLoader(false)
           Toaster({ type: 'error', message: response?.message })
         }
       } catch (e) {
@@ -182,7 +184,6 @@ const ShipmentBasicDetails = React.forwardRef(
             if (!isCalledViaRef) {
               setExpanded(['animals-details'])
             }
-            fetchbasicDetails()
             return true
             //saveStatus === 'completed' ? router.push(`/compliance/documents/shipments`) : ''
           } else {
