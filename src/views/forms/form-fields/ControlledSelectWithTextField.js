@@ -14,11 +14,11 @@ import { useTheme } from '@mui/material/styles'
 import get from 'lodash/get'
 
 function ControlledSelectWithTextField({
-  name,
+  name = {},
   label,
   control,
-  textFieldName = `${name}.text`,
-  selectFieldName = `${name}.select`,
+  textFieldName = name.text,
+  selectFieldName = name.select,
   options = [],
   disabled = false,
   getOptionLabel = option => option,
@@ -34,7 +34,8 @@ function ControlledSelectWithTextField({
   onPaste,
   onInput,
   size = 'large',
-  sx = {}
+  sx = {},
+  required = false
 }) {
   const theme = useTheme()
   const { errors } = useFormState({ control })
@@ -43,16 +44,17 @@ function ControlledSelectWithTextField({
 
   return (
     <FormControl size={size} fullWidth={fullWidth} error={Boolean(textError || selectError)} sx={sx}>
-      <InputLabel htmlFor={`${name}-input`} id={`${name}-label`}>
+      <InputLabel htmlFor={`${textFieldName || 'text'}-input`} id={`${textFieldName || 'text'}-label`}>
         {label}
       </InputLabel>
       <Controller
+        required={required}
         name={textFieldName}
         control={control}
         render={({ field: textField }) => (
           <OutlinedInput
             {...textField}
-            id={`${name}-input`}
+            id={`${textFieldName || 'text'}-input`}
             label={label}
             type={type}
             placeholder={placeholder}

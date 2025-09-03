@@ -13,8 +13,6 @@ const ControlledTextArea = ({
   disabled = false,
   readOnly = false,
   rows = 4,
-  maxRows,
-  minRows,
   placeholder,
   onChangeOverride,
   inputProps = {},
@@ -40,8 +38,6 @@ const ControlledTextArea = ({
           placeholder={placeholder}
           multiline
           rows={rows}
-          maxRows={maxRows}
-          minRows={minRows}
           disabled={disabled}
           error={Boolean(error)}
           helperText={helperText}
