@@ -1,0 +1,171 @@
+import { useTheme } from '@emotion/react'
+import { IconButton, Typography } from '@mui/material'
+import { Box, Stack } from '@mui/system'
+import React from 'react'
+import Icon from 'src/@core/components/icon'
+import QrCodeIcon from '@mui/icons-material/QrCode'
+import AddIcon from '@mui/icons-material/Add'
+import GroupIcon from '@mui/icons-material/Group'
+
+const AnimalInsightsHeader = ({
+  isAnimalDetailsPage,
+  headerDetails,
+  isSpecies,
+  isSpeciesListing,
+  isSpeciesDetails,
+  onAddNew,
+  onQrClick,
+  showQr
+}) => {
+  const theme = useTheme()
+
+  const { commonName, scientificName } = headerDetails
+
+  return (
+    <>
+      {isAnimalDetailsPage && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+
+            flexWrap: { sm: 'nowrap', xs: 'wrap' },
+            gap: 6
+          }}
+        >
+          <Box>
+            {commonName && (
+              <Typography sx={{ color: theme.palette.common.white, fontSize: '2.5rem', fontWeight: '600' }}>
+                {commonName}
+              </Typography>
+            )}
+            {scientificName && (
+              <Typography sx={{ mt: 0.5, color: theme.palette.common.white, fontSize: '1.4rem' }}>
+                {scientificName}
+              </Typography>
+            )}
+            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+              {headerDetails?.isAlive === '0' && (
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: theme.palette.customColors.Error,
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <img src='/icons/died_symbol_icon.svg' alt='died' height={'20px'} width={'20px'} />
+                  <Typography sx={{ color: '#FFF', fontWeight: 500, fontSize: '20px' }}>Dead</Typography>
+                </Box>
+              )}
+              {headerDetails?.isGrouped && (
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: '#FFF',
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Typography sx={{ color: theme.palette.customColors.Error, fontWeight: 500, fontSize: '20px' }}>
+                    Group
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Box>
+          <Box>
+            {showQr && (
+              <IconButton
+                sx={{
+                  color: theme.palette.common.white,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.3)'
+                  }
+                }}
+                onClick={onQrClick}
+              >
+                <QrCodeIcon sx={{ fontSize: 34 }} />
+              </IconButton>
+            )}
+          </Box>
+        </Box>
+      )}
+      {isSpecies && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: { sm: 'nowrap', xs: 'wrap' },
+            gap: 6
+          }}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.2 }}>
+            <Typography sx={{ color: theme.palette.common.white, fontSize: '14px', fontWeight: '600' }}>
+              Species
+            </Typography>
+            {isSpeciesDetails && (
+              <>
+                {commonName && (
+                  <Typography sx={{ color: theme.palette.common.white, fontSize: '24px', fontWeight: '600' }}>
+                    {commonName}
+                  </Typography>
+                )}
+                {scientificName && (
+                  <Typography
+                    sx={{
+                      color: theme.palette.common.white,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      fontStyle: 'italic'
+                    }}
+                  >
+                    {scientificName}
+                  </Typography>
+                )}
+              </>
+            )}
+          </Box>
+          <Box>
+            {onAddNew && (
+              <Stack direction='row' spacing={2} alignItems='center'>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.PrimaryContainer,
+                    fontSize: '0.875rem',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Add new
+                </Typography>
+                <IconButton
+                  onClick={onAddNew}
+                  sx={{
+                    border: '1px solid',
+                    borderColor: theme.palette.customColors.PrimaryContainer,
+                    color: theme.palette.customColors.PrimaryContainer,
+                    transition: 'color 0.2s',
+                    borderRadius: 0.5,
+                    padding: 0
+                  }}
+                >
+                  <AddIcon sx={{ fontSize: '1rem' }} />
+                </IconButton>
+              </Stack>
+            )}
+          </Box>
+        </Box>
+      )}
+    </>
+  )
+}
+
+export default AnimalInsightsHeader

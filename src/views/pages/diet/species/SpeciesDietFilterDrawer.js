@@ -37,22 +37,6 @@ const SpeciesDietFilterDrawer = ({
   const [limit, setLimit] = useState(10)
   const [selectAll, setSelectAll] = useState(false)
 
-  //   const getClassListData = async q => {
-  //     try {
-  //       setLoading(true)
-  //       await getClassList({ type: 'class', page_no, limit, q }).then(res => {
-  //         if (res.success) {
-  //           setClassListData(res?.data?.result)
-  //           setClassListCount(res?.data?.count)
-  //         }
-  //       })
-  //     } catch (e) {
-  //       console.log(e)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
   const getClassListData = async (q = '') => {
     try {
       setLoading(true)
@@ -80,10 +64,6 @@ const SpeciesDietFilterDrawer = ({
       }
     }
   }
-
-  //   useEffect(() => {
-  //     getClassListData()
-  //   }, [openFilterDrawer])
 
   useEffect(() => {
     if (openFilterDrawer) {
@@ -127,13 +107,6 @@ const SpeciesDietFilterDrawer = ({
     }
   }
 
-  //   const debouncedGetClassListData = useCallback(
-  //     debounce(query => {
-  //       getClassListData(query)
-  //     }, 1000),
-  //     []
-  //   )
-
   const debouncedGetClassListData = useCallback(
     debounce(query => {
       getClassListData(query)
@@ -150,7 +123,6 @@ const SpeciesDietFilterDrawer = ({
   }
 
   const handleCheckboxChange = (id, name) => {
-    // Default to empty array if currentSelectedOptions is not defined
     const currentSelectedOptions = selectedOptions[selectedMenu.name] || []
 
     const isChecked = currentSelectedOptions.some(option => option.id === id)
@@ -184,7 +156,7 @@ const SpeciesDietFilterDrawer = ({
       return sum + (Array.isArray(arr) ? arr.length : 0)
     }, 0)
 
-    setFilterCount(totalFilters) // Update count
+    setFilterCount(totalFilters) 
     setSelectedFiltersOptions(selectedOptions ?? {})
     handleCloseDrawer()
   }
@@ -196,6 +168,7 @@ const SpeciesDietFilterDrawer = ({
     setClassListData([])
     setClassListCount(0)
   }
+
   return (
     <Drawer
       anchor='right'
@@ -230,7 +203,6 @@ const SpeciesDietFilterDrawer = ({
           </IconButton>
         </Box>
       </Box>
-
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -239,7 +211,7 @@ const SpeciesDietFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu.map(menu => (
               <Box
                 key={menu.id}
@@ -251,7 +223,8 @@ const SpeciesDietFilterDrawer = ({
                   borderTopLeftRadius: '8px',
                   borderBottomLeftRadius: '8px'
                 }}
-                // onClick={() => handleMenuClick(menu)}
+
+              // onClick={() => handleMenuClick(menu)}
               >
                 <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
                   {menu.name}
@@ -259,7 +232,7 @@ const SpeciesDietFilterDrawer = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               ref={scrollContainerRef}
               onScroll={handleScroll}
@@ -269,13 +242,13 @@ const SpeciesDietFilterDrawer = ({
                 borderRadius: '8px',
                 width: '345px',
                 height: 'calc(100vh - 185px)',
-                overflowY: 'auto', // Enable vertical scrolling
+                overflowY: 'auto', 
                 '&::-webkit-scrollbar': {
                   width: 0,
                   height: 0
                 },
-                '-ms-overflow-style': 'none', // Hide scrollbar for Internet Explorer and Edge
-                scrollbarWidth: 'none' // Hide scrollbar for Firefox
+                '-ms-overflow-style': 'none',
+                scrollbarWidth: 'none' 
               }}
             >
               <>
@@ -296,9 +269,6 @@ const SpeciesDietFilterDrawer = ({
                     placeholder='Search'
                     value={searchQuery}
                     onChange={handleSearchChange}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
@@ -306,6 +276,11 @@ const SpeciesDietFilterDrawer = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false
                       }
                     }}
                   />
@@ -349,8 +324,6 @@ const SpeciesDietFilterDrawer = ({
           </Grid>
         </Grid>
       </Box>
-
-      {/* bottom buttons */}
       <Box
         sx={{
           height: '122px',

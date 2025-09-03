@@ -3,7 +3,7 @@
 // ** To use core palette, uncomment the below import
 // import corePalette from 'src/@core/theme/palette'
 // ** To use mode (light/dark/semi-dark), skin(default/bordered), direction(ltr/rtl), etc. for conditional styles, uncomment below line
-import { borderBottom, borderBottomColor } from '@mui/system'
+import { borderBottom, borderBottomColor, borderColor } from '@mui/system'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { useRouter } from 'next/router'
@@ -105,6 +105,8 @@ const UserThemeOptions = () => {
         antzInfo60: '#32bfdd',
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
+        PrimaryContainer: '#52F990',
+        OnPrimary50: '#FFFFFFBF',
 
         // *** name required
         customTableHeaderBg: '#C1D3D0',
@@ -130,6 +132,7 @@ const UserThemeOptions = () => {
 
         TertiaryLight: '#FFD3D399',
         Tertiary30: '#FFBDA84D',
+        Tertiary20: '#FFBDA833',
         OnBackground: '#E1F9ED',
         BgTeritary: '#ffebe5',
         Primary10: '#37BD691A',
@@ -161,7 +164,9 @@ const UserThemeOptions = () => {
         mainBg: '#20DE67',
         antzSecondaryBg: '#dff9f7',
         statusText: '#7A7A7A',
-        Antz_Body_Medium: '#FFC300'
+        Antz_Body_Medium: '#FFC300',
+        grey700: 'grey.700',
+        grey800: 'grey.800'
       },
       primary: {
         // light: '#20DE67',
@@ -273,6 +278,49 @@ const UserThemeOptions = () => {
             border: '1px solid #8080806b'
           }
         }
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            '&:hover': {
+              backgroundColor: '#F2FFF8',
+              boxShadow: '0px 1px 8px 0px #0000001A'
+            }
+          }
+        }
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderBottom: '0.5px solid #839D8D'
+          }
+        }
+      },
+      MuiTableHead: {
+        styleOverrides: {
+          root: {
+            backgroundColor: '#C1D3D0' // Ensures the header row gets the background color
+          }
+        }
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            '&:hover:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#C6C6CE'
+            },
+
+            ':not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#D8D8DD'
+            },
+            '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#FF4D49'
+            },
+            '&.Mui-error:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#FF4D49'
+            }
+          }
+        }
       }
     }
 
@@ -381,6 +429,12 @@ const UserThemeOptions = () => {
     //         '0px 2px 10px 0px rgba(76, 78, 100, 0.1)',
     //         '0px 4px 5px -2px rgba(76, 78, 100, 0.2), 0px 7px 10px 1px rgba(76, 78, 100, 0.14), 0px 2px 16px 1px rgba(76, 78, 100, 0.12)',
     //         '0px 5px 5px -3px rgba(76, 78, 100, 0.2), 0px 8px 10px 1px rgba(76, 78, 100, 0.14), 0px 3px 14px 2px rgba(76, 78, 100, 0.12)',
+    //         '0px 5px 6px -3px rgba(76, 78, 100, 0.2), 0px 9px 12px 1px rgba(76, 78, 100, 0.14), 0px 3px 16px 2px rgba(76, 78, 100, 0.12)',
+    //         '0px 6px 6px -3px rgba(76, 78, 100, 0.2), 0px 10px 14px 1px rgba(76, 78, 100, 0.14), 0px 4px 18px 3px rgba(76, 78, 100, 0.12)',
+    //         '0px 6px 7px -4px rgba(76, 78, 100, 0.2), 0px 11px 15px 1px rgba(76, 78, 100, 0.14), 0px 4px 20px 3px rgba(76, 78, 100, 0.12)',
+    //         '0px 7px 8px -4px rgba(76, 78, 100, 0.2), 0px 12px 17px 2px rgba(76, 78, 100, 0.14), 0px 5px 22px 4px rgba(76, 78, 100, 0.12)',
+    //         '0px 7px 8px -4px rgba(76, 78, 100, 0.2), 0px 13px 19px 2px rgba(76, 78, 100, 0.14), 0px 5px 24px 4px rgba(76, 78, 100, 0.12)',
+    //         '0px 7px 9px -4px rgba(76, 78, 100, 0.2), 0px 14px 21px 2px rgba(76, 78, 100, 0.14), 0px 5px 26px 4px rgba(76, 78, 100, 0.12)',
     //         '0px 5px 6px -3px rgba(76, 78, 100, 0.2), 0px 9px 12px 1px rgba(76, 78, 100, 0.14), 0px 3px 16px 2px rgba(76, 78, 100, 0.12)',
     //         '0px 6px 6px -3px rgba(76, 78, 100, 0.2), 0px 10px 14px 1px rgba(76, 78, 100, 0.14), 0px 4px 18px 3px rgba(76, 78, 100, 0.12)',
     //         '0px 6px 7px -4px rgba(76, 78, 100, 0.2), 0px 11px 15px 1px rgba(76, 78, 100, 0.14), 0px 4px 20px 3px rgba(76, 78, 100, 0.12)',

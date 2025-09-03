@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Avatar, Button, Card, CardContent, LinearProgress, IconButton, TextField, Typography } from '@mui/material'
+import { Avatar, Button, Card, CardContent, IconButton, LinearProgress, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { styled } from '@mui/material/styles'
 import { useTheme } from '@mui/material/styles'
@@ -77,11 +77,14 @@ const EggComment = ({ eggDetails, eggId }) => {
 
   const handleScroll = async e => {
     const container = e.target
-    // Check if the user has reached the bottom
     const hasReachedBottom = container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight
-    const allCommentsLoaded = Number(commentList?.length) >= Number(commentListCount)
-
-    if (hasReachedBottom && shouldCallList && !allCommentsLoaded) {
+    const allCommentsLoaded = commentList.length >= eggDetails.total_count
+    if (
+      hasReachedBottom &&
+      shouldCallList &&
+      !allCommentsLoaded &&
+      Number(commentList?.length) < Number(commentListCount)
+    ) {
       setReachedEnd(true)
       try {
         getEggCommentsFunc()
@@ -185,7 +188,7 @@ const EggComment = ({ eggDetails, eggId }) => {
         setCommentLoader(false)
       }
     } catch (error) {
-      console.log('error', error)
+      console.error('error', error)
       setCommentLoader(false)
     }
   }
@@ -231,18 +234,20 @@ const EggComment = ({ eggDetails, eggId }) => {
                 addCommentForEgg()
               }
             }}
-            InputProps={{
-              endAdornment: (
-                <Button
-                  sx={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0, height: '57px' }}
-                  variant='contained'
-                  position='end'
-                  disabled={commentBtnLoader || commentText === ''}
-                  onClick={() => addCommentForEgg()}
-                >
-                  <Icon icon={'fluent:send-16-filled'} fontSize='28px' color={theme.palette.primary.contrastText} />
-                </Button>
-              )
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <Button
+                    sx={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0, height: '57px' }}
+                    variant='contained'
+                    position='end'
+                    disabled={commentBtnLoader || commentText === ''}
+                    onClick={() => addCommentForEgg()}
+                  >
+                    <Icon icon={'fluent:send-16-filled'} fontSize='28px' color={theme.palette.primary.contrastText} />
+                  </Button>
+                )
+              }
             }}
           />
         </Box>
@@ -348,16 +353,16 @@ const EggComment = ({ eggDetails, eggId }) => {
                         )}
                       </Box>
                       <Box sx={{ display: 'flex', gap: '12px', justifyContent: { xs: 'end' } }}>
-                        <IconButton>
-                          {' '}
+                        <IconButton
+                          onClick={() => {
+                            setCommentId(item?.id)
+                            setDeleteDialogBox(true)
+                          }}
+                        >
                           <Icon
                             color={theme.palette.customColors.secondaryBg}
                             icon='material-symbols:delete-outline'
                             fontSize={20}
-                            onClick={() => {
-                              setCommentId(item?.id)
-                              setDeleteDialogBox(true)
-                            }}
                             style={{ cursor: 'pointer' }}
                           />
                         </IconButton>
@@ -393,7 +398,6 @@ const EggComment = ({ eggDetails, eggId }) => {
           </>
         ) : null}
       </CardContent>
-
       <ConfirmationDialog
         icon={'mdi:delete'}
         iconColor={theme.palette.customColors.Error}

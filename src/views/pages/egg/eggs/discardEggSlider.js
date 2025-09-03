@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import {
   Drawer,
   Typography,
@@ -10,7 +12,6 @@ import {
   Tooltip,
   Avatar,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   debounce,
@@ -18,14 +19,13 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+
+import moment from 'moment'
+import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
-import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
-import { useCallback, useEffect, useState } from 'react'
 import DashboardFilter from './dashboardFilter'
 import { getDashboardDiscardList } from 'src/lib/api/egg/dashboard'
-import Utility from 'src/utility'
-import moment from 'moment'
-import { lightBlue } from '@mui/material/colors'
 
 const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
@@ -39,6 +39,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [listCount, setListCount] = useState('')
   const [search, setSearch] = useState('')
   const [date, setDate] = useState({ to_date: '', from_date: '' })
+
+  // Ref for search input to enable auto-focus
+  const searchInputRef = useRef(null)
   const [page, setPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [loader, setLoader] = useState(false)
@@ -47,7 +50,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [selectedOptions, setSelectedOptions] = useState(initFilters())
   const [applyFilters, setApplyFilters] = useState(initFilters())
 
-  // Helper to initialize filters
   function initFilters() {
     return {
       Species: [],
@@ -56,11 +58,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       'Security status': [],
       Condition: [],
       Reason: [],
-      Site: []
+      Site: [],
+      selecteMenu: { id: 1, name: 'Species' }
     }
   }
 
-  // Common param builder
   const buildParams = (q = '', toDate = '', fromDate = '') => {
     const extractIds = key => applyFilters[key]?.map(option => option.id) || []
 
@@ -80,7 +82,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     }
   }
 
-  // Fetch Discard List
   const DiscardList = async (q = '', toDate = '', fromDate = '') => {
     setLoader(true)
     try {
@@ -109,6 +110,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setLoader(true)
     setListCount('')
     const currentDate = moment().format('YYYY-MM-DD')
+
     const fromDate = moment()
       .subtract(value - 1, 'days')
       .format('YYYY-MM-DD')
@@ -191,9 +193,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const searchData = useCallback(
     debounce(async searchVal => {
-      // console.log('first', isSearchOpen)
       if (isSearchOpen === true) {
-        console.log('first', isSearchOpen)
+        // console.log('first', isSearchOpen)
         setDiscardList([])
         setListCount('0')
         await DiscardList(searchVal, date?.to_date, date?.from_date)
@@ -201,8 +202,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     }, 1000),
     [date, tabStatus, applyFilters, isSearchOpen]
   )
-
-  // const debouncedSearchData = searchData
 
   const handelOnclose = () => {
     setOpenDiscard(false)
@@ -221,7 +220,17 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setDiscardList([])
   }, [selectedDropDown])
 
-  // Extra Components
+  // Auto-focus search input when search is opened
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      const timer = setTimeout(() => {
+        searchInputRef.current.focus()
+      }, 100) // Small delay to ensure DOM is ready
+
+      return () => clearTimeout(timer)
+    }
+  }, [isSearchOpen])
+
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -237,7 +246,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         <Stack
           direction='row'
           sx={{
-            // width: filterList?.length ? '545px' : '562px',
             width: '100%',
             height: '60px',
             display: 'flex',
@@ -287,7 +295,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 id='dropdown'
                 value={selectedDropDown}
                 onChange={event => {
-                  handleDropDownChange(event) // Call the function with the event
+                  handleDropDownChange(event)
                 }}
                 sx={{ height: '36px' }}
               >
@@ -348,13 +356,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   variant='outlined'
                   placeholder='Search'
                   value={search}
-                  InputProps={{
-                    disableUnderline: true
-                  }}
                   onChange={e => {
                     setSearch(e.target.value)
                     handleSearch(e.target.value)
                   }}
+                  inputRef={searchInputRef}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       border: 'none',
@@ -363,6 +369,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                       '& fieldset': {
                         border: 'none'
                       }
+                    }
+                  }}
+                  slotProps={{
+                    input: {
+                      disableUnderline: true
                     }
                   }}
                 />
@@ -378,8 +389,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         key={index}
                         sx={{
                           display: 'flex',
-
-                          // justifyContent: 'center',
                           alignItems: 'center',
                           gap: '6px',
                           px: '8px',
@@ -415,8 +424,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   }
 
   const Card = ({ list }) => {
-    // console.log('list :>> ', list)
-
     return (
       <>
         {listCount > 0 && discardList?.length > 0 && (
@@ -431,8 +438,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               border: `1px solid ${theme.palette.customColors.OutlineVariant}`
             }}
           >
-            <Box sx={{ display: 'flex', gap: 4, mb: 4, mb: 4, alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <Box sx={{ width: '100%', display: 'flex', gap: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ width: '100%', display: 'flex', alignItems: 'center' }}>
                 <Avatar
                   variant='rounded'
                   alt='Medicine Image'
@@ -453,77 +460,69 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 </Avatar>
 
                 <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <Box sx={{ display: 'flex', width: 250, gap: 4 }}>
-                    <Typography
-                      sx={{
-                        color: theme.palette.primary.deepDark,
-                        fontSize: '16px',
-                        fontWeight: '500',
-                        lineHeight: '19.36px',
-                        overflow: 'hidden',
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.deepDark,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {list?.egg_code}
+                  </Typography>
 
-                        // textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        boxSizing: 'border-box'
+                  {list?.egg_condition && (
+                    <Box
+                      sx={{
+                        borderRadius: '4px',
+                        px: 3,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor:
+                          list?.egg_condition === 'Rotten'
+                            ? theme.palette.customColors.AntzTertiary
+                            : list?.egg_condition === 'Broken'
+                            ? theme.palette.customColors.AntzTertiary
+                            : list?.egg_condition === 'Cracked'
+                            ? theme.palette.customColors.AntzTertiary
+                            : list?.egg_condition === 'Discard'
+                            ? theme.palette.customColors.AntzTertiary
+                            : list?.egg_condition === 'Thin-Shelled'
+                            ? theme.palette.customColors.displaybgPrimary
+                            : list?.egg_condition === 'Fertile'
+                            ? theme.palette.customColors.displaybgPrimary
+                            : theme.palette.customColors.OnBackground
                       }}
                     >
-                      {list?.egg_code}
-                    </Typography>
-
-                    {list?.egg_condition && (
-                      <Box
+                      <Typography
                         sx={{
-                          borderRadius: '4px',
-                          px: 3,
-
-                          // width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-
-                          backgroundColor:
-                            list?.egg_condition === 'Rotten'
-                              ? theme.palette.customColors.AntzTertiary
+                          color:
+                            list?.egg_condition === 'Fresh'
+                              ? theme.palette.primary.dark
+                              : list?.egg_condition === 'Rotten'
+                              ? theme.palette.customColors.Tertiary
                               : list?.egg_condition === 'Broken'
-                              ? theme.palette.customColors.AntzTertiary
+                              ? theme.palette.customColors.Tertiary
                               : list?.egg_condition === 'Cracked'
-                              ? theme.palette.customColors.AntzTertiary
+                              ? theme.palette.customColors.moderateSecondary
                               : list?.egg_condition === 'Discard'
-                              ? theme.palette.customColors.AntzTertiary
+                              ? theme.palette.customColors.Tertiary
+                              : list?.egg_condition === 'Hatched'
+                              ? theme.palette.customColors.antzInfo60
                               : list?.egg_condition === 'Thin-Shelled'
-                              ? theme.palette.customColors.displaybgPrimary
-                              : list?.egg_condition === 'Fertile'
-                              ? theme.palette.customColors.displaybgPrimary
-                              : theme.palette.customColors.OnBackground
+                              ? theme.palette.primary.light
+                              : theme.palette.primary.dark,
+                          fontSize: '14px',
+                          fontWeight: '500'
                         }}
                       >
-                        <Typography
-                          sx={{
-                            color:
-                              list?.egg_condition === 'Fresh'
-                                ? theme.palette.primary.dark
-                                : list?.egg_condition === 'Rotten'
-                                ? theme.palette.customColors.Tertiary
-                                : list?.egg_condition === 'Broken'
-                                ? theme.palette.customColors.Tertiary
-                                : list?.egg_condition === 'Cracked'
-                                ? theme.palette.customColors.moderateSecondary
-                                : list?.egg_condition === 'Discard'
-                                ? theme.palette.customColors.Tertiary
-                                : list?.egg_condition === 'Hatched'
-                                ? theme.palette.customColors.antzInfo60
-                                : list?.egg_condition === 'Thin-Shelled'
-                                ? theme.palette.primary.light
-                                : theme.palette.primary.dark,
-                            fontSize: '14px',
-                            fontWeight: '500'
-                          }}
-                        >
-                          {list?.egg_condition}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
+                        {list?.egg_condition}
+                      </Typography>
+                    </Box>
+                  )}
 
                   <Tooltip
                     title={
@@ -532,14 +531,14 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   >
                     <Typography
                       sx={{
+                        width: 'calc(100% - 100px)',
                         color: theme.palette.customColors.OnSecondaryContainer,
                         fontSize: '16px',
                         fontWeight: 500,
                         lineHeight: '16.94px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        width: '240px'
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       {list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'}
@@ -547,20 +546,19 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   </Tooltip>
                 </Box>
               </Box>
-              <Box>
-                {list?.activity_status === 'COMPLETED' ? (
-                  <Typography
-                    sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: theme.palette.primary.light }}
-                  >
-                    Security checked
-                  </Typography>
-                ) : (
-                  <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>Security check pending</Typography>
-                )}
-              </Box>
+
+              {list?.activity_status === 'COMPLETED' ? (
+                <Typography
+                  sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: theme.palette.primary.light }}
+                >
+                  Security checked
+                </Typography>
+              ) : (
+                <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>Security check pending</Typography>
+              )}
             </Box>
-            <Divider />
-            <Stack sx={{ mt: 4 }}>
+            <Divider sx={{ my: 4 }} />
+            <Stack>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography
                   sx={{
@@ -717,12 +715,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
             <TabContext value={tabStatus}>
               <TabList onChange={handleTabChange}>
                 <Tab
-                  sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
+                  sx={{ flex: 1, maxWidth: '280px', fontWeight: 600, fontSize: '14px' }}
                   value='site'
                   label={<TabBadge label='SITE WISE ' />}
                 />
                 <Tab
-                  sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
+                  sx={{ flex: 1, maxWidth: '280px', fontWeight: 600, fontSize: '14px' }}
                   value='nursery'
                   label={<TabBadge label='NURSERY WISE ' />}
                 />
@@ -758,8 +756,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         overflow: 'hidden',
                         textAlign: 'center',
                         mt: 5,
-
-                        // textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         boxSizing: 'border-box'
                       }}
@@ -806,8 +802,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         overflow: 'hidden',
                         textAlign: 'center',
                         mt: 5,
-
-                        // textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         boxSizing: 'border-box'
                       }}
@@ -818,7 +812,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
                   {loader && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                      {console.log('loader when scroll', loader)}
+                      {/* {console.log('loader when scroll', loader)} */}
                       <CircularProgress />
                     </Box>
                   )}
@@ -826,37 +820,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               </TabPanel>
             </TabContext>
           </Box>
-
-          {/* bottom buttons */}
-          {/* <Box
-          sx={{
-            height: '122px',
-            width: '100%',
-            maxWidth: '562px',
-            position: 'fixed',
-            bottom: 0,
-            px: 4,
-            bgcolor: 'white',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 5,
-            display: 'flex',
-
-            boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.1)',
-            zIndex: 123
-          }}
-        >
-          <LoadingButton
-            fullWidth
-            variant='contained'
-            size='large'
-            sx={{ height: '58px' }}
-
-            // onClick={handleApplyFilter}
-          >
-            VIEW DETAILS
-          </LoadingButton>
-        </Box> */}
         </Box>
       </Drawer>
       {isFilterOpen && (
@@ -868,6 +831,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           setSelectedOptions={setSelectedOptions}
           setFilterList={setFilterList}
           setApplyFilters={setApplyFilters}
+          applyFilters={applyFilters}
           filterList={filterList}
           setDiscardList={setDiscardList}
           setSearch={setSearch}
@@ -1455,4 +1419,4 @@ export default DiscardEggSlider
 //     }
 //   }
 
-//   const debouncedHandleScroll = debounce(e => handleScroll(e), 1000)
+// const debouncedHandleScroll = debounce(e => handleScroll(e), 1000)

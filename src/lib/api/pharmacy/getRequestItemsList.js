@@ -96,7 +96,6 @@ export async function updateRequestItems(id, payload) {
 
     return response
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -160,7 +159,6 @@ export async function updateShipmentRequest(id, payload) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -179,7 +177,6 @@ export async function markItemNotAvailable(payload) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -198,7 +195,6 @@ export async function markItemAvailable(payload) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -217,7 +213,6 @@ export async function deleteFulfillItem(id) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -236,7 +231,6 @@ export async function getFulfillItem(id) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -255,7 +249,6 @@ export async function updateFullFillLineItems(payload, id) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -274,7 +267,6 @@ export async function deleteLineItem(id) {
 
     return response
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -306,7 +298,6 @@ export async function addAlternativeMedicine(payload, parentId) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -325,7 +316,6 @@ export async function rejectMedicine(payload, parentId) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -344,7 +334,6 @@ export async function makeProductNotAvailable(payload, parentId) {
 
     return response?.data
   } catch (error) {
-    console.error(url)
     if (error.response) {
       console.info('Request made and server responded')
       console.error(error.response.data)
@@ -357,7 +346,18 @@ export async function makeProductNotAvailable(payload, parentId) {
 }
 
 export async function getRequestPendingProductsList(id) {
-  const response = await axiosGet({ url: `${REQUEST_PENDING_PRODUCTS}/${id}`, pharmacy })
+  try {
+    const response = await axiosGet({ url: `${REQUEST_PENDING_PRODUCTS}/${id}`, pharmacy })
 
-  return response.data
+    return response.data
+  } catch (error) {
+    if (error?.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error?.response
+  }
 }

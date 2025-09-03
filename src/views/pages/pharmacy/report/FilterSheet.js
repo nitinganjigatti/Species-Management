@@ -1,5 +1,16 @@
-import React, { useState } from 'react'
-import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider } from '@mui/material'
+import React, { useEffect, useRef, useState } from 'react'
+import {
+  Box,
+  Drawer,
+  Checkbox,
+  Typography,
+  TextField,
+  IconButton,
+  Grid,
+  Divider,
+  CircularProgress,
+  FormControlLabel
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
@@ -9,34 +20,92 @@ const FilterSheet = ({
   setOpenFilterDrawer,
   categories,
   options,
+  animalId,
   selectedOptions,
   setSelectedOptions,
+  selectedSites,
   handleSelection,
+  activeTab,
+  isLoader,
   getTotalSelectedFilters
 }) => {
-
   const theme = useTheme()
+  const searchInputRef = useRef(null)
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
 
+  useEffect(() => {
+    if (open && animalId) {
+      setSelectedOptions(prev => ({
+        ...prev,
+        Site: selectedSites.length ? selectedSites : []
+      }))
+    }
+  }, [open])
+
+  // const handleSelectAll = event => {
+  //   if (event.target.checked) {
+  //     const currentOptions = options[activeCategory]?.map(option =>
+  //       activeCategory === 'Site' ? option.site_id : option.taxonomy_id
+  //     )
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       [activeCategory]: currentOptions
+  //     }))
+  //   } else {
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       [activeCategory]: []
+  //     }))
+  //   }
+  // }
+
+  // const handleSelectAll = event => {
+  //   if (event.target.checked) {
+  //     const currentOptions = filteredOptions.map(option =>
+  //       activeCategory === 'Site' ? option.site_id : option.id
+  //     )
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       [activeCategory]: currentOptions
+  //     }))
+  //   } else {
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       [activeCategory]: []
+  //     }))
+  //   }
+  // }
+
   const handleSelectAll = event => {
+    const filteredIds = filteredOptions.map(option =>
+      activeCategory === 'Site' ? option.site_id : option.id
+    )
+
     if (event.target.checked) {
-      const currentOptions = options[activeCategory]?.map(option =>
-        activeCategory === 'Site' ? option.site_id : option.id
-      )
-      setSelectedOptions(prev => ({
-        ...prev,
-        [activeCategory]: currentOptions
-      }))
+      // ✅ Add only filtered IDs to current selection (merge with previous)
+      setSelectedOptions(prev => {
+        const current = prev[activeCategory] || []
+        return {
+          ...prev,
+          [activeCategory]: Array.from(new Set([...current, ...filteredIds]))
+        }
+      })
     } else {
-      setSelectedOptions(prev => ({
-        ...prev,
-        [activeCategory]: []
-      }))
+      // ❌ Remove only filtered IDs from selection
+      setSelectedOptions(prev => {
+        const current = prev[activeCategory] || []
+        const updated = current.filter(id => !filteredIds.includes(id))
+        return {
+          ...prev,
+          [activeCategory]: updated
+        }
+      })
     }
   }
 
   const handleToggleOption = (optionId, category) => {
+
     setSelectedOptions(prevSelectedOptions => {
       const updatedOptions = { ...prevSelectedOptions }
 
@@ -55,15 +124,12 @@ const FilterSheet = ({
   }
 
   const handleConfirmSelection = () => {
-    // Handle Sites
     const selectedSiteIDs = selectedOptions.Site || []
     handleSelection(selectedSiteIDs, 'Site')
 
-    // Handle Organizations
     const selectedOrganizationIDs = selectedOptions.Organization || []
     handleSelection(selectedOrganizationIDs, 'Organization')
 
-    // Close the drawer
     setOpenFilterDrawer(false)
   }
 
@@ -86,6 +152,24 @@ const FilterSheet = ({
     setActiveCategory(category)
     setSearchValue('')
   }
+
+  const filteredIds = filteredOptions.map(option =>
+    activeCategory === 'Site' ? option.site_id : option.id
+  )
+
+  const selectedIds = selectedOptions[activeCategory] || []
+
+  const isAllFilteredSelected = filteredIds.every(id => selectedIds.includes(id))
+  const isSomeFilteredSelected = filteredIds.some(id => selectedIds.includes(id))
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        searchInputRef.current?.focus()
+      }, 100) // slight delay to allow render
+    }
+  }, [open, activeCategory])
+
 
   return (
     <Drawer
@@ -123,134 +207,167 @@ const FilterSheet = ({
             sx={{ color: 'text.primary' }}
             onClick={() => {
               setOpenFilterDrawer(false)
+              handleClearFilter()
             }}
           >
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
       </Box>
-
-      {/* Drawer Content */}
-
-      <Box sx={{ width: '562px', height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
-        <Box sx={{ width: '180px', height: '900px', backgroundColor: 'background.default' }}>
-          <Grid container>
-            <Grid item md={4} sm={4} xs={4}>
+      <Box
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          backgroundColor: 'background.default',
+          height: '100%'
+        }}
+      >
+        <Grid container sx={{ px: 5 }}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
+            {categories.map(menu => (
               <Box
+                key={menu}
                 sx={{
-                  ml: 3,
+                  width: '190px',
+                  bgcolor: activeCategory === menu ? 'white' : 'transparent',
                   cursor: 'pointer',
-                  width: '300%',
-                  padding: 2,
-                  borderRadius: 1
+                  p: 4,
+                  borderTopLeftRadius: '8px',
+                  borderBottomLeftRadius: '8px',
+                  '&:hover': {
+                    backgroundColor: activeCategory === menu ? 'white' : '#f5f5f5'
+                  }
+                }}
+                onClick={() => {
+                  handleCategoryClick(menu)
                 }}
               >
-                {categories?.map((item, index) => (
-                  <Box
-                    onClick={() => handleCategoryClick(item)}
+                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                  {menu}
+                </Typography>
+              </Box>
+            ))}
+          </Grid>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
+            <Box
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: '8px',
+                width: '345px',
+                height: 'calc(100vh - 190px)',
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: 0,
+                  height: 0
+                },
+                '-ms-overflow-style': 'none',
+                scrollbarWidth: 'none',
+                bgColor: '#fff'
+              }}
+            >
+              <Box
+                sx={{
+                  p: '16px',
+                  bgColor: '#fff',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  bgcolor: theme.palette.primary.contrastText
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '4px',
+                    padding: '0 8px',
+                    height: '40px'
+                  }}
+                >
+                  <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search'
+                    inputRef={searchInputRef}
+                    value={searchValue}
+                    onChange={e => setSearchValue(e.target.value)}
                     sx={{
-                      mb: 4,
-                      mt: -2,
-                      height: '50px',
-                      textAlign: 'center',
-                      borderTopLeftRadius: '8px',
-                      borderBottomLeftRadius: '8px',
-                      cursor: 'pointer',
-                      backgroundColor: activeCategory === item ? 'white' : 'transparent',
-                      borderRadius: '4px',
-                      padding: '8px',
-                      '&:hover': {
-                        backgroundColor: activeCategory === item ? 'white' : '#f5f5f5'
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      },
+                      '& .MuiInputBase-input': {
+                        '&::before': {
+                          borderBottom: 'none !important'
+                        },
+                        '&:hover::before': {
+                          borderBottom: 'none !important'
+                        }
                       }
                     }}
-                  >
-                    <Typography
-                      sx={{
-                        mt: 2,
-                        color: theme.palette.primary.dark,
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        fontFamily: 'Inter',
-                        fontWeight: 400
-                      }}
-                      key={index}
-                      variant='body2'
-                      onClick={() => handleCategoryClick(item)}
-                    >
-                      {item}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-        <Box sx={{ width: '360px', height: '753px', backgroundColor: '#FFF', borderRadius: '4px' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              width: '330px',
-              alignItems: 'center',
-              border: '1px solid #C3CEC7',
-              borderRadius: '4px',
-              padding: '0 8px',
-              height: '40px',
-              mt: 3,
-              ml: 3
-            }}
-          >
-            <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-            <TextField
-              variant='outlined'
-              placeholder='Search'
-              value={searchValue}
-              onChange={e => setSearchValue(e.target.value)}
-              InputProps={{
-                disableUnderline: false
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 3, ml: 3.5 }}>
-            <Checkbox
-              checked={selectedOptions[activeCategory]?.length === options[activeCategory]?.length}
-              onChange={handleSelectAll}
-              inputProps={{ 'aria-label': 'controlled' }}
-            />
-            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-          </Box>
-          <Divider sx={{ m: 3 }} />
-          <Box sx={{ ml: 2, height: '750px', overflowY: 'auto' }}>
-            <Box sx={{ ml: 2, overflowX: 'hidden' }}>
-              {filteredOptions.map((option, index) => (
-                <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Checkbox
-                    checked={(selectedOptions[activeCategory] || []).includes(
-                      activeCategory === 'Site' ? option.site_id : option.id
-                    )}
-                    onChange={() =>
-                      handleToggleOption(activeCategory === 'Site' ? option.site_id : option.id, activeCategory)
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+
+                  <FormControlLabel sx={{}}
+                    label={
+                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
+                        Select All
+                      </Typography>
+                    }
+                    control={
+                      <Checkbox
+                        disabled={filteredOptions.length === 0}
+                        checked={isAllFilteredSelected}
+                        indeterminate={isSomeFilteredSelected && !isAllFilteredSelected}
+                        onChange={handleSelectAll}
+                      />
                     }
                   />
-                  <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {activeCategory === 'Site' ? option.site_name : option.organization_name}
-                  </Typography>
                 </Box>
-              ))}
+                <Divider sx={{ mt: 1.4 }} />
+              </Box>
+              <Box sx={{ ml: 2, overflowY: 'auto' }}>
+                <Box sx={{ ml: 2 }}>
+                  {activeCategory === 'Site' ? (
+                    filteredOptions.map((option, index) => (
+                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <FormControlLabel label={<Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                          {option.site_name}
+                        </Typography>}
+                          control={<Checkbox
+                            checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                            onChange={() => handleToggleOption(option.site_id, activeCategory)}
+                          />} />
+                      </Box>
+                    ))
+                  ) : isLoader ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
+                      <CircularProgress />
+                    </Box>
+                  ) : (
+                    filteredOptions.map((option, index) => (
+                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <FormControlLabel label={<Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                          {option.organization_name}
+                        </Typography>}
+                          control={<Checkbox
+                            checked={(selectedOptions[activeCategory] || []).includes(option.id)}
+                            onChange={() => handleToggleOption(option.id, activeCategory)}
+                          />} />
+                      </Box>
+                    ))
+                  )}
+                </Box>
+              </Box>
             </Box>
-          </Box>
-        </Box>
+          </Grid>
+        </Grid>
       </Box>
-
-      {/* bottom buttons */}
       <Box
         sx={{
           height: '122px',

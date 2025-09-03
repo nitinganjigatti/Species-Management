@@ -36,6 +36,7 @@ import Error404 from 'src/pages/404'
 
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import RenderUtility from 'src/utility/render'
 
 const roleColors = {
   active: 'success',
@@ -113,7 +114,7 @@ const IngredientsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, status) => {
+    async (sortBy, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -122,7 +123,7 @@ const IngredientsList = () => {
           q,
           sortColumn,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status
         }
 
@@ -172,10 +173,10 @@ const IngredientsList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sortBy, q, sortColumn, status) => {
+    debounce(async (sortBy, q, sortColumn, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sortBy, q, sortColumn, status)
+        await fetchTableData(sortBy, q, sortColumn, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -212,34 +213,11 @@ const IngredientsList = () => {
     </>
   )
 
-  const handleSwitchChange = async (event, rowData) => {
-    console.log(event.target.checked, 'lll')
-    console.log(rowData, 'rowData')
-    const newIsActive = event.target.checked ? 1 : 0
-    try {
-      const response = await updateIngredientStatus(rowData?.id, { status: newIsActive })
-      console.log(response, 'response')
-      if (response.success === true) {
-        fetchTableData(sort, searchValue, sortColumning, status)
-        Toaster({
-          type: 'success',
-          message: `Ingredient ${'ING' + rowData.id} has been successfully ${
-            newIsActive === 1 ? 'actiavted' : 'deactivated'
-          }`
-        })
-      } else {
-        Toaster({ type: 'error', message: 'something went wrong' })
-      }
-    } catch (error) {
-      console.error('Error updating ingredient status:', error)
-    }
-  }
-
   const handleSearch = value => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
-    searchTableData(sort, value, sortColumning, status)
+    searchTableData(sort, value, sortColumning, status, paginationModel.pageSize)
   }
 
   const columns = [
@@ -258,14 +236,20 @@ const IngredientsList = () => {
       //flex: 1.1,
       width: 250,
       field: 'ingredient_name',
-      headerName: 'INGREDIENTS',
+      headerName: 'ITEMS',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
           <Avatar
             variant='square'
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 3, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            alt='Ingredient Image'
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 3,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.image ? params.row.image : '/icons/icon_ingredient_fill.png'}
           >
             {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -292,10 +276,21 @@ const IngredientsList = () => {
       )
     },
     {
+      //flex: 0.54,
+      width: 200,
+      field: 'feed_type_label',
+      headerName: 'Feed Type',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.feed_type_label}
+        </Typography>
+      )
+    },
+    {
       //flex: 0.85,
       width: 200,
       field: 'ingredient_alias',
-      headerName: 'Ingredient alias',
+      headerName: 'ITEM alias',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -314,7 +309,7 @@ const IngredientsList = () => {
       //flex: 0.6,
       width: 140,
       field: 'id',
-      headerName: 'INGREDIENT ID',
+      headerName: 'ITEM ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'ING' + params.row.id : '-'}
@@ -335,7 +330,7 @@ const IngredientsList = () => {
     {
       //flex: 0.4,
       width: 150,
-      field: 'protein',
+      field: 'preparation_type_count',
       headerName: 'PREPARATION TYPES',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
@@ -351,8 +346,6 @@ const IngredientsList = () => {
             }
             arrow
             placement='right'
-
-            // style={{ background: '#1F515B' }}
           >
             <span>{params.row.preparation_type_count ? params.row.preparation_type_count : '-'}</span>
           </Tooltip>
@@ -365,38 +358,12 @@ const IngredientsList = () => {
       field: 'user_name',
       headerName: 'CREATED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{
-              width: 30,
-              height: 30,
-              mr: 4,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.created_by_user?.profile_pic ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
-                alt='Profile'
-              />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
-            </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-            </Typography>
-          </Box>
+        <Box>
+          {RenderUtility.renderUserAvatarDetails({
+            profile_image: params?.row?.created_by_user?.profile_pic,
+            user_name: params?.row?.created_by_user?.user_name,
+            date: moment(params?.row?.created_at).format('YYYY-MM-DD')
+          })}
         </Box>
       )
     },
@@ -422,23 +389,6 @@ const IngredientsList = () => {
         />
       )
     }
-
-    // {
-    //   //flex: 0.3,
-    //   minWidth: 20,
-    //   field: 'switch',
-    //   headerName: '',
-    //   disableColumnMenu: true, // Exclude from column menu
-    //   renderCell: params => (
-    //     <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-    //       <Switch
-    //         checked={params.row.active === '0' ? false : true}
-    //         onChange={event => handleSwitchChange(event, params.row)}
-    //         fontSize={2}
-    //       />
-    //     </Box>
-    //   )
-    // }
   ]
 
   const onCellClick = params => {
@@ -470,10 +420,10 @@ const IngredientsList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title='Ingredients' action={headerAction} sx={{ px: 5 }} />
+            <CardHeader title='Items' action={headerAction} sx={{ px: 5 }} />
+
             <ConfirmationDialog
-              // icon={'mdi:delete'}
-              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+              icon={'mdi:delete'}
               iconColor={'#ff3838'}
               title={'Are you sure you want to delete this ingredient?'}
               // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
@@ -513,8 +463,8 @@ const IngredientsList = () => {
                     overflowX: 'auto'
                   },
                   '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #0000000D',
-                    borderRight: '1px solid #0000000D',
+                    borderLeft: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                    borderRight: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                     marginLeft: '20px',
                     marginRight: '20px',
                     borderRadius: '8px',
@@ -587,12 +537,13 @@ const IngredientsList = () => {
               <TabPanel value='0'>{tableData()}</TabPanel>
             </TabContext>
           </Grid>
-
-          <AddIngredients
-            open={openIngredient}
-            handleSidebarClose={handleSidebarClose}
-            setSelectedIngredient={setSelectedIngredient}
-          />
+          {openIngredient && (
+            <AddIngredients
+              open={openIngredient}
+              handleSidebarClose={handleSidebarClose}
+              setSelectedIngredient={setSelectedIngredient}
+            />
+          )}
         </>
       ) : (
         <>

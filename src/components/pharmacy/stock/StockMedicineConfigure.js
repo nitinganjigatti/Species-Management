@@ -16,8 +16,7 @@ import {
   Box,
   Button,
   Chip,
-  Divider,
-  Typography
+  Divider
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
@@ -28,7 +27,7 @@ import * as yup from 'yup'
 import Avatar from '@mui/material/Avatar'
 import Icon from 'src/@core/components/icon'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { getRackList, getRackConfigByProduct } from 'src/lib/api/pharmacy/getRackList'
+import { getRackList } from 'src/lib/api/pharmacy/getRackList'
 import {
   getMedicineConfig,
   addMedicineConfig,
@@ -106,12 +105,11 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
 
   const getRacksLists = async () => {
     try {
-      const response = await getRackConfigByProduct(configureMedId)
+      const response = await getRackList()
 
-      // if (response?.length > 0) {
-      setRacks(response)
-
-      // }
+      if (response?.length > 0) {
+        setRacks(response)
+      }
     } catch (error) {
       console.error('Error fetching rack list:', error)
     }
@@ -119,7 +117,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
 
   const getRackFromStore = id => {
     if (id) {
-      const filteredRacks = racks?.filter(el => el.store_id === id)
+      const filteredRacks = racks.filter(el => el.store_id === id)
 
       setSelectedRacks(filteredRacks)
       setShouldGetShelf(true)
@@ -267,18 +265,17 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
   useEffect(() => {
     if (configureMedId) {
       configureMedicine(configureMedId)
-
-      // getRackFromStore(storeId)
+      getRackFromStore(storeId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configureMedId])
 
-  // useEffect(() => {
-  //   if (storeId) {
-  //     getRackFromStore(storeId)
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [racks])
+  useEffect(() => {
+    if (storeId) {
+      getRackFromStore(storeId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [racks])
 
   useEffect(() => {
     getStoresLists()
@@ -291,45 +288,46 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
 
   return (
     <>
-      <Grid container spacing={2} alignItems='center'>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          alignItems: 'center'
+        }}
+      >
         <DialogConfirmation
           handleClose={handleClose}
           action={confirmDeleteAction}
           open={deleteDialogBox}
           message={'Are you sure to delete'}
         />
-        <Typography sx={{ fontSize: '14px', mb: '10px' }}>
-          Reorder-Level: <strong>{racks?.min_qty ? racks?.min_qty : 0}</strong>
-        </Typography>
-        {racks?.racks?.length > 0 ? (
+        {tableData.length > 0 ? (
           <TableContainer>
             <Table>
               <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
                 <TableRow>
                   <TableCell>Sl</TableCell>
-                  {/* <TableCell>Store Name</TableCell> */}
+                  <TableCell>Store Name</TableCell>
                   <TableCell>Rack</TableCell>
                   <TableCell>Shelf</TableCell>
-                  {/* <TableCell>Reorder Level</TableCell> */}
-                  {/* <TableCell>Qty in Store</TableCell> */}
+                  <TableCell>Reorder Level</TableCell>
+                  <TableCell>Qty in Store</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {racks?.racks?.map((elm, index) => (
+                {tableData.map((elm, index) => (
                   <TableRow key={index}>
-                    <TableCell>{index + 1}</TableCell>
-                    {/* <TableCell>{elm.store_name}</TableCell> */}
-                    <TableCell>{elm.rack_name}</TableCell>
+                    <TableCell>{elm.uid}</TableCell>
+                    <TableCell>{elm.store_name}</TableCell>
+                    <TableCell>{elm.rack}</TableCell>
                     <TableCell>
-                      {elm.shelf_name}
-                      {/* {elm.racks[0]?.shelf_configs?.map(el => (
+                      {elm.racks[0]?.shelf_configs?.map(el => (
                         <>
                           <Chip
                             key={el.id}
                             label={el.name}
                             color='primary'
                             sx={{ m: 1 }}
-
                             onDelete={() => {
                               handleEdit(elm, el)
                               setQtyForm(false)
@@ -343,7 +341,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                             deleteIcon={<Icon icon='mdi:pencil-outline' />}
                           />
                         </>
-                      ))} */}
+                      ))}
                       {/* {elm.racks.map((rack, rackIndex) => (
                         <div key={rack.id}>
                           {rack.shelf_configs.map(shelf => (
@@ -369,12 +367,10 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                         </div>
                       ))} */}
                     </TableCell>
-                    {/* <TableCell>
-                      {elm.min_qty}
+                    <TableCell>
                       <Chip
                         label={elm.min_qty}
                         color='primary'
-
                         onDelete={() => {
                           setQtyForm(true)
                           editQty(elm)
@@ -385,8 +381,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                         }}
                         deleteIcon={<Icon icon='mdi:pencil-outline' />}
                       />
-                    </TableCell> */}
-                    {/* <TableCell>{elm.stock_qty}</TableCell> */}
+                    </TableCell>
+                    <TableCell>{elm.stock_qty}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -394,10 +390,10 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
           </TableContainer>
         ) : null}
         {/* {showQtyForm === false ? ( */}
-        <Grid xs={12} sm={12} sx={{ display: 'flex', my: 6 }}>
-          {/* <form autoComplete='off' style={{ width: '50%' }} onSubmit={handleSubmit(addMedicineConfiguration)}>
-            <Grid container spacing={2} xs={12} sm={12}>
-              <Grid item xs={12} sm={12}>
+        <Grid size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', my: 6 }}>
+          <form autoComplete='off' style={{ width: '50%' }} onSubmit={handleSubmit(addMedicineConfiguration)}>
+            <Grid container spacing={2} size={{ xs: 12, sm: 12 }}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <FormControl fullWidth sx={{ mb: 6 }}>
                   <InputLabel error={Boolean(errors?.rack_id)} id='rack_id'>
                     Rack
@@ -430,7 +426,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.shelf_id)} id='shelf_id'>
                     Shelf
@@ -463,7 +459,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 {deleteRowId ? (
                   <Button
                     variant='contained'
@@ -492,11 +488,11 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                 </LoadingButton>
               </Grid>
             </Grid>
-          </form> */}
+          </form>
           {/* ) : ( */}
           <form style={{ width: '50%' }} autoComplete='off' onSubmit={handleSubmit(addMinQuantity)}>
-            <Grid container spacing={2} xs={12} sm={12}>
-              <Grid item xs={12} sm={12}>
+            <Grid container spacing={2} size={{ xs: 12, sm: 12 }}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='min_qty'
@@ -519,7 +515,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <LoadingButton
                   sx={{ my: 4 }}
                   size='medium'

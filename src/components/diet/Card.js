@@ -51,11 +51,9 @@ const Card = props => {
 
   const handleAddRemarks = event => {
     event.stopPropagation()
-    console.log('Remarks', event.target.value)
   }
 
   const [activeDay, setActiveDay] = useState([])
-  console.log('activeDay', activeDay)
 
   const handleDayClick = (event, id, title) => {
     event.stopPropagation()
@@ -135,7 +133,6 @@ const Card = props => {
           </Stack>
         </Box>
       </Box>
-
       {/* bottom part */}
       {/*  */}
       {showBottom ? (
@@ -177,7 +174,13 @@ const Card = props => {
             <Box>
               <Typography sx={{ py: 4 }}>Feeding Days</Typography>
 
-              <Stack direction='row' gap={3} mb={2}>
+              <Stack
+                direction='row'
+                sx={{
+                  gap: 3,
+                  mb: 2
+                }}
+              >
                 {Day?.map(item => (
                   <Box
                     key={item.id}

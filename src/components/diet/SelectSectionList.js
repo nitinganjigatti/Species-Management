@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useCallback } from 'react'
+
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -9,7 +11,6 @@ import {
   ListItemText,
   ListItemAvatar,
   Checkbox,
-  Avatar,
   InputAdornment,
   IconButton,
   debounce,
@@ -17,8 +18,8 @@ import {
   CircularProgress
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import React, { useState, useEffect, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getSectionsList } from 'src/lib/api/diet/dietList'
 
 const SelectSectionList = ({
@@ -136,7 +137,7 @@ const SelectSectionList = ({
       {/* header */}
       <Box
         sx={{
-          bgcolor: '#FFF',
+          bgcolor: theme.palette.common.white,
           borderRadius: '8px',
           overflow: 'hidden',
           width: '100%',
@@ -151,10 +152,16 @@ const SelectSectionList = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: '500',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               Choose Section
             </Typography>
-            <Typography variant='body2' sx={{ color: '#44544A' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
               Select a section from the list below
             </Typography>
           </Box>
@@ -172,34 +179,41 @@ const SelectSectionList = ({
             size='small'
             value={searchTerm}
             onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon sx={{ color: '#1F515B' }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm && (
-                <InputAdornment position='end'>
-                  <IconButton
-                    size='small'
-                    onClick={() => {
-                      setSearchTerm('')
-                      fetchSections('')
-                    }}
-                  >
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position='end'>
+                    <IconButton
+                      size='small'
+                      onClick={() => {
+                        setSearchTerm('')
+                        fetchSections('')
+                      }}
+                    >
+                      <Icon icon='mdi:close' fontSize={20} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                style: {
+                  background: theme.palette.customColors.bodyBg,
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
+              }
             }}
           />
         </Box>
 
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: '#44544A' }}>
-            {loading ? '' : `Selected ${selectedSections.length}/${sectionsData.length}`}
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+            {loading ? '' : `Selected ${selectedSections?.length}/${sectionsData?.length}`}
           </Typography>
           <Box
             sx={{
@@ -211,9 +225,9 @@ const SelectSectionList = ({
               size='small'
               sx={{
                 color:
-                  selectedSections.length === sectionsData.length && sectionsData.length > 0
+                  selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                     ? theme.palette.primary.main
-                    : '#44544A',
+                    : theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -225,10 +239,12 @@ const SelectSectionList = ({
             </Button>
 
             <Checkbox
-              checked={selectedSections.length === sectionsData.length && sectionsData.length > 0}
-              indeterminate={selectedSections.length > 0 && selectedSections.length < sectionsData.length}
+              checked={selectedSections?.length === sectionsData?.length && sectionsData?.length > 0}
+              indeterminate={selectedSections?.length > 0 && selectedSections?.length < sectionsData?.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                root: { 'aria-label': 'Select all sections' }
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -238,13 +254,13 @@ const SelectSectionList = ({
                   height: '19px',
                   border: '2px dotted',
                   borderColor:
-                    selectedSections.length === sectionsData.length && sectionsData.length > 0
+                    selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                       ? theme.palette.primary.main
-                      : '#44544A',
+                      : theme.palette.customColors.OnSurfaceVariant,
                   color:
-                    selectedSections.length === sectionsData.length && sectionsData.length > 0
+                    selectedSections?.length === sectionsData?.length && sectionsData?.length > 0
                       ? theme.palette.primary.main
-                      : '#44544A'
+                      : theme.palette.customColors.OnSurfaceVariant
                 },
                 mr: 1
               }}
@@ -259,7 +275,6 @@ const SelectSectionList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
-            //height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
               width: '4px'
@@ -273,35 +288,70 @@ const SelectSectionList = ({
         >
           {!loading ? (
             sectionsData.length > 0 ? (
-              sectionsData?.map(section => (
-                <ListItem
-                  key={section.section_id}
-                  sx={{
-                    pr: 1.5,
-                    pl: 3,
-                    mb: 4,
-                    height: '70px',
-                    border: '1px solid',
-                    borderColor: selectedSections.includes(section.section_id) ? '#80E0A3' : '#C3CEC7',
-                    borderRadius: '8px',
-                    bgcolor: selectedSections.includes(section.section_id) ? '#E1F9ED' : 'transparent'
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar src={section.image || '/default-site.jpg'} variant='rounded' />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={section.section_name}
-                    // secondary={section.location || '-'}
-                    primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
-                    secondaryTypographyProps={{ color: '#44544A' }}
-                  />
-                  <Checkbox
-                    checked={selectedSections.includes(section.section_id)}
-                    onChange={() => handleSiteCheckboxChange(section.section_id)}
-                  />
-                </ListItem>
-              ))
+              [...sectionsData]
+                .sort((a, b) => a.section_name.localeCompare(b.section_name))
+                .map(section => (
+                  <ListItem
+                    key={section.section_id}
+                    sx={{
+                      pr: 1.5,
+                      pl: 3,
+                      mb: 4,
+                      height: '70px',
+                      border: '1px solid',
+                      borderColor: selectedSections?.includes(section.section_id)
+                        ? '#80E0A3'
+                        : theme.palette.customColors.OutlineVariant,
+                      borderRadius: '8px',
+                      bgcolor: selectedSections?.includes(section.section_id)
+                        ? theme.palette.customColors.OnBackground
+                        : 'transparent'
+                    }}
+                  >
+                    <ListItemAvatar>
+                      {/* <Avatar sx={{ backgroundColor: theme.palette.customColors.displaybgPrimary, p: section?.default_icon ? 0 : 2 }} src={section.default_icon || '/images/housing/site-icon-colored.svg'} variant='rounded' /> */}
+                      <FallbackAvatar
+                        src={section.default_icon}
+                        fallback='/images/housing/site-icon-colored.svg'
+                        variant='rounded'
+                        sx={{
+                          backgroundColor: theme.palette.customColors.displaybgPrimary,
+                          p: section?.default_icon ? 0 : 2,
+                          height: '40px',
+                          width: '40px',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={section?.section_name}
+                      // secondary={section.location || '-'}
+                      slotProps={{
+                        primary: {
+                          sx: {
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.OnPrimaryContainer
+                          }
+                        },
+                        secondary: {
+                          sx: {
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }
+                        }
+                      }}
+
+                      // primaryTypographyProps={{
+                      //   fontWeight: 'bold',
+                      //   color: theme.palette.customColors.OnPrimaryContainer
+                      // }}
+                      // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                    />
+                    <Checkbox
+                      checked={selectedSections?.includes(section.section_id)}
+                      onChange={() => handleSiteCheckboxChange(section.section_id)}
+                    />
+                  </ListItem>
+                ))
             ) : (
               <Typography sx={{ textAlign: 'center', mt: 15 }}>No Section's found</Typography>
             )
@@ -321,7 +371,7 @@ const SelectSectionList = ({
             pt: 4,
             position: 'sticky',
             bottom: 0,
-            background: '#FFF',
+            background: theme.palette.common.white,
             zIndex: 1,
             pb: 4
           }}
@@ -329,9 +379,15 @@ const SelectSectionList = ({
           <Button
             variant='contained'
             fullWidth
-            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+            sx={{
+              bgcolor: '#28A745',
+              color: theme.palette.common.white,
+              p: 2,
+              borderRadius: '8px',
+              '&:hover': { bgcolor: '#218838' }
+            }}
             onClick={() => onSelectSections(selectedSections)}
-            disabled={selectedSections.length <= 0}
+            disabled={selectedSections?.length <= 0}
           >
             CONTINUE
           </Button>

@@ -41,7 +41,6 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
       setConfirmDialogBox(false)
       const response = await feedStatusChange({ status: activePayload }, FeedDetailsValue?.id)
 
-      // console.log(response, 'response')
       if (response?.success) {
         setIsActive(Number(isActive) === 0 ? '1' : '0')
 
@@ -56,7 +55,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
   if (FeedDetailsValue) {
     return (
       <>
-        <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+        <Grid item size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
           {/* <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
             <div
               item
@@ -210,7 +209,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
                   mb: 2
                 }}
               >
-                <Box sx={{}}></Box>
+               
               </Box>
               <Box
                 sx={{
@@ -224,7 +223,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
               >
                 <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                    Ingredients used
+                    Items used
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>

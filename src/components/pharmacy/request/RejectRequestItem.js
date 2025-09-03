@@ -77,7 +77,7 @@ function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDi
           <Grid container spacing={2}>
             <Grid
               item
-              xs={12}
+              size={{ xs: 12 }}
               sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
             >
               <Typography sx={{ color: 'customColors.SecondaryDark' }}>
@@ -107,7 +107,7 @@ function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDi
       </Typography>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormControl fullWidth>
             <Controller
               name='comments'
@@ -124,7 +124,7 @@ function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDi
           </FormControl>
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <LoadingButton
             sx={{ my: 6, float: 'right', width: '100px' }}
             size='large'

@@ -30,6 +30,7 @@ import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ReturnReport = () => {
   const router = useRouter()
@@ -499,11 +500,11 @@ const ReturnReport = () => {
       headerName: 'Created by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.return_created_by_user_name,
-            params?.row?.return_created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.return_created_by_user_name}
+            date={params?.row?.return_created_at}
+          />
         </>
       )
     },
@@ -515,11 +516,11 @@ const ReturnReport = () => {
       headerName: 'Updated by',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.return_updated_by_user_name,
-            params?.row?.return_updated_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_updated_profile_pic}
+            user_name={params?.row?.return_updated_by_user_name}
+            date={params?.row?.return_updated_at}
+          />
         </>
       )
     }
@@ -560,8 +561,6 @@ const ReturnReport = () => {
       console.log('Empty date range selected,', { startDate, endDate })
     }
   }
-
-  // console.log(`startDate : ${filterDates.startDate}`, `endDate : ${filterDates.endDate}`)
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -758,13 +757,19 @@ const ReturnReport = () => {
             }}
           >
             <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Grid item xs={12} sm={5} md={5}>
+              <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
                 <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
               </Grid>
 
-              <Grid item sm={7} xs={12}>
-                <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                  <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+              <Grid item size={{ xs: 12, sm: 7 }}>
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{
+                    justifyContent: { xs: 'flex-end' }
+                  }}
+                >
+                  <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                     <TextField
                       variant='outlined'
                       size='small'
@@ -772,15 +777,21 @@ const ReturnReport = () => {
                       value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                          </InputAdornment>
-                        )
-                      }}
                       sx={{
                         borderRadius: '8px'
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon
+                                icon='mi:search'
+                                fontSize={24}
+                                color={theme.palette.customColors.neutralSecondary}
+                              />
+                            </InputAdornment>
+                          )
+                        }
                       }}
                     />
                   </Grid>

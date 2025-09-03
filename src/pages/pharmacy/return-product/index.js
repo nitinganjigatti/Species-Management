@@ -41,6 +41,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ReturnRequestList = () => {
   const theme = useTheme()
@@ -75,7 +76,7 @@ const ReturnRequestList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
@@ -138,8 +139,7 @@ const ReturnRequestList = () => {
 
   useEffect(() => {
     if (router.query.status !== status) {
-      // debugger
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       updateUrlParams({
         status: status,
         page: 0,
@@ -158,7 +158,7 @@ const ReturnRequestList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchValue('')
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
@@ -279,7 +279,7 @@ const ReturnRequestList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       const currentStatus = filterSwitch === true ? 'completed' : status
       try {
@@ -310,7 +310,7 @@ const ReturnRequestList = () => {
 
   const handleSwitchChange = event => {
     setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterSwitch(prev => event.target.checked)
     if (event.target.checked === false) {
       setStatus(prev => 'all')
@@ -335,8 +335,6 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-    // debugger
-    // if (router.query.status === status) {
     const currentStatus = filterSwitch === true ? 'completed' : status
     const tabStatus = status === 'all' ? currentStatus : status
     fetchTableData(
@@ -360,11 +358,6 @@ const ReturnRequestList = () => {
       filterSwitch,
       store: filterByStoreId
     })
-
-    // }
-
-    // }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     status,
     filterSwitch,
@@ -373,8 +366,6 @@ const ReturnRequestList = () => {
     selectedPharmacy.id,
     paginationModel.page,
     paginationModel.pageSize
-
-    // router.query.status
   ])
 
   const onRowClick = params => {
@@ -411,8 +402,6 @@ const ReturnRequestList = () => {
   const columns = [
     {
       width: 80,
-
-      // field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography
@@ -508,7 +497,7 @@ const ReturnRequestList = () => {
     {
       minWidth: 140,
       field: 'total_qty',
-      headerName: 'Total Quantity',
+      headerName: 'Total items',
       type: 'number',
       headerAlign: 'left',
       align: 'left',
@@ -533,7 +522,7 @@ const ReturnRequestList = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
@@ -565,7 +554,7 @@ const ReturnRequestList = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-          </div>
+          </Box>
           {params?.row?.status === 'Cancelled' ? params?.row?.status : null}
         </Typography>
       )
@@ -577,11 +566,11 @@ const ReturnRequestList = () => {
       headerAlign: 'left',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     }
@@ -605,7 +594,7 @@ const ReturnRequestList = () => {
 
     if (days !== 'all') {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       const currentDate = new Date()
       const selectedDays = parseInt(days)
       let startDate
@@ -677,7 +666,6 @@ const ReturnRequestList = () => {
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
               <TextField
                 variant='outlined'
                 size='small'
@@ -685,16 +673,18 @@ const ReturnRequestList = () => {
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  )
-                }}
                 sx={{
                   borderRadius: '8px',
                   width: { xs: '100%', md: '290px' }
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
               />
 
@@ -713,7 +703,7 @@ const ReturnRequestList = () => {
                 {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
-                    xs={12}
+                    size={{ xs: 12 }}
                     sx={{
                       maxWidth: { xs: '100%', md: '250px' },
                       width: '100%',
@@ -728,7 +718,7 @@ const ReturnRequestList = () => {
                         label='Filter by Stores'
                         onChange={e => {
                           setTotal(0)
-                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setPaginationModel({ page: 0, pageSize: 50 })
                           setFilterByStoreId(e.target.value)
                           setSearchValue('')
                         }}
@@ -747,8 +737,7 @@ const ReturnRequestList = () => {
                 {/* Filter by Days */}
                 <Grid
                   item
-                  xs={12}
-                  md='auto'
+                  size={{ xs: 12, md: 'auto' }}
                   sx={{
                     maxWidth: { xs: '100%', md: '250px' },
                     mt: { xs: 2, md: 0 },
@@ -779,8 +768,7 @@ const ReturnRequestList = () => {
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
-                    xs={12}
-                    md='auto'
+                    size={{ xs: 12, md: 'auto' }}
                     sx={{
                       height: '48px',
                       display: 'flex',

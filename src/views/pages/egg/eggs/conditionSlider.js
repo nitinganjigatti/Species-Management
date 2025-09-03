@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useContext } from 'react'
 import Image from 'next/image'
 
@@ -73,6 +73,7 @@ const ConditionSlider = ({
 
   const [eggStaged, setEggStaged] = useState([])
   const [eggMaster, setEggMaster] = useState([])
+  const [eggMasterLoading, setEggMasterLoading] = useState(true)
   const [displayFile, setDisplayFile] = useState('')
   const [imgArr, setImgArr] = useState([])
   const [statusId, setStatusId] = useState('')
@@ -90,7 +91,6 @@ const ConditionSlider = ({
   const [sexingTypeList, setSexingTypeList] = useState([])
   const [lifeStageList, setLifeStageList] = useState([])
   const [contraceptionTypeList, setContraceptionTypeList] = useState([])
-  //for enclosure
   const [open, setOpen] = useState(false)
   const [enclosureData, setEnclosureData] = useState({})
 
@@ -99,14 +99,16 @@ const ConditionSlider = ({
 
   const getEggMasterData = async () => {
     try {
+      setEggMasterLoading(true)
       await GetEggMaster().then(res => {
         if (res.success) {
-          // console.log('res?.data? master :>> ', res?.data)
           setEggMaster(res?.data)
         }
       })
     } catch (e) {
       console.error(e)
+    } finally {
+      setEggMasterLoading(false)
     }
   }
 
@@ -127,6 +129,7 @@ const ConditionSlider = ({
     assisted_by: '',
     image: [],
     hatched_date: null,
+
     ////////////////
     species: '',
     accessionType: '',
@@ -159,6 +162,7 @@ const ConditionSlider = ({
             hatched === 'assisted_hatch'
               ? yup.string().trim().required('Assisted by is required')
               : yup.string().notRequired(),
+
           ////////////////////////////////////////////////////////////////////
           species: yup.string().required('Species / Taxonomy is required'),
           accessionType: yup.string().required('Accession type is required'),
@@ -170,15 +174,16 @@ const ConditionSlider = ({
               function (value) {
                 const { accessionType } = this.parent
                 if (accessionType === '2') {
-                  return !!value // Return true if value is not empty
+                  return !!value
                 }
 
-                return true // Otherwise, always pass validation
+                return true
               }
             ),
           accessionDate: yup.string().required('Accession date is required'),
           hatched_date: yup
             .mixed()
+
             // .nullable()
             .required('Hatched date is required')
             .test('valid-date', 'Invalid date', value => value && dayjs(value).isValid())
@@ -200,9 +205,10 @@ const ConditionSlider = ({
               function (value) {
                 const { localIdentifierType } = this.parent
                 if (localIdentifierType && localIdentifierType.trim() !== '') {
-                  return !!value // Return true if value is not empty
+                  return !!value
                 }
-                return true // Otherwise, always pass validation
+
+                return true
               }
             )
         }
@@ -232,6 +238,7 @@ const ConditionSlider = ({
       ...defaultValues,
       hatched_date: null
     },
+
     // defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
@@ -239,15 +246,40 @@ const ConditionSlider = ({
     reValidateMode: 'onChange'
   })
 
+  const speciesFieldRef = useRef()
+  const currentStateFieldRef = useRef()
+  const selectStageFieldRef = useRef()
+  const accessionTypeFieldRef = useRef()
+  const institutionFieldRef = useRef()
+  const animalOwnershipTermsFieldRef = useRef()
+  const accessionDateFieldRef = useRef()
+  const localIdentifierTypeFieldRef = useRef()
+  const localIdentifierFieldRef = useRef()
+  const collectionTypeFieldRef = useRef()
+  const collectionDateFieldRef = useRef()
+  const sexingTypeFieldRef = useRef()
+  const lifeStageFieldRef = useRef()
+  const contraceptionTypeFieldRef = useRef()
+  const enclosureFieldRef = useRef()
+  const parentFatherFieldRef = useRef()
+  const parentMotherFieldRef = useRef()
+  const birthDateFieldRef = useRef()
+  const weightFieldRef = useRef()
+  const lengthFieldRef = useRef()
+  const heightFieldRef = useRef()
+  const circumferenceFieldRef = useRef()
+  const assistedByFieldRef = useRef()
+  const commentFieldRef = useRef()
+  const ageFieldRef = useRef()
+  const typeFieldRef = useRef()
+
   const statusID = watch('current_state')
 
   useEffect(() => {
     if (statusID) {
       setStatusId(statusID)
-      // console.log('statusID :>> ', statusID)
       const filteredEggStatus = eggMaster?.egg_state?.filter(status => status?.egg_status_id === statusID)
       setEggStaged(filteredEggStatus)
-      // console.log('filteredEggStatus :>> ', filteredEggStatus)
     }
   }, [statusID, eggMaster])
 
@@ -278,7 +310,7 @@ const ConditionSlider = ({
   // }
 
   const { getRootProps, getInputProps } = useDropzone({
-    multiple: true, // changed to true for multiple files
+    multiple: true,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
     },
@@ -292,11 +324,9 @@ const ConditionSlider = ({
         reader.readAsDataURL(file)
       })
 
-      // Update filenames as comma-separated string
       const fileNames = acceptedFiles.map(file => file.name).join(', ')
       setDisplayFile(fileNames)
 
-      // Add all files to imgArr state
       setImgArr(prev => [...prev, ...acceptedFiles])
 
       setValue('image', acceptedFiles)
@@ -306,6 +336,61 @@ const ConditionSlider = ({
 
   const onError = errors => {
     console.error('Form errors', errors)
+    if (errors.species && speciesFieldRef.current) {
+      speciesFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.current_state && currentStateFieldRef.current) {
+      currentStateFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.select_stage && selectStageFieldRef.current) {
+      selectStageFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.accessionType && accessionTypeFieldRef.current) {
+      accessionTypeFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.institution && institutionFieldRef.current) {
+      institutionFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.animalOwnershipTerms && animalOwnershipTermsFieldRef.current) {
+      animalOwnershipTermsFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.accessionDate && accessionDateFieldRef.current) {
+      accessionDateFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.localIdentifierType && localIdentifierTypeFieldRef.current) {
+      localIdentifierTypeFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.localIdentifier && localIdentifierFieldRef.current) {
+      localIdentifierFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.collectionType && collectionTypeFieldRef.current) {
+      collectionTypeFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.collectionDate && collectionDateFieldRef.current) {
+      collectionDateFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.sexingType && sexingTypeFieldRef.current) {
+      sexingTypeFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.lifeStage && lifeStageFieldRef.current) {
+      lifeStageFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.contraceptionType && contraceptionTypeFieldRef.current) {
+      contraceptionTypeFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.enclosure && enclosureFieldRef.current) {
+      enclosureFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.parentFather && parentFatherFieldRef.current) {
+      parentFatherFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.parentMother && parentMotherFieldRef.current) {
+      parentMotherFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.birthDate && birthDateFieldRef.current) {
+      birthDateFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.weight && weightFieldRef.current) {
+      weightFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.length && lengthFieldRef.current) {
+      lengthFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.height && heightFieldRef.current) {
+      heightFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.circumference && circumferenceFieldRef.current) {
+      circumferenceFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.image && fileInputRef.current) {
+      fileInputRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.assistedBy && assistedByFieldRef.current) {
+      assistedByFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.comment && commentFieldRef.current) {
+      commentFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.age && ageFieldRef.current) {
+      ageFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    } else if (errors.type && typeFieldRef.current) {
+      typeFieldRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
   const handleAddImageClick = () => {
@@ -345,7 +430,6 @@ const ConditionSlider = ({
         setImgArr(prev => [...prev, fileItem])
       })
 
-      // Display filenames as comma-separated string
       const fileNames = Array.from(files)
         .map(f => f.name)
         .join(', ')
@@ -365,13 +449,11 @@ const ConditionSlider = ({
     setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
     setImgArr(prevArr => prevArr.filter((_, i) => i !== index))
 
-    // Update the form value accordingly
     setValue(
       'image',
       imgArr.filter((_, i) => i !== index)
     )
 
-    // If no images left, optionally reset display filename
     if (imgArr.length === 1) {
       setDisplayFile('')
       setValue('image', '')
@@ -396,6 +478,7 @@ const ConditionSlider = ({
         type: 'manual',
         message: 'Hatched date is required'
       })
+
       return
     }
     try {
@@ -434,6 +517,7 @@ const ConditionSlider = ({
           comment: getValues('comment'),
           egg_assisted_by: getValues('assisted_by'),
           egg_attachment: imgArr,
+
           // hatched_date: values.hatched_date ? dayjs(values.hatched_date).format('YYYY-MM-DD') : null
           hatched_date: values.hatched_date ? combinedDateTime : null
         }
@@ -492,12 +576,14 @@ const ConditionSlider = ({
                 Toaster({ type: 'success', message: res.message })
               } else {
                 setLoader(false)
+
                 // setDefaultSpecies(null)
                 Toaster({ type: 'error', message: res.message })
               }
             })
           } else {
             setLoader(false)
+
             // setDefaultSpecies(null)
             Toaster({ type: 'error', message: res?.message })
           }
@@ -507,7 +593,6 @@ const ConditionSlider = ({
           if (res.success) {
             setLoader(false)
 
-            // console.log('res on submit :>> ', res)
             setImgSrc('')
             reset()
 
@@ -528,8 +613,6 @@ const ConditionSlider = ({
           }
         })
       }
-
-      // Perform any additional operations, e.g., API call
     } catch (error) {
       setLoader(false)
       if (getDetails) {
@@ -563,6 +646,16 @@ const ConditionSlider = ({
     setValue('necropsy_Btn', eggDetails?.is_necropsy_needed)
     setValue('hatched_date', eggDetails?.hatched_date ? dayjs(eggDetails.hatched_date) : undefined)
   }, [eggDetails])
+
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'hatched_date' && value?.hatched_date) {
+        setValue('birthDate', value.hatched_date)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [watch])
 
   const getAccessionTypeFunc = () => {
     try {
@@ -640,7 +733,7 @@ const ConditionSlider = ({
   const searchSpecies = useCallback(
     debounce(async search => {
       try {
-        await getTaxonomyListFunc({ search })
+        getTaxonomyListFunc({ search })
       } catch (error) {
         console.error(error)
       }
@@ -693,7 +786,6 @@ const ConditionSlider = ({
         setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
-    // eggDetails?.enclosure_data
   }, [eggDetails])
 
   useEffect(() => {
@@ -771,7 +863,7 @@ const ConditionSlider = ({
                   fullWidth
                 >
                   <FormControl sx={{ width: '100%', mb: 4 }}>
-                    <InputLabel id='current_state'>Select State*</InputLabel>
+                    <InputLabel id='current_state'>{eggMasterLoading ? 'Loading...' : 'Select State*'}</InputLabel>
                     <Controller
                       name='current_state'
                       control={control}
@@ -779,17 +871,19 @@ const ConditionSlider = ({
                       render={({ field: { value, onChange } }) => (
                         <Select
                           name='current_state'
-                          value={value}
+                          value={eggMasterLoading ? '' : value}
                           label='Current State'
                           onChange={onChange}
                           labelId='current_state'
                           error={Boolean(errors?.current_state)}
+                          ref={currentStateFieldRef}
                         >
                           {eggMaster?.egg_status?.map(status => (
                             <MenuItem key={status?.id} value={status?.id}>
                               {status?.egg_status}
                             </MenuItem>
                           ))}
+                          {eggMasterLoading && <MenuItem>Loading...</MenuItem>}
                         </Select>
                       )}
                     />
@@ -814,6 +908,7 @@ const ConditionSlider = ({
                             onChange={onChange}
                             labelId='select_stage'
                             error={Boolean(errors?.select_stage)}
+                            ref={selectStageFieldRef}
                           >
                             {eggStaged?.map(stage => (
                               <MenuItem key={stage?.id} value={stage?.id}>
@@ -909,6 +1004,7 @@ const ConditionSlider = ({
                               sx={{
                                 width: '100%',
                                 mr: 12,
+
                                 // Hiding the spinner controls
                                 '& input[type=number]': {
                                   '-moz-appearance': 'textfield'
@@ -927,6 +1023,7 @@ const ConditionSlider = ({
                                   endAdornment: <InputAdornment position='end'>mm</InputAdornment>
                                 }
                               }}
+                              ref={weightFieldRef}
                             />
                           )}
                         />
@@ -957,6 +1054,7 @@ const ConditionSlider = ({
                                     helperText: errors?.hatched_date?.message || ''
                                   }
                                 }}
+                                ref={birthDateFieldRef}
                               />
                             </LocalizationProvider>
                           )}
@@ -977,7 +1075,8 @@ const ConditionSlider = ({
                                 name='assisted_by'
                                 onChange={onChange}
                                 placeholder=''
-                                sx={{ width: '100%', mr: 12 }} // Adjusted sx prop
+                                sx={{ width: '100%', mr: 12 }}
+                                ref={assistedByFieldRef}
                               />
                             )}
                           />
@@ -1018,7 +1117,8 @@ const ConditionSlider = ({
                           placeholder=''
                           multiline
                           rows={3}
-                          sx={{ width: '100%', mr: 12, mb: 3 }} // Adjusted sx prop
+                          sx={{ width: '100%', mr: 12, mb: 3 }}
+                          ref={commentFieldRef}
                         />
                       )}
                     />
@@ -1058,56 +1158,55 @@ const ConditionSlider = ({
                       </Box>
                     </Grid>
                     {/* )} */}
-                  </Grid>
-                  <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <Stack direction='row' sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 3 }}>
-                      {imgSrc?.length > 0 &&
-                        imgSrc?.map((img, index) => (
-                          <Box
-                            key={index}
-                            sx={{
-                              position: 'relative',
-                              backgroundColor: theme.palette.customColors.tableHeaderBg,
-                              borderRadius: '10px',
-                              height: 121,
-                              padding: '10.5px',
-                              boxSizing: 'border-box'
-                            }}
-                          >
-                            <img
-                              style={{
-                                aspectRatio: 2 / 2,
-                                height: '100%',
-                                borderRadius: '5%'
-                              }}
-                              alt='Uploaded image'
-                              src={typeof img === 'string' ? img : img}
-                            />
+                    <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <Stack direction='row' sx={{ px: 0, display: 'flex', flexWrap: 'wrap', gap: 3, mt: 3 }}>
+                        {imgSrc?.length > 0 &&
+                          imgSrc?.map((img, index) => (
                             <Box
+                              key={index}
                               sx={{
-                                cursor: 'pointer',
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                zIndex: 10,
-                                height: '24px',
-                                borderRadius: 0.4,
-                                backgroundColor: theme.palette.customColors.secondaryBg
+                                position: 'relative',
+                                backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                borderRadius: '10px',
+                                height: 121,
+                                padding: '10.5px',
+                                boxSizing: 'border-box'
                               }}
                             >
-                              <Icon
-                                icon='material-symbols-light:close'
-                                color={theme.palette.primary.contrastText}
-                                onClick={() => removeSelectedImage(index)}
+                              <img
+                                style={{
+                                  aspectRatio: 2 / 2,
+                                  height: '100%',
+                                  borderRadius: '5%'
+                                }}
+                                alt='Uploaded image'
+                                src={typeof img === 'string' ? img : img}
+                              />
+                              <Box
+                                sx={{
+                                  cursor: 'pointer',
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10,
+                                  height: '24px',
+                                  borderRadius: 0.4,
+                                  backgroundColor: theme.palette.customColors.secondaryBg
+                                }}
                               >
-                                {' '}
-                              </Icon>
+                                <Icon
+                                  icon='material-symbols-light:close'
+                                  color={theme.palette.primary.contrastText}
+                                  onClick={() => removeSelectedImage(index)}
+                                >
+                                  {' '}
+                                </Icon>
+                              </Box>
                             </Box>
-                          </Box>
-                        ))}
-                    </Stack>
+                          ))}
+                      </Stack>
+                    </Grid>
                   </Grid>
-                  {/* {console.log('permission check', checkAddPermission())} */}
                   {statusID === '4' && checkAddPermission() && (
                     <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
@@ -1222,6 +1321,7 @@ const ConditionSlider = ({
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
                             <Autocomplete
+                              ref={speciesFieldRef}
                               sx={{
                                 '& .MuiOutlinedInput-root': {
                                   borderColor: Boolean(errors.species) && 'red',
@@ -1231,6 +1331,7 @@ const ConditionSlider = ({
                                   color: 'rgba(76, 78, 100, 0.87)'
                                 }
                               }}
+                              loading={!taxonomyList?.length}
                               name='species'
                               value={defaultSpecies}
                               disablePortal
@@ -1288,6 +1389,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='accessionType'
                               error={Boolean(errors?.accessionType)}
+                              ref={accessionTypeFieldRef}
                             >
                               {accessionTypeList?.map(val => (
                                 <MenuItem key={val?.accession_id} value={val?.accession_id}>
@@ -1316,6 +1418,7 @@ const ConditionSlider = ({
                                 onChange={onChange}
                                 labelId='institution'
                                 error={Boolean(errors?.institution)}
+                                ref={institutionFieldRef}
                               >
                                 {institutesList?.map(val => (
                                   <MenuItem key={val?.id} value={val?.id}>
@@ -1344,6 +1447,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='animalOwnershipTerms'
                               error={Boolean(errors?.animalOwnershipTerms)}
+                              ref={animalOwnershipTermsFieldRef}
                             >
                               {animalOwnershipTermsList?.map(val => (
                                 <MenuItem key={val?.id} value={val?.id}>
@@ -1374,6 +1478,7 @@ const ConditionSlider = ({
                                 label={'Accession Date *'}
                                 maxDate={dayjs()}
                                 format='DD/MM/YYYY'
+                                ref={accessionDateFieldRef}
                               />
                             </LocalizationProvider>
                           )}
@@ -1430,6 +1535,7 @@ const ConditionSlider = ({
                                       )
                                     }
                                   }}
+                                  ref={enclosureFieldRef}
                                 />
                               )}
                             />
@@ -1466,6 +1572,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='sextype'
                               error={Boolean(errors?.sextype)}
+                              ref={sexingTypeFieldRef}
                             >
                               {[
                                 { id: 'male', name: 'MALE' },
@@ -1498,6 +1605,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='collectionType'
                               error={Boolean(errors?.collectionType)}
+                              ref={collectionTypeFieldRef}
                             >
                               {collectionTypeList?.map(val => (
                                 <MenuItem key={val?.id} value={val?.id}>
@@ -1557,6 +1665,7 @@ const ConditionSlider = ({
                                 label={'Birth Date *'}
                                 maxDate={dayjs()}
                                 format='DD/MM/YYYY'
+                                ref={birthDateFieldRef}
                               />
                             </LocalizationProvider>
                           )}
@@ -1586,6 +1695,7 @@ const ConditionSlider = ({
                                 slotProps={{
                                   htmlInput: { min: 1 }
                                 }}
+                                ref={ageFieldRef}
                               />
                             )}
                           />
@@ -1607,6 +1717,7 @@ const ConditionSlider = ({
                                 onChange={onChange}
                                 labelId='type'
                                 error={Boolean(errors?.type)}
+                                ref={typeFieldRef}
                               >
                                 {[
                                   { id: 'months', name: 'Months' },
@@ -1640,6 +1751,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='localIdentifierType'
                               error={Boolean(errors?.localIdentifierType)}
+                              ref={localIdentifierTypeFieldRef}
                             >
                               {localIdentifierTypeList?.map(val => (
                                 <MenuItem key={val?.id} value={val?.id}>
@@ -1669,6 +1781,7 @@ const ConditionSlider = ({
                                 name='localIdentifier'
                                 onChange={onChange}
                                 placeholder=''
+                                ref={localIdentifierFieldRef}
                               />
                             )}
                           />
@@ -1694,6 +1807,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='parentMother'
                               error={Boolean(errors?.parentMother)}
+                              ref={parentMotherFieldRef}
                             >
                               {eggDetails?.parent_list?.mother_list?.map(item => (
                                 <MenuItem key={item?._id} value={item?.animal_id}>
@@ -1724,6 +1838,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='parentFather'
                               error={Boolean(errors?.parentFather)}
+                              ref={parentFatherFieldRef}
                             >
                               {eggDetails?.parent_list?.father_list?.map(item => (
                                 <MenuItem key={item?._id} value={item?.animal_id}>
@@ -1755,6 +1870,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='sexingType'
                               error={Boolean(errors?.sexingType)}
+                              ref={sexingTypeFieldRef}
                             >
                               {sexingTypeList?.map(val => (
                                 <MenuItem key={val?.id} value={val?.id}>
@@ -1782,6 +1898,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='lifeStage'
                               error={Boolean(errors?.lifeStage)}
+                              ref={lifeStageFieldRef}
                             >
                               {lifeStageList?.map(val => (
                                 <MenuItem key={val?.id} value={val?.id}>
@@ -1809,6 +1926,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='contraceptionType'
                               error={Boolean(errors?.contraceptionType)}
+                              ref={contraceptionTypeFieldRef}
                             >
                               {contraceptionTypeList?.map(val => (
                                 <MenuItem key={val?.id} value={val?.id}>
@@ -1875,6 +1993,7 @@ const ConditionSlider = ({
 
 const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
   const theme = useTheme()
+
   return (
     <Box
       sx={{

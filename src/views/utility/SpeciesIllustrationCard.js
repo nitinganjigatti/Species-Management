@@ -1,6 +1,7 @@
 import React from 'react'
-import { ImageListItem, Typography } from '@mui/material'
-import { Box, height } from '@mui/system'
+import { Tooltip, Typography } from '@mui/material'
+import { Box } from '@mui/system'
+import FallbackImage from './FallbackImage'
 
 function SpeciesIllustrationCard({ eggDetails, theme }) {
   return (
@@ -21,14 +22,14 @@ function SpeciesIllustrationCard({ eggDetails, theme }) {
           objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover'
         }}
       >
-        <img
+        <FallbackImage
           style={{
             width: '100%',
             height: '100%',
             borderRadius: '8px',
             objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover'
           }}
-          srcSet={eggDetails?.default_icon}
+          // srcSet={eggDetails?.default_icon}
           src={eggDetails?.default_icon}
           alt='default_icon'
           loading='lazy'
@@ -48,26 +49,60 @@ function SpeciesIllustrationCard({ eggDetails, theme }) {
           flexDirection: 'column'
         }}
       >
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px',
-            color: theme.palette.primary.contrastText
-          }}
+        <Tooltip
+          title={
+            eggDetails?.default_common_name
+              ? eggDetails?.default_common_name
+              : eggDetails?.animal_data?.common_name
+              ? eggDetails?.animal_data?.common_name
+              : ''
+          }
         >
-          {eggDetails?.default_common_name ? eggDetails?.default_common_name : 'Unknown'}
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: '14px',
-            fontWeight: 400,
-            lineHeight: '16.94px',
-            color: theme.palette.primary.contrastText
-          }}
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: theme.palette.primary.contrastText
+            }}
+          >
+            {eggDetails?.default_common_name
+              ? eggDetails?.default_common_name
+              : eggDetails?.animal_data?.common_name
+              ? eggDetails?.animal_data?.common_name
+              : 'Unknown'}
+          </Typography>
+        </Tooltip>
+        <Tooltip
+          title={
+            eggDetails?.complete_name
+              ? eggDetails?.complete_name
+              : eggDetails?.animal_data?.complete_name
+              ? eggDetails?.animal_data?.complete_name
+              : ''
+          }
         >
-          {eggDetails?.complete_name ? eggDetails?.complete_name : 'Unknown'}
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 400,
+              lineHeight: '16.94px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: theme.palette.primary.contrastText
+            }}
+          >
+            {eggDetails?.complete_name
+              ? eggDetails?.complete_name
+              : eggDetails?.animal_data?.complete_name
+              ? eggDetails?.animal_data?.complete_name
+              : 'Unknown'}
+          </Typography>
+        </Tooltip>
       </Box>
     </Box>
   )

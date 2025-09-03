@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box } from '@mui/system'
 import { Autocomplete, Avatar, Fade, FormControl, Tab, TextField, Tooltip, Typography } from '@mui/material'
@@ -12,46 +12,38 @@ import moment from 'moment'
 import Router from 'next/router'
 import debounce from 'lodash/debounce'
 
-// Custom Components Imports
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import DashboardSlider from '../eggs/dashboardSlider'
 import DiscardEggSlider from '../eggs/discardEggSlider'
 
-// API Imports
 import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 import DashboardExelExportButton from './exportDasboardDataExcel'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const Species = ({ openDiscard, setOpenDiscard }) => {
-  // Context and Theme
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
-  // Tab Status
   const [status, setStatus] = useState('species')
 
-  // Data Lists
   const [speciesList, setSpeciesList] = useState([])
   const [exportSpeciesList, setExportSpeciesList] = useState([])
   const [taxonomyList, setTaxonomyList] = useState([])
   const [nurseryList, setNurseryList] = useState([])
 
-  // Default Values
   const [defaultSpecies, setDefaultSpecies] = useState(null)
   const [defaultSite, setDefaultSite] = useState(null)
   const [defaultNursery, setDefaultNursery] = useState(null)
 
-  // Date Range
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTillDate] = useState(null)
 
-  // Pagination
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
 
-  // Drawer State
   const [openDrawer, setOpenDrawer] = useState(false)
   const [drawerHeading, setDrawerHeading] = useState('')
   const [drawerHeadingCount, setDrawerHeadingCount] = useState(0)
@@ -60,12 +52,13 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const [sortModel, setSortModel] = useState([{ field: 'complete_name', sort: 'DESC' }])
 
-  // Loading and Total Count
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
 
-  // Search Value
   const [searchValue, setSearchValue] = useState('')
+
+  // Ref for search input to enable auto-focus
+  const searchInputRef = useRef(null)
 
   const TaxonomyList = async q => {
     try {
@@ -94,7 +87,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     }
   }
 
-  // Debounce wrapper for API calls
   const useDebouncedCallback = (callback, delay) => {
     return useCallback(debounce(callback, delay), [callback, delay])
   }
@@ -111,7 +103,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const CustomTooltip = ({ title, children, placement = 'bottom', disableHoverListener }) => (
     <Tooltip
       disableHoverListener={disableHoverListener || false}
-      TransitionComponent={Fade}
+      slots={{
+        transition: Fade
+      }}
+      //TransitionComponent={Fade}
       title={
         <Box
           sx={{
@@ -150,7 +145,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       }
       arrow
       placement={placement}
-      componentsProps={{
+      slotProps={{
         tooltip: {
           sx: {
             border: '0.1px solid #C3CEC7',
@@ -198,67 +193,68 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-          <Avatar
-            variant='rounded'
-            alt='Medicine Image'
-            sx={{
-              width: 35,
-              height: 35,
-              mr: 4,
-              p: 1,
-              objectFit: 'contain',
-              borderRadius: '50%',
-              background: '#E8F4F2'
-            }}
-          >
-            <img
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-              alt='Profile'
-            />
-          </Avatar>
+        <SpeciesCard species={{ ...params?.row, common_name: params.row?.default_common_name }} />
+        // <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+        //   <Avatar
+        //     variant='rounded'
+        //     alt='Medicine Image'
+        //     sx={{
+        //       width: 35,
+        //       height: 35,
+        //       mr: 4,
+        //       p: 1,
+        //       objectFit: 'contain',
+        //       borderRadius: '50%',
+        //       background: '#E8F4F2'
+        //     }}
+        //   >
+        //     <img
+        //       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        //       src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
+        //       alt='Profile'
+        //     />
+        //   </Avatar>
 
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '200px',
-                  boxSizing: 'border-box'
-                }}
-              >
-                {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
-              </Typography>
-            </Tooltip>
-            <Tooltip
-              title={
-                params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
-              }
-            >
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '200px'
-                }}
-              >
-                {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
-              </Typography>
-            </Tooltip>
-          </Box>
-        </Box>
+        //   <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        //     <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
+        //       <Typography
+        //         sx={{
+        //           color: theme.palette.primary.light,
+        //           fontSize: '16px',
+        //           fontWeight: '500',
+        //           lineHeight: '19.36px',
+        //           overflow: 'hidden',
+        //           textOverflow: 'ellipsis',
+        //           whiteSpace: 'nowrap',
+        //           width: '200px',
+        //           boxSizing: 'border-box'
+        //         }}
+        //       >
+        //         {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
+        //       </Typography>
+        //     </Tooltip>
+        //     <Tooltip
+        //       title={
+        //         params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
+        //       }
+        //     >
+        //       <Typography
+        //         sx={{
+        //           color: theme.palette.primary.light,
+        //           fontSize: '14px',
+        //           fontWeight: '400',
+        //           lineHeight: '16.94px',
+        //           overflow: 'hidden',
+        //           textOverflow: 'ellipsis',
+        //           whiteSpace: 'nowrap',
+        //           width: '200px'
+        //         }}
+        //       >
+        //         {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
+        //       </Typography>
+        //     </Tooltip>
+        //   </Box>
+        // </Box>
       )
     },
     {
@@ -454,7 +450,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {/* {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'} */}
             {params.row.currently_in_nest ? params.row.currently_in_nest : '-'}
           </Typography>
         </Box>
@@ -1448,6 +1443,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
               alt='Profile'
             />
+            {/* {params.row.default_icon ? (
+              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+            ) : (
+              <Icon icon='mdi:user' />
+            )} */}
           </Avatar>
 
           <Tooltip title={params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
@@ -1870,8 +1870,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     try {
       setLoading(true)
 
-      console.log('sortModelcccc', sortModel)
-
       const params = {
         ref_type: statuss || status,
         q,
@@ -1913,6 +1911,28 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     getspeciesFunc(status)
   }, [getspeciesFunc])
 
+  // Auto-focus search input when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus()
+      }
+    }, 100) // Small delay to ensure DOM is ready
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Also focus when loading completes
+  useEffect(() => {
+    if (!loading && searchInputRef.current) {
+      const timer = setTimeout(() => {
+        searchInputRef.current.focus()
+      }, 50)
+
+      return () => clearTimeout(timer)
+    }
+  }, [loading])
+
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
     getspeciesFunc(status, searchValue, fromDate, tillDate, getIdBasedOnStatus(), newModel[0])
@@ -1928,26 +1948,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       searchTableData(status, searchValue, fromDate, tillDate, getIdBasedOnStatus())
     }
 
-    // const handleFromDateChange = newDate => {
-    //   if (newDate) {
-    //     const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-    //     setFromDate(formattedDate)
-    //     getspeciesFunc(status, searchValue, formattedDate, tillDate, getIdBasedOnStatus())
-    //   }
-    // }
-
-    // const handleTillDateChange = newDate => {
-    //   if (newDate) {
-    //     const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-    //     setTillDate(formattedDate)
-    //     getspeciesFunc(status, searchValue, fromDate, formattedDate, getIdBasedOnStatus())
-    //   }
-    // }
-
     return (
       <>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 6, mb: '24px' }} container>
-          {/* Search Box */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 6, mb: '24px' }}>
           <Box
             sx={{
               display: 'flex',
@@ -1960,9 +1963,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           >
             <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
             <TextField
+              disabled={loading}
               variant='outlined'
               placeholder='Search'
               onChange={handleSearchChange}
+              inputRef={searchInputRef}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',
@@ -2139,7 +2144,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     )
   }
 
-  // Styles for DatePicker and Typography
   const datePickerStyles = {
     backgroundColor: '#fff',
     borderRadius: '8px',
@@ -2172,6 +2176,13 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   }
 
   const dataGridStyles = {
+    borderTopLeftRadius: '8px',
+    '& .MuiBox-root': { paddingX: 0 },
+    '.MuiDataGrid-main': {
+      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+      borderRadius: '8px'
+    },
+    '& .MuiDataGrid-footerContainer': { border: 'none !important' },
     '.MuiDataGrid-cell:focus': { outline: 'none' },
     '& .MuiDataGrid-row:hover': { cursor: 'pointer', backgroundColor: 'transparent' },
     '& .MuiDataGrid-row:hover .customButton': { display: 'block' },
@@ -2186,7 +2197,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     <Box
       sx={{
         backgroundColor: '#fff',
-        padding: '24px',
+        padding: '16px',
         paddingBottom: '0px',
         display: 'flex',
         flexDirection: 'column',
@@ -2197,14 +2208,20 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     >
       <TabContext value={status}>
         <TabList onChange={handleChange}>
-          <Tab value='species' label={'Eggs by species'} />
+          <Tab sx={{ pl: 0 }} value='species' label={'Eggs by species'} />
           <Tab value='site' label={'Eggs by sites'} />
           <Tab value='nursery' label={'Eggs by nurseries'} />
         </TabList>
 
-        <TabPanel value='species'>{tableData()}</TabPanel>
-        <TabPanel value='site'>{tableData()}</TabPanel>
-        <TabPanel value='nursery'>{tableData()}</TabPanel>
+        <TabPanel sx={{ p: 0 }} value='species'>
+          {tableData()}
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value='site'>
+          {tableData()}
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value='nursery'>
+          {tableData()}
+        </TabPanel>
       </TabContext>
       {openDrawer && (
         <DashboardSlider

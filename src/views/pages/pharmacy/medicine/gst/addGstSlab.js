@@ -22,13 +22,10 @@ import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, Radio } from '@mui/material'
 import { getTaxById } from 'src/lib/api/pharmacy/getGstList'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup.string().required('Tax Slab Name is Required'),
@@ -43,10 +40,8 @@ const defaultValues = {
 }
 
 const AddGstSlabs = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
-  // ** States
   const [values, setValues] = useState(defaultValues)
 
   const router = useRouter()

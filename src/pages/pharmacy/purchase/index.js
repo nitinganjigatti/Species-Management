@@ -1,35 +1,47 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getPurchaseList } from 'src/lib/api/pharmacy/getPurchaseList'
+import { getPurchaseList, printPurchaseInvoice } from 'src/lib/api/pharmacy/getPurchaseList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 
 // ** MUI Imports
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, TextField, CardContent, InputAdornment, Tooltip } from '@mui/material'
+import {
+  Card,
+  CardHeader,
+  Typography,
+  Grid,
+  TextField,
+  CardContent,
+  InputAdornment,
+  Autocomplete,
+  MenuItem,
+  Switch,
+  FormControl,
+  InputLabel,
+  Tooltip,
+  Select
+} from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
-import { format, subDays, subMonths } from 'date-fns'
+import { format, subMonths } from 'date-fns'
 
 import Router from 'next/router'
-import Error404 from 'src/pages/404'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton, ExcelExportButton } from 'src/components/Buttons'
-import Utility from 'src/utility'
+import { ExcelExportButton } from 'src/components/Buttons'
 
-import { useForm, Controller } from 'react-hook-form'
-import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
-import TableWithFilter from 'src/components/TableWithFilter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import toast from 'react-hot-toast'
+import Utility from 'src/utility'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -39,8 +51,6 @@ const ListOfPurchase = () => {
     const query = { ...router.query, ...params }
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
-
-  /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
 
@@ -61,10 +71,13 @@ const ListOfPurchase = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [excelLoader, setExcelLoader] = useState(false)
+  const [suppliers, setSuppliers] = useState([])
+  const [selectedSupplier, setSelectedSupplier] = useState(router.query.supplier || 'All')
+  const [invoicePrintLoaderId, setInvoicePrintLoaderId] = useState(null)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -84,17 +97,17 @@ const ListOfPurchase = () => {
           q,
           column,
           ...(isEmptyDates
-            ? { from_date: '', to_date: '' } // Explicitly send empty values
+            ? { from_date: '', to_date: '' }
             : filterDates?.startDate && filterDates?.endDate
             ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
             : {}),
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          ...(selectedSupplier !== 'All' && { supplier_id: selectedSupplier })
         }
 
         await getPurchaseList({ params }).then(res => {
           if (res?.success === true && res?.data?.length > 0) {
-            console.log('RESPONSE >>', res?.data)
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
 
@@ -103,15 +116,13 @@ const ListOfPurchase = () => {
               q,
               column,
               page: paginationModel?.page,
-              limit: paginationModel?.pageSize
-            }
-
-            if (isEmptyDates) {
-              urlParams.from_date = ''
-              urlParams.to_date = ''
-            } else if (filterDates?.startDate && filterDates?.endDate) {
-              urlParams.from_date = filterDates.startDate
-              urlParams.to_date = filterDates.endDate
+              limit: paginationModel?.pageSize,
+              ...(isEmptyDates
+                ? { from_date: '', to_date: '' }
+                : filterDates?.startDate && filterDates?.endDate
+                ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
+                : {}),
+              supplier: selectedSupplier
             }
 
             updateUrlParams(urlParams)
@@ -129,7 +140,7 @@ const ListOfPurchase = () => {
         setRows([])
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, selectedSupplier]
   )
   useEffect(() => {
     if (filterDates?.startDate !== undefined && filterDates?.endDate !== undefined) {
@@ -142,11 +153,11 @@ const ListOfPurchase = () => {
         page: paginationModel?.page,
         limit: paginationModel?.pageSize,
         from_date: filterDates?.startDate || '',
-        to_date: filterDates?.endDate || ''
+        to_date: filterDates?.endDate || '',
+        supplier: selectedSupplier
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates])
+  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates, selectedSupplier])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -167,7 +178,8 @@ const ListOfPurchase = () => {
         page: paginationModel?.page,
         limit: paginationModel?.pageSize,
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+        supplier: selectedSupplier
       })
     } else {
     }
@@ -176,17 +188,18 @@ const ListOfPurchase = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, filterDates) => {
       setSearchValue(q)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       try {
         await fetchTableData({ sort, q, column, filterDates })
         updateUrlParams({
-          sort: newModel[0].sort,
+          sort: sort,
           q: q,
-          column: newModel[0].field,
+          column: column,
           page: paginationModel?.page,
           limit: paginationModel?.pageSize,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+          supplier: selectedSupplier
         })
       } catch (error) {
         console.error(error)
@@ -208,21 +221,50 @@ const ListOfPurchase = () => {
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     if (startDate && endDate) {
       setFilterDates({
         startDate: Utility.formatDate(startDate),
         endDate: Utility.formatDate(endDate)
       })
-
-      console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
         startDate: '',
         endDate: ''
       })
+    }
+  }
 
-      console.log('Empty date range selected,', { startDate, endDate })
+  const getSuppliersLists = async () => {
+    try {
+      const response = await getSuppliers({})
+
+      if (response.data.data.list_items?.length > 0) {
+        const options = [{ id: 'All', company_name: 'All' }, ...response.data.data.list_items]
+        setSuppliers(options)
+      }
+    } catch (error) {
+      console.log('supplier error', error)
+    }
+  }
+
+  const printInventory = async purchaseId => {
+    try {
+      setInvoicePrintLoaderId(purchaseId)
+      const printInvoice = await printPurchaseInvoice(purchaseId)
+      if (printInvoice?.success && printInvoice?.data) {
+        Utility?.downloadFileFromURL(printInvoice?.data, 'Invoice.Pdf')
+        toast.success(printInvoice?.message)
+        setInvoicePrintLoaderId(null)
+      } else {
+        toast.error(printInvoice?.message)
+        setInvoicePrintLoaderId(null)
+      }
+    } catch (error) {
+      toast.error(error?.message)
+      setInvoicePrintLoaderId(null)
+    } finally {
+      setInvoicePrintLoaderId(null)
     }
   }
 
@@ -230,6 +272,8 @@ const ListOfPurchase = () => {
     {
       width: 80,
       headerName: 'SL.NO',
+      sortable: false,
+      field: 'id',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl + '.'}
@@ -336,25 +380,12 @@ const ListOfPurchase = () => {
       headerName: 'Created by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
-
-        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-        //     </Typography>
-        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-        //       {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-        //       {Utility.formatDisplayDate(params.row.created_at)}
-        //     </Typography>
-        //   </Box>
-        // </Box>
       )
     },
     {
@@ -363,32 +394,38 @@ const ListOfPurchase = () => {
       headerName: 'Updated by',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.updated_by_user_name,
-            params?.row?.updated_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_updated_profile_pic}
+            user_name={params?.row?.updated_by_user_name}
+            date={params?.row?.updated_at}
+          />
         </>
+      )
+    },
 
-        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        //   {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
-        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-        //       {params?.row?.updated_by_user_name ? params?.row?.updated_by_user_name : 'NA'}
-        //     </Typography>
-        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-        //       {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-        //       {params?.row?.updated_at ? Utility.formatDisplayDate(params.row.updated_at) : 'NA'}
-        //     </Typography>
-        //   </Box>
-        // </Box>
+    {
+      minWidth: 80,
+      headerName: 'Action',
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      field: 'action',
+      renderCell: params => (
+        <ExportButton
+          bgcolor='transparent'
+          tooltip='Download  Invoice'
+          loading={invoicePrintLoaderId === params.row.id}
+          onClick={event => {
+            event.stopPropagation()
+            printInventory(params.row.id)
+          }}
+        />
       )
     }
   ]
-
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
+  useEffect(() => {
+    getSuppliersLists()
+  }, [])
 
   const getInventoryDataToExport = async () => {
     try {
@@ -409,7 +446,6 @@ const ListOfPurchase = () => {
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       }
       const response = await getPurchaseList({ params })
-      console.log('Response inventory>', response)
       setExcelLoader(false)
 
       if (response?.success === true && response?.data?.length > 0) {
@@ -457,7 +493,6 @@ const ListOfPurchase = () => {
             fullWidth='fullWidth'
           /> */}
           <ExcelExportButton
-            disabled={total === 0}
             action={() => {
               Router.push({
                 pathname: '/pharmacy/purchase/import-purchases/'
@@ -477,7 +512,6 @@ const ListOfPurchase = () => {
   )
 
   const onRowClick = params => {
-    console.log('Params >', params)
     if (
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
@@ -493,63 +527,38 @@ const ListOfPurchase = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            {/* <CardHeader
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'column' }, // Stack items in sm screens
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 3, sm: 1 },
-                mx: { xs: -1, sm: 1 },
-                width: '100%', // Ensure the header takes full width
-                '& .MuiCardHeader-content': {
-                  flexGrow: 1, // Allows the title to take full width
-                  width: '100%'
-                },
-
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' },
-                  justifyContent: 'flex-end',
-                },
-                mx: { xs: -1, sm: 1 }
-              }}
-              title={RenderUtility.pageTitle('Inventory List')}
-              action={headerAction}
-            /> */}
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Stack title and actions in xs, row in sm+
-                justifyContent: 'space-between', // Push title left and actions right on larger screens
-                alignItems: { xs: 'flex-start', sm: 'center' }, // Align items properly
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'flex-start', sm: 'center' },
                 width: '100%',
                 '& .MuiCardHeader-content': {
-                  flexGrow: 1 // Allows title to take available space
+                  flexGrow: 1
                 },
                 '& .MuiCardHeader-action': {
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons in xs, row in sm+
-                  alignItems: 'stretch', // Ensures full width in column mode
-                  justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Left align in xs, right align in sm+
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: 'stretch',
+                  justifyContent: { xs: 'flex-start', sm: 'flex-end' },
                   gap: 1,
-                  width: { xs: '100%', sm: 'auto' } // Full width for small screens
-                  // mt: { xs: 1, sm: 0 } // Add spacing between title and buttons in xs
+                  width: { xs: '100%', sm: 'auto' }
                 }
               }}
               title={RenderUtility.pageTitle('Inventory List')}
               action={headerAction}
             />
 
-            {/* Left Box (Search Field) */}
             <CardContent sx={{ paddingTop: '4px' }}>
               <Box
                 sx={{
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' }, // Stack on small screens, row on larger screens
+                  flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'space-between',
-                  alignItems: { xs: 'stretch', sm: 'center' }, // Stretch items in column mode
-                  gap: { xs: 2, sm: 0 }, // Add spacing for small screens
-                  width: '100%' // Ensure full width
+                  alignItems: { xs: 'stretch', sm: 'center' },
+                  gap: { xs: 2, sm: 0 },
+                  width: '100%'
                 }}
               >
                 <Grid
@@ -557,105 +566,87 @@ const ListOfPurchase = () => {
                   spacing={4}
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Grid item xs={12} sm={6} md={5}>
+                  <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
                     <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                   </Grid>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 7 / 2, md: 7 / 2, lg: 7 / 2 }}
+                    sx={{
+                      my: 0
+                    }}
+                  >
+                    <FormControl fullWidth>
+                      <InputLabel id='controlled-select-label'>Supplier</InputLabel>
+                      <Select
+                        fullWidth
+                        onChange={e => {
+                          let id = e.target.value
 
-                  <Grid item sm={6} xs={12}>
-                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
-                        <TextField
-                          variant='outlined'
-                          size='small'
-                          placeholder='Search...'
-                          value={searchValue}
-                          onChange={e => handleSearch(e.target.value)}
-                          fullWidth
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position='start'>
-                                <Icon
-                                  icon='mi:search'
-                                  fontSize={24}
-                                  color={theme.palette.customColors.neutralSecondary}
-                                />
-                              </InputAdornment>
-                            )
-                          }}
-                          sx={{
-                            borderRadius: '8px'
-                          }}
-                        />
-                      </Grid>
-
-                      <Grid
-                        item
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                          justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                          setSelectedSupplier(id)
                         }}
+                        label='Supplier'
+                        value={selectedSupplier}
+                        id='controlled-select'
+                        labelId='controlled-select-label'
+                        sx={{ width: '100%' }}
+                        size='small'
                       >
-                        <ExportButton
-                          loading={excelLoader}
-                          onClick={getInventoryDataToExport}
-                          disabled={total === 0 ? true : false}
-                        />
-                        {/* <Tooltip title='Export'>
-                          <>
-                            {excelLoader ? (
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '4px',
-                                  bgcolor: theme?.palette.customColors?.lightBg,
-                                  alignItems: 'center',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <CircularProgress color='success' size={30} />
-                              </Box>
-                            ) : (
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '4px',
-                                  bgcolor: theme?.palette.customColors?.lightBg,
-                                  alignItems: 'center',
-                                  cursor: 'pointer'
-                                }}
-                                onClick={getInventoryDataToExport}
-                              >
-                                <Icon icon='ic:round-download' fontSize={20} />
-                              </Box>
-                            )}
-                          </>
-                        </Tooltip> */}
-                      </Grid>
-                    </Grid>
+                        {suppliers.length > 0 &&
+                          suppliers.map(el => {
+                            return (
+                              <MenuItem key={el.id} value={el.id}>
+                                {el.company_name}
+                              </MenuItem>
+                            )
+                          })}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 7 / 2, md: 7 / 2 }}
+                    sx={{
+                      display: 'flex',
+                      gap: 2,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      variant='outlined'
+                      size='small'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      sx={{
+                        borderRadius: '8px'
+                      }}
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon
+                                icon='mi:search'
+                                fontSize={24}
+                                color={theme.palette.customColors.neutralSecondary}
+                              />
+                            </InputAdornment>
+                          )
+                        }
+                      }}
+                    />
+                    <ExportButton
+                      loading={excelLoader}
+                      onClick={getInventoryDataToExport}
+                      disabled={total === 0 ? true : false}
+                    />
                   </Grid>
                 </Grid>
-                {/* Left Box (Search Field) */}
-
-                {/* Right Box (Date Range Picker) */}
               </Box>
 
-              <Grid
-                sx={
-                  {
-                    // px: { xs: 2, sm: 4 },
-                    // py: { xs: 2, sm: 4 },
-                    // mx: { xs: 3, sm: 4 }
-                  }
-                }
-              >
+              <Grid>
                 <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
@@ -663,12 +654,12 @@ const ListOfPurchase = () => {
                   columns={columns}
                   paginationModel={paginationModel}
                   onPaginationModelChange={model => {
-                    setPaginationModel(model) // Update page and pageSize in the state
+                    setPaginationModel(model)
                     router.replace({
                       pathname: router.pathname,
                       query: {
                         ...router.query,
-                        page: model.page + 1, // API uses 1-indexed pages
+                        page: model.page + 1,
                         pageSize: model.pageSize,
                         searchValue,
                         sort,

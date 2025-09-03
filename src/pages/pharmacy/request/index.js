@@ -34,6 +34,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import { margin, textAlign } from '@mui/system'
 import RenderUtility from 'src/utility/render'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const RequestList = () => {
   const theme = useTheme()
@@ -62,7 +63,7 @@ const RequestList = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
@@ -84,7 +85,7 @@ const RequestList = () => {
     setTotal(0)
     setFilterSwitch(false)
     setFilterByStoreId('all')
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
     setSearchValue('')
@@ -254,7 +255,7 @@ const RequestList = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate, filterByStoreId)
@@ -262,7 +263,7 @@ const RequestList = () => {
           sort,
           q: searchValue,
           column: sortColumn,
-          status: currentStatus,
+          status: status,
           startDate: filterDates.startDate,
           endDate: filterDates.endDate,
           store: filterByStoreId,
@@ -281,6 +282,16 @@ const RequestList = () => {
   const onRowClick = params => {
     Router.push({
       pathname: `/pharmacy/request/${params.row?.id}`
+    })
+  }
+
+  const routeToShipmentPage = params => {
+    Router.push({
+      pathname: `/pharmacy/request/${params.row?.id}`,
+      query: {
+        detailsTab: 'Shipped',
+        shipmentTab: 'Shipped'
+      }
     })
   }
 
@@ -317,10 +328,9 @@ const RequestList = () => {
   }
 
   const handleSwitchChange = event => {
-    console.log('event', event.target.checked)
     setTotal(0)
     setSearchValue('')
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setFilterSwitch(prev => event.target.checked)
 
     if (event.target.checked === false) {
@@ -344,7 +354,7 @@ const RequestList = () => {
     setSearchValue('')
     if (days !== 'all') {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       const currentDate = new Date()
       const selectedDays = parseInt(days)
       let startDate
@@ -393,8 +403,6 @@ const RequestList = () => {
   const columns = [
     {
       width: 80,
-
-      // field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
         <Box sx={{ display: 'flex' }}>
@@ -406,36 +414,25 @@ const RequestList = () => {
     },
 
     {
-      width: 90,
+      width: 100,
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility?.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
-
-    // {
-    //   width: 4,
-    //   field: 'priority',
-    //   headerName: '',
-    //   headerAlign: 'left',
-    //   textAlign: 'center',
-    //   renderCell: params => (
-    //     <Box>
-    //       {params.row.priority !== null && (
-    //         <span
-    //           style={{
-    //             width: '10px',
-    //             height: '10px',
-    //             borderRadius: '100%',
-    //             background: theme.palette.customColors.Error,
-    //             display: 'inline-block'
-    //           }}
-    //         ></span>
-    //       )}
-    //     </Box>
-    //   )
-    // },
 
     {
       width: 120,
@@ -515,25 +512,24 @@ const RequestList = () => {
     //   )
     // },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'last_shipping_date',
-    //   headerName: 'Recent shipping',
-    //   renderCell: params => (
-    //     <Typography
-    //       variant='body2'
-    //       sx={{
-    //         color: theme.palette.customColors.customHeadingTextColor,
-    //         fontSize: '14px',
-    //         fontWeight: 500,
-    //         fontFamily: 'Inter'
-    //       }}
-    //     >
-    //       {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
-    //     </Typography>
-    //   )
-    // },
+    {
+      minWidth: 160,
+      field: 'last_shipping_date',
+      headerName: 'Recent shipping',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params?.row?.last_shipping_date)}
+        </Typography>
+      )
+    },
 
     {
       minWidth: 120,
@@ -598,8 +594,14 @@ const RequestList = () => {
       field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+        <Box
+          onClick={() => {
+            routeToShipmentPage(params)
+          }}
+          variant='body2'
+          sx={{ color: 'text.primary' }}
+        >
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
             {params.row.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
@@ -647,9 +649,9 @@ const RequestList = () => {
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
               )}
-          </div>
+          </Box>
           {params.row.status === 'Cancelled' ? params.row.status : null}
-        </Typography>
+        </Box>
       )
     },
     {
@@ -658,11 +660,11 @@ const RequestList = () => {
       headerName: 'Requested by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     },
@@ -672,11 +674,11 @@ const RequestList = () => {
       headerName: 'Updated by',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.updated_by_user_name,
-            params?.row?.updated_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_updated_profile_pic}
+            user_name={params?.row?.updated_by_user_name}
+            date={params?.row?.updated_at}
+          />
         </>
       )
     }
@@ -705,7 +707,7 @@ const RequestList = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                justifyContent: 'space-between', // Space between title and button
+                justifyContent: 'space-between',
                 alignItems: 'center'
 
                 // px: { xs: 2, md: 5 }, // Responsive padding
@@ -728,21 +730,6 @@ const RequestList = () => {
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px',
-
-                  // ml: { sm: 4.5},
-                  width: { xs: '100%', md: '290px' },
-                  marginBottom: { xs: 2, md: 0 }
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
               <TextField
                 variant='outlined'
                 size='small'
@@ -750,16 +737,18 @@ const RequestList = () => {
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  )
-                }}
                 sx={{
                   borderRadius: '8px',
                   width: { xs: '100%', md: '290px' }
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
               />
               {/* </Box> */}
@@ -781,7 +770,7 @@ const RequestList = () => {
                 {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
-                    xs={12}
+                    size={{ xs: 12 }}
                     sx={{
                       maxWidth: { xs: '100%', md: '250px' },
                       width: '100%',
@@ -796,7 +785,7 @@ const RequestList = () => {
                         label='Filter by Stores'
                         onChange={e => {
                           setTotal(0)
-                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setPaginationModel({ page: 0, pageSize: 50 })
                           setFilterByStoreId(e.target.value)
                           setSearchValue('')
                         }}
@@ -815,8 +804,7 @@ const RequestList = () => {
                 {/* Filter by Days */}
                 <Grid
                   item
-                  xs={12}
-                  md='auto'
+                  size={{ xs: 12, md: 'auto' }}
                   sx={{
                     maxWidth: { xs: '100%', md: '250px' },
                     mt: { xs: 2, md: 0 },
@@ -847,8 +835,7 @@ const RequestList = () => {
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
-                    xs={12}
-                    md='auto'
+                    size={{ xs: 12, md: 'auto' }}
                     sx={{
                       height: '48px',
                       display: 'flex',

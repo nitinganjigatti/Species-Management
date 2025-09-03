@@ -24,6 +24,7 @@ const defaultValues = {
 const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => {
   const theme = useTheme()
   const router = useRouter()
+
   const handelClose = () => {
     setIsOpen(false)
   }
@@ -59,9 +60,10 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => 
       const message =
         type === 'recipe'
           ? 'Recipe name should be unique. Please enter a different name.'
-          : 'Combo name should be unique. Please enter a different name.'
+          : 'Mix name should be unique. Please enter a different name.'
 
       Toaster({ type: 'error', message })
+
       return
     }
 
@@ -87,7 +89,6 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => 
           gap: '24px'
         }}
       >
-        {console.log(type, 'type')}
         <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%' }}>
           <Box
             className='sidebar-header'
@@ -106,7 +107,7 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => 
                 icon='material-symbols-light:add-notes-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'> {type === 'combo' ? 'Update Combo Name' : 'Update Recipe Name'}</Typography>
+              <Typography variant='h6'> {type === 'combo' ? 'Update Mix Name' : 'Update Recipe Name'}</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={() => handelClose()} sx={{ color: 'text.primary' }}>
@@ -124,7 +125,7 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => 
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
-                    label={type === 'combo' ? 'Combo Name' : 'Recipe Name'}
+                    label={type === 'combo' ? 'Mix Name' : 'Recipe Name'}
                     value={value}
                     onChange={onChange}
                     focused={value !== ''}

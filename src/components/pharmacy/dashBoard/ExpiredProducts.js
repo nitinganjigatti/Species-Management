@@ -26,7 +26,6 @@ const ExpiredProducts = () => {
   const getProductsList = async () => {
     try {
       const result = await getExpiredStocks()
-      console.log(result, 'result')
       if (result?.success === true && result?.data?.list_items?.length > 0) {
         setProductsList(result?.data?.list_items)
       }

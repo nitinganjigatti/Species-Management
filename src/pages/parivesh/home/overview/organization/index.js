@@ -38,7 +38,7 @@ const Organization = () => {
   const { selectedParivesh } = usePariveshContext()
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('accepted_on')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [dialog, setDialog] = useState(false)
@@ -50,10 +50,10 @@ const Organization = () => {
     return data
   }
 
-  const handleChange = (event, newValue) => {
-    setTotal(0)
-    setValue(newValue)
-  }
+  // const handleChange = (event, newValue) => {
+  //   setTotal(0)
+  //   setValue(newValue)
+  // }
 
   const onClose = () => {
     setDialog(false)
@@ -76,6 +76,7 @@ const Organization = () => {
 
         await getBatchListSpecies({ params: params }).then(res => {
           console.log('responseqq', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.data.map((el, i) => {
             return { ...el, id: i + 1 }
@@ -254,10 +255,12 @@ const Organization = () => {
     } else {
       return
     }
+
     // const { id, batch_id } = params.row
     // Router.push(`/parivesh/home/${batch_id}/batch-details`)
     // console.log(params, 'params')
   }
+
   const tableData = () => {
     return (
       <>

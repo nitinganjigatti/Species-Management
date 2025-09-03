@@ -182,7 +182,7 @@ const MealGroupReport = () => {
 
   return (
     <Grid container spacing={6}>
-      <Grid item xs={12}>
+      <Grid item size={{ xs: 12 }}>
         <Card>
           <CardHeader title={RenderUtility.pageTitle('Meal Group Reports')} />
           <CardContent>
@@ -201,18 +201,18 @@ const MealGroupReport = () => {
                 spacing={4}
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
-                <Grid item xs={12} sm={6} md={4}>
+                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
                   <SingleDatePicker
                     date={selectedDate}
                     onChangeHandler={handleDateChange}
-                    maxDate={addDays(new Date(), 6)}
+                    maxDate={addDays(new Date(), 7)}
                     name='Select Date'
                     minDate={new Date()}
                     dateFormat='dd-MM-yyyy'
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={4}>
+                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
                   <Grid
                     item
                     sx={{

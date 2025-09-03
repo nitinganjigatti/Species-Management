@@ -39,7 +39,6 @@ import { addSuppliers } from 'src/lib/api/pharmacy/addSupplier'
 import { getStates } from 'src/lib/api/pharmacy/getStates'
 import { getSupplierById, updateSuppliersById } from 'src/lib/api/pharmacy/getSupplierList'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 import Utility from 'src/utility'
 
 const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
@@ -66,7 +65,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
 
     email: yup.string().test('valid-email', 'Invalid email format', function (value) {
       if (!value) {
-        return true // Email is not required, so no validation needed
+        return true
       }
 
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -79,7 +78,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       .nullable()
       .test('valid-phone', 'Enter valid phone number', function (value) {
         if (!value) {
-          return true // Allow null or empty values
+          return true
         }
         const regex = /^(?:(?:\+91|91|0)?[6-9]\d{9})$/
 
@@ -202,7 +201,6 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
     try {
       const response = await updateSuppliersById(payload, id)
       if (response?.success) {
-        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         toast.success(response.data)
         setSubmitLoader(true)
         reset(defaultValues)
@@ -211,12 +209,8 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
         setSubmitLoader(false)
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
-
-          // setOpenSnackbar({ ...openSnackbar, open: true, message: message, severity: 'error' })
         } else {
           toast.error(response.message)
-
-          // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
         }
       }
     } catch (e) {
@@ -231,13 +225,11 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       const response = await addSuppliers(payload)
 
       if (response?.success) {
-        // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         toast.success(response.data)
         setSubmitLoader(true)
         reset(defaultValues)
 
-        // This for adding supplier from the inventory page
-        if (supplierDialog) {
+         if (supplierDialog) {
           closeSupplierDialog()
         } else {
           Router.push('/pharmacy/masters/supplier/supplier-list')
@@ -312,7 +304,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
         <CardContent>
           <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
             <Grid container spacing={5}>
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='company_name'
@@ -335,7 +327,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='name'
@@ -348,7 +340,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='mobile'
@@ -372,7 +364,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.state_id)} id='state_id'>
                     State*
@@ -404,7 +396,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='gst_number'
@@ -427,7 +419,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='email'
@@ -451,7 +443,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='phone'
@@ -474,7 +466,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='description'
@@ -493,7 +485,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='address'
@@ -504,7 +496,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
                 </FormControl>
               </Grid>
 
-              {/* <Grid item xs={12}>
+              {/* <Grid item size={{xs: 12}}>
             <FormControl fullWidth>
               <Controller
                 name='opening_balance'
@@ -525,7 +517,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
             </FormControl>
           </Grid> */}
 
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
                   Submit
                 </LoadingButton>
@@ -543,7 +535,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   return (
     <>
       <Grid container spacing={6} className='match-height'>
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           {supplierDialog ? (
             <Grid>{supplierForm()}</Grid>
           ) : (

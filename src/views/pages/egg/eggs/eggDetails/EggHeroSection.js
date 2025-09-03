@@ -9,11 +9,12 @@ import {
   ImageListItem,
   ImageListItemBar,
   Typography,
-  Badge
+  Badge,
+  Tooltip
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-// ** Third Party Components
+
 import clsx from 'clsx'
 import moment from 'moment'
 import { useKeenSlider } from 'keen-slider/react'
@@ -28,6 +29,7 @@ import EditEggInfo from 'src/components/egg/EditEggInfo'
 import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import AllocationSlider from '../allocationSlider'
 import SpeciesIllustrationCard from 'src/views/utility/SpeciesIllustrationCard'
+import FallbackImage from 'src/views/utility/FallbackImage'
 
 const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList, handleBackButton }) => {
   const theme = useTheme()
@@ -36,13 +38,13 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
     settings: { direction }
   } = useSettings()
 
-  // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [openAllocate, setOpenAllocate] = useState(false)
   const [openDiscard, setOpenDiscard] = useState(false)
   const [allocationNurseryId, setAllocationNurseryId] = useState({})
+
   //Edit Egg info
   const [openEditDrawer, setOpenEditDrawer] = useState(false)
 
@@ -133,7 +135,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
     }
   }, [])
 
-  // internally used components
   const TimeCard = () => (
     <Box
       sx={{
@@ -146,7 +147,13 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
         alignItems: 'center'
       }}
     >
-      <Grid container gap={4} alignItems='center'>
+      <Grid
+        container
+        sx={{
+          gap: 4,
+          alignItems: 'center'
+        }}
+      >
         <Box
           sx={{
             width: '64px',
@@ -220,7 +227,13 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
         alignItems: 'center'
       }}
     >
-      <Grid container gap={4} alignItems='center'>
+      <Grid
+        container
+        sx={{
+          gap: 4,
+          alignItems: 'center'
+        }}
+      >
         <Box
           sx={{
             width: '64px',
@@ -236,36 +249,82 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
             variant='square'
           ></Avatar>
         </Box>
-        <Box>
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: '18px',
-              lineHeight: '24.2px',
-              color: theme.palette.customColors.neutralSecondary
-            }}
-          >
-            {eggDetails?.assessments_data &&
-              (eggDetails?.assessments_data?.length === 0
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Tooltip
+            title={
+              eggDetails?.assessments_data?.length === 0
                 ? 'Not Added'
-                : eggDetails?.assessments_data[0]?.assessment_value + ' ' + eggDetails?.assessments_data[0]?.uom_abbr)}
-          </Typography>
-
-          <Typography
-            sx={{
-              fontWeight: 600,
-              fontSize: { xs: '14px', md: '14px', lg: '13px', xl: '14px' },
-              lineHeight: '16.94px',
-              color:
-                eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
-                  ? theme.palette.primary.main
-                  : displayTextColor
-            }}
+                : (() => {
+                    const value = Number(eggDetails?.assessments_data[0]?.assessment_value)
+                    if (value >= 1e6) {
+                      return `${value.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                    } else {
+                      return `${value.toFixed(2)} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                    }
+                  })()
+            }
+            placement='top'
           >
-            {eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
-              ? 'Current weight'
-              : displayText}
-          </Typography>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '18px',
+                lineHeight: '24.2px',
+                color: theme.palette.customColors.neutralSecondary,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '200px'
+              }}
+            >
+              {eggDetails?.assessments_data &&
+                (eggDetails?.assessments_data?.length === 0
+                  ? 'Not Added'
+                  : (() => {
+                      const value = Number(eggDetails?.assessments_data[0]?.assessment_value)
+                      if (value >= 1e6) {
+                        return `${value.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                      } else {
+                        return `${value.toFixed(2)} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                      }
+                    })())}
+            </Typography>
+          </Tooltip>
+
+          <Tooltip
+            title={
+              eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
+                ? 'Current weight'
+                : displayText
+            }
+            placement='top'
+          >
+            <Typography
+              sx={{
+                fontWeight: 600,
+                fontSize: { xs: '14px', md: '14px', lg: '13px', xl: '14px' },
+                lineHeight: '16.94px',
+                color:
+                  eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
+                    ? theme.palette.primary.main
+                    : displayTextColor,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '200px'
+              }}
+            >
+              {eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
+                ? 'Current weight'
+                : displayText}
+            </Typography>
+          </Tooltip>
         </Box>
       </Grid>
     </Box>
@@ -401,10 +460,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                 pr: { xl: '24px', lg: '10px', md: '24px', alignSelf: eggDetails?.egg_images?.length ? 'end' : '' }
               }}
               item
-              xs={12}
-              md={6}
-              lg={2.7}
-              xl={3}
+              size={{ xs: 12, md: 6, lg: 2.7, xl: 3 }}
             >
               <Box
                 sx={{
@@ -415,51 +471,108 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                 }}
               >
                 {eggDetails?.egg_images?.length ? (
-                  <KeenSliderWrapper>
-                    <>
-                      <Box sx={{ position: 'relative' }} className='navigation-wrapper'>
-                        <Box sx={{ position: 'absolute' }} ref={sliderRef} className='keen-slider'>
-                          {eggDetails?.egg_images?.map(item => (
-                            <Box key={item?.id} className='keen-slider__slide'>
-                              <ImageListItem>
-                                <img
-                                  src={item?.egg_image || eggDetails?.default_icon}
-                                  alt={item?.default_common_name}
-                                  loading='lazy'
-                                />
-                                <ImageListItemBar
+                  <KeenSliderWrapper style={{ height: '100%' }}>
+                    <Box sx={{ position: 'relative', height: '100%' }} className='navigation-wrapper'>
+                      <Box sx={{ position: 'absolute', height: '100%' }} ref={sliderRef} className='keen-slider'>
+                        {eggDetails?.egg_images?.map(item => (
+                          <ImageListItem
+                            key={item?.id}
+                            className='keen-slider__slide'
+                            sx={{
+                              borderRadius: '8px',
+                              width: '100%',
+                              height: '100%',
+                              aspectRatio: '15/9',
+                              position: 'relative'
+                            }}
+                          >
+                            <FallbackImage
+                              sx={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '8px',
+                                objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover'
+                              }}
+                              src={item?.egg_image || eggDetails?.default_icon}
+                              alt={item?.default_common_name || eggDetails?.default_common_name}
+                              loading='lazy'
+                            />
+                            <Box
+                              sx={{
+                                borderBottomRightRadius: '8px',
+                                borderBottomLeftRadius: '8px',
+                                position: 'relative',
+                                bottom: '57px',
+                                backgroundColor: theme.palette.customColors.neutralTeritary,
+                                py: '8px',
+                                px: '12px',
+                                gap: '4px',
+                                display: 'flex',
+                                flexDirection: 'column'
+                              }}
+                            >
+                              <Tooltip title={item?.default_common_name ? item?.default_common_name : 'Unknown'}>
+                                <Typography
+                                  sx={{
+                                    fontSize: '16px',
+                                    fontWeight: 500,
+                                    lineHeight: '19.36px',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    color: theme.palette.primary.contrastText
+                                  }}
+                                >
+                                  {item?.default_common_name ? item?.default_common_name : 'Unknown'}
+                                </Typography>
+                              </Tooltip>
+                              <Tooltip title={item?.complete_name ? item?.complete_name : 'Unknown'}>
+                                <Typography
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 400,
+                                    lineHeight: '16.94px',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    color: theme.palette.primary.contrastText
+                                  }}
+                                >
+                                  {item?.complete_name ? item?.complete_name : 'Unknown'}
+                                </Typography>
+                              </Tooltip>
+                            </Box>
+                            {/* <ImageListItemBar
                                   sx={{ pb: 5 }}
                                   title={item?.default_common_name ? item?.default_common_name : 'Unknown'}
                                   subtitle={item?.complete_name ? item?.complete_name : 'Unknown'}
-                                />
-                              </ImageListItem>
-                            </Box>
-                          ))}
-                        </Box>
-                        <Box sx={{ width: '100%', position: 'absolute', bottom: 14 }} className='swiper-dots'>
-                          {loaded && instanceRef.current && (
-                            <Box className='swiper-dots'>
-                              {[...Array(instanceRef.current.track.details.slides.length).keys()].map(idx => {
-                                return (
-                                  <Badge
-                                    key={idx}
-                                    variant='dot'
-                                    component='div'
-                                    className={clsx({
-                                      active: currentSlide === idx
-                                    })}
-                                    style={{ backgroundColor: theme.palette.primary.contrastText }}
-                                    onClick={() => {
-                                      instanceRef.current?.moveToIdx(idx)
-                                    }}
-                                  ></Badge>
-                                )
-                              })}
-                            </Box>
-                          )}
-                        </Box>
+                                /> */}
+                          </ImageListItem>
+                        ))}
                       </Box>
-                    </>
+                      <Box sx={{ width: '100%', position: 'absolute', bottom: 14 }} className='swiper-dots'>
+                        {loaded && instanceRef.current && instanceRef.current.track?.details?.slides && (
+                          <Box className='swiper-dots'>
+                            {[...Array(instanceRef.current.track.details.slides.length).keys()].map(idx => {
+                              return (
+                                <Badge
+                                  key={idx}
+                                  variant='dot'
+                                  component='div'
+                                  className={clsx({
+                                    active: currentSlide === idx
+                                  })}
+                                  style={{ backgroundColor: theme.palette.primary.contrastText }}
+                                  onClick={() => {
+                                    instanceRef.current?.moveToIdx(idx)
+                                  }}
+                                ></Badge>
+                              )
+                            })}
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
                   </KeenSliderWrapper>
                 ) : (
                   <SpeciesIllustrationCard eggDetails={eggDetails} theme={theme} />
@@ -472,10 +585,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                 height: '100%',
                 py: { xs: '24px', sm: '24px', md: '0px', lg: '0px', xl: '0px' }
               }}
-              xs={12}
-              md={6}
-              lg={9.3}
-              xl={9}
+              size={{ xs: 12, md: 6, lg: 9.3, xl: 9 }}
               item
             >
               <Box
@@ -581,16 +691,18 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
               </Box>
               <Grid
                 container
-                gap={{ xs: '24px', sm: '16px', md: '16px', lg: '0px', xl: '2px', xxl: '2px' }}
-                sx={{ justifyContent: 'space-between' }}
+                sx={{
+                  gap: { xs: '24px', sm: '16px', md: '16px', lg: '0px', xl: '2px', xxl: '2px' },
+                  justifyContent: 'space-between'
+                }}
               >
-                <Grid item xl={3.75} lg={3.9} md={12} sm={5.8} xs={12}>
+                <Grid item size={{ xs: 12, sm: 5.8, md: 12, lg: 3.9, xl: 3.75 }}>
                   <TimeCard />
                 </Grid>
-                <Grid item xl={3.75} lg={3.9} md={12} sm={5.8} xs={12}>
+                <Grid item size={{ xs: 12, sm: 5.8, md: 12, lg: 3.9, xl: 3.75 }}>
                   <WeightCard />
                 </Grid>
-                <Grid item xl={3.75} lg={3.9} xs={12}>
+                <Grid item xl={3.75} lg={3.9} size={{ xs: 12, lg: 3.9, xl: 3.75 }}>
                   <ConditionCard />
                 </Grid>
               </Grid>
@@ -598,7 +710,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
           </Grid>
         </CardContent>
       </Card>
-
       {openDrawer && (
         <ConditionSlider
           GetGalleryImgList={GetGalleryImgList}
@@ -610,7 +721,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
           getActivityLogsFunc={getActivityLogsFunc}
         />
       )}
-
       {openAllocate && (
         <AllocationSlider
           getDetails={getDetails}
@@ -619,7 +729,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
           allocateEggId={eggDetails?.egg_id}
         />
       )}
-
       <DiscardForm
         GetGalleryImgList={GetGalleryImgList}
         getDetails={getDetails}
@@ -627,7 +736,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
         setIsOpen={setOpenDiscard}
         eggID={eggDetails?.egg_id}
       />
-
       {openEditDrawer && (
         <EditEggInfo
           openEditDrawer={openEditDrawer}

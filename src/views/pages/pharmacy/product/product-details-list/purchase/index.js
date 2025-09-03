@@ -27,6 +27,7 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import { getPurchaseDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { v4 as uuidv4 } from 'uuid'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const formatDate = dateString => {
   const date = new Date(dateString)
@@ -69,7 +70,6 @@ function Purchase({ tabValue, updateUrlParams }) {
 
   useEffect(() => {
     if (router.query.tab !== tabValue) {
-      // debugger
       setPaginationModel({ page: 0, pageSize: 10 })
       setSortColumn('po_date')
       setSort('desc')
@@ -137,9 +137,9 @@ function Purchase({ tabValue, updateUrlParams }) {
       )
     },
     {
-      width: 130,
+      width: 200,
       field: 'unit_price',
-      headerName: 'UNIT PRICE (₹)',
+      headerName: 'NET UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -272,48 +272,18 @@ function Purchase({ tabValue, updateUrlParams }) {
         </>
       )
     },
-    {
-      width: 200,
 
-      // field: 'veterinarian',
-      // headerName: 'VETERINARIAN',
+    {
+      minWidth: 250,
       field: 'created_by_user_name',
       headerName: 'created by',
-
       renderCell: params => (
         <>
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit: 'contain'
-              },
-              width: 40,
-              height: 40,
-              mr: 4
-            }}
-            variant='circular'
-            alt={params?.row?.user_created_profile_pic}
-            src={params?.row?.user_created_profile_pic}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
           />
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.created_by_user_name}
-            <Typography
-              sx={{
-                fontSize: '12px',
-                fontWeight: 400
-              }}
-            >
-              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
-            </Typography>
-          </Typography>
         </>
       )
     }
@@ -334,10 +304,8 @@ function Purchase({ tabValue, updateUrlParams }) {
           limit: paginationModel.pageSize
         }
 
-        // Call the API to fetch data with the sorting and other params
         await getPurchaseDetailsList(params, id).then(res => {
           if (res?.success) {
-            console.log(res, 'res')
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
             updateUrlParams({
@@ -451,7 +419,6 @@ function Purchase({ tabValue, updateUrlParams }) {
         to_date: formattedEndDate
       })
     } else {
-      // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
       setFilterDates({
         startDate: '',
         endDate: ''
@@ -470,8 +437,8 @@ function Purchase({ tabValue, updateUrlParams }) {
     <>
       <Grid
         container
-        gap={5}
         sx={{
+          gap: 5,
           mt: 5,
           flexWrap: 'wrap',
           display: 'flex',
@@ -479,10 +446,10 @@ function Purchase({ tabValue, updateUrlParams }) {
           alignItems: 'center'
         }}
       >
-        <Grid item xs={12} sm={12} md='auto' lg='auto' sx={{ width: '100%' }}>
+        <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto' }} sx={{ width: '100%' }}>
           <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
         </Grid>
-        <Grid item xs={12} sm={12} md={3} lg={3}>
+        <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
           <Box
             sx={{
               display: 'flex',
@@ -514,7 +481,6 @@ function Purchase({ tabValue, updateUrlParams }) {
           </Box>
         </Grid>
       </Grid>
-
       <Grid>
         <CommonTable
           onRowClick={onRowClick}

@@ -1,13 +1,45 @@
 import { Box } from '@mui/system'
 import React from 'react'
-import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
 import { IconButton, Divider, Typography } from '@mui/material'
+import {
+  CheckCircle as SuccessIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Close as CloseIcon
+} from '@mui/icons-material'
 
 const Toaster = ({ type = 'success', message, ignoreCase = false }) => {
   function toSentenceCase(str) {
     if (!str?.trim()) return str
+
     return str?.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+  }
+
+  const getIcon = () => {
+    switch (type) {
+      case 'success':
+        return <SuccessIcon sx={{ fontSize: 28, color: '#37BD69', verticalAlign: 'middle' }} />
+      case 'warning':
+        return <WarningIcon sx={{ fontSize: 28, color: 'orange', verticalAlign: 'middle' }} />
+      case 'error':
+        return <ErrorIcon sx={{ fontSize: 28, color: 'red', verticalAlign: 'middle' }} />
+      default:
+        return null
+    }
+  }
+
+  const getTypeLabel = () => {
+    switch (type) {
+      case 'success':
+        return 'Success'
+      case 'warning':
+        return 'Warning'
+      case 'error':
+        return 'Error'
+      default:
+        return ''
+    }
   }
 
   return toast(
@@ -15,25 +47,18 @@ const Toaster = ({ type = 'success', message, ignoreCase = false }) => {
       <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Typography sx={{ fontWeight: 500, fontSize: '20px', color: '#000' }}>
-              <Icon
-                icon={
-                  type === 'success'
-                    ? 'ooui:success'
-                    : type === 'warning'
-                    ? 'ph:warning-fill'
-                    : type === 'error'
-                    ? 'material-symbols:error'
-                    : ''
-                }
-                style={{
-                  marginRight: '11px',
-                  fontSize: 28,
-                  color: type === 'success' ? '#37BD69' : type === 'warning' ? 'orange' : type === 'error' ? 'red' : '',
-                  verticalAlign: 'middle'
-                }}
-              />
-              {type === 'success' ? 'Success' : type === 'warning' ? 'Warning' : type === 'error' ? 'Error' : ''}
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '20px',
+                color: '#000',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '11px'
+              }}
+            >
+              {getIcon()}
+              {getTypeLabel()}
             </Typography>
             <Divider sx={{ my: 2, width: '360px' }} />
             <Typography sx={{ fontWeight: 400, color: '#44544A', fontSize: '14px' }}>
@@ -45,7 +70,7 @@ const Toaster = ({ type = 'success', message, ignoreCase = false }) => {
           onClick={() => toast.dismiss(t.id)}
           style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
         >
-          <Icon icon='mdi:close' fontSize={24} />
+          <CloseIcon sx={{ fontSize: 24 }} />
         </IconButton>
       </Box>
     ),

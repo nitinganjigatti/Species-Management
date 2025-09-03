@@ -100,7 +100,7 @@ const AddIngredient = () => {
   }
 
   const schema = yup.object().shape({
-    ingredientName: yup.string().required('Ingredient Name is Required'),
+    ingredientName: yup.string().required('Item Name is Required'),
     feedType: yup.string().nullable().required('Feed Type is Required'),
 
     // uom: yup.string().nullable().required('UOM is Required'),
@@ -151,17 +151,14 @@ const AddIngredient = () => {
           })
           setValue('waterPercentage', res?.data?.water_percentage)
           setValue('dryMatterPercentage', res?.data?.water_dry_matter)
-          setValue('nutritionalValuesPer', res?.data?.standard_unit)
+          setValue('nutritionalValuesPer', res?.data?.standard_unit || '')
 
-          // console.log('res?.data?.standard_unit', res?.data?.standard_unit)
-          // console.log('res?.data?.uom', res?.data?.uom)
-          // console.log('res?', res)
           setDefaultUom({
             id: res?.data?.uom_id,
-            name: res?.data?.uom
+            name: res?.data?.uom || ''
           })
           setValue('uom', res?.data?.uom_id)
-          setValue('calorie', res?.data?.calorie)
+          setValue('calorie', res?.data?.calorie || '')
           setValue('description', res?.data?.desc)
           setValue('ingredientImg', res?.data?.image === null || undefined || '' ? '' : res?.data?.image)
           setImgSrc(res?.data?.image === null || undefined || '' ? '' : res?.data?.image)
@@ -341,7 +338,7 @@ const AddIngredient = () => {
         await updateIngredients(payload, id).then(res => {
           setSubmitLoader(false)
           if (res?.success) {
-            Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
+            Toaster({ type: 'success', message: 'Items' + ' ' + res?.message })
 
             // Router.push({ pathname: `/diet/ingredient` })
 
@@ -363,7 +360,7 @@ const AddIngredient = () => {
         await addIngredients(payload).then(res => {
           if (res?.success) {
             setSubmitLoader(false)
-            Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
+            Toaster({ type: 'success', message: 'Items' + ' ' + res?.message })
 
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
 
@@ -462,9 +459,15 @@ const AddIngredient = () => {
           <Box>
             <Breadcrumbs aria-label='breadcrumb'>
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/ingredient')}>
-                Ingredients
+                Items
               </Typography>
-              <Typography color='text.primary'>{id ? 'Update' : 'Add'} new ingredient</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                {id ? 'Update' : 'Add'} new item
+              </Typography>
             </Breadcrumbs>
           </Box>
           {loading ? (
@@ -476,13 +479,13 @@ const AddIngredient = () => {
               <Card sx={{ mt: 3 }}>
                 <CardHeader
                   sx={{ paddingBottom: 0, marginX: 1 }}
-                  title={id ? 'Update Ingredient' : 'Add New Ingredient'}
+                  title={id ? 'Update Item' : 'Add New Item'}
                   action={id ? headerAction : null}
                 />
                 <CardContent>
                   <Typography sx={{ width: '70%', fontSize: 14 }}>
-                    Please provide the standard unit, unit of measurement, water percentage, and dry ingredient
-                    proportions for this ingredient prior to processing.
+                    Please provide the standard unit, unit of measurement, water percentage, and dry item proportions
+                    for this item prior to processing.
                   </Typography>
                   <Box sx={{ my: '24px' }}>
                     <Divider />
@@ -507,10 +510,10 @@ const AddIngredient = () => {
 
                   <Box>
                     <Typography sx={{ mt: '32px', mb: '20px', fontSize: 20, fontWeight: 500 }}>
-                      1. Ingredient details
+                      1. Item details
                     </Typography>
                     <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
-                      <Grid item xs={12} sm={3.9} md={3.9}>
+                      <Grid size={{ xs: 12, md: 3.9, sm: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='ingredientName'
@@ -518,10 +521,10 @@ const AddIngredient = () => {
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                label='Ingredient Name *'
+                                label='Item Name *'
                                 value={value}
                                 onChange={onChange}
-                                placeholder='Ingredient Name'
+                                placeholder='Item Name'
                                 error={Boolean(errors.ingredientName)}
                                 name='ingredientName'
                               />
@@ -535,7 +538,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={3.9} md={3.9}>
+                      <Grid size={{ xs: 12, md: 3.9, sm: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='ingredientAlias'
@@ -543,7 +546,7 @@ const AddIngredient = () => {
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                label='Ingredient Alias'
+                                label='Item Alias'
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Ingredient Alias'
@@ -554,7 +557,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={3.9} md={3.9}>
+                      <Grid size={{ xs: 12, md: 3.9, sm: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='feedType'
@@ -600,7 +603,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={5.9} md={5.9}>
+                      <Grid size={{ xs: 12, md: 5.9, sm: 5.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='waterPercentage'
@@ -615,10 +618,12 @@ const AddIngredient = () => {
                                   onChange(e.target.value)
                                   handleKeyUp(value)
                                 }}
-                                inputProps={{ min: 0, max: 100 }}
                                 placeholder='Percentage(%) of water'
                                 error={Boolean(errors.waterPercentage)}
                                 name='waterPercentage'
+                                slotProps={{
+                                  htmlInput: { min: 0, max: 100 }
+                                }}
                               />
                             )}
                           />
@@ -630,7 +635,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={5.9} md={5.9}>
+                      <Grid size={{ xs: 12, md: 5.9, sm: 5.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='dryMatterPercentage'
@@ -645,10 +650,12 @@ const AddIngredient = () => {
                                   onChange(e.target.value)
                                   handleKeyUp(value)
                                 }}
-                                inputProps={{ min: 0, max: 100 }}
                                 placeholder='Percentage(%) of dry matter'
                                 error={Boolean(errors.dryMatterPercentage)}
                                 name='dryMatterPercentage'
+                                slotProps={{
+                                  htmlInput: { min: 0, max: 100 }
+                                }}
                               />
                             )}
                           />
@@ -668,7 +675,7 @@ const AddIngredient = () => {
 
                     <Typography sx={{ my: '20px', fontSize: 20, fontWeight: 500 }}>2. Calories</Typography>
                     <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
-                      <Grid item xs={12} md={3.9}>
+                      <Grid size={{ xs: 12, md: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='nutritionalValuesPer'
@@ -676,7 +683,6 @@ const AddIngredient = () => {
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                inputProps={{ min: 0 }}
                                 type='number'
                                 label='Enter nutritional values per'
                                 value={value}
@@ -684,6 +690,9 @@ const AddIngredient = () => {
                                 placeholder='Enter nutritional values per'
                                 error={Boolean(errors.nutritionalValuesPer)}
                                 name='nutritionalValuesPer'
+                                slotProps={{
+                                  htmlInput: { min: 0 }
+                                }}
                               />
                             )}
                           />
@@ -694,7 +703,7 @@ const AddIngredient = () => {
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} md={3.9}>
+                      <Grid size={{ xs: 12, md: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='uom'
@@ -735,7 +744,7 @@ const AddIngredient = () => {
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} md={3.9}>
+                      <Grid size={{ xs: 12, md: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='calorie'
@@ -744,13 +753,15 @@ const AddIngredient = () => {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='number'
-                                inputProps={{ min: 0 }}
                                 label='Enter total calories'
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Enter total calories'
                                 error={Boolean(errors.calorie)}
                                 name='calorie'
+                                slotProps={{
+                                  htmlInput: { min: 0 }
+                                }}
                               />
                             )}
                           />
@@ -769,7 +780,7 @@ const AddIngredient = () => {
                     <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>3. Description</Typography>
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item xs={12}>
+                      <Grid size={{ xs: 12 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='description'
@@ -806,7 +817,7 @@ const AddIngredient = () => {
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
                       {imgSrc !== '' ? null : (
-                        <Grid item xs={12} sm={9} md={5.9}>
+                        <Grid size={{ xs: 12, md: 5.9, sm: 9 }}>
                           <input
                             type='file'
                             accept='image/*'
@@ -835,7 +846,7 @@ const AddIngredient = () => {
                           </Box>
                         </Grid>
                       )}
-                      <Grid item md={5.9}>
+                      <Grid size={{ md: 5.9 }}>
                         {imgSrc !== '' && (
                           <Box sx={{ display: 'flex' }}>
                             <Box
@@ -871,7 +882,7 @@ const AddIngredient = () => {
                               >
                                 <Icon
                                   icon='material-symbols-light:close'
-                                  color='#fff'
+                                  color={theme.palette.common.white}
                                   onClick={() => removeSelectedImage()}
                                 >
                                   {' '}
@@ -910,7 +921,7 @@ const AddIngredient = () => {
                     </Box>
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item xs={12}>
+                      <Grid size={{ xs: 12 }}>
                         <FormControl sx={{ mb: 6 }} fullWidth>
                           <Controller
                             name='preprationTypes'
@@ -942,7 +953,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
                     </Grid>
-                    <Grid item xs={12} sm={12} md={5}>
+                    <Grid size={{ xs: 12, md: 5, sm: 12 }}>
                       <Grid
                         sx={{
                           height: '100%',

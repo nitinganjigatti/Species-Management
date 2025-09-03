@@ -286,7 +286,12 @@ const Diagnosis = () => {
         <Typography sx={{ cursor: 'pointer' }} color='inherit'>
           Medical
         </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+        <Typography
+          sx={{
+            color: 'text.primary',
+            cursor: 'pointer'
+          }}
+        >
           Category
         </Typography>
       </Breadcrumbs>
@@ -296,7 +301,7 @@ const Diagnosis = () => {
         <DataGrid
           hideFooterPagination={true}
           sx={{
-            '.MuiDataGrid-cell:focus': {
+            '.MuiDataGrid-cell:focus-within': {
               outline: 'none'
             },
 

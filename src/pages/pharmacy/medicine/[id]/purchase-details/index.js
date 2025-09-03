@@ -116,7 +116,7 @@ function PurchaseDetails() {
     {
       width: 180,
       field: 'purchase_unit_price',
-      headerName: 'UNIT PRICE (₹)',
+      headerName: 'NET UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -175,7 +175,6 @@ function PurchaseDetails() {
         // limit: paginationModel.pageSize
       }
 
-      // Call the API to fetch data with the sorting and other params
       await getPurchaseBatchDetailsList(p_id, params).then(res => {
         if (res?.success) {
           setTotal(parseInt(res?.data?.purchase_detailss?.length))
@@ -252,15 +251,18 @@ function PurchaseDetails() {
       <Card sx={{ p: 4 }}>
         <Grid
           container
-          sm={12}
-          xs={12}
+          size={{ xs: 12, sm: 12 }}
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}
         >
-          <Grid item xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+          <Grid
+            item
+            size={{ xs: 12, sm: 12 }}
+            sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}
+          >
             <CardHeader
               avatar={
                 <Icon

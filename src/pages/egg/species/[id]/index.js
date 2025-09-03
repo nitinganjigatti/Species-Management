@@ -30,9 +30,11 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import ClearIcon from '@mui/icons-material/Clear'
 import { styled } from '@mui/material/styles'
 import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
+import { useTheme } from '@emotion/react'
 
 const SpeciesDetail = () => {
   const router = useRouter()
+  const theme = useTheme()
   let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const { id, animal_id } = router.query
   const authData = useContext(AuthContext)
@@ -72,7 +74,7 @@ const SpeciesDetail = () => {
       })
     } catch (error) {
       setLoader(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -120,7 +122,7 @@ const SpeciesDetail = () => {
         })
         setLoading(false)
       } catch (error) {
-        console.log(error)
+        console.error(error)
         setLoading(false)
       }
     },
@@ -186,7 +188,7 @@ const SpeciesDetail = () => {
         setEggStatusList(res?.data?.egg_status)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -201,11 +203,11 @@ const SpeciesDetail = () => {
         limit: 50
       }
       await GetSectionList({ params: params }).then(res => {
-        console.log(res, 'res')
+        // console.log(res, 'res')
         setEggSectionList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -220,11 +222,11 @@ const SpeciesDetail = () => {
         limit: 50
       }
       await GetSectionList({ params: params }).then(res => {
-        console.log(res, 'res')
+        // console.log(res, 'res')
         setEggEnclosureList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -239,11 +241,11 @@ const SpeciesDetail = () => {
         limit: 50
       }
       await GetSectionList({ params: params }).then(res => {
-        console.log(res, 'res')
+        // console.log(res, 'res')
         setSiteList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -320,6 +322,7 @@ const SpeciesDetail = () => {
         'Collection On',
         'Ley Date',
         'Collected by'
+
         // Add more labels as needed
       ]
 
@@ -390,7 +393,7 @@ const SpeciesDetail = () => {
               <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
                 {params.row.user_full_name}
               </Typography>
-              {console.log(params, 'params')}
+              {/* {console.log(params, 'params')} */}
               <Typography
                 noWrap
                 variant='body2'
@@ -496,7 +499,8 @@ const SpeciesDetail = () => {
           </Typography>
         )
       }
-      console.log(customData, 'customData')
+      // console.log(customData, 'customData')
+
       const rows = customData.map(data => ({
         id: data.id,
         no: data.no,
@@ -538,7 +542,7 @@ const SpeciesDetail = () => {
   })
 
   const handleFromDateChange = date => {
-    console.log(date, 'date')
+    // console.log(date, 'date')
     setFromDate(date)
   }
 
@@ -572,7 +576,13 @@ const SpeciesDetail = () => {
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/dashboard')}>
                 Dashboard
               </Typography>
-              <Typography color='text.primary'>Species Egg Module</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                Species Egg Module
+              </Typography>
             </Breadcrumbs>
             <SpeciesfirstSection eggDetails={eggDetails} />
           </Box>
@@ -761,14 +771,15 @@ const SpeciesDetail = () => {
                     date={tillDate}
                     value={tillDate}
                     onChangeHandler={handleTillDateChange}
+
                     //disabled={!fromDate}
                   />
                 </Box>
               </Box>
             </>
-            {console.log(rows, 'rows')}
+            {/* {console.log(rows, 'rows')} */}
             <div style={rows.length > 1 ? { height: 900, width: '100%' } : { height: 400, width: '100%' }}>
-              {console.log(data, 'data')}
+              {/* {console.log(data, 'data')} */}
               <DataGrid
                 rowHeight={72}
                 rows={rows}

@@ -127,10 +127,10 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         function (value) {
           const { accessionType } = this.parent
           if (accessionType === '2') {
-            return !!value // Return true if value is not empty
+            return !!value 
           }
 
-          return true // Otherwise, always pass validation
+          return true 
         }
       ),
     accessionDate: yup.string().required('Accession date is required'),
@@ -138,6 +138,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     enclosure: yup.string().required('Enclosure is required'),
     sextype: yup.string().required('Sex type is required'),
     birthDate: yup.string().required('Birth date is required'),
+    localIdentifierType: yup.string().required('Local identifier type is required'),
     localIdentifier: yup
       .string()
       .test(
@@ -146,10 +147,10 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         function (value) {
           const { localIdentifierType } = this.parent
           if (localIdentifierType && localIdentifierType.trim() !== '') {
-            return !!value // Return true if value is not empty
+            return !!value 
           }
 
-          return true // Otherwise, always pass validation
+          return true 
         }
       ),
     enclosure_id: yup.string().required('Enclosure is required')
@@ -204,14 +205,13 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         egg_id: eggId
       }
 
-      //   console.log('payload :>> ', values)
+     
 
       const res = await createAnimal(payload)
       if (res.success) {
         setLoader(false)
         setDefaultSpecies(null)
 
-        // console.log('res on submit :>> ', res)
         reset()
         if (fetchTableData) {
           fetchTableData()
@@ -229,7 +229,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         Toaster({ type: 'error', message: res.message })
       }
 
-      // Perform any additional operations, e.g., API call
     } catch (error) {
       setLoader(false)
       console.error('Error while creating animal:', error)
@@ -418,7 +417,11 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <Box className='sidebar-body' sx={{ px: '24px', overflowY: 'auto' }}>
-              <Box mb={35}>
+              <Box
+                sx={{
+                  mb: 35
+                }}
+              >
                 <Card fullWidth sx={{ py: '20px', px: '16px' }}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller
@@ -606,22 +609,24 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                               placeholder=''
                               onClick={() => setOpen(true)}
                               disabled
-                              InputProps={{
-                                endAdornment: (
-                                  <InputAdornment position='end'>
-                                    <Icon
-                                      icon={'material-symbols:add-circle-outline'}
-                                      style={{ color: theme.palette.primary.main }}
-                                    ></Icon>
-                                  </InputAdornment>
-                                )
-                              }}
                               sx={{
                                 '& .MuiInputLabel-root': {
                                   color: 'rgba(76, 78, 100, 0.6)'
                                 },
                                 '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
                                   borderColor: errors.enclosure_id ? 'red' : undefined
+                                }
+                              }}
+                              slotProps={{
+                                input: {
+                                  endAdornment: (
+                                    <InputAdornment position='end'>
+                                      <Icon
+                                        icon={'material-symbols:add-circle-outline'}
+                                        style={{ color: theme.palette.primary.main }}
+                                      ></Icon>
+                                    </InputAdornment>
+                                  )
                                 }
                               }}
                             />
@@ -855,9 +860,11 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                             label='Enter Age'
                             name='age'
                             type='number'
-                            inputProps={{ min: 1 }}
                             onChange={onChange}
                             placeholder=''
+                            slotProps={{
+                              htmlInput: { min: 1 }
+                            }}
                           />
                         )}
                       />

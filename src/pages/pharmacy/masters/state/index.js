@@ -22,7 +22,6 @@ import { AddButton } from 'src/components/Buttons'
 
 import AddStates from 'src/views/pages/pharmacy/medicine/state/addState'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 
 import Error404 from 'src/pages/404'
 
@@ -46,7 +45,6 @@ const ListOfStates = () => {
   const [stateList, setStateList] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, status: null, code: null, short_code: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -253,13 +251,12 @@ const ListOfStates = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -466,9 +463,6 @@ const ListOfStates = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-              {/* {openSnackbar.open ? (
-                <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-              ) : null} */}
             </>
           )}
         </>

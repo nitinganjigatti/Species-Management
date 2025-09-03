@@ -21,13 +21,11 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import toast from 'react-hot-toast'
 import { LoadingButton } from '@mui/lab'
-import { ExportButton } from 'src/views/utility/render-snippets'
 
 export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
   const { data, updateMultipleStates } = useDynamicStateContext()
 
-  // Styled TabList component
   const TabLists = styled(MuiTabList)(({ theme }) => ({
     '& .MuiTabs-indicator': {
       display: 'none'
@@ -70,7 +68,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [priority, setPriority] = useState(router.query.priority || 'all')
 
@@ -82,7 +80,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [deleteFullFillId, setDeleteFullFillId] = useState(null)
   const [deleteItemLoader, setDeleteItemLoader] = useState(false)
-  const [exportLoading, setExportLoading] = useState(false)
   const [handleExport, setHandleExport] = useState(null)
 
   const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
@@ -128,13 +125,26 @@ export default function ShipmentRequests({ updateUrlParams }) {
         </Typography>
       )
     },
+
     {
-      width: 5,
+      width: 100,
       field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row?.priority)}</Box>
+      headerName: 'Priority',
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
     {
       width: 300,
@@ -166,14 +176,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
           </Tooltip>
           <Tooltip
             title={
-              params?.row?.package &&
-              params?.row?.package_qty &&
-              params?.row?.package_uom_label &&
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'
+              (params?.row?.package ||
+                params?.row?.package_qty ||
+                params?.row?.package_uom_label ||
+                params?.row?.product_form_label) &&
+              `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                params?.row?.package_uom_label
+              } ${params?.row?.product_form_label}`
             }
             placement='top'
           >
@@ -186,14 +195,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 ...RenderUtility?.getEllipsisStyleForText()
               }}
             >
-              {params?.row?.package &&
-              params?.row?.package_qty &&
-              params?.row?.package_uom_label &&
-              params?.row?.product_form_label
-                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
-                    params?.row?.package_uom_label
-                  } ${params?.row?.product_form_label}`
-                : 'NA'}
+              {(params?.row?.package ||
+                params?.row?.package_qty ||
+                params?.row?.package_uom_label ||
+                params?.row?.product_form_label) &&
+                `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                  params?.row?.package_uom_label
+                } ${params?.row?.product_form_label}`}
             </Typography>
           </Tooltip>
         </Box>
@@ -444,7 +452,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
       >
         <Grid item xs={12} sm={6} md={6}>
           <TabLists
-            container
             variant='scrollable'
             allowScrollButtonsMobile
             onChange={(event, newValue) => {
@@ -492,7 +499,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
                   label='Priority'
                   onChange={e => {
                     setPriority(e.target.value)
-                    setPaginationModel({ page: parseInt(0), pageSize: parseInt(10) })
+                    setPaginationModel({ page: 0, pageSize: 50 })
                   }}
                 >
                   <MenuItem value='all'>All</MenuItem>
@@ -519,20 +526,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
               </Button>
             </Grid>
           ) : null}
-          {shipmentTab === 'Shipped' && (
-            <Grid
-              item
-              xs={12}
-              md={6}
-              sx={{
-                display: 'flex',
-                justifyContent: { xs: 'flex-end', sm: 'flex-end' },
-                mt: { xs: 2, sm: 0 }
-              }}
-            >
-              <ExportButton loading={exportLoading} disabled={totalShippedCounts === 0} />
-            </Grid>
-          )}
         </Grid>
       </Grid>
       <TabPanel
@@ -639,21 +632,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
         }}
       >
         <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
-          <ShippedItems
-            updateUrlParams={updateUrlParams}
-            setTotalShippedCounts={setTotalShippedCounts}
-            onExportClick={exportHandler => {
-              setHandleExport(() => async () => {
-                setExportLoading(true)
-                try {
-                  await exportHandler()
-                } finally {
-                  setExportLoading(false)
-                }
-              })
-            }}
-            exportLoading={exportLoading}
-          />
+          <ShippedItems updateUrlParams={updateUrlParams} setTotalShippedCounts={setTotalShippedCounts} />
         </Card>
       </TabPanel>
     </TabContext>

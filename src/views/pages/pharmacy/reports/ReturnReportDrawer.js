@@ -184,7 +184,6 @@ const ReturnReportDrawer = ({
       }
     }
 
-    // Attach near-expiry date filters to object to send
     if (selectedOptions['Near Expiry'] && nearExpiryFilterDates.startDate && nearExpiryFilterDates.endDate) {
       filterData['nearExpiryDate'] = {
         startDate: nearExpiryFilterDates.startDate,
@@ -192,7 +191,6 @@ const ReturnReportDrawer = ({
       }
     }
 
-    //Attack Drug-Type filters to object to send
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
       filterData[selectedOptions['Drug Type']] = 1
     }
@@ -268,7 +266,7 @@ const ReturnReportDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu?.map(menu => (
               <Box
                 key={menu.id}
@@ -298,7 +296,7 @@ const ReturnReportDrawer = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',
@@ -334,9 +332,6 @@ const ReturnReportDrawer = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -344,6 +339,11 @@ const ReturnReportDrawer = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -450,7 +450,7 @@ const ReturnReportDrawer = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default ReturnReportDrawer

@@ -6,15 +6,18 @@ import Button from '@mui/material/Button'
 import { Card, CardContent, Avatar, Tooltip, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
+import { useTheme } from '@mui/material/styles'
 import 'react-credit-cards/es/styles-compiled.css'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
+  const theme = useTheme()
+
   const columns = [
     {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'Ingredient Name',
+      headerName: 'Item Name',
       renderCell: params => (
         <Tooltip title={params.row.ingredient_name}>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
@@ -27,9 +30,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'Ingredient ID',
+      headerName: 'Item ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
           {params.row.ingredient_id}
         </Typography>
       )
@@ -171,20 +174,20 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
 
   return (
     <>
-      <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
-        <Box sx={{ mb: 1, px: 5, mt: 2, float: 'left' }}>
+      <Grid container spacing={5} sx={{ px: 0, pt: 3 }}>
+        <Box sx={{ px: 5, float: 'left' }}>
           <Typography variant='h6'>Preview</Typography>
         </Box>
 
         <Grid container spacing={5}>
           {console.log(formData, 'formData')}
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mt: 0 }}>
+                <CardContent sx={{ pt: 0 }}>
                   <Grid container spacing={6}>
-                    <Grid item xs={4}>
-                      <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
+                    <Grid item size={{ xs: 4 }}>
+                      <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
                         <div
                           item
                           md={3}
@@ -251,7 +254,10 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                              <Typography
+                                variant='body2'
+                                sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}
+                              >
                                 {formData.portion_size !== '0'
                                   ? formData.portion_size + ' ' + (formData.portion_uom_name || '')
                                   : '0' + ' g'}
@@ -270,11 +276,14 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                Ingredients used
+                                Items used
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                              <Typography
+                                variant='body2'
+                                sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}
+                              >
                                 {formData.by_percentage.length + formData.by_quantity.length + ' nos'}
                               </Typography>
                             </Box>
@@ -303,7 +312,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       </Card>
                     </Grid>
 
-                    <Grid item xs={8}>
+                    <Grid item size={{ xs: 8 }}>
                       <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>Description</Typography>
                       <Typography variant='body2' sx={{ fontSize: '14px', pt: 2 }}>
                         {formData.desc ? formData.desc : 'No Description to show'}
@@ -336,7 +345,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       hideFooter={true}
                     /> */}
 
-                    <CardHeader title='Ingredient by Quantity' />
+                    <CardHeader title='Item by Quantity' sx={{ pl: 0 }} />
                     <DataGrid
                       sx={{
                         '.MuiDataGrid-cell:focus': {
@@ -372,8 +381,8 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
             </>
           </Grid>
 
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
+          <Grid item size={{ xs: 12 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12, mx: 5 }}>
               <Button
                 color='secondary'
                 variant='outlined'

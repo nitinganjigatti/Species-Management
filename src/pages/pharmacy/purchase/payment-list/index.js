@@ -23,7 +23,6 @@ const ListOfPayments = () => {
   const [paymentList, setPaymentList] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = {
     id: null,
     supplier_id: null,
@@ -115,7 +114,6 @@ const ListOfPayments = () => {
     // }
   }
 
-  /***** Drawer  */
   const getPaymentsLists = async () => {
     setLoader(true)
     const response = await getPaymentList()
@@ -128,7 +126,7 @@ const ListOfPayments = () => {
           })
         : []
 
-      // response.sort((a, b) => a.id - b.id)
+     
       setPaymentList(listWithId)
       setLoader(false)
     } else {

@@ -1,15 +1,17 @@
-import { Drawer, IconButton, Typography, TextField, Button, Box, Avatar } from '@mui/material'
 import React, { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
-import Icon from 'src/@core/components/icon'
+import { Drawer, IconButton, Typography, TextField, Button, Box, Avatar } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
-import { postComment } from 'src/lib/api/lab/getLabRequest'
-import Toaster from 'src/components/Toaster'
 import moment from 'moment'
 import { format } from 'date-fns'
 import Utility from 'src/utility'
+
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm } from 'react-hook-form'
+
+import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
+import { postComment } from 'src/lib/api/lab/getLabRequest'
 
 const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, api }) => {
   const [loading, setLoading] = useState(false)
@@ -36,7 +38,6 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
       if (res?.status) {
         setLoading(false)
         setOpenCommentSheet(false)
-        // Toaster({ type: 'success', message: res.message })
         Toaster({ type: 'success', message: isEdit ? 'Notes updated successfully' : 'Notes added successfully' })
         api()
         setIsEdit(false)
@@ -44,7 +45,7 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
     } catch (error) {
       setLoading(false)
       setIsEdit(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 

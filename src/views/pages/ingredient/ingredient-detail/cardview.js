@@ -74,7 +74,7 @@ const IngredientDetailCardview = ({
   }
 
   return (
-    <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+    <Grid item size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
         <div
           item
@@ -156,52 +156,56 @@ const IngredientDetailCardview = ({
               </Typography>
             </Box>
           </Box>
-          <Box
-            sx={{
-              width: '100%',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              my: 3
-            }}
-          >
-            <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
-              <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                Unit of Measurement
-              </Typography>
+          {IngredientsDetailsval?.uom !== null ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                my: 3
+              }}
+            >
+              <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                  Unit of Measurement
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant='body2' sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}>
+                  {IngredientsDetailsval.uom === 'gm' ? 'Gram (g)' : IngredientsDetailsval.uom}
+                </Typography>
+              </Box>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant='body2' sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}>
-                {IngredientsDetailsval.uom === 'gm'
-                  ? 'Gram (g)'
-                  : IngredientsDetailsval.uom === null
-                  ? '-'
-                  : IngredientsDetailsval.uom}
-              </Typography>
+          ) : (
+            ''
+          )}
+          {IngredientsDetailsval.standard_unit !== '0.00' ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                my: 3
+              }}
+            >
+              <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                  Standard Unit:
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant='body2' sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}>
+                  {IngredientsDetailsval.standard_unit}
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-          <Box
-            sx={{
-              width: '100%',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              my: 3
-            }}
-          >
-            <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
-              <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                Standard Unit:
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant='body2' sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}>
-                {IngredientsDetailsval.standard_unit}
-              </Typography>
-            </Box>
-          </Box>
+          ) : (
+            ''
+          )}
         </CardContent>
       </Card>
       <DeleteDialogConfirmation

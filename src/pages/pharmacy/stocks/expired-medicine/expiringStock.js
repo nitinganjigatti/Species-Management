@@ -35,7 +35,6 @@ const ExpiringMedicine = () => {
 
   const [loader, setLoader] = useState(false)
 
-  /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -43,7 +42,7 @@ const ExpiringMedicine = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [searchTriggered, setSearchTriggered] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
@@ -135,7 +134,7 @@ const ExpiringMedicine = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, startDate, endDate, id) => {
-      if (!searchTriggered && q) return // Prevent searching unless explicitly triggered
+      if (!searchTriggered && q) return 
       try {
         setLoading(true)
         let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy?.id : id
@@ -176,7 +175,6 @@ const ExpiringMedicine = () => {
       getStoresLists()
     }
     fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, storeId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, filterDates, storeId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -221,7 +219,7 @@ const ExpiringMedicine = () => {
 
   const debouncedSearch = useCallback(
     debounce(value => {
-      setSearchTriggered(true) // Trigger the search explicitly
+      setSearchTriggered(true) 
       fetchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, storeId)
     }, 1000),
     [fetchTableData, sort, sortColumn, filterDates, selectedPharmacy]
@@ -229,11 +227,10 @@ const ExpiringMedicine = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    setSearchTriggered(false) // Ensure no search is triggered while typing
-    setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
-
+    setSearchTriggered(false)
+    setPaginationModel(prev => ({ ...prev, page: 0 })) 
     if (value.trim()) {
-      debouncedSearch(value) // Trigger the debounced search
+      debouncedSearch(value)
     }
   }
 
@@ -457,7 +454,6 @@ const ExpiringMedicine = () => {
         endDate: formattedEndDate
       })
     } else {
-      // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
       setFilterDates({
         startDate: '',
         endDate: ''
@@ -487,7 +483,6 @@ const ExpiringMedicine = () => {
               }}
               title={RenderUtility.pageTitle('About To Expire')}
 
-              // action={headerAction}
             />
             <Grid
               sx={{
@@ -498,7 +493,7 @@ const ExpiringMedicine = () => {
                 mx: { xs: 2, sm: 6, md: 6, lg: 6 }
               }}
             >
-              <Grid item xs={12} md={8} lg={8}>
+              <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
                 <TextField
                   variant='outlined'
                   size='small'
@@ -506,22 +501,24 @@ const ExpiringMedicine = () => {
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{
                     borderRadius: '8px'
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Grid>
 
               <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
                 {selectedPharmacy.type === 'central' && (
-                  <Grid item xs={12} md={4} lg={4}>
+                  <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
                     <FormControl
                       sx={{
                         width: { xs: '100%', md: 200, lg: 200 },

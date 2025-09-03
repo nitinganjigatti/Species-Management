@@ -20,24 +20,17 @@ import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
 
-// ** Icon Imports
+
 import Icon from 'src/@core/components/icon'
 
-// ** Configs
-import themeConfig from 'src/configs/themeConfig'
-
-// ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
-// ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
 
-// ** Demo Imports
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 
 import PublicLogo from 'src/components/utility/publicLogo'
 
-// ** Styled Components
 const RegisterIllustrationWrapper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(20),
   paddingRight: '0 !important',
@@ -94,7 +87,7 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 }))
 
 const Register = () => {
-  // ** States
+ 
   const [showPassword, setShowPassword] = useState(false)
 
   // ** Hooks
@@ -102,7 +95,7 @@ const Register = () => {
   const { settings } = useSettings()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
 
-  // ** Vars
+
   const { skin } = settings
   const imageSource = skin === 'bordered' ? 'auth-v2-register-illustration-bordered' : 'auth-v2-register-illustration'
 

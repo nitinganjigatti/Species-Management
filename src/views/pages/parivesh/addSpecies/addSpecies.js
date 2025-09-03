@@ -152,7 +152,6 @@ const AddSpecies = props => {
           return
         }
         const reader = new FileReader()
-
         reader.onload = () => {
           setImgSrc(reader?.result)
         }
@@ -439,7 +438,7 @@ const AddSpecies = props => {
 
           <Grid container spacing={2} sx={{ justifyContent: 'space-between', mb: 6 }}>
             {imgSrc !== '' ? null : (
-              <Grid item xs={12} sm={6} md={5.9}>
+              <Grid item size={{ xs: 12, sm: 6, md: 5.9 }}>
                 <input
                   type='file'
                   accept='image/*'
@@ -470,7 +469,7 @@ const AddSpecies = props => {
                 </Box>
               </Grid>
             )}
-            <Grid item xs={12} sm={6} md={5.9}>
+            <Grid item size={{ xs: 12, sm: 6, md: 5.9 }}>
               {imgSrc !== '' && (
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <Box
@@ -519,7 +518,7 @@ const AddSpecies = props => {
 
           <Grid container spacing={2} sx={{ justifyContent: 'space-between', mb: 6 }}>
             {coverImgSrc !== '' ? null : (
-              <Grid item xs={12} sm={6} md={5.9}>
+              <Grid item size={{ xs: 12, sm: 6, md: 5.9 }}>
                 <input
                   type='file'
                   accept='image/*'
@@ -550,7 +549,7 @@ const AddSpecies = props => {
                 </Box>
               </Grid>
             )}
-            <Grid item xs={12} sm={6} md={5.9}>
+            <Grid item size={{ xs: 12, sm: 6, md: 5.9 }}>
               {coverImgSrc !== '' && (
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <Box

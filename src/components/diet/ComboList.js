@@ -15,7 +15,6 @@ const ComboList = props => {
   const {
     addEventSidebarOpen,
     handleSidebarClose,
-    submitLoader,
     setSelectedCardCombo,
     selectedCardCombo,
     checkid,
@@ -181,7 +180,7 @@ const ComboList = props => {
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
             <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Add Combo
+              Add Mix
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -209,20 +208,7 @@ const ComboList = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <Icon
-                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                      icon={'ion:search-outline'}
-                    />
-                  ),
-                  endAdornment: searchValue && (
-                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                    </IconButton>
-                  )
-                }}
-                placeholder='Search combo'
+                placeholder='Search mix'
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -232,6 +218,24 @@ const ComboList = props => {
                     }
                   }
                 }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <Icon
+                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                        icon={'ion:search-outline'}
+                      />
+                    ),
+                    endAdornment: searchValue && (
+                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                        <Icon
+                          icon={'ion:close-outline'}
+                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                        />
+                      </IconButton>
+                    )
+                  }
+                }}
               />
             </Box>
           </Box>
@@ -239,20 +243,17 @@ const ComboList = props => {
           ''
         )}
       </Box>
-
       {/* on scroll */}
       <Box
         className=''
         sx={{
           marginTop: fromrow !== 'rowedit_combo' ? 30 : 12,
 
-          //height: fromrow !== 'rowedit_combo' ? '70%' : '80%',
-          height: fromrow !== 'rowedit_combo' ? 'calc(100vh - 220px)' : '80%',
+          height: fromrow !== 'rowedit_combo' ? 'calc(100vh - 140px)' : '80%',
           overflowY: 'auto',
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4
         }}
-        //onScroll={handleScroll}
         onScroll={fromrow !== 'rowedit_combo' ? handleScroll : undefined}
       >
         <ComboCard
@@ -277,7 +278,7 @@ const ComboList = props => {
         />
 
         {/* End Card Section */}
-        {reachedEnd ? (
+        {reachedEnd && !loading ? (
           <Box
             sx={{
               display: 'flex',

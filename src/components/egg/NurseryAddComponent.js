@@ -62,6 +62,31 @@ const NurseryAddComponent = ({
     reValidateMode: 'onChange'
   })
 
+  const onSubmit = async values => {
+    try {
+      setLoader(true)
+      const payload = {
+        nursery_name: values.nursery_name,
+        site_id: values.site_id
+      }
+      const response = editNurseryId ? await UpdateNursery(editNurseryId, payload) : await AddNursery(payload)
+
+      if (fetchTableData) fetchTableData()
+      if (callApi) callApi()
+
+      Toaster({
+        type: response.success ? 'success' : 'error',
+        message: response.message || (editNurseryId ? 'Nursery updated successfully' : 'Nursery added successfully')
+      })
+    } catch (error) {
+      console.error('Nursery submission error:', error)
+      Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
+    } finally {
+      setLoader(false)
+      setOpenDrawer(false)
+    }
+  }
+
   const RenderSidebarFooter = () => {
     return (
       <Box
@@ -107,166 +132,137 @@ const NurseryAddComponent = ({
     }
   }, [editNurseryId, editName, editSite, editSiteName, setValue])
 
-  const onSubmit = async values => {
-    try {
-      setLoader(true)
-      const payload = {
-        nursery_name: values.nursery_name,
-        site_id: values.site_id
-      }
-      const response = editNurseryId ? await UpdateNursery(editNurseryId, payload) : await AddNursery(payload)
-
-      setLoader(false)
-      setOpenDrawer(false)
-
-      if (fetchTableData) fetchTableData()
-      if (callApi) callApi()
-
-      Toaster({
-        type: response.success ? 'success' : 'error',
-        message: response.message || (editNurseryId ? 'Nursery updated successfully' : 'Nursery added successfully')
-      })
-    } catch (error) {
-      setLoader(false)
-      console.error('Error while adding/updating nursery:', error)
-      Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
-    }
-  }
-
   return (
-    <>
-      <Drawer
-        anchor='right'
-        open={openDrawer}
-        ModalProps={{ keepMounted: true }}
+    <Drawer
+      anchor='right'
+      open={openDrawer}
+      ModalProps={{ keepMounted: true }}
+      sx={{
+        '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px'
+      }}
+    >
+      <Box
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-
-          gap: '24px'
+          bgcolor: theme.palette.customColors.lightBg,
+          width: '100%',
+          height: '100%'
         }}
       >
         <Box
+          className='sidebar-header'
           sx={{
-            bgcolor: theme.palette.customColors.lightBg,
-            width: '100%',
-            height: '100%'
+            display: 'flex',
+            justifyContent: 'space-between',
+            p: theme => theme.spacing(3, 3.255, 3, 5.255),
+            px: '24px',
+            bgcolor: theme.palette.customColors.lightBg
           }}
         >
-          <Box
-            className='sidebar-header'
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              p: theme => theme.spacing(3, 3.255, 3, 5.255),
-              px: '24px',
-              bgcolor: theme.palette.customColors.lightBg
-            }}
-          >
-            <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Icon
-                style={{ marginLeft: -8 }}
-                icon='material-symbols-light:add-notes-outline-rounded'
-                fontSize={'32px'}
-              />
-              <Typography variant='h6'>{editNurseryId ? 'Edit Nursery' : 'Add Nursery'}</Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
-              </IconButton>
-            </Box>
+          <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            <Icon
+              style={{ marginLeft: -8 }}
+              icon='material-symbols-light:add-notes-outline-rounded'
+              fontSize={'32px'}
+            />
+            <Typography variant='h6'>{editNurseryId ? 'Edit Nursery' : 'Add Nursery'}</Typography>
           </Box>
 
-          {/* drower */}
-          <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-            <Box
-              sx={{
-                m: '20px',
-                px: '16px',
-                py: '24px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '24px',
-                backgroundColor: theme.palette.primary.contrastText,
-                borderRadius: '8px',
-                border: 1,
-                borderColor: theme.palette.customColors.OutlineVariant
-              }}
-            >
-              <FormControl fullWidth>
-                <Controller
-                  name='nursery_name'
-                  control={control}
-                  rules={{ required: !editNurseryId }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      label='Nursery Name*'
-                      value={value}
-                      onChange={onChange}
-                      focused={value !== ''}
-                      placeholder='Nursery Name'
-                      error={Boolean(errors.nursery_name)}
-                      name='nursery_name'
-                    />
-                  )}
-                />
-                {errors?.nursery_name && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.nursery_name?.message}</FormHelperText>
-                )}
-              </FormControl>
-
-              {/* {authData?.userData?.user?.zoos[0]?.sites.length > 0 && ( */}
-              <FormControl fullWidth>
-                <Controller
-                  name='site_id'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <Autocomplete
-                      name='site_id'
-                      value={defaultSite}
-                      disablePortal
-                      id='site_id'
-                      options={authData?.userData?.user?.zoos[0].sites}
-                      getOptionLabel={option => option.site_name}
-                      isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                      onChange={(e, val) => {
-                        if (val === null) {
-                          setDefaultSite(null)
-
-                          return onChange('')
-                        } else {
-                          setDefaultSite(val)
-                          setValue('site_id', '')
-
-                          return onChange(val.site_id)
-                        }
-                      }}
-                      renderInput={params => (
-                        <TextField
-                          {...params}
-                          label='Site *'
-                          placeholder='Search & Select'
-                          error={Boolean(errors.site_id)}
-                        />
-                      )}
-                    />
-                  )}
-                />
-                {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>}
-              </FormControl>
-              {/* )} */}
-
-              <RenderSidebarFooter />
-            </Box>
-          </form>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Box>
         </Box>
-      </Drawer>
-    </>
+
+        {/* drower */}
+        <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+          <Box
+            sx={{
+              m: '20px',
+              px: '16px',
+              py: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px',
+              backgroundColor: theme.palette.primary.contrastText,
+              borderRadius: '8px',
+              border: 1,
+              borderColor: theme.palette.customColors.OutlineVariant
+            }}
+          >
+            <FormControl fullWidth>
+              <Controller
+                name='nursery_name'
+                control={control}
+                rules={{ required: !editNurseryId }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    label='Nursery Name*'
+                    value={value}
+                    onChange={onChange}
+                    focused={value !== ''}
+                    placeholder='Nursery Name'
+                    error={Boolean(errors.nursery_name)}
+                    name='nursery_name'
+                  />
+                )}
+              />
+              {errors?.nursery_name && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.nursery_name?.message}</FormHelperText>
+              )}
+            </FormControl>
+
+            <FormControl fullWidth>
+              <Controller
+                name='site_id'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <Autocomplete
+                    name='site_id'
+                    value={defaultSite}
+                    disablePortal
+                    id='site_id'
+                    options={authData?.userData?.user?.zoos[0].sites}
+                    getOptionLabel={option => option.site_name}
+                    isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.site_id}>
+                        {option.site_name}
+                      </li>
+                    )}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultSite(null)
+                        return onChange('')
+                      } else {
+                        setDefaultSite(val)
+                        setValue('site_id', '')
+                        return onChange(val.site_id)
+                      }
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        {...params}
+                        label='Site *'
+                        placeholder='Search & Select'
+                        error={Boolean(errors.site_id)}
+                      />
+                    )}
+                  />
+                )}
+              />
+              {errors && <FormHelperText sx={{ color: 'error.main' }}>{errors?.site_id?.message}</FormHelperText>}
+            </FormControl>
+            <RenderSidebarFooter />
+          </Box>
+        </form>
+      </Box>
+    </Drawer>
   )
 }
 

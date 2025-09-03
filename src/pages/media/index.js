@@ -316,11 +316,35 @@ const Media = () => {
       ) : (
         <>
           <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Box display='flex' flexDirection='column'>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
               <Card sx={{ p: 4, mb: 6 }}>
-                <Grid container spacing={2} direction='column' alignItems='flex-start'>
-                  <Grid item xs={12} width='100%'>
-                    <Grid container justifyContent='space-between' alignItems='center'>
+                <Grid
+                  container
+                  spacing={2}
+                  direction='column'
+                  sx={{
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  <Grid
+                    item
+                    size={{ xs: 12 }}
+                    sx={{
+                      width: '100%'
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
                       <Grid item>
                         <Typography
                           variant='h6'
@@ -349,7 +373,7 @@ const Media = () => {
                       </Grid>
                     </Grid>
                   </Grid>
-                  <Grid item xs={12} sx={{ display: { xs: 'block', sm: 'none' }, width: '100%' }}>
+                  <Grid item size={{ xs: 12 }} sx={{ display: { xs: 'block', sm: 'none' }, width: '100%' }}>
                     <Button
                       size='large'
                       variant='outlined'
@@ -434,7 +458,7 @@ const Media = () => {
               >
                 <Grid container spacing={4}>
                   {filePreviews.map((group, groupIndex) => (
-                    <Grid item key={groupIndex} xs={12}>
+                    <Grid item key={groupIndex} size={{ xs: 12 }}>
                       <Typography
                         variant='subtitle1'
                         gutterBottom
@@ -449,7 +473,7 @@ const Media = () => {
                       <Grid container spacing={6}>
                         {group.media.map((media, mediaIndex) => (
                           <React.Fragment key={mediaIndex}>
-                            <Grid item xs={12} sm={6} md={4} lg={3}>
+                            <Grid item size={{ xs: 12, md: 4, sm: 6, lg: 3 }}>
                               <Card sx={{ position: 'relative', height: '100%', bgcolor: '#FFFFFF' }}>
                                 <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
                                   <Tooltip title={media?.file_original_name} arrow>

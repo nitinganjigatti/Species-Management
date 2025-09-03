@@ -118,10 +118,12 @@ const StoreWiseNewRequests = () => {
     <Card>
       <CardHeader
         title='Recent requests'
-        titleTypographyProps={{ sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }}
         action={
           <OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
         }
+        slotProps={{
+          title: { sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }
+        }}
       />
       <CardContent>
         {requestList?.length > 0 ? (
@@ -143,7 +145,7 @@ const StoreWiseNewRequests = () => {
         ) : null}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default StoreWiseNewRequests

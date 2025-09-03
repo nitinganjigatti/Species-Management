@@ -10,7 +10,9 @@ const CommonTable = ({
   paginationModel,
   handleSortModel,
   setPaginationModel,
+  pageSizeOptions,
   loading,
+  hideFooterPagination = false,
   searchValue,
   onCellClick,
   columnVisibilityModel,
@@ -20,7 +22,10 @@ const CommonTable = ({
   disablePagination = false, // New prop to control pagination
   maxHeight,
   rowHeight = 52,
-  externalTableStyle
+  externalTableStyle,
+  getRowHeight,
+  handleSearch,
+  getRowClassName // New prop for conditional row styling
 }) => {
   const theme = useTheme()
 
@@ -76,10 +81,21 @@ const CommonTable = ({
       columns={columns}
       sortingMode='server'
       rowHeight={rowHeight}
+      hideFooterPagination={hideFooterPagination}
       // paginationMode='server'
       // pageSizeOptions={[7, 10, 25, 50]}
       paginationMode={disablePagination ? undefined : 'server'}
-      pageSizeOptions={disablePagination ? [total] : [7, 10, 25, 50, 100]}
+      pageSizeOptions={
+        pageSizeOptions && pageSizeOptions.length > 0
+          ? pageSizeOptions
+          : disablePagination
+          ? [total]
+          : [7, 10, 25, 50, 100]
+      }
+      localeText={{
+        noRowsLabel: 'No rows',
+        noResultsOverlayLabel: 'No rows' // 👈 override the "No results found" case
+      }}
       onCellClick={onCellClick ? onCellClick : null}
       // paginationModel={paginationModel}
       paginationModel={disablePagination ? undefined : paginationModel}
@@ -102,6 +118,8 @@ const CommonTable = ({
       checkboxSelection={checkBoxOption ? true : false}
       onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
       rowSelectionModel={selectedRows ? selectedRows : []}
+      getRowHeight={getRowHeight ? getRowHeight : null}
+      getRowClassName={getRowClassName ? getRowClassName : undefined}
     />
   )
 }

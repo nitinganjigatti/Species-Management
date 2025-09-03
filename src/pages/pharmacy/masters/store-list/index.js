@@ -27,7 +27,6 @@ import { debounce } from 'lodash'
 import Router from 'next/router'
 import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { column, position } from 'stylis'
 
@@ -47,7 +46,6 @@ import RenderUtility from 'src/utility/render'
 import DialogContentText from '@mui/material/DialogContentText'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { LoadingButton } from '@mui/lab'
-import { left } from '@popperjs/core'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -55,7 +53,6 @@ const ListOfStores = () => {
   const [stores, setStores] = useState([])
   const [loader, setLoader] = useState(false)
 
-  /*** Drawer ****/
   const editParamsInitialState = { id: null, name: null, status: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -75,7 +72,6 @@ const ListOfStores = () => {
     message: ''
   })
 
-  // const { selectedPharmacy } = usePharmacyContext()
 
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, status: null })
@@ -103,7 +99,6 @@ const ListOfStores = () => {
     setDeleteStore(false)
   }
 
-  /***** Drawer  */
 
   const columns = [
     {
@@ -268,13 +263,12 @@ const ListOfStores = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -462,14 +456,14 @@ const ListOfStores = () => {
         setSubmitLoader(true)
         const response = await deleteStoreById(editParams?.id)
 
-        // console.log('response', response)
         handleResponse(response)
 
         // closeStoreValidate()
         // setTempPayload(null)
       } catch (error) {
         console.error(error)
-        handleResponse(response)
+
+        // handleResponse(response)
       }
     }
   }
@@ -494,8 +488,8 @@ const ListOfStores = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
+                    justifyContent: 'flex-start', 
+                    alignItems: 'flex-start', 
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }
@@ -797,9 +791,7 @@ const ListOfStores = () => {
                   </>
                 }
               />
-              {/* {openSnackbar.open ? (
-                <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-              ) : null} */}
+             
             </>
           )}
         </>

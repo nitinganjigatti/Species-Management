@@ -39,7 +39,7 @@ const MortalityReason = () => {
   const [data, setData] = useState([])
   const [searchText, setSearchText] = useState('')
   const [filteredData, setFilteredData] = useState([])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
 
   const medical_add_mortality_reasons = authData?.userData?.permission?.user_settings?.medical_add_mortality_reasons
 
@@ -247,10 +247,10 @@ const MortalityReason = () => {
     }
   ]
 
-  const handleCellClick = params => {
-    setEditParams(params)
-    setOpenDetailsDrawer(true)
-  }
+  // const handleCellClick = params => {
+  //   setEditParams(params)
+  //   setOpenDetailsDrawer(true)
+  // }
 
   const headerAction = (
     <div>
@@ -269,7 +269,12 @@ const MortalityReason = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Mortality Reason
             </Typography>
           </Breadcrumbs>
@@ -280,9 +285,25 @@ const MortalityReason = () => {
               rows={rows || []}
               headerActions={headerAction}
             /> */}
-            <CardHeader title={'Mortality Reason'} action={headerAction !== undefined ? headerAction : null} />
+            <CardHeader
+              title={'Mortality Reason'}
+              sx={{ paddingX: 5 }}
+              action={headerAction !== undefined ? headerAction : null}
+            />
             <DataGrid
               sx={{
+                paddingX: 5,
+                borderTopLeftRadius: '8px',
+                '& .MuiBox-root': {
+                  paddingX: 0
+                },
+                '.MuiDataGrid-main': {
+                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                  borderRadius: '8px'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  border: 'none !important'
+                },
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },

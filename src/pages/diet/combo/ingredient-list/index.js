@@ -17,7 +17,7 @@ import IconButton from '@mui/material/IconButton'
 import ClearIcon from '@mui/icons-material/Clear'
 import SearchIcon from '@mui/icons-material/Search'
 import InputAdornment from '@mui/material/InputAdornment'
-
+import { useTheme } from '@mui/material/styles'
 // ** MUI Imports
 
 import Card from '@mui/material/Card'
@@ -34,7 +34,7 @@ import Router from 'next/router'
 
 const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   const [loader, setLoader] = useState(false)
-
+  const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -168,15 +168,22 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'INGREDIENT NAME',
+      headerName: 'ITEM NAME',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
           {console.log(params, 'params')}
           <Avatar
             variant='square'
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            alt='Ingredient Image'
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.ingredient_image ? params.row.ingredient_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -193,7 +200,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'INGREDIENT ID',
+      headerName: 'ITEM ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
           {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
@@ -234,6 +241,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
         </Typography>
       )
     }
+
     // {
     //   flex: 0.4,
     //   minWidth: 20,
@@ -278,7 +286,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ boxShadow: 'none' }}>
-            <CardHeader title='Ingredient by percentage' />
+            <CardHeader title='Item by percentage' sx={{ pl: 0 }} />
 
             <DataGrid
               sx={{
@@ -358,17 +366,19 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
             value={searchValue}
             onChange={e => handleSearch(e.target.value)}
             sx={{ width: '250px', height: '20px' }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-              endAdornment: searchValue && (
-                <IconButton onClick={handleClearSearch}>
-                  <ClearIcon />
-                </IconButton>
-              )
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: searchValue && (
+                  <IconButton onClick={handleClearSearch}>
+                    <ClearIcon />
+                  </IconButton>
+                )
+              }
             }}
           />
         </Grid>

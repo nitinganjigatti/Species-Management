@@ -43,7 +43,7 @@ const schema = yup.object().shape({
 })
 
 const StepBasicDetails = ({ handleNext, formData, uomList }) => {
-  // ** States
+  
   const [uploadedImage, setUploadedImage] = useState(null)
   const router = useRouter()
 
@@ -54,6 +54,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     clearErrors,
     watch,
     setValue,
+    setError,
     formState: { errors }
   } = useForm({
     mode: 'all',
@@ -101,7 +102,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   const onSubmit = async data => {
     window.scrollTo(0, 0)
 
-    // Clear any existing errors
+   
     Object.keys(defaultValues).forEach(field => {
       clearErrors(field)
     })
@@ -111,7 +112,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
 
-      // Merge the image data with other form data
+   
       const formDataWithImage = {
         ...data,
         recipe_image: uploadedImage
@@ -140,7 +141,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <ScrollToFieldError errors={errors} />
         <Grid container spacing={5} sx={{ px: 5 }}>
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='recipe_name'
@@ -309,7 +310,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item size={{xs: 12, sm: 3}} >
               <FormControl fullWidth>
                 <Controller
                   name='kcal'
@@ -337,19 +338,19 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             </Grid>
           </Grid> */}
 
-          <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 8, width: '98%', ml: 5 }} />
+          <Divider sx={{ width: '98%' }} />
 
-          <Box sx={{ mb: 0, px: 5, mt: 3, float: 'left', width: '100%' }}>
+          <Box sx={{ mb: 0, px: 0, mt: 0, float: 'left', width: '100%' }}>
             <Typography variant='h6'>Add image</Typography>
           </Box>
           {console.log(uploadedImage, 'uploadedImage')}
-          <Grid item xs={6} sx={{ pt: 0 }}>
-            <CardContent sx={{ px: 0, paddingTop: 2 }}>
+          <Grid item size={{ xs: 6 }} sx={{ pt: 0 }}>
+            <CardContent sx={{ px: 0, paddingTop: 0 }}>
               <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
             </CardContent>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
               <Button
                 color='secondary'

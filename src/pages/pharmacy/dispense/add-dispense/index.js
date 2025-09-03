@@ -50,7 +50,7 @@ function AddDispense() {
   const [currentDate] = useState(() => {
     const today = new Date()
     const year = today.getFullYear()
-    const month = String(today.getMonth() + 1).padStart(2, '0') // Months are zero-based
+    const month = String(today.getMonth() + 1).padStart(2, '0') 
     const day = String(today.getDate()).padStart(2, '0')
 
     return `${year}-${month}-${day}`
@@ -152,37 +152,33 @@ function AddDispense() {
     setValue('dispense_item_details', data)
   }
 
-  // Example usage: Assuming you have an identifier available when handling the edit action
   const editRowData = index => {
     const rowData = productArrayUi[index]
     setSelectedIndex(index)
     if (rowData) {
       setEditMode(true)
 
-      // Print or use the rowData as needed
-      // Perform edit action using the rowData
       setDataForEditRow(rowData)
     } else {
       console.error('Data not found')
     }
   }
 
-  // Function to remove Dispense
+ 
   const deleteRowData = index => {
     const newArray = [...productArray]
     const newArrayUi = [...productArrayUi]
 
-    // Remove the element at the specified index
+  
     newArray.splice(index, 1)
     newArrayUi.splice(index, 1)
 
-    // Update the state with the modified array
+   
     setProductArray(newArray)
     setProductArrayUi(newArrayUi)
     setDispensesPayload(newArrayUi)
   }
 
-  // Function to remove Animal
   const deleteAnimalRow = index => {
     const newArray = [...animals_s]
     newArray.splice(index, 1)
@@ -219,7 +215,6 @@ function AddDispense() {
             // query: { id: res?.data }
           })
 
-          // Router.push('/pharmacy/dispense')
         } else {
           setSubmitLoading(false)
           setOpenSnackbar({
@@ -239,8 +234,7 @@ function AddDispense() {
   const totalQty = productArrayUi.reduce((sum, item) => sum + item.qty, 0)
   const totalUnitPrice = productArrayUi.reduce((sum, item) => sum + Number(item.unit_price) * item.qty, 0)
 
-  console.log(productArrayUi, 'productArrayUi')
-  console.log(productArray, 'productArray')
+
 
   return (
     <>
@@ -254,7 +248,6 @@ function AddDispense() {
             height='auto'
             scroll='body'
             onClose={() => closeDialog()}
-            onBackdropClick={() => closeDialog()}
           >
             <Card>
               <CardHeader
@@ -288,8 +281,7 @@ function AddDispense() {
           </Dialog>
           <Grid
             container
-            sm={12}
-            xs={12}
+            size={{ xs: 12, sm: 12 }}
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -303,7 +295,6 @@ function AddDispense() {
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      // Router.push('/pharmacy/dispense')
                       Router.back()
                     }}
                     icon='ep:back'
@@ -315,7 +306,7 @@ function AddDispense() {
           <form onSubmit={handleSubmit(submitForm, onError)}>
             <CardContent>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
                   <FormControl fullWidth>
                     <Controller
                       name='user_id'
@@ -324,15 +315,24 @@ function AddDispense() {
                         <>
                           <Autocomplete
                             forcePopupIcon={false}
-                            inputProps={{ tabIndex: '6' }}
                             disablePortal
                             value={field?.value}
                             options={users}
                             noOptionsText='Type to search'
                             getOptionLabel={option => option?.label || ''}
+                            isOptionEqualToValue={(option, value) => option.value === value.value}
+                            renderOption={(props, option) => (
+                              <li {...props} key={option.value}>
+                                {option.label}
+                              </li>
+                            )}
                             renderInput={params => (
                               <TextField
                                 {...params}
+                                slotProps={{
+                                  ...params.inputProps,
+                                  tabIndex: 6
+                                }}
                                 label='Dispense To*'
                                 placeholder='Search & Select'
                                 error={Boolean(errors.user_id)}
@@ -432,7 +432,6 @@ function AddDispense() {
                   <TableHead
                     sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}
 
-                    // sx={{ backgroundColor: '#F5F5F7' }}
                   >
                     <TableRow>
                       <TableCell>Product Name</TableCell>
@@ -452,7 +451,7 @@ function AddDispense() {
 
                           return (
                             <TableRow
-                              key={index}
+                              key={`${el?.stock_id}${index}`}
                               sx={{
                                 borderColor: 'customColors.customTableBorderBg',
                                 '&:last-child td, &:last-child th': { borderBottom: 'none' }
@@ -550,13 +549,12 @@ function AddDispense() {
                       <TableCell>Action</TableCell>
                     </TableRow>
                   </TableHead>
-                  {console.log('animals_s', animals_s)}
                   <TableBody>
                     {animals_s.length > 0
                       ? animals_s.map((elmnt, index) => {
                           return (
                             <TableRow
-                              key={index}
+                              key={`${elmnt?.animal_id}${index}`}
                               sx={{
                                 borderColor: 'customColors.customTableBorderBg',
                                 '&:last-child td, &:last-child th': { borderBottom: 'none' }
@@ -593,8 +591,14 @@ function AddDispense() {
               </TableContainer>
             </Card>
             <CardContent>
-              <Grid item xs={12} sm={12} md={6}>
-                <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
+              <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
+                <Grid
+                  container
+                  sx={{
+                    alignItems: 'flex-end',
+                    justifyContent: 'flex-end',
+                    height: '100%'
+                  }}>
                   <Button
                     sx={{ width: '100px', height: '40px' }}
                     disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
@@ -635,7 +639,7 @@ function AddDispense() {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default AddDispense

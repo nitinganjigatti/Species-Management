@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getLocalDispatchItemsList } from 'src/lib/api/pharmacy/directDispatch'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton } from 'src/components/Buttons'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import { useTheme } from '@emotion/react'
@@ -32,6 +27,7 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
@@ -101,7 +97,6 @@ const DirectDispatchList = () => {
       } catch (e) {
         setTotal(0)
         setRows([])
-        console.log(e)
         setLoading(false)
       }
     },
@@ -191,7 +186,6 @@ const DirectDispatchList = () => {
 
   const onRowClick = params => {
     var data = params.row
-    console.log('params.row', params.row)
 
     Router.push({
       pathname: `/pharmacy/local-dispatch/${data?.id}`
@@ -215,16 +209,9 @@ const DirectDispatchList = () => {
     </div>
   )
 
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   searchTableData(sort, value, 'request_number', status)
-  // }
-
   const handleSearch = value => {
     setSearchValue(value) // Update search value state
     searchTableData(sort, value, sortColumn, status)
-
-    // setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }) / Reset pagination to the first page
   }
 
   const columns = [
@@ -388,11 +375,11 @@ const DirectDispatchList = () => {
       headerName: 'Dispatched by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.request_date
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.request_date}
+          />
         </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -438,9 +425,7 @@ const DirectDispatchList = () => {
     // }
   ]
 
-  const handleRowClick = params => {
-    console.log(params)
-  }
+  const handleRowClick = params => {}
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -462,8 +447,8 @@ const DirectDispatchList = () => {
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start', // Align content to the left
-                alignItems: 'flex-start', // Align items to the top left
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
                 gap: { xs: 2, sm: 0 },
                 '& .MuiCardHeader-action': {
                   width: { xs: '100% ', sm: 'auto' }
@@ -478,10 +463,15 @@ const DirectDispatchList = () => {
                 mx: { xs: 2, sm: 3, md: 5 }
               }}
             >
-              {/* Search Field and Filters */}
               <Grid container spacing={3}>
-                {/* Search Field */}
-                <Grid item xs={12} sm={6} spacing={3} gap={3}>
+                <Grid
+                  item
+                  size={{ xs: 12, sm: 6 }}
+                  spacing={3}
+                  sx={{
+                    gap: 3
+                  }}
+                >
                   <Box
                     sx={{
                       display: 'flex',
@@ -513,12 +503,10 @@ const DirectDispatchList = () => {
                   </Box>
                 </Grid>
 
-                {/* Switch Button */}
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
-                    xs={12}
-                    sm={6}
+                    size={{ xs: 12, sm: 6 }}
                     sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
                   >
                     <FormControlLabel
@@ -532,7 +520,6 @@ const DirectDispatchList = () => {
               </Grid>
             </Box>
 
-            {/* Common Table */}
             <Grid
               sx={{
                 mx: { xs: 2, sm: 3, md: 5 }

@@ -78,7 +78,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
         setNurseryList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
   useEffect(() => {
@@ -111,7 +111,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
         setRoomList(res?.data?.result)
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -179,7 +179,6 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
   }, [eggDetails])
 
   const onSubmit = async values => {
-    // console.log('values', values)
 
     try {
       setLoader(true)

@@ -22,7 +22,6 @@ import { debounce } from 'lodash'
 
 import AddDrugClass from 'src/views/pages/pharmacy/medicine/drugClass/addDrugClass'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import toast from 'react-hot-toast'
 
@@ -146,8 +145,7 @@ const ListOfDrugs = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-          {/* {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+        
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -166,13 +164,12 @@ const ListOfDrugs = () => {
     }
   ]
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -192,7 +189,6 @@ const ListOfDrugs = () => {
         }
 
         await getDrugClass({ params: params }).then(res => {
-          console.log('rez????', res)
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -254,7 +250,6 @@ const ListOfDrugs = () => {
       }
 
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
 
         setSubmitLoader(false)
@@ -265,7 +260,6 @@ const ListOfDrugs = () => {
       } else {
         setSubmitLoader(false)
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -277,7 +271,6 @@ const ListOfDrugs = () => {
       setSubmitLoader(false)
       toast.error(JSON.stringify(e))
 
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }
   }
 
@@ -290,7 +283,6 @@ const ListOfDrugs = () => {
 
   return (
     <>
-      {/* {selectedPharmacy.type === 'central' ? ( */}
       {pharmacyRole ? (
         <>
           {loader ? (
@@ -302,8 +294,8 @@ const ListOfDrugs = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
+                    justifyContent: 'flex-start', 
+                    alignItems: 'flex-start', 
                     gap: { xs: 3, sm: 0 },
                     '& .MuiCardHeader-action': {
                       width: { xs: '100% ', sm: 'auto' }

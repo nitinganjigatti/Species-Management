@@ -28,6 +28,7 @@ const SelectSiteList = ({
 }) => {
   const theme = useTheme()
   const [pendingSelections, setPendingSelections] = useState({ Site: [] })
+
   const handleCloseDrawer = () => {
     setSiteListDrawer(false)
     setTempSelectedItems(pendingSelections)
@@ -38,7 +39,8 @@ const SelectSiteList = ({
   }
 
   const handleSiteCheckboxChange = site => {
-    const isSelected = pendingSelections.Site.includes(site.site_id)
+    const isSelected = pendingSelections?.Site?.includes(site.site_id)
+
     const updatedSelection = isSelected
       ? pendingSelections.Site.filter(id => id !== site.site_id)
       : [...pendingSelections.Site, site.site_id]
@@ -81,7 +83,7 @@ const SelectSiteList = ({
       {/* header */}
       <Box
         sx={{
-          bgcolor: '#FFF',
+          bgcolor: theme.palette.common.white,
           borderRadius: '8px',
           overflow: 'hidden',
           width: '100%',
@@ -96,10 +98,16 @@ const SelectSiteList = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: '500',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               Choose Site
             </Typography>
-            <Typography variant='body2' sx={{ color: '#44544A' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
               Select a site from the list below
             </Typography>
           </Box>
@@ -117,33 +125,41 @@ const SelectSiteList = ({
             size='small'
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon sx={{ color: '#1F515B' }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm && (
-                <InputAdornment position='end'>
-                  <IconButton
-                    size='small'
-                    onClick={() => {
-                      setSearchTerm('')
-                      //fetchSections('')
-                    }}
-                  >
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position='end'>
+                    <IconButton
+                      size='small'
+                      onClick={() => {
+                        setSearchTerm('')
+
+                        //fetchSections('')
+                      }}
+                    >
+                      <Icon icon='mdi:close' fontSize={20} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                style: {
+                  background: theme.palette.customColors.bodyBg,
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
+              }
             }}
           />
         </Box>
 
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: '#44544A' }}>
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
             Selected {pendingSelections?.Site?.length} / {items?.Site?.length}
           </Typography>
           <Box
@@ -155,7 +171,10 @@ const SelectSiteList = ({
             <Button
               size='small'
               sx={{
-                color: pendingSelections?.Site?.length === items?.Site?.length ? theme.palette.primary.main : '#44544A',
+                color:
+                  pendingSelections?.Site?.length === items?.Site?.length
+                    ? theme.palette.primary.main
+                    : theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -170,7 +189,9 @@ const SelectSiteList = ({
             <Checkbox
               checked={pendingSelections?.Site?.length === items?.Site?.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                root: { 'aria-label': 'Select all species' }
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -179,14 +200,6 @@ const SelectSiteList = ({
                   width: '19px',
                   height: '19px',
                   border: '2px dotted'
-                  //   borderColor:
-                  //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                  //       ? theme.palette.primary.main
-                  //       : '#44544A',
-                  //   color:
-                  //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                  //       ? theme.palette.primary.main
-                  //       : '#44544A'
                 },
                 mr: 1
               }}
@@ -201,6 +214,7 @@ const SelectSiteList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
+
             // height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
@@ -212,7 +226,7 @@ const SelectSiteList = ({
             }
           }}
         >
-          {filteredSites.length > 0 ? (
+          {filteredSites?.length > 0 ? (
             filteredSites.map(site => (
               <ListItem
                 key={site.site_id}
@@ -221,23 +235,38 @@ const SelectSiteList = ({
                   pl: 3,
                   mb: 4,
                   border: '1px solid',
-                  borderColor: pendingSelections.Site.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
+                  borderColor: pendingSelections?.Site?.includes(site.site_id)
+                    ? '#80E0A3'
+                    : theme.palette.customColors.OutlineVariant,
                   borderRadius: '8px',
-                  bgcolor: pendingSelections.Site.includes(site.site_id) ? '#E1F9ED' : 'transparent',
+                  bgcolor: pendingSelections?.Site?.includes(site.site_id)
+                    ? theme.palette.customColors.OnBackground
+                    : 'transparent',
                   height: '70px'
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar src={site.image || '/default-site.jpg'} variant='rounded' />
+                  <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={site.site_name}
+                  primary={site?.site_name}
                   //secondary={site.location || '-'}
-                  primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
-                  secondaryTypographyProps={{ color: '#44544A' }}
+                  slotProps={{
+                    secondary: {
+                      sx: {
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }
+                    },
+                    primary: {
+                      sx: {
+                        fontWeight: 'bold',
+                        color: theme.palette.customColors.OnPrimaryContainer
+                      }
+                    }
+                  }}
                 />
                 <Checkbox
-                  checked={pendingSelections.Site.includes(site.site_id)}
+                  checked={pendingSelections?.Site?.includes(site.site_id)}
                   onChange={() => handleSiteCheckboxChange(site)}
                 />
               </ListItem>
@@ -254,7 +283,7 @@ const SelectSiteList = ({
             pt: 4,
             position: 'sticky',
             bottom: 0,
-            background: '#FFF',
+            background: theme.palette.common.white,
             zIndex: 1,
             pb: 4
           }}
@@ -262,9 +291,15 @@ const SelectSiteList = ({
           <Button
             variant='contained'
             fullWidth
-            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+            sx={{
+              bgcolor: '#28A745',
+              color: theme.palette.common.white,
+              p: 2,
+              borderRadius: '8px',
+              '&:hover': { bgcolor: '#218838' }
+            }}
             onClick={handleCloseDrawer}
-            disabled={pendingSelections.Site.length === 0}
+            disabled={pendingSelections?.Site?.length === 0}
           >
             CONTINUE
           </Button>

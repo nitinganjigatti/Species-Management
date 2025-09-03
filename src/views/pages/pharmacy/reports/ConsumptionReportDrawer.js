@@ -107,7 +107,6 @@ const ConsumptionReportDrawer = ({
     setIsSubmitting(true)
     const filterData = {}
 
-    //Attach Pharmacy filters to object to send
     if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
       filterData.pharmacy = selectedOptions['Pharmacy']
     }
@@ -187,7 +186,7 @@ const ConsumptionReportDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu?.map(menu => (
               <Box
                 key={menu.id}
@@ -217,7 +216,7 @@ const ConsumptionReportDrawer = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',
@@ -253,9 +252,6 @@ const ConsumptionReportDrawer = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -263,6 +259,11 @@ const ConsumptionReportDrawer = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -373,7 +374,7 @@ const ConsumptionReportDrawer = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default ConsumptionReportDrawer

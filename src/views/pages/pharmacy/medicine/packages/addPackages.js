@@ -1,7 +1,6 @@
 // ** React Imports
 import { useState, useEffect, useCallback, Fragment } from 'react'
 
-// ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 
@@ -16,14 +15,11 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getPackageById } from 'src/lib/api/pharmacy/packages'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   name: yup
@@ -40,10 +36,8 @@ const defaultValues = {
 }
 
 const AddPackages = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
-  // ** States
   const [values, setValues] = useState(defaultValues)
 
   const {

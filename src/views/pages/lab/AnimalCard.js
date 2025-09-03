@@ -89,8 +89,8 @@ const AnimalCard = ({ animalDetails }) => {
               lineHeight: '19.36px'
             }}
           >
-            <span> {item?.local_id_type}: </span>
-            <span> {item?.local_identifier_value}</span>
+            <span> {animalDetails?.local_id_type}: </span>
+            <span> {animalDetails?.local_identifier_value}</span>
           </Typography>
         ) : (
           <Typography

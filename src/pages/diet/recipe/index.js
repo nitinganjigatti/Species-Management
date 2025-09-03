@@ -28,6 +28,7 @@ import { useTheme } from '@mui/material/styles'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import { AuthContext } from 'src/context/AuthContext'
+import RenderUtility from 'src/utility/render'
 
 // Styled TabList component
 
@@ -98,7 +99,7 @@ const RecipeList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, searchColumns, status) => {
+    async (sortBy, q, sortColumn, searchColumns, status, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -108,7 +109,7 @@ const RecipeList = () => {
           sortColumn,
           searchColumns,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
+          limit: pageSize,
           status,
           meal_type: 'recipe'
         }
@@ -155,10 +156,10 @@ const RecipeList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sortBy, q, sortColumn, searchColumns, status) => {
+    debounce(async (sortBy, q, sortColumn, searchColumns, status, pageSize) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sortBy, q, sortColumn, searchColumns, status)
+        await fetchTableData(sortBy, q, sortColumn, searchColumns, status, pageSize)
       } catch (error) {
         console.error(error)
       }
@@ -179,57 +180,11 @@ const RecipeList = () => {
     </>
   )
 
-  const handleSwitchChange = async (event, rowData) => {
-    const newIsActive = event.target.checked ? 1 : 0
-    try {
-      const response = await updateRecipeStatus(rowData?.id, { active: newIsActive })
-      console.log(response, 'response')
-      if (response.success === true) {
-        fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
-
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Recipe {'REP' + rowData.id} has been successfully {newIsActive === 1 ? 'activated' : 'deactivated'}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
-      } else {
-        alert('something went wrong')
-      }
-    } catch (error) {
-      console.error('Error updating ingredient status:', error)
-    }
-  }
-
   const handleSearch = value => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
-    searchTableData(sortBy, value, sortColumn, searchColumns, status)
+    searchTableData(sortBy, value, sortColumn, searchColumns, status, paginationModel.pageSize)
   }
 
   const columns = [
@@ -254,7 +209,14 @@ const RecipeList = () => {
           <Avatar
             variant='square'
             alt='Recipe Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -306,9 +268,9 @@ const RecipeList = () => {
       //flex: 0.4,
       width: 200,
       field: 'ingredient_name',
-      headerName: 'NO OF INGREDIENTS',
+      headerName: 'NO OF ITEMS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+        <Box variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
             title={
               params.row.ingredients && params.row.ingredients.length > 0
@@ -321,12 +283,10 @@ const RecipeList = () => {
             }
             arrow
             placement='right'
-
-            // style={{ background: '#1F515B' }}
           >
             <Typography sx={{ pl: 2 }}>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</Typography>
           </Tooltip>
-        </Typography>
+        </Box>
       )
     },
     {
@@ -335,37 +295,12 @@ const RecipeList = () => {
       field: 'user_name',
       headerName: 'CREATED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{
-              width: 30,
-              height: 30,
-              mr: 4,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.created_by_user?.profile_pic ? (
-              <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
-                alt='Profile'
-              />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
-            </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
-            </Typography>
-          </Box>
+        <Box>
+          {RenderUtility.renderUserAvatarDetails({
+            profile_image: params?.row?.created_by_user?.profile_pic,
+            user_name: params?.row?.created_by_user?.user_name,
+            date: moment(params?.row?.created_at).format('YYYY-MM-DD')
+          })}
         </Box>
       )
     },
@@ -391,23 +326,6 @@ const RecipeList = () => {
         />
       )
     }
-
-    // {
-    //   flex: 0.3,
-    //   minWidth: 20,
-    //   field: 'switch',
-    //   headerName: '',
-    //   disableColumnMenu: true,
-    //   renderCell: params => (
-    //     <Box sx={{ my: 4, height: '40px', display: 'flex', justifyContent: 'space-between' }}>
-    //       <Switch
-    //         checked={params.row.active === '0' ? false : true}
-    //         onChange={event => handleSwitchChange(event, params.row)}
-    //         fontSize={2}
-    //       />
-    //     </Box>
-    //   )
-    // }
   ]
 
   const onCellClick = params => {
@@ -457,8 +375,8 @@ const RecipeList = () => {
                     overflowX: 'auto'
                   },
                   '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #0000000D',
-                    borderRight: '1px solid #0000000D',
+                    borderLeft: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                    borderRight: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                     marginLeft: '20px',
                     marginRight: '20px',
                     borderRadius: '8px',

@@ -6,7 +6,8 @@ import {
   VALIDATE_PURCHASE,
   PRODUCT_MAPPING_FOR_ML,
   MEDICINE,
-  VARIANTS_MAPPING_FOR_BATCH
+  VARIANTS_MAPPING_FOR_BATCH,
+  INVOICE_PRINT
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
@@ -36,7 +37,7 @@ export async function postDeleteInvoiceById(id, params) {
 
 export async function addPurchase(payload) {
   try {
-    const url = `v2/pharma/${PURCHASE}`
+    const url = `v3/pharma/${PURCHASE}`
     var data = payload
     const response = await axiosFormPost({ url, body: data, pharmacy: true })
 
@@ -76,7 +77,7 @@ export async function updatePurchase(id, payload) {
 export async function updatePurchasePrice(id, payload) {
   try {
     // const url = `${UPDATE_PURCHASE_BASE_URL}${PURCHASE}/${id}/update`
-    const url = `v3/pharma/${PURCHASE}/${id}/update`
+    const url = `v4/pharma/${PURCHASE}/${id}/update`
     var data = payload
     data.id = id
     const response = await axiosFormPost({ url, body: data, pharmacy: true })
@@ -215,4 +216,13 @@ export async function variantMappingForProductBatch(payload) {
 
     return error
   }
+}
+
+export async function printPurchaseInvoice(purchaseId) {
+  const response = await axiosGet({
+    url: `${PHARMACY_BASE_URL}${PURCHASE}/${INVOICE_PRINT}/${purchaseId}`,
+    pharmacy: true
+  })
+
+  return response.data
 }

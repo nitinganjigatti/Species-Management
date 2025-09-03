@@ -62,7 +62,7 @@ const StockReportDetails = props => {
           height: '100%'
         }}
       >
-        {/* Header */}
+       
         <Box
           sx={{
             position: 'sticky',
@@ -110,23 +110,24 @@ const StockReportDetails = props => {
           value={searchPurchase}
           onChange={handleInputChange}
           sx={{ px: 4, mt: 4, mb: 1 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <Icon icon='mdi:magnify' />
-              </InputAdornment>
-            ),
-            endAdornment: searchPurchase && (
-              <InputAdornment position='end'>
-                <IconButton size='small' onClick={handleClearSearch}>
-                  <ClearIcon />
-                </IconButton>
-              </InputAdornment>
-            )
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <Icon icon='mdi:magnify' />
+                </InputAdornment>
+              ),
+              endAdornment: searchPurchase && (
+                <InputAdornment position='end'>
+                  <IconButton size='small' onClick={handleClearSearch}>
+                    <ClearIcon />
+                  </IconButton>
+                </InputAdornment>
+              )
+            }
           }}
         />
 
-        {/* Scrollable Content */}
         <Box
           sx={{
             flexGrow: 1,
@@ -173,7 +174,7 @@ const StockReportDetails = props => {
                     >
                       <div>
                         <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>
-                          Unit Price: {detail.unit_price}
+                          Net Unit Price: {detail.unit_price}
                         </Typography>
                         <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>Quantity: {detail.qty}</Typography>
                       </div>
@@ -194,7 +195,7 @@ const StockReportDetails = props => {
         </Box>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default StockReportDetails

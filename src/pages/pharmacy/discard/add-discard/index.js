@@ -1,4 +1,3 @@
-/* eslint-disable lines-around-comment */
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
@@ -94,7 +93,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 })
 
 const AddDiscardProducts = () => {
-  // ** Hook
 
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
@@ -130,9 +128,7 @@ const AddDiscardProducts = () => {
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
     setDuplicateMedError(false)
-    // Resetting State
     setOptionsBatchList([])
-    // setOptionsMedicineList([])
     setTotalBatchQuantity(0)
   }
 
@@ -166,7 +162,6 @@ const AddDiscardProducts = () => {
     } catch (error) {}
   }
 
-  // local nested items delete
   const removeItemsFromTable = itemId => {
     const updatedItems = editParams?.items?.filter(el => {
       return el.uuid != itemId
@@ -210,7 +205,6 @@ const AddDiscardProducts = () => {
   }
 
   const submitItems = (params, type) => {
-    //
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams?.items?.some(
@@ -236,7 +230,6 @@ const AddDiscardProducts = () => {
   }
 
   const updateTableItems = params => {
-    //
     const itemId = medicineItemId
     const updatedState = { ...editParams }
 
@@ -282,7 +275,6 @@ const AddDiscardProducts = () => {
     showDialog()
   }
 
-  //  ****** debounce
   const fetchMedicineData = async searchText => {
     try {
       setProductLoading(true)
@@ -291,8 +283,6 @@ const AddDiscardProducts = () => {
         sort: 'asc',
         q: searchText,
         limit: 20
-        // active: 1,
-        // is_specific: 1
       }
 
       const searchResults = await getMedicineList({ params: params })
@@ -329,7 +319,6 @@ const AddDiscardProducts = () => {
     const year = parts[0]
     const month = Number(parts[1]) - 1
     const day = parts[2]
-    console.log('new Date :-', new Date(year, month, day))
 
     return new Date(year, month, day)
   }
@@ -409,13 +398,11 @@ const AddDiscardProducts = () => {
     }, 500),
     []
   )
-  //  ****** debounce
 
   const getListOfItemsById = async id => {
     try {
       const result = await getDiscardItemsListById(id)
       if (result.success === true && result?.data?.item_details?.length > 0) {
-        console.log('result', result.data?.item_details)
 
         const lineItems = result?.data?.item_details?.map(el => {
           return {
@@ -442,7 +429,6 @@ const AddDiscardProducts = () => {
             unit_price: el?.unit_price
           }
         })
-        console.log('lineItems', lineItems)
 
         setEditParams({
           ...editParams,
@@ -457,13 +443,12 @@ const AddDiscardProducts = () => {
     }
   }
 
-  // ****** edit section //////
   const editTableData = itemId => {
     const getItems = editParams?.items?.filter(el => {
       return el.uuid === itemId
     })
 
-    //
+    
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].medicine_name,
@@ -484,7 +469,7 @@ const AddDiscardProducts = () => {
       reason: getItems[0]?.reason,
       unit_price: getItems[0]?.unit_price
     })
-    // }
+  
   }
 
   useEffect(() => {
@@ -492,11 +477,10 @@ const AddDiscardProducts = () => {
       //
       getListOfItemsById(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [id, action])
 
-  // ****** edit section //////
-  // data posting section
+
 
   const postItemsData = async () => {
     setSubmitLoader(true)
@@ -540,7 +524,6 @@ const AddDiscardProducts = () => {
   const [commentDrawerOpen, setCommentDrawerOpen] = useState(false)
   const [selectedComment, setSelectedComment] = useState({})
 
-  // ... existing code
 
   const handleOpenCommentDrawer = comment => {
     setSelectedComment(comment)
@@ -552,7 +535,6 @@ const AddDiscardProducts = () => {
     setSelectedComment('')
   }
 
-  console.log(selectedComment)
 
   // const headerAction = (
   //   <ExcelExportButton
@@ -566,23 +548,20 @@ const AddDiscardProducts = () => {
   //   />
   // )
 
-  console.log('Supplier >>', supplierList)
 
   const getAddDiscardData = async () => {
     try {
       setExcelLoader(true)
       const response = await getDiscardItemsListById(id)
-      console.log('Response inventory>', response)
 
       if (response?.success === true && response?.data?.item_details?.length > 0) {
         setExcelLoader(false)
         const supplierId = response?.data?.supplier_id || null
 
         const discardDate = response?.data?.discarded_date
-          ? formatDate(response?.data?.discarded_date) // Ensure date is formatted
+          ? formatDate(response?.data?.discarded_date) 
           : 'N/A'
 
-        // Find Supplier Name from supplierList using supplier_id
         const supplierName = supplierList.find(supplier => supplier.id === supplierId)?.company_name || 'N/A'
 
         const data = response?.data?.item_details.map(el => ({
@@ -591,8 +570,8 @@ const AddDiscardProducts = () => {
           ['Batch No']: el?.batch_no,
           ['Expiry Date']: el?.expiry_date,
           ['Quantity']: el?.quantity,
-          ['Supplier Name']: supplierName, // Attach the found Supplier Name
-          ['Discard Date']: discardDate, // Attach formatted Discard Date
+          ['Supplier Name']: supplierName, 
+          ['Discard Date']: discardDate, 
           ['Reason']: el?.reason,
           ['Stock Type']: el?.stock_type
         }))
@@ -644,7 +623,6 @@ const AddDiscardProducts = () => {
               title={
                 <Box>
                   {' '}
-                  {/* Title takes full available space */}
                   Return To Supplier
                 </Box>
               }
@@ -692,7 +670,7 @@ const AddDiscardProducts = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12}>
+                <Grid item size={{ xs: 12, sm: 12 }}>
                   <Typography
                     variant='subtitle1'
                     sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}
@@ -700,8 +678,8 @@ const AddDiscardProducts = () => {
                     Supplier Name:
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={12} sx={{ display: 'flex', gap: 2 }}>
-                  <Grid xs={12} sm={6} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', gap: 2 }}>
+                  <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
 
@@ -717,8 +695,7 @@ const AddDiscardProducts = () => {
                           })
                           setErrors({})
                         }}
-                        // error={Boolean(errors?.state_id)}
-                        // labelId='state_id'
+                      
                       >
                         {supplierList?.map((item, index) => (
                           <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
@@ -734,7 +711,7 @@ const AddDiscardProducts = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6} lg={6} sx={{ mb: 5 }}>
+                  <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -744,7 +721,6 @@ const AddDiscardProducts = () => {
                         name={'Date*'}
                         disabled={id ? true : false}
                         onChangeHandler={date => {
-                          // setStores({ ...stores, date: date })
                           setEditParams({ ...editParams, discarded_date: formatDate(date) })
                           setErrors({})
                         }}
@@ -841,7 +817,6 @@ const AddDiscardProducts = () => {
                     <TableCell>Product Name</TableCell>
                     <TableCell>Batch No</TableCell>
                     <TableCell>Expiry Date</TableCell>
-                    {/* <TableCell>Comment</TableCell> */}
                     <TableCell>Quantity</TableCell>
                     <TableCell>Reason</TableCell>
 
@@ -851,14 +826,13 @@ const AddDiscardProducts = () => {
                 <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
                   {editParams?.items
                     ? editParams?.items?.map((el, index) => {
-                        console.log(el, ';;;')
 
                         return (
                           <TableRow
                             key={index}
                             sx={{
                               '&:last-child td, &:last-child th': {
-                                border: 0 // Removes borders for the last row
+                                border: 0 
                               }
                             }}
                           >
@@ -871,9 +845,7 @@ const AddDiscardProducts = () => {
                                 {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
                                 {el.medicine_name}
                               </Typography>
-                              {/* {el.control_substance ? (
-                              <CustomChip label='CS' skin='light' color='success' size='small' />
-                            ) : null} */}
+                         
                               <Typography
                                 variant='body2'
                                 sx={{ color: 'customColors.customHeadingTextColor', fontSize: '14px', fontWeight: 400 }}
@@ -892,7 +864,6 @@ const AddDiscardProducts = () => {
                                 {el.batch_no}
                               </Typography>
                             </TableCell>
-
                             <TableCell>
                               <Typography variant='body2' sx={{ color: 'text.primary' }}>
                                 {Utility?.formatDisplayDate(el?.expiry_date)}
@@ -910,7 +881,6 @@ const AddDiscardProducts = () => {
 
                               <Typography variant='body2'>{el.comments ? el.comments : ''}</Typography>
                             </TableCell> */}
-
                             {/* <TableCell
                               sx={{ cursor: el.comments ? 'pointer' : 'default' }}
                               onClick={() => el.comments && handleOpenCommentDrawer(el)}
@@ -951,7 +921,6 @@ const AddDiscardProducts = () => {
                                 </Box>
                               </Typography>
                             </TableCell> */}
-
                             <TableCell
                               sx={{ cursor: el.comments ? 'pointer' : 'default' }}
                               onClick={() => el.comments && handleOpenCommentDrawer(el)}
@@ -977,14 +946,13 @@ const AddDiscardProducts = () => {
                               </Typography>
                               <Typography
                                 variant='body2'
-                                mt={0.5}
                                 sx={{
+                                  mt: 0.5,
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: 1,
                                   overflow: 'hidden'
-                                }}
-                              >
+                                }}>
                                 {el.comments && <Icon icon='pepicons-pop:file' width='0.7em' height='0.7em' />}
                                 <span
                                   style={{
@@ -1002,7 +970,6 @@ const AddDiscardProducts = () => {
                                 </span>
                               </Typography>
                             </TableCell>
-
                             {id ? null : (
                               <TableCell>
                                 <IconButton
@@ -1031,7 +998,7 @@ const AddDiscardProducts = () => {
                               </TableCell>
                             )}
                           </TableRow>
-                        )
+                        );
                       })
                     : null}
                 </TableBody>
@@ -1070,7 +1037,7 @@ const AddDiscardProducts = () => {
               </Grid>
             ) : null}
           </CardContent> */}
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ float: 'right', my: 4, mx: 6 }}>
               {id ? null : (
                 <>
@@ -1105,7 +1072,6 @@ const AddDiscardProducts = () => {
           <Error404></Error404>
         </>
       )}
-
       <Drawer anchor='right' open={commentDrawerOpen} onClose={handleCloseCommentDrawer}>
         <Box
           sx={{
@@ -1186,7 +1152,7 @@ const AddDiscardProducts = () => {
         </Box>
       </Drawer>
     </>
-  )
+  );
 }
 
 export default AddDiscardProducts

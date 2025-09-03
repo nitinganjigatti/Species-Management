@@ -1,18 +1,27 @@
-import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
+import React, { useContext, useEffect, useRef, useState } from 'react'
+
 import { Avatar, CircularProgress, Drawer, IconButton, Switch, Tab, Tooltip, Typography } from '@mui/material'
+import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
 import { Box } from '@mui/system'
-import React, { useEffect, useRef, useState } from 'react'
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import { getSpecieDetailById, speciesAttachmentActive } from 'src/lib/api/diet/speciesDiet'
+import moment from 'moment'
+
+import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
-import moment from 'moment'
 import UploadDiet from './uploadDiet'
+
+import { getSpecieDetailById, speciesAttachmentActive } from 'src/lib/api/diet/speciesDiet'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { AuthContext } from 'src/context/AuthContext'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
   const fileInputRef = useRef(null)
+
+  const authData = useContext(AuthContext)
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [detailsLoader, setDetailsLoader] = useState(true)
   const [specieDetails, setSpecieDetails] = useState({})
@@ -72,8 +81,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           attachment_id: `${attachmentId}`
         })
 
-        // Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
-        Toaster({ type: 'success', message: 'Diet Activated Successfully' })
+        Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+
+        // Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
         await getSpecieDetail()
       } catch (error) {
@@ -122,76 +132,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   }
 
   //////////////////-Cards-//////////////////////////////////////////
-
-  const SpeciesDietCard = ({ default_icon, common_name, scientific_name, active_attachments_count }) => (
-    <Box
-      sx={{
-        backgroundColor: theme.palette.primary.contrastText,
-        borderRadius: '8px',
-        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-        padding: '20px 16px',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}
-    >
-      <Avatar
-        variant='rounded'
-        alt='Medicine Image'
-        sx={{
-          width: 35,
-          height: 35,
-          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-          borderRadius: '50%',
-          background: theme.palette.customColors.displaybgPrimary,
-          overflow: 'hidden'
-        }}
-      >
-        {default_icon ? (
-          <img style={{ width: '100%', height: '100%' }} src={default_icon} alt='Profile' />
-        ) : (
-          <Icon icon='mdi:user' />
-        )}
-      </Avatar>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <Tooltip title={scientific_name ? scientific_name : '-'}>
-          <Typography
-            sx={{
-              color: theme.palette.primary.light,
-              fontSize: '16px',
-              fontWeight: '500',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: 360
-            }}
-          >
-            {scientific_name ? scientific_name : '-'}
-          </Typography>
-        </Tooltip>
-        <Tooltip title={common_name ? common_name : '-'}>
-          <Typography
-            sx={{
-              color: theme.palette.primary.light,
-              fontStyle: 'italic',
-              fontSize: '14px',
-              fontWeight: '400',
-              lineHeight: '16.94px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: 360
-            }}
-          >
-            {common_name ? common_name : '-'}
-          </Typography>
-        </Tooltip>
-      </Box>
-    </Box>
-  )
 
   const DietCard = ({ item, type }) => {
     return (
@@ -269,6 +209,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         speciesAttachmentActiveFunc(speciesId, item.attachment_id)
                       }
                     }}
+                    disabled={dietModuleAccess === 'VIEW' || dietModuleAccess === 'ADD'}
                     defaultChecked={type === 'attach' ? true : false}
                   />
                 </Box>
@@ -282,7 +223,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     maxWidth: '400px'
                   }}
                 >
-                  <DietitianAvatar item={item} />
+                  {/* <DietitianAvatar item={item} />
 
                   <Tooltip title={item?.dietitian_name ? item?.dietitian_name : '-'}>
                     <Typography
@@ -301,20 +242,28 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     >
                       {item?.dietitian_name ? item?.dietitian_name : '-'}
                     </Typography>
-                  </Tooltip>
+                  </Tooltip> */}
 
-                  <Typography
-                    sx={{
-                      color: theme.palette.customColors.Outline,
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      lineHeight: '100%',
-                      letterSpacing: '0.1px',
-                      display: 'flex'
-                    }}
-                  >
-                    <span style={{ margin: '0px 6px' }}>&#8226;</span> <span>Dietitian</span>
-                  </Typography>
+                  <UserAvatarDetails
+                    profile_image={item?.dietitian_by_profile}
+                    user_name={item?.dietitian_name}
+                    size='small'
+                  />
+                  {item?.dietitian_role_name && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.customColors.Outline,
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        lineHeight: '100%',
+                        letterSpacing: '0.1px',
+                        display: 'flex'
+                      }}
+                    >
+                      <span style={{ margin: '0px 8px 0px 0px' }}>&#8226;</span>{' '}
+                      <span>{item?.dietitian_role_name}</span>
+                    </Typography>
+                  )}
                 </Box>
                 {item?.notes && (
                   <Typography
@@ -477,7 +426,20 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           </Box>
         ) : (
           <>
-            {SpeciesDietCard(specieDetails)}
+            <Box
+              sx={{
+                backgroundColor: theme.palette.primary.contrastText,
+                borderRadius: '8px',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                padding: '20px 16px',
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <SpeciesCard species={specieDetails} />
+            </Box>
             <TabContext sx={{ width: '100%' }} value={status}>
               <TabList
                 sx={{ width: '100%', borderBottom: `1px solid ${theme.palette.customColors.Outline}` }}
@@ -527,52 +489,54 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         )}
       </Box>
       {/* bottom buttons */}
-      <Box
-        sx={{
-          height: '122px',
-          width: '100%',
-          maxWidth: '562px',
-          position: 'fixed',
-          bottom: 0,
-          bgcolor: 'white',
-          alignItems: 'center',
-          justifyContent: 'center',
-          display: 'flex',
-          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
-          zIndex: 123
-        }}
-      >
-        <LoadingButton
-          fullWidth
-          variant='contained'
-          size='large'
-          sx={{ height: '58px', width: '514px', mx: 4 }}
-          onClick={() => {
-            const scientific_name = specieDetails.scientific_name
-            const common_name = specieDetails.common_name
-            const default_icon = specieDetails.default_icon
-            setSpeciesData({ default_icon, scientific_name, common_name })
-            setspeciesId(specieDetails.species_id)
-            setUploadDietDrawer(true)
+      {!detailsLoader && (
+        <Box
+          sx={{
+            height: '122px',
+            width: '100%',
+            maxWidth: '562px',
+            position: 'fixed',
+            bottom: 0,
+            bgcolor: 'white',
+            alignItems: 'center',
+            justifyContent: 'center',
+            display: 'flex',
+            boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+            zIndex: 123
           }}
-
-          // loading={loader}
         >
-          UPLOAD NEW
-        </LoadingButton>
+          <LoadingButton
+            fullWidth
+            variant='contained'
+            size='large'
+            sx={{ height: '58px', width: '514px', mx: 4 }}
+            onClick={() => {
+              const scientific_name = specieDetails.scientific_name
+              const common_name = specieDetails.common_name
+              const default_icon = specieDetails.default_icon
+              setSpeciesData({ default_icon, scientific_name, common_name })
+              setspeciesId(specieDetails.species_id)
+              setUploadDietDrawer(true)
+            }}
+            disabled={dietModuleAccess === 'VIEW'}
+            // loading={loader}
+          >
+            UPLOAD NEW
+          </LoadingButton>
 
-        <UploadDiet
-          fetchTableData={fetchTableData}
-          getSpecieDetail={getSpecieDetail}
-          speciesId={speciesId}
-          speciesData={speciesData}
-          setspeciesId={setspeciesId}
-          fileInputRef={fileInputRef}
-          uploadDietDrawer={uploadDietDrawer}
-          setUploadDietDrawer={setUploadDietDrawer}
-          speciesDetailsDrawer={speciesDetailsDrawer}
-        />
-      </Box>
+          <UploadDiet
+            fetchTableData={fetchTableData}
+            getSpecieDetail={getSpecieDetail}
+            speciesId={speciesId}
+            speciesData={speciesData}
+            setspeciesId={setspeciesId}
+            fileInputRef={fileInputRef}
+            uploadDietDrawer={uploadDietDrawer}
+            setUploadDietDrawer={setUploadDietDrawer}
+            speciesDetailsDrawer={speciesDetailsDrawer}
+          />
+        </Box>
+      )}
     </Drawer>
   )
 }

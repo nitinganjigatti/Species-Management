@@ -16,14 +16,11 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 
-// ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { getVariantById } from 'src/lib/api/pharmacy/variant'
 
-// ** Styled Components
 
 const schema = yup.object().shape({
   // description: yup.string().required('Description is required'),
@@ -43,7 +40,6 @@ const defaultValues = {
 }
 
 const AddVariant = props => {
-  // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {
@@ -67,7 +63,10 @@ const AddVariant = props => {
       description: description ? description : null,
       active
     }
-    await handleSubmitData(payload)
+    const result = await handleSubmitData(payload)
+    if (result?.success) {
+      reset(defaultValues)
+    }
   }
 
   const getSpecificVariant = useCallback(
@@ -118,7 +117,14 @@ const AddVariant = props => {
       >
         <Typography variant='h6'>{editParams?.id !== null ? 'Edit Variant' : 'Add Variant'}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+          <IconButton
+            size='small'
+            onClick={() => {
+              handleSidebarClose()
+              reset(defaultValues)
+            }}
+            sx={{ color: 'text.primary' }}
+          >
             <Icon icon='mdi:close' fontSize={20} />
           </IconButton>
         </Box>
@@ -138,11 +144,10 @@ const AddVariant = props => {
                   onChange={e => {
                     const newValue = e.target.value
 
-                    // Allow only positive numbers
                     if (!isNaN(newValue) && Number(newValue) >= 0) {
                       onChange(newValue)
                     } else {
-                      onChange('') // Clear field if invalid
+                      onChange('')
                     }
                   }}
                   onKeyPress={e => {
@@ -153,7 +158,9 @@ const AddVariant = props => {
                   placeholder='Unit Multiplier'
                   error={Boolean(errors.unit_multiplier)}
                   name='unit_multiplier'
-                  inputProps={{ min: 0 }} // Prevents entering negative values using native HTML validation
+                  slotProps={{
+                    htmlInput: { min: 0 }
+                  }}
                 />
               )}
             />

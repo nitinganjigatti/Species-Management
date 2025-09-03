@@ -11,7 +11,6 @@ import {
   IconButton,
   Button,
   Breadcrumbs,
-  Grid,
   TextField,
   Autocomplete,
   FormControl,
@@ -48,6 +47,7 @@ const NurseryDetails = () => {
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
+  const [nurseryDataLoader, setNurseryDataLoader] = useState(false)
   const [nurseryData, setNurseryData] = useState({})
   const [editName, setEditName] = useState('')
   const [editSite, setEditSite] = useState('')
@@ -62,7 +62,7 @@ const NurseryDetails = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [isPreFilled, setIsPreFilled] = useState({})
   const [disabledAddRoomBtn, setdisabledAddRoomBtn] = useState(true)
 
@@ -84,36 +84,6 @@ const NurseryDetails = () => {
     setOpenDrawer(true)
     setOpenRedirectionDialog(false)
   }
-
-  // const toggleHatcheryStatus = () => {
-  //   setStatusLoading(true)
-  //   try {
-  //     hatcheryStatus({
-  //       ref_type: 'nursery',
-  //       ref_id: id,
-  //       status: active ? 'deactivate' : 'activate'
-  //     }).then(response => {
-  //       if (response.success) {
-  //         Toaster({ type: 'success', message: response.message })
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //         setActive(!active)
-  //         fetchNurseryDetails()
-  //       } else {
-  //         Toaster({ type: 'error', message: response.message })
-  //         setEditMessage(response?.message)
-  //         setOpenRedirectionDialog(true)
-  //         fetchNurseryDetails()
-  //         setOpenStatusDialog(false)
-  //         setStatusLoading(false)
-  //       }
-  //     })
-  //   } catch (error) {
-  //     setOpenStatusDialog(false)
-  //     setStatusLoading(false)
-  //     Toaster({ type: 'error', message: response.message })
-  //   }
-  // }
 
   // API Call: Toggle Active Status
   const toggleHatcheryStatus = async () => {
@@ -143,44 +113,9 @@ const NurseryDetails = () => {
     }
   }
 
-  // const fetchNurseryDetails = () => {
-  //   try {
-  //     GetNurseryDetailsById(id).then(res => {
-  //       if (res?.success) {
-  //         setIncubatorNo(res?.data?.no_of_incubators)
-  //         setNurseryData({
-  //           list: {
-  //             'Nursery Name': res?.data?.nursery_name,
-  //             Room: res?.data?.no_of_rooms,
-  //             Site: res?.data?.site_name,
-  //             Incubator: res?.data?.no_of_incubators,
-  //             'Eggs in Nursery': res?.data?.no_of_eggs
-  //           },
-  //           Avatar: {
-  //             profile_Pic: res?.data?.user_profile_pic,
-  //             user_Name: res?.data?.user_full_name,
-  //             create_at: res?.data?.created_at,
-  //             site_id: res?.data?.site_id
-  //           }
-  //         })
-  //         setActive(Boolean(Number(res?.data?.active)))
-  //         setIsPreFilled(res?.data)
-  //         setdisabledAddRoomBtn(false)
-  //         setEditNurseryId(id)
-  //         setEditName(res.data?.nursery_name)
-  //         setEditSite(res?.data?.site_id)
-  //         setEditSiteName(res?.data?.site_name)
-  //       } else {
-  //         Toaster({ message: res.message, type: 'error' })
-  //       }
-  //     })
-  //   } catch (error) {
-  //     Toaster({ message: res.message, type: 'error' })
-  //   }
-  // }
-
   // API Call: Fetch Nursery Details
   const fetchNurseryDetails = async () => {
+    setNurseryDataLoader(true)
     try {
       const res = await GetNurseryDetailsById(id)
 
@@ -216,14 +151,10 @@ const NurseryDetails = () => {
       }
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'Failed to fetch nursery details' })
+    } finally {
+      setNurseryDataLoader(false)
     }
   }
-
-  useEffect(() => {
-    if (egg_nursery_permission || egg_collection_permission) {
-      fetchNurseryDetails()
-    }
-  }, [])
 
   // API Call: Fetch Room Table Data
   const fetchTableData = useCallback(
@@ -250,32 +181,6 @@ const NurseryDetails = () => {
     },
     [paginationModel, sort]
   )
-
-  // const fetchTableData = useCallback(
-  //   async (q, column, status) => {
-  //     try {
-  //       setLoading(true)
-
-  //       const params = {
-  //         sort,
-  //         search: q || '',
-  //         column,
-  //         status,
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
-
-  //       await GetRoomByNursery(id, params).then(res => {
-  //         setTotal(parseInt(res?.data?.total_count))
-  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
-  //       })
-  //       setLoading(false)
-  //     } catch (e) {
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
 
   const searchTableData = useCallback(
     debounce(async (value, column, status) => {
@@ -309,41 +214,9 @@ const NurseryDetails = () => {
     }
   }, [])
 
-  // useEffect(() => {
-  //   if (egg_nursery_permission || egg_collection_permission) {
-  //     fetchTableData(searchValue, sortColumn, defaultStatus?.key)
-  //   }
-  // }, [fetchTableData])
-
-  // const searchTableData = useCallback(
-  //   debounce(async (q, column, status) => {
-  //     setSearchValue(q)
-  //     try {
-  //       await fetchTableData(q, column, status)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   []
-  // )
-
-  // const handleSearch = (value, status) => {
-  //   setSearchValue(value)
-  //   searchTableData(value, sortColumn, status)
-  // }
-
-  // const handleSortModel = newModel => {
-  //   if (newModel.length) {
-  //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
-  //   } else {
-  //   }
-  // }
-
   const columns = [
     {
-      minWidth: 80,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       headerAlign: 'center',
@@ -364,7 +237,7 @@ const NurseryDetails = () => {
     },
     {
       flex: 0.1,
-      minWidth: 10,
+      minWidth: 120,
       field: 'ROOMS',
       headerName: 'ROOMS',
       headerAlign: 'left',
@@ -386,7 +259,7 @@ const NurseryDetails = () => {
 
     {
       flex: 0.1,
-      minWidth: 10,
+      minWidth: 120,
       field: 'INCUBATORS',
       headerName: 'INCUBATORS',
       headerAlign: 'left',
@@ -408,7 +281,7 @@ const NurseryDetails = () => {
 
     {
       flex: 0.1,
-      minWidth: 10,
+      minWidth: 160,
       field: 'Eggs',
       headerName: 'Eggs in Incubator',
       headerAlign: 'left',
@@ -430,7 +303,7 @@ const NurseryDetails = () => {
 
     {
       flex: 0.1,
-      minWidth: 10,
+      minWidth: 120,
       field: 'SITE NAME',
       headerName: 'SITE NAME',
       headerAlign: 'left',
@@ -451,7 +324,7 @@ const NurseryDetails = () => {
     },
     {
       flex: 0.1,
-      minWidth: 20,
+      minWidth: 100,
       sortable: false,
       align: 'left',
       field: 'active',
@@ -475,7 +348,7 @@ const NurseryDetails = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 220,
       field: 'ADDED BY',
       headerName: 'ADDED BY',
       sortable: false,
@@ -553,7 +426,12 @@ const NurseryDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
               Nursery List
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Nursery Details
             </Typography>
           </Breadcrumbs>
@@ -562,9 +440,9 @@ const NurseryDetails = () => {
               sx={{
                 m: '16px',
                 display: 'flex',
+                gap: 4,
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                rowGap: '8px',
                 flexWrap: 'wrap'
               }}
             >
@@ -592,8 +470,8 @@ const NurseryDetails = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '16px',
-                    flexWrap: 'wrap'
+                    flexWrap: 'wrap',
+                    gap: '16px'
                   }}
                 >
                   <FormControlLabel
@@ -629,13 +507,16 @@ const NurseryDetails = () => {
               )}
             </Box>
             <Box sx={{ px: '16px', my: '12px' }}>
+              {/* {!nurseryDataLoader && ( */}
               <DetailCard
+                // loading={nurseryDataLoader}
                 title='Nursery Details'
                 ButtonName={'ADD ROOM'}
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
-              />{' '}
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', mt: 4, gap: 4, mb: 6 }}>
+              />
+              {/* )}{' '} */}
+              <Box sx={{ display: 'flex', gap: 4, mb: 6, mt: 6, flexWrap: 'wrap' }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -649,10 +530,7 @@ const NurseryDetails = () => {
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                   <TextField
                     variant='outlined'
-                    placeholder='Search...'
-                    InputProps={{
-                      disableUnderline: true
-                    }}
+                    placeholder='Search'
                     onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -661,6 +539,11 @@ const NurseryDetails = () => {
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableunderline: true
                       }
                     }}
                   />
@@ -701,9 +584,12 @@ const NurseryDetails = () => {
                           '& .MuiInputLabel-root': {
                             top: -7
                           },
+                          '& .MuiInputLabel-shrink': {
+                            top: 0
+                          },
                           '& input': {
                             position: 'relative',
-                            top: -7
+                            top: -0
                           }
                         }}
                         onChange={e => {
@@ -723,7 +609,17 @@ const NurseryDetails = () => {
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
-
+                '.MuiDataGrid-main': {
+                  borderLeft: '1px solid #0000000D',
+                  borderRight: '1px solid #0000000D',
+                  marginLeft: '16px',
+                  marginRight: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(233, 233, 236, 1)'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  borderTop: 'none'
+                },
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }

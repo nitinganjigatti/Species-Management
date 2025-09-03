@@ -35,8 +35,6 @@ import SpeciesMappedtoDietFilter from './speciesMappedFilter'
 import { useMediaQuery } from '@mui/material'
 import SpeciesAnimalsMapped from 'src/components/diet/Species_Animals_mapped'
 import EditAnimalSpeciesMapped from 'src/components/diet/EditAnimalsSpecies'
-import SelectSiteList from 'src/components/diet/SelectSiteList'
-import { getSectionList } from 'src/lib/api/egg/egg/createAnimal'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -97,11 +95,9 @@ const DietDetail = () => {
   const [sepeciescountforFilter, setsepeciescountforFilter] = useState('')
   const [filteredTaxonomyList, setFilteredTaxonomyList] = useState([])
   const [taxonomySearchQuery, setTaxonomySearchQuery] = useState('')
-  const [speciesSearchQuery, setSpeciesSearchQuery] = useState('')
   const [applyfilterCheck, setapplyfilterCheck] = useState(false)
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
   const [selectedSections, setSelectedSections] = useState([])
-  let startArry = []
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -135,7 +131,6 @@ const DietDetail = () => {
 
       const filteredSites = q ? sites.filter(site => site.site_name.toLowerCase().includes(q.toLowerCase())) : sites
 
-      // Update items state with filtered sites
       setItems(prev => ({
         ...prev,
         Site: filteredSites.map(site => ({
@@ -150,7 +145,6 @@ const DietDetail = () => {
   }
 
   useEffect(() => {
-    // Check if Site has values
     if (selectedItems.Site && selectedItems.Site.length > 0) {
       const sectionIds = tempSelectedItems.Section.map(section_id => section_id)
 
@@ -215,19 +209,40 @@ const DietDetail = () => {
         res = await getAnimalsList(params)
       }
 
-      console.log(res, 'res')
-
       if (res) {
         const resultData = res?.data?.result
         const totalCount = res?.data?.count
 
         if (resultData) {
+          if (searchQuery && filterState === 'species') {
+            if (pageNo === 1) {
+              setspeciesDataforFilter(resultData)
+            } else {
+              setspeciesDataforFilter(prevData => {
+                const combinedData = [...prevData, ...resultData]
+
+                const uniqueData = combinedData.filter(
+                  (item, index, self) =>
+                    index ===
+                    self.findIndex(t =>
+                      selectionType === 'species' ? t.species_id === item.species_id : t.species_id === item.species_id
+                    )
+                )
+
+                return uniqueData
+              })
+            }
+            setsepeciescountforFilter(totalCount)
+          }
+
           if (pageNo === 1 && tempSelectedSpecies.length <= 0) {
             setspeciesData(resultData)
             setAllFetchedData(resultData)
-            if (filterState === 'species') {
+            if (filterState === 'species' && !searchQuery) {
               setspeciesDataforFilter(resultData)
             }
+          } else if (filterState === '' && tempSelectedSpecies.length > 0) {
+            setspeciesData(resultData)
           } else if (filterState === '') {
             setspeciesData(prevData => {
               const combinedData = [...prevData, ...resultData]
@@ -276,7 +291,7 @@ const DietDetail = () => {
           setspeciestotalcount(totalCount)
 
           // Check if we've reached the end of available data
-          if (resultData.length === 0 || resultData.length < pageSize) {
+          if (resultData.length === 0 || resultData.length < totalCount) {
             setHasMoreData(false)
           } else {
             setHasMoreData(true)
@@ -293,7 +308,6 @@ const DietDetail = () => {
 
   const debouncedSearch = useCallback(
     debounce(async (search, type) => {
-      console.log(selectionType, 'selectionType')
       try {
         if (pageNo === 1) {
           setLoading(true)
@@ -316,18 +330,11 @@ const DietDetail = () => {
           res = await getAnimalsList(params)
         }
 
-        console.log(res, 'res')
-
         if (res) {
           const resultData = res?.data?.result
           const totalCount = res?.data?.count
 
           if (resultData) {
-            // if (pageNo === 1) {
-            //   setspeciesData(resultData)
-            //   setAllFetchedData(resultData)
-            // }
-
             setspeciesData(prevData => {
               const combinedData = [...prevData, ...resultData]
 
@@ -356,8 +363,9 @@ const DietDetail = () => {
             })
 
             setspeciestotalcount(totalCount)
+
             // Check if we've reached the end of available data
-            if (resultData.length === 0 || resultData.length < pageSize) {
+            if (resultData.length === 0 || resultData.length < totalCount) {
               setHasMoreData(false)
             } else {
               setHasMoreData(true)
@@ -491,8 +499,6 @@ const DietDetail = () => {
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
 
     if (isBottom && !loading && speciesData.length < speciestotalcount) {
-      //setLoading(true)
-
       setPageNo(prevPageNo => prevPageNo + 1)
     }
   }
@@ -503,8 +509,6 @@ const DietDetail = () => {
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
 
     if (isBottom && !loading && speciesDataforFilter.length < sepeciescountforFilter) {
-      //setLoading(true)
-
       setPageNo(prevPageNo => prevPageNo + 1)
     }
   }
@@ -515,8 +519,6 @@ const DietDetail = () => {
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
 
     if (isBottom && !loading && taxonomyList.length < taxonomyCount) {
-      //setLoading(true)
-
       setPageNoTaxonomy(prevPageNo => prevPageNo + 1)
     }
   }
@@ -554,17 +556,17 @@ const DietDetail = () => {
   })
 
   const CustomScrollbar = styled('div')({
-    overflowX: 'auto', // or 'scroll'
+    overflowX: 'auto',
     '&::-webkit-scrollbar': {
-      width: 10, // specify your desired width
-      height: 4 // specify your desired height
+      width: 10,
+      height: 4
     },
     '&::-webkit-scrollbar-track': {
-      backgroundColor: 'transparent' // customize track color if needed
+      backgroundColor: 'transparent'
     },
     '&::-webkit-scrollbar-thumb': {
-      backgroundColor: 'lightgray', // customize thumb color if needed
-      borderRadius: 5 // specify border radius
+      backgroundColor: 'lightgray',
+      borderRadius: 5
     }
   })
   const classes = useStyles()
@@ -609,7 +611,6 @@ const DietDetail = () => {
 
   return (
     <>
-      {console.log(authData, 'authData')}
       {dietModule ? (
         <>
           {loader ? (
@@ -619,13 +620,19 @@ const DietDetail = () => {
               </Box>
             </CardContent>
           ) : (
-            <Box container spacing={6}>
+            <Box spacing={6}>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Diet</Typography>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
                   Diet
                 </Typography>
-                <Typography color='text.primary'>Diet Details</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.primary'
+                  }}
+                >
+                  Diet Details
+                </Typography>
               </Breadcrumbs>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <DietDetailCard
@@ -651,7 +658,7 @@ const DietDetail = () => {
                         sx={{
                           '& button': {
                             borderBottom: theme.components.MuiDataGrid.styleOverrides.cell.borderBottom,
-                            color: '#839D8D'
+                            color: theme.palette.customColors.Outline
                           }
                         }}
                         onChange={handleChange}
@@ -659,13 +666,17 @@ const DietDetail = () => {
                         className='tabs_diet_dtl'
                       >
                         {tabs.map((item, index) => (
-                          <Tab key={index} value={item.value} label={item.label} />
+                          <Tab key={item?.value} value={item.value} label={item.label} />
                         ))}
                       </TabList>
                       {tabs.map((item, index) => (
                         <>
                           {item?.value === value && (
-                            <TabPanel sx={{ overflowX: 'auto', pb: 0, pl: '0px' }} key={index} value={item?.value}>
+                            <TabPanel
+                              sx={{ overflowX: 'auto', pb: 0, pl: '0px' }}
+                              key={item?.value}
+                              value={item?.value}
+                            >
                               {loaderTwo ? (
                                 <Box
                                   sx={{
@@ -695,17 +706,34 @@ const DietDetail = () => {
                                         No records to show
                                       </div>
                                     ) : (
-                                      <TableHead>
-                                        <TableRow>
+                                      <TableHead
+                                        sx={{
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          '&:hover': {
+                                            backgroundColor: theme.palette.secondary.contrastText
+                                          }
+                                        }}
+                                      >
+                                        <TableRow
+                                          sx={{
+                                            '&:hover': {
+                                              backgroundColor: theme.palette.secondary.contrastText,
+                                              boxShadow: 'none'
+                                            }
+                                          }}
+                                        >
                                           <TableCell
                                             style={{ padding: '0px' }}
                                             sx={{
                                               border: 'none',
                                               height: '40px',
-                                              backgroundColor: theme.palette.primary.contrastText,
+                                              backgroundColor: theme.palette.secondary.contrastText,
                                               width: '160px',
                                               position: isSmallDevice ? '' : 'sticky ',
-                                              left: 0
+                                              left: 0,
+                                              '&:hover': {
+                                                backgroundColor: theme.palette.secondary.contrastText
+                                              }
                                             }}
                                             className={classes.sticky}
                                           >
@@ -737,6 +765,7 @@ const DietDetail = () => {
                                               position: isSmallDevice ? '' : 'sticky ',
                                               left: '160px',
                                               p: 0
+
                                               // width: '580px'
                                             }}
                                             className='meal_dtl_hd'
@@ -959,7 +988,15 @@ const DietDetail = () => {
                                                   No records to show
                                                 </Typography>
                                               ) : (
-                                                <TableRow key={index}>
+                                                <TableRow
+                                                  key={index}
+                                                  sx={{
+                                                    '&:hover': {
+                                                      backgroundColor: theme.palette.secondary.contrastText,
+                                                      boxShadow: 'none'
+                                                    }
+                                                  }}
+                                                >
                                                   <TableCell
                                                     sx={{
                                                       position: isSmallDevice ? 'relative' : 'sticky ',
@@ -970,6 +1007,7 @@ const DietDetail = () => {
                                                       pr: '36px',
                                                       background: theme.palette.primary.contrastText,
                                                       height: '185px',
+                                                      pl: '1rem !important',
 
                                                       //display: 'flex',
                                                       //flexDirection: 'column',
@@ -1062,7 +1100,15 @@ const DietDetail = () => {
                                                     {itemd?.recipe?.length > 0 &&
                                                       itemd?.recipe?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -1206,7 +1252,7 @@ const DietDetail = () => {
                                                                           mb: 1
                                                                         }}
                                                                       >
-                                                                        Ingredients used
+                                                                        Items used
                                                                       </Typography>
                                                                       {item?.ingredients?.length > 0 && (
                                                                         <Box
@@ -1236,7 +1282,7 @@ const DietDetail = () => {
                                                                                 sx={{
                                                                                   fontSize: '14px',
                                                                                   lineHeight: '1.7rem',
-                                                                                  color: '#000'
+                                                                                  color: theme.palette.common.black
                                                                                 }}
                                                                               >
                                                                                 {`${name?.ingredient_name || ''} | ${
@@ -1250,7 +1296,7 @@ const DietDetail = () => {
                                                                                   fontSize: '14px',
                                                                                   lineHeight: '1.7rem',
                                                                                   marginLeft: '2px',
-                                                                                  color: '#000'
+                                                                                  color: theme.palette.common.black
                                                                                 }}
                                                                               >
                                                                                 {` ${parseFloat(name?.quantity) || 0}${
@@ -1444,8 +1490,6 @@ const DietDetail = () => {
                                                                 maxHeight: '100%',
                                                                 border: 'none'
                                                               }}
-
-                                                              // onClick={() => handleClickOpen(index, item, 'Generic', 'recipe')}
                                                             >
                                                               <Box
                                                                 sx={{
@@ -1495,6 +1539,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -1585,6 +1649,116 @@ const DietDetail = () => {
                                                                                     : ''
                                                                                 })
                                                                               : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : ''}
                                                                           </Typography>
                                                                         </Box>
                                                                       </Box>
@@ -1604,7 +1778,15 @@ const DietDetail = () => {
                                                     {itemd?.combo?.length > 0 &&
                                                       itemd?.combo?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -1668,7 +1850,7 @@ const DietDetail = () => {
                                                                               display: 'block'
                                                                             }}
                                                                           >
-                                                                            Combo
+                                                                            Mix
                                                                           </Typography>
                                                                           <Typography
                                                                             sx={{
@@ -1689,23 +1871,6 @@ const DietDetail = () => {
                                                                           </Typography>
                                                                         </>
                                                                       )}
-                                                                      {/* {console.log(item, 'klkl')}
-                                                                      {item?.ingredients.map(all => {
-                                                                        return (
-                                                                          <Typography
-                                                                            sx={{
-                                                                              color: theme.palette. primary. light,
-                                                                              lineHeight: '16.94px',
-                                                                              fontWeight: 400,
-                                                                              fontSize: '14px'
-                                                                            }}
-                                                                          >
-                                                                            &nbsp;-&nbsp; {all?.preparation_type}
-                                                                            &nbsp;-&nbsp;
-                                                                              {item?.master_cut_size}
-                                                                          </Typography>
-                                                                        )
-                                                                      })} */}
                                                                     </Box>
                                                                     <Divider />
                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -1764,7 +1929,7 @@ const DietDetail = () => {
                                                                           mb: 1
                                                                         }}
                                                                       >
-                                                                        Ingredients used
+                                                                        Items used
                                                                       </Typography>
                                                                       {item?.ingredients?.length > 0 && (
                                                                         <Box
@@ -1794,7 +1959,7 @@ const DietDetail = () => {
                                                                                 sx={{
                                                                                   fontSize: '14px',
                                                                                   lineHeight: '1.7rem',
-                                                                                  color: '#000'
+                                                                                  color: theme.palette.common.black
                                                                                 }}
                                                                               >
                                                                                 {`${name?.ingredient_name || ''} | ${
@@ -1808,7 +1973,7 @@ const DietDetail = () => {
                                                                                   fontSize: '14px',
                                                                                   lineHeight: '1.7rem',
                                                                                   marginLeft: '2px',
-                                                                                  color: '#000'
+                                                                                  color: theme.palette.common.black
                                                                                 }}
                                                                               >
                                                                                 {` ${parseFloat(name?.quantity) || 0}${
@@ -2055,6 +2220,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -2145,6 +2330,116 @@ const DietDetail = () => {
                                                                                     : ''
                                                                                 })
                                                                               : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : ''}
                                                                           </Typography>
                                                                         </Box>
                                                                       </Box>
@@ -2164,7 +2459,15 @@ const DietDetail = () => {
                                                     {itemd?.ingredient?.length > 0 &&
                                                       itemd?.ingredient?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -2520,6 +2823,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -2612,6 +2935,116 @@ const DietDetail = () => {
                                                                                     : ''
                                                                                 })
                                                                               : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : ''}
                                                                           </Typography>
                                                                         </Box>
                                                                       </Box>
@@ -2630,7 +3063,15 @@ const DietDetail = () => {
                                                   <>
                                                     {itemd?.ingredientwithchoice?.map((item, index) => {
                                                       return (
-                                                        <TableRow key={index}>
+                                                        <TableRow
+                                                          key={index}
+                                                          sx={{
+                                                            '&:hover': {
+                                                              backgroundColor: theme.palette.secondary.contrastText,
+                                                              boxShadow: 'none'
+                                                            }
+                                                          }}
+                                                        >
                                                           <TableCell
                                                             style={{ paddingLeft: '0px' }}
                                                             sx={{
@@ -2646,7 +3087,6 @@ const DietDetail = () => {
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
 
-                                                                //backgroundColor: theme.palette. background.OnBackground,
                                                                 backgroundColor: '#00d6c957',
                                                                 borderRadius: '8px',
                                                                 p: '12px',
@@ -2702,7 +3142,7 @@ const DietDetail = () => {
                                                                     mb: 0
                                                                   }}
                                                                 >
-                                                                  Ingredients using
+                                                                  Items using
                                                                 </Typography>
                                                                 {item?.ingredientList?.length > 0 && (
                                                                   <Box
@@ -2714,56 +3154,54 @@ const DietDetail = () => {
                                                                     }}
                                                                   >
                                                                     {item?.ingredientList?.map((item, index) => (
-                                                                      <>
-                                                                        <Box
-                                                                          key={index}
+                                                                      <Box
+                                                                        key={index}
+                                                                        sx={{
+                                                                          height: '32px',
+                                                                          borderRadius: '16px',
+                                                                          backgroundColor: '#1F415B1A',
+                                                                          display: 'center',
+                                                                          px: 2,
+                                                                          justifyContent: 'center',
+                                                                          alignItems: 'center'
+                                                                        }}
+                                                                      >
+                                                                        <Typography
                                                                           sx={{
-                                                                            height: '32px',
-                                                                            borderRadius: '16px',
-                                                                            backgroundColor: '#1F415B1A',
-                                                                            display: 'center',
-                                                                            px: 2,
-                                                                            justifyContent: 'center',
-                                                                            alignItems: 'center'
+                                                                            fontWeight: 600,
+                                                                            fontSize: '14px',
+                                                                            lineHeight: '16.94px',
+                                                                            color: theme.palette.secondary.dark
                                                                           }}
                                                                         >
+                                                                          {item?.ingredient_name}
+                                                                        </Typography>
+                                                                        {item?.master_cut_size ? (
                                                                           <Typography
                                                                             sx={{
-                                                                              fontWeight: 600,
+                                                                              fontWeight: 400,
                                                                               fontSize: '14px',
-                                                                              lineHeight: '16.94px',
+                                                                              lineHeight: '18px',
                                                                               color: theme.palette.secondary.dark
                                                                             }}
                                                                           >
-                                                                            {item?.ingredient_name}
+                                                                            &nbsp;-&nbsp; {item?.preparation_type}
+                                                                            &nbsp;-&nbsp;
+                                                                            {item?.master_cut_size}
                                                                           </Typography>
-                                                                          {item?.master_cut_size ? (
-                                                                            <Typography
-                                                                              sx={{
-                                                                                fontWeight: 400,
-                                                                                fontSize: '14px',
-                                                                                lineHeight: '18px',
-                                                                                color: theme.palette.secondary.dark
-                                                                              }}
-                                                                            >
-                                                                              &nbsp;-&nbsp; {item?.preparation_type}
-                                                                              &nbsp;-&nbsp;
-                                                                              {item?.master_cut_size}
-                                                                            </Typography>
-                                                                          ) : (
-                                                                            <Typography
-                                                                              sx={{
-                                                                                fontWeight: 400,
-                                                                                fontSize: '14px',
-                                                                                lineHeight: '18px',
-                                                                                color: theme.palette.secondary.dark
-                                                                              }}
-                                                                            >
-                                                                              &nbsp;-&nbsp; {item?.preparation_type}
-                                                                            </Typography>
-                                                                          )}
-                                                                        </Box>
-                                                                      </>
+                                                                        ) : (
+                                                                          <Typography
+                                                                            sx={{
+                                                                              fontWeight: 400,
+                                                                              fontSize: '14px',
+                                                                              lineHeight: '18px',
+                                                                              color: theme.palette.secondary.dark
+                                                                            }}
+                                                                          >
+                                                                            &nbsp;-&nbsp; {item?.preparation_type}
+                                                                          </Typography>
+                                                                        )}
+                                                                      </Box>
                                                                     ))}
                                                                   </Box>
                                                                 )}
@@ -2931,6 +3369,26 @@ const DietDetail = () => {
                                                                           : ''
                                                                       })
                                                                     : ''}
+                                                                  {item.meal_type
+                                                                    ? item.meal_type.map((meal, i) =>
+                                                                        meal.meal_value_header === 'Generic' &&
+                                                                        meal.notes &&
+                                                                        meal.notes.trim() !== '' ? (
+                                                                          <Typography
+                                                                            key={i}
+                                                                            sx={{ textAlign: 'center' }}
+                                                                          >
+                                                                            <Tooltip title={meal.notes}>
+                                                                              <img
+                                                                                src='/icons/Notes.svg'
+                                                                                alt='Grocery Icon'
+                                                                                width='35px'
+                                                                              />
+                                                                            </Tooltip>
+                                                                          </Typography>
+                                                                        ) : null
+                                                                      )
+                                                                    : null}
                                                                 </Typography>
                                                               </Box>
                                                             </Box>
@@ -3020,6 +3478,116 @@ const DietDetail = () => {
                                                                                   : ''
                                                                               })
                                                                             : ''}
+                                                                          {dietDetails.diet_type_name === 'By Weight' &&
+                                                                          item.meal_type
+                                                                            ? item.meal_type
+                                                                                .map((meal, i) => {
+                                                                                  if (
+                                                                                    all.includes(
+                                                                                      meal.meal_value_header
+                                                                                    ) &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                                .filter(Boolean).length === 0
+                                                                              ? ''
+                                                                              : item.meal_type.map((meal, i) => {
+                                                                                  if (
+                                                                                    all.includes(
+                                                                                      meal.meal_value_header
+                                                                                    ) &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                            : item.meal_type
+                                                                            ? item.meal_type
+                                                                                .map((meal, i) => {
+                                                                                  if (
+                                                                                    meal.meal_value_header === all &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                                .filter(Boolean).length === 0
+                                                                              ? ''
+                                                                              : item.meal_type.map((meal, i) => {
+                                                                                  if (
+                                                                                    meal.meal_value_header === all &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                            : ''}
                                                                         </Typography>
                                                                       </Box>
                                                                     </Box>
@@ -3038,7 +3606,11 @@ const DietDetail = () => {
                                                 sx={{
                                                   width: '100%',
                                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  pb: 3
+                                                  pb: 3,
+                                                  '&:hover': {
+                                                    backgroundColor: theme.palette.secondary.contrastText,
+                                                    boxShadow: 'none'
+                                                  }
                                                 }}
                                               >
                                                 <TableCell
@@ -3110,21 +3682,14 @@ const DietDetail = () => {
           <SpeciesMappedtoDiet
             isOpen={isOpen}
             setIsOpen={setIsOpen}
-            dietname={dietDetails?.diet_name}
-            dietid={dietDetails?.id}
             speciesData={speciesData}
-            dietDetails={dietDetails}
             selectedSpecies={selectedSpecies}
-            onSelectedSpeciesChange={handleSelectedSpeciesChange}
             setIsOpennew={setIsOpennew}
             setspeciesview={setspeciesview}
+            speciesview={speciesview}
             setOpenFilterDrawer={setOpenFilterDrawer}
-            openFilterDrawer={openFilterDrawer}
             selectedItems={selectedItems}
-            dietId={id}
             speciestotalcount={speciestotalcount}
-            refreshSpeciesData={refreshSpeciesData}
-            refreshDietDetails={getDietDetailsCallback}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             handleScroll={handleScroll}
@@ -3141,17 +3706,10 @@ const DietDetail = () => {
             setSelectedItems={setSelectedItems}
             debouncedSearch={debouncedSearch}
             setFilterState={setFilterState}
-            setspeciesDataforFilter={setspeciesDataforFilter}
-            setsepeciescountforFilter={setsepeciescountforFilter}
             setActiveTab={setActiveTab}
-            setspeciesData={setspeciesData}
-            setspeciestotalcount={setspeciestotalcount}
-            setItems={setItems}
             applyfilterCheck={applyfilterCheck}
             setSelectedEnclosures={setSelectedEnclosures}
-            selectedEnclosures={selectedEnclosures}
             setSelectedSections={setSelectedSections}
-            selectedSections={selectedSections}
             setSelectedSpeciesIds={setSelectedSpeciesIds}
             setSelectedTaxonomyIds={setSelectedTaxonomyIds}
           />
@@ -3159,7 +3717,6 @@ const DietDetail = () => {
             isOpennew={isOpennew}
             setIsOpennew={setIsOpennew}
             setIsOpen={setIsOpen}
-            dietname={dietDetails?.diet_name}
             dietid={dietDetails?.id}
             speciesData={speciesData}
             onSelectedSpeciesChange={handleSelectedSpeciesChange}
@@ -3186,43 +3743,31 @@ const DietDetail = () => {
             setapplyfilterCheck={setapplyfilterCheck}
           />
           <SpeciesAnimalsMapped
-            isOpennew={isOpennew}
-            setIsOpennew={setIsOpennew}
             setIsOpenTabs={setIsOpenTabs}
             isOpentab={isOpentab}
-            setIsOpen={setIsOpen}
             setIsOpenTabsEdit={setIsOpenTabsEdit}
-            isOpentabEdit={isOpentabEdit}
-            dietname={dietDetails?.diet_name}
-            dietid={dietDetails?.id}
             speciesData={speciesData}
-            onSelectedSpeciesChange={handleSelectedSpeciesChange}
-            selectedSpecies={selectedSpecies}
             speciesview={speciesview}
             dietDetails={dietDetails}
-            dietId={id}
-            refreshSpeciesData={refreshSpeciesData}
             refreshDietDetails={getDietDetailsCallback}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             speciestotalcount={speciestotalcount}
             setspeciesview={setspeciesview}
             handleScroll={handleScroll}
-            setLoading={setLoading}
             loading={loading}
             setPageNo={setPageNo}
             isLoadingMore={isLoadingMore}
             pageNo={pageNo}
             tempSelectedSpecies={tempSelectedSpecies}
-            setTempSelectedSpecies={setTempSelectedSpecies}
-            setSelectedSpecies={setSelectedSpecies}
+            items={items}
             selectionType={selectionType}
             setSelectionType={setSelectionType}
             setPrimaryStatus={setPrimaryStatus}
-            primaryStatus={primaryStatus}
             debouncedFetchList={debouncedFetchList}
             selectedItems={selectedItems}
             setTempSelectedItems={setTempSelectedItems}
+            tempSelectedItems={tempSelectedItems}
             setOpenFilterDrawer={setOpenFilterDrawer}
             applyfilterCheck={applyfilterCheck}
             setFilterState={setFilterState}
@@ -3234,36 +3779,24 @@ const DietDetail = () => {
             authData={authData}
           />
           <EditAnimalSpeciesMapped
-            isOpennew={isOpennew}
-            setIsOpennew={setIsOpennew}
             setIsOpenTabs={setIsOpenTabs}
-            isOpentab={isOpentab}
-            setIsOpen={setIsOpen}
             setIsOpenTabsEdit={setIsOpenTabsEdit}
             isOpentabEdit={isOpentabEdit}
-            dietname={dietDetails?.diet_name}
-            dietid={dietDetails?.id}
             speciesData={speciesData}
-            onSelectedSpeciesChange={handleSelectedSpeciesChange}
-            selectedSpecies={selectedSpecies}
             speciesview={speciesview}
             dietDetails={dietDetails}
-            dietId={id}
-            refreshSpeciesData={refreshSpeciesData}
             refreshDietDetails={getDietDetailsCallback}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             speciestotalcount={speciestotalcount}
             setspeciesview={setspeciesview}
             handleScroll={handleScroll}
-            setLoading={setLoading}
             loading={loading}
             setPageNo={setPageNo}
             isLoadingMore={isLoadingMore}
             pageNo={pageNo}
             tempSelectedSpecies={tempSelectedSpecies}
             setTempSelectedSpecies={setTempSelectedSpecies}
-            setSelectedSpecies={setSelectedSpecies}
             setspeciesData={setspeciesData}
             setSelectionType={setSelectionType}
             selectionType={selectionType}
@@ -3279,7 +3812,6 @@ const DietDetail = () => {
             openFilterDrawer={openFilterDrawer}
             tabsforfilter={tabsforfilter}
             setActiveTab={setActiveTab}
-            tabs={tabs}
             activeTab={activeTab}
             setSearchTerm={setSearchTerm}
             searchTerm={searchTerm}
@@ -3294,19 +3826,16 @@ const DietDetail = () => {
             setSectionsData={setSectionsData}
             enclosuresData={enclosuresData}
             setEnclosuresData={setEnclosuresData}
-            speciesData={speciesData}
             setSelectedSpeciesIds={setSelectedSpeciesIds}
             selectedSpeciesIds={selectedSpeciesIds}
             setSelectedTaxonomyIds={setSelectedTaxonomyIds}
             selectedTaxonomyIds={selectedTaxonomyIds}
-            handleScroll={handleScroll}
             taxonomyList={taxonomyList}
             selectionType={selectionType}
             debouncedSearch={debouncedSearch}
             setSearchQuery={setSearchQuery}
             searchQuery={searchQuery}
             speciesDataforFilter={speciesDataforFilter}
-            sepeciescountforFilter={sepeciescountforFilter}
             handleScrollforFilter={handleScrollforFilter}
             handleScrollforTaxonomy={handleScrollforTaxonomy}
             setFilterState={setFilterState}
@@ -3316,8 +3845,6 @@ const DietDetail = () => {
             setFilteredTaxonomyList={setFilteredTaxonomyList}
             filteredTaxonomyList={filteredTaxonomyList}
             setTaxonomySearchQuery={setTaxonomySearchQuery}
-            setSpeciesSearchQuery={setSpeciesSearchQuery}
-            speciesSearchQuery={speciesSearchQuery}
             taxonomySearchQuery={taxonomySearchQuery}
             setItems={setItems}
             debouncedFetchTaxonomyList={debouncedFetchTaxonomyList}

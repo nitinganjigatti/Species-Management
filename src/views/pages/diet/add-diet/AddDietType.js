@@ -26,6 +26,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   const [uom, setUom] = useState('')
   const [dis, setDis] = useState(true)
   const theme = useTheme()
+
   const getUnitsList = async () => {
     try {
       const params = {
@@ -47,9 +48,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     }
   }, [activitySidebarOpen])
 
-  // Function to send diet_types values to the parent component
   const sendDietTypesToParent = dietTypesData => {
-    // Call the function received from the parent component and pass the diet_types values
     onReceiveDietTypes(dietTypesData)
   }
 
@@ -169,6 +168,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
   const checkDisabled = () => {
     const dietTypes = getValues('diet_types')
+
     const isDisabled = dietTypes.some(item => {
       return !item?.weight || item?.weight === '' || !item?.unit?.value || item?.unit?.value === ''
     })
@@ -252,14 +252,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
               <Typography sx={{ fontWeight: 500, fontSize: '24px', color: 'black' }}>Add Weights</Typography>
               <Box>
                 <Autocomplete
-                  value={uom !== undefined && uom !== '' ? uom : null} // Set value to null for undefined or empty string
+                  value={uom !== undefined && uom !== '' ? uom : null} 
                   forcePopupIcon={false}
                   isOptionEqualToValue={(option, value) => option.value === value}
                   noOptionsText='Type to search'
                   options={uomList?.length > 0 ? uomList : []}
                   getOptionLabel={option => option?.name}
                   onChange={(e, val) => {
-                    setUom(val !== null ? val : '') // Set uom to val if not null, otherwise set it to empty string
+                    setUom(val !== null ? val : '') 
                   }}
                   renderInput={params => <TextField {...params} label='Select unit*' placeholder='Search & Select' />}
                   sx={{ width: '200px' }}
@@ -273,8 +273,15 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
               <Box>
                 <FormGroup>
                   {fields.map((field, index) => (
-                    <Grid container gap={3} key={field?.id} sx={{ mb: 4 }}>
-                      <Grid item xs={12} sm={5}>
+                    <Grid
+                      container
+                      key={field?.id}
+                      sx={{
+                        gap: 3,
+                        mb: 4
+                      }}
+                    >
+                      <Grid item size={{ xs: 12, sm: 5 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].weight`}
@@ -288,14 +295,17 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                     // setValue(`diet_types[${index}].weight`, e.target.value)
                                     onChange(e?.target?.value || '')
                                     checkDisabled()
+
                                     //setDis(false)
                                   }}
                                   error={Boolean(errors?.diet_types?.[index]?.weight)}
                                   type='number'
-                                  inputProps={{ min: 1 }}
                                   name={`diet_types[${index}].weight`}
                                   onKeyUp={() => {
                                     handleKeyUp(index)
+                                  }}
+                                  slotProps={{
+                                    htmlInput: { min: 1 }
                                   }}
                                 />
                               </>
@@ -308,7 +318,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             errors?.diet_types?.[index]?.weight?.message}
                         </Typography>
                       </Grid>
-                      {/* <Grid item xs={12} sm={2.5}>
+                      {/* <Grid item size={{xs: 12, sm: 2.5}}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].maxWeight`}
@@ -340,7 +350,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             errors?.diet_types?.[index]?.maxWeight?.message}
                         </Typography>
                       </Grid> */}
-                      <Grid item xs={12} sm={5}>
+                      <Grid item size={{ xs: 12, sm: 5 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].unit.value`}
@@ -374,14 +384,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                         </FormControl>
                       </Grid>
                       {errors?.diet_types?.[index]?.weight?.message === 'same range value be not allowed' && (
-                        <Grid item xs={10}>
+                        <Grid item size={{ xs: 10 }}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
                             {errors?.diet_types?.[index]?.weight?.message}
                           </Typography>
                         </Grid>
                       )}
                       {/* {errors?.diet_types?.[index]?.maxWeight?.message === 'same range value be not allowed' && (
-                        <Grid item xs={10}>
+                        <Grid item size={{xs: 10}}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
                             {errors?.diet_types?.[index]?.maxWeight?.message}
                           </Typography>
@@ -390,8 +400,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
                       <Grid
                         item
-                        alignSelf='center'
                         sx={{
+                          alignSelf: 'center',
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center'
@@ -420,7 +430,6 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
               disabled={dis || Boolean(errors?.diet_types)}
               type='submit'
               onClick={() => {
-                // console.log('fields', getValues('diet_types'))
                 console.log(
                   'fields',
                   getValues('diet_types').map(item => ({

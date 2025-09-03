@@ -31,6 +31,7 @@ import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const RequestReport = () => {
   const router = useRouter()
@@ -236,13 +237,24 @@ const RequestReport = () => {
       )
     },
     {
-      width: 5,
+      width: 100,
       field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
-      textAlign: 'center',
-      sortable: false,
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row.priority)}</Box>
+      headerName: 'Priority',
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility?.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
     {
       minWidth: 20,
@@ -386,11 +398,11 @@ const RequestReport = () => {
       headerName: 'REQUESTED BY ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.requested_by_profile_pic,
-            params?.row?.requested_by,
-            params?.row?.requested_date
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.requested_by_profile_pic}
+            user_name={params?.row?.requested_by}
+            date={params?.row?.requested_date}
+          />
         </>
       )
     }
@@ -409,8 +421,6 @@ const RequestReport = () => {
         startDate: filterDates?.startDate,
         endDate: filterDates?.endDate
       })
-
-      console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
         startDate: '',
@@ -421,8 +431,6 @@ const RequestReport = () => {
         startDate: '',
         endDate: ''
       })
-
-      console.log('Empty date range selected,', { startDate, endDate })
     }
   }
 
@@ -542,8 +550,6 @@ const RequestReport = () => {
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
 
-  console.log(filteredData)
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -579,13 +585,19 @@ const RequestReport = () => {
                   spacing={4}
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Grid item xs={12} sm={5} md={5}>
+                  <Grid item size={{ xs: 12, sm: 5, md: 5 }}>
                     <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                   </Grid>
 
-                  <Grid item sm={7} xs={12}>
-                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                  <Grid item size={{ xs: 12, sm: 7 }}>
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{
+                        justifyContent: { xs: 'flex-end' }
+                      }}
+                    >
+                      <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
                           size='small'
@@ -593,19 +605,21 @@ const RequestReport = () => {
                           value={searchValue}
                           onChange={e => handleSearch(e.target.value)}
                           fullWidth
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position='start'>
-                                <Icon
-                                  icon='mi:search'
-                                  fontSize={24}
-                                  color={theme.palette.customColors.neutralSecondary}
-                                />
-                              </InputAdornment>
-                            )
-                          }}
                           sx={{
                             borderRadius: '8px'
+                          }}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position='start'>
+                                  <Icon
+                                    icon='mi:search'
+                                    fontSize={24}
+                                    color={theme.palette.customColors.neutralSecondary}
+                                  />
+                                </InputAdornment>
+                              )
+                            }
                           }}
                         />
                       </Grid>

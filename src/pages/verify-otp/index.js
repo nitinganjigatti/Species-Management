@@ -45,6 +45,7 @@ const VerifyOtp = () => {
   const [countdown, setCountdown] = useState(0)
   const [showResendOptions, setShowResendOptions] = useState(false)
   const [loading, setLoading] = useState(false)
+
   const [loadingStates, setLoadingStates] = useState({
     sms: false,
     whatsapp: false,
@@ -77,7 +78,6 @@ const VerifyOtp = () => {
         setShowResendOptions(true)
       }
     } else {
-      // If the user is coming for the first time, start countdown automatically
       localStorage.setItem('otpTimestamp', Date.now().toString())
       localStorage.setItem('otpCountdown', initialCountdown.toString())
       setCountdown(initialCountdown)
@@ -94,9 +94,11 @@ const VerifyOtp = () => {
             setShowResendOptions(true)
             localStorage.removeItem('otpTimestamp')
             localStorage.removeItem('otpCountdown')
+
             return 0
           }
           localStorage.setItem('otpCountdown', (prevCountdown - 1).toString())
+
           return prevCountdown - 1
         })
       }, 1000)
@@ -174,6 +176,7 @@ const VerifyOtp = () => {
 
     const payload = {
       otp: data.otp,
+
       // user_id: userData?.user_id
       user_id: forgotPasswordData?.user_id
     }
@@ -329,4 +332,5 @@ const VerifyOtp = () => {
 
 VerifyOtp.guestGuard = true
 VerifyOtp.getLayout = page => <BlankLayout>{page}</BlankLayout>
+
 export default VerifyOtp

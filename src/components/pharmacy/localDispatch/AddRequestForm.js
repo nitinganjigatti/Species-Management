@@ -648,9 +648,10 @@ const AddRequestForm = () => {
   const createForm = () => {
     return (
       // <CardContent>
+      // </CardContent>
       <form style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
-          <Grid item xs={12} sm={11 / 2}>
+        <Grid container spacing={5} size={{ xs: 12 }}>
+          <Grid item size={{ xs: 12, sm: 11 / 2 }}>
             <FormControl fullWidth>
               <Autocomplete
                 // sx={{ zIndex: 1 }}
@@ -740,11 +741,11 @@ const AddRequestForm = () => {
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={1}>
+          <Grid item size={{ xs: 12, sm: 1 }}>
             <Typography sx={{ my: 4, textAlign: 'center' }}>OR</Typography>
           </Grid>
 
-          <Grid item xs={12} sm={11 / 2}>
+          <Grid item size={{ xs: 12, sm: 11 / 2 }}>
             <FormControl fullWidth>
               <Autocomplete
                 // sx={{ zIndex: 1 }}
@@ -837,7 +838,7 @@ const AddRequestForm = () => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={11 / 2}>
+          <Grid item size={{ xs: 12, sm: 11 / 2 }}>
             <FormControl fullWidth>
               <TextField
                 type='number'
@@ -858,14 +859,14 @@ const AddRequestForm = () => {
               {nestedRowMedicine.unit_price > 0 ? (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
-                    label={`Unit Price - ${nestedRowMedicine.unit_price}`}
+                    label={`Unit Price - ${nestedRowMedicine?.unit_price}`}
                     color='primary'
                     variant='outlined'
                     size='sm'
                     sx={{ mr: 2, fontSize: 11, height: '22px' }}
                   />
                   <Chip
-                    label={`Total QTY Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
+                    label={`Total QTY Price - ${nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty}`}
                     color='primary'
                     variant='outlined'
                     size='sm'
@@ -876,7 +877,7 @@ const AddRequestForm = () => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={11 / 2}>
+          <Grid item size={{ xs: 12, sm: 11 / 2 }}>
             <Typography>Priority</Typography>
             <RadioGroup
               row
@@ -892,10 +893,10 @@ const AddRequestForm = () => {
             </RadioGroup>
           </Grid>
 
-          {/* // file uploader */}
+        
           {nestedRowMedicine.control_substance === true ? (
             nestedRowMedicine.control_substance_file ? (
-              <Grid item xs={12} sm={11 / 2}>
+              <Grid item size={{ xs: 12, sm: 11 / 2 }}>
                 {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
                   <Chip
                     label={nestedRowMedicine.control_substance_file?.name}
@@ -948,7 +949,7 @@ const AddRequestForm = () => {
                 )}
               </Grid>
             ) : (
-              <Grid item xs={12} sm={11 / 2}>
+              <Grid item size={{ xs: 12, sm: 11 / 2 }}>
                 <Typography sx={{ mb: 2 }}>Attach details (Mandatory for controlled substances)</Typography>
                 <FormControl fullWidth>
                   <TextField
@@ -988,7 +989,7 @@ const AddRequestForm = () => {
           ) : null}
           {nestedRowMedicine.prescription_required === true ? (
             nestedRowMedicine.prescription_required_file ? (
-              <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
+              <Grid item size={{ xs: 12, sm: 11 / 2 }} sx={{ ml: 'auto' }}>
                 {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
                   <Chip
                     label={nestedRowMedicine.prescription_required_file?.name}
@@ -1041,7 +1042,7 @@ const AddRequestForm = () => {
                 )}
               </Grid>
             ) : (
-              <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+              <Grid item size={{ xs: 12, sm: 6 }} sx={{ ml: 'auto' }}>
                 <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
                 <FormControl fullWidth>
                   <TextField
@@ -1080,10 +1081,9 @@ const AddRequestForm = () => {
             )
           ) : null}
 
-          {/* // file uploader */}
-
+        
           {/* <Grid item xs={12}> */}
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ float: 'right' }}>
               {medicineItemId ? (
                 <>
@@ -1137,7 +1137,6 @@ const AddRequestForm = () => {
           </Grid>
         </Grid>
       </form>
-      // </CardContent>
     )
   }
 
@@ -1145,8 +1144,7 @@ const AddRequestForm = () => {
     <Card>
       <Grid
         container
-        sm={12}
-        xs={12}
+        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -1180,9 +1178,9 @@ const AddRequestForm = () => {
       <CardContent>
         <form>
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
+                <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Requested to :
                   </Typography>
@@ -1223,13 +1221,13 @@ const AddRequestForm = () => {
                 </FormControl>
               </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                   &nbsp;
                 </Typography>
               </Grid>
-              {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+              {/* <Grid size={{xs: 12, sm: 12}} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
                   <Select
@@ -1263,7 +1261,7 @@ const AddRequestForm = () => {
                   )}
                 </FormControl>
               </Grid> */}
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+              <Grid item size={{ xs: 12, sm: 12, lg: 12 }} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
                     disabled={true}
@@ -1294,8 +1292,7 @@ const AddRequestForm = () => {
       <Grid
         container
         spacing={6}
-        sm={12}
-        xs={12}
+        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
           justifyContent: 'flex-end',
@@ -1410,9 +1407,7 @@ const AddRequestForm = () => {
           <Grid container>
             <Grid
               item
-              xs={12}
-              sm={2}
-              lg={2}
+              size={{ xs: 12, sm: 2, lg: 2 }}
               sx={{
                 mb: { sm: 0, xs: 4 },
                 order: { sm: 2, xs: 1 },
@@ -1434,7 +1429,7 @@ const AddRequestForm = () => {
           </Grid>
         ) : null}
       </CardContent>
-      <Grid item xs={12}>
+      <Grid item size={{ xs: 12 }}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
           {id && editParams?.request_item_details?.length > 0 ? (
             <>

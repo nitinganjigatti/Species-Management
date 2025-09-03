@@ -28,6 +28,7 @@ import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 function Dispense() {
   const router = useRouter()
@@ -42,6 +43,7 @@ function Dispense() {
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
+  const [filterSwitch, setFilterSwitch] = useState(false)
 
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
@@ -49,7 +51,7 @@ function Dispense() {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -219,11 +221,11 @@ function Dispense() {
       headerName: 'Created by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     }
@@ -242,7 +244,6 @@ function Dispense() {
           limit: paginationModel.pageSize
         }
 
-        // Call the API to fetch data with the sorting and other params
         await getDispenseList({ params }).then(res => {
           if (res?.success) {
             setTotal(parseInt(res?.count))
@@ -285,7 +286,7 @@ function Dispense() {
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
       setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
+      setPaginationModel({ page: 0, pageSize: 50 })
       setSearchValue(q)
       try {
         await getDipsense({ sort, q, column })
@@ -310,8 +311,8 @@ function Dispense() {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const newSort = newModel[0].sort // This will give 'asc' or 'desc'
-      const newColumn = newModel[0].field // This is the field by which you're sorting
+      const newSort = newModel[0].sort
+      const newColumn = newModel[0].field
 
       setSort(newSort)
       setSortColumn(newColumn)
@@ -362,8 +363,6 @@ function Dispense() {
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
         <Card>
-          {/* Title and Button */}
-
           <CardHeader
             sx={{
               display: 'flex',
@@ -382,7 +381,6 @@ function Dispense() {
             action={headerAction}
           />
 
-          {/* Search and Switch Section */}
           <Grid
             container
             sx={{
@@ -391,8 +389,7 @@ function Dispense() {
               justifyContent: 'space-between'
             }}
           >
-            {/* Search Field */}
-            <Grid item xs={12} sm={8} md={8} sx={{ mx: { xs: 3, md: 5 } }}>
+            <Grid item size={{ xs: 12, sm: 8, md: 8 }} sx={{ mx: { xs: 3, md: 5 } }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -425,18 +422,21 @@ function Dispense() {
             </Grid>
 
             {/* Switch */}
-            {status === 'all' || status === 'completed' ? (
-              <Grid item xs={12} sm='auto' sx={{ textAlign: { xs: 'center', sm: 'right' }, mt: { xs: 2, sm: 0 } }}>
+            {/* {status === 'all' || status === 'completed' ? (
+              <Grid
+                item
+                size={{ xs: 12, sm: 'auto' }}
+                sx={{ textAlign: { xs: 'center', sm: 'right' }, mt: { xs: 2, sm: 0 } }}
+              >
                 <FormControlLabel
                   control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                   label='Completed'
                   labelPlacement='end'
                 />
               </Grid>
-            ) : null}
+            ) : null} */}
           </Grid>
 
-          {/* Table */}
           <Grid
             sx={{
               mx: { xs: 3, md: 5 }

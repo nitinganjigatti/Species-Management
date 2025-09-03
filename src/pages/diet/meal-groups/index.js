@@ -21,7 +21,8 @@ import {
   DialogActions,
   DialogContent,
   CircularProgress,
-  Tooltip
+  Tooltip,
+  Chip
 } from '@mui/material'
 import { fontSize, fontWeight, textAlign } from '@mui/system'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
@@ -47,10 +48,13 @@ import { debounce } from 'lodash'
 import select from 'src/@core/theme/overrides/select'
 import FixedFooterWrapper from 'src/components/diet/FixedFooterWrapper'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import Error404 from 'src/pages/404'
+import AddEnclosureToGroup from 'src/views/pages/diet/mealGroup/addEnclosureToGroup'
 
 const MealGroup = () => {
   const router = useRouter()
   const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
   const theme = useTheme()
   const firstSite = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
 
@@ -86,7 +90,7 @@ const MealGroup = () => {
   const [editeditems, setEditItems] = useState([])
 
   const [siteStats, setSiteStats] = useState({
-    meal_groups_count: '',
+    meal_groups_count: '0',
     unmapped_enclosures: '',
     mapped_enclosures: '',
     total_enclosures: '',
@@ -104,12 +108,11 @@ const MealGroup = () => {
   const [editSearchValue, setEditSearchValue] = useState('')
   const [selectedForDrawer, setSelectedForDrawer] = useState([])
   const [mealId, setMealId] = useState(null)
+  const [addEnclosureDrawer, setAddEnclosureDrawer] = useState(false)
 
   const [mealType, setmealType] = useState({
     type: 'view'
   })
-
-  console.log('Group >>', groupList)
 
   useEffect(() => {
     const siteIdFromQuery = router.query.site_id
@@ -292,7 +295,14 @@ const MealGroup = () => {
         })
 
         if (res) {
-          setSelectedItems(res?.data?.result)
+          if (res?.success) {
+            const list = res.data?.result || []
+
+            // Filter the result based on enclosure_id in checkedRows
+            // const selected = list.filter(item => checkedRows.includes(item.enclosure_id))
+
+            setSelectedItems(list)
+          }
           setLoader(false)
         }
       } catch (err) {
@@ -564,7 +574,8 @@ const MealGroup = () => {
       setEnclosureDrawer(true)
       setLoader(true)
       setGroupId(id)
-      setCheckedRows([])
+      // setCheckedRows([])
+      console.log('Checked rows >>', checkedRows)
 
       const params = {
         q: searchValue,
@@ -692,17 +703,47 @@ const MealGroup = () => {
     setopenDeleteEnclosureDialog(true)
   }
 
+  // const addEnclosure = async () => {
+  //   debugger
+  //   console.log('checked Rows >', checkedRows)
+  //   try {
+  //     setEnclosureDrawer(true)
+  //     setLoader(true)
+  //     setGroupId('')
+
+  //     const params = {
+  //       type: 'unmapped',
+  //       site_id: selectedOption
+
+  //       //     // meal_group_ids: JSON.stringify([id]) // Send as array
+  //     }
+
+  //     const response = await getEnclosureListByGroup(params)
+
+  //     if (response.success) {
+  //       setLoader(false)
+  //       console.log('Enclosure list by group:', response.data.result)
+  //       const list = response.data.result
+  //       if (list.includes(checkedRows)) setSelectedItems(list)
+  //     } else {
+  //       setLoader(true)
+  //       console.error('Failed to fetch enclosure list:', response.message || 'Unknown error')
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching enclosure list by group:', error)
+  //   }
+  // }
+
   const addEnclosure = async () => {
     try {
-      setEnclosureDrawer(true)
+      // setEnclosureDrawer(true)
+      setAddEnclosureDrawer(true)
       setLoader(true)
       setGroupId('')
 
       const params = {
         type: 'unmapped',
         site_id: selectedOption
-
-        // meal_group_ids: JSON.stringify([id]) // Send as array
       }
 
       const response = await getEnclosureListByGroup(params)
@@ -710,13 +751,20 @@ const MealGroup = () => {
       if (response.success) {
         setLoader(false)
         console.log('Enclosure list by group:', response.data.result)
-        setSelectedItems(response?.data?.result)
+
+        const list = response.data.result || []
+
+        // Filter the list to only include items whose enclosure_id is in checkedRows
+        const selected = list.filter(item => checkedRows.includes(item.enclosure_id))
+
+        setSelectedItems(selected)
       } else {
         setLoader(true)
         console.error('Failed to fetch enclosure list:', response.message || 'Unknown error')
       }
     } catch (error) {
       console.error('Error fetching enclosure list by group:', error)
+      setLoader(false)
     }
   }
 
@@ -730,7 +778,14 @@ const MealGroup = () => {
       headerAlign: 'left',
       align: 'left',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -750,8 +805,8 @@ const MealGroup = () => {
           <Tooltip title={params?.row.group_name}>
             <Typography
               variant='body2'
-              textAlign='center'
               sx={{
+                textAlign: 'center',
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '16px',
                 fontWeight: 500,
@@ -775,7 +830,14 @@ const MealGroup = () => {
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={3}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 3
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -793,8 +855,8 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
           sx={{
+            textAlign: 'center',
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             color: theme.palette.customColors.OnSurfaceVariant,
@@ -816,7 +878,14 @@ const MealGroup = () => {
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -834,8 +903,8 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
           sx={{
+            textAlign: 'center',
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             color: '#44544A',
@@ -856,7 +925,14 @@ const MealGroup = () => {
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -874,8 +950,8 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
           sx={{
+            textAlign: 'center',
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             fontWeight: 400,
@@ -896,7 +972,14 @@ const MealGroup = () => {
       align: 'center',
       renderHeader: () => (
         <>
-          <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'start',
+              gap: 1
+            }}
+          >
             <Typography
               variant='subtitle2'
               sx={{
@@ -914,11 +997,12 @@ const MealGroup = () => {
       ),
       renderCell: params => (
         <Box
-          display='flex'
-          // flexWrap='wrap' // allow wrapping on smaller screens
-          gap={1}
-          justifyContent='center'
-          width='100%'
+          sx={{
+            display: 'flex',
+            gap: 1,
+            justifyContent: 'center',
+            width: '100%'
+          }}
         >
           {siteStats.unmapped_enclosures !== '0' && (
             <Button
@@ -963,7 +1047,14 @@ const MealGroup = () => {
       flex: 1,
       minWidth: 180,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Checkbox
             sx={{
               '&.Mui-checked': {
@@ -996,7 +1087,15 @@ const MealGroup = () => {
         </Box>
       ),
       renderCell: params => (
-        <Box sx={{ ml: 2 }} display='flex' alignItems='center' gap={1} width='100%'>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            width: '100%',
+            ml: 2
+          }}
+        >
           <Checkbox
             size='small'
             checked={checkedRows.includes(params.row.enclosure_id)}
@@ -1031,7 +1130,14 @@ const MealGroup = () => {
       flex: 0.5,
       minWidth: 60,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -1052,8 +1158,8 @@ const MealGroup = () => {
           <Tooltip title={params.row.section_name}>
             <Typography
               variant='body2'
-              textAlign='center'
               sx={{
+                textAlign: 'center',
                 fontSize: '16px',
                 fontWeight: 400,
                 color: '#44544A',
@@ -1079,7 +1185,14 @@ const MealGroup = () => {
       flex: 0.4,
       minWidth: 80,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -1097,8 +1210,13 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
-          sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A', fontFamily: 'Inter' }}
+          sx={{
+            textAlign: 'center',
+            fontSize: '16px',
+            fontWeight: 400,
+            color: '#44544A',
+            fontFamily: 'Inter'
+          }}
         >
           {params.row.species_count ?? 0}
         </Typography>
@@ -1113,7 +1231,14 @@ const MealGroup = () => {
       flex: 0.4,
       minWidth: 80,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -1131,8 +1256,13 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
-          sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A', fontFamily: 'Inter' }}
+          sx={{
+            textAlign: 'center',
+            fontSize: '16px',
+            fontWeight: 400,
+            color: '#44544A',
+            fontFamily: 'Inter'
+          }}
         >
           {params.row.animal_count ?? 0}
         </Typography>
@@ -1140,14 +1270,21 @@ const MealGroup = () => {
     },
     {
       field: 'group_name',
-      headerName: 'Meal Group Name',
+      headerName: 'Meal Group Name ',
       sortable: false,
       headerAlign: 'center',
       align: 'center',
       flex: 0.6,
       minWidth: 150,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -1165,11 +1302,12 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
           sx={{
+            textAlign: 'center',
             fontSize: '14px',
             fontWeight: 500,
             fontFamily: 'Inter',
+
             color: params.row.group_name
               ? theme.palette.customColors.OnSurfaceVariant
               : theme.palette.customColors.customDropdownColor
@@ -1265,7 +1403,7 @@ const MealGroup = () => {
     }
   }
 
-  return (
+  return dietModule ? (
     <React.Fragment>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Diet</Typography>
@@ -1341,7 +1479,9 @@ const MealGroup = () => {
                         color: '#fff'
                       }
                     }}
-                    InputLabelProps={{ shrink: false }}
+                    slotProps={{
+                      inputLabel: { shrink: false }
+                    }}
                   />
                 )}
               />
@@ -1397,7 +1537,14 @@ const MealGroup = () => {
                   value='mapped'
                   label={<TabBadge label={`Enclosures mapped - ${siteStats?.mapped_enclosures}`} />}
                 />
-                <Tab value='mealgroup' label={<TabBadge label={`Meal group - ${siteStats?.meal_groups_count}`} />} />
+                <Tab
+                  value='mealgroup'
+                  label={
+                    <TabBadge
+                      label={`Meal group - ${siteStats?.meal_groups_count ? siteStats.meal_groups_count : 0}`}
+                    />
+                  }
+                />
               </TabList>
 
               {/* Divider only below TabList, responsive width */}
@@ -1437,18 +1584,20 @@ const MealGroup = () => {
               value={searchValue}
               onChange={e => handleSearch(e.target.value)}
               variant='outlined'
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <Icon icon='mi:search' />
-                  </InputAdornment>
-                )
-              }}
               sx={{
                 flexGrow: 1,
                 minWidth: { xs: '100%', sm: '200px', md: '300px' },
                 height: '40px',
                 backgroundColor: 'white'
+              }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' />
+                    </InputAdornment>
+                  )
+                }
               }}
             />
             {/* Section Dropdown */}
@@ -1581,8 +1730,13 @@ const MealGroup = () => {
                 if (!dataRows || dataRows.length === 0) {
                   return (
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-                      <Typography sx={{ fontSize: '16px' }} color='text.secondary'>
-                        No record found
+                      <Typography
+                        sx={{
+                          color: 'text.secondary',
+                          fontSize: '16px'
+                        }}
+                      >
+                        No rows
                       </Typography>
                     </Box>
                   )
@@ -1643,13 +1797,21 @@ const MealGroup = () => {
               p: { xs: 2, sm: 4 }
             }}
           >
-            <Box display='flex' justifyContent='space-between' alignItems='center' mx='auto' flexWrap='wrap'>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mx: 'auto',
+                flexWrap: 'wrap'
+              }}
+            >
               {checkedRows?.length > 0 ? <FooterCard count={checkedRows.length} /> : <Box />}
 
               <Box
-                display='flex'
-                gap={3}
                 sx={{
+                  display: 'flex',
+                  gap: 3,
                   ml: { xs: 0, sm: 25 },
                   mr: { xs: 10, sm: 0 },
                   justifyContent: { xs: 'center', sm: 'center', md: 'flex-end' }
@@ -1759,7 +1921,31 @@ const MealGroup = () => {
           handleEnclosureSearch={handleEnclosureSearch}
         />
       )}
+      {addEnclosureDrawer && (
+        <AddEnclosureToGroup
+          addEnclosureDrawer={addEnclosureDrawer}
+          setSelectedItems={setSelectedItems}
+          selectedItems={selectedItems}
+          setAddEnclosureDrawer={setAddEnclosureDrawer}
+          selectedOption={selectedOption}
+          groupId={groupId}
+          setGroupId={setGroupId}
+          siteStats={siteStats}
+          loader={Loader}
+          selectedForDrawer={selectedForDrawer}
+          fetchEnclosure={fetchEnclosure}
+          checkedRows={checkedRows}
+          setStatus={setStatus}
+          setCheckedRows={setCheckedRows}
+          fetchSiteStats={fetchSiteStats}
+          setEditItems={setEditItems}
+          editSearchValue={editSearchValue}
+          handleEnclosureSearch={handleEnclosureSearch}
+        />
+      )}
     </React.Fragment>
+  ) : (
+    <Error404 />
   )
 }
 

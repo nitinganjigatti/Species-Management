@@ -20,12 +20,13 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
-import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
 import Toaster from 'src/components/Toaster'
 import { useMediaQuery } from '@mui/material'
 import { editAssigntoDiet } from 'src/lib/api/diet/dietList'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { right } from '@popperjs/core'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
+import AnimalCard from 'src/views/utility/AnimalCard'
 
 const EditAnimalSpeciesMapped = ({
   setIsOpenTabs,
@@ -75,12 +76,10 @@ const EditAnimalSpeciesMapped = ({
     setPageNo(1)
   }, [isOpentabEdit])
 
-  // Update your remove function to work with the new state
   const handleRemovenew = species => {
     const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
     const id = species[idField]
 
-    // Add to removedIds
     setRemovedIds(prev => [...prev, species.assign_id])
 
     // Filter out from both displayed data and all fetched data
@@ -90,18 +89,16 @@ const EditAnimalSpeciesMapped = ({
     setspeciesData(updatedSpeciesData)
     setAllFetchedData(updatedAllData)
 
-    // Update tempSelectedSpecies
     const updatedTempSelectedSpecies = tempSelectedSpecies.filter(itemId => itemId !== id)
     setTempSelectedSpecies(updatedTempSelectedSpecies)
 
-    // Update primaryStatus
     setPrimaryStatus(prev => {
       const newStatus = { ...prev }
       delete newStatus[id]
+
       return newStatus
     })
 
-    // Update total count since we removed an item
     setspeciestotalcount(prev => prev - 1)
   }
 
@@ -158,20 +155,19 @@ const EditAnimalSpeciesMapped = ({
 
   const hasChanges = () => {
     const editData = getChangedRecords()
+
     return editData.length > 0 || removedIds.length > 0
   }
 
   const handleAdd = async () => {
     const editData = getChangedRecords()
-    // Convert string IDs to numbers
+
     const numericRemovedIds = removedIds.map(id => Number(id))
-    console.log(numericRemovedIds, 'numericRemovedIds')
+
     const payload = {
       edit_data: JSON.stringify(editData),
       remove_ids: JSON.stringify(numericRemovedIds)
     }
-
-    console.log('Final Payload:', payload)
 
     setLoader(true)
     try {
@@ -185,7 +181,6 @@ const EditAnimalSpeciesMapped = ({
         Toaster({
           type: 'success',
           message: 'Primary diet successfully updated'
-          //message: response.message
         })
       } else {
         Toaster({
@@ -204,7 +199,7 @@ const EditAnimalSpeciesMapped = ({
   const handelClose = () => {
     setIsOpenTabsEdit(false)
     refreshDietDetails()
-    //setspeciesview('')
+
     setSearchQuery('')
   }
 
@@ -219,7 +214,7 @@ const EditAnimalSpeciesMapped = ({
 
     setPrimaryStatus(prev => ({
       ...prev,
-      [id]: prev[id] === '1' ? '0' : '1' // Toggle between '1' and '0'
+      [id]: prev[id] === '1' ? '0' : '1'
     }))
   }
 
@@ -270,8 +265,7 @@ const EditAnimalSpeciesMapped = ({
           </IconButton>
         </Box>
       </Box>
-
-      <Grid item md={8} xs={12} sx={{ mb: 14 }}>
+      <Grid item size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
         <TabContext value={selectionType}>
           <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
             <Tab
@@ -286,7 +280,7 @@ const EditAnimalSpeciesMapped = ({
             />
           </TabList>
           {speciesview === 'details' ? (
-            <Grid item md={8} sm={8} xs={8}>
+            <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
               <Box
                 sx={{
                   bgcolor: 'background.default',
@@ -323,9 +317,6 @@ const EditAnimalSpeciesMapped = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         flex: 1,
                         mx: 1,
@@ -335,6 +326,11 @@ const EditAnimalSpeciesMapped = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -402,8 +398,14 @@ const EditAnimalSpeciesMapped = ({
                       </ListItemAvatar>
                       <ListItemText
                         primary={dietDetails.diet_name}
-                        primaryTypographyProps={{
-                          sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                        slotProps={{
+                          primary: {
+                            sx: {
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '16px',
+                              fontWeight: 600
+                            }
+                          }
                         }}
                         secondary={
                           <Typography
@@ -488,7 +490,7 @@ const EditAnimalSpeciesMapped = ({
                                   fontWeight: '600',
                                   fontSize: '14px',
                                   color: theme.palette.customColors.customTextColorGray2,
-                                  width: '50%',
+                                  width: '60%',
                                   pl: 3
                                 }}
                               >
@@ -519,7 +521,7 @@ const EditAnimalSpeciesMapped = ({
                             </Box>
 
                             {/* Species List */}
-                            {mappedSpecies.map(species => (
+                            {mappedSpecies.map((species, index) => (
                               <ListItem
                                 key={species.id}
                                 sx={{
@@ -528,66 +530,31 @@ const EditAnimalSpeciesMapped = ({
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
                                   borderBottom:
-                                    mappedSpecies.length > 1
+                                    index !== speciesData.length - 1
                                       ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                      : '',
-                                  px: 2,
-                                  py: 1.5,
-                                  // height: '70px',
+                                      : 'none',
+                                  px: 3,
+                                  py: 3.5,
+
                                   borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                                   borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
                                   borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                                 }}
                               >
-                                {/* Species Image and Name */}
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
-                                  <Avatar
-                                    src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-                                    alt={species.scientific_name}
-                                    sx={{
-                                      '& img': { objectFit: 'inherit' },
-                                      borderRadius:
-                                        species?.default_icon && species.default_icon.includes('.svg')
-                                          ? 'unset'
-                                          : species?.default_icon
-                                          ? '50%'
-                                          : 'unset',
-                                      height: '44px',
-                                      width: '44px',
-                                      mr: 2
-                                    }}
-                                  />
-                                  <ListItemText
-                                    primary={
-                                      <Typography
-                                        variant='body2'
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: 400,
-                                          fontStyle: 'italic',
-                                          lineHeight: 1.6
-                                        }}
-                                      >
-                                        {species.common_name ? species.common_name : '-'}
-                                      </Typography>
-                                    }
-                                    secondary={species.scientific_name ? species.scientific_name : '-'}
-                                    secondaryTypographyProps={{
-                                      sx: {
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '16px',
-                                        fontWeight: 600,
-                                        lineHeight: 1.2
-                                      }
-                                    }}
-                                  />
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: 2,
+                                    width: '60%',
+                                    minHeight: '100%'
+                                  }}
+                                >
+                                  <SpeciesCard species={species} />
                                 </Box>
 
-                                {/* Toggle for Mark as Primary */}
                                 <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                                   <Switch
-                                    //checked={!!primaryStatus[species.species_id]}
                                     checked={
                                       primaryStatus[
                                         selectionType === 'species' ? species.species_id : species.animal_id
@@ -599,7 +566,6 @@ const EditAnimalSpeciesMapped = ({
                                   />
                                 </Box>
 
-                                {/* Remove Icon */}
                                 <Box sx={{ width: '12%', textAlign: 'right' }}>
                                   <IconButton
                                     edge='end'
@@ -741,7 +707,7 @@ const EditAnimalSpeciesMapped = ({
                                   fontWeight: '600',
                                   fontSize: '14px',
                                   color: theme.palette.customColors.customTextColorGray2,
-                                  width: '50%',
+                                  width: '60%',
                                   pl: 3
                                 }}
                               >
@@ -772,7 +738,7 @@ const EditAnimalSpeciesMapped = ({
                             </Box>
 
                             {/* Species List */}
-                            {mappedSpecies.map(species => (
+                            {mappedSpecies.map((species, index) => (
                               <ListItem
                                 key={species.id}
                                 sx={{
@@ -781,104 +747,30 @@ const EditAnimalSpeciesMapped = ({
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
                                   borderBottom:
-                                    mappedSpecies.length > 1
+                                    index !== speciesData.length - 1
                                       ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                      : '',
-                                  px: 2,
-                                  py: 1.5,
+                                      : 'none',
+                                  px: 3,
+                                  py: 3.5,
                                   borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                                   borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
                                   borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                                 }}
                               >
-                                {/* Species Image and Name */}
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
-                                  <Avatar
-                                    src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-                                    alt={species.scientific_name}
-                                    sx={{
-                                      '& img': { objectFit: 'inherit' },
-                                      borderRadius:
-                                        species?.default_icon && species.default_icon.includes('.svg')
-                                          ? 'unset'
-                                          : species?.default_icon
-                                          ? '50%'
-                                          : 'unset',
-                                      height: '44px',
-                                      width: '44px',
-                                      mr: 2
-                                    }}
-                                  />
-                                  <ListItemText
-                                    primary={
-                                      <>
-                                        <Typography
-                                          variant='body2'
-                                          sx={{
-                                            color: theme.palette.customColors.OnSurfaceVariant,
-                                            fontSize: '14px',
-                                            fontWeight: 600
-                                          }}
-                                        >
-                                          {/* {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'} */}
-                                          {species.primary_identifier_type && species.identifier
-                                            ? `${species.primary_identifier_type}: ${species.identifier}`
-                                            : species.animal_id
-                                            ? `AID: ${species.animal_id}`
-                                            : 'AID: -'}
-                                        </Typography>
-                                        <Typography
-                                          variant='body2'
-                                          sx={{
-                                            color: theme.palette.customColors.OnSurfaceVariant,
-                                            fontSize: '14px',
-                                            fontWeight: 400,
-                                            fontStyle: 'italic'
-                                          }}
-                                        >
-                                          {species.default_common_name ? species.default_common_name : '-'}
-                                        </Typography>
-                                      </>
-                                    }
-                                    primaryTypographyProps={{
-                                      sx: {
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '16px',
-                                        fontWeight: 600
-                                      }
-                                    }}
-                                    secondary={
-                                      <>
-                                        <Typography
-                                          variant='body1'
-                                          sx={{
-                                            color: theme.palette.customColors.OnSurfaceVariant,
-                                            fontSize: '16px',
-                                            fontWeight: 600
-                                          }}
-                                        >
-                                          {species.scientific_name ? species.scientific_name : '-'}
-                                        </Typography>
-
-                                        <Typography
-                                          variant='body2'
-                                          sx={{
-                                            color: theme.palette.customColors.secondaryBg,
-                                            fontSize: '14px',
-                                            fontWeight: 500
-                                          }}
-                                        >
-                                          Site: {species.site_name ? species.site_name : '-'}
-                                        </Typography>
-                                      </>
-                                    }
-                                  />
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: 2,
+                                    width: '60%',
+                                    minHeight: '100%'
+                                  }}
+                                >
+                                  <AnimalCard data={species} size='16px' />
                                 </Box>
 
-                                {/* Toggle for Mark as Primary */}
                                 <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                                   <Switch
-                                    //checked={!!primaryStatus[species.species_id]}
                                     checked={
                                       primaryStatus[
                                         selectionType === 'species' ? species.species_id : species.animal_id
@@ -890,7 +782,6 @@ const EditAnimalSpeciesMapped = ({
                                   />
                                 </Box>
 
-                                {/* Remove Icon */}
                                 <Box sx={{ width: '12%', textAlign: 'right' }}>
                                   <IconButton
                                     edge='end'
@@ -930,9 +821,7 @@ const EditAnimalSpeciesMapped = ({
           </TabPanel>
         </TabContext>
       </Grid>
-
       {/* bottom buttons */}
-
       <Box
         sx={{
           width: '100%',

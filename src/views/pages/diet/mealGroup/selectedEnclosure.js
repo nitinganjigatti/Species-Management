@@ -1,7 +1,9 @@
 import { Box, Card, CircularProgress, Drawer, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
+import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const SelectedEnclosure = ({
   selectedEnclosureDrawer,
@@ -18,23 +20,25 @@ const SelectedEnclosure = ({
   const theme = useTheme()
   const [selectedEnclosures, setSelectedEnclosures] = useState(selectEnclosures)
 
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] // Get the item being removed
+    const itemToRemove = selectedItems[index] 
 
     const updatedItems = selectedEnclosures.filter((_, i) => i !== index)
 
-    // Extract the IDs from the updatedItems
     const updatedIds = updatedItems.map(item => item.enclosure_id)
 
-    // Optional: if you want to update checkedRows separately
+   
     const updatedChecked = updatedItems
 
-    setSelectedEnclosures(updatedItems) // update the list of selected enclosures
-    setSelectedEnclosureIds(updatedIds) // update just the IDs for checking checkboxes
-    setCheckedRows(updatedChecked) // if you have a separate checkedRows state
+    setSelectedEnclosures(updatedItems) 
+    setSelectedEnclosureIds(updatedIds) 
+    setCheckedRows(updatedChecked) 
   }
 
-  return (
+  return dietModule ? (
     <>
       <Drawer
         anchor='right'
@@ -42,6 +46,7 @@ const SelectedEnclosure = ({
         ModalProps={{ keepMounted: true }}
         sx={{
           '& .MuiDrawer-paper': { width: '100%', maxWidth: '562px' },
+
           // position: 'fixed',
           position: 'relative',
           top: 0,
@@ -58,7 +63,7 @@ const SelectedEnclosure = ({
             height: 'calc(100dvh - 0px)'
           }}
         >
-          {/* Header */}
+          
           <Box
             className='sidebar-header'
             sx={{
@@ -82,6 +87,7 @@ const SelectedEnclosure = ({
               size='small'
               onClick={() => {
                 setSelectedEnclosureDrawer(false)
+
                 // setEditItems([])
                 // setSelectedItems([])
               }}
@@ -91,7 +97,7 @@ const SelectedEnclosure = ({
             </IconButton>
           </Box>
 
-          {/* Body */}
+        
           <Box sx={{}}>
             <Box sx={{ flex: 1, overflowY: 'auto', px: 2, pt: 2 }}>
               {loader ? (
@@ -109,7 +115,6 @@ const SelectedEnclosure = ({
                 selectedEnclosures.map((item, index) => (
                   <Box sx={{ m: 3 }}>
                     {' '}
-                    {/* Adds margin around the Card */}
                     <Card
                       key={index}
                       sx={{
@@ -148,6 +153,7 @@ const SelectedEnclosure = ({
                             fontSize: '14px',
                             color: theme.palette.customColors.OnSurfaceVariant,
                             maxWidth: '100px',
+
                             // overflow: 'hidden',
                             // textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
@@ -191,6 +197,9 @@ const SelectedEnclosure = ({
         </Box>
       </Drawer>
     </>
+  ) : (
+    <Error404 />
   )
 }
+
 export default SelectedEnclosure

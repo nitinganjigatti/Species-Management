@@ -24,10 +24,10 @@ import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import ChangeDietName from 'src/components/diet/ChangeDietname'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const DietDetailCard = ({
   dietDetails,
-  dietModulePermission,
   dietModuleAccess,
   refreshDietDetails,
   handleSpeciesClick,
@@ -51,7 +51,6 @@ const DietDetailCard = ({
 
   const [isActive, setIsActive] = useState(dietDetails?.active || '0')
 
-  // const [activePayload, setActivePayload] = useState(FeedDetailsValue?.active || false)
   const [activePayload, setActivePayload] = useState(false)
   const [confirmDialogBox, setConfirmDialogBox] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null)
@@ -150,7 +149,6 @@ const DietDetailCard = ({
         query: { source: 'fromdiet' }
       })
     } else {
-      // Router.push('/diet/diet')
       Router.back()
     }
   }
@@ -231,11 +229,6 @@ const DietDetailCard = ({
           {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
             <Tooltip title='Copy' placement='top'>
               <Box>
-                {/* <Icon
-                          icon='fluent:copy-32-regular'
-                          style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
-                          onClick={handleDietClick}
-                        /> */}
                 <Avatar
                   sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer', fontSize: 24 }}
                   src={'/icons/icon_copy.svg'}
@@ -248,13 +241,6 @@ const DietDetailCard = ({
           {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
             <Tooltip title='Edit' placement='top'>
               <Box>
-                {/* <Icon
-                          icon='bx:pencil'
-                          style={{ fontSize: 24, cursor: 'pointer' }}
-                          onClick={() =>
-                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
-                          }
-                        /> */}
                 <Avatar
                   sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
                   src={'/icons/pencil_outlined.svg'}
@@ -269,13 +255,6 @@ const DietDetailCard = ({
           {dietModuleAccess === 'DELETE' && (
             <Tooltip title='Delete' placement='top'>
               <Box>
-                {/* <Icon
-                          onClick={() => {
-                            handlelOpenDelete()
-                          }}
-                          icon='material-symbols:delete-outline'
-                          style={{ fontSize: 24, cursor: 'pointer' }}
-                        /> */}
                 <Avatar
                   sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
                   src={'/icons/delete_outlined.svg'}
@@ -298,32 +277,13 @@ const DietDetailCard = ({
           }}
           container
         >
-          <Grid md={3.8} xs={12} item>
-            {/* <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
-              <Avatar
-                variant='square'
-                alt={dietDetails?.image}
-                sx={{
-                  width: '100%',
-                  //height: '100%',
-                  height: '145px',
-                  borderRadius: '8px',
-                  '& img': {
-                    objectFit: isSmallDevice ? '' : 'cover',
-                    objectPosition: isSmallDevice ? 'left' : 'center'
-                  }
-                }}
-                src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
-              ></Avatar>
-            </Box> */}
+          <Grid size={{ xs: 12, md: 3.8 }}>
             <Box
               sx={{
                 maxWidth: 400,
                 border: '1px solid #d0d0d0',
                 borderRadius: 2,
                 overflow: 'hidden'
-
-                // boxShadow: 2
               }}
             >
               {/* Image Section */}
@@ -332,8 +292,6 @@ const DietDetailCard = ({
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-
-                  // height: '300px',
 
                   height: '145px',
                   borderRadius: '8px',
@@ -376,16 +334,13 @@ const DietDetailCard = ({
                         onClose={handleClose}
                         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                        // disablePortal // Prevents rendering in a separate portal
-                        //disableScrollLock // Prevents background scrolling from being locked
                         sx={{
                           '& .MuiPaper-root': {
                             boxShadow: 'none',
                             minWidth: 150,
                             position: 'absolute'
-                            // left: '484px !important'
                           }
-                        }} // Removes shadow for a cleaner look
+                        }}
                       >
                         <MenuItem
                           onClick={() => {
@@ -413,13 +368,10 @@ const DietDetailCard = ({
                 ) : (
                   ''
                 )}
-                {/* Species and Animals Details */}
                 <Grid container spacing={2}>
-                  {/* Species Section */}
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_species !== '0' ? (
                       <Box display='flex' justifyContent='space-between' alignItems='center'>
-                        {/* Label */}
                         <Typography
                           variant='body2'
                           fontWeight='bold'
@@ -456,16 +408,9 @@ const DietDetailCard = ({
                     )}
                   </Grid>
 
-                  {/* Animals Section */}
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_animals !== '0' ? (
-                      <Box
-                        display='flex'
-                        justifyContent='space-between'
-                        alignItems='center'
-                        sx={{ pb: 3, cursor: 'pointer' }}
-                        onClick={() => handleSpeciesClicknew('details', 'animals')}
-                      >
+                      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 3 }}>
                         {/* Label */}
                         <Typography
                           variant='body2'
@@ -474,8 +419,13 @@ const DietDetailCard = ({
                         >
                           Animals
                         </Typography>
-                        {/* Value and Primary */}
-                        <Box display='flex' alignItems='center'>
+
+                        <Box
+                          display='flex'
+                          alignItems='center'
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => handleSpeciesClicknew('details', 'animals')}
+                        >
                           <Typography variant='h6' color={theme.palette.primary.main}>
                             {dietDetails.total_animals}
                           </Typography>
@@ -502,7 +452,7 @@ const DietDetailCard = ({
               </Box>
             </Box>
           </Grid>
-          <Grid item md={7.8} xs={12}>
+          <Grid size={{ xs: 12, md: 7.8 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Box
                 sx={{
@@ -531,9 +481,36 @@ const DietDetailCard = ({
                   </Typography>
                 </Box>
               </Box>
-              {/* <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>
-                {dietDetails?.diet_name}
-              </Typography> */}
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  mb: '6px',
+                  maxWidth: '400px'
+                }}
+              >
+                <UserAvatarDetails
+                  profile_image={dietDetails?.dietitian?.profile_pic}
+                  user_name={dietDetails?.dietitian?.user_name}
+                  size='small'
+                />
+
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.Outline,
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    lineHeight: '100%',
+                    letterSpacing: '0.1px',
+                    display: 'flex'
+                  }}
+                >
+                  <span style={{ margin: '0px 8px 0px 0px' }}>&#8226;</span>
+                  <span>Super Admin</span>
+                </Typography>
+              </Box>
               <Box>
                 {dietDetails?.desc ? (
                   <div>
@@ -542,7 +519,7 @@ const DietDetailCard = ({
                       variant='body2'
                       sx={{
                         width: '100%',
-                        color: '#7A8684',
+                        color: theme.palette.customColors.secondaryBg,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         display: '-webkit-box',
@@ -562,7 +539,7 @@ const DietDetailCard = ({
                           fontSize: '13px',
 
                           textDecoration: 'underline',
-                          color: '#000',
+                          color: theme.palette.common.black,
                           cursor: 'pointer'
                         }}
                       >
@@ -585,8 +562,20 @@ const DietDetailCard = ({
                   gap: isSmallDevice ? '16px' : '0'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Avatar
+                <Box sx={{ display: 'flex', gap: '12px' }}>
+                  <Box>
+                    <Typography sx={{ mb: 2, mt: '8px', fontSize: '16px', fontWeight: '600' }}>
+                      Diet Added by
+                    </Typography>
+                    <UserAvatarDetails
+                      date={dietDetails?.created_at}
+                      profile_image={dietDetails?.created_by_user?.profile_pic}
+                      user_name={dietDetails?.created_by_user?.user_name}
+
+                      // date={dietDetails?.created_at}
+                    />
+                  </Box>
+                  {/* <Avatar
                     src={dietDetails?.created_by_user?.profile_pic || '/icons/recipedummy.svg'}
                     sx={{ width: '2rem', height: '2rem' }}
                   />
@@ -613,14 +602,16 @@ const DietDetailCard = ({
                     >
                       Created on {moment(dietDetails?.created_at).format('DD/MM/YYYY')}
                     </Typography>
-                  </Box>
+                  </Box> */}
                 </Box>
                 {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                   <Box
                     onClick={() => setActivitySidebarOpen(true)}
                     sx={{ display: 'flex', marginLeft: isSmallDevice ? '0' : 'auto', cursor: 'pointer' }}
                   >
-                    <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
+                    <Typography sx={{ color: theme.palette.customColors.deepDark, my: 3, fontSize: 14 }}>
+                      Activity Log
+                    </Typography>
                     <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
                   </Box>
                 )}
@@ -638,7 +629,6 @@ const DietDetailCard = ({
             handleSidebarClose={handleSidebarClose}
           />
         )}
-        {/* ////it is for delete /////////*/}
         <ConfirmationDialog
           icon={'mdi:delete'}
           iconColor={'#ff3838'}
@@ -650,7 +640,6 @@ const DietDetailCard = ({
           loading={loading}
         />
 
-        {/* ////it is for status change /////////*/}
         <DeleteDialogConfirmation
           handleClosenew={handleClosenew}
           action={confirmStatusAction}
