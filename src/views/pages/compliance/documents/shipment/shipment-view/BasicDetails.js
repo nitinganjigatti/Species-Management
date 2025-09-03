@@ -44,7 +44,7 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
   }
   return (
     <>
-      {!loader ? (
+      {!loader && airwaybillvalue ? (
         <Box
           sx={{
             display: 'flex',

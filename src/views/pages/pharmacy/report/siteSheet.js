@@ -2,7 +2,7 @@ import { Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextField, Typ
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LoadingButton } from '@mui/lab'
 
 const SiteSheet = ({
@@ -15,19 +15,30 @@ const SiteSheet = ({
   apiFilterParams,
   handleSelectedSite
 }) => {
+  const searchInputRef = useRef(null)
+
   const [searchValue, setSearchValue] = useState('')
   const [tempSelectedSites, setTempSelectedSites] = useState([])
 
-  console.log('selected Sites >', selectedSites)
+  // console.log('selected Sites >', selectedSites)
 
   useEffect(() => {
     if (openSiteDrawer) {
       const storedSiteIds = selectedSites.includes('All Sites') ? ['All Sites'] : selectedSites
-
       setTempSelectedSites(storedSiteIds)
+    } else {
+      // Clear search when drawer closes
+      setSearchValue('')
     }
   }, [openSiteDrawer, selectedSites])
 
+  useEffect(() => {
+    if (openSiteDrawer) {
+      setTimeout(() => {
+        searchInputRef.current?.focus()
+      }, 100) // shorter delay for better UX
+    }
+  }, [openSiteDrawer])
   const handleSelectAll = event => {
     const filteredSiteIds = filteredSites.map(site => site.site_id)
     if (event.target.checked) {
@@ -133,6 +144,7 @@ const SiteSheet = ({
         >
           <TextField
             fullWidth
+            inputRef={searchInputRef}
             placeholder='Search'
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}

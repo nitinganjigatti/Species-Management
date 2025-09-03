@@ -83,7 +83,6 @@ const AnimalsData = ({
     setShowEditAnimals(true)
   }
 
-  // listen to parent instruction to trigger edit mode
   React.useEffect(() => {
     if (onEditClick) onEditClick.current = handleEditClick
     if (importId && mastersData?.document_type_id) {
@@ -127,7 +126,6 @@ const AnimalsData = ({
     }
   }
 
-  // Modify your fetchExportList to reset properly on new searches
   const fetchExportList = useCallback(
     async (reset = false) => {
       setIsLoading(true)
@@ -161,11 +159,6 @@ const AnimalsData = ({
   )
 
   useEffect(() => {
-    fetchExportList()
-  }, [fetchExportList])
-
-  // Reset to first page when search changes
-  useEffect(() => {
     fetchExportList(true)
   }, [searchValue])
 
@@ -181,23 +174,19 @@ const AnimalsData = ({
   }
 
   const scrollToFirstError = () => {
-    // Get all elements with errors
     const errorElements = document.querySelectorAll('[data-error="true"]')
 
     if (errorElements.length > 0) {
-      // Scroll to the first error element
       errorElements[0].scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       })
 
-      // Focus the first error element if it's an input
       const firstInput = errorElements[0].querySelector('input, select, textarea')
       if (firstInput) {
         firstInput.focus()
       }
     } else {
-      // If no specific error elements found, scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
@@ -205,7 +194,6 @@ const AnimalsData = ({
   const validateFields = async () => {
     try {
       await validationSchema.validate({ airwaybillvalue, startDate, uploadedFile }, { abortEarly: false })
-      // Now validate selectedExportData
       const hasExports = selectedExportData?.export?.length > 0 || selectedExportData?.others?.length > 0
 
       if (!hasExports) {
@@ -266,9 +254,9 @@ const AnimalsData = ({
       if (response?.success) {
         setShowEditAnimals(true)
         setLoading(false)
-        router.push(`/compliance/documents/imports/AddEditImport/?id=${id}&action=details`)
+        router.push(`/compliance/documents/imports/AddEditImport/?id=${response?.data?.id}&action=details`)
         Toaster({ type: 'success', message: response?.message })
-        fetchImportspeciesDetails()
+        //fetchImportspeciesDetails()
       } else {
         setLoading(false)
         Toaster({ type: 'error', message: response?.message })
