@@ -25,6 +25,7 @@ import SpeciesShipmentDetailsDrawer from 'src/components/compliance/drawer/Speci
 import Toaster from 'src/components/Toaster'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
+import SpeciesExportDrawer from 'src/components/compliance/drawer/SpeciesExportDrawer'
 
 const SpeciesDetails = () => {
   const theme = useTheme()
@@ -38,6 +39,7 @@ const SpeciesDetails = () => {
   const [openDetailsDrawer, setOpenDetailsDrawer] = useState(false)
   const [selectedRow, setSelectedRow] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
+  const [openExportDrawer, setOpenExportDrawer] = useState(false)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -375,9 +377,14 @@ const SpeciesDetails = () => {
     </>
   )
 
-  const handleRowClick = params => {
-    setSelectedRow(params.row)
-    setOpenDetailsDrawer(true)
+  const handleCellClick = params => {
+    if (params?.field === 'total_exports' || params?.field === 'total_animals') {
+      setSelectedRow(params?.row)
+      setOpenExportDrawer(true)
+    } else if (params?.field === 'sl_no' || params?.field === 'shipment_number' || params?.field === 'shipment_date') {
+      setSelectedRow(params.row)
+      setOpenDetailsDrawer(true)
+    }
   }
 
   return (
@@ -454,7 +461,7 @@ const SpeciesDetails = () => {
           <Grid container columnSpacing={4} rowSpacing={1} alignItems='center'>
             <Grid item size={{ xs: 12 }}>
               <CommonTable
-                onRowClick={handleRowClick}
+                onCellClick={handleCellClick}
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
@@ -487,6 +494,17 @@ const SpeciesDetails = () => {
           }}
           speciesId={id}
           shipmentId={selectedRow?.shipment_id}
+        />
+      )}
+      {openExportDrawer && (
+        <SpeciesExportDrawer
+          open={openExportDrawer}
+          onClose={() => {
+            setOpenExportDrawer(false)
+            setSelectedRow(null)
+          }}
+          shipmentId={selectedRow?.shipment_id}
+          shipmentNumber={selectedRow?.shipment_number}
         />
       )}
     </>
