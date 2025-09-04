@@ -679,3 +679,5 @@ export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
 export const ANIMAL_HISTORY = `animal-log-history`
 
 export const ANIMAL_MEDIA = `animal/media-list`
+
+export const GET_INCOMING_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
