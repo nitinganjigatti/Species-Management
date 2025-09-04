@@ -18,6 +18,15 @@ const visitTypeOptions = [
   { value: 'opd', label: 'OPD' }
 ]
 
+const getVisitTypeLabel = title => {
+  if (title === 'checkup') return 'Check up'
+  if (title === 'emergency') return 'Emergency'
+  if (title === 'followup') return 'Follow-up'
+  if (title === 'outpatient') return 'OUTPATIENT'
+  if (title === 'inpatient') return 'INPATIENT'
+  if (title === 'planned') return 'Planned'
+}
+
 const HospitalIncoming = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -28,9 +37,7 @@ const HospitalIncoming = () => {
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
-    q: '',
-    sort: 'asc',
-    column: ''
+    q: ''
   })
 
   useEffect(() => {
@@ -144,8 +151,6 @@ const HospitalIncoming = () => {
               common_name: params.row?.common_name,
               scientific_name: params.row?.scientific_name,
               age: params.row?.age,
-              user_enclosure_name: params.row?.user_enclosure_name,
-              section_name: params.row?.section_name,
               site_name: params.row?.site_name
             }}
           />
@@ -154,7 +159,7 @@ const HospitalIncoming = () => {
     },
 
     {
-      width: 400,
+      width: 250,
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
@@ -196,7 +201,7 @@ const HospitalIncoming = () => {
       headerName: 'Visit Type',
       renderCell: params => (
         <>
-          <VisitType title={params.row.visit_type} />
+          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
         </>
       )
     },
@@ -225,7 +230,7 @@ const HospitalIncoming = () => {
           <Button
             sx={{ borderRadius: 6, px: 4, py: 2 }}
             variant='contained'
-            onClick={() => handleAdmitClick(params.row.animalId)}
+            onClick={() => handleAdmitClick(params.row)}
           >
             Admit
           </Button>
@@ -234,8 +239,8 @@ const HospitalIncoming = () => {
     }
   ]
 
-  const handleAdmitClick = animalId => {
-    router.push(``)
+  const handleAdmitClick = data => {
+    router.push(`/hospital/incoming/patient-admit-form`)
   }
 
   return (

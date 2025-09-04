@@ -82,15 +82,6 @@ export const MedicalIdChip = ({
 export const VisitType = ({ title }) => {
   const theme = useTheme()
 
-  const normalizeMap = {
-    checkup: 'Check up',
-    inpatient: 'INPATIENT',
-    followup: 'Follow-up',
-    emergency: 'Emergency',
-    planned: 'Planned',
-    outpatient: 'OUTPATIENT'
-  }
-
   const typeStyles = {
     'Check up': { background: theme.palette.customColors.antzInfoLight, color: theme.palette.customColors.addPrimary },
     INPATIENT: { background: theme.palette.customColors.OnBackground, color: theme.palette.primary.main },
@@ -103,59 +94,39 @@ export const VisitType = ({ title }) => {
     OUTPATIENT: { background: hexToRGBA(theme.palette.customColors.antzNotes, 0.3), color: '#E4B819' }
   }
 
-  if (!title) return null
+  const allowedTitles = Object.keys(typeStyles)
+  if (!allowedTitles.includes(title)) return null
+  const { background, color } = typeStyles[title]
+  const isAllUpperCase = title === title.toUpperCase()
+  const textTransform = isAllUpperCase ? 'uppercase' : 'none'
 
-  // Normalize input title: lower case, remove spaces/hyphens for mapping
-  const normalizedKey = normalizeMap[title.toLowerCase().replace(/\s|-/g, '')] || title
-
-  if (!typeStyles[normalizedKey]) {
-    // Optional: fallback style for unknown types
-    return (
+  return (
+    <>
       <Box
         sx={{
           px: 2,
           py: 1,
           borderRadius: 0.5,
-          background: '#eee',
+          background,
+          display: 'inline-block',
+          height: 24,
           display: 'inline-flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          height: 24
+          justifyContent: 'center'
         }}
       >
-        <Typography sx={{ color: '#666', fontWeight: 500, fontSize: '0.88rem' }}>{title}</Typography>
+        <Typography
+          sx={{
+            color,
+            fontWeight: 500,
+            fontSize: '0.88rem',
+            letterSpacing: 1,
+            textTransform
+          }}
+        >
+          {title}
+        </Typography>
       </Box>
-    )
-  }
-
-  const { background, color } = typeStyles[normalizedKey]
-  const isAllUpperCase = normalizedKey === normalizedKey.toUpperCase()
-  const textTransform = isAllUpperCase ? 'uppercase' : 'none'
-
-  return (
-    <Box
-      sx={{
-        px: 2,
-        py: 1,
-        borderRadius: 0.5,
-        background,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 24
-      }}
-    >
-      <Typography
-        sx={{
-          color,
-          fontWeight: 500,
-          fontSize: '0.88rem',
-          letterSpacing: 1,
-          textTransform
-        }}
-      >
-        {title}
-      </Typography>
-    </Box>
+    </>
   )
 }
