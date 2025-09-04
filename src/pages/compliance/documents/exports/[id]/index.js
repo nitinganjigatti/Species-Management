@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha, Tabs, Tab } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import {
@@ -35,7 +35,7 @@ const ExportPermitDetails = () => {
   const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
   const [linkedImports, setLinkedImports] = useState([])
   const [totalLinkedImports, setTotalLinkedImports] = useState(0)
-
+  const [activeTab, setActiveTab] = useState('uploaded')
   const [loading, setLoading] = useState(true)
 
   const [exportData, setExportData] = useState({
@@ -177,6 +177,10 @@ const ExportPermitDetails = () => {
     fetchDocumentTypeList()
   }
 
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
+
   useEffect(() => {
     if (id) {
       fetchExportDetails()
@@ -241,13 +245,21 @@ const ExportPermitDetails = () => {
         expanded={expanded.includes('supporting-documents')}
         onChange={handleAccordionChange}
       >
-        <SupportingDocuments
-          isFetching={isFetching}
-          documentList={documentList}
-          totalCount={totalCount}
-          onAddEditSuccess={handleAddEditSuccess}
-          type='1'
-        />
+        <Box sx={{ width: '100%' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+            <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
+              <Tab label={`Uploaded (${documentList.length})`} value='uploaded' />
+              <Tab label={`Pending (${documentList.length})`} value='pending' />
+            </Tabs>
+          </Box>
+          <SupportingDocuments
+            isFetching={isFetching}
+            documentList={documentList}
+            totalCount={totalCount}
+            onAddEditSuccess={handleAddEditSuccess}
+            type='1'
+          />
+        </Box>
       </CustomAccordion>
       <CustomAccordion
         id='linked-imports'

@@ -271,11 +271,15 @@ const SpeciesDetailsContainer = ({
               <Box
                 component='span'
                 fontWeight={600}
-                sx={{ color: theme.palette.primary.dark, fontWeight: 500, fontSize: '14px' }}
+                sx={{ color: theme.palette.primary.dark, fontWeight: 500, fontSize: '14px', cursor: 'pointer' }}
+                onClick={() => {
+                  window.open(`/compliance/documents/exports/${data?.export_id}/?id=${data?.export_id}`, '_blank')
+                }}
               >
                 Export ID : <span>{data.export_number}</span>
               </Box>{' '}
-              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
+              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'}) • Importer
+              name : {'India'} • Country Of origin :{'Argentina'}
             </Typography>
             {data?.attachment?.file_original_name ? (
               <Box display='flex' alignItems='center' gap={1}>
@@ -356,8 +360,7 @@ const SpeciesDetailsContainer = ({
             sx={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
             onClick={handleShippedClick}
           >
-            {totalSpecies} Species • {totalAnimals} Animals • Importer name : {'India'} • Country Of origin :{' '}
-            {'Argentina'}
+            {totalSpecies} Species • {totalAnimals} Animals
             <ChevronRightIcon sx={{ fontSize: '22px', color: theme.palette.primary.main }} />
           </Typography>
 
