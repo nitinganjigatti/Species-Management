@@ -9,12 +9,16 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import Utility from 'src/utility'
+import Toaster from 'src/components/Toaster'
 
 const Species = () => {
   const theme = useTheme()
   const router = useRouter()
 
   const [searchValue, setSearchValue] = useState('')
+  const [exportLoading, setExportLoading] = useState(false)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -282,6 +286,37 @@ const Species = () => {
     }
   ]
 
+  const handleExport = async () => {
+    setExportLoading(true)
+    try {
+      const params = {
+        page: filters?.page,
+        limit: filters?.limit,
+        q: filters?.q,
+        sort: filters?.sort,
+        column: filters?.column,
+        exporting_country: prepareFilterParams('Exporting country'),
+        exporter: prepareFilterParams('Exporter'),
+        importer: prepareFilterParams('Importer'),
+        missing_docs: prepareFilterParams('Documents'),
+        response_type: 'csv'
+      }
+
+      await getSpeciesData(params).then(res => {
+        if (res?.success === true) {
+          Utility.downloadFileFromURL(res.data, `Species Report`)
+          Toaster({ type: 'success', message: res?.message })
+          setExportLoading(false)
+        } else {
+          Toaster({ type: 'error', message: res?.message })
+        }
+      })
+    } catch (error) {
+      console.error('Error exporting report:', error)
+      setExportLoading(false)
+    }
+  }
+
   const headerTitle = (
     <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.customTextColorGray2 }}>
       Species
@@ -306,32 +341,35 @@ const Species = () => {
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Search value={searchValue} onChange={e => handleSearch(e.target.value)} />
-              <Button
-                variant='outlined'
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  borderColor: theme.palette.customColors.OutlineVariant,
-                  borderRadius: '4px',
-                  fontSize: '14px'
-                }}
-                startIcon={
-                  <TuneRoundedIcon
-                    sx={{ height: '24px', width: '24px' }}
-                    color={theme.palette.customColors.OnSurfaceVariant}
-                  />
-                }
-                endIcon={
-                  <Badge
-                    badgeContent={filterCount}
-                    color='primary'
-                    invisible={filterCount === 0}
-                    sx={{ ml: 2, mr: 2 }}
-                  />
-                }
-                onClick={() => setOpenFilter(true)}
-              >
-                Filter
-              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
+                <ExportButton loading={exportLoading} tooltip='Download Report' onClick={handleExport} />
+                <Button
+                  variant='outlined'
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    borderColor: theme.palette.customColors.OutlineVariant,
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                  }}
+                  startIcon={
+                    <TuneRoundedIcon
+                      sx={{ height: '24px', width: '24px' }}
+                      color={theme.palette.customColors.OnSurfaceVariant}
+                    />
+                  }
+                  endIcon={
+                    <Badge
+                      badgeContent={filterCount}
+                      color='primary'
+                      invisible={filterCount === 0}
+                      sx={{ ml: 2, mr: 2 }}
+                    />
+                  }
+                  onClick={() => setOpenFilter(true)}
+                >
+                  Filter
+                </Button>
+              </Box>
             </Box>
             <CommonTable
               columns={columns}
