@@ -314,7 +314,12 @@ const ReactTable = ({
   // const finalTableHeight = loading ? minTableHeight : Math.max(dynamicTableHeight, minTableHeight)
 
   useEffect(() => {
-    const visibleRows = rowRefs.current.slice(0, currentRowsInView)
+    // const visibleRows = rowRefs.current.slice(0, currentRowsInView)
+
+    // jitne rows page par hain utne hi consider
+    const pageRows = table.getRowModel().rows || []
+    const visibleCount = Math.min(currentRowsInView, pageRows.length)
+    const visibleRows = rowRefs.current.slice(0, visibleCount)
 
     let rowsBlockHeight = 0
     const first = visibleRows[0]
@@ -327,12 +332,14 @@ const ReactTable = ({
       rowsBlockHeight = lastBottom - firstTop
     } else {
       // Fallback to summation
-      rowsBlockHeight = visibleRows.reduce((sum, ref) => sum + (ref?.offsetHeight || rowHeight), 0)
+      // rowsBlockHeight = visibleRows.reduce((sum, ref) => sum + (ref?.offsetHeight || rowHeight), 0)
+      // jab refs nahi (e.g., very few rows), simple fallback:
+      rowsBlockHeight = visibleCount * rowHeight
     }
 
     const height = rowsBlockHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
     setDynamicTableHeight(height)
-  }, [rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader])
+  }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader])
 
   // Handle column pinning menu
   const handleColumnMenuClick = (event, column) => {
@@ -442,6 +449,8 @@ const ReactTable = ({
   }
 
   const renderTableBody = () => {
+    // fresh collection for this render only
+    rowRefs.current = []
     // Initial load ONLY: no data yet
     if (loading && !hasData) {
       return (
@@ -456,6 +465,7 @@ const ReactTable = ({
 
     // Normal: data render hota rahe, chahe loading true hi kyu na ho
     const pageRows = table.getRowModel().rows
+    const visibleCount = Math.min(currentRowsInView, pageRows.length)
 
     return pageRows.map((row, idx) => (
       <TableRow
@@ -468,7 +478,8 @@ const ReactTable = ({
           ...rowStyle
         }}
         ref={el => {
-          if (idx < currentRowsInView) rowRefs.current[idx] = el
+          // if (idx < currentRowsInView) rowRefs.current[idx] = el
+          if (idx < visibleCount) rowRefs.current[idx] = el
         }}
       >
         {row.getVisibleCells().map(cell => {
