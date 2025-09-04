@@ -282,8 +282,9 @@ const SpeciesDetailsContainer = ({
               >
                 Export ID : <span>{data.export_number}</span>
               </Box>{' '}
-              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'}) • Importer
-              name : {'India'} • Country Of origin :{'Argentina'}
+              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
+              {/* • Importer
+              name : {'India'} • Country Of origin :{'Argentina'} */}
             </Typography>
             {data?.attachment?.file_original_name ? (
               <Box display='flex' alignItems='center' gap={1}>

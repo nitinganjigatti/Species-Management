@@ -246,12 +246,12 @@ const ExportPermitDetails = () => {
         onChange={handleAccordionChange}
       >
         <Box sx={{ width: '100%' }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+          {/* <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
             <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
               <Tab label={`Uploaded (${documentList.length})`} value='uploaded' />
               <Tab label={`Pending (${documentList.length})`} value='pending' />
             </Tabs>
-          </Box>
+          </Box> */}
           <SupportingDocuments
             isFetching={isFetching}
             documentList={documentList}
