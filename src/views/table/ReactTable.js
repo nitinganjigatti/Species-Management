@@ -114,10 +114,6 @@ const ReactTable = ({
   // IMPORTANT: initialize from columns on first mount
   const [columnPinning, setColumnPinning] = useState(() => defaultPinning)
 
-  // const [columnPinning, setColumnPinning] = useState({
-  //   left: [],
-  //   right: []
-  // })
   const [anchorEl, setAnchorEl] = useState(null)
   const [menuColumn, setMenuColumn] = useState(null)
 
@@ -203,17 +199,6 @@ const ReactTable = ({
     }))
   }, [columns, cellStyle, theme])
 
-  // Initialize column pinning based on column config (only once)
-  // useEffect(() => {
-  //   if (didInitPinningRef.current) return
-
-  //   const leftPinned = processedColumns.filter(col => col.meta?.originalColumn?.pinned === 'left').map(col => col.id)
-  //   const rightPinned = processedColumns.filter(col => col.meta?.originalColumn?.pinned === 'right').map(col => col.id)
-
-  //   setColumnPinning({ left: leftPinned, right: rightPinned })
-  //   didInitPinningRef.current = true
-  // }, [processedColumns])
-
   // user has interacted?
   const userChangedPinningRef = useRef(false)
 
@@ -262,6 +247,8 @@ const ReactTable = ({
     }
   }, [paginationModel?.pageSize, currentRowsInView])
 
+  const hasData = Array.isArray(rows) && rows.length > 0
+
   // Table instance
   const table = useReactTable({
     data: rows,
@@ -293,11 +280,6 @@ const ReactTable = ({
         pageSize: newPagination.pageSize
       })
     },
-
-    // onColumnPinningChange: setColumnPinning,
-    // onColumnPinningChange: updater => {
-    //   setColumnPinning(old => (typeof updater === 'function' ? updater(old) : updater))
-    // },
 
     onColumnPinningChange: updater => {
       userChangedPinningRef.current = true
@@ -371,19 +353,6 @@ const ReactTable = ({
     }
     handleColumnMenuClose()
   }
-
-  //   const handlePinColumn = (columnId, position) => {
-  //   table.setColumnPinning(prev => {
-  //     const clean = {
-  //       left: (prev?.left || []).filter(id => id !== columnId),
-  //       right: (prev?.right || []).filter(id => id !== columnId)
-  //     }
-  //     if (position === 'left') return { ...clean, left: [...clean.left, columnId] }
-  //     if (position === 'right') return { ...clean, right: [...clean.right, columnId] }
-  //     return clean // unpin
-  //   })
-  //   handleColumnMenuClose()
-  // }
 
   // Handle rows in view change
   const handleRowsInViewChange = event => {
@@ -472,37 +441,29 @@ const ReactTable = ({
     ))
   }
 
-  // Render table body
   const renderTableBody = () => {
-    if (loading) {
+    // Initial load ONLY: no data yet
+    if (loading && !hasData) {
       return (
         <TableRow>
           <TableCell
             colSpan={table.getAllColumns().length}
-            sx={{
-              textAlign: 'center',
-              height: currentRowsInView * rowHeight,
-              border: 'none'
-            }}
-          >
-            {/* Loading will be handled by overlay */}
-          </TableCell>
+            sx={{ textAlign: 'center', height: currentRowsInView * rowHeight, border: 'none' }}
+          />
         </TableRow>
       )
     }
 
-    const rows = table.getRowModel().rows
+    // Normal: data render hota rahe, chahe loading true hi kyu na ho
+    const pageRows = table.getRowModel().rows
 
-    // Render all rows for the current page; TableContainer height restricts visible count
-    return rows.map((row, idx) => (
+    return pageRows.map((row, idx) => (
       <TableRow
         key={row.id}
         onClick={() => onRowClick(row.original)}
         sx={{
           cursor: onRowClick ? 'pointer' : 'default',
-          '&:hover': {
-            backgroundColor: theme.palette.action?.hover || '#f5f5f5'
-          },
+          '&:hover': { backgroundColor: theme.palette.action?.hover || '#f5f5f5' },
           height: rowHeight,
           ...rowStyle
         }}
@@ -514,7 +475,7 @@ const ReactTable = ({
           const column = cell.column
           const isPinned = column.getIsPinned()
           const originalColumn = column.columnDef.meta?.originalColumn || {}
-          const isLastRow = idx === rows.length - 1
+          const isLastRow = idx === pageRows.length - 1
 
           const cellTextAlign =
             originalColumn.textAlign ||
@@ -542,11 +503,7 @@ const ReactTable = ({
                 ...(originalColumn.sx || {}),
                 ...(originalColumn.cellSx || {}),
                 ...cellStyle,
-
-                // Apply TanStack pinning styles
                 ...getCommonPinningStyles(column),
-
-                // Override zIndex for body cells to be below headers
                 zIndex: isPinned ? 100 : 1
               }}
             >
@@ -557,7 +514,6 @@ const ReactTable = ({
       </TableRow>
     ))
   }
-
   // Render footer with pagination
   const renderFooter = () => {
     if (!pagination) return null
@@ -668,12 +624,15 @@ const ReactTable = ({
         component={Paper}
         sx={{
           borderRadius: '8px !important',
-          height: loading ? loadingHeight : dynamicTableHeight,
+          // height: loading ? loadingHeight : dynamicTableHeight,
+          // overflow: loading ? 'hidden' : 'auto',
+          // ⬇️ initial load (no data) me large calculated height, otherwise dynamic
+          height: loading && !hasData ? loadingHeight : dynamicTableHeight,
           position: 'relative',
           border: '1px solid #ddd',
-          overflow: loading ? 'hidden' : 'auto',
-          overflowX: 'auto', // Enable horizontal scroll
-          overflowY: 'auto', // Enable vertical scroll
+          // ⬇️ overflow ko hidden mat karo, taaki data visible rahe
+          overflowX: 'auto',
+          overflowY: 'auto',
           ...(tableContainerSx || {})
         }}
         style={tableContainerStyle}
@@ -692,22 +651,20 @@ const ReactTable = ({
         </Table>
       </TableContainer>
 
-      {/* Loading overlay */}
       {loading && (
         <Box
+          aria-busy
           sx={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
+            inset: 0,
             borderRadius: '8px',
-            zIndex: 9999,
+            zIndex: 9999, // header/cells se upar
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center'
-
-            // backgroundColor: 'rgba(0, 0, 0, 0.3)'
+            alignItems: 'center',
+            backgroundColor: hasData ? 'rgba(6, 5, 5, 0.08)' : 'transparent',
+            // hasData par interactions block ho jayein (DataGrid jaise)
+            pointerEvents: 'auto'
           }}
         >
           <CircularProgress />
