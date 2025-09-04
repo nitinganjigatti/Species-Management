@@ -26,7 +26,8 @@ const TreatmentTypeRadioButtons = ({
   radioColor = '#10b981',
   disabled = false,
   size = 'medium',
-  borderColor
+  borderColor,
+  sx = {}
 }) => {
   const theme = useTheme()
   const radioDiameter = radioSizes[size]
@@ -53,7 +54,8 @@ const TreatmentTypeRadioButtons = ({
         '&:hover': {
           borderColor: disabled ? selectedBorderColor : selectedBorderColor
         },
-        gap: 4
+        gap: 4,
+        ...sx
       }}
     >
       <Typography

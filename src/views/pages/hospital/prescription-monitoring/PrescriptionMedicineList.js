@@ -4,10 +4,11 @@ import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 
 export default function PrescriptionMedicineList({
-  medicineList = [],
+  medicineList,
   temporarilySelectedMedicine,
-  selectedMedicines = [],
-  onSelect
+  selectedMedicine,
+  onSelect,
+  error
 }) {
   const theme = useTheme()
   const [searchTerm, setSearchTerm] = useState('')
@@ -17,7 +18,14 @@ export default function PrescriptionMedicineList({
   )
 
   return (
-    <Box sx={{ pt: 1 }}>
+    <Box
+      sx={{
+        pt: 1,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
       <TextField
         placeholder='Search'
         fullWidth
@@ -35,6 +43,19 @@ export default function PrescriptionMedicineList({
           }
         }}
       />
+      {error && (
+        <Typography
+          sx={{
+            color: theme.palette.error.main,
+            fontSize: '0.75rem',
+            mt: 1,
+            mb: 1,
+            ml: 1
+          }}
+        >
+          {error}
+        </Typography>
+      )}
 
       <Box
         sx={{
@@ -53,12 +74,32 @@ export default function PrescriptionMedicineList({
         <Typography sx={{ minWidth: '192px', textAlign: 'left' }}>GENERIC NAME</Typography>
       </Box>
 
-      <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>
+      <Box
+        sx={{
+          flex: 1,
+          maxHeight: 650,
+          overflowY: 'auto',
+          mt: 0,
+          '&::-webkit-scrollbar': {
+            width: '6px'
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'transparent'
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: theme.palette.customColors.OutlineVariant,
+            borderRadius: '3px'
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: theme.palette.customColors.OnSurfaceVariant
+          }
+        }}
+      >
         {filteredMedicines.length === 0 ? (
           <Box
             sx={{
               background: theme.palette.common.white,
-              height: 500,
+              maxHeight: 650,
               borderRadius: '8px',
               display: 'flex',
               flexDirection: 'column',
@@ -73,7 +114,9 @@ export default function PrescriptionMedicineList({
           </Box>
         ) : (
           filteredMedicines.map((medicine, index) => {
-            const isSelected = selectedMedicines.some(med => med.label === medicine.label)
+            // If selectedMedicine is an object, compare by label
+            const actuallySelected =
+              (selectedMedicine && selectedMedicine.label === medicine.label) || selectedMedicine === medicine.label
 
             const isTemporarilySelected =
               temporarilySelectedMedicine && temporarilySelectedMedicine.label === medicine.label
@@ -83,7 +126,7 @@ export default function PrescriptionMedicineList({
                 key={index}
                 sx={{
                   background:
-                    isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
+                    actuallySelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
                   borderRadius: '1px',
                   px: 1,
                   py: 3.7,
@@ -95,8 +138,8 @@ export default function PrescriptionMedicineList({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={isSelected || isTemporarilySelected}
-                      onChange={() => onSelect(medicine.label)}
+                      checked={actuallySelected || isTemporarilySelected}
+                      onChange={() => onSelect(medicine)}
                       sx={{
                         transform: 'scale(0.8)',
                         padding: '4px'
@@ -107,10 +150,22 @@ export default function PrescriptionMedicineList({
                   sx={{
                     flex: 1,
                     m: 0,
+                    color:
+                      actuallySelected || isTemporarilySelected
+                        ? theme.palette.primary.OnSurface
+                        : theme.palette.customColors.OnSurfaceVariant,
                     '& .MuiFormControlLabel-label': {
-                      color: theme.palette.customColors.OnSurfaceVariant,
+                      color:
+                        actuallySelected || isTemporarilySelected
+                          ? theme.palette.primary.OnSurface
+                          : theme.palette.customColors.OnSurfaceVariant,
+
+                      fontFamily: 'Inter, sans-serif',
+                      fontWeight: 600,
                       fontSize: '16px',
-                      fontWeight: 600
+                      lineHeight: '100%',
+                      letterSpacing: '0px',
+                      verticalAlign: 'middle'
                     }
                   }}
                 />
@@ -118,8 +173,13 @@ export default function PrescriptionMedicineList({
                   sx={{
                     width: '200px',
                     color: theme.palette.customColors.OnSurfaceVariant,
+                    fontFamily: 'Inter',
+                    fontWeight: 500,
+                    fontStyle: 'italic',
                     fontSize: '14px',
-                    fontWeight: 400
+                    lineHeight: '100%',
+                    letterSpacing: '0.1px',
+                    verticalAlign: 'middle'
                   }}
                 >
                   {medicine.genericName}
