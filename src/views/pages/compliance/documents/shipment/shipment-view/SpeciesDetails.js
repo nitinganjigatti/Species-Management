@@ -134,6 +134,7 @@ const SpeciesDetailsContainer = ({
   const OthersSection = ({ data, isCollapsed }) => {
     const totalAnimals = data?.reduce((sum, item) => {
       const species = item.species
+
       return (
         sum +
         (parseInt(species?.total_count) ||
@@ -187,6 +188,7 @@ const SpeciesDetailsContainer = ({
             >
               {data?.map((item, index) => {
                 const species = item.species
+
                 return (
                   <SpeciesRow
                     key={index}
@@ -224,6 +226,7 @@ const SpeciesDetailsContainer = ({
 
       return sum + (isNaN(totalCount) ? male + female + undetermined : totalCount)
     }, 0)
+
     const getFileIcon = () => {
       const fileName = (data?.attachment?.name || data?.attachment?.file_original_name || '').toLowerCase()
       const ext = fileName?.split('.')?.pop()?.toLowerCase()
@@ -252,6 +255,7 @@ const SpeciesDetailsContainer = ({
 
       return imgPath?.default
     }
+
     return (
       <>
         <Box>
