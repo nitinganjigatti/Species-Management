@@ -414,13 +414,21 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
       </Box>
       <Box>
         <IconButton
-          disabled={
-            Number(eggDetails?.action_to_be_taken) === 5 ||
-            (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
-            (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
-              ? false
-              : true
-          }
+          // disabled={
+          //   Number(eggDetails?.action_to_be_taken) === 5 ||
+          //   (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
+          //   (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
+          //     ? false
+          //     : true
+          // }
+          sx={{
+            display:
+              Number(eggDetails?.action_to_be_taken) === 5 ||
+              (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
+              (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
+                ? ''
+                : 'none'
+          }}
           onClick={() => setOpenDrawer(true)}
         >
           <Icon
