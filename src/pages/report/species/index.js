@@ -16,6 +16,7 @@ import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 
 import { getReportFilterList } from 'src/lib/api/report'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import ReactTable from 'src/views/table/ReactTable'
 
 const SpeciesReport = () => {
   const router = useRouter()
@@ -664,7 +665,7 @@ const SpeciesReport = () => {
               </Box>
 
               <Box sx={{ padding: 5 }}>
-                <StickyTable
+                <ReactTable
                   rows={reportRows}
                   rowCount={total}
                   rowHeight={70}
@@ -678,7 +679,9 @@ const SpeciesReport = () => {
                   onPaginationModelChange={setPaginationModel}
                   loading={isLoading}
                   onRowClick={handleRowClick}
-                  downloadExcel
+                  // downloadExcel
+                  serverSide
+                  modifyColumnPinning
                   headerName='Species General Report'
                   searchMode='server'
                 />
