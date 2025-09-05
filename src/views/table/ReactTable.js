@@ -30,8 +30,169 @@ import { useTheme } from '@emotion/react'
 import PushPinIcon from '@mui/icons-material/PushPin'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 
+/* -------------------- Memoized, minimal-prop checkboxes -------------------- */
+
+const MemoSelectionHeader = React.memo(
+  function SelectionHeader({ checked, indeterminate, disabled, onToggle, checkboxSX }) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Checkbox
+          size='small'
+          disableRipple
+          disableFocusRipple
+          sx={checkboxSX}
+          checked={checked}
+          indeterminate={indeterminate}
+          onChange={e => onToggle(e.target.checked)}
+          disabled={disabled}
+        />
+      </Box>
+    )
+  },
+  (prev, next) =>
+    prev.checked === next.checked &&
+    prev.indeterminate === next.indeterminate &&
+    prev.disabled === next.disabled &&
+    prev.onToggle === next.onToggle
+)
+
+const MemoSelectionCell = React.memo(
+  function SelectionCell({ selected, indeterminate, disabled, onToggle, rowId, checkboxSX }) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Checkbox
+          size='small'
+          disableRipple
+          disableFocusRipple
+          sx={checkboxSX}
+          checked={selected}
+          indeterminate={indeterminate}
+          disabled={disabled}
+          onChange={e => onToggle(rowId, e.target.checked)}
+        />
+      </Box>
+    )
+  },
+  (prev, next) =>
+    prev.selected === next.selected &&
+    prev.indeterminate === next.indeterminate &&
+    prev.disabled === next.disabled &&
+    prev.onToggle === next.onToggle && // stable reference
+    prev.rowId === next.rowId // primitive
+)
+
+/* -------------------- Memoized Row (skips when props same) -------------------- */
+
+const MemoBodyRow = React.memo(
+  function BodyRow({
+    row,
+    rowHeight,
+    rowStyle,
+    theme,
+    onRowClick,
+    cellStyle,
+    getCommonPinningStyles,
+    onCellClick,
+    selectionEnabled,
+    isRowSelected,
+    toggleRowCheckbox,
+    checkboxSX
+  }) {
+    const pageRows = row?.table?.getRowModel?.().rows || []
+    const isLastRow = row.index === pageRows.length - 1
+
+    return (
+      <TableRow
+        key={row.id}
+        onClick={() => onRowClick?.(row.original)}
+        sx={{
+          cursor: onRowClick ? 'pointer' : 'default',
+          '&:hover': { backgroundColor: theme.palette.action?.hover || '#f5f5f5' },
+          height: rowHeight,
+          ...rowStyle
+        }}
+      >
+        {row.getVisibleCells().map(cell => {
+          const column = cell.column
+          const isPinned = column.getIsPinned()
+          const originalColumn = column.columnDef.meta?.originalColumn || {}
+
+          const cellTextAlign =
+            originalColumn.textAlign ||
+            (originalColumn.style && originalColumn.style.textAlign) ||
+            (originalColumn.cellStyle && originalColumn.cellStyle.textAlign) ||
+            (originalColumn.sx && originalColumn.sx.textAlign) ||
+            (originalColumn.cellSx && originalColumn.cellSx.textAlign) ||
+            'left'
+
+          const baseSx = {
+            borderBottom: isLastRow ? 'none' : '1px solid #ddd',
+            borderRight: isPinned && '1px solid #ddd',
+            textAlign: column.id === '_select' ? 'center' : cellTextAlign,
+            padding: column.id === '_select' ? '0 8px' : '8px 16px',
+            backgroundColor: isPinned ? theme.palette.background?.paper || '#fff' : 'transparent',
+            ...(originalColumn.style || {}),
+            ...(originalColumn.cellStyle || {}),
+            ...(originalColumn.sx || {}),
+            ...(originalColumn.cellSx || {}),
+            ...cellStyle,
+            ...getCommonPinningStyles(column),
+            zIndex: isPinned ? 100 : 1
+          }
+
+          if (selectionEnabled && column.id === '_select') {
+            // Only this cell will update when its 'selected' prop changes
+            return (
+              <TableCell key={cell.id} sx={baseSx} onClick={e => e.stopPropagation()}>
+                <MemoSelectionCell
+                  selected={isRowSelected}
+                  indeterminate={row.getIsSomeSelected?.() || false}
+                  disabled={!row.getCanSelect?.()}
+                  onToggle={toggleRowCheckbox}
+                  rowId={row.id}
+                  checkboxSX={checkboxSX}
+                />
+              </TableCell>
+            )
+          }
+
+          return (
+            <TableCell
+              key={cell.id}
+              onClick={e => {
+                e.stopPropagation()
+                if (column.id !== '_select') onCellClick?.(cell.getValue(), row.original)
+              }}
+              sx={baseSx}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </TableCell>
+          )
+        })}
+      </TableRow>
+    )
+  },
+  (prev, next) => {
+    // Skip re-render if:
+    // - same row identity
+    // - selected flag didn't change for this row
+    // - other function/props are stable
+    return (
+      prev.row === next.row &&
+      prev.rowHeight === next.rowHeight &&
+      prev.onRowClick === next.onRowClick &&
+      prev.onCellClick === next.onCellClick &&
+      prev.isRowSelected === next.isRowSelected &&
+      prev.toggleRowCheckbox === next.toggleRowCheckbox &&
+      prev.theme === next.theme &&
+      prev.getCommonPinningStyles === next.getCommonPinningStyles
+    )
+  }
+)
+
+/* --------------------------------- Main --------------------------------- */
+
 const ReactTable = ({
-  // Data and columns
   rows = [],
   columns = [],
 
@@ -83,15 +244,10 @@ const ReactTable = ({
   tableContainerSx,
   tableContainerStyle
 }) => {
-  // useEffect(() => {
-  //   console.log('columns', columns)
-  //   console.log('rows', rows)
-  // }, [columns])
-
   const theme = useTheme()
   const tableContainerRef = useRef(null)
 
-  const getDefaultPinningFromColumns = cols => {
+  const getDefaultPinningFromColumns = useCallback(cols => {
     const left = []
     const right = []
     ;(cols || []).forEach((c, i) => {
@@ -100,16 +256,15 @@ const ReactTable = ({
       else if (c.pinned === 'right') right.push(id)
     })
     return { left, right }
-  }
+  }, [])
 
-  const defaultPinning = useMemo(() => getDefaultPinningFromColumns(columns), [columns])
+  const defaultPinning = useMemo(() => getDefaultPinningFromColumns(columns), [columns, getDefaultPinningFromColumns])
 
   const withSelectionInPinning = useCallback(
     pin => {
       if (!rowSelection || !selectionPinned) return pin
       const left = pin.left ? [...pin.left] : []
       const right = pin.right ? [...pin.right] : []
-      // Ensure the selection column is included once
       if (selectionPinned === 'left' && !left.includes('_select')) left.unshift('_select')
       if (selectionPinned === 'right' && !right.includes('_select')) right.unshift('_select')
       return { left, right }
@@ -118,21 +273,26 @@ const ReactTable = ({
   )
 
   const rowRefs = useRef([])
-  const didInitPinningRef = useRef(false)
+  const userChangedPinningRef = useRef(false)
 
-  // State management
+  // ---- State ----
   const [currentRowsInView, setCurrentRowsInView] = useState(rowsInView)
-  const [userChangedRowsInView, setUserChangedRowsInView] = useState(false)
-  const [selectedRows, setSelectedRows] = useState([]) // array of selected row IDs
   const [loadingHeight, setLoadingHeight] = useState(0)
-
-  // Initialize column pinning (include selection column if needed)
   const [columnPinning, setColumnPinning] = useState(() => withSelectionInPinning(defaultPinning))
-
   const [anchorEl, setAnchorEl] = useState(null)
   const [menuColumn, setMenuColumn] = useState(null)
 
-  const getCommonPinningStyles = column => {
+  // ✅ TanStack-style rowSelection object (optimized)
+  const [rowSelectionState, setRowSelectionState] = useState({})
+
+  const checkboxSX = {
+    p: 0,
+    backgroundColor: 'transparent !important',
+    '&:hover': { backgroundColor: 'transparent !important' },
+    '& .MuiSvgIcon-root': { fontSize: 18 }
+  }
+
+  const getCommonPinningStyles = useCallback(column => {
     const isPinned = column.getIsPinned()
     const isFirstLeftPinned = isPinned === 'left' && column.getIsFirstColumn('left')
     const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left')
@@ -145,19 +305,17 @@ const ReactTable = ({
         : isFirstRightPinnedColumn
         ? '4px 0 4px -4px rgba(0,0,0,0.2) inset'
         : undefined,
-      // left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
       left: isPinned === 'left' ? (isFirstLeftPinned ? 0 : `${column.getStart('left')}px`) : undefined,
       right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
-      // opacity: isPinned ? 0.98 : 1,
       position: isPinned ? 'sticky' : 'relative',
       width: size,
       minWidth: size,
       maxWidth: size,
       zIndex: isPinned ? 1000 : 1
     }
-  }
+  }, [])
 
-  // Build main columns
+  // ---- Columns ----
   const baseColumns = useMemo(() => {
     if (!Array.isArray(columns)) return []
     return columns.map((col, index) => ({
@@ -173,10 +331,8 @@ const ReactTable = ({
       cell: ({ row, getValue }) => {
         const value = getValue()
         const cellProps = { row: row.original, value, field: col.field }
-
         if (col.renderCell) return col.renderCell(cellProps)
         if (React.isValidElement(value)) return value
-
         return (
           <Typography
             sx={{
@@ -198,16 +354,9 @@ const ReactTable = ({
         headerAlign: col.headerAlign || 'left'
       }
     }))
-  }, [columns, cellStyle, theme])
+  }, [columns, theme])
 
-  const checkboxSX = {
-    p: 0,
-    backgroundColor: 'transparent !important',
-    '&:hover': { backgroundColor: 'transparent !important' },
-    '& .MuiSvgIcon-root': { fontSize: 18 }
-  }
-
-  // ✅ Inject selection column when enabled
+  // ✅ Inject selection column (kept first) with memoized cells
   const processedColumns = useMemo(() => {
     if (!rowSelection) return baseColumns
 
@@ -219,65 +368,53 @@ const ReactTable = ({
       enableSorting: false,
       enableColumnFilter: false,
       enablePinning: true,
-      header: ({ table }) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Checkbox
-            size='small'
-            disableRipple
-            disableFocusRipple
-            sx={checkboxSX}
-            checked={table.getIsAllPageRowsSelected?.() || false}
-            indeterminate={(table.getIsSomePageRowsSelected?.() && !table.getIsAllPageRowsSelected?.()) || false}
-            onChange={e => {
-              e.stopPropagation()
-              // Select only the visible page rows
-              if (table.toggleAllPageRowsSelected) {
-                table.toggleAllPageRowsSelected(e.target.checked)
-              } else {
-                // Fallback: manually toggle current page rows
-                const pageRows = table.getRowModel().rows || []
-                pageRows.forEach(r => r.toggleSelected(e.target.checked))
-              }
+      header: ({ table }) => {
+        // compute minimal booleans; pass to MemoSelectionHeader
+        const checked = table.getIsAllPageRowsSelected?.() || false
+        const some = table.getIsSomePageRowsSelected?.() || false
+
+        return (
+          <MemoSelectionHeader
+            checked={checked}
+            indeterminate={some && !checked}
+            disabled={false}
+            onToggle={val => {
+              // Only affect current page rows (fast + minimal state writes)
+              const pageRows = table.getRowModel().rows || []
+              setRowSelectionState(prev => {
+                const next = { ...prev }
+                if (val) {
+                  pageRows.forEach(r => {
+                    next[r.id] = true
+                  })
+                } else {
+                  pageRows.forEach(r => {
+                    delete next[r.id]
+                  })
+                }
+                return next
+              })
             }}
+            checkboxSX={checkboxSX}
           />
-        </Box>
-      ),
-      cell: ({ row }) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Checkbox
-            size='small'
-            disableRipple
-            disableFocusRipple
-            sx={checkboxSX}
-            checked={row.getIsSelected()}
-            indeterminate={row.getIsSomeSelected?.() || false}
-            disabled={!row.getCanSelect?.()}
-            onChange={e => {
-              e.stopPropagation()
-              row.toggleSelected(e.target.checked)
-            }}
-          />
-        </Box>
-      ),
+        )
+      },
+      // Note: body cell will be rendered in MemoBodyRow for better control
+      cell: ({ row }) => null,
       meta: { originalColumn: { headerAlign: 'center', textAlign: 'center' } }
     }
 
-    // Pin preference is applied via columnPinning state; still keep this column first
-    const next = [selectionColumn, ...baseColumns]
-    return next
+    return [selectionColumn, ...baseColumns]
   }, [baseColumns, rowSelection])
 
-  // user has interacted?
-  const userChangedPinningRef = useRef(false)
-
-  // Re-apply defaults (respect selection column) if user hasn't changed pinning
+  // ---- Pinning default (respect selection col) ----
   useEffect(() => {
     if (!userChangedPinningRef.current) {
       setColumnPinning(withSelectionInPinning(defaultPinning))
     }
   }, [defaultPinning, withSelectionInPinning])
 
-  // Calculate loading height based on table position
+  // ---- Loader height ----
   useEffect(() => {
     if (tableContainerRef.current) {
       const tableRect = tableContainerRef.current.getBoundingClientRect()
@@ -289,7 +426,7 @@ const ReactTable = ({
     }
   }, [headerHeight, loading])
 
-  // Ensure rows-in-view never exceeds rows-per-page (page size)
+  // rows-in-view options clamp
   const effectiveRowsInViewOptions = useMemo(() => {
     try {
       const maxView = paginationModel?.pageSize || Infinity
@@ -307,24 +444,29 @@ const ReactTable = ({
     const maxView = paginationModel?.pageSize
     if (maxView && currentRowsInView > maxView) {
       setCurrentRowsInView(maxView)
-      setUserChangedRowsInView(true)
     }
   }, [paginationModel?.pageSize, currentRowsInView])
 
   const hasData = Array.isArray(rows) && rows.length > 0
 
-  // Filter out selections that are no longer present in current rows
+  // ✅ Prune selection for rows not present
   useEffect(() => {
-    if (!rowSelection || !rows?.length) return
+    if (!rowSelection) return
     const presentIds = new Set(rows.map((r, i) => String(r?.[rowIdKey] ?? r?.id ?? r?._id ?? `row_${i}`)))
-    const filtered = selectedRows.filter(id => presentIds.has(String(id)))
-    if (filtered.length !== selectedRows.length) {
-      setSelectedRows(filtered)
-      onRowSelect(filtered)
-    }
-  }, [rows, rowSelection, rowIdKey]) // eslint-disable-line
+    setRowSelectionState(prev => {
+      let changed = false
+      const next = { ...prev }
+      for (const id in next) {
+        if (!presentIds.has(id)) {
+          delete next[id]
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [rows, rowSelection, rowIdKey])
 
-  // Table instance
+  // ---- Table ----
   const table = useReactTable({
     data: rows,
     columns: processedColumns,
@@ -337,24 +479,19 @@ const ReactTable = ({
     pageCount: serverSide ? Math.ceil(rowCount / paginationModel.pageSize) : undefined,
     enableColumnPinning: true,
 
-    // ✅ Stable row IDs for selection
     getRowId: (originalRow, index) =>
       String(originalRow?.[rowIdKey] ?? originalRow?.id ?? originalRow?._id ?? `row_${index}`),
 
-    // ✅ Controlled selection state
     enableRowSelection: rowSelection,
+
+    // ✅ controlled selection
     state: {
       pagination: {
         pageIndex: paginationModel.page,
         pageSize: paginationModel.pageSize
       },
       columnPinning,
-      rowSelection: rowSelection
-        ? selectedRows.reduce((acc, id) => {
-            acc[String(id)] = true
-            return acc
-          }, {})
-        : {}
+      rowSelection: rowSelectionState
     },
 
     onPaginationChange: updater => {
@@ -362,7 +499,6 @@ const ReactTable = ({
         typeof updater === 'function'
           ? updater({ pageIndex: paginationModel.page, pageSize: paginationModel.pageSize })
           : updater
-
       onPaginationModelChange({
         page: newPagination.pageIndex,
         pageSize: newPagination.pageSize
@@ -374,19 +510,17 @@ const ReactTable = ({
       setColumnPinning(old => (typeof updater === 'function' ? updater(old) : updater))
     },
 
-    onRowSelectionChange: updater => {
-      const base = selectedRows.reduce((acc, id) => {
-        acc[String(id)] = true
-        return acc
-      }, {})
-      const nextObj = typeof updater === 'function' ? updater(base) : updater
-      const ids = Object.keys(nextObj).filter(k => nextObj[k])
-      setSelectedRows(ids)
-      onRowSelect(ids)
-    }
+    onRowSelectionChange: setRowSelectionState // direct TanStack pattern
   })
 
-  // Calculate table dimensions
+  // Parent callback with selected IDs
+  useEffect(() => {
+    if (!rowSelection) return
+    const ids = Object.keys(rowSelectionState).filter(k => rowSelectionState[k])
+    onRowSelect(ids)
+  }, [rowSelectionState, rowSelection, onRowSelect])
+
+  // ---- Dynamic height ----
   const hasSubHeader = processedColumns.some(
     col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
   )
@@ -394,8 +528,6 @@ const ReactTable = ({
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
     currentRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
   )
-
-  const minTableHeight = currentRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
 
   useEffect(() => {
     rowRefs.current = []
@@ -419,33 +551,40 @@ const ReactTable = ({
     setDynamicTableHeight(height)
   }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader])
 
-  // Column pinning menu
+  // ---- Column menu ----
   const handleColumnMenuClick = (event, column) => {
     setAnchorEl(event.currentTarget)
     setMenuColumn(column)
   }
-
   const handleColumnMenuClose = () => {
     setAnchorEl(null)
     setMenuColumn(null)
   }
-
   const handlePinColumn = (columnId, position) => {
     const col = table.getAllLeafColumns().find(c => c.id === columnId)
     if (col) col.pin(position || false)
     handleColumnMenuClose()
   }
 
-  // Rows in view change
+  // ---- Rows in view change ----
   const handleRowsInViewChange = event => {
     const newValue = event.target.value
     setCurrentRowsInView(newValue)
-    setUserChangedRowsInView(true)
   }
 
-  // Header renderer
-  const renderTableHeader = () => {
-    return table.getHeaderGroups().map(headerGroup => (
+  // ✅ Stable row-checkbox handler (shared by all cells)
+  const handleRowCheckboxChange = useCallback((rowId, checked) => {
+    setRowSelectionState(prev => {
+      const next = { ...prev }
+      if (checked) next[rowId] = true
+      else delete next[rowId]
+      return next
+    })
+  }, [])
+
+  // ---- Header ----
+  const renderTableHeader = () =>
+    table.getHeaderGroups().map(headerGroup => (
       <TableRow key={headerGroup.id}>
         {headerGroup.headers.map(header => {
           const column = header.column
@@ -484,8 +623,7 @@ const ReactTable = ({
                 position: 'sticky',
                 top: 0,
                 backgroundClip: 'padding-box',
-                zIndex: isPinned ? 800 : 110,
-                top: 0
+                zIndex: isPinned ? 800 : 110
               }}
               onClick={e => e.stopPropagation()}
             >
@@ -519,9 +657,8 @@ const ReactTable = ({
         })}
       </TableRow>
     ))
-  }
 
-  // Body renderer
+  // ---- Body ----
   const renderTableBody = () => {
     rowRefs.current = []
 
@@ -537,73 +674,29 @@ const ReactTable = ({
     }
 
     const pageRows = table.getRowModel().rows
-    const visibleCount = Math.min(currentRowsInView, pageRows.length)
 
     return pageRows.map((row, idx) => (
-      <TableRow
+      <MemoBodyRow
         key={row.id}
-        onClick={() => onRowClick(row.original)}
-        sx={{
-          cursor: onRowClick ? 'pointer' : 'default',
-          '&:hover': { backgroundColor: theme.palette.action?.hover || '#f5f5f5' },
-          height: rowHeight,
-          ...rowStyle
-        }}
-        ref={el => {
-          if (idx < visibleCount) rowRefs.current[idx] = el
-        }}
-      >
-        {row.getVisibleCells().map(cell => {
-          const column = cell.column
-          const isPinned = column.getIsPinned()
-          const originalColumn = column.columnDef.meta?.originalColumn || {}
-          const isLastRow = idx === pageRows.length - 1
-
-          const cellTextAlign =
-            originalColumn.textAlign ||
-            (originalColumn.style && originalColumn.style.textAlign) ||
-            (originalColumn.cellStyle && originalColumn.cellStyle.textAlign) ||
-            (originalColumn.sx && originalColumn.sx.textAlign) ||
-            (originalColumn.cellSx && originalColumn.cellSx.textAlign) ||
-            'left'
-
-          return (
-            <TableCell
-              key={cell.id}
-              onClick={e => {
-                e.stopPropagation()
-                // ignore clicks on selection column
-                if (column.id !== '_select') {
-                  onCellClick && onCellClick(cell.getValue(), row.original)
-                }
-              }}
-              sx={{
-                borderBottom: isLastRow ? 'none' : '1px solid #ddd',
-                borderRight: isPinned && '1px solid #ddd',
-                textAlign: column.id === '_select' ? 'center' : cellTextAlign,
-                padding: column.id === '_select' ? '0 8px' : '8px 16px',
-                backgroundColor: isPinned ? theme.palette.background?.paper || '#fff' : 'transparent',
-                ...(originalColumn.style || {}),
-                ...(originalColumn.cellStyle || {}),
-                ...(originalColumn.sx || {}),
-                ...(originalColumn.cellSx || {}),
-                ...cellStyle,
-                ...getCommonPinningStyles(column),
-                zIndex: isPinned ? 100 : 1
-              }}
-            >
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </TableCell>
-          )
-        })}
-      </TableRow>
+        row={row}
+        rowHeight={rowHeight}
+        rowStyle={rowStyle}
+        theme={theme}
+        onRowClick={onRowClick}
+        cellStyle={cellStyle}
+        getCommonPinningStyles={getCommonPinningStyles}
+        onCellClick={onCellClick}
+        selectionEnabled={!!rowSelection}
+        isRowSelected={!!rowSelectionState[row.id]}
+        toggleRowCheckbox={handleRowCheckboxChange}
+        checkboxSX={checkboxSX}
+      />
     ))
   }
 
-  // Footer with pagination
+  // ---- Footer ----
   const renderFooter = () => {
     if (!pagination) return null
-
     return (
       <Box
         sx={{
@@ -688,7 +781,7 @@ const ReactTable = ({
     )
   }
 
-  // Column pinning menu
+  // ---- Column pinning menu ----
   const columnMenu = (
     <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleColumnMenuClose}>
       {menuColumn?.getIsPinned() !== 'left' && (
@@ -750,23 +843,8 @@ const ReactTable = ({
         </Box>
       )}
 
-      {/* Footer */}
       {renderFooter()}
-
-      {/* Column pinning menu */}
       {columnMenu}
-
-      {/* Debug: Show column pinning state */}
-      {/* {process.env.NODE_ENV === 'development' && (
-        <Box sx={{ mt: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-          <Typography variant='caption' sx={{ fontFamily: 'monospace' }}>
-            Column Pinning State:
-          </Typography>
-          <pre style={{ fontSize: '12px', margin: '8px 0' }}>
-            {JSON.stringify(table.getState().columnPinning, null, 2)}
-          </pre>
-        </Box>
-      )} */}
     </Box>
   )
 }
