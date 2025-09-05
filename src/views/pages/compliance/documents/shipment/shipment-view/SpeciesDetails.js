@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Box, Typography, Paper, Chip, Collapse, Divider, Icon, alpha } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ShippedAnimalsDrawer from '../drawer/ShippedAnimals'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
+import countryList from 'react-select-country-list'
 import { useTheme } from '@mui/material/styles'
 import { useAuth } from 'src/hooks/useAuth'
 
@@ -20,6 +21,7 @@ const SpeciesDetailsContainer = ({
 }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [shippedAnimalsDrawerOpen, setshippedAnimalsDrawerOpen] = useState(false)
+  const countryListOptions = useMemo(() => countryList().getData(), [])
   const auth = useAuth()
   const theme = useTheme()
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
@@ -286,8 +288,12 @@ const SpeciesDetailsContainer = ({
                   <span>{data.export_number}</span>
                 </strong>
               </Box>{' '}
-              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'}) • Importer
-              name : <strong>{'India'} </strong> • Country Of origin : <strong>{'Argentina'}</strong>
+              {console.log(data, 'data')}({data.total_species} Species) ({totalAnimals}{' '}
+              {totalAnimals === 1 ? 'Animal' : 'Animals'}) • Importer name :{' '}
+              <strong>{data?.importer_name || 'N/A'} </strong> • Country Of origin :{' '}
+              <strong>
+                {countryListOptions.find(country => country.value === data?.origin_country)?.label || 'N/A'}
+              </strong>
             </Typography>
             {data?.attachment?.file_original_name ? (
               <Box display='flex' alignItems='center' gap={1}>

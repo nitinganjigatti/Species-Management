@@ -28,7 +28,7 @@ const AddEditImport = () => {
   const [linkedShipments, setLinkedShipments] = useState([])
   const [linkedShipmentsData, setLinkedShipmentsData] = useState()
   const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
-  const [activeTab, setActiveTab] = useState('uploaded')
+  const [activeTab, setActiveTab] = useState('completed')
   const animalsEditRef = useRef()
 
   const handleTabChange = (event, newValue) => {
@@ -46,6 +46,7 @@ const AddEditImport = () => {
     try {
       const params = {
         id: id || exportId,
+        status: activeTab,
         type: 'import'
       }
       const res = await getDocumentTypeList(params)
@@ -68,14 +69,20 @@ const AddEditImport = () => {
     const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
     setDocumentList(updatedList)
     fetchDocumentTypeList()
+    setActiveTab('completed')
   }
 
   useEffect(() => {
     if (id) {
-      fetchDocumentTypeList()
       fetchLinkedDocuments()
     }
   }, [id])
+
+  useEffect(() => {
+    if (id) {
+      fetchDocumentTypeList()
+    }
+  }, [id, activeTab])
 
   const fetchLinkedDocuments = async () => {
     try {
@@ -219,12 +226,23 @@ const AddEditImport = () => {
             </Box>
           ) : (
             <Box sx={{ width: '100%' }}>
-              {/* <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
                 <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
-                  <Tab label={`Uploaded (${documentList.length})`} value='uploaded' />
-                  <Tab label={`Pending (${documentList.length})`} value='pending' />
+                  <Tab
+                    label={`Completed${
+                      activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                    }`}
+                    value='completed'
+                    sx={{ mr: 4 }}
+                  />
+                  <Tab
+                    label={`Pending${
+                      activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                    }`}
+                    value='pending'
+                  />
                 </Tabs>
-              </Box> */}
+              </Box>
               <SupportingDocuments
                 isFetching={isFetching}
                 documentList={documentList}
