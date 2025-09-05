@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react'
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -59,8 +59,12 @@ const ReactTable = ({
   onRowClick = () => {},
   onCellClick = () => {},
   onSortChange = () => {},
+
+  // ✅ Row selection
   rowSelection = false,
   onRowSelect = () => {},
+  rowIdKey = 'id',
+  selectionPinned = 'left', // 'left' | 'right' | false
 
   // Header and search
   headerName = '',
@@ -79,46 +83,58 @@ const ReactTable = ({
   tableContainerSx,
   tableContainerStyle
 }) => {
-  useEffect(() => {
-    console.log('columns', columns)
-    console.log('rows', rows)
-  }, [columns])
+  // useEffect(() => {
+  //   console.log('columns', columns)
+  //   console.log('rows', rows)
+  // }, [columns])
 
   const theme = useTheme()
   const tableContainerRef = useRef(null)
 
   const getDefaultPinningFromColumns = cols => {
     const left = []
-
     const right = []
     ;(cols || []).forEach((c, i) => {
       const id = c.field || `column_${i}`
       if (c.pinned === 'left') left.push(id)
       else if (c.pinned === 'right') right.push(id)
     })
-
     return { left, right }
   }
 
-  // compute default pinning when columns change (for reapply logic)
   const defaultPinning = useMemo(() => getDefaultPinningFromColumns(columns), [columns])
+
+  const withSelectionInPinning = useCallback(
+    pin => {
+      if (!rowSelection || !selectionPinned) return pin
+      const left = pin.left ? [...pin.left] : []
+      const right = pin.right ? [...pin.right] : []
+      // Ensure the selection column is included once
+      if (selectionPinned === 'left' && !left.includes('_select')) left.unshift('_select')
+      if (selectionPinned === 'right' && !right.includes('_select')) right.unshift('_select')
+      return { left, right }
+    },
+    [rowSelection, selectionPinned]
+  )
+
   const rowRefs = useRef([])
   const didInitPinningRef = useRef(false)
 
   // State management
   const [currentRowsInView, setCurrentRowsInView] = useState(rowsInView)
   const [userChangedRowsInView, setUserChangedRowsInView] = useState(false)
-  const [selectedRows, setSelectedRows] = useState([])
+  const [selectedRows, setSelectedRows] = useState([]) // array of selected row IDs
   const [loadingHeight, setLoadingHeight] = useState(0)
 
-  // IMPORTANT: initialize from columns on first mount
-  const [columnPinning, setColumnPinning] = useState(() => defaultPinning)
+  // Initialize column pinning (include selection column if needed)
+  const [columnPinning, setColumnPinning] = useState(() => withSelectionInPinning(defaultPinning))
 
   const [anchorEl, setAnchorEl] = useState(null)
   const [menuColumn, setMenuColumn] = useState(null)
 
   const getCommonPinningStyles = column => {
     const isPinned = column.getIsPinned()
+    const isFirstLeftPinned = isPinned === 'left' && column.getIsFirstColumn('left')
     const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left')
     const isFirstRightPinnedColumn = isPinned === 'right' && column.getIsFirstColumn('right')
     const size = column.getSize()
@@ -129,9 +145,10 @@ const ReactTable = ({
         : isFirstRightPinnedColumn
         ? '4px 0 4px -4px rgba(0,0,0,0.2) inset'
         : undefined,
-      left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
+      // left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
+      left: isPinned === 'left' ? (isFirstLeftPinned ? 0 : `${column.getStart('left')}px`) : undefined,
       right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
-      opacity: isPinned ? 0.98 : 1,
+      // opacity: isPinned ? 0.98 : 1,
       position: isPinned ? 'sticky' : 'relative',
       width: size,
       minWidth: size,
@@ -140,10 +157,9 @@ const ReactTable = ({
     }
   }
 
-  // Process columns for react-table format
-  const processedColumns = useMemo(() => {
+  // Build main columns
+  const baseColumns = useMemo(() => {
     if (!Array.isArray(columns)) return []
-
     return columns.map((col, index) => ({
       id: col.field || `column_${index}`,
       accessorKey: col.field,
@@ -156,24 +172,11 @@ const ReactTable = ({
       enablePinning: true,
       cell: ({ row, getValue }) => {
         const value = getValue()
+        const cellProps = { row: row.original, value, field: col.field }
 
-        const cellProps = {
-          row: row.original,
-          value,
-          field: col.field
-        }
+        if (col.renderCell) return col.renderCell(cellProps)
+        if (React.isValidElement(value)) return value
 
-        // Handle custom render cell
-        if (col.renderCell) {
-          return col.renderCell(cellProps)
-        }
-
-        // Handle JSX content
-        if (React.isValidElement(value)) {
-          return value
-        }
-
-        // Default text rendering
         return (
           <Typography
             sx={{
@@ -185,12 +188,10 @@ const ReactTable = ({
               whiteSpace: 'nowrap'
             }}
           >
-            {value || '-'}
+            {value ?? '-'}
           </Typography>
         )
       },
-
-      // Store original column config for styling
       meta: {
         originalColumn: col,
         textAlign: col.textAlign || 'left',
@@ -199,16 +200,82 @@ const ReactTable = ({
     }))
   }, [columns, cellStyle, theme])
 
+  const checkboxSX = {
+    p: 0,
+    backgroundColor: 'transparent !important',
+    '&:hover': { backgroundColor: 'transparent !important' },
+    '& .MuiSvgIcon-root': { fontSize: 18 }
+  }
+
+  // ✅ Inject selection column when enabled
+  const processedColumns = useMemo(() => {
+    if (!rowSelection) return baseColumns
+
+    const selectionColumn = {
+      id: '_select',
+      size: 54,
+      minSize: 54,
+      maxSize: 54,
+      enableSorting: false,
+      enableColumnFilter: false,
+      enablePinning: true,
+      header: ({ table }) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Checkbox
+            size='small'
+            disableRipple
+            disableFocusRipple
+            sx={checkboxSX}
+            checked={table.getIsAllPageRowsSelected?.() || false}
+            indeterminate={(table.getIsSomePageRowsSelected?.() && !table.getIsAllPageRowsSelected?.()) || false}
+            onChange={e => {
+              e.stopPropagation()
+              // Select only the visible page rows
+              if (table.toggleAllPageRowsSelected) {
+                table.toggleAllPageRowsSelected(e.target.checked)
+              } else {
+                // Fallback: manually toggle current page rows
+                const pageRows = table.getRowModel().rows || []
+                pageRows.forEach(r => r.toggleSelected(e.target.checked))
+              }
+            }}
+          />
+        </Box>
+      ),
+      cell: ({ row }) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Checkbox
+            size='small'
+            disableRipple
+            disableFocusRipple
+            sx={checkboxSX}
+            checked={row.getIsSelected()}
+            indeterminate={row.getIsSomeSelected?.() || false}
+            disabled={!row.getCanSelect?.()}
+            onChange={e => {
+              e.stopPropagation()
+              row.toggleSelected(e.target.checked)
+            }}
+          />
+        </Box>
+      ),
+      meta: { originalColumn: { headerAlign: 'center', textAlign: 'center' } }
+    }
+
+    // Pin preference is applied via columnPinning state; still keep this column first
+    const next = [selectionColumn, ...baseColumns]
+    return next
+  }, [baseColumns, rowSelection])
+
   // user has interacted?
   const userChangedPinningRef = useRef(false)
 
-  // (optional) if columns prop changes later, re-apply defaults
-  // only if the user hasn't changed pinning in this session.
+  // Re-apply defaults (respect selection column) if user hasn't changed pinning
   useEffect(() => {
     if (!userChangedPinningRef.current) {
-      setColumnPinning(defaultPinning)
+      setColumnPinning(withSelectionInPinning(defaultPinning))
     }
-  }, [defaultPinning])
+  }, [defaultPinning, withSelectionInPinning])
 
   // Calculate loading height based on table position
   useEffect(() => {
@@ -216,11 +283,9 @@ const ReactTable = ({
       const tableRect = tableContainerRef.current.getBoundingClientRect()
       const screenHeight = window.innerHeight
       const tableTop = tableRect.top
-      const headerFooterHeight = headerHeight + 100 // Approximate footer height
-
-      // Calculate available height: screen height - table top position - header/footer space
-      const availableHeight = screenHeight - tableTop - headerFooterHeight - 50 // 50px buffer
-      setLoadingHeight(Math.max(availableHeight, 400)) // Minimum 400px height
+      const headerFooterHeight = headerHeight + 100
+      const availableHeight = screenHeight - tableTop - headerFooterHeight - 50
+      setLoadingHeight(Math.max(availableHeight, 400))
     }
   }, [headerHeight, loading])
 
@@ -232,7 +297,6 @@ const ReactTable = ({
       if (filtered.length === 0 && rowsInViewOptions?.length) {
         filtered.push(Math.min(maxView, rowsInViewOptions[0]))
       }
-
       return Array.from(new Set(filtered)).sort((a, b) => a - b)
     } catch (e) {
       return rowsInViewOptions || []
@@ -249,6 +313,17 @@ const ReactTable = ({
 
   const hasData = Array.isArray(rows) && rows.length > 0
 
+  // Filter out selections that are no longer present in current rows
+  useEffect(() => {
+    if (!rowSelection || !rows?.length) return
+    const presentIds = new Set(rows.map((r, i) => String(r?.[rowIdKey] ?? r?.id ?? r?._id ?? `row_${i}`)))
+    const filtered = selectedRows.filter(id => presentIds.has(String(id)))
+    if (filtered.length !== selectedRows.length) {
+      setSelectedRows(filtered)
+      onRowSelect(filtered)
+    }
+  }, [rows, rowSelection, rowIdKey]) // eslint-disable-line
+
   // Table instance
   const table = useReactTable({
     data: rows,
@@ -260,15 +335,28 @@ const ReactTable = ({
     manualPagination: serverSide,
     manualSorting: serverSide,
     pageCount: serverSide ? Math.ceil(rowCount / paginationModel.pageSize) : undefined,
-    enableColumnPinning: true, // Enable column pinning
+    enableColumnPinning: true,
+
+    // ✅ Stable row IDs for selection
+    getRowId: (originalRow, index) =>
+      String(originalRow?.[rowIdKey] ?? originalRow?.id ?? originalRow?._id ?? `row_${index}`),
+
+    // ✅ Controlled selection state
+    enableRowSelection: rowSelection,
     state: {
       pagination: {
         pageIndex: paginationModel.page,
         pageSize: paginationModel.pageSize
       },
       columnPinning,
-      rowSelection: rowSelection ? selectedRows.reduce((acc, id) => ({ ...acc, [id]: true }), {}) : {}
+      rowSelection: rowSelection
+        ? selectedRows.reduce((acc, id) => {
+            acc[String(id)] = true
+            return acc
+          }, {})
+        : {}
     },
+
     onPaginationChange: updater => {
       const newPagination =
         typeof updater === 'function'
@@ -286,16 +374,15 @@ const ReactTable = ({
       setColumnPinning(old => (typeof updater === 'function' ? updater(old) : updater))
     },
 
-    enableRowSelection: rowSelection,
     onRowSelectionChange: updater => {
-      const newSelection =
-        typeof updater === 'function'
-          ? updater(selectedRows.reduce((acc, id) => ({ ...acc, [id]: true }), {}))
-          : updater
-
-      const selectedIds = Object.keys(newSelection).filter(key => newSelection[key])
-      setSelectedRows(selectedIds)
-      onRowSelect(selectedIds)
+      const base = selectedRows.reduce((acc, id) => {
+        acc[String(id)] = true
+        return acc
+      }, {})
+      const nextObj = typeof updater === 'function' ? updater(base) : updater
+      const ids = Object.keys(nextObj).filter(k => nextObj[k])
+      setSelectedRows(ids)
+      onRowSelect(ids)
     }
   })
 
@@ -308,15 +395,10 @@ const ReactTable = ({
     currentRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
   )
 
-  // Calculate minimum height to prevent layout shift during loading
   const minTableHeight = currentRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
 
-  // const finalTableHeight = loading ? minTableHeight : Math.max(dynamicTableHeight, minTableHeight)
-
   useEffect(() => {
-    // const visibleRows = rowRefs.current.slice(0, currentRowsInView)
-
-    // jitne rows page par hain utne hi consider
+    rowRefs.current = []
     const pageRows = table.getRowModel().rows || []
     const visibleCount = Math.min(currentRowsInView, pageRows.length)
     const visibleRows = rowRefs.current.slice(0, visibleCount)
@@ -326,14 +408,10 @@ const ReactTable = ({
     const last = visibleRows[visibleRows.length - 1]
 
     if (first && last) {
-      // Measure block height precisely using offsetTop + offsetHeight to avoid cumulative border rounding
       const firstTop = first.offsetTop || 0
       const lastBottom = (last.offsetTop || 0) + (last.offsetHeight || rowHeight)
       rowsBlockHeight = lastBottom - firstTop
     } else {
-      // Fallback to summation
-      // rowsBlockHeight = visibleRows.reduce((sum, ref) => sum + (ref?.offsetHeight || rowHeight), 0)
-      // jab refs nahi (e.g., very few rows), simple fallback:
       rowsBlockHeight = visibleCount * rowHeight
     }
 
@@ -341,7 +419,7 @@ const ReactTable = ({
     setDynamicTableHeight(height)
   }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader])
 
-  // Handle column pinning menu
+  // Column pinning menu
   const handleColumnMenuClick = (event, column) => {
     setAnchorEl(event.currentTarget)
     setMenuColumn(column)
@@ -354,21 +432,18 @@ const ReactTable = ({
 
   const handlePinColumn = (columnId, position) => {
     const col = table.getAllLeafColumns().find(c => c.id === columnId)
-    if (col) {
-      // This will trigger onColumnPinningChange above.
-      col.pin(position || false)
-    }
+    if (col) col.pin(position || false)
     handleColumnMenuClose()
   }
 
-  // Handle rows in view change
+  // Rows in view change
   const handleRowsInViewChange = event => {
     const newValue = event.target.value
     setCurrentRowsInView(newValue)
     setUserChangedRowsInView(true)
   }
 
-  // Render table header
+  // Header renderer
   const renderTableHeader = () => {
     return table.getHeaderGroups().map(headerGroup => (
       <TableRow key={headerGroup.id}>
@@ -404,19 +479,15 @@ const ReactTable = ({
                 ...(originalColumn.headerStyle || {}),
                 ...(originalColumn.headerSx || {}),
                 ...(originalColumn.sx || {}),
-
-                // Apply TanStack pinning styles
                 ...getCommonPinningStyles(column),
 
-                // ⬇️ Always keep header sticky (we may have overridden it above)
                 position: 'sticky',
                 top: 0,
                 backgroundClip: 'padding-box',
-
-                // Override zIndex for headers to be above body cells
                 zIndex: isPinned ? 800 : 110,
-                top: 0 // Ensure sticky header stays at top
+                top: 0
               }}
+              onClick={e => e.stopPropagation()}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -432,10 +503,12 @@ const ReactTable = ({
                   ) : (
                     flexRender(column.columnDef.header, header.getContext())
                   )}
-                  {isPinned && <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />}
+                  {column.id !== '_select' && column.getIsPinned() && (
+                    <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />
+                  )}
                 </Box>
 
-                {modifyColumnPinning && (
+                {modifyColumnPinning && column.id !== '_select' && (
                   <IconButton size='small' onClick={e => handleColumnMenuClick(e, column)} sx={{ opacity: 0.7 }}>
                     <MoreVertIcon fontSize='small' />
                   </IconButton>
@@ -448,10 +521,10 @@ const ReactTable = ({
     ))
   }
 
+  // Body renderer
   const renderTableBody = () => {
-    // fresh collection for this render only
     rowRefs.current = []
-    // Initial load ONLY: no data yet
+
     if (loading && !hasData) {
       return (
         <TableRow>
@@ -463,7 +536,6 @@ const ReactTable = ({
       )
     }
 
-    // Normal: data render hota rahe, chahe loading true hi kyu na ho
     const pageRows = table.getRowModel().rows
     const visibleCount = Math.min(currentRowsInView, pageRows.length)
 
@@ -478,7 +550,6 @@ const ReactTable = ({
           ...rowStyle
         }}
         ref={el => {
-          // if (idx < currentRowsInView) rowRefs.current[idx] = el
           if (idx < visibleCount) rowRefs.current[idx] = el
         }}
       >
@@ -501,13 +572,16 @@ const ReactTable = ({
               key={cell.id}
               onClick={e => {
                 e.stopPropagation()
-                onCellClick && onCellClick(cell.getValue(), row.original)
+                // ignore clicks on selection column
+                if (column.id !== '_select') {
+                  onCellClick && onCellClick(cell.getValue(), row.original)
+                }
               }}
               sx={{
                 borderBottom: isLastRow ? 'none' : '1px solid #ddd',
                 borderRight: isPinned && '1px solid #ddd',
-                textAlign: cellTextAlign,
-                padding: '8px 16px',
+                textAlign: column.id === '_select' ? 'center' : cellTextAlign,
+                padding: column.id === '_select' ? '0 8px' : '8px 16px',
                 backgroundColor: isPinned ? theme.palette.background?.paper || '#fff' : 'transparent',
                 ...(originalColumn.style || {}),
                 ...(originalColumn.cellStyle || {}),
@@ -525,7 +599,8 @@ const ReactTable = ({
       </TableRow>
     ))
   }
-  // Render footer with pagination
+
+  // Footer with pagination
   const renderFooter = () => {
     if (!pagination) return null
 
@@ -541,7 +616,7 @@ const ReactTable = ({
           borderRadius: '0 0 8px 8px'
         }}
       >
-        {/* Rows in view selector (placed next to pagination) */}
+        {/* Rows in view selector */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Typography variant='body2' sx={{ color: 'text.secondary' }}>
             Rows in view:
@@ -602,9 +677,7 @@ const ReactTable = ({
           labelRowsPerPage='Rows per page:'
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count !== -1 ? count : `more than ${to}`}`}
           sx={{
-            '& .MuiTablePagination-toolbar': {
-              minHeight: 52
-            },
+            '& .MuiTablePagination-toolbar': { minHeight: 52 },
             '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
               fontSize: '14px',
               color: theme.palette.text?.secondary
@@ -635,13 +708,9 @@ const ReactTable = ({
         component={Paper}
         sx={{
           borderRadius: '8px !important',
-          // height: loading ? loadingHeight : dynamicTableHeight,
-          // overflow: loading ? 'hidden' : 'auto',
-          // ⬇️ initial load (no data) me large calculated height, otherwise dynamic
           height: loading && !hasData ? loadingHeight : dynamicTableHeight,
           position: 'relative',
           border: '1px solid #ddd',
-          // ⬇️ overflow ko hidden mat karo, taaki data visible rahe
           overflowX: 'auto',
           overflowY: 'auto',
           ...(tableContainerSx || {})
@@ -654,7 +723,7 @@ const ReactTable = ({
             borderCollapse: 'separate',
             borderSpacing: 0,
             width: table.getTotalSize(),
-            tableLayout: 'fixed' // ⟵ add this
+            tableLayout: 'fixed'
           }}
         >
           <TableHead>{renderTableHeader()}</TableHead>
@@ -669,12 +738,11 @@ const ReactTable = ({
             position: 'absolute',
             inset: 0,
             borderRadius: '8px',
-            zIndex: 9999, // header/cells se upar
+            zIndex: 9999,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: hasData ? 'rgba(6, 5, 5, 0.08)' : 'transparent',
-            // hasData par interactions block ho jayein (DataGrid jaise)
             pointerEvents: 'auto'
           }}
         >
