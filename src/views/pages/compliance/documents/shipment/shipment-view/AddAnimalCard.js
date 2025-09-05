@@ -95,7 +95,7 @@ const AnimalCardLayout = ({
           updated.export[exportIndex].species.push(newSpecies)
           speciesIndex = updated.export[exportIndex].species.length - 1
         } else {
-          const matchingSpecies = exportAnimalData.species.find(s => s.id === String(speciesId))
+          const matchingSpecies = exportAnimalData.species.find(s => s.master_species_id === String(speciesId))
           if (matchingSpecies) {
             updated.export[exportIndex].species[speciesIndex] = {
               ...updated.export[exportIndex].species[speciesIndex],
