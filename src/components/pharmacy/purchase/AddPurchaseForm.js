@@ -1577,13 +1577,13 @@ const AddPurchaseForm = () => {
                   setSupplierDialog(true)
                 }}
               />
-              {id && (
+              {/* {id && (
                 <ExportButton
                   tooltip='Download  Invoice'
                   loading={invoicePrintLoader}
                   onClick={() => printInventory(id)}
                 />
-              )}
+              )} */}
             </>
           )}
         </Grid>
