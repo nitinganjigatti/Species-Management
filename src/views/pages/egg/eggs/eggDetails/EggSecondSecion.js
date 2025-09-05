@@ -296,6 +296,34 @@ const EggSecondSecion = ({
           </Typography>
         </Tooltip>
       )
+    },
+    {
+      flex: 0.2,
+      minWidth: 30,
+      sortable: false,
+      field: 'action',
+      headerName: 'ACTION',
+      renderCell: params => (
+        <Typography
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            pl: '8px'
+          }}
+        >
+          <Icon
+            onClick={() => {
+              setEditWeight(true)
+              setValue('assessment_value', params?.row?.assessment_value)
+              setValue('assessment_id', params?.row?.id)
+              setaddWeightSidebar(true)
+            }}
+            style={{ cursor: 'pointer' }}
+            icon='ic:outline-edit'
+            fontSize={20}
+          />
+        </Typography>
+      )
     }
   ]
 
