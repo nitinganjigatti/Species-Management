@@ -26,6 +26,7 @@ import Toaster from 'src/components/Toaster'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import SpeciesExportDrawer from 'src/components/compliance/drawer/SpeciesExportDrawer'
+import SpeciesExportDocumentDrawer from 'src/components/compliance/drawer/SpeciesExportDocumentDrawer'
 
 const SpeciesDetails = () => {
   const theme = useTheme()
@@ -40,6 +41,7 @@ const SpeciesDetails = () => {
   const [selectedRow, setSelectedRow] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
   const [openExportDrawer, setOpenExportDrawer] = useState(false)
+  const [openDocumentDrawer, setOpenDocumentDrawer] = useState(false)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -384,6 +386,9 @@ const SpeciesDetails = () => {
     } else if (params?.field === 'sl_no' || params?.field === 'shipment_number' || params?.field === 'shipment_date') {
       setSelectedRow(params.row)
       setOpenDetailsDrawer(true)
+    } else if (params?.field === 'total_documents') {
+      setSelectedRow(params?.row)
+      setOpenDocumentDrawer(true)
     }
   }
 
@@ -501,6 +506,17 @@ const SpeciesDetails = () => {
           open={openExportDrawer}
           onClose={() => {
             setOpenExportDrawer(false)
+            setSelectedRow(null)
+          }}
+          shipmentId={selectedRow?.shipment_id}
+          shipmentNumber={selectedRow?.shipment_number}
+        />
+      )}
+      {openDocumentDrawer && (
+        <SpeciesExportDocumentDrawer
+          open={openDocumentDrawer}
+          onClose={() => {
+            setOpenDocumentDrawer(false)
             setSelectedRow(null)
           }}
           shipmentId={selectedRow?.shipment_id}
