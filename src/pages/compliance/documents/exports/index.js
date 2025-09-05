@@ -346,7 +346,7 @@ const CitesExportPermitIndex = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Compliance</Typography>
+        <Typography sx={{ color: 'inherit' }}>Compliance</Typography>
         <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>CITES Export Permit</Typography>
       </Breadcrumbs>
 

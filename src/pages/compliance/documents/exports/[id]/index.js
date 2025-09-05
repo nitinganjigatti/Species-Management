@@ -194,9 +194,7 @@ const ExportPermitDetails = () => {
     <>
       <Box sx={{ mb: 5 }}>
         <Breadcrumbs aria-label='breadcrumb'>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={() => router.push('/compliance')}>
-            Compliance
-          </Typography>
+          <Typography sx={{ color: 'inherit' }}>Compliance</Typography>
           <Typography
             sx={{ cursor: 'pointer', color: 'inherit' }}
             onClick={() => router.push('/compliance/documents/exports')}

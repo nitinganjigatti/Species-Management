@@ -178,14 +178,14 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {console.log(document, 'document')}
-                      {/* <IconButton
+                      <IconButton
                         onClick={() => handleOpenLink(document)}
                         disabled={isLoading}
                         size='small'
                         sx={{ padding: 0, marginRight: 3, cursor: 'pointer' }}
                       >
                         <VisibilityIcon fontSize='small' />
-                      </IconButton> */}
+                      </IconButton>
                       <IconButton
                         onClick={() => handleOpenDrawer(document)}
                         disabled={isLoading}

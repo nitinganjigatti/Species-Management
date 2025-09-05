@@ -280,11 +280,14 @@ const SpeciesDetailsContainer = ({
                   window.open(`/compliance/documents/exports/${data?.export_id}/?id=${data?.export_id}`, '_blank')
                 }}
               >
-                Export ID : <span>{data.export_number}</span>
+                Export ID :{' '}
+                <strong>
+                  {' '}
+                  <span>{data.export_number}</span>
+                </strong>
               </Box>{' '}
-              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
-              {/* • Importer
-              name : {'India'} • Country Of origin :{'Argentina'} */}
+              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'}) • Importer
+              name : <strong>{'India'} </strong> • Country Of origin : <strong>{'Argentina'}</strong>
             </Typography>
             {data?.attachment?.file_original_name ? (
               <Box display='flex' alignItems='center' gap={1}>
