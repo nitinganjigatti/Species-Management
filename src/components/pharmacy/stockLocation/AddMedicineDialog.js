@@ -22,6 +22,7 @@ import RenderUtility from 'src/utility/render'
 import * as Yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
+import { getAvailableProductsInPharmacy } from 'src/lib/api/pharmacy/getMedicineList'
 
 const defaultValues = {
   stock_id: null,
@@ -80,7 +81,6 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
 
   useEffect(() => {
     if (productData) {
-      
       reset({
         stock_id: {
           label: productData.stock_name,
@@ -108,7 +108,6 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
       setDefaultRack(rackValues)
       setDefaultShelf(shelfValues)
 
-     
       getMedicineConfig({ stockId: productData?.stock_item_id })
     }
   }, [productData, selectedPharmacy?.id])
@@ -116,18 +115,35 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
   useEffect(() => {
     if (!productData) {
       try {
-        getProductList({ params: { sort: 'asc', q: '', limit: 50 } }).then(res => {
-          if (res?.data?.list_items?.length > 0) {
-            setProducts(
-              res?.data?.list_items?.map(item => ({
-                label: item.name,
-                value: item.id,
-                status: item?.active === '0' ? 0 : 1,
-                generic_name: item?.generic_name
-              }))
-            )
-          }
-        })
+        if (selectedPharmacy?.type !== 'local') {
+          getProductList({ params: { sort: 'asc', q: '', limit: 50 } }).then(res => {
+            if (res?.data?.list_items?.length > 0) {
+              setProducts(
+                res?.data?.list_items?.map(item => ({
+                  label: item.name,
+                  value: item.id,
+                  status: item?.active === '0' ? 0 : 1,
+                  generic_name: item?.generic_name
+                }))
+              )
+            }
+          })
+        } else {
+          getAvailableProductsInPharmacy({
+            params: { sort: 'asc', q: '', limit: 50, page: 1 }
+          }).then(res => {
+            if (res?.data?.list_items.length > 0) {
+              setProducts(
+                res?.data?.list_items?.map(item => ({
+                  label: item?.name,
+                  value: item?.id,
+                  status: item?.active === '0' ? 0 : 1,
+                  generic_name: item?.generic_name
+                }))
+              )
+            }
+          })
+        }
       } catch (error) {
         console.error(error)
       }
@@ -138,22 +154,43 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     debounce(async searchText => {
       if (!productData) {
         try {
-          await getProductList({ params: { sort: 'asc', q: searchText, limit: 50 } }).then(res => {
-            if (res?.data?.list_items?.length > 0) {
-              setProducts(
-                res?.data?.list_items?.map(item => ({
-                  label: item.name,
-                  value: item.id,
-                  stock_type: item.stock_type,
-                  unit_price: item.unit_price,
-                  status: item?.active === '0' ? 0 : 1,
-                  manufacture: item?.manufacturer_name,
-                  packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                  control_substance: item.controlled_substance === '1' ? true : false
-                }))
-              )
-            }
-          })
+          if (selectedPharmacy?.type !== 'local') {
+            await getProductList({ params: { sort: 'asc', q: searchText, limit: 50 } }).then(res => {
+              if (res?.data?.list_items?.length > 0) {
+                setProducts(
+                  res?.data?.list_items?.map(item => ({
+                    label: item.name,
+                    value: item.id,
+                    stock_type: item.stock_type,
+                    unit_price: item.unit_price,
+                    status: item?.active === '0' ? 0 : 1,
+                    manufacture: item?.manufacturer_name,
+                    packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+                    control_substance: item.controlled_substance === '1' ? true : false
+                  }))
+                )
+              }
+            })
+          } else {
+            await getAvailableProductsInPharmacy({
+              params: { sort: 'asc', q: searchText, limit: 50 }
+            }).then(res => {
+              if (res?.data?.list_items.length > 0) {
+                setProducts(
+                  res?.data?.list_items?.map(item => ({
+                    label: item?.name,
+                    value: item?.id,
+                    stock_type: item?.stock_type,
+                    unit_price: item?.unit_price,
+                    status: item?.active === '0' ? 0 : 1,
+                    manufacture: item?.manufacturer_name,
+                    packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+                    control_substance: item.controlled_substance === '1' ? true : false
+                  }))
+                )
+              }
+            })
+          }
         } catch (error) {
           console.error(error)
         }
@@ -388,9 +425,9 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                             onChange={(event, newValue) => {
                               field.onChange(newValue)
                               if (newValue?.value) {
-                                getMedicineConfig({ stockId: newValue.value }) 
+                                getMedicineConfig({ stockId: newValue.value })
                               }
-                              setExistingMedConfig([]) 
+                              setExistingMedConfig([])
                             }}
                             onInputChange={(event, newInputValue) => {
                               if (event && !productData) searchProductData(newInputValue)
@@ -475,7 +512,6 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                       mb: 0
                     }}
                   >
-                   
                     <Grid item size={{ xs: 12, sm: 5 }}>
                       <FormControl fullWidth sx={{ mb: 6 }}>
                         <Controller
