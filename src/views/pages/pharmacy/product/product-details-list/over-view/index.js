@@ -82,7 +82,7 @@ const addValidationSchema = yup.object().shape({
 
               const hasDuplicates = duplicates.length > 0
 
-              return !hasDuplicates 
+              return !hasDuplicates
             })
         })
         .required('Product Name is required'),
@@ -137,13 +137,10 @@ const Overview = props => {
   )
 
   const handleProductChange = (selectedOption, index) => {
-  
     setValue(`alternatives[${index}].productName`, selectedOption)
 
-  
     setValue(`alternatives[${index}].manufacturerName`, selectedOption?.manufacture || '')
 
-  
     trigger(undefined, {
       shouldFocus: false,
       context: {
@@ -687,7 +684,6 @@ const Overview = props => {
       setIsLoading(true)
       let result
 
-    
       if (name === 'aboutToExpire') {
         result = await getProductAboutToExpireList(id)
       } else if (name === 'expiredBatches') {
@@ -880,7 +876,7 @@ const Overview = props => {
       id: medicine.id
     }
 
-    reset(defaultValues) 
+    reset(defaultValues)
     setEditMedicinesDrawerOpen(true)
   }
 
@@ -1015,8 +1011,8 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
-          <Card sx={{ height: '100%' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
+          <Card sx={{ height: '100%', width: '100%' }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box
@@ -1115,7 +1111,6 @@ const Overview = props => {
                       ))}
                     </List>
 
-                   
                     {alternativeMedicinesList?.active?.total_count > 5 && (
                       <Box>
                         <Button
@@ -1137,7 +1132,7 @@ const Overview = props => {
         </Grid>
 
         <Grid item size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: '100%', width: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <InfoIcon sx={{ mr: 2, color: theme.palette.customColors.addPrimary, fontWeight: 'bold' }} />
