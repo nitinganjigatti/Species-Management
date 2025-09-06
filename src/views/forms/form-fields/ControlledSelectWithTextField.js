@@ -35,12 +35,23 @@ function ControlledSelectWithTextField({
   onInput,
   size = 'large',
   sx = {},
-  required = false
+  required = false,
+  selectWidth = 120
 }) {
   const theme = useTheme()
   const { errors } = useFormState({ control })
   const textError = get(errors, textFieldName)?.message
   const selectError = get(errors, selectFieldName)?.message
+
+  const selectSx = { minWidth: selectWidth, maxWidth: selectWidth, textAlign: 'right', pr: 3 }
+
+  const selectOptionTypographySx = {
+    color: theme.palette.customColors?.OnSurfaceVarient,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    maxWidth: selectWidth - 36 // subtract padding + space for arrow
+  }
 
   return (
     <FormControl size={size} fullWidth={fullWidth} error={Boolean(textError || selectError)} sx={sx}>
@@ -79,24 +90,15 @@ function ControlledSelectWithTextField({
                     displayEmpty
                     disabled={disabled}
                     error={Boolean(selectError)}
-                    sx={{ minWidth: 60, maxWidth: 120, textAlign: 'center', ml: 1 }}
+                    sx={selectSx}
                   >
                     <MenuItem value='' disabled>
-                      Select
+                      <Typography sx={selectOptionTypographySx}>Select</Typography>
                     </MenuItem>
                     {options.map((option, index) => (
                       <MenuItem key={index} value={getOptionValue(option)} disabled={isOptionDisabled(option)}>
                         <Tooltip title={getOptionLabel(option)} arrow placement='top'>
-                          <Typography
-                            sx={{
-                              color: theme.palette.customColors?.OnSurfaceVarient || 'text.primary',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {getOptionLabel(option)}
-                          </Typography>
+                          <Typography sx={selectOptionTypographySx}>{getOptionLabel(option)}</Typography>
                         </Tooltip>
                       </MenuItem>
                     ))}
@@ -104,7 +106,14 @@ function ControlledSelectWithTextField({
                 )}
               />
             }
-            sx={{ flex: 1 }}
+            sx={{
+              flex: 1,
+              '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
+                WebkitAppearance: 'none',
+                margin: 0
+              },
+              '& input[type=number]': { MozAppearance: 'textfield' }
+            }}
           />
         )}
       />
