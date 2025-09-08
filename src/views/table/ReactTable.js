@@ -77,11 +77,11 @@ const MemoSelectionCell = React.memo(
     prev.selected === next.selected &&
     prev.indeterminate === next.indeterminate &&
     prev.disabled === next.disabled &&
-    prev.onToggle === next.onToggle && // stable reference
-    prev.rowId === next.rowId // primitive
+    prev.onToggle === next.onToggle &&
+    prev.rowId === next.rowId
 )
 
-/* -------------------- Memoized Row (skips when props same) -------------------- */
+/* -------------------- Memoized Row -------------------- */
 
 const MemoBodyRow = React.memo(
   function BodyRow({
@@ -141,7 +141,6 @@ const MemoBodyRow = React.memo(
           }
 
           if (selectionEnabled && column.id === '_select') {
-            // Only this cell will update when its 'selected' prop changes
             return (
               <TableCell key={cell.id} sx={baseSx} onClick={e => e.stopPropagation()}>
                 <MemoSelectionCell
@@ -172,22 +171,15 @@ const MemoBodyRow = React.memo(
       </TableRow>
     )
   },
-  (prev, next) => {
-    // Skip re-render if:
-    // - same row identity
-    // - selected flag didn't change for this row
-    // - other function/props are stable
-    return (
-      prev.row === next.row &&
-      prev.rowHeight === next.rowHeight &&
-      prev.onRowClick === next.onRowClick &&
-      prev.onCellClick === next.onCellClick &&
-      prev.isRowSelected === next.isRowSelected &&
-      prev.toggleRowCheckbox === next.toggleRowCheckbox &&
-      prev.theme === next.theme &&
-      prev.getCommonPinningStyles === next.getCommonPinningStyles
-    )
-  }
+  (prev, next) =>
+    prev.row === next.row &&
+    prev.rowHeight === next.rowHeight &&
+    prev.onRowClick === next.onRowClick &&
+    prev.onCellClick === next.onCellClick &&
+    prev.isRowSelected === next.isRowSelected &&
+    prev.toggleRowCheckbox === next.toggleRowCheckbox &&
+    prev.theme === next.theme &&
+    prev.getCommonPinningStyles === next.getCommonPinningStyles
 )
 
 /* --------------------------------- Main --------------------------------- */
@@ -282,7 +274,7 @@ const ReactTable = ({
   const [anchorEl, setAnchorEl] = useState(null)
   const [menuColumn, setMenuColumn] = useState(null)
 
-  // ✅ TanStack-style rowSelection object (optimized)
+  // ✅ Global (cross-page) selection
   const [rowSelectionState, setRowSelectionState] = useState({})
 
   const checkboxSX = {
@@ -358,10 +350,9 @@ const ReactTable = ({
 
   const hasBaseColumns = baseColumns.length > 0
 
-  // ✅ Inject selection column (kept first) with memoized cells
+  // ✅ Inject selection column
   const processedColumns = useMemo(() => {
-    if (!rowSelection) return baseColumns
-    if (!hasBaseColumns) return baseColumns
+    if (!rowSelection || !hasBaseColumns) return baseColumns
 
     const selectionColumn = {
       id: '_select',
@@ -372,7 +363,6 @@ const ReactTable = ({
       enableColumnFilter: false,
       enablePinning: true,
       header: ({ table }) => {
-        // compute minimal booleans; pass to MemoSelectionHeader
         const checked = table.getIsAllPageRowsSelected?.() || false
         const some = table.getIsSomePageRowsSelected?.() || false
 
@@ -382,7 +372,6 @@ const ReactTable = ({
             indeterminate={some && !checked}
             disabled={false}
             onToggle={val => {
-              // Only affect current page rows (fast + minimal state writes)
               const pageRows = table.getRowModel().rows || []
               setRowSelectionState(prev => {
                 const next = { ...prev }
@@ -402,7 +391,6 @@ const ReactTable = ({
           />
         )
       },
-      // Note: body cell will be rendered in MemoBodyRow for better control
       cell: ({ row }) => null,
       meta: { originalColumn: { headerAlign: 'center', textAlign: 'center' } }
     }
@@ -410,7 +398,7 @@ const ReactTable = ({
     return [selectionColumn, ...baseColumns]
   }, [baseColumns, rowSelection, hasBaseColumns])
 
-  // ---- Pinning default (respect selection col) ----
+  // ---- Pinning default
   useEffect(() => {
     if (!userChangedPinningRef.current) {
       setColumnPinning(withSelectionInPinning(defaultPinning))
@@ -434,11 +422,11 @@ const ReactTable = ({
     try {
       const maxView = paginationModel?.pageSize || Infinity
       const filtered = (rowsInViewOptions || []).filter(opt => opt <= maxView)
-      if (filtered.length === 0 && rowsInViewOptions?.length) {
+      if (!filtered.length && rowsInViewOptions?.length) {
         filtered.push(Math.min(maxView, rowsInViewOptions[0]))
       }
       return Array.from(new Set(filtered)).sort((a, b) => a - b)
-    } catch (e) {
+    } catch {
       return rowsInViewOptions || []
     }
   }, [rowsInViewOptions, paginationModel?.pageSize])
@@ -452,22 +440,23 @@ const ReactTable = ({
 
   const hasData = Array.isArray(rows) && rows.length > 0
 
-  // ✅ Prune selection for rows not present
-  useEffect(() => {
-    if (!rowSelection) return
-    const presentIds = new Set(rows.map((r, i) => String(r?.[rowIdKey] ?? r?.id ?? r?._id ?? `row_${i}`)))
-    setRowSelectionState(prev => {
-      let changed = false
-      const next = { ...prev }
-      for (const id in next) {
-        if (!presentIds.has(id)) {
-          delete next[id]
-          changed = true
-        }
+  // ---------- ✅ UNIQUE ROW IDS ----------
+  const getRowUniqueId = useCallback(
+    (originalRow, index) => {
+      // Best: unique from data
+      const raw = originalRow?.[rowIdKey] ?? originalRow?._id ?? originalRow?.id ?? null
+
+      const base = raw !== null && raw !== undefined && raw !== '' ? String(raw) : `__auto_idx_${index}`
+
+      // Server-side/external slicing fallback: compose absolute index for uniqueness
+      if (serverSide) {
+        const absIndex = paginationModel.page * paginationModel.pageSize + index
+        return `${base}__pg_${absIndex}`
       }
-      return changed ? next : prev
-    })
-  }, [rows, rowSelection, rowIdKey])
+      return base
+    },
+    [rowIdKey, serverSide, paginationModel.page, paginationModel.pageSize]
+  )
 
   // ---- Table ----
   const table = useReactTable({
@@ -482,12 +471,11 @@ const ReactTable = ({
     pageCount: serverSide ? Math.ceil(rowCount / paginationModel.pageSize) : undefined,
     enableColumnPinning: true,
 
-    getRowId: (originalRow, index) =>
-      String(originalRow?.[rowIdKey] ?? originalRow?.id ?? originalRow?._id ?? `row_${index}`),
+    getRowId: getRowUniqueId,
 
     enableRowSelection: rowSelection,
 
-    // ✅ controlled selection
+    // controlled state
     state: {
       pagination: {
         pageIndex: paginationModel.page,
@@ -513,15 +501,19 @@ const ReactTable = ({
       setColumnPinning(old => (typeof updater === 'function' ? updater(old) : updater))
     },
 
-    onRowSelectionChange: setRowSelectionState // direct TanStack pattern
+    onRowSelectionChange: setRowSelectionState
   })
 
-  // Parent callback with selected IDs
-  useEffect(() => {
-    if (!rowSelection) return
-    const ids = Object.keys(rowSelectionState).filter(k => rowSelectionState[k])
-    onRowSelect(ids)
-  }, [rowSelectionState, rowSelection, onRowSelect])
+  // ---------- ❌ NO PRUNING ----------
+  // We keep rowSelectionState as a global bag of selected IDs.
+  // This preserves selection across pages and matches the TanStack example behavior.
+
+  // (Optional) Notify parent:
+  // useEffect(() => {
+  //   if (!rowSelection) return
+  //   const ids = Object.keys(rowSelectionState).filter(k => rowSelectionState[k])
+  //   onRowSelect(ids)
+  // }, [rowSelectionState, rowSelection, onRowSelect])
 
   // ---- Dynamic height ----
   const hasSubHeader = processedColumns.some(
@@ -575,7 +567,7 @@ const ReactTable = ({
     setCurrentRowsInView(newValue)
   }
 
-  // ✅ Stable row-checkbox handler (shared by all cells)
+  // ✅ Stable row-checkbox handler
   const handleRowCheckboxChange = useCallback((rowId, checked) => {
     setRowSelectionState(prev => {
       const next = { ...prev }
@@ -669,7 +661,6 @@ const ReactTable = ({
       return (
         <TableRow>
           <TableCell
-            // colSpan={table.getAllColumns().length}
             colSpan={Math.max(1, table.getAllLeafColumns().length || baseColumns.length)}
             sx={{ textAlign: 'center', height: currentRowsInView * rowHeight, border: 'none' }}
           />
@@ -679,7 +670,7 @@ const ReactTable = ({
 
     const pageRows = table.getRowModel().rows
 
-    return pageRows.map((row, idx) => (
+    return pageRows.map(row => (
       <MemoBodyRow
         key={row.id}
         row={row}
@@ -823,7 +814,6 @@ const ReactTable = ({
             tableLayout: 'fixed'
           }}
         >
-          {/* <TableHead>{renderTableHeader()}</TableHead> */}
           {hasBaseColumns ? <TableHead>{renderTableHeader()}</TableHead> : null}
           <TableBody>{renderTableBody()}</TableBody>
         </Table>
