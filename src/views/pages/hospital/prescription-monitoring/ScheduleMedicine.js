@@ -1,18 +1,18 @@
 import React from 'react'
 import { Box, Typography, Button, Grid, Paper, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { useFieldArray } from 'react-hook-form'
+import { useFieldArray, watch } from 'react-hook-form'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import CloseIcon from '@mui/icons-material/Close'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
-import { borderColor, borderRadius } from '@mui/system'
 import AddIcon from '@mui/icons-material/Add'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 
-export default function ScheduleMedicine({ control, errors }) {
+export default function ScheduleMedicine({ control, errors, selectedMedicineTo }) {
   const theme = useTheme()
 
   // Options for selects
@@ -54,6 +54,15 @@ export default function ScheduleMedicine({ control, errors }) {
     { id: 3, label: 'Months', value: 'months' }
   ]
 
+  // Common styles for form fields
+  const commonFieldStyles = {
+    textAlign: 'left',
+    borderRadius: '4px',
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '4px'
+    }
+  }
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'schedules',
@@ -90,7 +99,7 @@ export default function ScheduleMedicine({ control, errors }) {
         }
       }}
     >
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Box
           container
           sx={{
@@ -104,7 +113,8 @@ export default function ScheduleMedicine({ control, errors }) {
             gap: 2,
             padding: '24px',
             width: '100%',
-            maxWidth: '420px',
+
+            // maxWidth: '420px',
             flex: 1,
             overflowY: 'auto',
 
@@ -130,10 +140,7 @@ export default function ScheduleMedicine({ control, errors }) {
             <ControlledSelect
               fullWidth={true}
               name='frequency'
-              sx={{
-                textAlign: 'left',
-                borderRadius: '4px'
-              }}
+              sx={commonFieldStyles}
               size='large'
               label='Set Frequency'
               control={control}
@@ -191,12 +198,7 @@ export default function ScheduleMedicine({ control, errors }) {
                   errors={errors}
                   placeholder='12:30 PM'
                   required
-                  sx={{
-                    textAlign: 'left',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px'
-                    }
-                  }}
+                  sx={commonFieldStyles}
                   size='large'
                 />
               </Grid>
@@ -213,12 +215,7 @@ export default function ScheduleMedicine({ control, errors }) {
                   type='number'
                   getOptionLabel={option => option.label}
                   getOptionValue={option => option.value}
-                  sx={{
-                    textAlign: 'left',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px'
-                    }
-                  }}
+                  sx={commonFieldStyles}
                   size='large'
                   required
                 />
@@ -292,12 +289,7 @@ export default function ScheduleMedicine({ control, errors }) {
           <Box sx={{ mb: 3 }}>
             <ControlledDatePicker
               fullWidth={true}
-              sx={{
-                textAlign: 'left',
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px'
-                }
-              }}
+              sx={commonFieldStyles}
               size='large'
               name='prescriptionStartDate'
               label='Prescription Start Date'
@@ -308,7 +300,7 @@ export default function ScheduleMedicine({ control, errors }) {
           </Box>
 
           <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={6}>
+            <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
               <ControlledTextField
                 name='dosageDuration.value'
                 label='Dosage Duration'
@@ -325,7 +317,7 @@ export default function ScheduleMedicine({ control, errors }) {
                 required
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
               <ControlledSelect
                 name='dosageDuration.unit'
                 sx={{
@@ -361,6 +353,116 @@ export default function ScheduleMedicine({ control, errors }) {
               rows={4}
             />
           </Box>
+          {selectedMedicineTo === 'Direct Administer' && (
+            <>
+              <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
+                <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      textAlign: 'left',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Add Wastage & Batch Number
+                    <span
+                      style={{
+                        color: theme.palette.customColors.neutralSecondary,
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      (Optional)
+                    </span>
+                  </Typography>
+                </Grid>
+                <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                  <ControlledTextField
+                    name='dosageDuration.value'
+                    label='Quantity'
+                    control={control}
+                    errors={errors}
+                    type='number'
+                    sx={{
+                      textAlign: 'left',
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '4px'
+                      }
+                    }}
+                    size='large'
+                    required
+                  />
+                </Grid>
+                <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                  <ControlledSelect
+                    name='dosageDuration.unit'
+                    label={'UOM'}
+                    sx={{
+                      textAlign: 'left',
+                      borderRadius: '4px'
+                    }}
+                    size='large'
+                    control={control}
+                    errors={errors}
+                    options={[]}
+                    required
+                    getOptionLabel={option => option.label}
+                    getOptionValue={option => option.value}
+                  />
+                </Grid>
+              </Grid>
+              <Box sx={{ mb: 3 }}>
+                <ControlledTextArea
+                  fullWidth={true}
+                  sx={{
+                    textAlign: 'left',
+                    borderRadius: '4px',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px'
+                    }
+                  }}
+                  name='notes'
+                  label='Enter Notes'
+                  control={control}
+                  errors={errors}
+                  rows={2}
+                />
+              </Box>
+              <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                <Typography
+                  sx={{
+                    mb: 1,
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    textAlign: 'left',
+                    my: 2,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  ! Batch Number is Mandatory for controlled substances
+                </Typography>
+              </Grid>
+              <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                <ControlledTextField
+                  name='dosageDuration.value'
+                  label='Enter batch number if any (optional)'
+                  control={control}
+                  errors={errors}
+                  sx={{
+                    textAlign: 'left',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px'
+                    }
+                  }}
+                  size='large'
+                  required
+                />
+              </Grid>
+              <ControlledFileUpload name='controlSubstanceFiles' label='Batch Image' control={control} />
+            </>
+          )}
         </Box>
       </Box>
     </Box>
