@@ -38,7 +38,7 @@ const SpeciesDetails = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [filterDate, setFilterDate] = useState({})
   const [openDetailsDrawer, setOpenDetailsDrawer] = useState(false)
-  const [selectedRow, setSelectedRow] = useState(null)
+  const [selectedRow, setSelectedRow] = useState({ row: null, type: '' })
   const [exportLoading, setExportLoading] = useState(false)
   const [openExportDrawer, setOpenExportDrawer] = useState(false)
   const [openDocumentDrawer, setOpenDocumentDrawer] = useState(false)
@@ -380,15 +380,18 @@ const SpeciesDetails = () => {
   )
 
   const handleCellClick = params => {
-    if (params?.field === 'total_exports' || params?.field === 'total_animals') {
-      setSelectedRow(params?.row)
+    if (params?.field === 'total_animals') {
+      setSelectedRow({ row: params?.row, type: 'total_animals' })
       setOpenExportDrawer(true)
     } else if (params?.field === 'sl_no' || params?.field === 'shipment_number' || params?.field === 'shipment_date') {
-      setSelectedRow(params.row)
+      setSelectedRow({ row: params?.row, type: 'shipment_number' })
       setOpenDetailsDrawer(true)
     } else if (params?.field === 'total_documents') {
-      setSelectedRow(params?.row)
+      setSelectedRow({ row: params?.row, type: 'total_documents' })
       setOpenDocumentDrawer(true)
+    } else if (params?.field === 'total_exports') {
+      setSelectedRow({ row: params?.row, type: 'total_exports' })
+      setOpenExportDrawer(true)
     }
   }
 
@@ -495,10 +498,10 @@ const SpeciesDetails = () => {
           open={openDetailsDrawer}
           onClose={() => {
             setOpenDetailsDrawer(false)
-            setSelectedRow(null)
+            setSelectedRow({ row: null, type: '' })
           }}
           speciesId={id}
-          shipmentId={selectedRow?.shipment_id}
+          shipmentId={selectedRow?.row?.shipment_id}
         />
       )}
       {openExportDrawer && (
@@ -506,10 +509,12 @@ const SpeciesDetails = () => {
           open={openExportDrawer}
           onClose={() => {
             setOpenExportDrawer(false)
-            setSelectedRow(null)
+            setSelectedRow({ row: null, type: '' })
           }}
-          shipmentId={selectedRow?.shipment_id}
-          shipmentNumber={selectedRow?.shipment_number}
+          speciesId={id}
+          shipmentId={selectedRow?.row?.shipment_id}
+          shipmentNumber={selectedRow?.row?.shipment_number}
+          type={selectedRow?.type}
         />
       )}
       {openDocumentDrawer && (
@@ -517,10 +522,10 @@ const SpeciesDetails = () => {
           open={openDocumentDrawer}
           onClose={() => {
             setOpenDocumentDrawer(false)
-            setSelectedRow(null)
+            setSelectedRow({ row: null, type: '' })
           }}
-          shipmentId={selectedRow?.shipment_id}
-          shipmentNumber={selectedRow?.shipment_number}
+          shipmentId={selectedRow?.row?.shipment_id}
+          shipmentNumber={selectedRow?.row?.shipment_number}
         />
       )}
     </>

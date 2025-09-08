@@ -683,3 +683,5 @@ export const ANIMAL_MEDIA = `animal/media-list`
 export const GET_TRADE_SPECIES_LISTING = `/v1/trade/species`
 
 export const GET_TRADE_SPECIES_SHIPMENT_LIST = `v1/trade/species/shipments/`
+
+export const GET_SPECIES_DETAILS_SHIPMENT_EXPORT_LIST = `v1/trade/species/shipments/exports/`

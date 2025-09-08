@@ -14,9 +14,10 @@ import {
 import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { getShipmentSpeciesData } from 'src/lib/api/compliance/shipment'
+import { getSpeciesDetailsShipmentExports } from 'src/lib/api/compliance/species'
 import SpeciesShipmentExpandableCard from 'src/views/pages/compliance/documents/shipment/shipment-view/SpeciesShipmentExpandableCard'
 
-const SpeciesExportDrawer = ({ open, onClose, shipmentId, shipmentNumber }) => {
+const SpeciesExportDrawer = ({ open, onClose, shipmentId, shipmentNumber, type, speciesId }) => {
   const theme = useTheme()
 
   const [loading, setLoading] = useState(false)
@@ -26,14 +27,24 @@ const SpeciesExportDrawer = ({ open, onClose, shipmentId, shipmentNumber }) => {
     const getExportSpecies = async () => {
       setLoading(true)
       try {
-        await getShipmentSpeciesData(shipmentId).then(res => {
-          if (res?.success === true) {
-            setData(res?.data)
-            setLoading(false)
-          }
-        })
+        if (type === 'total_animals') {
+          await getShipmentSpeciesData(shipmentId).then(res => {
+            if (res?.success === true) {
+              setData(res?.data)
+              setLoading(false)
+            }
+          })
+        } else if (type === 'total_exports') {
+          await getSpeciesDetailsShipmentExports({ speciesId, shipmentId }).then(res => {
+            if (res?.success === true) {
+              setData(res?.data)
+              setLoading(false)
+            }
+          })
+        }
       } catch (error) {
         console.error(error, 'Cannot Fetch Species Export')
+        setLoading(false)
       }
     }
 
