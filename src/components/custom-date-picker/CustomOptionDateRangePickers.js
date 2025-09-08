@@ -55,6 +55,12 @@ const CustomOptionDateRangePickers = ({
 
     const futureDateRanges = [
       {
+        label: 'Today',
+        subLabel: format(today, 'dd MMM yyyy'),
+        startDate: today,
+        endDate: today
+      },
+      {
         label: 'Tomorrow',
         subLabel: format(addDays(today, 1), 'dd MMM yyyy'),
         startDate: addDays(today, 1),
@@ -154,13 +160,13 @@ const CustomOptionDateRangePickers = ({
       //   startDate: today,
       //   endDate: today
       // },
-      ...(showFutureDates ? futureDateRanges : pastDateRanges)
+      ...(showFutureDates ? futureDateRanges : pastDateRanges),
 
-      // {
-      //   label: 'Custom range',
-      //   subLabel: 'Select a custom range',
-      //   hasChevron: true
-      // }
+      {
+        label: 'Custom range',
+        subLabel: 'Select a custom range',
+        hasChevron: true
+      }
     ]
   }
 
