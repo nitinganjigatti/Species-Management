@@ -168,7 +168,7 @@ const HospitalIncoming = () => {
         <>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
             <MedicalIdChip
-              medId={`MED-${params?.row?.medical_record_id}`}
+              medId={params?.row?.medical_record_code}
               backgroundColor={theme.palette.customColors.mdAntzNeutral}
             />
             <Typography
@@ -212,7 +212,11 @@ const HospitalIncoming = () => {
       headerName: 'Requested By',
       renderCell: params => (
         <>
-          <UserAvatarDetails date={params?.row?.requestedBy?.date} user_name={params?.row?.requested_user_full_name} />
+          <UserAvatarDetails
+            date={params?.row?.created_at}
+            user_name={params?.row?.requested_user_full_name}
+            profile_image={params?.row?.user_profile_pic}
+          />
         </>
       )
     },
@@ -240,7 +244,12 @@ const HospitalIncoming = () => {
   ]
 
   const handleAdmitClick = data => {
-    router.push(`/hospital/incoming/patient-admit-form`)
+    router.push({
+      pathname: `/hospital/incoming/patient-admit-form`,
+      query: {
+        id: data?.hospital_case_id
+      }
+    })
   }
 
   return (

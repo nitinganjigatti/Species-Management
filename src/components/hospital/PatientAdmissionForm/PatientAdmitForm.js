@@ -2,7 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { Box, Breadcrumbs, Button, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
 import { alpha, useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
@@ -12,11 +12,21 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from './DoctorsDrawer'
+import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
   { label: 'Hospital Admission (inpatient)', value: 'inpatient' }
 ]
+
+const getVisitTypeLabel = title => {
+  if (title === 'checkup') return 'Check up'
+  if (title === 'emergency') return 'Emergency'
+  if (title === 'followup') return 'Follow-up'
+  if (title === 'outpatient') return 'OUTPATIENT'
+  if (title === 'inpatient') return 'INPATIENT'
+  if (title === 'planned') return 'Planned'
+}
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -40,6 +50,8 @@ const PatientAdmitForm = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const { id } = router.query
+
   const {
     control,
     handleSubmit,
@@ -57,6 +69,30 @@ const PatientAdmitForm = () => {
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [selectedDoctor, setSelectedDoctor] = useState({})
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
+  const [patientData, setPatientData] = useState(null)
+  const [patientLoading, setPatientLoading] = useState(false)
+
+  useEffect(() => {
+    const getPatientInfo = async () => {
+      setPatientLoading(true)
+      try {
+        await getPatientDetails(id).then(res => {
+          if (res?.success === true) {
+            setPatientData(res?.data)
+            setPatientLoading(false)
+          } else {
+            setPatientData(null)
+            setPatientLoading(false)
+          }
+        })
+      } catch (error) {
+        console.error('Cannot Fetch Patient Details', error)
+        setPatientLoading(false)
+      }
+    }
+
+    getPatientInfo()
+  }, [id])
 
   const onSubmit = data => {
     console.log(data)
@@ -97,7 +133,22 @@ const PatientAdmitForm = () => {
                   height: 'auto'
                 }}
               >
-                <AnimalCard data={animalData} />
+                <AnimalCard
+                  data={{
+                    default_icon: patientData?.animal_detail?.default_icon,
+                    sex: patientData?.animal_detail?.sex,
+                    type: patientData?.animal_detail?.type,
+                    local_identifier_name: patientData?.animal_detail?.local_identifier_name,
+                    local_identifier_value: patientData?.animal_detail?.local_identifier_value,
+                    animal_id: patientData?.animal_detail?.animal_id,
+                    common_name: patientData?.animal_detail?.common_name,
+                    scientific_name: patientData?.animal_detail?.scientific_name,
+                    age: patientData?.animal_detail?.age,
+                    site_name: patientData?.animal_detail?.site_name,
+                    section_name: patientData?.animal_detail?.section_name,
+                    user_enclosure_name: patientData?.animal_detail?.user_enclosure_name
+                  }}
+                />
               </Grid>
               <Grid
                 size={{ xs: 12, md: 8, sm: 7 }}
@@ -125,15 +176,20 @@ const PatientAdmitForm = () => {
                       medId={'MED - 12345/22'}
                       backgroundColor={theme.palette.customColors.mdAntzNeutral}
                     />
-                    <VisitType title={'Follow-up'} />
+                    <VisitType title={getVisitTypeLabel(patientData?.visit_type)} />
                   </Box>
                   <Typography
                     sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnPrimaryContainer }}
                   >
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-                    et dolore magna aliqua. Ut enim ad minim
+                    {patientData?.purpose_of_visit}
                   </Typography>
-                  <UserAvatarDetails user_name={'Ravi Sharma'} date={'14 Apr 2024'} show_time size='medium' />
+                  <UserAvatarDetails
+                    user_name={patientData?.created_by_full_name}
+                    date={patientData?.created_at}
+                    show_time
+                    size='medium'
+                    profile_image={patientData?.created_by_profile_pic}
+                  />
                 </Box>
               </Grid>
             </Grid>

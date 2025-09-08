@@ -680,4 +680,6 @@ export const ANIMAL_HISTORY = `animal-log-history`
 
 export const ANIMAL_MEDIA = `animal/media-list`
 
-export const GET_INCOMING_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
+export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
+
+export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`
