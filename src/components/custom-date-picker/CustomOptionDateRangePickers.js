@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 import {
   Box,
   Button,
@@ -10,7 +10,10 @@ import {
   MenuItem,
   Typography,
   Stack,
-  Divider
+  Divider,
+  Switch,
+  TextField,
+  styled
 } from '@mui/material'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -20,6 +23,67 @@ import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import CustomDateRangePicker from './CustomDateRangePicker'
+import SingleDatePicker from '../SingleDatePicker'
+
+const DateSwitch = styled(props => <Switch focusVisibleClassName='.Mui-focusVisible' disableRipple {...props} />)(
+  ({ theme }) => ({
+    width: 42,
+    height: 26,
+    padding: 0,
+    '& .MuiSwitch-switchBase': {
+      padding: 0,
+      margin: 2,
+      transitionDuration: '300ms',
+      '&.Mui-checked': {
+        transform: 'translateX(16px)',
+        color: '#fff',
+        '& + .MuiSwitch-track': {
+          backgroundColor: '#65C466',
+          opacity: 1,
+          border: 0,
+          ...theme.applyStyles('dark', {
+            backgroundColor: '#2ECA45'
+          })
+        },
+        '&.Mui-disabled + .MuiSwitch-track': {
+          opacity: 0.5
+        }
+      },
+      '&.Mui-focusVisible .MuiSwitch-thumb': {
+        color: '#33cf4d',
+        border: '6px solid #fff'
+      },
+      '&.Mui-disabled .MuiSwitch-thumb': {
+        color: theme.palette.grey[100],
+        ...theme.applyStyles('dark', {
+          color: theme.palette.grey[600]
+        })
+      },
+      '&.Mui-disabled + .MuiSwitch-track': {
+        opacity: 0.7,
+        ...theme.applyStyles('dark', {
+          opacity: 0.3
+        })
+      }
+    },
+    '& .MuiSwitch-thumb': {
+      boxSizing: 'border-box',
+      width: 22,
+      height: 22
+    },
+    '& .MuiSwitch-track': {
+      borderRadius: 26 / 2,
+      backgroundColor: '#E9E9EA',
+      opacity: 1,
+      transition: theme.transitions.create(['background-color'], {
+        duration: 500
+      }),
+      ...theme.applyStyles('dark', {
+        backgroundColor: '#39393D'
+      })
+    }
+  })
+)
 
 const CustomOptionDateRangePickers = ({
   onChange,
@@ -34,6 +98,8 @@ const CustomOptionDateRangePickers = ({
   const today = new Date()
   const [anchorEl, setAnchorEl] = useState(null)
   const [customDialogOpen, setCustomDialogOpen] = useState(false)
+  const [isSingleDateMode, setIsSingleDateMode] = useState(false)
+  const [date, setDate] = useState(new Date())
 
   const initialSelectedRange = () => {
     if (useCustomText) {
@@ -193,7 +259,6 @@ const CustomOptionDateRangePickers = ({
     } else {
       // Proceed if dates are present
       const { startDate: startDateProp, endDate: endDateProp } = filterDates
-      debugger
       if (startDateProp && endDateProp) {
         const startDate = startDateProp instanceof Date ? startDateProp : new Date(startDateProp)
         const endDate = endDateProp instanceof Date ? endDateProp : new Date(endDateProp)
@@ -280,17 +345,61 @@ const CustomOptionDateRangePickers = ({
     setTempRange(range)
   }
 
+  console.log(tempRange, 'tempRange')
+
+  // const handleApply = () => {
+  //   if (tempRange.startDate && tempRange.endDate) {
+  //     const newRange = `Custom Range - ${format(tempRange.startDate, 'dd MMM yyyy')} - ${format(
+  //       tempRange.endDate,
+  //       'dd MMM yyyy'
+  //     )}`
+  //     setSelectedRange(newRange) // Update selectedRange
+  //     onChange?.(tempRange.startDate, tempRange.endDate)
+  //   }
+  //   setCustomDialogOpen(false) // Close dialog
+  // }
+
   const handleApply = () => {
-    if (tempRange.startDate && tempRange.endDate) {
-      const newRange = `Custom Range - ${format(tempRange.startDate, 'dd MMM yyyy')} - ${format(
-        tempRange.endDate,
-        'dd MMM yyyy'
-      )}`
-      setSelectedRange(newRange) // Update selectedRange
-      onChange?.(tempRange.startDate, tempRange.endDate)
+    if (isSingleDateMode) {
+      if (date) {
+        onChange?.(date, date)
+        const formattedDate = format(date, 'dd MMM yyyy')
+        setSelectedRange(`Single Date - ${formattedDate}`)
+      }
+    } else {
+      if (tempRange.startDate && tempRange.endDate) {
+        const newRange = `Custom Range - ${format(tempRange.startDate, 'dd MMM yyyy')} - ${format(
+          tempRange.endDate,
+          'dd MMM yyyy'
+        )}`
+        setSelectedRange(newRange)
+        onChange?.(tempRange.startDate, tempRange.endDate)
+      }
     }
     setCustomDialogOpen(false) // Close dialog
   }
+
+  useEffect(() => {
+    if (isSingleDateMode && date) {
+      setTempRange({ startDate: date, endDate: date })
+    }
+  }, [date, isSingleDateMode])
+
+  const CustomInput = forwardRef(({ ...props }, ref) => {
+    return (
+      <TextField
+        inputRef={ref}
+        {...props}
+        sx={{ width: '100%' }}
+        label='Select Date'
+        slotProps={{
+          input: {
+            autoComplete: 'off'
+          }
+        }}
+      />
+    )
+  })
 
   return (
     <>
@@ -441,12 +550,12 @@ const CustomOptionDateRangePickers = ({
       <Dialog
         open={customDialogOpen}
         onClose={() => setCustomDialogOpen(false)}
-        maxWidth='sm'
+        maxWidth={isSingleDateMode ? 'xs' : 'sm'}
         fullWidth
         PaperProps={{
           sx: {
             borderRadius: '12px',
-            height: { xs: '400px', sm: '460px', md: '490px' },
+            height: { xs: '400px', sm: '460px', md: '540px' },
             maxHeight: '90vh',
             display: 'flex',
             flexDirection: 'column',
@@ -471,7 +580,7 @@ const CustomOptionDateRangePickers = ({
               color: 'customColors.OnPrimaryContainer'
             }}
           >
-            Select Date Range
+            {isSingleDateMode ? 'Select Date' : 'Select Date Range'}
           </Typography>
           <IconButton
             aria-label='close'
@@ -486,6 +595,12 @@ const CustomOptionDateRangePickers = ({
             <CloseIcon />
           </IconButton>
         </DialogTitle>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end', mt: 2, mr: 2 }}>
+          <Typography sx={{ fontSize: '1rem', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
+            Single Date Picker
+          </Typography>
+          <DateSwitch checked={isSingleDateMode} onChange={e => setIsSingleDateMode(e.target.checked)} />
+        </Box>
 
         <DialogContent
           sx={{
@@ -495,37 +610,65 @@ const CustomOptionDateRangePickers = ({
             position: 'relative'
           }}
         >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              overflowY: 'auto',
-              px: 2,
-              pb: 4,
+          {isSingleDateMode ? (
+            <>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+                <CustomInput
+                  value={date ? date.toLocaleDateString() : ''}
+                  onChange={e => {
+                    const parsedDate = new Date(e.target.value)
+                    if (!isNaN(parsedDate)) {
+                      setDate(parsedDate)
+                    }
+                  }}
+                />
+                <SingleDatePicker
+                  fullWidth
+                  width={'100%'}
+                  date={date}
+                  minDate={today}
+                  value={date}
+                  maxDate={addDays(today, 8)}
+                  onChangeHandler={date => {
+                    setDate(date)
+                  }}
+                  inline
+                />
+              </Box>
+            </>
+          ) : (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                overflowY: 'auto',
+                px: 2,
+                pb: 4,
 
-              '&::-webkit-scrollbar': {
-                width: '8px'
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(0,0,0,0.2)',
-                borderRadius: '4px'
-              }
-            }}
-          >
-            <CustomDateRangePicker
-              label='Date Range'
-              monthsShown={2}
-              shouldCloseOnSelect={false}
-              onChange={handleDateChange}
-              open={true}
-              disableFutureDates={!showFutureDates ? today : null}
-              allowSingleDate={true}
-              selectFutureDates={showFutureDates}
-            />
-          </Box>
+                '&::-webkit-scrollbar': {
+                  width: '8px'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0,0,0,0.2)',
+                  borderRadius: '4px'
+                }
+              }}
+            >
+              <CustomDateRangePicker
+                label='Date Range'
+                monthsShown={2}
+                shouldCloseOnSelect={false}
+                onChange={handleDateChange}
+                open={true}
+                disableFutureDates={addDays(today, 8)}
+                allowSingleDate={true}
+                selectFutureDates={showFutureDates}
+              />
+            </Box>
+          )}
         </DialogContent>
 
         <DialogActions
@@ -551,7 +694,7 @@ const CustomOptionDateRangePickers = ({
             variant='contained'
             color='primary'
             sx={{ ml: 2 }}
-            disabled={!tempRange.startDate || !tempRange.endDate}
+            disabled={isSingleDateMode ? !date : !tempRange.startDate || !tempRange.endDate}
           >
             Apply
           </Button>
