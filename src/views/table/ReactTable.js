@@ -356,9 +356,12 @@ const ReactTable = ({
     }))
   }, [columns, theme])
 
+  const hasBaseColumns = baseColumns.length > 0
+
   // ✅ Inject selection column (kept first) with memoized cells
   const processedColumns = useMemo(() => {
     if (!rowSelection) return baseColumns
+    if (!hasBaseColumns) return baseColumns
 
     const selectionColumn = {
       id: '_select',
@@ -405,7 +408,7 @@ const ReactTable = ({
     }
 
     return [selectionColumn, ...baseColumns]
-  }, [baseColumns, rowSelection])
+  }, [baseColumns, rowSelection, hasBaseColumns])
 
   // ---- Pinning default (respect selection col) ----
   useEffect(() => {
@@ -666,7 +669,8 @@ const ReactTable = ({
       return (
         <TableRow>
           <TableCell
-            colSpan={table.getAllColumns().length}
+            // colSpan={table.getAllColumns().length}
+            colSpan={Math.max(1, table.getAllLeafColumns().length || baseColumns.length)}
             sx={{ textAlign: 'center', height: currentRowsInView * rowHeight, border: 'none' }}
           />
         </TableRow>
@@ -819,7 +823,8 @@ const ReactTable = ({
             tableLayout: 'fixed'
           }}
         >
-          <TableHead>{renderTableHeader()}</TableHead>
+          {/* <TableHead>{renderTableHeader()}</TableHead> */}
+          {hasBaseColumns ? <TableHead>{renderTableHeader()}</TableHead> : null}
           <TableBody>{renderTableBody()}</TableBody>
         </Table>
       </TableContainer>
