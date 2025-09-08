@@ -949,7 +949,7 @@ const Overview = props => {
             key={card.name}
             item
             size={{
-              xs: 6,
+              xs: 12,
               md: productDetails?.stock_type !== 'non_medical' ? 6 : 4,
               sm: 6,
               lg: productDetails?.stock_type !== 'non_medical' ? 3 : 4
