@@ -27,7 +27,8 @@ import {
   getUserReport,
   getMedicalReport,
   getAnimalAssessment,
-  getEnclosureAssessment
+  getEnclosureAssessment,
+  getDailyFoodWastageReport
 } from 'src/lib/api/report'
 
 const Animal = () => {
@@ -103,8 +104,12 @@ const Animal = () => {
             page_no: paginationModel.page + 1,
             limit: paginationModel.pageSize
           })
-          if (response) {
-            setReportData(response)
+          if (Array.isArray(response)) {
+            const modifiedResponse = [
+              ...response,
+              { id: 12, title: 'Food Wastage', key: 'food_wastage', action: 'Download' }
+            ]
+            setReportData(modifiedResponse)
           } else {
             console.error('error >')
           }
@@ -151,6 +156,8 @@ const Animal = () => {
         response = await getAnimalAssessment(params)
       } else if (type === 'enclosure_assessment') {
         response = await getEnclosureAssessment(params)
+      } else if (type === 'food_wastage') {
+        response = await getDailyFoodWastageReport(params)
       } else {
         response = await getAnimalReport(params)
       }
@@ -242,11 +249,13 @@ const Animal = () => {
       flex: 0.7,
       headerAlign: 'left',
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.customColors.customHeadingTextColor, fontWeight: 500, fontSize: '14px', ml: 3 }}
-        >
-          {params.row.title}
-        </Typography>
+        <>
+          <Typography
+            sx={{ color: theme.palette.customColors.customHeadingTextColor, fontWeight: 500, fontSize: '14px', ml: 3 }}
+          >
+            {params.row.title}
+          </Typography>
+        </>
       )
     },
     {
