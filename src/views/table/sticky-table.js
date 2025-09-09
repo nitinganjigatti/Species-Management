@@ -63,6 +63,7 @@ const StickyTableChild = ({
   const [sortStates, setSortStates] = useState({})
 
   const [searchText, setSearchText] = useState('')
+
   const [filteredRows, setFilteredRows] = useState(rows)
 
   const [rearrangedColumns, setRearrangedColumns] = useState(Array.isArray(columns) ? columns : [])
@@ -129,6 +130,7 @@ const StickyTableChild = ({
     } else {
       if (searchText.trim()) {
         const lowercasedSearch = searchText.toLowerCase()
+
         setFilteredRows(
           rows.filter(row =>
             Object.values(row).some(value => value?.toString().toLowerCase().includes(lowercasedSearch))
