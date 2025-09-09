@@ -457,7 +457,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }) => {
       export_date: null,
       issued_date: id ? dayjs(exportData?.issued_date) : dayjs(),
       valid_until: null,
-      export_purpose: null,
+      export_purpose: '',
       destination_country: null,
       exporting_country: null,
       importer_name: null,
