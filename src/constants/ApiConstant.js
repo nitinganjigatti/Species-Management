@@ -691,3 +691,9 @@ export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
 export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
 
 export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`
+
+export const GET_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/list'
+
+export const CREATE_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/create'
+
+export const DELETE_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/delete'
