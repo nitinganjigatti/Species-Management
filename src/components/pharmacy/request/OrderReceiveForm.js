@@ -358,9 +358,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       // api updated for normal request api
       let response
       setShowSpinner(true)
-      if (requestedFrom === 'requestByAllStores' || pathname.includes('pharmacy/shipments/')) {
-        // this function for all stores shipment request store details
-        // pathname.includes('pharmacy/shipments/') added this condition because use this api for incoming and outgoing shipments
+      if (requestedFrom === 'requestByAllStores') {
+        // this function for all stores request and shipments details
+
         response = await getShipmentDetailOfOrder(orderId)
       } else {
         response = await getShipmentOrderDetailsOfRequests(orderId, requestId)
@@ -657,7 +657,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     try {
       const comments = await getCommentsList(id)
       // setListComments()
-      if (comments.data.length > 0 && comments.success === true) {
+      if (comments?.data?.length > 0 && comments?.success === true) {
         setListComments(comments)
         // openCommentDialog()
       }
@@ -704,8 +704,8 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2 }}>
               {/* Medicine Name */}
-              <Box sx={{ bgcolor: 'customColors.Background', px: 2, py: 2, borderRadius: '8px' }}>
-                <Typography variant='h6'>{markReceived?.stock_name}</Typography>
+              <Box sx={{ bgcolor: 'customColors.Background', ml: '2px', py: 2, borderRadius: '8px' }}>
+                <Typography sx={{ fontSize: 20 }}>{markReceived?.stock_name}</Typography>
               </Box>
 
               <Box>
@@ -713,16 +713,18 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                   listComments.data.map((el, index) => (
                     <Box key={index}>
                       {/* Comment Header */}
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: '2px', mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography sx={{ fontWeight: 'bold' }}>{selectedPharmacy?.name}</Typography>
                           <Typography sx={{ color: 'error.main' }}>
-                            • {markReceived?.wrong_count_type} ({markReceived?.wrong_count_number})
+                            {/* {markReceived?.wrong_count_type} • {markReceived?.wrong_count_type} ( */}
+                            {markReceived?.wrong_count_type &&
+                              ` •${markReceived?.wrong_count_type}  (${markReceived?.wrong_count_number})`}
                           </Typography>
                         </Box>
-                        <Typography sx={{ color: 'customColors.neutralSecondary' }}>
+                        {/* <Typography sx={{ color: 'customColors.neutralSecondary' }}>
                           {Utility.formatDisplayDate(el?.created_at)}
-                        </Typography>
+                        </Typography> */}
                       </Box>
 
                       {/* Comment Card */}
@@ -906,8 +908,6 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       width: 300,
       field: 'stock_name',
       headerName: 'Product Name',
-      align: 'left',
-      headerAlign: 'left',
       renderCell: (params, rowId) => (
         <div>
           <Tooltip title={params.row.stock_name} placement='top'>
@@ -922,8 +922,6 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       minWidth: 150,
       field: 'batch_no',
       headerName: 'Batch',
-      align: 'left',
-      headerAlign: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
@@ -955,8 +953,6 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       minWidth: 100,
       field: 'count',
       headerName: 'qty',
-      align: 'center',
-      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.count}
@@ -1693,7 +1689,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       // orderId is the shipmentId
       setPdfLoader(true)
       let pdfResult
-      if (requestedFrom === 'requestByAllStores' || pathname?.includes('pharmacy/shipments/')) {
+      if (requestedFrom === 'requestByAllStores') {
         pdfResult = await getStoreWiseShipmentDetailPdf(orderId)
       } else {
         pdfResult = await getRequestsShipmentDetailPdf(orderId, requestId)
