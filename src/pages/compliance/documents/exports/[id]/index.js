@@ -35,7 +35,7 @@ const ExportPermitDetails = () => {
   const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
   const [linkedImports, setLinkedImports] = useState([])
   const [totalLinkedImports, setTotalLinkedImports] = useState(0)
-  const [activeTab, setActiveTab] = useState('uploaded')
+  const [activeTab, setActiveTab] = useState('completed')
   const [loading, setLoading] = useState(true)
 
   const [exportData, setExportData] = useState({
@@ -71,6 +71,7 @@ const ExportPermitDetails = () => {
     try {
       const params = {
         id: id || exportId,
+        status: activeTab,
         type: 'export'
       }
       const res = await getDocumentTypeList(params)
@@ -175,6 +176,7 @@ const ExportPermitDetails = () => {
 
   const handleAddEditSuccess = () => {
     fetchDocumentTypeList()
+    setActiveTab('completed')
   }
 
   const handleTabChange = (event, newValue) => {
@@ -184,19 +186,22 @@ const ExportPermitDetails = () => {
   useEffect(() => {
     if (id) {
       fetchExportDetails()
-      fetchDocumentTypeList()
       fetchLinkedShipmentsDetails()
       fetchLinkedImportsDetails()
     }
   }, [id])
 
+  useEffect(() => {
+    if (id) {
+      fetchDocumentTypeList()
+    }
+  }, [id, activeTab])
+
   return (
     <>
       <Box sx={{ mb: 5 }}>
         <Breadcrumbs aria-label='breadcrumb'>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={() => router.push('/compliance')}>
-            Compliance
-          </Typography>
+          <Typography sx={{ color: 'inherit' }}>Compliance</Typography>
           <Typography
             sx={{ cursor: 'pointer', color: 'inherit' }}
             onClick={() => router.push('/compliance/documents/exports')}
@@ -246,12 +251,23 @@ const ExportPermitDetails = () => {
         onChange={handleAccordionChange}
       >
         <Box sx={{ width: '100%' }}>
-          {/* <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
             <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
-              <Tab label={`Uploaded (${documentList.length})`} value='uploaded' />
-              <Tab label={`Pending (${documentList.length})`} value='pending' />
+              <Tab
+                label={`Completed${
+                  activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                }`}
+                value='completed'
+                sx={{ mr: 4 }}
+              />
+              <Tab
+                label={`Pending${
+                  activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                }`}
+                value='pending'
+              />
             </Tabs>
-          </Box> */}
+          </Box>
           <SupportingDocuments
             isFetching={isFetching}
             documentList={documentList}

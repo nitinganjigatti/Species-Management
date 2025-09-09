@@ -176,25 +176,28 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                         </Collapse>
                       </Box>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {console.log(document, 'document')}
-                      {/* <IconButton
-                        onClick={() => handleOpenLink(document)}
-                        disabled={isLoading}
-                        size='small'
-                        sx={{ padding: 0, marginRight: 3, cursor: 'pointer' }}
-                      >
-                        <VisibilityIcon fontSize='small' />
-                      </IconButton> */}
-                      <IconButton
-                        onClick={() => handleOpenDrawer(document)}
-                        disabled={isLoading}
-                        size='small'
-                        sx={{ cursor: 'pointer' }}
-                      >
-                        <EditIcon fontSize='small' />
-                      </IconButton>
-                    </Box>
+                    {type === '1' || type === '2' || type === '3' ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton
+                          onClick={() => handleOpenLink(document)}
+                          disabled={isLoading}
+                          size='small'
+                          sx={{ padding: 0, marginRight: 3, cursor: 'pointer' }}
+                        >
+                          <VisibilityIcon fontSize='small' />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => handleOpenDrawer(document)}
+                          disabled={isLoading}
+                          size='small'
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <EditIcon fontSize='small' />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      ''
+                    )}
                   </Box>
                 </Box>
               ) : (

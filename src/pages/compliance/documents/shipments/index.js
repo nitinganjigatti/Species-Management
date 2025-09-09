@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { Badge, Box, Breadcrumbs, Button, Card, CardHeader, Grid, Typography } from '@mui/material'
+import { Badge, Box, Breadcrumbs, Button, Card, CardHeader, Grid, Typography, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 import Router from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -96,6 +96,7 @@ const ShipmentPage = () => {
           shipment_number: r.shipment_number || '-',
           shipment_state: r.shipment_state || '-',
           shipment_date: r.shipment_date ? r.shipment_date : '-',
+          file_number: r.file_number || 'N/A',
           export_count: r.export_count || '-',
           species_count: r.species_count || '-',
           animal_counts: r.animal_counts || '-',
@@ -239,6 +240,25 @@ const ShipmentPage = () => {
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>
           {moment(params?.value, 'YYYY-MM-DD', true).isValid() ? moment(params?.value).format('DD MMM YYYY') : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.15,
+      minWidth: 200,
+      field: 'file_number',
+      headerName: 'File Number',
+      renderCell: params => (
+        <Typography
+          sx={{
+            px: 3,
+            width: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <Tooltip title={params.value || ''}>{params.value}</Tooltip>
         </Typography>
       )
     },

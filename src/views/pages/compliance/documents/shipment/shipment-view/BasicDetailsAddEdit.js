@@ -28,6 +28,8 @@ const BasicDetailsAddEdit = ({
   setUploadedFile,
   transportType,
   setTransportType,
+  fileNumberValue,
+  setFileNumberValue,
   loader,
   onSave,
   errors,
@@ -45,6 +47,10 @@ const BasicDetailsAddEdit = ({
 
     setAirwaybillvalue(event.target.value)
     setErrors(prev => ({ ...prev, airwaybillvalue: null }))
+  }
+
+  const handleFileNmbChange = e => {
+    setFileNumberValue(e.target.value)
   }
 
   const handleDateChange = date => {
@@ -142,6 +148,26 @@ const BasicDetailsAddEdit = ({
       </Grid>
 
       <Grid container spacing={2} sx={{ mt: 4 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Grid container spacing={3}>
+            <TextField
+              fullWidth
+              label='Enter File Number*'
+              variant='outlined'
+              value={fileNumberValue}
+              onChange={handleFileNmbChange}
+              error={Boolean(errors.fileNumberValue)}
+              helperText={errors.fileNumberValue}
+              sx={{ marginTop: '4px', mr: 2 }}
+              slotProps={{
+                input: {
+                  //maxLength: 31,
+                  style: { height: '52px' }
+                }
+              }}
+            />
+          </Grid>
+        </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload
             name='(AWB) Airway Bill'
