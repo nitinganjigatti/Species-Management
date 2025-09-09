@@ -354,7 +354,7 @@ function InComingAndOutGoingShipments({ type }) {
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, selectedStore, selectedRequest, shipmentTab, paginationModel.page])
+  }, [selectedPharmacy.id, selectedStore, selectedRequest, shipmentTab, paginationModel.page, paginationModel.pageSize])
 
   useEffect(() => {
     fetchStoreList()
