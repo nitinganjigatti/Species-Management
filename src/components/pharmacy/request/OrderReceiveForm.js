@@ -1693,7 +1693,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       // orderId is the shipmentId
       setPdfLoader(true)
       let pdfResult
-      if (requestedFrom === 'requestByAllStores') {
+      if (requestedFrom === 'requestByAllStores' || pathname?.includes('pharmacy/shipments/')) {
         pdfResult = await getStoreWiseShipmentDetailPdf(orderId)
       } else {
         pdfResult = await getRequestsShipmentDetailPdf(orderId, requestId)
