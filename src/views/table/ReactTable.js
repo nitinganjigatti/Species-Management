@@ -96,13 +96,15 @@ const MemoBodyRow = React.memo(
     selectionEnabled,
     isRowSelected,
     toggleRowCheckbox,
-    checkboxSX
+    checkboxSX,
+    refCb
   }) {
     const pageRows = row?.table?.getRowModel?.().rows || []
     const isLastRow = row.index === pageRows.length - 1
 
     return (
       <TableRow
+        ref={refCb}
         key={row.id}
         onClick={() => onRowClick?.(row.original)}
         sx={{
@@ -405,7 +407,7 @@ const ReactTable = ({
     }
   }, [defaultPinning, withSelectionInPinning])
 
-  // ---- Loader height ----
+  // ---- Initial loader height (first paint) ----
   useEffect(() => {
     if (tableContainerRef.current) {
       const tableRect = tableContainerRef.current.getBoundingClientRect()
@@ -443,12 +445,8 @@ const ReactTable = ({
   // ---------- ✅ UNIQUE ROW IDS ----------
   const getRowUniqueId = useCallback(
     (originalRow, index) => {
-      // Best: unique from data
       const raw = originalRow?.[rowIdKey] ?? originalRow?._id ?? originalRow?.id ?? null
-
       const base = raw !== null && raw !== undefined && raw !== '' ? String(raw) : `__auto_idx_${index}`
-
-      // Server-side/external slicing fallback: compose absolute index for uniqueness
       if (serverSide) {
         const absIndex = paginationModel.page * paginationModel.pageSize + index
         return `${base}__pg_${absIndex}`
@@ -472,7 +470,6 @@ const ReactTable = ({
     enableColumnPinning: true,
 
     getRowId: getRowUniqueId,
-
     enableRowSelection: rowSelection,
 
     // controlled state
@@ -504,45 +501,47 @@ const ReactTable = ({
     onRowSelectionChange: setRowSelectionState
   })
 
-  // ---------- ❌ NO PRUNING ----------
-  // We keep rowSelectionState as a global bag of selected IDs.
-  // This preserves selection across pages and matches the TanStack example behavior.
-
-  // (Optional) Notify parent:
+  // ---------- ❌ NO PRUNING OF SELECTION ----------
+  // Optional parent notify:
   // useEffect(() => {
   //   if (!rowSelection) return
   //   const ids = Object.keys(rowSelectionState).filter(k => rowSelectionState[k])
   //   onRowSelect(ids)
   // }, [rowSelectionState, rowSelection, onRowSelect])
 
-  // ---- Dynamic height ----
+  // ---- Sub-header presence ----
   const hasSubHeader = processedColumns.some(
     col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
   )
 
+  // ---- Dynamic, precise height (DOM measurement + buffer) ----
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
-    currentRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+    rowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
   )
 
   useEffect(() => {
-    rowRefs.current = []
+    // measure real DOM rows
     const pageRows = table.getRowModel().rows || []
     const visibleCount = Math.min(currentRowsInView, pageRows.length)
-    const visibleRows = rowRefs.current.slice(0, visibleCount)
 
     let rowsBlockHeight = 0
-    const first = visibleRows[0]
-    const last = visibleRows[visibleRows.length - 1]
+    if (rowRefs.current.length >= 1) {
+      const first = rowRefs.current[0]
+      const last = rowRefs.current[Math.min(visibleCount, rowRefs.current.length) - 1]
+      if (first && last) {
+        const firstTop = first.offsetTop || 0
+        const lastBottom = (last.offsetTop || 0) + (last.offsetHeight || rowHeight)
+        rowsBlockHeight = Math.max(0, lastBottom - firstTop)
+      }
+    }
 
-    if (first && last) {
-      const firstTop = first.offsetTop || 0
-      const lastBottom = (last.offsetTop || 0) + (last.offsetHeight || rowHeight)
-      rowsBlockHeight = lastBottom - firstTop
-    } else {
+    if (!rowsBlockHeight) {
       rowsBlockHeight = visibleCount * rowHeight
     }
 
-    const height = rowsBlockHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+    const BORDER_AND_SCROLL_BUFFER = 12 // <- prevents clipping
+    const height = rowsBlockHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0) + BORDER_AND_SCROLL_BUFFER
+
     setDynamicTableHeight(height)
   }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader])
 
@@ -685,6 +684,9 @@ const ReactTable = ({
         isRowSelected={!!rowSelectionState[row.id]}
         toggleRowCheckbox={handleRowCheckboxChange}
         checkboxSX={checkboxSX}
+        refCb={el => {
+          if (el) rowRefs.current.push(el)
+        }}
       />
     ))
   }
@@ -795,6 +797,7 @@ const ReactTable = ({
         ref={tableContainerRef}
         component={Paper}
         sx={{
+          boxSizing: 'content-box', // important for accurate inner height
           borderRadius: '8px !important',
           height: loading && !hasData ? loadingHeight : dynamicTableHeight,
           position: 'relative',
