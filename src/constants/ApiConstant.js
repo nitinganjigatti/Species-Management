@@ -687,3 +687,7 @@ export const GET_MASTERS_HOSPITAL = 'v1/hospital/listing'
 export const CREATE_MASTERS_HOSPITAL = 'v1/hospital/create'
 
 export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
+
+export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
+
+export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`

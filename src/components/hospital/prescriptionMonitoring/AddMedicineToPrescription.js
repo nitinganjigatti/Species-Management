@@ -103,7 +103,8 @@ export default function AddMedicineToPrescription() {
     clinicalAssessment: '',
     prognosisValue: '',
     chronicValue: 'No',
-    medicineStatus: ''
+    medicineStatus: '',
+    controlSubstanceFiles: []
   }
 
   const {
@@ -486,7 +487,7 @@ export default function AddMedicineToPrescription() {
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
+        <Grid size={{ xs: 12, md: 7, lg: 7 }}>
           <PrescriptionMedicineList
             medicineList={medicineList}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
@@ -495,8 +496,8 @@ export default function AddMedicineToPrescription() {
             error={errors.selectedMedicine?.message || errors.selectedMedicineId?.message}
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <ScheduleMedicine control={control} errors={errors} />
+        <Grid size={{ xs: 12, md: 5, lg: 5 }}>
+          <ScheduleMedicine control={control} errors={errors} selectedMedicineTo={watch('selectMedicineType')} />
         </Grid>
 
         {/* Button to open prescription card */}
@@ -574,10 +575,9 @@ export default function AddMedicineToPrescription() {
         onAddNewDosage={handleAddNewDosage}
         onRefreshEntry={handleRefreshEntry}
       />
-
       <ActionButtons
         cancelLabel='CANCEL'
-        addLabel='ADD'
+        addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
         onCancel={() => console.log('Cancelled')}
         onAdd={handleSubmit(data => {
           console.log('Form data to submit:', data)
