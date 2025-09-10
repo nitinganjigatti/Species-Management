@@ -278,7 +278,7 @@ const Clusters = () => {
           <CellInfo
             value={params.row.cluster_name}
             subtitle={params.row.cluster_desc}
-            imgUrl={params.row.images?.[0]?.file}
+            imgUrl={params.row.images?.[0]?.file || '/icons/cluster.svg'}
             avatarUrl=''
             inchargeName=''
           />
@@ -403,10 +403,7 @@ const Clusters = () => {
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
         >
-          <UserAvatarDetails
-            profile_image={params.row?.incharge_image}
-            user_name={params.row?.incharge_name}
-          />
+          <UserAvatarDetails profile_image={params.row?.incharge_image} user_name={params.row?.incharge_name} />
         </Box>
       )
     },
