@@ -242,9 +242,9 @@ const AnimalAssessment = () => {
         width: 300,
         height: 131,
         sortable: false,
-        // headerStyle: {
-        //   zIndex: 1099
-        // },
+        headerStyle: {
+          zIndex: 1099
+        },
         columnStyle: {
           border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
           borderRight: 'none',
@@ -263,7 +263,7 @@ const AnimalAssessment = () => {
       width: 240,
       sortable: false,
       disableColumnMenu: true,
-      headerStyle: i === 1 && { position: 'sticky', left: 300, zIndex: 1000, p: 0, m: 0 },
+      // headerStyle: i === 1 && { position: 'sticky', left: 300, zIndex: 1000, p: 0, m: 0 },
       columnStyle: {
         height: '100px',
         border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
