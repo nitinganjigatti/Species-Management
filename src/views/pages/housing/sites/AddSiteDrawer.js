@@ -32,13 +32,14 @@ import Toaster from 'src/components/Toaster'
 // Schema
 const schema = yup.object().shape({
   siteName: yup.string().required('Site name is required'),
-  latitude: yup.string().required('Latitude is required'),
-  longitude: yup.string().required('Longitude is required')
+  latitude: yup.string(),
+  longitude: yup.string()
 
   // image: yup.mixed().required('Image is required')
 })
 
 const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
+  const [loading, setLoading] = useState(false)
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const authData = useContext(AuthContext)
@@ -137,6 +138,8 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
   }
 
   const onSubmit = async data => {
+    setLoading(true)
+
     const params = {
       zoo_id: zooId,
       site_name: data?.siteName,
@@ -153,7 +156,7 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
         setSiteDrawer(false)
         refetch()
       } else {
-        Toaster({ type: 'error', message: 'Oops! Something went wrong' })
+        Toaster({ type: 'error', message: response?.message })
 
         // setSiteDrawer(false)
       }
@@ -161,6 +164,8 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
       console.error('Submission Error:', error)
       toast.error('An error occurred while creating the site')
       setSiteDrawer(false)
+    } finally {
+      setLoading(false)
     }
 
     // Send `data` to backend
@@ -486,7 +491,7 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
               display: 'flex'
             }}
           >
-            <LoadingButton fullWidth variant='contained' type='submit' sx={{ height: '50px' }}>
+            <LoadingButton loading={loading} fullWidth variant='contained' type='submit' sx={{ height: '50px' }}>
               Add
             </LoadingButton>
           </Box>

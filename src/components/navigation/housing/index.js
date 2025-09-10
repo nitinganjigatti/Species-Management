@@ -20,13 +20,15 @@ const composeHousingNavigation = includeClusters => {
 
   const sites = {
     title: 'Sites',
-    path: '/housing/sites'
-
-    // icon: 'mdi:rabbit-variant-outline'
+    path: '/housing/sites',
+    icon: <img style={{ width: '20px', height: '20px' }} src='/icons/site.svg' alt='Site Icon' />,
+    activeIcon: <img style={{ width: '16px', height: '16px' }} src='/icons/site_active.svg' alt='Site Icon' />
   }
 
   const clusters = {
     title: 'Clusters',
+    icon: <img style={{ width: '20px', height: '20px' }} src='/icons/cluster.svg' alt='Cluster Icon' />,
+    activeIcon: <img style={{ width: '20px', height: '20px' }} src='/icons/cluster_active.svg' alt='Cluster Icon' />,
     path: '/housing/cluster'
   }
 
