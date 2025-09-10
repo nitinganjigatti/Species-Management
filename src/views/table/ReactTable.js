@@ -661,13 +661,11 @@ const ReactTable = ({
                   )}
                 </Box>
 
-                {modifyColumnPinning &&
-                  column.id !== '_select' &&
-                  originalColumn.disableColumnMenu !== true && ( // <-- respect `disableColumnMenu`
-                    <IconButton size='small' onClick={e => handleColumnMenuClick(e, column)} sx={{ opacity: 0.7 }}>
-                      <MoreVertIcon fontSize='small' />
-                    </IconButton>
-                  )}
+                {modifyColumnPinning && column.id !== '_select' && originalColumn.disablePinMenu !== true && (
+                  <IconButton size='small' onClick={e => handleColumnMenuClick(e, column)} sx={{ opacity: 0.7 }}>
+                    <MoreVertIcon fontSize='small' />
+                  </IconButton>
+                )}
               </Box>
             </TableCell>
           )
