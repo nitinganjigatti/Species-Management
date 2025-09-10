@@ -319,26 +319,25 @@ function InComingAndOutGoingShipments({ type }) {
   }
 
   const onRowClick = params => {
-    const { ro_no, request_id, id } = params?.row || {}
+    const { ro_no, request_id, id, request_count } = params?.row || {}
     const isIncoming = type === 'incoming'
 
     if (!ro_no) return
 
     let subPath = ''
     let requestedFrom = ''
-
     if (ro_no?.startsWith('RES')) {
       subPath = isIncoming ? 'incoming-shipments' : 'outgoing-shipments'
-      requestedFrom = 'request'
+      requestedFrom = request_count > 1 ? 'requestByAllStores' : 'request'
     } else if (ro_no?.startsWith('RET')) {
       subPath = isIncoming ? 'incoming-shipments' : 'outgoing-shipments'
-      requestedFrom = 'return'
+      requestedFrom = request_count > 1 ? 'requestByAllStores' : 'return'
     } else if (ro_no?.startsWith('DD')) {
       subPath = isIncoming ? 'incoming-shipments' : 'outgoing-shipments'
-      requestedFrom = 'directDispatch'
+      requestedFrom = request_count > 1 ? 'requestByAllStores' : 'directDispatch'
     } else if (ro_no?.startsWith('DL')) {
       subPath = isIncoming ? 'incoming-shipments' : 'outgoing-shipments'
-      requestedFrom = 'localDispatch'
+      requestedFrom = request_count > 1 ? 'requestByAllStores' : 'localDispatch'
     } else {
       return
     }
@@ -355,7 +354,7 @@ function InComingAndOutGoingShipments({ type }) {
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, selectedStore, selectedRequest, shipmentTab, paginationModel.page])
+  }, [selectedPharmacy.id, selectedStore, selectedRequest, shipmentTab, paginationModel.page, paginationModel.pageSize])
 
   useEffect(() => {
     fetchStoreList()
