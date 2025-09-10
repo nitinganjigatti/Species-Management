@@ -671,7 +671,7 @@ const SpeciesReport = () => {
                   rowHeight={70}
                   headerHeight={47}
                   pagination={true}
-                  columns={columns.length && columns}
+                  columns={columns?.length ? columns : []}
                   pageSizeOptions={[7, 10, 25, 50]}
                   rowsInView={10}
                   rowsInViewOptions={[5, 7, 10, 25, 50]}
@@ -679,8 +679,8 @@ const SpeciesReport = () => {
                   onPaginationModelChange={setPaginationModel}
                   loading={isLoading}
                   onRowClick={handleRowClick}
-                  // downloadExcel
                   serverSide
+                  rowSelection
                   modifyColumnPinning
                   headerName='Species General Report'
                   searchMode='server'
