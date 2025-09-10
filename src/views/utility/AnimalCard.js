@@ -289,6 +289,19 @@ const AnimalCard = ({ data, size }) => {
             {data?.site_name}
           </Typography>
         )}
+        {data?.age && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Age : </span>
+            {data?.age}
+          </Typography>
+        )}
       </Box>
     </Box>
   )

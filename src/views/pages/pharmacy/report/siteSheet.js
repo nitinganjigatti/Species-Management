@@ -128,7 +128,7 @@ const SiteSheet = ({
         </IconButton>
       </Box>
 
-      <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto', height: 'calc(100% - 100px)' }}>
+      <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto', height: 'calc(100dvh - 120px)' }}>
         <Box
           sx={{
             p: 3,
