@@ -253,17 +253,13 @@ const Symptoms = () => {
           </Box>
         </Box>
 
-        {/* <FormControlLabel
-          control={
-            <MUISwitch
-              checked={currentRecordOnly}
-              onChange={e => setCurrentRecordOnly(e.target.checked)}
-              size='small'
-            />
-          }
+        <MUISwitch
           label='Current Medical Record Only'
-          sx={{ ml: 0.5 }}
-        /> */}
+          checked={currentRecordOnly}
+          onChange={e => setCurrentRecordOnly(e.target.checked)}
+          size='small'
+          sx={{ ml: 2.6 }}
+        />
       </Box>
 
       {/* Records List */}
