@@ -30,6 +30,7 @@ const ShipmentPage = () => {
   const [selectedId, setSelectedId] = useState(null)
   const [sortModel, setSortModel] = useState([])
   const [exportLoading, setExportLoading] = useState(false)
+
   // const [filterDate, setFilterDate] = useState({
   //   startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
   //   endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
@@ -179,6 +180,17 @@ const ShipmentPage = () => {
   }
 
   const columns = [
+    {
+      flex: 0.01,
+      minWidth: 100,
+      field: 'uid',
+      headerName: 'SL.NO',
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {params.value}
+        </Typography>
+      )
+    },
     {
       flex: 0.12,
       minWidth: 300,
