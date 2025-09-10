@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 
 // ** MUI Imports
 import {
@@ -24,64 +24,73 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 // ** Table Component
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 
-import { AddButtonContained } from 'src/components/ButtonContained'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import AddEnclosures from 'src/views/pages/hospital/roomsAndEnclosures/AddEnclosures'
-
-const tableDta = [
-  { id: 1, enclosure_name: 'Enclosure name 1', area: 'Emergency Room ', floor: 'Ground', occupancy: 'Available' },
-  { id: 2, enclosure_name: 'Enclosure name 2', area: 'ICU', floor: 'Ground', occupancy: 'Occupied' }
-]
+import {
+  addRoomsAndEnclosures,
+  deleteRoomsAndEnclosures,
+  getRoomsAndEnclosures,
+  updateRoomsAndEnclosures
+} from 'src/lib/api/hospital/roomsAndEnclosures'
+import toast from 'react-hot-toast'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { useRouter } from 'next/router'
 
 const RoomsAndEnclosures = () => {
   const theme = useTheme()
+  const router = useRouter()
 
-  const editParamsInitialState = { id: null, area: null, floor: null, enclosure: '', occupancy: null }
+  const editParamsInitialState = { id: null, bed_name: '' }
 
-  const occupancyOptions = ['Available', 'Occupied', 'Unavailable']
+  const occupancyOptions = [
+    { label: 'Available', value: '0' },
+    { label: 'Occupied', value: '1' }
+  ]
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
-  const [rowData, setRowData] = useState(tableDta)
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
+  const [rowData, setRowData] = useState([])
+  const [total, setTotal] = useState(0)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteDialog, setDeleteDialog] = useState(false)
+  const [selectedItemToDelete, setSelectedItemToDelete] = useState(null)
 
-  // Filter rows by search value
-  const filteredRows = useMemo(() => {
-    if (!searchValue) return rowData
-    const search = searchValue.toLowerCase()
-
-    return rowData.filter(
-      row =>
-        row.enclosure_name.toLowerCase().includes(search) ||
-        row.area.toLowerCase().includes(search) ||
-        row.floor.toLowerCase().includes(search) ||
-        row.occupancy.toLowerCase().includes(search)
-    )
-  }, [searchValue, rowData])
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
 
   // ** Returns styling for each occupancy status (for dropdown and chip backgrounds)
   const getOccupancyStyles = status => {
-    switch (status.toLowerCase()) {
-      case 'available':
+    switch (status) {
+      // case 'available':
+      case '0':
         return {
           backgroundColor: theme.palette.customColors.antzInfoLight,
           color: theme.palette.customColors.addPrimary
         }
-      case 'occupied':
+
+      // case 'occupied':
+      case '1':
         return {
           backgroundColor: theme.palette.customColors.OnBackground,
           color: theme.palette.customColors.OnSurface
         }
-      case 'unavailable':
-        return {
-          backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.4),
-          color: theme.palette.customColors.Tertiary
-        }
+
+      // case 'unavailable':
+      //   return {
+      //     backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.4),
+      //     color: theme.palette.customColors.Tertiary
+      //   }
       default:
         return {
           backgroundColor: theme.palette.customColors.Surface,
@@ -94,22 +103,23 @@ const RoomsAndEnclosures = () => {
     {
       minWidth: 50,
       field: 'id',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.OnSurfaceVariant, pl: 3 }}>
-          {parseInt(params.row.id)}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
     {
       minWidth: 250,
-      field: 'enclosure_name',
+      field: 'bed_name',
       headerName: 'Enclosure Name',
       textAlign: 'center',
+      sortable: false,
       renderCell: params => (
         <TextEllipsisWithModal
-          text={params.row.enclosure_name}
+          text={params.row.bed_name}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '1rem',
@@ -121,65 +131,29 @@ const RoomsAndEnclosures = () => {
       )
     },
     {
-      minWidth: 250,
-      field: 'area',
-      headerName: 'Area/Zone',
-      textAlign: 'center',
-      renderCell: params => (
-        <TextEllipsisWithModal
-          text={params.row.area}
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '1rem',
-            fontWeight: 400,
-            pl: 1.4,
-            maxWidth: '230px'
-          }}
-        />
-      )
-    },
-
-    {
       minWidth: 200,
-      field: 'floor',
-      headerName: 'Floor',
-      renderCell: params => (
-        <TextEllipsisWithModal
-          text={params.row.floor}
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '1rem',
-            fontWeight: 400,
-            pl: 1.4,
-            maxWidth: '180px'
-          }}
-        />
-      )
-    },
-    {
-      minWidth: 200,
-      field: 'occupancy',
+      field: 'is_occupied',
       headerName: 'Occupancy',
       sortable: false,
       renderCell: params => {
-        const styles = getOccupancyStyles(params.row.occupancy)
+        const styles = getOccupancyStyles(params.row.is_occupied)
 
         const handleChange = event => {
           const newValue = event.target.value
-          setRowData(prev => prev.map(row => (row.id === params.row.id ? { ...row, occupancy: newValue } : row)))
+          setRowData(prev => prev.map(row => (row.id === params.row.id ? { ...row, is_occupied: newValue } : row)))
         }
 
         return (
           <Box sx={{ width: '100%', px: 2, py: 1, borderRadius: '4px', backgroundColor: styles.backgroundColor }}>
             <TextField
               select
-              value={params.row.occupancy}
+              value={params.row.is_occupied}
               onChange={handleChange}
               variant='standard'
               fullWidth
               slotProps={{
                 input: {
-                  disableUnderline: true, // remove underline,
+                  disableUnderline: true, // to remove underline,
                   onClick: e => e.stopPropagation()
                 }
               }}
@@ -190,11 +164,11 @@ const RoomsAndEnclosures = () => {
               }}
             >
               {occupancyOptions.map(option => {
-                const optionStyle = getOccupancyStyles(option)
+                const optionStyle = getOccupancyStyles(option.value)
 
                 return (
-                  <MenuItem key={option} value={option} sx={{ color: optionStyle.color }}>
-                    {option}
+                  <MenuItem key={option.value} value={option.value} sx={{ color: optionStyle.color }}>
+                    {option.label}
                   </MenuItem>
                 )
               })}
@@ -219,7 +193,7 @@ const RoomsAndEnclosures = () => {
           }}
         >
           <Tooltip title='Delete' placement='top'>
-            <IconButton size='small' onClick={() => {}}>
+            <IconButton size='small' onClick={() => handleDeleteDialogOpen(params.row)}>
               <Icon icon='mdi:delete' color={theme.palette.customColors.Error} />
             </IconButton>
           </Tooltip>
@@ -228,13 +202,91 @@ const RoomsAndEnclosures = () => {
     }
   ]
 
-  const handleSearch = value => {
-    setSearchValue(value)
+  // Fetch enclosure data and update table
+  const fetchTableData = useCallback(async (page, limit, q = '') => {
+    try {
+      setLoading(true)
+
+      const params = {
+        page: page + 1,
+        limit,
+        hospital_id: 1,
+        q
+      }
+      const res = await getRoomsAndEnclosures(params)
+      if (res?.success && res?.data?.records?.length > 0) {
+        setTotal(res?.data?.total)
+        setRowData(res?.data?.records)
+      } else {
+        setTotal(0)
+        setRowData([])
+      }
+    } catch (e) {
+      console.log('Error fetching enclosures lists', e)
+      setTotal(0)
+      setRowData([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchTableData(paginationModel.page, paginationModel.pageSize, searchValue)
+    updateUrlParams({
+      page: paginationModel.page,
+      limit: paginationModel.pageSize,
+      q: searchValue
+    })
+  }, [fetchTableData, paginationModel.page, paginationModel.pageSize, searchValue])
+
+  // Add serial numbers to each row based on current pagination
+  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
+
+  const indexedRows = rowData?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  const handlePaginationChange = model => {
+    setPaginationModel(model)
+    updateUrlParams({
+      page: model.page,
+      limit: model.pageSize,
+      q: searchValue
+    })
   }
 
+  // update and add enclosures
   const handleSubmitData = async payload => {
     console.log('Submit Payload:', payload)
-    setOpenDrawer(false)
+
+    try {
+      setSubmitLoader(true)
+
+      let response
+      if (editParams?.id !== null) {
+        response = await updateRoomsAndEnclosures(editParams.id, payload)
+      } else {
+        response = await addRoomsAndEnclosures(payload)
+      }
+      if (response?.success) {
+        setResetForm(true)
+        toast.success(response.message)
+
+        await fetchTableData({
+          page: paginationModel.page,
+          limit: paginationModel.pageSize
+        })
+      } else {
+        toast.error(response?.message)
+      }
+    } catch (error) {
+      console.error('Submit Error:', error)
+      toast.error('An unexpected error occurred')
+    } finally {
+      setSubmitLoader(false)
+      setOpenDrawer(false)
+    }
   }
 
   const addEventSidebarOpen = () => {
@@ -245,6 +297,47 @@ const RoomsAndEnclosures = () => {
 
   const handleSidebarClose = () => {
     setOpenDrawer(false)
+  }
+
+  const handleDeleteDialogOpen = row => {
+    setDeleteDialog(true)
+    setSelectedItemToDelete(row)
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialog(false)
+    setDeleteLoading(false)
+    setSelectedItemToDelete(null)
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
+  }
+
+  const confirmDeleteAction = async () => {
+    try {
+      setDeleteLoading(true)
+
+      const payLoad = { hospital_id: 1, bed_id: selectedItemToDelete?.id }
+      const response = await deleteRoomsAndEnclosures(payLoad)
+      if (response?.success) {
+        await fetchTableData({
+          page: paginationModel.page,
+          limit: paginationModel.pageSize
+        })
+
+        handleCloseDeleteDialog()
+        toast.success(response.message)
+      } else {
+        toast.error(response?.message)
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      toast.error('An error occurred while deleting.')
+    } finally {
+      setDeleteLoading(false)
+    }
   }
 
   return (
@@ -349,26 +442,44 @@ const RoomsAndEnclosures = () => {
 
         {/* Table */}
         <CommonTable
-          columns={columns}
           loading={loading}
-          indexedRows={filteredRows}
+          columns={columns}
+          indexedRows={indexedRows}
+          total={total}
           rowHeight={60}
-          total={filteredRows.length}
-          paginationModel={paginationModel}
-          setPaginationModel={setPaginationModel}
           searchValue={searchValue}
+          paginationModel={paginationModel}
+          setPaginationModel={handlePaginationChange}
         />
       </Card>
 
       {/* Drawer */}
-      <AddEnclosures
-        addEventSidebarOpen={openDrawer}
-        handleSidebarClose={handleSidebarClose}
-        handleSubmitData={handleSubmitData}
-        resetForm={resetForm}
-        submitLoader={submitLoader}
-        editParams={editParams}
-      />
+      {openDrawer && (
+        <AddEnclosures
+          addEventSidebarOpen={openDrawer}
+          handleSidebarClose={handleSidebarClose}
+          handleSubmitData={handleSubmitData}
+          resetForm={resetForm}
+          submitLoader={submitLoader}
+          editParams={editParams}
+        />
+      )}
+      {/* delete  */}
+      {deleteDialog && (
+        <ConfirmationDialog
+          dialogBoxStatus={deleteDialog}
+          onClose={handleCloseDeleteDialog}
+          title={'Delete Enclosure?'}
+          cancelText={'CANCEL'}
+          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          confirmAction={confirmDeleteAction}
+          loading={deleteLoading}
+          ConfirmationText={'DELETE'}
+          description={'Are you sure you want to permanently delete this Enclosure?'}
+        />
+      )}
     </>
   )
 }

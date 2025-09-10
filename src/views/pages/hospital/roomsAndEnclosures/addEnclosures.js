@@ -1,5 +1,7 @@
+import React, { useContext, useEffect } from 'react'
+
 // ** MUI Imports
-import { useTheme, Card, Typography, IconButton, Drawer, Box } from '@mui/material'
+import { useTheme, Card, Typography, IconButton, Drawer, Box, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
 // ** Custom Core Components
@@ -11,29 +13,44 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
 
 // ** Custom Form Components
-import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+
+import { AuthContext } from 'src/context/AuthContext'
 
 const schema = yup.object().shape({
-  area: yup.object().nullable().required('Area / Zone is required'),
+  // site_id: yup.string().required('Site name is required'),
 
-  floor: yup.object().nullable().required('Floor is required'),
-
-  enclosure: yup.string().required('Enclosure name is required'),
-
-  occupancy: yup.object().nullable().required('Occupancy status is required')
+  site_id: yup
+    .object()
+    .shape({
+      site_id: yup.string().required('Site ID is required'),
+      site_name: yup.string().required('Site Name is required')
+    })
+    .required('Site is required'),
+  bed_name: yup.string().trim().required('Enclosure name is required'),
+  prefix: yup.string().trim().required('Bed code is required'),
+  no_of_bed: yup
+    .number()
+    .typeError('Number of beds must be a number')
+    .required('Number of beds is required')
+    .positive('Number of beds must be greater than zero')
+    .integer('Number of beds must be an integer')
 })
 
 const defaultValues = {
-  area: null,
-  floor: null,
-  enclosure: '',
-  occupancy: null
+  site_id: null,
+  bed_name: '',
+  prefix: '',
+  no_of_bed: ''
 }
 
 const AddEnclosures = props => {
-  const { addEventSidebarOpen, handleSidebarClose, submitLoader, editParams, drawerWidth = 500 } = props
+  const { addEventSidebarOpen, handleSidebarClose, submitLoader, editParams, handleSubmitData, resetForm } = props
   const theme = useTheme()
+
+  const authData = useContext(AuthContext)
+  const sitesList = authData?.userData?.user?.zoos[0]?.sites
 
   const {
     reset,
@@ -48,16 +65,40 @@ const AddEnclosures = props => {
     reValidateMode: 'onChange'
   })
 
-  const onSubmit = async params => {
-    console.log('data submitted', params)
+  // add enclosures
+  const onSubmit = async data => {
+    console.log('check', data?.site_id?.site_id)
+    console.log('check', data)
+
+    try {
+      const payLoad = {
+        hospital_id: 1,
+        site_id: data?.site_id?.site_id,
+        bed_name: data?.bed_name,
+        prefix: data?.prefix,
+        no_of_bed: data?.no_of_bed
+      }
+      await handleSubmitData(payLoad)
+    } catch (error) {
+      console.error('Error submitting form:', error)
+    }
   }
+
+  // Reset form on open/edit
+  useEffect(() => {
+    if (editParams?.id !== null) {
+      reset(editParams)
+    } else if (resetForm) {
+      reset(defaultValues)
+    }
+  }, [resetForm, editParams, reset])
 
   return (
     <Drawer
       anchor='right'
       open={addEventSidebarOpen}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] } }}
     >
       <Box
         className='sidebar-header'
@@ -78,8 +119,8 @@ const AddEnclosures = props => {
         <IconButton
           size='small'
           onClick={() => {
-            handleSidebarClose()
             reset(defaultValues)
+            handleSidebarClose()
           }}
           sx={{ color: theme.palette.text.primary }}
         >
@@ -98,44 +139,49 @@ const AddEnclosures = props => {
       >
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
           <Card sx={{ p: theme => theme.spacing(6) }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <ControlledSelect
-                control={control}
-                name={'area'}
-                errors={errors}
-                label={'Select Area / Zone*'}
-                options={[]}
-                getOptionLabel={option => option.label}
-                getOptionValue={option => option.value}
-              />
-              <ControlledSelect
-                control={control}
-                name={'floor'}
-                errors={errors}
-                label={'Enter Floor*'}
-                options={[]}
-                getOptionLabel={option => option.label}
-                getOptionValue={option => option.value}
-              />
-              <ControlledTextField
-                control={control}
-                errors={errors}
-                label={'Enter Enclosure name*'}
-                name={'enclosure'}
-                placeholder={'Enter Enclosure name'}
-                fullWidth
-              />
-
-              <ControlledSelect
-                control={control}
-                name={'occupancy'}
-                errors={errors}
-                label={'Enclosure Occupancy Status*'}
-                options={[]}
-                getOptionLabel={option => option.label}
-                getOptionValue={option => option.value}
-              />
-            </Box>
+            <Grid container spacing={6}>
+              <Grid size={{ xs: 12 }}>
+                <ControlledAutocomplete
+                  control={control}
+                  name={'site_id'}
+                  errors={errors}
+                  label={'Site Name*'}
+                  options={sitesList}
+                  getOptionLabel={option => option?.site_name || ''}
+                  isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <ControlledTextField
+                  name={'bed_name'}
+                  control={control}
+                  errors={errors}
+                  label={'Enter Enclosure name*'}
+                  placeholder={'Enter Enclosure name'}
+                  fullWidth
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <ControlledTextField
+                  name={'prefix'}
+                  control={control}
+                  errors={errors}
+                  label={'Bed code*'}
+                  placeholder={'Enter Bed code'}
+                  fullWidth
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <ControlledTextField
+                  name={'no_of_bed'}
+                  control={control}
+                  errors={errors}
+                  label={'Number of Beds*'}
+                  placeholder={'Enter Number of Beds'}
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
           </Card>
           {/* Footer button */}
           <Box
