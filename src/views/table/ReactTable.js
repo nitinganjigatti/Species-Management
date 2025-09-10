@@ -96,13 +96,15 @@ const MemoBodyRow = React.memo(
     selectionEnabled,
     isRowSelected,
     toggleRowCheckbox,
-    checkboxSX
+    checkboxSX,
+    setRowRef // <-- NEW (attach DOM ref)
   }) {
     const pageRows = row?.table?.getRowModel?.().rows || []
     const isLastRow = row.index === pageRows.length - 1
 
     return (
       <TableRow
+        ref={el => setRowRef?.(row.index, el)} // <-- attach
         key={row.id}
         onClick={() => onRowClick?.(row.original)}
         sx={{
@@ -239,6 +241,12 @@ const ReactTable = ({
   const theme = useTheme()
   const tableContainerRef = useRef(null)
 
+  // --- NEW: stable row refs map (by page index) ---
+  const rowRefs = useRef({})
+  const setRowRef = useCallback((idx, el) => {
+    rowRefs.current[idx] = el
+  }, [])
+
   const getDefaultPinningFromColumns = useCallback(cols => {
     const left = []
     const right = []
@@ -264,7 +272,6 @@ const ReactTable = ({
     [rowSelection, selectionPinned]
   )
 
-  const rowRefs = useRef([])
   const userChangedPinningRef = useRef(false)
 
   // ---- State ----
@@ -443,12 +450,8 @@ const ReactTable = ({
   // ---------- ✅ UNIQUE ROW IDS ----------
   const getRowUniqueId = useCallback(
     (originalRow, index) => {
-      // Best: unique from data
       const raw = originalRow?.[rowIdKey] ?? originalRow?._id ?? originalRow?.id ?? null
-
       const base = raw !== null && raw !== undefined && raw !== '' ? String(raw) : `__auto_idx_${index}`
-
-      // Server-side/external slicing fallback: compose absolute index for uniqueness
       if (serverSide) {
         const absIndex = paginationModel.page * paginationModel.pageSize + index
         return `${base}__pg_${absIndex}`
@@ -470,80 +473,68 @@ const ReactTable = ({
     manualSorting: serverSide,
     pageCount: serverSide ? Math.ceil(rowCount / paginationModel.pageSize) : undefined,
     enableColumnPinning: true,
-
     getRowId: getRowUniqueId,
-
     enableRowSelection: rowSelection,
-
-    // controlled state
     state: {
-      pagination: {
-        pageIndex: paginationModel.page,
-        pageSize: paginationModel.pageSize
-      },
+      pagination: { pageIndex: paginationModel.page, pageSize: paginationModel.pageSize },
       columnPinning,
       rowSelection: rowSelectionState
     },
-
     onPaginationChange: updater => {
       const newPagination =
         typeof updater === 'function'
           ? updater({ pageIndex: paginationModel.page, pageSize: paginationModel.pageSize })
           : updater
-      onPaginationModelChange({
-        page: newPagination.pageIndex,
-        pageSize: newPagination.pageSize
-      })
+      onPaginationModelChange({ page: newPagination.pageIndex, pageSize: newPagination.pageSize })
     },
-
     onColumnPinningChange: updater => {
       userChangedPinningRef.current = true
       setColumnPinning(old => (typeof updater === 'function' ? updater(old) : updater))
     },
-
     onRowSelectionChange: setRowSelectionState
   })
 
-  // ---------- ❌ NO PRUNING ----------
-  // We keep rowSelectionState as a global bag of selected IDs.
-  // This preserves selection across pages and matches the TanStack example behavior.
-
-  // (Optional) Notify parent:
-  // useEffect(() => {
-  //   if (!rowSelection) return
-  //   const ids = Object.keys(rowSelectionState).filter(k => rowSelectionState[k])
-  //   onRowSelect(ids)
-  // }, [rowSelectionState, rowSelection, onRowSelect])
-
-  // ---- Dynamic height ----
+  // ---- Dynamic height with REAL measurements ----
   const hasSubHeader = processedColumns.some(
     col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
   )
-
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
     currentRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
   )
 
   useEffect(() => {
-    rowRefs.current = []
-    const pageRows = table.getRowModel().rows || []
-    const visibleCount = Math.min(currentRowsInView, pageRows.length)
-    const visibleRows = rowRefs.current.slice(0, visibleCount)
+    // wait for paint to ensure DOM sizes are accurate
+    const id = requestAnimationFrame(() => {
+      const pageRows = table.getRowModel().rows || []
+      const visibleCount = Math.min(currentRowsInView, pageRows.length)
 
-    let rowsBlockHeight = 0
-    const first = visibleRows[0]
-    const last = visibleRows[visibleRows.length - 1]
+      // pick first & last visible row (by page index)
+      const firstIdx = pageRows[0]?.index
+      const lastIdx = pageRows[Math.max(0, visibleCount - 1)]?.index
 
-    if (first && last) {
-      const firstTop = first.offsetTop || 0
-      const lastBottom = (last.offsetTop || 0) + (last.offsetHeight || rowHeight)
-      rowsBlockHeight = lastBottom - firstTop
-    } else {
-      rowsBlockHeight = visibleCount * rowHeight
-    }
+      const firstEl = firstIdx != null ? rowRefs.current[firstIdx] : null
+      const lastEl = lastIdx != null ? rowRefs.current[lastIdx] : null
 
-    const height = rowsBlockHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
-    setDynamicTableHeight(height)
+      // actual header height from THEAD (fallback to prop)
+      const headEl = tableContainerRef.current?.querySelector('thead')
+      const actualHeaderH = headEl?.offsetHeight ?? headerHeight
+
+      const subHeaderH = hasSubHeader ? subHeaderHeight : 0
+
+      let rowsBlockHeight
+      if (firstEl && lastEl) {
+        const firstTop = firstEl.offsetTop || 0
+        const lastBottom = (lastEl.offsetTop || 0) + (lastEl.offsetHeight || rowHeight)
+        rowsBlockHeight = lastBottom - firstTop
+      } else {
+        rowsBlockHeight = visibleCount * rowHeight
+      }
+
+      const fudge = 0 // borders/scrollbar rounding
+      setDynamicTableHeight(actualHeaderH + subHeaderH + rowsBlockHeight + fudge)
+    })
+
+    return () => cancelAnimationFrame(id)
   }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader])
 
   // ---- Column menu ----
@@ -655,7 +646,8 @@ const ReactTable = ({
 
   // ---- Body ----
   const renderTableBody = () => {
-    rowRefs.current = []
+    // reset refs for current render
+    rowRefs.current = {}
 
     if (loading && !hasData) {
       return (
@@ -685,6 +677,7 @@ const ReactTable = ({
         isRowSelected={!!rowSelectionState[row.id]}
         toggleRowCheckbox={handleRowCheckboxChange}
         checkboxSX={checkboxSX}
+        setRowRef={setRowRef} // <-- pass setter
       />
     ))
   }
@@ -796,7 +789,9 @@ const ReactTable = ({
         component={Paper}
         sx={{
           borderRadius: '8px !important',
-          height: loading && !hasData ? loadingHeight : dynamicTableHeight,
+          height: loading && !hasData ? loadingHeight : dynamicTableHeight, // exact height
+          minHeight: headerHeight + rowHeight + 8,
+          // boxSizing: 'content-box', // borders shouldn't steal space
           position: 'relative',
           border: '1px solid #ddd',
           overflowX: 'auto',
