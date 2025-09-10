@@ -102,11 +102,23 @@ const MemoBodyRow = React.memo(
     const pageRows = row?.table?.getRowModel?.().rows || []
     const isLastRow = row.index === pageRows.length - 1
 
+    // Fire before children stop propagation; ignore interactive/marked elements
+    const handleRowClickCapture = useCallback(
+      e => {
+        const block = e.target.closest(
+          '[data-no-rowclick],button,a,[role="button"],input,textarea,select,[contenteditable="true"]'
+        )
+        if (block) return
+        onRowClick?.(row.original)
+      },
+      [onRowClick, row.original]
+    )
+
     return (
       <TableRow
         ref={el => setRowRef?.(row.index, el)} // <-- attach
         key={row.id}
-        onClick={() => onRowClick?.(row.original)}
+        onClickCapture={handleRowClickCapture}
         sx={{
           cursor: onRowClick ? 'pointer' : 'default',
           '&:hover': { backgroundColor: theme.palette.action?.hover || '#f5f5f5' },
@@ -144,7 +156,12 @@ const MemoBodyRow = React.memo(
 
           if (selectionEnabled && column.id === '_select') {
             return (
-              <TableCell key={cell.id} sx={baseSx} onClick={e => e.stopPropagation()}>
+              <TableCell
+                data-no-rowclick // <- mark this cell so row click ignores it
+                key={cell.id}
+                sx={baseSx}
+                onClick={e => e.stopPropagation()}
+              >
                 <MemoSelectionCell
                   selected={isRowSelected}
                   indeterminate={row.getIsSomeSelected?.() || false}
