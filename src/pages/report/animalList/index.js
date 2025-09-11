@@ -794,7 +794,7 @@ const AnimalList = () => {
               </Box>
               <Box sx={{ width: '100%', p: 5 }}>
                 <StickyTable
-                  rows={reportRows.length && reportRows}
+                  rows={reportRows?.length ? reportRows : []}
                   rowCount={total}
                   rowHeight={86}
                   headerHeight={47}
