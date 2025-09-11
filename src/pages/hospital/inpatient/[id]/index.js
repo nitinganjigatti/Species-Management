@@ -49,7 +49,8 @@ const InpatientDetails = () => {
   const router = useRouter()
   const theme = useTheme()
 
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+
   const [anchorEl, setAnchorEl] = useState(null)
   const openMenu = Boolean(anchorEl)
 
@@ -150,42 +151,42 @@ const InpatientDetails = () => {
         <PatientCard patientId={id} />
         <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            {isSmallScreen ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <IconButton
-                  size='large'
-                  edge='start'
-                  color='inherit'
-                  aria-label='menu'
-                  onClick={handleMenuOpen}
-                  sx={{ mb: 1 }}
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={openMenu}
-                  onClose={handleMenuClose}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                  slotProps={{
-                    paper: {
-                      sx: {
-                        maxHeight: '60vh',
-                        overflowY: 'auto',
-                        maxWidth: '70vw',
-                        width: '70vw'
-                      }
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconButton
+                size='large'
+                edge='start'
+                color='inherit'
+                aria-label='menu'
+                onClick={handleMenuOpen}
+                sx={{ mb: 1 }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={openMenu}
+                onClose={handleMenuClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      maxHeight: '60vh',
+                      overflowY: 'auto',
+                      maxWidth: { xs: '70vw', sm: '40vw', md: '30vw' },
+                      width: { xs: '70vw', sm: '40vw', md: '30vw' }
                     }
-                  }}
-                >
+                  }
+                }}
+              >
+                {isSmallScreen && (
                   <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'flex-end',
                       alignItems: 'center',
                       p: 1,
-                      borderBottom: '1px solid #e0e0e0',
+                      borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       position: 'sticky',
                       top: 0,
                       backgroundColor: 'background.paper',
@@ -196,43 +197,33 @@ const InpatientDetails = () => {
                       <CloseIcon />
                     </IconButton>
                   </Box>
-                  {tabConfig.map(tab => (
-                    <MenuItem
-                      key={tab.value}
-                      onClick={() => {
-                        setSelectedTab(tab.value)
-                        handleMenuClose()
-                      }}
-                    >
-                      <Tooltip title={tab.label} arrow placement='top'>
-                        <Typography
-                          sx={{
-                            color: theme.palette.customColors.OnSurfaceVarient,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 1,
-                            WebkitBoxOrient: 'vertical'
-                          }}
-                        >
-                          {tab.label}
-                        </Typography>
-                      </Tooltip>
-                    </MenuItem>
-                  ))}
-                </Menu>
+                )}
+                {tabConfig.map(tab => (
+                  <MenuItem
+                    key={tab.value}
+                    onClick={() => {
+                      setSelectedTab(tab.value)
+                      handleMenuClose()
+                    }}
+                  >
+                    <Tooltip title={tab.label} arrow placement='top'>
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVarient,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 1,
+                          WebkitBoxOrient: 'vertical'
+                        }}
+                      >
+                        {tab.label}
+                      </Typography>
+                    </Tooltip>
+                  </MenuItem>
+                ))}
+              </Menu>
 
-                <Tabs
-                  value={selectedTab}
-                  onChange={handleTabChange}
-                  variant='scrollable'
-                  scrollButtons='auto'
-                  aria-label={`Inpatient details tabs`}
-                >
-                  {tabElements}
-                </Tabs>
-              </Box>
-            ) : (
               <Tabs
                 value={selectedTab}
                 onChange={handleTabChange}
@@ -242,7 +233,7 @@ const InpatientDetails = () => {
               >
                 {tabElements}
               </Tabs>
-            )}
+            </Box>
           </Box>
           <Box role='tabpanel' aria-label={`${selectedLabel} content`}>
             <Suspense fallback={<TabContentLoader />}>
