@@ -1,5 +1,16 @@
 import { yupResolver } from '@hookform/resolvers/yup'
-import { Box, Breadcrumbs, Button, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
+import {
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Grid,
+  IconButton,
+  Skeleton,
+  Typography
+} from '@mui/material'
 import { alpha, useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
@@ -12,7 +23,10 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from './DoctorsDrawer'
-import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import { admitHospitalPatient, getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import { getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
+import Toaster from 'src/components/Toaster'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -30,18 +44,7 @@ const getVisitTypeLabel = title => {
 
 const defaultValues = {
   treatmentType: 'inpatient',
-  chiefDoctor: '',
-  holdingEnclosure: ''
-}
-
-const animalData = {
-  sex: 'male',
-  animal_id: '6666/66',
-  common_name: 'Leopard',
-  scientific_name: 'Panthera pardus',
-  user_enclosure_name: 'Enclosure 4',
-  section_name: 'Leopard section',
-  site_name: 'Feline site'
+  holdingEnclosure: null
 }
 
 const schema = yup.object().shape({})
@@ -65,12 +68,12 @@ const PatientAdmitForm = () => {
     reValidateMode: 'onChange'
   })
 
-  const [doctors, setDoctors] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
-  const [selectedDoctor, setSelectedDoctor] = useState({})
+  const [selectedDoctor, setSelectedDoctor] = useState(null)
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
 
   useEffect(() => {
     const getPatientInfo = async () => {
@@ -94,8 +97,56 @@ const PatientAdmitForm = () => {
     getPatientInfo()
   }, [id])
 
-  const onSubmit = data => {
-    console.log(data)
+  useEffect(() => {
+    const getHospitalBeds = async () => {
+      try {
+        await getRoomsAndEnclosures({
+          hospital_id: 1,
+          page: 1
+        }).then(res => {
+          if (res?.success === true) {
+            setHoldingEnclosures(
+              res?.data?.records.map(item => {
+                return {
+                  label: item?.bed_name,
+                  value: item?.id
+                }
+              })
+            )
+          }
+        })
+      } catch (error) {
+        console.error(error, 'cannot Fetch hospital beds listing')
+      }
+    }
+
+    getHospitalBeds()
+  }, [])
+
+  const onSubmit = async data => {
+    setSubmitLoader(true)
+    try {
+      const params = {
+        treatment_type: data?.treatmentType,
+        attend_by: selectedDoctor?.id,
+        holding_enclosure: data?.holdingEnclosure?.value,
+        hospital_case_id: patientData?.hospital_case_id
+      }
+      await admitHospitalPatient(params).then(res => {
+        if (res?.success === true) {
+          Toaster({ type: 'success', message: res?.message })
+          router.push({
+            pathname: `/hospital/inpatient`
+          })
+        } else {
+          Toaster({ type: 'error', message: res?.message })
+          setSubmitLoader(false)
+        }
+      })
+    } catch (error) {
+      console.error(error, 'Cannot Admit Patient')
+      setSubmitLoader(false)
+    }
   }
 
   const headerTitle = (
@@ -133,23 +184,28 @@ const PatientAdmitForm = () => {
                   height: 'auto'
                 }}
               >
-                <AnimalCard
-                  data={{
-                    default_icon: patientData?.animal_detail?.default_icon,
-                    sex: patientData?.animal_detail?.sex,
-                    type: patientData?.animal_detail?.type,
-                    local_identifier_name: patientData?.animal_detail?.local_identifier_name,
-                    local_identifier_value: patientData?.animal_detail?.local_identifier_value,
-                    animal_id: patientData?.animal_detail?.animal_id,
-                    common_name: patientData?.animal_detail?.common_name,
-                    scientific_name: patientData?.animal_detail?.scientific_name,
-                    age: patientData?.animal_detail?.age,
-                    site_name: patientData?.animal_detail?.site_name,
-                    section_name: patientData?.animal_detail?.section_name,
-                    user_enclosure_name: patientData?.animal_detail?.user_enclosure_name
-                  }}
-                />
+                {patientLoading ? (
+                  <Skeleton variant='rectangular' height={150} />
+                ) : (
+                  <AnimalCard
+                    data={{
+                      default_icon: patientData?.animal_detail?.default_icon,
+                      sex: patientData?.animal_detail?.sex,
+                      type: patientData?.animal_detail?.type,
+                      local_identifier_name: patientData?.animal_detail?.local_identifier_name,
+                      local_identifier_value: patientData?.animal_detail?.local_identifier_value,
+                      animal_id: patientData?.animal_detail?.animal_id,
+                      common_name: patientData?.animal_detail?.common_name,
+                      scientific_name: patientData?.animal_detail?.scientific_name,
+                      age: patientData?.animal_detail?.age,
+                      site_name: patientData?.animal_detail?.site_name,
+                      section_name: patientData?.animal_detail?.section_name,
+                      user_enclosure_name: patientData?.animal_detail?.user_enclosure_name
+                    }}
+                  />
+                )}
               </Grid>
+
               <Grid
                 size={{ xs: 12, md: 8, sm: 7 }}
                 sx={{
@@ -160,37 +216,47 @@ const PatientAdmitForm = () => {
                   borderBottomRightRadius: '8px'
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: '16px',
-                    fontWeight: 500,
-                    color: theme.palette.customColors.OnPrimaryContainer,
-                    mb: 3
-                  }}
-                >
-                  Purpose of visit
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2.5 }}>
-                    <MedicalIdChip
-                      medId={'MED - 12345/22'}
-                      backgroundColor={theme.palette.customColors.mdAntzNeutral}
-                    />
-                    <VisitType title={getVisitTypeLabel(patientData?.visit_type)} />
-                  </Box>
-                  <Typography
-                    sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnPrimaryContainer }}
-                  >
-                    {patientData?.purpose_of_visit}
-                  </Typography>
-                  <UserAvatarDetails
-                    user_name={patientData?.created_by_full_name}
-                    date={patientData?.created_at}
-                    show_time
-                    size='medium'
-                    profile_image={patientData?.created_by_profile_pic}
-                  />
-                </Box>
+                {patientLoading ? (
+                  <>
+                    <Skeleton variant='text' width={120} height={32} />
+                    <Skeleton variant='rectangular' height={60} sx={{ mt: 2, mb: 2 }} />
+                    <Skeleton variant='circular' width={40} height={40} />
+                  </>
+                ) : (
+                  <>
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        color: theme.palette.customColors.OnPrimaryContainer,
+                        mb: 3
+                      }}
+                    >
+                      Purpose of visit
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2.5 }}>
+                        <MedicalIdChip
+                          medId={patientData?.medical_record_code}
+                          backgroundColor={theme.palette.customColors.mdAntzNeutral}
+                        />
+                        <VisitType title={getVisitTypeLabel(patientData?.visit_type)} />
+                      </Box>
+                      <Typography
+                        sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnPrimaryContainer }}
+                      >
+                        {patientData?.purpose_of_visit}
+                      </Typography>
+                      <UserAvatarDetails
+                        user_name={patientData?.created_by_full_name}
+                        date={patientData?.created_at}
+                        show_time
+                        size='medium'
+                        profile_image={patientData?.created_by_profile_pic}
+                      />
+                    </Box>
+                  </>
+                )}
               </Grid>
             </Grid>
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -259,31 +325,62 @@ const PatientAdmitForm = () => {
                       >
                         Attending chief doctor
                       </Typography>
-                      <Box
-                        sx={{
-                          background: theme.palette.customColors.Surface,
-                          borderRadius: 1,
-                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                          p: 3,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          minHeight: '56px',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => setDoctorDrawerOpen(true)}
-                      >
-                        <Typography
-                          sx={{ fontSize: '1rem', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
+                      {selectedDoctor === null ? (
+                        <Box
+                          sx={{
+                            background: theme.palette.customColors.Surface,
+                            borderRadius: 1,
+                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                            p: 3,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            minHeight: '56px',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => setDoctorDrawerOpen(true)}
                         >
-                          Select doctor
-                        </Typography>
-                        <Icon
-                          icon='mdi:chevron-down'
-                          fontSize={24}
-                          color={theme.palette.customColors.OnSurfaceVariant}
-                        />
-                      </Box>
+                          <Typography
+                            sx={{
+                              fontSize: '1rem',
+                              fontWeight: 400,
+                              color: theme.palette.customColors.OnSurfaceVariant
+                            }}
+                          >
+                            Select doctor
+                          </Typography>
+                          <Icon
+                            icon='mdi:chevron-down'
+                            fontSize={24}
+                            color={theme.palette.customColors.OnSurfaceVariant}
+                          />
+                        </Box>
+                      ) : (
+                        <>
+                          <Box
+                            sx={{
+                              background: theme.palette.customColors.OnPrimary,
+                              borderRadius: 1,
+                              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              px: 3,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              minHeight: '56px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <UserAvatarDetails
+                              profile_image={selectedDoctor?.default_icon}
+                              user_name={selectedDoctor?.name}
+                              role={selectedDoctor?.role_name}
+                            />
+                            <IconButton onClick={() => setSelectedDoctor(null)}>
+                              <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
+                            </IconButton>
+                          </Box>
+                        </>
+                      )}
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -291,13 +388,17 @@ const PatientAdmitForm = () => {
                       >
                         Holding enclosure
                       </Typography>
-                      <ControlledSelect
+                      <ControlledAutocomplete
+                        name='holdingEnclosure'
+                        label='Select area/cell/enclosure'
                         control={control}
-                        name={'holdingEnclosure'}
                         errors={errors}
-                        label={'Select area/cell/enclosure'}
                         options={holdingEnclosures}
+                        getOptionLabel={option => option.label || ''}
+                        isOptionEqualToValue={(option, value) => option.value === value?.value}
+                        required
                         sx={{ background: theme.palette.customColors.Surface }}
+                        fullWidth
                       />
                     </Grid>
                   </Grid>
@@ -333,12 +434,19 @@ const PatientAdmitForm = () => {
           <Button
             variant='contained'
             sx={{ backgroundColor: theme.palette.primary.main, px: 4, py: '9px', borderRadius: 0.5 }}
+            onClick={handleSubmit(onSubmit)}
           >
             ADMIT
           </Button>
         </Box>
       </Box>
-      {doctorDrawerOpen && <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} doctors={doctors} />}
+      {doctorDrawerOpen && (
+        <DoctorsDrawer
+          open={doctorDrawerOpen}
+          setOpen={setDoctorDrawerOpen}
+          onSelectDoctor={doctor => setSelectedDoctor(doctor)}
+        />
+      )}
     </>
   )
 }

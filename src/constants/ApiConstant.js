@@ -697,3 +697,9 @@ export const GET_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/list'
 export const CREATE_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/create'
 
 export const DELETE_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/delete'
+
+export const ADMIT_HOSPITAL_PATIENT = `v1/hospital/admit`
+
+export const ANIMAL_MEDICAL_ID_LIST = `medical/v2/`
+
+export const ADD_HOSPITAL_PATIENT = `/v1/hospital/create-transfer`

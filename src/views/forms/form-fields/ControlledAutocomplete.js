@@ -1,6 +1,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import { Autocomplete, TextField, FormControl } from '@mui/material'
+import { Autocomplete, TextField, FormControl, FormHelperText } from '@mui/material'
 import get from 'lodash/get'
 
 const ControlledAutocomplete = ({
@@ -16,6 +16,7 @@ const ControlledAutocomplete = ({
   onKeyUp = () => {},
   onItemClear = () => {},
   onBlur = () => {},
+  onInputChange = () => {},
   getOptionLabel = option => option.label || '',
   isOptionEqualToValue = (option, value) => option.value === value?.value,
   renderOption = null,
@@ -48,6 +49,11 @@ const ControlledAutocomplete = ({
                 onItemClear()
               }
             }}
+            onInputChange={(e, value, reason) => {
+              if (reason === 'input') {
+                onInputChange(value)
+              }
+            }}
             onKeyUp={onKeyUp}
             onBlur={onBlur}
             loading={loading}
@@ -61,7 +67,6 @@ const ControlledAutocomplete = ({
                 label={label}
                 placeholder='Search & Select'
                 error={Boolean(fieldError)}
-                helperText={fieldError?.value?.message || fieldError?.label?.message || fieldError?.message}
                 {...textFieldProps}
                 slotProps={{
                   ...textFieldProps.slotProps,
@@ -97,6 +102,7 @@ const ControlledAutocomplete = ({
           />
         )}
       />
+      {fieldError && <FormHelperText>{fieldError?.message}</FormHelperText>}
     </FormControl>
   )
 }

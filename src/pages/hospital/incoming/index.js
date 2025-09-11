@@ -291,7 +291,6 @@ const HospitalIncoming = () => {
             columns={columns}
             indexedRows={indexedRows}
             total={total}
-            pageSizeOptions={[10]}
             loading={isFetching}
             paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
             setPaginationModel={handlePaginationModelChange}
