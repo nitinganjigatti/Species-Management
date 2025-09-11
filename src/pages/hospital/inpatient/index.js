@@ -1,5 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
+import { minWidth } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
@@ -267,6 +268,34 @@ const HospitalInpatient = () => {
       renderCell: params => (
         <>
           <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
+        </>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'holding_enclosure_name',
+      sortable: false,
+      headerName: 'Location',
+      renderCell: params => (
+        <>
+          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
+            {params?.row?.holding_enclosure_name}
+          </Typography>
+        </>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'doctor_full_name',
+      sortable: false,
+      headerName: 'Chief Doctor',
+      renderCell: params => (
+        <>
+          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
+            {params?.row?.doctor_full_name}
+          </Typography>
         </>
       )
     }

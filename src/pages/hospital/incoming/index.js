@@ -21,10 +21,8 @@ const visitTypeOptions = [
 const getVisitTypeLabel = title => {
   if (title === 'checkup') return 'Check up'
   if (title === 'emergency') return 'Emergency'
-  if (title === 'followup') return 'Follow-up'
+  if (title === 'follow_up') return 'Follow-up'
   if (title === 'outpatient') return 'OUTPATIENT'
-  if (title === 'inpatient') return 'INPATIENT'
-  if (title === 'planned') return 'Planned'
 }
 
 const HospitalIncoming = () => {
@@ -52,7 +50,7 @@ const HospitalIncoming = () => {
     setSearchValue(q)
   }, [router.query])
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, refetch } = useQuery({
     queryKey: ['incoming-patients', filters, selectedVisitType],
     queryFn: () =>
       getIncomingPatients({
@@ -62,8 +60,14 @@ const HospitalIncoming = () => {
         hospital_id: 1,
         status: 'pending',
         visit_type: selectedVisitType
-      })
+      }),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   })
+
+  useEffect(() => {
+    refetch()
+  }, [refetch])
 
   const total = data?.data?.total || 0
   const rows = data?.data?.records || []
@@ -114,7 +118,7 @@ const HospitalIncoming = () => {
 
   const indexedRows = rows.map((row, index) => ({
     ...row,
-    id: +row?.id,
+    id: +row?.hospital_case_id,
     sl_no: getSlNo(index)
   }))
 

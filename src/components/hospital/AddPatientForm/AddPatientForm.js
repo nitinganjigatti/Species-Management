@@ -9,7 +9,8 @@ import {
   Button,
   alpha,
   IconButton,
-  useTheme
+  useTheme,
+  CircularProgress
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
@@ -30,6 +31,7 @@ import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import { getAnimalMedicalIds } from 'src/lib/api/hospital/hospitalMaster'
 import { addHospitalPatient } from 'src/lib/api/hospital/inpatient'
 import { debounce } from 'lodash'
+import Toaster from 'src/components/Toaster'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -37,7 +39,9 @@ const defaultValues = {
   visitType: '',
   medicalRecordId: '',
   holdingEnclosure: null,
-  medicalRecordChoice: 'new'
+  medicalRecordChoice: 'new',
+  selectedAnimal: null, // Add to form state
+  selectedDoctor: null // Add to form state
 }
 
 const treatmentType = [
@@ -58,6 +62,7 @@ const visitTypes = [
   { label: 'Follow up', value: 'follow_up' }
 ]
 
+// Updated schema to validate form fields directly
 const schema = yup.object().shape({
   treatmentType: yup.string().required('Treatment Type is Required'),
   purposeOfVisit: yup.string().required('Purpose of Visit is Required'),
@@ -67,26 +72,14 @@ const schema = yup.object().shape({
     then: schema => schema.required('Medical id is required'),
     otherwise: schema => schema.notRequired()
   }),
-  holdingEnclosure: yup.object().required('Holding Enclosure is required')
+  holdingEnclosure: yup.object().required('Holding Enclosure is required'),
+  selectedAnimal: yup.mixed().nullable().required('Animal selection is required'),
+  selectedDoctor: yup.mixed().nullable().required('Doctor selection is required')
 })
 
 const AddPatientForm = () => {
   const theme = useTheme()
   const router = useRouter()
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    setValue
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onChange',
-    reValidateMode: 'onChange'
-  })
 
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
@@ -97,6 +90,22 @@ const AddPatientForm = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [search, setSearch] = useState('')
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+    trigger,
+    clearErrors
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onChange',
+    reValidateMode: 'onChange'
+  })
+
   const watchMedicalChoice = watch('medicalRecordChoice')
 
   useEffect(() => {
@@ -106,7 +115,7 @@ const AddPatientForm = () => {
           hospital_id: 1,
           page: 1,
           per_page: 20,
-          search // ✅ pass search term if API supports it
+          search
         }).then(res => {
           if (res?.success === true) {
             setHoldingEnclosures(
@@ -147,15 +156,22 @@ const AddPatientForm = () => {
       }
     }
 
-    getAnimalIds()
+    if (selectedAnimal?.animal_id) {
+      getAnimalIds()
+    }
   }, [selectedAnimal?.animal_id])
 
   const onSubmit = async data => {
-    console.log(data, 'formData')
+    const valid = await trigger()
+    if (!valid) {
+      setSubmitLoader(false)
+
+      return
+    }
     setSubmitLoader(true)
     try {
       const params = {
-        entity_items: [JSON.stringify(selectedAnimal?.animal_id)],
+        entity_items: JSON.stringify([selectedAnimal?.animal_id]),
         source_id: selectedAnimal?.enclosure_id,
         source_type: 'enclosure',
         destination_id: '1', //Later change to hospital id
@@ -171,15 +187,47 @@ const AddPatientForm = () => {
         ref_type: 'medical_record',
         ref_id: data?.medicalRecordId,
         source_site_id: selectedAnimal?.site_id,
-        destination_site_id: '405' //Later change it to the hospital site id
+        destination_site_id: '405', //Later change it to the hospital site id
+        comments: data?.purposeOfVisit
       }
 
-      await addHospitalPatient(params).then(res => console.log(res, 'addPatient'))
-
-      console.log(params, 'appPatientParams')
+      await addHospitalPatient(params).then(res => {
+        if (res?.success === true) {
+          Toaster({ type: 'success', message: res?.message })
+          setSubmitLoader(false)
+          router.push({
+            pathname: `/hospital/incoming`
+          })
+        }
+      })
     } catch (error) {
       console.error(error, 'Cannot Add-Patient')
+      setSubmitLoader(false)
     }
+  }
+
+  const handleAnimalSelection = animal => {
+    setSelectedAnimal(animal)
+    setValue('selectedAnimal', animal)
+    clearErrors('selectedAnimal')
+  }
+
+  const handleDoctorSelection = doctor => {
+    setSelectedDoctor(doctor)
+    setValue('selectedDoctor', doctor)
+    clearErrors('selectedDoctor')
+  }
+
+  const handleRemoveAnimal = () => {
+    setSelectedAnimal(null)
+    setValue('selectedAnimal', null)
+    setMedicalId([])
+    setValue('medicalRecordChoice', 'new')
+  }
+
+  const handleRemoveDoctor = () => {
+    setSelectedDoctor(null)
+    setValue('selectedDoctor', null)
   }
 
   return (
@@ -251,63 +299,69 @@ const AddPatientForm = () => {
                   Enter basic details
                 </Typography>
                 <Grid container spacing={7} alignItems={'baseline'}>
-                  <Grid
-                    size={{ xs: 12, md: 6 }}
-                    sx={{ display: 'flex', flexDirection: 'column', gap: 3, cursor: 'pointer' }}
-                  >
-                    <Typography
-                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      Selected Animal
-                    </Typography>
-                    {selectedAnimal !== null ? (
-                      <>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, cursor: 'pointer' }}>
+                      <Typography
+                        sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                      >
+                        Selected Animal
+                      </Typography>
+                      {selectedAnimal !== null ? (
+                        <>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              p: 6,
+                              background: theme.palette.customColors.displaybgPrimary,
+                              borderRadius: 1
+                            }}
+                          >
+                            <AnimalCard data={selectedAnimal} />
+                            <IconButton onClick={handleRemoveAnimal}>
+                              <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
+                            </IconButton>
+                          </Box>
+                        </>
+                      ) : (
                         <Box
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            p: 6,
-                            background: theme.palette.customColors.displaybgPrimary,
-                            borderRadius: 1
+                            border: `1px solid ${theme.palette.customColors.Outline}`,
+                            borderRadius: 1,
+                            p: 4,
+                            background: theme.palette.customColors.Surface
                           }}
+                          onClick={() => setAnimalDrawer(true)}
                         >
-                          <AnimalCard data={selectedAnimal} />
-                          <IconButton
-                            onClick={() => {
-                              setSelectedAnimal(null)
-                              setMedicalId([])
-                              setValue('medicalRecordChoice', 'new')
+                          <Typography
+                            sx={{
+                              fontSize: '16px',
+                              fontWeight: 400,
+                              color: theme.palette.customColors.OnPrimaryContainer
                             }}
                           >
-                            <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
-                          </IconButton>
+                            Select Animal
+                          </Typography>
+                          <Icon icon={'mdi-chevron-down'} />
                         </Box>
-                      </>
-                    ) : (
-                      <Box
+                      )}
+                    </Box>
+                    {errors.selectedAnimal && (
+                      <Typography
                         sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          border: `1px solid ${theme.palette.customColors.Outline}`,
-                          borderRadius: 1,
-                          p: 4,
-                          background: theme.palette.customColors.Surface
+                          color: theme.palette.error.main,
+                          mt: '3px',
+                          mx: '14px',
+                          fontSize: '0.75rem',
+                          fontWeight: 400
                         }}
-                        onClick={() => setAnimalDrawer(true)}
                       >
-                        <Typography
-                          sx={{
-                            fontSize: '16px',
-                            fontWeight: 400,
-                            color: theme.palette.customColors.OnPrimaryContainer
-                          }}
-                        >
-                          Select Animal
-                        </Typography>
-                        <Icon icon={'mdi-chevron-down'} />
-                      </Box>
+                        {errors.selectedAnimal.message}
+                      </Typography>
                     )}
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -418,67 +472,82 @@ const AddPatientForm = () => {
                       Admission details
                     </Typography>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography
-                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      Attending chief doctor
-                    </Typography>
-                    {selectedDoctor === null ? (
-                      <Box
-                        sx={{
-                          background: theme.palette.customColors.Surface,
-                          borderRadius: 1,
-                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                          p: 3,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          minHeight: '56px',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => setDoctorDrawerOpen(true)}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <Typography
+                        sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                       >
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 400,
-                            color: theme.palette.customColors.OnSurfaceVariant
-                          }}
-                        >
-                          Select doctor
-                        </Typography>
-                        <Icon
-                          icon='mdi:chevron-down'
-                          fontSize={24}
-                          color={theme.palette.customColors.OnSurfaceVariant}
-                        />
-                      </Box>
-                    ) : (
-                      <>
+                        Attending chief doctor
+                      </Typography>
+                      {selectedDoctor === null ? (
                         <Box
                           sx={{
-                            background: theme.palette.customColors.OnPrimary,
+                            background: theme.palette.customColors.Surface,
                             borderRadius: 1,
                             border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            px: 3,
+                            p: 3,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             minHeight: '56px',
                             cursor: 'pointer'
                           }}
+                          onClick={() => setDoctorDrawerOpen(true)}
                         >
-                          <UserAvatarDetails
-                            profile_image={selectedDoctor?.default_icon}
-                            user_name={selectedDoctor?.name}
-                            role={selectedDoctor?.role_name}
+                          <Typography
+                            sx={{
+                              fontSize: '1rem',
+                              fontWeight: 400,
+                              color: theme.palette.customColors.OnSurfaceVariant
+                            }}
+                          >
+                            Select doctor
+                          </Typography>
+                          <Icon
+                            icon='mdi:chevron-down'
+                            fontSize={24}
+                            color={theme.palette.customColors.OnSurfaceVariant}
                           />
-                          <IconButton onClick={() => setSelectedDoctor(null)}>
-                            <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
-                          </IconButton>
                         </Box>
-                      </>
+                      ) : (
+                        <>
+                          <Box
+                            sx={{
+                              background: theme.palette.customColors.OnPrimary,
+                              borderRadius: 1,
+                              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              px: 3,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              minHeight: '56px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <UserAvatarDetails
+                              profile_image={selectedDoctor?.default_icon}
+                              user_name={selectedDoctor?.name}
+                              role={selectedDoctor?.role_name}
+                            />
+                            <IconButton onClick={handleRemoveDoctor}>
+                              <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
+                            </IconButton>
+                          </Box>
+                        </>
+                      )}
+                    </Box>
+                    {errors.selectedDoctor && (
+                      <Typography
+                        sx={{
+                          color: theme.palette.error.main,
+                          mt: '3px',
+                          mx: '14px',
+                          fontSize: '0.75rem',
+                          fontWeight: 400
+                        }}
+                      >
+                        {errors.selectedDoctor.message}
+                      </Typography>
                     )}
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -536,7 +605,7 @@ const AddPatientForm = () => {
             sx={{ backgroundColor: theme.palette.primary.main, px: 4, py: '9px', borderRadius: 0.5 }}
             onClick={handleSubmit(onSubmit)}
           >
-            ADMIT
+            {submitLoader ? <CircularProgress /> : 'ADMIT'}
           </Button>
         </Box>
       </Box>
@@ -548,15 +617,11 @@ const AddPatientForm = () => {
           }}
           btnText='ADD'
           showAnimalFilter={false}
-          handleAnimalClick={animal => setSelectedAnimal(animal)}
+          handleAnimalClick={handleAnimalSelection}
         />
       )}
       {doctorDrawerOpen && (
-        <DoctorsDrawer
-          open={doctorDrawerOpen}
-          setOpen={setDoctorDrawerOpen}
-          onSelectDoctor={doctor => setSelectedDoctor(doctor)}
-        />
+        <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
       )}
     </>
   )
