@@ -244,7 +244,7 @@ const AddIngredientswithChoice = props => {
 
   const handleContinueClick = event => {
     if (Object.keys(selectFeed).length === 0) {
-      toast.error('Ingredients are required', {
+      toast.error('Items are required', {
         duration: 1000
       })
     } else if (

@@ -75,7 +75,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           attachment_id: `${attachmentId}`
         })
 
-        Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+        Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         // Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -558,7 +558,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             setspeciesId(specieDetails.species_id)
             setUploadDietDrawer(true)
           }}
-        // loading={loader}
+          // loading={loader}
         >
           UPLOAD NEW
         </LoadingButton>

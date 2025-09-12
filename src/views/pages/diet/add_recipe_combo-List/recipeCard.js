@@ -364,7 +364,7 @@ const RecipeCard = ({
       const existingCard = selectedCardRecipe.find(card => card.id === item.id)
 
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
-
+      console.log(item, 'item')
       return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
@@ -377,7 +377,9 @@ const RecipeCard = ({
         quantity: quantity,
         quantity_type: quantityper,
         ingredients: item.ingredients,
-        desc: item.desc
+        desc: item.desc,
+        portion_uom_id: item?.portion_uom_id,
+        portion_uom_name: item?.portion_uom_name
       }
     })
 

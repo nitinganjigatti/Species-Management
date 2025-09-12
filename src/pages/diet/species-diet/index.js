@@ -208,7 +208,7 @@ const SpeciesDietList = () => {
                   : '0px'
             }}
           >
-            {params.row.default_icon ? (
+            {params?.row?.default_icon ? (
               <img
                 style={{
                   width: '100%',
@@ -227,7 +227,7 @@ const SpeciesDietList = () => {
                 alt='Profile'
               />
             ) : (
-              <Icon icon='mdi:user' />
+              <img style={{ width: '100%', height: '100%', padding: '7px' }} src={'/icons/antz.svg'} alt='Profile' />
             )}
           </Avatar>
 

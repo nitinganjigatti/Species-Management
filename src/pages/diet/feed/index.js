@@ -255,7 +255,7 @@ const FeedTypes = () => {
     <>
       {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
         <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
-          <Button sx={{ px: 7 }} size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
+          <Button size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
             <Icon icon='mdi:add' fontSize={20} />
             &nbsp; ADD NEW
           </Button>

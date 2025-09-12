@@ -165,7 +165,14 @@ const SelectSectionList = ({
               Select a section from the list below
             </Typography>
           </Box>
-          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
+          <IconButton
+            size='small'
+            sx={{ color: 'text.primary' }}
+            onClick={() => {
+              onClose()
+              setSearchTerm('')
+            }}
+          >
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
@@ -383,7 +390,10 @@ const SelectSectionList = ({
               borderRadius: '8px',
               '&:hover': { bgcolor: '#218838' }
             }}
-            onClick={() => onSelectSections(selectedSections)}
+            onClick={() => {
+              onSelectSections(selectedSections)
+              setSearchTerm('')
+            }}
             disabled={selectedSections?.length <= 0}
           >
             CONTINUE
