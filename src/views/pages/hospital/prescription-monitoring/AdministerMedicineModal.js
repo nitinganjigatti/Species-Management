@@ -13,7 +13,7 @@ import {
   Chip
 } from '@mui/material'
 import { useForm } from 'react-hook-form'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
@@ -22,8 +22,13 @@ import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import Icon from 'src/@core/components/icon'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
+import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+import { LoadingButton } from '@mui/lab'
+import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 
-const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit }) => {
+const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit, submitLoader }) => {
   const theme = useTheme()
   const [selectedFile, setSelectedFile] = useState(null)
 
@@ -95,8 +100,7 @@ const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit }) => {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#FFFFFF',
-          borderBottom: `0.5px solid ${theme.palette.customColors.OutlineVariant}`
+          backgroundColor: theme.palette.customColors.OnPrimary
         }}
       >
         {/* Title Bar */}
@@ -105,37 +109,23 @@ const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit }) => {
             display: 'flex',
             alignItems: 'center',
             gap: 3,
-            p: 3,
-            borderBottom: `0.5px solid ${theme.palette.customColors.OutlineVariant}`
+            p: 6,
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 0.5,
-                borderRadius: 1
-              }}
-            >
-              <LocalPharmacyIcon sx={{ fontSize: 24, color: theme.palette.customColors.OnSurfaceVariant }} />
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+              <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
+              <Typography
+                sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                Administer medicine
+              </Typography>
             </Box>
-            <Typography
-              variant='h6'
-              sx={{
-                fontSize: '24px',
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontFamily: 'Inter'
-              }}
-            >
-              Administer medicine
-            </Typography>
           </Box>
           <Box sx={{ flexGrow: 1 }} />
-          <IconButton onClick={handleClose} sx={{ p: 1.25 }}>
-            <CloseIcon sx={{ fontSize: 14, color: '#1F515B' }} />
+          <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.text.primary }}>
+            <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
 
@@ -144,24 +134,23 @@ const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit }) => {
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 1,
-            px: 3,
-            py: 1.25,
-            backgroundColor: '#FFFFFF'
+            justifyContent: 'space-between',
+            px: 6,
+            py: 2.5,
+            backgroundColor: theme.palette.customColors.OnPrimary
           }}
         >
           <Typography
             sx={{
-              fontSize: '16px',
+              fontSize: '1rem',
               fontWeight: 500,
-              color: '#000000',
-              fontFamily: 'Inter',
-              flexGrow: 1
+              color: theme.palette.primary.deepDark,
+              fontFamily: 'Inter'
             }}
           >
             {medicineData?.name || 'Dolo 650 tablet'}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
               <CalendarTodayIcon sx={{ fontSize: 18, color: theme.palette.customColors.OnSurfaceVariant }} />
               <Typography
@@ -194,290 +183,149 @@ const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit }) => {
 
       {/* Content */}
       <DialogContent sx={{ p: 0 }}>
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 6 }}>
           <Card
             sx={{
-              borderRadius: 2,
+              borderRadius: 1,
               border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-              backgroundColor: '#FFFFFF'
+              backgroundColor: theme.palette.customColors.OnPrimary,
+              boxShadow: 0
             }}
           >
-            <CardContent sx={{ p: 3 }}>
+            <CardContent sx={{ p: 6 }}>
               <form onSubmit={handleSubmit(handleFormSubmit)}>
-                {/* Time and Quantity Row */}
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-                  <Grid item xs={6}>
+                <Grid container spacing={4} sx={{ mb: 2 }}>
+                  <Grid size={{ xs: 6 }}>
+                    <ControlledTimePicker
+                      name={'time'}
+                      control={control}
+                      label='Select Time'
+                      format='hh:mm A'
+                      disabled
+                      sx={{ backgroundColor: theme.palette.customColors.Surface }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <ControlledSelectWithTextField
+                      firstSelectFieldName={'quantity'}
+                      textFieldName={`schedules`}
+                      control={control}
+                      errors={errors}
+                      options={[]}
+                      label='Quantity'
+                      placeholder='Enter quantity'
+                      type='number'
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                      required
+                      sx={{ backgroundColor: alpha(theme.palette.customColors.mdAntzNeutral, 0.05) }}
+                    />
+                    <ControlledSelectWithTextField
+                      textFieldName={'quantity'}
+                      control={control}
+                      errors={errors}
+                      options={[]}
+                      label='Quantity'
+                      placeholder='Enter quantity'
+                      type='number'
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                      required
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
                     <Typography
                       sx={{
-                        fontSize: '16px',
-                        fontWeight: 400,
+                        fontSize: '1rem',
+                        fontWeight: 500,
                         color: theme.palette.customColors.OnSurfaceVariant,
-                        fontFamily: 'Inter',
-                        mb: 1
-                      }}
-                    >
-                      Time
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '56px',
-                        px: 2,
-                        borderRadius: 1,
-                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        backgroundColor: theme.palette.customColors.Surface
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: '20px',
-                          fontWeight: 500,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontFamily: 'Inter'
-                        }}
-                      >
-                        12 : 00 PM
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography
-                      sx={{
-                        fontSize: '16px',
-                        fontWeight: 400,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontFamily: 'Inter',
-                        mb: 1
-                      }}
-                    >
-                      Quantity
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        height: '56px',
-                        px: 2,
-                        borderRadius: 1,
-                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        backgroundColor: theme.palette.customColors.neutral05
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: '20px',
-                          fontWeight: 500,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontFamily: 'Inter'
-                        }}
-                      >
-                        350
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontFamily: 'Inter'
-                        }}
-                      >
-                        mg
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-
-                {/* Wastage Section */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography
-                    sx={{
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontFamily: 'Inter',
-                      mb: 2
-                    }}
-                  >
-                    Add wastage if any{' '}
-                    <Typography
-                      component='span'
-                      sx={{
-                        fontSize: '14px',
-                        color: theme.palette.customColors.neutralSecondary
-                      }}
-                    >
-                      (Optional)
-                    </Typography>
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <ControlledTextField
-                        name='wastageQuantity'
-                        control={control}
-                        errors={errors}
-                        placeholder='Quantity'
-                        size='large'
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            height: '56px'
-                          }
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <ControlledSelect
-                        name='wastageUnit'
-                        control={control}
-                        errors={errors}
-                        options={wastageUnits}
-                        getOptionLabel={option => option.label}
-                        getOptionValue={option => option.value}
-                        size='large'
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            height: '56px'
-                          }
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </Box>
-
-                {/* Notes Field */}
-                <Box sx={{ mb: 2 }}>
-                  <ControlledTextArea
-                    name='notes'
-                    control={control}
-                    errors={errors}
-                    placeholder='Enter Notes'
-                    rows={3}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        minHeight: '86px',
-                        alignItems: 'flex-start',
-                        pt: 1.5
-                      }
-                    }}
-                  />
-                </Box>
-
-                {/* Batch Number Field */}
-                <Box sx={{ mb: 2 }}>
-                  <ControlledTextField
-                    name='batchNumber'
-                    control={control}
-                    errors={errors}
-                    placeholder='Enter batch number if any (optional)'
-                    size='large'
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        height: '56px'
-                      }
-                    }}
-                  />
-                </Box>
-
-                {/* Batch Image Upload */}
-                <Box sx={{ mb: 3 }}>
-                  <Box
-                    component='label'
-                    htmlFor='batch-image-upload'
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 1.25,
-                      py: 1,
-                      borderRadius: 2.5,
-                      border: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        backgroundColor: theme.palette.customColors.neutral05
-                      }
-                    }}
-                  >
-                    <AddIcon sx={{ fontSize: 32, color: theme.palette.customColors.OnSurfaceVariant60 }} />
-                    <Typography
-                      sx={{
-                        fontSize: '16px',
-                        fontWeight: 400,
-                        color: theme.palette.customColors.OnSurfaceVariant60,
                         fontFamily: 'Inter'
                       }}
                     >
-                      {selectedFile ? selectedFile.name : 'Batch image'}
+                      Add wastage if any
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontSize: '1rem',
+                          color: theme.palette.customColors.neutralSecondary
+                        }}
+                      >
+                        (Optional)
+                      </Typography>
                     </Typography>
-                  </Box>
-                  <input
-                    id='batch-image-upload'
-                    type='file'
-                    accept='image/*'
-                    style={{ display: 'none' }}
-                    onChange={handleFileSelect}
-                  />
-                </Box>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <ControlledTextField
+                      name={'wastageQuantity'}
+                      control={control}
+                      errors={errors}
+                      label={'Quantity*'}
+                      placeholder={'Enter Quantity '}
+                      type='number'
+                    />
+                  </Grid>
+
+                  <Grid size={{ xs: 6 }}>
+                    <ControlledSelect
+                      name={'wastageUnit'}
+                      label={'mg'}
+                      control={control}
+                      errors={errors}
+                      options={wastageUnits}
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                    />
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    <ControlledTextArea
+                      name='notes'
+                      control={control}
+                      errors={errors}
+                      placeholder='Enter Notes'
+                      rows={3}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <ControlledTextField
+                      name={'batchNumber'}
+                      control={control}
+                      errors={errors}
+                      label={'Batch Number*'}
+                      placeholder={'Enter batch number if any (optional) '}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <ControlledFileUpload
+                      name='attachment'
+                      control={control}
+                      errors={errors}
+                      label='Upload attachment'
+                    />
+                  </Grid>
+                </Grid>
               </form>
             </CardContent>
           </Card>
         </Box>
       </DialogContent>
 
-      {/* Footer Actions */}
       <Box
         sx={{
+          p: 6,
           display: 'flex',
-          gap: 3,
-          p: 3,
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0 -1px 30px 0 rgba(0, 0, 0, 0.10)'
+          justifyContent: 'center',
+          gap: 6,
+          boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
+          backgroundColor: theme.palette.background.paper
         }}
       >
-        <Button
-          variant='outlined'
-          onClick={handleSkip}
-          sx={{
-            flex: 1,
-            height: '56px',
-            borderRadius: 2,
-            borderColor: theme.palette.customColors.OnSurfaceVariant,
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '15px',
-            fontWeight: 500,
-            textTransform: 'uppercase',
-            fontFamily: 'Inter',
-            '&:hover': {
-              borderColor: theme.palette.customColors.OnSurfaceVariant,
-              backgroundColor: theme.palette.customColors.neutral05
-            }
-          }}
-        >
+        <LoadingButton variant='outlined' type='button' loading={submitLoader} sx={{ flex: 1, py: 2 }}>
           SKIPPED
-        </Button>
-        <Button
-          variant='contained'
-          onClick={handleSubmit(handleFormSubmit)}
-          sx={{
-            flex: 1,
-            height: '56px',
-            borderRadius: 2,
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.customColors.OnPrimary,
-            fontSize: '15px',
-            fontWeight: 500,
-            textTransform: 'uppercase',
-            fontFamily: 'Inter',
-            boxShadow: '0 4px 8px -4px rgba(76, 78, 100, 0.42)',
-            '&:hover': {
-              backgroundColor: theme.palette.primary.dark
-            }
-          }}
-        >
+        </LoadingButton>
+        <LoadingButton variant='contained' type='submit' loading={submitLoader} sx={{ flex: 1, py: 2 }}>
           ADMINISTER
-        </Button>
+        </LoadingButton>
       </Box>
     </Dialog>
   )
