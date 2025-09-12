@@ -1,12 +1,11 @@
 import { LoadingButton } from '@mui/lab'
 import { Drawer, IconButton, Typography, CircularProgress, Box, Chip, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import React, { useState, useEffect, useRef, useContext } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { getAssessmentCategoriesList, getAssessmentTypesList } from 'src/lib/api/report'
-import { AuthContext } from 'src/context/AuthContext'
 
-function AssessmentTypeFilter({
+function AssessmentTypeListingDrawer({
   selectedCategory,
   setSelectedCategory,
   selectedAssessmentType,
@@ -149,9 +148,9 @@ function AssessmentTypeFilter({
             overflowX: 'auto',
             gap: 2,
             backgroundColor: 'background.default',
-            scrollbarWidth: 'none', 
+            scrollbarWidth: 'none',
             '&::-webkit-scrollbar': {
-              display: 'none' 
+              display: 'none'
             }
           }}
         >
@@ -275,8 +274,9 @@ function AssessmentTypeFilter({
                               display: 'flex',
                               justifyContent: 'center',
                               alignItems: 'center',
-                              border: `1.5px solid ${isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
-                                }`
+                              border: `1.5px solid ${
+                                isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
+                              }`
                             }}
                           >
                             {isSelected && (
@@ -285,10 +285,11 @@ function AssessmentTypeFilter({
                                   height: '10px',
                                   width: '10px',
                                   borderRadius: '50%',
-                                  border: `1.5px solid ${isSelected
+                                  border: `1.5px solid ${
+                                    isSelected
                                       ? theme.palette.primary.main
                                       : theme.palette.customColors.neutralSecondary
-                                    }`,
+                                  }`,
                                   bgcolor: isSelected ? theme.palette.primary.main : 'transparent'
                                 }}
                               ></Box>
@@ -337,4 +338,4 @@ function AssessmentTypeFilter({
   )
 }
 
-export default AssessmentTypeFilter
+export default AssessmentTypeListingDrawer

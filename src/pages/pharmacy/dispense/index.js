@@ -28,6 +28,7 @@ import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 function Dispense() {
   const router = useRouter()
@@ -220,11 +221,11 @@ function Dispense() {
       headerName: 'Created by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.created_at}
+          />
         </>
       )
     }
@@ -310,8 +311,8 @@ function Dispense() {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const newSort = newModel[0].sort 
-      const newColumn = newModel[0].field 
+      const newSort = newModel[0].sort
+      const newColumn = newModel[0].field
 
       setSort(newSort)
       setSortColumn(newColumn)
@@ -362,7 +363,6 @@ function Dispense() {
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
         <Card>
-
           <CardHeader
             sx={{
               display: 'flex',
@@ -437,7 +437,6 @@ function Dispense() {
             ) : null} */}
           </Grid>
 
-        
           <Grid
             sx={{
               mx: { xs: 3, md: 5 }

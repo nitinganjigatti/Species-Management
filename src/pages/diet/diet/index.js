@@ -28,6 +28,7 @@ import Error404 from 'src/pages/404'
 
 import RenderUtility from 'src/utility/render'
 import moment from 'moment'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 // Styled TabList component
 const roleColors = {
@@ -295,6 +296,31 @@ const Diet = () => {
     //     </Box>
     //   )
     // },
+
+    {
+      //flex: 0.6,
+      width: 260,
+      field: 'dietitian_name',
+      headerName: 'Nutritionist',
+      renderCell: params => (
+        <>
+          <Box>
+            <UserAvatarDetails
+              profile_image={params.row.dietitian_profile_pic}
+              user_name={params.row.dietitian_name}
+              role={params.row.dietitian_role_name}
+            />
+            {/* {UserAvatarDetails({
+              profile_image: params.row.profile_pic,
+              user_name: params.row.user_name,
+              descriptors: params.row.dietitian_role_name
+
+              // date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD')
+            })} */}
+          </Box>
+        </>
+      )
+    },
 
     {
       //flex: 0.6,

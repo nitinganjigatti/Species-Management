@@ -31,6 +31,7 @@ import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const RequestReport = () => {
   const router = useRouter()
@@ -397,11 +398,11 @@ const RequestReport = () => {
       headerName: 'REQUESTED BY ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.requested_by_profile_pic,
-            params?.row?.requested_by,
-            params?.row?.requested_date
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.requested_by_profile_pic}
+            user_name={params?.row?.requested_by}
+            date={params?.row?.requested_date}
+          />
         </>
       )
     }
@@ -420,8 +421,6 @@ const RequestReport = () => {
         startDate: filterDates?.startDate,
         endDate: filterDates?.endDate
       })
-
-     
     } else {
       setFilterDates({
         startDate: '',
@@ -432,7 +431,6 @@ const RequestReport = () => {
         startDate: '',
         endDate: ''
       })
-
     }
   }
 
@@ -551,7 +549,6 @@ const RequestReport = () => {
   }
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
-
 
   return (
     <>

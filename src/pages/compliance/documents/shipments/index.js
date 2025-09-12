@@ -17,6 +17,7 @@ import { useTheme } from '@mui/material/styles'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
 import { format, subMonths } from 'date-fns'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ShipmentPage = () => {
   const router = useRouter()
@@ -28,10 +29,11 @@ const ShipmentPage = () => {
   const [selectedId, setSelectedId] = useState(null)
   const [sortModel, setSortModel] = useState([])
 
-  const [filterDate, setFilterDate] = useState({
-    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
-    endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
-  })
+  // const [filterDate, setFilterDate] = useState({
+  //   startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+  //   endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  // })
+  const [filterDate, setFilterDate] = useState({})
 
   // Filter states
   const [filterCount, setFilterCount] = useState(0)
@@ -71,7 +73,7 @@ const ShipmentPage = () => {
       }
 
       const params = {
-        q: searchValue.replace(/[\s-]+/g, ''),
+        q: searchValue,
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
         sort: sortModel?.[0]?.sort,
@@ -92,7 +94,7 @@ const ShipmentPage = () => {
           uid: start + i + 1,
           shipment_number: r.shipment_number || '-',
           shipment_state: r.shipment_state || '-',
-          shipment_date: r.shipment_date || '-',
+          shipment_date: r.shipment_date ? r.shipment_date : '-',
           export_count: r.export_count || '-',
           species_count: r.species_count || '-',
           animal_counts: r.animal_counts || '-',
@@ -137,13 +139,13 @@ const ShipmentPage = () => {
       field: 'shipment_number',
       headerName: 'Shipment ID',
       renderCell: params => {
-        const rawValue = params.value || ''
-        const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+        // const rawValue = params.value || ''
+        // const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
 
-        const formattedValue =
-          removeSpaceValue.length > 3
-            ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}`
-            : removeSpaceValue
+        // const formattedValue =
+        //   removeSpaceValue.length > 3
+        //     ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}`
+        //     : removeSpaceValue
 
         return (
           <Typography
@@ -152,10 +154,8 @@ const ShipmentPage = () => {
               px: 3,
               width: '100%'
             }}
-
-            //onClick={() => router.push(`/compliance/documents/exports/${params.row.id}`)}
           >
-            {formattedValue}
+            {params.value}
           </Typography>
         )
       }
@@ -193,7 +193,7 @@ const ShipmentPage = () => {
       headerName: 'Shipment Date',
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>
-          {params.value !== null ? moment(params.value).format('DD MMM YYYY') : '-'}
+          {moment(params?.value, 'YYYY-MM-DD', true).isValid() ? moment(params?.value).format('DD MMM YYYY') : '-'}
         </Typography>
       )
     },
@@ -233,15 +233,15 @@ const ShipmentPage = () => {
       headerName: 'Created By',
       renderCell: params => (
         <Box sx={{ px: 2 }}>
-          {params.row.created_by_user_name
-            ? RenderUtility.renderUserAvatarDetails(
-                params.row.created_user_profile_pic,
-                params.row.created_by_user_name,
-                Utility.formatDisplayDate(params.row.created_at),
-                theme.palette.customColors.OnSurfaceVariant,
-                '14px'
-              )
-            : null}
+          {params.row.created_by_user_name ? (
+            <UserAvatarDetails
+              profile_image={params?.row?.created_user_profile_pic}
+              user_name={params?.row?.created_by_user_name}
+              date={params?.row?.created_at}
+            />
+          ) : (
+            '-'
+          )}
         </Box>
       )
     },
@@ -252,15 +252,15 @@ const ShipmentPage = () => {
       headerName: 'Updated By',
       renderCell: params => (
         <Box sx={{ px: 2 }}>
-          {params.row.updated_by_user_name
-            ? RenderUtility.renderUserAvatarDetails(
-                params.row.updated_user_profile_pic,
-                params.row.updated_by_user_name,
-                Utility.formatDisplayDate(params.row.updated_at),
-                theme.palette.customColors.OnSurfaceVariant,
-                '14px'
-              )
-            : null}
+          {params.row.updated_by_user_name ? (
+            <UserAvatarDetails
+              profile_image={params?.row?.updated_user_profile_pic}
+              user_name={params?.row?.updated_by_user_name}
+              date={params?.row?.updated_at}
+            />
+          ) : (
+            '-'
+          )}
         </Box>
       )
     }

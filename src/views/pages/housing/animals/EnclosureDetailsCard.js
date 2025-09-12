@@ -1,13 +1,11 @@
 import React from 'react'
-import { Grid, Box, Typography, Divider, IconButton } from '@mui/material'
+import { Grid, Box, Typography, IconButton, Tooltip } from '@mui/material'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
-import { useMediaQuery } from '@mui/system'
 import { useTheme } from '@emotion/react'
 import Image from 'next/image'
 
 const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const info = [
     {
@@ -46,18 +44,14 @@ const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
       }}
     >
       {/* Header */}
-      <Grid container alignItems='center' justifyContent='space-between' >
-        <Grid item>
-          <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 500, fontSize: '20px', letterSpacing: 0 }}>
-            Enclosure Details
-          </Typography>
-        </Grid>
-        <Grid item>
-          <IconButton onClick={onEditClick}>
-            <EditOutlinedIcon sx={{ fontSize: '24px', color: '#6b7a7a' }} />
-          </IconButton>
-        </Grid>
-      </Grid>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
+        <Typography sx={{ color: 'customColors.OnSurfaceVariant', lineHeight: 1, fontWeight: 500, fontSize: '20px', letterSpacing: 0 }}>
+          Enclosure Details
+        </Typography>
+        <IconButton sx={{ p: 1 }} onClick={onEditClick}>
+          <EditOutlinedIcon sx={{ fontSize: '24px', color: '#6b7a7a' }} />
+        </IconButton>
+      </Box>
 
       {/* Info Blocks */}
       <Grid
@@ -82,32 +76,36 @@ const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
           >
             <Image height={32} width={32} src={item.icon} alt='Cluster Icon' style={{ height: '32px', width: '32px' }} />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.secondaryBg,
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  letterSpacing: 0,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {item.label}
-              </Typography>
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  letterSpacing: 0,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {item.value ? item.value : 'NA'}
-              </Typography>
+              <Tooltip title={item.label}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.secondaryBg,
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    letterSpacing: 0,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {item.label}
+                </Typography>
+              </Tooltip>
+              <Tooltip title={item.value}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    letterSpacing: 0,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {item.value ? item.value : 'NA'}
+                </Typography>
+              </Tooltip>
             </Box>
           </Grid>
         ))}

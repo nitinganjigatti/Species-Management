@@ -33,6 +33,7 @@ import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import { STOCK_ADJUSTMENT_REASON_TYPES } from 'src/constants/PharmacyConstants'
 import LabelAndDescriptionWithElipsisModal from 'src/views/utility/LabelAndDescriptionWithElipsisModal'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -273,12 +274,15 @@ const ListOfStockAdjusted = () => {
       minWidth: 160,
       field: 'created_by_user_name',
       headerName: 'Requested By',
-      renderCell: params =>
-        RenderUtility.renderUserAvatarDetails(
-          params?.row?.user_profile_pic,
-          params?.row?.created_by_user_name,
-          params?.row?.adjusted_at
-        )
+      renderCell: params => (
+        <>
+          <UserAvatarDetails
+            profile_image={params?.row?.user_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.adjusted_at}
+          />
+        </>
+      )
     }
   ]
 
@@ -306,7 +310,7 @@ const ListOfStockAdjusted = () => {
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start', 
+            justifyContent: 'flex-start',
             alignItems: 'flex-start',
             gap: { xs: 3, sm: 0 },
             '& .MuiCardHeader-action': {
@@ -334,7 +338,7 @@ const ListOfStockAdjusted = () => {
         <Box
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' }, 
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
             alignItems: 'center',
             mx: { xs: 3, md: 5 }

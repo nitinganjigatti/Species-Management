@@ -67,25 +67,36 @@ const ListOfLab = () => {
     // },
     {
       flex: 0.3,
-      minWidth: 200,
+      minWidth: 250,
       field: 'lab_name',
       headerName: 'LAB NAME',
       renderCell: params => (
-        <>
-          <Box>
-            {params.row.is_default === '1' ? (
-              <Badge color='success' badgeContent='Default' style={{ left: '28px', position: 'relative' }}></Badge>
-            ) : null}
-          </Box>
-          <Tooltip title={params.row.lab_name || ""}>
-            <Typography variant='body2' sx={{
-              color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer', overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}>
-              {params.row.lab_name || ""}{' '}
-            </Typography></Tooltip>
-        </>
+        <Box sx={{ width: '100%', display: 'flex' }}>
+          <Tooltip title={params.row.lab_name || ''}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary',
+                textTransform: 'capitalize',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                mr: 14
+              }}
+            >
+              {params.row.lab_name || ''}
+            </Typography>
+          </Tooltip>
+          {params.row.is_default === '1' ? (
+            <Badge
+              sx={{ position: 'relative', right: 20, top: 10 }}
+              color='success'
+              badgeContent='Default'
+              style={{}}
+            ></Badge>
+          ) : null}
+        </Box>
       )
     },
     {
@@ -103,7 +114,9 @@ const ListOfLab = () => {
               fontWeight: 500,
               textTransform: 'capitalize',
               fontFamily: 'Inter',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
             }}
           >
             <span alt={params.row.type}>{params.row.type}</span>
@@ -119,7 +132,10 @@ const ListOfLab = () => {
       headerName: 'Address',
       renderCell: params => (
         <Tooltip title={params.row?.address ? params.row?.address : '-'}>
-          <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', }}>
+          <Typography
+            variant='body2'
+            sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
             {params?.row?.address ? params?.row?.address : '-'}
           </Typography>
         </Tooltip>
@@ -139,17 +155,17 @@ const ListOfLab = () => {
     // },
     authData?.userData?.roles?.settings?.add_lab
       ? {
-        flex: 0.2,
-        minWidth: 70,
-        field: 'Action',
-        sortable: false,
-        headerName: 'Action',
-        renderCell: params => (
-          <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-        )
-      }
+          flex: 0.2,
+          minWidth: 70,
+          field: 'Action',
+          sortable: false,
+          headerName: 'Action',
+          renderCell: params => (
+            <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )
+        }
       : null
   ].filter(column => column !== null)
 

@@ -91,6 +91,8 @@ const HospitalInpatient = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const handleRowClick = params => router.push(`/hospital/inpatient/${params.row.id}`)
+
   const columns = [
     {
       width: 80,
@@ -299,7 +301,7 @@ const HospitalInpatient = () => {
                 </Box>
               </Box>
               <Grid>
-                <CommonTable indexedRows={dummyData} columns={columns} rowHeight={100} />
+                <CommonTable indexedRows={dummyData} onRowClick={handleRowClick} columns={columns} rowHeight={100} />
               </Grid>
             </CardContent>
           </Card>

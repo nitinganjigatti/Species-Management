@@ -30,6 +30,7 @@ import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const DispenseReport = () => {
   const router = useRouter()
@@ -458,11 +459,11 @@ const DispenseReport = () => {
       headerName: 'DISPENSE BY',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.dispense_created_by_user_name,
-            params?.row?.dispense_date
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.dispense_created_by_user_name}
+            date={params?.row?.dispense_date}
+          />
         </>
       )
     }
@@ -481,8 +482,6 @@ const DispenseReport = () => {
         startDate: formattedStartDate,
         endDate: formattedEndDate
       })
-
-     
     } else {
       setFilterDates({
         startDate: '',
@@ -493,8 +492,6 @@ const DispenseReport = () => {
         startDate: '',
         endDate: ''
       })
-
-      
     }
   }
 
@@ -659,9 +656,13 @@ const DispenseReport = () => {
               </Grid>
 
               <Grid item size={{ xs: 12, sm: 7 }}>
-                <Grid container spacing={2} sx={{
-                  justifyContent: { xs: 'flex-end' }
-                }}>
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{
+                    justifyContent: { xs: 'flex-end' }
+                  }}
+                >
                   <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                     <TextField
                       variant='outlined'
@@ -677,7 +678,11 @@ const DispenseReport = () => {
                         input: {
                           startAdornment: (
                             <InputAdornment position='start'>
-                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                              <Icon
+                                icon='mi:search'
+                                fontSize={24}
+                                color={theme.palette.customColors.neutralSecondary}
+                              />
                             </InputAdornment>
                           )
                         }
@@ -741,7 +746,7 @@ const DispenseReport = () => {
         />
       )}
     </>
-  );
+  )
 }
 
 export default DispenseReport

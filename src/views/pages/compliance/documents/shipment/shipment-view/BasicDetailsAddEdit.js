@@ -35,15 +35,15 @@ const BasicDetailsAddEdit = ({
 }) => {
   const theme = useTheme()
   const handleAirwaybillChange = event => {
-    let inputValue = event.target.value.replace(/\D/g, '')
-    if (inputValue.length > 11) inputValue = inputValue.slice(0, 11)
+    // let inputValue = event.target.value.replace(/\D/g, '')
+    // if (inputValue.length > 11) inputValue = inputValue.slice(0, 11)
 
-    const formattedValue = inputValue
-      .split('')
-      .map((digit, index) => (index === 2 ? digit + '    ' : digit + '  '))
-      .join('')
+    // const formattedValue = inputValue
+    //   .split('')
+    //   .map((digit, index) => (index === 2 ? digit + '    ' : digit + '  '))
+    //   .join('')
 
-    setAirwaybillvalue(formattedValue.trim())
+    setAirwaybillvalue(event.target.value)
     setErrors(prev => ({ ...prev, airwaybillvalue: null }))
   }
 
@@ -107,7 +107,7 @@ const BasicDetailsAddEdit = ({
               helperText={errors.airwaybillvalue}
               slotProps={{
                 input: {
-                  maxLength: 31,
+                  //maxLength: 31,
                   style: { borderRadius: 6, borderBottomLeftRadius: '0px', borderTopLeftRadius: '0px' }
                 }
               }}
@@ -143,7 +143,11 @@ const BasicDetailsAddEdit = ({
 
       <Grid container spacing={2} sx={{ mt: 4 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
+          <FileUpload
+            name='(AWB) Airway Bill'
+            onFileUpload={handleFileUpload}
+            file={uploadedFile ? uploadedFile : null}
+          />
           {errors.uploadedFile && (
             <Typography
               sx={{ color: theme.palette.customColors.errorText, fontSize: '12px', fontWeight: '400', mt: 1 }}
@@ -154,7 +158,6 @@ const BasicDetailsAddEdit = ({
         </Grid>
       </Grid>
 
-  
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
         <Button
           variant='outlined'

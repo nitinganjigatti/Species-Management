@@ -33,7 +33,7 @@ import FilterDrawer from 'src/components/FilterDrawer'
 import { getPharmacyTransactionConstants } from 'src/constants/PharmacyConstants'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { readAsync } from 'src/lib/windows/utils'
-import RenderUtility from 'src/utility/render'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_profile_pic }) => {
   return (
@@ -70,7 +70,7 @@ const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_pr
             }}
             variant='circular'
             alt={name}
-            src={user_profile_pic} 
+            src={user_profile_pic}
           />
         </Box>
         <Box>
@@ -459,11 +459,11 @@ function Ledger({ tabValue, updateUrlParams }) {
       headerName: 'TRANSACTION CREATED',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.transaction_created_by_profile_pic,
-            params?.row?.transaction_created_by,
-            params?.row?.created_at
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.transaction_created_by_profile_pic}
+            user_name={params?.row?.transaction_created_by}
+            date={params?.row?.created_at}
+          />
         </>
       )
     }
@@ -699,11 +699,8 @@ function Ledger({ tabValue, updateUrlParams }) {
   }
 
   const handleCreateBySelect = id => {
-    setSelectedCreateBy(
-      prevSelected =>
-        prevSelected.includes(id)
-          ? prevSelected.filter(selectedId => selectedId !== id) 
-          : [...prevSelected, id] 
+    setSelectedCreateBy(prevSelected =>
+      prevSelected.includes(id) ? prevSelected.filter(selectedId => selectedId !== id) : [...prevSelected, id]
     )
   }
 
@@ -1055,7 +1052,6 @@ function Ledger({ tabValue, updateUrlParams }) {
               flexWrap: 'wrap'
             }}
           >
-    
             <Grid
               item
               size={{ xs: 12, sm: 'auto' }}
@@ -1143,7 +1139,6 @@ function Ledger({ tabValue, updateUrlParams }) {
                   </Box>
                 </Grid>
 
-             
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box
                     sx={{

@@ -27,6 +27,7 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
@@ -208,11 +209,9 @@ const DirectDispatchList = () => {
     </div>
   )
 
-
   const handleSearch = value => {
     setSearchValue(value) // Update search value state
     searchTableData(sort, value, sortColumn, status)
-
   }
 
   const columns = [
@@ -376,11 +375,11 @@ const DirectDispatchList = () => {
       headerName: 'Dispatched by ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.request_date
-          )}
+          <UserAvatarDetails
+            profile_image={params?.row?.user_created_profile_pic}
+            user_name={params?.row?.created_by_user_name}
+            date={params?.row?.request_date}
+          />
         </>
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -448,8 +447,8 @@ const DirectDispatchList = () => {
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start', 
-                alignItems: 'flex-start', 
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
                 gap: { xs: 2, sm: 0 },
                 '& .MuiCardHeader-action': {
                   width: { xs: '100% ', sm: 'auto' }
@@ -464,9 +463,7 @@ const DirectDispatchList = () => {
                 mx: { xs: 2, sm: 3, md: 5 }
               }}
             >
-             
               <Grid container spacing={3}>
-               
                 <Grid
                   item
                   size={{ xs: 12, sm: 6 }}
@@ -506,7 +503,6 @@ const DirectDispatchList = () => {
                   </Box>
                 </Grid>
 
-             
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
@@ -524,7 +520,6 @@ const DirectDispatchList = () => {
               </Grid>
             </Box>
 
-          
             <Grid
               sx={{
                 mx: { xs: 2, sm: 3, md: 5 }
