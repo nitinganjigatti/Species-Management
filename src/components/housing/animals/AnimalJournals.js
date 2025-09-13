@@ -31,6 +31,7 @@ import Utility from 'src/utility'
 import Timeline from '@mui/lab/Timeline'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useRouter } from 'next/router'
 
 const categoriesData = [
   { categoryId: 1, categoryName: 'Technology' },
@@ -57,6 +58,8 @@ const categoriesData = [
 
 const AnimalJournals = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
 
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTab, setSelectedTab] = useState('active') // or 'inactive'
@@ -116,7 +119,8 @@ const AnimalJournals = () => {
 
   const fetchAnimalJournalLogs = async () => {
     const params = {
-      animal_id: '233012',
+      animal_id: id,
+      category: 'animal_family_tree',
       page: 1,
       limit: 10
     }
@@ -555,7 +559,7 @@ const AnimalJournals = () => {
   return (
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: 4 }}>
-        <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        {/* <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <Button
             onClick={() => setSelectedTab('active')}
             variant={selectedTab === 'active' ? 'contained' : 'text'}
@@ -613,7 +617,7 @@ const AnimalJournals = () => {
           >
             Mortality
           </Button>
-        </Box>
+        </Box> */}
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', rowGap: 4, columnGap: 2, flexWrap: 'wrap' }}>
           <Box />
