@@ -687,3 +687,27 @@ export const GET_TRADE_SPECIES_LISTING = `/v1/trade/species`
 export const GET_TRADE_SPECIES_SHIPMENT_LIST = `v1/trade/species/shipments/`
 
 export const GET_SPECIES_DETAILS_SHIPMENT_EXPORT_LIST = `v1/trade/species/shipments/exports/`
+
+export const GET_INCOMING_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
+
+export const GET_MASTERS_HOSPITAL = 'v1/hospital/listing'
+
+export const CREATE_MASTERS_HOSPITAL = 'v1/hospital/create'
+
+export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
+
+export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
+
+export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`
+
+export const GET_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/list'
+
+export const CREATE_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/create'
+
+export const DELETE_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/delete'
+
+export const ADMIT_HOSPITAL_PATIENT = `v1/hospital/admit`
+
+export const ANIMAL_MEDICAL_ID_LIST = `medical/v2/`
+
+export const ADD_HOSPITAL_PATIENT = `/v1/hospital/create-transfer`

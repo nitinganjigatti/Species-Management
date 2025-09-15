@@ -1,5 +1,5 @@
-import React from 'react'
-import { Box, Typography } from '@mui/material'
+import React, { useState } from 'react'
+import { Box, FormControl, MenuItem, Select, Typography } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
@@ -10,6 +10,17 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import { useTheme, styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { timelineOppositeContentClasses } from '@mui/lab'
+import Search from 'src/views/utility/Search'
+import { FilterButton } from 'src/views/utility/render-snippets'
+
+const medicalTypes = [
+  { label: 'All Activities', value: '' },
+  { label: 'Vaccination', value: 'vaccination' },
+  { label: 'Prescription', value: 'prescription' },
+  { label: 'Clinical Assessment', value: 'clinical_assessment' },
+  { label: 'Symptoms', value: 'symptoms' },
+  { label: 'Treatment', value: 'treatment' }
+]
 
 const defaultTimelineData = [
   {
@@ -148,12 +159,43 @@ const TimelineSection = ({ section }) => {
 }
 
 const GroupedTimeline = ({ data = defaultTimelineData }) => {
+  const [medicalType, setMedicalType] = useState('')
+  const [searchValue, setSearchValue] = useState('')
+
   return (
-    <Box sx={{ width: '100%', mt: '2rem' }}>
-      {data.map(section => (
-        <TimelineSection key={section.date} section={section} />
-      ))}
-    </Box>
+    <>
+      <Box sx={{ width: '100%', mt: '1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Search value={searchValue} onChange={e => setSearchValue(e.target.value)} />
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'flex-end' }}>
+              <FormControl sx={{ m: 1, minWidth: 120 }}>
+                <Select
+                  value={medicalType}
+                  onChange={e => setMedicalType(e.target.value)}
+                  displayEmpty
+                  inputProps={{ 'aria-label': 'Without label' }}
+                  sx={{
+                    height: 40,
+                    width: 200
+                  }}
+                >
+                  {medicalTypes.map(type => (
+                    <MenuItem key={type.value} value={type.value}>
+                      {type.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FilterButton />
+            </Box>
+          </Box>
+          {data.map(section => (
+            <TimelineSection key={section.date} section={section} />
+          ))}
+        </>
+      </Box>
+    </>
   )
 }
 

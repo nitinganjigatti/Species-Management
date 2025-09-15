@@ -1,159 +1,202 @@
 import { useTheme } from '@emotion/react'
-import {
-  Breadcrumbs,
-  Box,
-  Typography,
-  Card,
-  CardHeader,
-  Grid,
-  Button,
-  CardContent,
-  Select,
-  Tooltip,
-  MenuItem
-} from '@mui/material'
-import { width } from '@mui/system'
+import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
+import { minWidth } from '@mui/system'
+import { useQuery } from '@tanstack/react-query'
+import { differenceInDays } from 'date-fns'
+import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
+import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
-import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
+import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import AnimalParentCard from 'src/views/utility/animalParentCard'
-import { FilterButton, VisitType } from 'src/views/utility/render-snippets'
+import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 
-const dummyData = [
-  {
-    id: 1,
-    animalName: 'Leopard',
-    animalId: '87546/24',
-    species: 'Panthera pardus',
-    gender: 'M',
-    age: '4y 6m',
-    site: 'R & R',
-    purposeOfVisit:
-      'The patient is admitted due to acute eye pain and swelling, requiring immediate medical intervention and diagidstic tests.',
-    medicalId: '87546/24',
-    admissionDate: '26 Aug 2025',
-    admissionTime: '9:30 AM',
-    duration: '1 Day',
-    visitType: 'Emergency'
-  },
-  {
-    id: 2,
-    animalName: 'Giraffe',
-    animalId: '87549/24',
-    species: 'Giraffa camelopardalis',
-    gender: 'M',
-    age: '5y 8m',
-    site: 'R & R',
-    purposeOfVisit: 'Patient may have a severe dermatitis, need to run some additional tests to confirm',
-    medicalId: '87550/24',
-    admissionDate: '25 Aug 2025',
-    admissionTime: '9:30 AM',
-    duration: '2 Days',
-    visitType: 'Follow-up'
-  },
-  {
-    id: 3,
-    animalName: 'Red Panda',
-    animalId: '87551/24',
-    species: 'Ailurus fulgens',
-    gender: 'F',
-    age: '2y 5m',
-    site: 'R & R',
-    purposeOfVisit:
-      'The patient has been diagnosed with chronic gastritis and admitting for additional tests and assessments.',
-    medicalId: '87547/24',
-    admissionDate: '25 Aug 2025',
-    admissionTime: '9:30 AM',
-    duration: '2 Days',
-    visitType: 'Check up'
-  },
-  {
-    id: 4,
-    animalName: 'Gray Wolf',
-    animalId: '87550/24',
-    species: 'Canis lupus',
-    gender: 'F',
-    age: '6y 3m',
-    site: 'R & R',
-    purposeOfVisit: 'The patient has been diagnosed with persistent pancreatitis',
-    medicalId: '87548/24',
-    admissionDate: '25 Aug 2025',
-    admissionTime: '9:30 AM',
-    duration: '2 Days',
-    visitType: 'Check up'
-  }
+const visitTypeOptions = [
+  { value: '', label: 'All visit' },
+  { value: 'checkup', label: 'Checkup' },
+  { value: 'emergency', label: 'Emergency' },
+  { value: 'opd', label: 'OPD' }
 ]
+
+const getVisitTypeLabel = title => {
+  if (title === 'checkup') return 'Check up'
+  if (title === 'emergency') return 'Emergency'
+  if (title === 'follow_up') return 'Follow-up'
+  if (title === 'outpatient') return 'OUTPATIENT'
+  if (title === 'opd') return 'OUTPATIENT'
+}
 
 const HospitalInpatient = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const handleRowClick = params => router.push(`/hospital/inpatient/${params.row.id}`)
+  const [searchValue, setSearchValue] = useState('')
+  const [selectedVisitType, setSelectedVisitType] = useState('')
+
+  const [filters, setFilters] = useState({
+    page: 1,
+    limit: 50,
+    q: ''
+  })
+
+  useEffect(() => {
+    const { page = '1', limit = '50', q = '' } = router.query
+
+    setFilters({
+      page: parseInt(page),
+      limit: parseInt(limit),
+      q
+    })
+
+    setSearchValue(q)
+  }, [router.query])
+
+  const { data, isFetching, refetch } = useQuery({
+    queryKey: ['inpatients-listings', filters, selectedVisitType],
+    queryFn: () =>
+      getIncomingPatients({
+        page_no: filters?.page,
+        limit: filters?.limit,
+        search: filters?.q,
+        hospital_id: 1,
+        status: 'admitted',
+        visit_type: selectedVisitType
+      })
+  })
+
+  const total = data?.data?.total || 0
+  const rows = data?.data?.records || []
+
+  useEffect(() => {
+    refetch()
+  }, [refetch])
+
+  const updateUrlParams = updatedFilters => {
+    const params = new URLSearchParams()
+    Object.entries(updatedFilters).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value.toString())
+      }
+    })
+    router.push({ query: params.toString() }, undefined, { shallow: true })
+  }
+
+  const handlePaginationModelChange = model => {
+    const updated = {
+      ...filters,
+      page: model.page + 1,
+      limit: model.pageSize
+    }
+    setFilters(updated)
+    updateUrlParams(updated)
+  }
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        const updated = {
+          ...filters,
+          q: value,
+          page: 1
+        }
+        setFilters(updated)
+        updateUrlParams(updated)
+      }, 500),
+    [filters]
+  )
+
+  const handleSearch = useCallback(
+    value => {
+      setSearchValue(value)
+      debouncedSearch(value)
+    },
+    [debouncedSearch]
+  )
+
+  const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
+
+  const indexedRows = rows.map((row, index) => ({
+    ...row,
+    id: +row?.hospital_case_id,
+    sl_no: getSlNo(index)
+  }))
 
   const columns = [
     {
-      width: 80,
       minWidth: 20,
-      field: 'id',
+      width: 80,
       sortable: false,
-      headerName: 'SL.NO',
-      align: 'left',
-      headerAlign: 'left',
-
+      field: 'sl_no',
+      headerName: 'NO',
       renderCell: params => (
-        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
-          <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
-            {params.row.id + '.'}
-          </Typography>
-        </Box>
+        <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
+          {params.row.sl_no}
+        </Typography>
       )
     },
     {
-      width: 200,
+      width: 300,
       minWidth: 20,
-      field: 'animal',
       sortable: false,
-      headerName: 'Animal Name & Id',
-      align: 'left',
-      headerAlign: 'left',
-
+      field: 'animal_name',
+      headerName: 'Animal Name & ID',
       renderCell: params => (
         <>
-          <Box>
-            <AnimalParentCard />
-          </Box>
+          <AnimalCard
+            data={{
+              default_icon: params.row?.default_icon,
+              sex: params.row?.sex,
+              type: params.row?.type,
+              local_identifier_name: params.row?.local_identifier_name,
+              local_identifier_value: params.row?.local_identifier_value,
+              animal_id: params.row?.animal_id,
+              common_name: params.row?.common_name,
+              scientific_name: params.row?.scientific_name,
+              age: params.row?.age,
+              site_name: params.row?.site_name
+            }}
+          />
         </>
       )
     },
     {
-      width: 350,
+      width: 250,
       minWidth: 20,
-      field: 'purposeOfVisit',
+      field: 'purpose_of_visit',
+      sortable: false,
       headerName: 'Purpose of Visit',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme?.palette?.customColors?.OnSurfaceVariant,
-            fontSize: '14px',
-            display: '-webkit-box',
-            WebkitLineClamp: 4,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'normal'
-          }}
-        >
-          {params.row.purposeOfVisit || ''}
-        </Typography>
+        <>
+          <Tooltip title={params.row.purpose_of_visit}>
+            <Typography
+              variant='body2'
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                fontFamily: 'Inter',
+                color: theme.palette.customColors.OnSurfaceVariant,
+                display: '-webkit-box',
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal',
+                py: 4
+              }}
+            >
+              <>{params.row.purpose_of_visit || ''}</>
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {
       width: 150,
       minWidth: 20,
-      field: 'medicalId',
+      field: 'medical_record_code',
       sortable: false,
       headerName: 'Medical Id',
       align: 'left',
@@ -162,7 +205,7 @@ const HospitalInpatient = () => {
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.medicalId}
+            {params?.row?.medical_record_code}
           </Typography>
         </>
       )
@@ -170,7 +213,7 @@ const HospitalInpatient = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'admissionDate',
+      field: 'admitted_at',
       sortable: false,
       headerName: 'Admission Date',
       align: 'left',
@@ -182,12 +225,12 @@ const HospitalInpatient = () => {
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {params?.row?.admissionDate}
+              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
             </Typography>
             <Typography
               sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {params?.row?.admissionTime}
+              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
             </Typography>
           </Box>
         </>
@@ -202,30 +245,69 @@ const HospitalInpatient = () => {
       align: 'left',
       headerAlign: 'left',
 
+      renderCell: params => {
+        const admittedAt = params?.row?.admitted_at
+        let days = '-'
+
+        if (admittedAt) {
+          const admittedDate = new Date(admittedAt)
+          const today = new Date()
+          days = differenceInDays(today, admittedDate)
+        }
+
+        return (
+          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
+            {days} {days !== '-' ? 'days' : ''}
+          </Typography>
+        )
+      }
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'visit_type',
+      sortable: false,
+      headerName: 'Visit Type',
+      renderCell: params => (
+        <>
+          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
+        </>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'bed_name',
+      sortable: false,
+      headerName: 'Location',
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.duration}
+            {params?.row?.bed_name}
           </Typography>
         </>
       )
     },
     {
-      width: 180,
+      width: 200,
       minWidth: 20,
-      field: 'visitType',
+      field: 'doctor_full_name',
       sortable: false,
-      headerName: 'Visit Type',
-      align: 'left',
-      headerAlign: 'left',
-
+      headerName: 'Chief Doctor',
       renderCell: params => (
         <>
-          <Box>{VisitType({ title: params?.row?.visitType })}</Box>
+          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
+            {params?.row?.doctor_full_name}
+          </Typography>
         </>
       )
     }
   ]
+
+  const handleRowClick = params =>
+    router.push({
+      pathname: `/hospital/inpatient/${params.row.id}`
+    })
 
   const headerAction = (
     <>
@@ -247,63 +329,54 @@ const HospitalInpatient = () => {
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Inpatients')} action={headerAction} />
-            <CardContent>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { sm: 'row', xs: 'column' },
-                  alignItems: { sm: 'center', xs: 'flex-start' },
-                  justifyContent: 'space-between',
-                  gap: 3
-                }}
-              >
-                <Search sx={{ width: '100%' }} />
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: { sm: 'flex-end', xs: 'space-between' },
-                    gap: 3,
-                    width: '100%'
-                  }}
-                >
-                  <Select
-                    size='small'
-                    value={''}
-                    // onChange={event => handleChangeSize(event, item)}
-                    // error={visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && !size[item.id]?.id}
-                    displayEmpty
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '0px'
-                      }
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300
-                        }
-                      }
-                    }}
-                  >
-                    <MenuItem value='' disabled>
-                      All visit
-                    </MenuItem>
-                  </Select>
-
-                  <FilterButton />
-                </Box>
+            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+              <Box sx={{ ml: 2 }}>
+                <Search
+                  borderRadius='4px'
+                  width='343px'
+                  placeholder='Search by medical Id or animal id'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                />
               </Box>
-              <Grid>
-                <CommonTable indexedRows={dummyData} onRowClick={handleRowClick} columns={columns} rowHeight={100} />
-              </Grid>
-            </CardContent>
+              <Box sx={{ mr: 2 }}>
+                <Select
+                  size='small'
+                  value={selectedVisitType}
+                  displayEmpty
+                  onChange={e => setSelectedVisitType(e.target.value)}
+                >
+                  {visitTypeOptions?.map((item, index) => (
+                    <MenuItem key={index} value={item?.value}>
+                      {item?.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Box></Box>
+              </Box>
+            </Box>
+            <Grid
+              sx={{
+                mx: { xs: 3, md: 5 }
+              }}
+            >
+              <CommonTable
+                columns={columns}
+                indexedRows={indexedRows}
+                total={total}
+                loading={isFetching}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                setPaginationModel={handlePaginationModelChange}
+                searchValue=''
+                getRowHeight={() => 'auto'}
+                onRowClick={handleRowClick}
+                externalTableStyle={{
+                  '& .MuiDataGrid-cell': {
+                    padding: 4
+                  }
+                }}
+              />
+            </Grid>
           </Card>
         </Box>
       </Box>

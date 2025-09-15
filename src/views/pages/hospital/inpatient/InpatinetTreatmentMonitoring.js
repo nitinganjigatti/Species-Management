@@ -11,7 +11,7 @@ const InpatinetTreatmentMonitoring = () => {
       <Box sx={{ mt: 6 }}>
         <Grid container spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <Grid item size={{ xs: 12, sm: 10 }}>
-            <HorizontalDateNav numberOfDays={6} />
+            <HorizontalDateNav numberOfDays={7} />
           </Grid>
           <Grid
             item

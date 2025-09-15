@@ -206,6 +206,20 @@ const AnimalCard = ({ data, size }) => {
           </Typography>
         )}
 
+        {data?.age && (
+          <Typography
+            sx={{
+              fontSize: '13px',
+              fontWeight: 500,
+              fontStyle: 'italic',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Age : </span>
+            {data?.age || '-'}
+          </Typography>
+        )}
+
         {data?.type === 'group' && (
           <Typography
             variant='caption'
