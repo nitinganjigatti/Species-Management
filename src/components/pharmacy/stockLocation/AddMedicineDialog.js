@@ -166,7 +166,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                     status: item?.active === '0' ? 0 : 1,
                     manufacture: item?.manufacturer_name,
                     packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                    control_substance: item.controlled_substance === '1' ? true : false
+                    control_substance: item.controlled_substance === '1' ? true : false,
+                    generic_name: item?.generic_name
                   }))
                 )
               }
@@ -185,7 +186,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                     status: item?.active === '0' ? 0 : 1,
                     manufacture: item?.manufacturer_name,
                     packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                    control_substance: item.controlled_substance === '1' ? true : false
+                    control_substance: item.controlled_substance === '1' ? true : false,
+                    generic_name: item?.generic_name
                   }))
                 )
               }
@@ -451,7 +453,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                                 <Box>
                                   <Typography>{option.label}</Typography>
                                   <Typography variant='body2'>
-                                    {option.generic_name ? option.generic_name : 'NA'}
+                                    {option.generic_name ? option?.generic_name : 'NA'}
                                   </Typography>
                                 </Box>
                               </li>
@@ -531,36 +533,6 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                                 isOptionEqualToValue={(option, value) =>
                                   parseInt(option?.rack_id) === parseInt(value?.rack_id)
                                 }
-                                // onChange={(e, val) => {
-                                //   if (val === null) {
-                                //     var rack = defaultRack
-                                //     rack[index] = null
-                                //     setDefaultRack(rack)
-
-                                //     setConfigErrors(prev => {
-                                //       const newErrors = { ...prev }
-                                //       delete newErrors[index]
-
-                                //       return newErrors
-                                //     })
-                                //     setValue(`locations[${index}].shelf_id`, '')
-
-                                //     return onChange('')
-                                //   } else {
-                                //     var rack = defaultRack
-                                //     rack[index] = { rack_id: val?.rack_id, rack_name: val?.rack_name }
-                                //     setDefaultRack(prev => {
-                                //       const newArr = [...prev]
-                                //       newArr[index] = val ? { rack_id: val.rack_id, rack_name: val.rack_name } : null
-
-                                //       return newArr
-                                //     })
-                                //     getShelves({ rackId: val?.rack_id })
-                                //     setValue(`locations[${index}].shelf_id`, '')
-
-                                //     return onChange(val.rack_id)
-                                //   }
-                                // }}
                                 onChange={(e, val) => {
                                   if (val === null) {
                                     setDefaultRack(prev => {

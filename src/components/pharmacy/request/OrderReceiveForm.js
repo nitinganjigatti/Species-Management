@@ -766,9 +766,11 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
-                <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
-                  Mark as Received
-                </Button>
+                {shouldShowSubmitButton() && (
+                  <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
+                    Mark as Received
+                  </Button>
+                )}
               </Box>
             </Box>
           </>
@@ -807,29 +809,64 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     )
   }
 
-  const showSubmitButton = () => {
+  // Function that returns boolean
+  const shouldShowSubmitButton = () => {
     if (
       requestedFrom === 'localDispatch' &&
       disputeItemDetails?.delivery_status !== 'Delivered' &&
       selectedPharmacy?.type === 'local'
     ) {
-      return submitButton()
+      return true
     }
     if (
       requestedFrom === 'return' &&
       disputeItemDetails?.delivery_status !== 'Delivered' &&
       selectedPharmacy?.type === 'central'
     ) {
-      return submitButton()
+      return true
     }
     if (
       (requestedFrom === 'request' || requestedFrom === 'directDispatch' || requestedFrom === 'requestByAllStores') &&
       disputeItemDetails?.delivery_status !== 'Delivered' &&
       selectedPharmacy?.type === 'local'
     ) {
-      return submitButton()
+      return true
+    } else {
+      return false
     }
   }
+
+  // Function that returns the button component
+  const showSubmitButton = () => {
+    if (shouldShowSubmitButton()) {
+      return submitButton()
+    }
+
+    return null
+  }
+  // const showSubmitButton = () => {
+  // if (
+  //   requestedFrom === 'localDispatch' &&
+  //   disputeItemDetails?.delivery_status !== 'Delivered' &&
+  //   selectedPharmacy?.type === 'local'
+  // ) {
+  //   return submitButton()
+  // }
+  // if (
+  //   requestedFrom === 'return' &&
+  //   disputeItemDetails?.delivery_status !== 'Delivered' &&
+  //   selectedPharmacy?.type === 'central'
+  // ) {
+  //   return submitButton()
+  // }
+  // if (
+  //   (requestedFrom === 'request' || requestedFrom === 'directDispatch' || requestedFrom === 'requestByAllStores') &&
+  //   disputeItemDetails?.delivery_status !== 'Delivered' &&
+  //   selectedPharmacy?.type === 'local'
+  // ) {
+  //   return submitButton()
+  // }
+  // }
 
   const isStoreMatch = () => {
     const isMatch = disputeItemDetails?.item_details?.some(
@@ -1027,6 +1064,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                           params?.row?.dispute_status === 'Dispute Resolved' ? 'Missing - Accepted' : 'Missing - Denied'
                         }`
                       : getStatusLabel(params?.row?.status)}
+                    {params?.row?.total_deny_comments &&
+                      params?.row?.total_deny_comments !== '0' &&
+                      commentViewButton(params)}
 
                     {/* : params.row.status}  */}
                   </Typography>
@@ -1445,26 +1485,27 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                         {params.row.status === 'Wrong Count - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Open' ||
-                        params.row.status === 'Wrong Count - Deny Open' ? (
-                          <Button
-                            variant='text'
-                            onClick={e => {
-                              e.preventDefault()
-                              setMarkReceived(params.row)
-                              openCommentDialog()
-                            }}
-                            sx={{ p: 0, m: 0 }}
-                          >
-                            <Chip
-                              label={params.row.total_deny_comments}
-                              avatar={<Avatar variant='square' alt='' src={'/images/sms.png'}></Avatar>}
-                              onClick={() => {
-                                getRejectedCommentsList(params?.row?.dispatch_item_id)
-                              }}
-                              sx={{ padding: 0, mx: 0, alignSelf: 'center', borderRadius: '8px' }}
-                            />
-                          </Button>
-                        ) : null}
+                        params.row.status === 'Wrong Count - Deny Open'
+                          ? // <Button
+                            //   variant='text'
+                            //   onClick={e => {
+                            //     e.preventDefault()
+                            //     setMarkReceived(params.row)
+                            //     openCommentDialog()
+                            //   }}
+                            //   sx={{ p: 0, m: 0 }}
+                            // >
+                            //   <Chip
+                            //     label={params.row.total_deny_comments}
+                            //     avatar={<Avatar variant='square' alt='' src={'/images/sms.png'}></Avatar>}
+                            //     onClick={() => {
+                            //       getRejectedCommentsList(params?.row?.dispatch_item_id)
+                            //     }}
+                            //     sx={{ padding: 0, mx: 0, alignSelf: 'center', borderRadius: '8px' }}
+                            //   />
+                            // </Button>
+                            commentViewButton(params)
+                          : null}
                       </Grid>
                     ) : (
                       <Typography variant='p' sx={{ mx: 2 }}>
@@ -1486,6 +1527,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                 : 'Missing - Denied'
                             }`
                           : getStatusLabel(params?.row?.status)}
+                        {params?.row?.total_deny_comments &&
+                          params?.row?.total_deny_comments !== '0' &&
+                          commentViewButton(params)}
                       </Typography>
                     )}
                   </Grid>
@@ -1713,6 +1757,28 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   //     shipmentPrintRef.current.handlePrint()
   //   }
   // }
+  const commentViewButton = params => {
+    return (
+      <Button
+        variant='text'
+        onClick={e => {
+          e.preventDefault()
+          setMarkReceived(params.row)
+          openCommentDialog()
+        }}
+        sx={{ p: 0, my: 0, mx: 2 }}
+      >
+        <Chip
+          label={params.row.total_deny_comments}
+          avatar={<Avatar variant='square' alt='' src={'/images/sms.png'}></Avatar>}
+          onClick={() => {
+            getRejectedCommentsList(params?.row?.dispatch_item_id)
+          }}
+          sx={{ padding: 0, mx: 0, alignSelf: 'center', borderRadius: '8px' }}
+        />
+      </Button>
+    )
+  }
 
   return (
     <>
@@ -1845,4 +1911,4 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   )
 }
 
-export default OrderReceiveForm
+export default React.memo(OrderReceiveForm)

@@ -26,7 +26,6 @@ export const ProductDetail = ({
   const { selectedPharmacy } = usePharmacyContext()
   const [visibleArea, setVisibleArea] = useState(false)
 
-
   const router = useRouter()
 
   // useEffect(() => {
@@ -158,11 +157,12 @@ export const ProductDetail = ({
               <Grid
                 item
                 size={{ xs: 12, sm: 12 }}
-                sx={{
-                  position: 'relative',
-                  top: '52px',
-                  left: '33px'
-                }}
+
+                // sx={{
+                //   position: 'relative',
+                //   top: '52px',
+                //   left: '33px'
+                // }}
               >
                 {selectedPharmacy.type === 'local' &&
                   selectedPharmacyId == selectedPharmacy?.id &&
@@ -172,8 +172,7 @@ export const ProductDetail = ({
                       sx={{
                         display: 'flex',
                         alignItems: 'flex-end',
-                        justifyContent: 'flex-end',
-                        mb: '20px'
+                        justifyContent: 'flex-end'
                       }}
                     >
                       {productDetails?.status === 'Pending' && (
@@ -192,7 +191,7 @@ export const ProductDetail = ({
                   selectedPharmacy.type === 'central' &&
                   (selectedPharmacy?.permission?.key === 'allow_full_access' ||
                     selectedPharmacy?.permission?.key === 'ADD') && (
-                    <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mb: '20px' }}>
+                    <Grid sx={{ display: 'flex', justifyContent: 'flex-end', gap: 5 }}>
                       {productDetails?.status === 'Pending' && (
                         <LoadingButton
                           loading={submitLoader}
