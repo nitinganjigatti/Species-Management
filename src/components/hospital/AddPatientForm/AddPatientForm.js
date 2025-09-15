@@ -74,8 +74,8 @@ const schema = yup.object().shape({
     otherwise: schema => schema.notRequired()
   }),
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
-  selectedAnimal: yup.mixed().nullable().required('Animal selection is required'),
-  selectedDoctor: yup.mixed().nullable().required('Doctor selection is required')
+  selectedAnimal: yup.mixed().nullable().required('Animal is required'),
+  selectedDoctor: yup.mixed().nullable().required('Doctor is required')
 })
 
 const AddPatientForm = () => {
@@ -195,9 +195,7 @@ const AddPatientForm = () => {
       await addHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
-          router.push({
-            pathname: `/hospital/incoming`
-          })
+          router.back()
         }
         setSubmitLoader(false)
       })

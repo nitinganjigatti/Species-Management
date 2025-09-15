@@ -1,6 +1,5 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
-import { minWidth } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
@@ -18,14 +17,14 @@ const visitTypeOptions = [
   { value: '', label: 'All visit' },
   { value: 'checkup', label: 'Checkup' },
   { value: 'emergency', label: 'Emergency' },
-  { value: 'opd', label: 'OPD' }
+  { value: 'opd', label: 'OPD' },
+  { value: 'follow_up', label: 'Follow-up' }
 ]
 
 const getVisitTypeLabel = title => {
   if (title === 'checkup') return 'Check up'
   if (title === 'emergency') return 'Emergency'
   if (title === 'follow_up') return 'Follow-up'
-  if (title === 'outpatient') return 'OUTPATIENT'
   if (title === 'opd') return 'OUTPATIENT'
 }
 
@@ -62,9 +61,10 @@ const HospitalInpatient = () => {
         limit: filters?.limit,
         search: filters?.q,
         hospital_id: 1,
-        status: 'admitted',
+
+        // status: 'admitted',
         visit_type: selectedVisitType,
-        visit_category: 'inpatient'
+        patient_category: 'inpatient'
       })
   })
 
@@ -131,7 +131,7 @@ const HospitalInpatient = () => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: 'SL. NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -312,7 +312,7 @@ const HospitalInpatient = () => {
 
   const headerAction = (
     <>
-      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/add-patient` })}>
+      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/inpatient/add-patient` })}>
         ADD PATIENT
       </Button>
     </>
