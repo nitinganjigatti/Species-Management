@@ -13,7 +13,7 @@ import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
 import { useRouter } from 'next/router'
 
-const AnimalsDrawer = ({ open, onClose, data }) => {
+const AnimalsDrawer = ({ open, onClose, data, totalCount }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
   const router = useRouter()
@@ -159,7 +159,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
         </Box>
       )}
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Animals {total ? `(${total})` : ''}
+        Animals {totalCount || total ? `(${totalCount || total})` : ''}
       </Typography>
       <Box sx={{ my: 2 }}>
         <Search

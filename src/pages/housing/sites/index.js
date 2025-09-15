@@ -40,6 +40,19 @@ const Sites = () => {
     })
   }
 
+  const handleAnimalInsightClick = () => {
+    setDrawerType('insights-animals')
+    setDrawerData({
+      queryKey: 'insights-animals-sites-drawer',
+      id: zooId,
+      params: {
+        ref_type: 'zoo',
+        data_type: 'animal',
+        ref_id: zooId
+      }
+    })
+  }
+
   const auth = useAuth()
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
@@ -66,7 +79,8 @@ const Sites = () => {
     {
       label: 'Animals',
       value: data?.data?.zoo_stats?.total_animals || 0,
-      imagePath: '/images/housing/animals.svg'
+      imagePath: '/images/housing/animals.svg',
+      onClick: handleAnimalInsightClick
     },
     {
       label: 'Sections',
@@ -142,6 +156,7 @@ const Sites = () => {
               setDrawerData={setDrawerData}
               siteDrawer={siteDrawer}
               setSiteDrawer={setSiteDrawer}
+              totalAnimalsCount={data?.data?.zoo_stats?.total_animals || 0}
             />
           </Card>
         </Box>
