@@ -11,7 +11,7 @@ import {
   Skeleton,
   Typography
 } from '@mui/material'
-import { alpha, useTheme } from '@mui/system'
+import { alpha, borderRadius, useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -36,7 +36,7 @@ const treatmentType = [
 const getVisitTypeLabel = title => {
   if (title === 'checkup') return 'Check up'
   if (title === 'emergency') return 'Emergency'
-  if (title === 'followup') return 'Follow-up'
+  if (title === 'follow_up') return 'Follow-up'
   if (title === 'outpatient') return 'OUTPATIENT'
   if (title === 'inpatient') return 'INPATIENT'
   if (title === 'planned') return 'Planned'
@@ -49,7 +49,7 @@ const defaultValues = {
 
 const schema = yup.object().shape({
   treatmentType: yup.string().required('Treatment Type is Required'),
-  selectedDoctor: yup.mixed().nullable().required('Doctor selection is required'),
+  selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
   holdingEnclosure: yup.object().required('Holding Enclosure is required')
 })
 
@@ -176,11 +176,11 @@ const PatientAdmitForm = () => {
           <Typography onClick={() => router.back()} sx={{ cursor: 'pointer', color: 'text.primary' }}>
             Incoming
           </Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>admit-patient</Typography>
+          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patient Admission Form</Typography>
         </Breadcrumbs>
         <Card sx={{ mb: 4 }}>
-          <CardHeader sx={{ pb: 1.5 }} title={headerTitle} />
-          <CardContent>
+          <CardHeader sx={{ pb: 1, px: 6, pt: 6 }} title={headerTitle} />
+          <CardContent sx={{ px: 6, pb: 6 }}>
             <Grid container sx={{ mb: 6 }} spacing={0}>
               <Grid
                 size={{ xs: 12, md: 4, sm: 5 }}
@@ -343,7 +343,9 @@ const PatientAdmitForm = () => {
                             sx={{
                               background: theme.palette.customColors.Surface,
                               borderRadius: 1,
-                              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              border: errors.selectedDoctor
+                                ? ` 1px solid ${theme.palette.customColors.Error}`
+                                : `1px solid ${theme.palette.customColors.OutlineVariant}`,
                               p: 3,
                               display: 'flex',
                               alignItems: 'center',
@@ -357,7 +359,9 @@ const PatientAdmitForm = () => {
                               sx={{
                                 fontSize: '1rem',
                                 fontWeight: 400,
-                                color: theme.palette.customColors.OnSurfaceVariant
+                                color: errors.selectedDoctor
+                                  ? theme.palette.customColors.Error
+                                  : theme.palette.customColors.OnSurfaceVariant
                               }}
                             >
                               Select doctor
@@ -424,7 +428,7 @@ const PatientAdmitForm = () => {
                         getOptionLabel={option => option.label || ''}
                         isOptionEqualToValue={(option, value) => option.value === value?.value}
                         required
-                        sx={{ background: theme.palette.customColors.Surface }}
+                        sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                         fullWidth
                       />
                     </Grid>
@@ -453,14 +457,19 @@ const PatientAdmitForm = () => {
         <Box sx={{ display: 'flex', gap: 3 }}>
           <Button
             variant='outlined'
-            sx={{ borderColor: theme.palette.customColors.Outline, py: '9px', px: 4, borderRadius: 0.5 }}
+            sx={{
+              borderColor: theme.palette.customColors.Outline,
+              borderRadius: 0.5,
+              minHeight: '56px',
+              minWidth: '160px'
+            }}
             onClick={() => router.back()}
           >
             CANCEL
           </Button>
           <LoadingButton
             variant='contained'
-            sx={{ backgroundColor: theme.palette.primary.main, px: 4, py: '9px', borderRadius: 0.5 }}
+            sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
             onClick={handleSubmit(onSubmit)}
             loading={submitLoader}
           >

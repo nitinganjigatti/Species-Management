@@ -15,7 +15,8 @@ const visitTypeOptions = [
   { value: '', label: 'All visit' },
   { value: 'checkup', label: 'Checkup' },
   { value: 'emergency', label: 'Emergency' },
-  { value: 'opd', label: 'OPD' }
+  { value: 'opd', label: 'Outpatients' },
+  { value: 'follow_up', label: 'Follow-up' }
 ]
 
 const getVisitTypeLabel = title => {
@@ -58,9 +59,10 @@ const HospitalIncoming = () => {
         page_no: filters?.page,
         limit: filters?.limit,
         search: filters?.q,
-        hospital_id: 1,
+        hospital_id: 5,
         status: 'pending',
-        visit_type: selectedVisitType
+        visit_type: selectedVisitType,
+        patient_category: 'incoming'
       }),
     refetchOnMount: true,
     refetchOnWindowFocus: true
@@ -103,7 +105,7 @@ const HospitalIncoming = () => {
         }
         setFilters(updated)
         updateUrlParams(updated)
-      }, 500),
+      }, 1000),
     [filters]
   )
 
@@ -114,6 +116,11 @@ const HospitalIncoming = () => {
     },
     [debouncedSearch]
   )
+
+  const handleSearchClear = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
 
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
 
@@ -172,28 +179,32 @@ const HospitalIncoming = () => {
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            <MedicalIdChip
-              medId={params?.row?.medical_record_code}
-              backgroundColor={theme.palette.customColors.mdAntzNeutral}
-            />
-            <Typography
-              variant='body2'
-              sx={{
-                fontSize: '14px',
-                fontWeight: 400,
-                fontFamily: 'Inter',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                display: '-webkit-box',
-                WebkitLineClamp: 4,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'normal',
-                py: 4
-              }}
-            >
-              <>{params.row.purpose_of_visit || ''}</>
-            </Typography>
+            {params?.row?.medical_record_code && (
+              <MedicalIdChip
+                medId={params?.row?.medical_record_code}
+                backgroundColor={theme.palette.customColors.mdAntzNeutral}
+              />
+            )}
+            {params.row.purpose_of_visit && (
+              <Typography
+                variant='body2'
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 4,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'normal',
+                  py: 4
+                }}
+              >
+                <>{params.row.purpose_of_visit || ''}</>
+              </Typography>
+            )}
           </Box>
         </>
       )
@@ -237,7 +248,7 @@ const HospitalIncoming = () => {
       renderCell: params => (
         <>
           <Button
-            sx={{ borderRadius: 6, px: 4, py: 2 }}
+            sx={{ borderRadius: 6, px: 4, py: 2, textTransform: 'none' }}
             variant='contained'
             onClick={() => handleAdmitClick(params.row)}
           >
@@ -250,10 +261,7 @@ const HospitalIncoming = () => {
 
   const handleAdmitClick = data => {
     router.push({
-      pathname: `/hospital/incoming/patient-admit-form`,
-      query: {
-        id: data?.hospital_case_id
-      }
+      pathname: `/hospital/incoming/${data?.hospital_case_id}/patient-admit-form`
     })
   }
 
@@ -266,9 +274,15 @@ const HospitalIncoming = () => {
             <Search
               borderRadius='4px'
               width='343px'
-              placeholder='Search by medical Id or animal id'
+              placeholder='Search by medical Id / AID / animal identifier'
               value={searchValue}
+              onClear={handleSearchClear}
               onChange={e => handleSearch(e.target.value)}
+              textFielsSX={{
+                '& .MuiInputBase-input::placeholder': {
+                  fontSize: '13px'
+                }
+              }}
             />
           </Box>
           <Box sx={{ mr: 2 }}>
@@ -304,6 +318,9 @@ const HospitalIncoming = () => {
             externalTableStyle={{
               '& .MuiDataGrid-cell': {
                 padding: 4
+              },
+              '& .MuiDataGrid-row:hover': {
+                backgroundColor: 'transparent'
               }
             }}
           />
