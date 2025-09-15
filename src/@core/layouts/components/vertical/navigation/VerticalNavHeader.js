@@ -14,11 +14,11 @@ import Icon from 'src/@core/components/icon'
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
 
-import antzLogo from 'public/images/branding/Antz_logo_h_color.svg'
-import antzLogoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
+// import antzLogo from 'public/images/branding/Antz_logo_h_color.svg'
+// import antzLogoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
 
-import vantaraLogo from 'public/branding/vantara/Weblogo_vantara.png'
-import vantaraLogoAlt from 'public/branding/vantara/Weblogo_vantara_V.png'
+// import vantaraLogo from 'public/branding/vantara/Weblogo_vantara.png'
+// import vantaraLogoAlt from 'public/branding/vantara/Weblogo_vantara_V.png'
 
 // ** Styled Components
 const MenuHeaderWrapper = styled(Box)(({ theme }) => ({
