@@ -20,7 +20,8 @@ const AnimalQRCard = ({ open, handleClose, speciesData }) => {
             width: 80,
             height: 80,
             mx: 'auto',
-            mb: 4
+            mb: 4,
+            objectFit: 'cover'
           }}
         />
 

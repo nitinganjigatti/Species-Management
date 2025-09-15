@@ -496,7 +496,7 @@ const Clusters = () => {
         </Breadcrumbs>
         <Box>
           <InsightsCard
-            pageTitle={'All Cluster Insights'}
+            pageTitle={'All Sites Insights'}
             data={statsData}
             loading={statsFetching}
             haveInsightsViewAccess={insightsViewAccess}

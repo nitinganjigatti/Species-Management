@@ -45,22 +45,77 @@ const AnimalInsightsHeader = ({
                 {scientificName}
               </Typography>
             )}
-            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-              {headerDetails?.isAlive === "0" && (
-                <Box sx={{ px: 4, py: 2, background: theme.palette.customColors.Error, borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              {headerDetails?.isAlive === '0' && (
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: theme.palette.customColors.Error,
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
                   <img src='/icons/died_symbol_icon.svg' alt='died' height={'20px'} width={'20px'} />
-                  <Typography sx={{ color: '#FFF', fontWeight: 500, fontSize: '20px' }}>
-                    Dead
-                  </Typography>
+                  <Typography sx={{ color: '#FFF', fontWeight: 500, fontSize: '20px' }}>Dead</Typography>
                 </Box>
               )}
               {headerDetails?.isGrouped && (
-                <Box sx={{ px: 4, py: 2, background: '#FFF', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: '#FFF',
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
                   <Typography sx={{ color: theme.palette.customColors.Error, fontWeight: 500, fontSize: '20px' }}>
                     Group
                   </Typography>
                 </Box>
               )}
+              {headerDetails?.in_transit ? (
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: theme.palette.customColors.TertiaryContainer,
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 500, fontSize: '20px' }}
+                  >
+                    In Transit
+                  </Typography>
+                </Box>
+              ) : headerDetails?.animal_transfered === '1' ? (
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: theme.palette.customColors.TertiaryContainer,
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 500, fontSize: '20px' }}
+                  >
+                    Transferred
+                  </Typography>
+                </Box>
+              ) : null}
             </Box>
           </Box>
           <Box>

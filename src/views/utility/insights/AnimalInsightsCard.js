@@ -56,7 +56,11 @@ const AnimalInsightsCard = ({
               <Grid container spacing={2}>
                 {[1, 2, 3].map(idx => (
                   <Grid key={idx} item size={{ xs: 12, md: 4 }}>
-                    <Skeleton variant='rectangular' height={90} sx={{ borderRadius: 1, backgroundColor: 'grey.900', mb: 1 }} />
+                    <Skeleton
+                      variant='rectangular'
+                      height={90}
+                      sx={{ borderRadius: 1, backgroundColor: 'grey.900', mb: 1 }}
+                    />
                     <Skeleton width='90%' sx={{ backgroundColor: 'grey.900' }} />
                     <Skeleton width='60%' sx={{ backgroundColor: 'grey.900' }} />
                   </Grid>
@@ -78,7 +82,7 @@ const AnimalInsightsCard = ({
             />
             <Box
               sx={{
-                mt: 10,
+                mt: 6,
                 p: { xs: 1.5, sm: 6 },
                 border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
                 borderRadius: 1,
