@@ -34,6 +34,7 @@ const composeHospitalNavigation = () => {
 
   const hospitalMastersParent = {
     title: 'Masters',
+    key: 'hospital-masters',
     path: '/hospital/masters',
     icon: 'tabler:align-box-top-left',
     children: []
