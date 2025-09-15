@@ -29,7 +29,7 @@ const getVisitTypeLabel = title => {
   if (title === 'opd') return 'OUTPATIENT'
 }
 
-const HospitalInpatient = () => {
+const HospitalOutPatient = () => {
   const theme = useTheme()
   const router = useRouter()
 
@@ -55,14 +55,14 @@ const HospitalInpatient = () => {
   }, [router.query])
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['inpatients-listings', filters, selectedVisitType],
+    queryKey: ['outpatients-listings', filters, selectedVisitType],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         search: filters?.q,
         hospital_id: 1,
-        status: 'admitted',
+        status: 'opd',
         visit_type: selectedVisitType
       })
   })
@@ -215,7 +215,7 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'admitted_at',
       sortable: false,
-      headerName: 'Admission Date',
+      headerName: 'OPD Visit Date',
       align: 'left',
       headerAlign: 'left',
 
@@ -277,13 +277,13 @@ const HospitalInpatient = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'bed_name',
+      field: 'holding_enclosure_name',
       sortable: false,
       headerName: 'Location',
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.bed_name}
+            {params?.row?.holding_enclosure_name}
           </Typography>
         </>
       )
@@ -323,12 +323,12 @@ const HospitalInpatient = () => {
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
           <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Inpatient</Typography>
+          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>outpatient</Typography>
         </Breadcrumbs>
         <Box>{/* This is for Hospital Card */}</Box>
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Inpatients')} action={headerAction} />
+            <CardHeader title={RenderUtility?.pageTitle('Outpatients')} action={headerAction} />
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
               <Box sx={{ ml: 2 }}>
                 <Search
@@ -384,4 +384,4 @@ const HospitalInpatient = () => {
   )
 }
 
-export default HospitalInpatient
+export default HospitalOutPatient

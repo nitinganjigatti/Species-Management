@@ -32,6 +32,7 @@ import { getAnimalMedicalIds } from 'src/lib/api/hospital/hospitalMaster'
 import { addHospitalPatient } from 'src/lib/api/hospital/inpatient'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
+import { LoadingButton } from '@mui/lab'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -194,11 +195,11 @@ const AddPatientForm = () => {
       await addHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
-          setSubmitLoader(false)
           router.push({
             pathname: `/hospital/incoming`
           })
         }
+        setSubmitLoader(false)
       })
     } catch (error) {
       console.error(error, 'Cannot Add-Patient')
@@ -341,7 +342,9 @@ const AddPatientForm = () => {
                             sx={{
                               fontSize: '16px',
                               fontWeight: 400,
-                              color: theme.palette.customColors.OnPrimaryContainer
+                              color: errors.selectedAnimal
+                                ? theme.palette.error.main
+                                : theme.palette.customColors.OnPrimaryContainer
                             }}
                           >
                             Select Animal
@@ -443,10 +446,18 @@ const AddPatientForm = () => {
                             name={'medicalRecordId'}
                             errors={errors}
                             label={'Select ID'}
-                            options={medicalId}
+                            options={
+                              !selectedAnimal
+                                ? [{ label: ' Select Animal first', value: '' }]
+                                : medicalId.length > 0
+                                ? medicalId
+                                : [{ label: 'No medical IDs available', value: '' }]
+                            }
                             getOptionLabel={option => option.label}
                             getOptionValue={option => option.value}
                             sx={{ background: theme.palette.customColors.Surface }}
+
+                            // disabled={!selectedAnimal}
                           />
                         </Grid>
                       )}
@@ -498,7 +509,9 @@ const AddPatientForm = () => {
                             sx={{
                               fontSize: '1rem',
                               fontWeight: 400,
-                              color: theme.palette.customColors.OnSurfaceVariant
+                              color: errors?.selectedDoctor
+                                ? theme.palette.error.main
+                                : theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
                             Select doctor
@@ -600,13 +613,22 @@ const AddPatientForm = () => {
           >
             CANCEL
           </Button>
-          <Button
+          <LoadingButton
+            loading={submitLoader}
+            disabled={submitLoader}
+            variant='contained'
+            sx={{ backgroundColor: theme.palette.primary.main, px: 4, py: '9px', borderRadius: 0.5 }}
+            onClick={handleSubmit(onSubmit)}
+          >
+            ADMIT
+          </LoadingButton>
+          {/* <Button
             variant='contained'
             sx={{ backgroundColor: theme.palette.primary.main, px: 4, py: '9px', borderRadius: 0.5 }}
             onClick={handleSubmit(onSubmit)}
           >
             {submitLoader ? <CircularProgress /> : 'ADMIT'}
-          </Button>
+          </Button> */}
         </Box>
       </Box>
       {openAnimalDrawer && (

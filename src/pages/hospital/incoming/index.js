@@ -23,6 +23,7 @@ const getVisitTypeLabel = title => {
   if (title === 'emergency') return 'Emergency'
   if (title === 'follow_up') return 'Follow-up'
   if (title === 'outpatient') return 'OUTPATIENT'
+  if (title === 'opd') return 'OUTPATIENT'
 }
 
 const HospitalIncoming = () => {

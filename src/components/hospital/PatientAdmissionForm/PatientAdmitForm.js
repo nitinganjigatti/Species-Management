@@ -15,7 +15,6 @@ import { alpha, useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -27,6 +26,7 @@ import { admitHospitalPatient, getPatientDetails } from 'src/lib/api/hospital/in
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
 import Toaster from 'src/components/Toaster'
+import { LoadingButton } from '@mui/lab'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -47,7 +47,11 @@ const defaultValues = {
   holdingEnclosure: null
 }
 
-const schema = yup.object().shape({})
+const schema = yup.object().shape({
+  treatmentType: yup.string().required('Treatment Type is Required'),
+  selectedDoctor: yup.mixed().nullable().required('Doctor selection is required'),
+  holdingEnclosure: yup.object().required('Holding Enclosure is required')
+})
 
 const PatientAdmitForm = () => {
   const theme = useTheme()
@@ -59,7 +63,8 @@ const PatientAdmitForm = () => {
     control,
     handleSubmit,
     formState: { errors },
-    watch
+    setValue,
+    clearErrors
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -106,12 +111,12 @@ const PatientAdmitForm = () => {
         }).then(res => {
           if (res?.success === true) {
             setHoldingEnclosures(
-              res?.data?.records.map(item => {
-                return {
+              res?.data?.records
+                ?.filter(item => item?.is_occupied !== '1')
+                ?.map(item => ({
                   label: item?.bed_name,
                   value: item?.id
-                }
-              })
+                }))
             )
           }
         })
@@ -138,6 +143,7 @@ const PatientAdmitForm = () => {
           router.push({
             pathname: `/hospital/inpatient`
           })
+          setSubmitLoader(false)
         } else {
           Toaster({ type: 'error', message: res?.message })
           setSubmitLoader(false)
@@ -154,6 +160,12 @@ const PatientAdmitForm = () => {
       Patient Admission Form
     </Typography>
   )
+
+  const handleDoctorSelection = doctor => {
+    setSelectedDoctor(doctor)
+    setValue('selectedDoctor', doctor)
+    clearErrors('selectedDoctor')
+  }
 
   return (
     <>
@@ -319,67 +331,82 @@ const PatientAdmitForm = () => {
                         Admission details
                       </Typography>
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <Typography
-                        sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                      >
-                        Attending chief doctor
-                      </Typography>
-                      {selectedDoctor === null ? (
-                        <Box
-                          sx={{
-                            background: theme.palette.customColors.Surface,
-                            borderRadius: 1,
-                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            p: 3,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            minHeight: '56px',
-                            cursor: 'pointer'
-                          }}
-                          onClick={() => setDoctorDrawerOpen(true)}
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Typography
+                          sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                         >
-                          <Typography
-                            sx={{
-                              fontSize: '1rem',
-                              fontWeight: 400,
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            Select doctor
-                          </Typography>
-                          <Icon
-                            icon='mdi:chevron-down'
-                            fontSize={24}
-                            color={theme.palette.customColors.OnSurfaceVariant}
-                          />
-                        </Box>
-                      ) : (
-                        <>
+                          Attending chief doctor
+                        </Typography>
+                        {selectedDoctor === null ? (
                           <Box
                             sx={{
-                              background: theme.palette.customColors.OnPrimary,
+                              background: theme.palette.customColors.Surface,
                               borderRadius: 1,
                               border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                              px: 3,
+                              p: 3,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               minHeight: '56px',
                               cursor: 'pointer'
                             }}
+                            onClick={() => setDoctorDrawerOpen(true)}
                           >
-                            <UserAvatarDetails
-                              profile_image={selectedDoctor?.default_icon}
-                              user_name={selectedDoctor?.name}
-                              role={selectedDoctor?.role_name}
+                            <Typography
+                              sx={{
+                                fontSize: '1rem',
+                                fontWeight: 400,
+                                color: theme.palette.customColors.OnSurfaceVariant
+                              }}
+                            >
+                              Select doctor
+                            </Typography>
+                            <Icon
+                              icon='mdi:chevron-down'
+                              fontSize={24}
+                              color={theme.palette.customColors.OnSurfaceVariant}
                             />
-                            <IconButton onClick={() => setSelectedDoctor(null)}>
-                              <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
-                            </IconButton>
                           </Box>
-                        </>
+                        ) : (
+                          <>
+                            <Box
+                              sx={{
+                                background: theme.palette.customColors.OnPrimary,
+                                borderRadius: 1,
+                                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                px: 3,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                minHeight: '56px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <UserAvatarDetails
+                                profile_image={selectedDoctor?.default_icon}
+                                user_name={selectedDoctor?.name}
+                                role={selectedDoctor?.role_name}
+                              />
+                              <IconButton onClick={() => setSelectedDoctor(null)}>
+                                <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
+                              </IconButton>
+                            </Box>
+                          </>
+                        )}
+                      </Box>
+                      {errors.selectedDoctor && (
+                        <Typography
+                          sx={{
+                            color: theme.palette.error.main,
+                            mt: '3px',
+                            mx: '14px',
+                            fontSize: '0.75rem',
+                            fontWeight: 400
+                          }}
+                        >
+                          {errors.selectedDoctor.message}
+                        </Typography>
                       )}
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -431,21 +458,18 @@ const PatientAdmitForm = () => {
           >
             CANCEL
           </Button>
-          <Button
+          <LoadingButton
             variant='contained'
             sx={{ backgroundColor: theme.palette.primary.main, px: 4, py: '9px', borderRadius: 0.5 }}
             onClick={handleSubmit(onSubmit)}
+            loading={submitLoader}
           >
             ADMIT
-          </Button>
+          </LoadingButton>
         </Box>
       </Box>
       {doctorDrawerOpen && (
-        <DoctorsDrawer
-          open={doctorDrawerOpen}
-          setOpen={setDoctorDrawerOpen}
-          onSelectDoctor={doctor => setSelectedDoctor(doctor)}
-        />
+        <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
       )}
     </>
   )
