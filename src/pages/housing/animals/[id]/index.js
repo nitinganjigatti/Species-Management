@@ -29,12 +29,6 @@ const tabConfig = [
   { label: 'Media', value: 'media', component: AnimalMedia }
 ]
 
-const animalHeaderDetails = {
-  commonName: 'Macaw',
-  scientificName: 'Somatogyrus somatogyrus',
-  qrCodeUrl: 'abcd'
-}
-
 const AnimalDetais = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -84,7 +78,7 @@ const AnimalDetais = () => {
             taxonomyId: ad.taxonomy_id,
             contraceptionStatus: ad?.contraception_status,
             sexingType: ad?.sexing_type,
-            collectionType: ad?.collection_type,
+            collectionType: ad?.master_collection_type,
             organisation: ad?.organization_name,
             ownershipTerm: ad?.ownership_terms_label,
             localIdentifier: ad?.local_identifier_value,

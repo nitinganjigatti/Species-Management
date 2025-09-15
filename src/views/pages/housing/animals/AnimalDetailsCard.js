@@ -50,7 +50,7 @@ const AnimalDetailsCard = ({ data }) => {
               mr: { md: 5, xs: 1 }
             }}
           >
-            <Box sx={{ width: '140px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ width: '143px', display: 'flex', flexDirection: 'column', gap: 2 }}>
               {left.map(item => (
                 <Tooltip title={item?.label || ''}>
                   <Typography
@@ -59,7 +59,8 @@ const AnimalDetailsCard = ({ data }) => {
                       color: theme.palette.customColors.secondaryBg,
                       fontWeight: 400,
                       fontSize: '14px',
-                      textOverflow: 'ellipsis',
+
+                      // textOverflow: 'ellipsis',
                       textWrap: 'nowrap',
                       overflow: 'hidden'
                     }}
@@ -71,7 +72,7 @@ const AnimalDetailsCard = ({ data }) => {
             </Box>
             <Box
               sx={{
-                width: { lg: 'calc(100% - 250px)', md: 'calc(100% - 190px)', xs: 'calc(100% - 190px)' },
+                width: { lg: 'calc(100% - 250px)', md: 'calc(100% - 187px)', xs: 'calc(100% - 187px)' },
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 2,
@@ -121,7 +122,7 @@ const AnimalDetailsCard = ({ data }) => {
               pr: { md: 10, xs: 2 }
             }}
           >
-            <Box sx={{ width: '140px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ width: '143px', display: 'flex', flexDirection: 'column', gap: 2 }}>
               {right.map(item => (
                 <Tooltip title={item?.label || ''}>
                   <Typography
