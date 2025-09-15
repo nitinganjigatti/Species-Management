@@ -63,7 +63,8 @@ const HospitalInpatient = () => {
         search: filters?.q,
         hospital_id: 1,
         status: 'admitted',
-        visit_type: selectedVisitType
+        visit_type: selectedVisitType,
+        visit_category: 'inpatient'
       })
   })
 

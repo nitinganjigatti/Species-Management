@@ -60,7 +60,8 @@ const HospitalIncoming = () => {
         search: filters?.q,
         hospital_id: 1,
         status: 'pending',
-        visit_type: selectedVisitType
+        visit_type: selectedVisitType,
+        visit_category: 'incoming'
       }),
     refetchOnMount: true,
     refetchOnWindowFocus: true
