@@ -204,7 +204,7 @@ const BiologistDiaryReport = () => {
           </Box>
         </Box>
 
-        <Box
+        {/* <Box
           sx={{
             backgroundColor: '#e6f0ee',
             height: '98px',
@@ -219,7 +219,7 @@ const BiologistDiaryReport = () => {
           <IconButton onClick={clearUserSelection}>
             <Icon icon='mdi:close' color='red' fontSize={30} />
           </IconButton>
-        </Box>
+        </Box> */}
       </Box>
     )
   }
@@ -251,7 +251,26 @@ const BiologistDiaryReport = () => {
     }
   }
 
-  const headerAction = <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
+  const headerAction = (
+    <Box sx={{ display: 'flex', gap: '24px' }}>
+      <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
+      <Box
+        sx={{
+          backgroundColor: '#0000000D',
+          height: '32px',
+          width: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50px'
+        }}
+      >
+        <IconButton onClick={clearUserSelection}>
+          <Icon icon='mdi:close' color='red' fontSize={24} />
+        </IconButton>
+      </Box>
+    </Box>
+  )
 
   const columns = [
     {
