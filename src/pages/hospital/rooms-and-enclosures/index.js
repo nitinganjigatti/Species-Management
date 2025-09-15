@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 
 // ** MUI Imports
@@ -42,6 +43,7 @@ import { useRouter } from 'next/router'
 
 // ** React Query Hooks
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import AddEnclosures from 'src/views/pages/hospital/add-enclosure-drawer'
 
 const RoomsAndEnclosures = () => {
   const theme = useTheme()
@@ -460,12 +462,11 @@ const RoomsAndEnclosures = () => {
           rowHeight={60}
           searchValue={searchValue}
           paginationModel={paginationModel}
-          // setPaginationModel={setPaginationModel}
           setPaginationModel={handlePaginationChange}
         />
       </Card>
       {/* Drawer */}
-      {/* {openDrawer && (
+      {openDrawer && (
         <AddEnclosures
           addEventSidebarOpen={openDrawer}
           handleSidebarClose={handleSidebarClose}
@@ -474,7 +475,7 @@ const RoomsAndEnclosures = () => {
           submitLoader={submitLoader}
           editParams={editParams}
         />
-      )} */}
+      )}
       {/* delete  */}
       {deleteDialog && (
         <ConfirmationDialog
