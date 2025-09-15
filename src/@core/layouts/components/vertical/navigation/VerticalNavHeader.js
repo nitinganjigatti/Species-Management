@@ -122,14 +122,22 @@ const VerticalNavHeader = props => {
         <LinkStyled href='/' style={{ marginVertical: 10 }}>
           {navCollapsed && !navHover ? (
             <Image
-              src={process.env.NEXT_PUBLIC_BRANDING == 'vantara' ? vantaraLogoAlt : antzLogoAlt}
+              src={
+                process.env.NEXT_PUBLIC_BRANDING == 'vantara'
+                  ? '/branding/vantara/Weblogo_vantara_V.png'
+                  : '/images/branding/Antz_logomark_h_color.svg'
+              }
               height={30}
               quality={75}
               alt='Antz Systems'
             />
           ) : (
             <Image
-              src={process.env.NEXT_PUBLIC_BRANDING == 'vantara' ? vantaraLogo : antzLogo}
+              src={
+                process.env.NEXT_PUBLIC_BRANDING == 'vantara'
+                  ? '/branding/vantara/Weblogo_vantara.png'
+                  : '/images/branding/Antz_logo_h_color.svg'
+              }
               height={process.env.NEXT_PUBLIC_BRANDING == 'vantara' ? 40 : 46}
               quality={75}
               alt='Antz Systems'
