@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl } from '@mui/material'
+import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl, CircularProgress } from '@mui/material'
 import { Popover } from '@mui/material'
 import { TabContext } from '@mui/lab'
 import { useTheme } from '@emotion/react'
@@ -459,7 +459,7 @@ const SpeciesReport = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
               <CardHeader title={title} />
               <Typography
-                onClick={() => getStatisticsDataToExport()}
+                onClick={isDownloading ? undefined : () => getStatisticsDataToExport()}
                 sx={{
                   fontSize: '20px',
                   fontWeight: '400',
@@ -467,12 +467,17 @@ const SpeciesReport = () => {
                   color: theme.palette.primary.OnSurface,
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer',
+                  cursor: isDownloading ? 'not-allowed' : 'pointer',
                   mr: 4
                 }}
+                aria-disabled={isDownloading}
               >
                 Download report
-                <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+                {isDownloading ? (
+                  <CircularProgress size={22} sx={{ ml: 2 }} />
+                ) : (
+                  <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+                )}
               </Typography>
             </Box>
 

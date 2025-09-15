@@ -56,6 +56,7 @@ const AnimalAssessment = () => {
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   const [assessmentData, setAssessmentData] = useState([])
   const [maxAssessmentCount, setMaxAssessmentCount] = useState(0)
   const [headerList, setHeaderList] = useState([])
@@ -216,6 +217,7 @@ const AnimalAssessment = () => {
     })
 
     setDataList(transformed)
+
     const headers = [
       { key: 'default_icon', label: 'ANIMAL DETAILS' },
       ...Array.from({ length: maxAssessmentCount }, (_, i) => ({
@@ -250,6 +252,7 @@ const AnimalAssessment = () => {
           borderRight: 'none',
           boxSizing: 'border-box'
         },
+
         // disableColumnMenu: true,
         renderCell: params => {
           return <AnimalCard sx={{ border: 'none' }} data={params?.row} />
@@ -263,6 +266,7 @@ const AnimalAssessment = () => {
       width: 240,
       sortable: false,
       disableColumnMenu: true,
+
       // headerStyle: i === 1 && { position: 'sticky', left: 300, zIndex: 1000, p: 0, m: 0 },
       columnStyle: {
         height: '100px',
@@ -389,7 +393,7 @@ const AnimalAssessment = () => {
 
   const getDataToExport = async type => {
     if (selectedSpecie && selectedAssessmentType) {
-      setIsLoading(true)
+      setIsDownloading(true)
 
       const params = {
         page: paginationModel.page + 1,
@@ -417,7 +421,7 @@ const AnimalAssessment = () => {
       } catch (error) {
         console.error('error', error)
       } finally {
-        setIsLoading(false)
+        setIsDownloading(false)
       }
     }
   }
@@ -736,16 +740,16 @@ const AnimalAssessment = () => {
 
               {!initialLoad && (
                 <>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 4,
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mt: 1
-                    }}
-                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 4,
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        mt: 1
+                      }}
+                    >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                       <TextField
                         inputRef={searchRef}
@@ -780,6 +784,7 @@ const AnimalAssessment = () => {
                         }}
                         sx={{
                           backgroundColor: theme.palette.primary.contrastText,
+
                           // borderRadius: '40px', // Applies to the container
                           '& .MuiOutlinedInput-root': {
                             width: '240px',
@@ -849,11 +854,12 @@ const AnimalAssessment = () => {
                           borderRadius: '4px',
                           bgcolor: theme?.palette.customColors?.lightBg,
                           alignItems: 'center',
-                          cursor: 'pointer'
+                          cursor: isDownloading ? 'not-allowed' : 'pointer'
                         }}
-                        onClick={() => getDataToExport()}
+                        onClick={isDownloading ? undefined : () => getDataToExport()}
+                        aria-disabled={isDownloading}
                       >
-                        {isLoading ? (
+                        {isDownloading ? (
                           <CircularProgress color='success' size={30} />
                         ) : (
                           <Icon icon='ic:round-download' fontSize={20} />
@@ -880,6 +886,7 @@ const AnimalAssessment = () => {
                       rowSelection
                       modifyColumnPinning
                       searchMode='server'
+
                       // disableColumnSorting={true}
                     />
                   ) : (
