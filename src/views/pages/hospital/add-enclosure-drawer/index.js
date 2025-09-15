@@ -16,15 +16,14 @@ import { useForm } from 'react-hook-form'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
+// ** Auth Context
 import { AuthContext } from 'src/context/AuthContext'
 
 const schema = yup.object().shape({
-  // site_id: yup.string().required('Site name is required'),
-
   site_id: yup
     .object()
     .shape({
-      site_id: yup.string().required('Site ID is required'),
+      site_id: yup.string().required('Site Id is required'),
       site_name: yup.string().required('Site Name is required')
     })
     .required('Site is required'),
@@ -36,13 +35,14 @@ const schema = yup.object().shape({
     .required('Number of beds is required')
     .positive('Number of beds must be greater than zero')
     .integer('Number of beds must be an integer')
+    .required('Number of beds required')
 })
 
 const defaultValues = {
   site_id: null,
   bed_name: '',
   prefix: '',
-  no_of_bed: ''
+  no_of_bed: null
 }
 
 const AddEnclosures = props => {
@@ -67,9 +67,6 @@ const AddEnclosures = props => {
 
   // add enclosures
   const onSubmit = async data => {
-    console.log('check', data?.site_id?.site_id)
-    console.log('check', data)
-
     try {
       const payLoad = {
         hospital_id: 1,
@@ -156,7 +153,7 @@ const AddEnclosures = props => {
                   name={'bed_name'}
                   control={control}
                   errors={errors}
-                  label={'Enter Enclosure name*'}
+                  label={'Enclosure name*'}
                   placeholder={'Enter Enclosure name'}
                   fullWidth
                 />

@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
@@ -32,6 +32,8 @@ const getVisitTypeLabel = title => {
 const HospitalOutPatient = () => {
   const theme = useTheme()
   const router = useRouter()
+
+  const authData = useContext()
 
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
@@ -63,7 +65,8 @@ const HospitalOutPatient = () => {
         search: filters?.q,
         hospital_id: 1,
         status: 'opd',
-        visit_type: selectedVisitType
+        visit_type: selectedVisitType,
+        visit_category: 'outpatient'
       })
   })
 
