@@ -385,7 +385,6 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
                     <input
                       type='file'
                       accept='image/*'
-                      multiple
                       ref={fileInputRef}
                       style={{ display: 'none' }}
                       onChange={e => handleFilesChange(e.target.files)}
