@@ -105,7 +105,9 @@ const AnimalJournals = () => {
 
       setUsers(Users?.data)
     } catch (error) {
-      Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+      console.error(String(error) || 'Failed to fetch user data.')
+
+      // Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
     }
   }
 
@@ -130,10 +132,14 @@ const AnimalJournals = () => {
       if (res.success) {
         setAnimalJournalLogs(res?.data?.data)
       } else {
-        Toaster({ type: 'error', message: String(res.message) || 'Failed to fetch journal logs.' })
+        console.error(String(res.message) || 'Failed to fetch journal logs.')
+
+        // Toaster({ type: 'error', message: String(res.message) || 'Failed to fetch journal logs.' })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: String(error) || 'Failed to fetch journal logs.' })
+      console.error(String(error) || 'Failed to fetch journal logs.')
+
+      // Toaster({ type: 'error', message: String(error) || 'Failed to fetch journal logs.' })
     } finally {
       setJournalLogsLoading(false)
     }
@@ -384,7 +390,11 @@ const AnimalJournals = () => {
                                     overflow: 'hidden'
                                   }}
                                 >
-                                  {key} :
+                                  {key
+                                    .replace(/_/g, ' ')
+                                    .toLowerCase()
+                                    .replace(/^./, s => s.toUpperCase())}{' '}
+                                  :
                                   <span
                                     style={{
                                       fontWeight: 500,
@@ -711,7 +721,7 @@ const AnimalJournals = () => {
         ) : animalJournalLogs.length > 0 ? (
           <AnimalJournalLog />
         ) : (
-          <NoDataFound variant='Seal' />
+          <NoDataFound width={250} height={250} variant='Seal' />
         )}
       </Box>
     </>
