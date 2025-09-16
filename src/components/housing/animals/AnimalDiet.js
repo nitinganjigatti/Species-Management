@@ -9,6 +9,8 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getAnimalDietList } from 'src/lib/api/housing'
 import { useRouter } from 'next/router'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import Utility from 'src/utility'
+import moment from 'moment'
 
 const GreenSwitch = styled(Switch)(({ theme }) => ({
   width: 45.5,
@@ -338,7 +340,8 @@ const AnimalDiet = ({ animalDetails }) => {
                   <UserInfoCard
                     avatarUrl={diet.attached_by_profile}
                     name={diet.attached_by}
-                    description={diet.notes}
+                    description={`${moment(Utility.convertUTCToLocalDate(diet.incident_date)).format('DD MMM YYYY')} | 
+                ${Utility.convertUTCToLocaltime(diet.incident_date)}`}
                     textColor={theme.palette.customColors.OnSurfaceVariant}
                     fontWeight={500}
                   />
