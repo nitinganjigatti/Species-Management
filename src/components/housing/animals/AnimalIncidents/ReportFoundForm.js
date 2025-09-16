@@ -1,7 +1,7 @@
 import { LoadingButton } from '@mui/lab'
 import { Autocomplete, Drawer, FormControl, FormHelperText, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
@@ -9,13 +9,15 @@ import Toaster from 'src/components/Toaster'
 import imageUploader from 'public/images/gallery_add_Icon.png'
 import { DatePicker, LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
+import moment from 'moment'
 
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { readAsync } from 'src/lib/windows/utils'
+// Use AuthContext instead of direct storage access
+import { AuthContext } from 'src/context/AuthContext'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
 const defaultValues = {
@@ -41,6 +43,7 @@ const schema = yup.object().shape({
 
 const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
   const fileInputRef = useRef(null)
 
   const [foundByUsers, setFoundByUsers] = useState([])
@@ -73,10 +76,9 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
 
   const getUsers = async () => {
     try {
-      const userDetails = await readAsync('userDetails')
-      const zoo_id = userDetails?.user?.zoos[0].zoo_id
+      const zoo_id = authData?.userData?.user?.zoos?.[0]?.zoo_id
+      if (!zoo_id) return
       const Users = await getUserList({ zoo_id })
-
       setFoundByUsers(Users?.data)
     } catch (error) {
       Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
@@ -86,16 +88,26 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
   useEffect(() => {
     if (reportFoundForm) {
       getUsers()
-      // getUserData()
+      // Prefill current user as founder
+      const user = authData?.userData?.user
+      if (user) {
+        const current = { user_id: user?.user_id, user_name: `${user?.user_first_name} ${user?.user_last_name}` }
+        setDefaultPreparedBy(current)
+        setValue('foundBy', current.user_id)
+      }
     }
-  }, [reportFoundForm])
+  }, [reportFoundForm, authData])
 
   const handleFileUpload = async (event, speciesId) => {
     const file = event?.target?.files[0]
 
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml']
     if (!file || !allowedTypes.includes(file.type)) {
-      Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
+      Toaster({
+        type: 'error',
+        message: 'Only image files are supported. Please upload a PNG/JPG/GIF/WebP/SVG.',
+        ignoreCase: true
+      })
 
       return
     }
@@ -110,32 +122,35 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
   }
 
   ////////////////////////////////////////////////////////////
-  const onSubmit = async ({ localIdentifierType, LocalIdentifier }) => {
+  const onSubmit = async data => {
     const {
-      incident_date,
-      incident_time,
+      foundDate,
+      foundTime,
       foundBy,
+      location,
       notes,
-      attachment,
-      last_seen,
-      animal_behaviour_before_incident,
-      action_taken,
-      steps_to_prevent
+      physicalCondition,
+      behaviourObservation,
+      healthAssessment,
+      injuryDetails,
+      immediatectionsTaken
     } = data
 
     const formData = new FormData()
-    formData.append('incident_type', 'missing')
-    formData.append('incident_date', moment(incident_date).format('YYYY-MM-DD'))
-    formData.append('incident_time', moment(incident_time).format('HH:mm:ss'))
-    formData.append('reported_by', foundBy.user_id)
+    formData.append('incident_type', 'found')
+    formData.append('incident_date', moment(foundDate).format('YYYY-MM-DD'))
+    formData.append('incident_time', moment(foundTime).format('HH:mm:ss'))
+    formData.append('reported_by', foundBy)
     formData.append('notes', notes)
     formData.append(
       'additional_info',
       JSON.stringify({
-        last_seen,
-        animal_behaviour_before_incident,
-        action_taken,
-        steps_to_prevent
+        location,
+        physical_condition: physicalCondition,
+        behavioural_observation: behaviourObservation,
+        health_assessment: healthAssessment,
+        injury_details: injuryDetails,
+        immediate_actions_taken: immediatectionsTaken
       })
     )
 
@@ -143,37 +158,21 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
       formData.append('media_attachment', [selectedFile])
     }
 
-    if (isEdit) {
-      formData.append('incident_details_id', incidenceId)
-    } else {
-      formData.append('ref_id', animalId)
-    }
+    // Report Found currently only supports create flow
+    formData.append('ref_id', animalId)
 
     setUploadingAttachment(true)
     try {
       // console.log('second', formData)
-      if (isEdit) {
-        const res = await updateAnimalIncident(formData)
-        if (res.success) {
-          Toaster({ type: 'success', message: res.message || 'Incident updated successfully' })
-          fetchAnimalIncidents()
-          handleCloseFormDrawer()
-        } else {
-          fetchAnimalIncidents()
-          handleCloseFormDrawer()
-          Toaster({ type: 'error', message: res.message || 'Failed to update incident' })
-        }
+      const res = await createAnimalIncident(formData)
+      if (res.success) {
+        Toaster({ type: 'success', message: res.message || 'Incident created successfully' })
+        // Optional: refresh list if parent passes a callback in future
+        // fetchAnimalIncidents?.()
+        reset()
+        setReportFoundForm(false)
       } else {
-        const res = await createAnimalIncident(formData)
-        if (res.success) {
-          Toaster({ type: 'success', message: res.message || 'Incident created successfully' })
-          fetchAnimalIncidents()
-          handleCloseFormDrawer()
-        } else {
-          fetchAnimalIncidents()
-          handleCloseFormDrawer()
-          Toaster({ type: 'error', message: res.message || 'Failed to create incident' })
-        }
+        Toaster({ type: 'error', message: res.message || 'Failed to create incident' })
       }
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })

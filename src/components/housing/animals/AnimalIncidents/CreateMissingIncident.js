@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import imageUploader from 'public/images/gallery_add_Icon.png'
 
@@ -21,7 +21,7 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { read, readAsync } from 'src/lib/windows/utils'
+import { AuthContext } from 'src/context/AuthContext'
 import { createAnimalIncident, updateAnimalIncident } from 'src/lib/api/housing'
 
 const defaultValues = {
@@ -59,6 +59,7 @@ const CreateMissingIncident = ({
   fetchAnimalIncidents
 }) => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
   const fileInputRef = useRef(null)
   const timeInputRef = useRef(null)
 
@@ -94,7 +95,7 @@ const CreateMissingIncident = ({
   const getUserData = () => {
     // Pre-fill current user only in add mode
     if (isEdit) return
-    const result = read('userDetails')
+    const result = authData?.userData
     setValue('reported_by', {
       user_id: result?.user?.user_id,
       user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}`
@@ -106,7 +107,7 @@ const CreateMissingIncident = ({
       getUsers()
       getUserData()
     }
-  }, [animalIncidentForm, isEdit])
+  }, [animalIncidentForm, isEdit, authData])
 
   useEffect(() => {
     // Populate form in edit mode, including time and reporter mapping
@@ -149,10 +150,9 @@ const CreateMissingIncident = ({
 
   const getUsers = async () => {
     try {
-      const userDetails = await readAsync('userDetails')
-      const zoo_id = userDetails?.user?.zoos[0].zoo_id
+      const zoo_id = authData?.userData?.user?.zoos?.[0]?.zoo_id
+      if (!zoo_id) return
       const Users = await getUserList({ zoo_id })
-
       setReportedByUsers(Users?.data)
     } catch (error) {
       Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
