@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, forwardRef } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { Box, CardHeader, Grid, Typography, Card } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
@@ -80,8 +80,6 @@ function InComingAndOutGoingShipments({ type }) {
     return data
   }
   const [storeOptions, setStoreOptions] = useState([])
-
-  // const [requestOptions, setRequestOptions] = useState([])
 
   const shippedColumns = [
     {
@@ -272,15 +270,21 @@ function InComingAndOutGoingShipments({ type }) {
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
-      setSearchValue(q)
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 50 })
       try {
         await fetchTableData({ sort, q, column })
+        updateUrlParams({
+          sort,
+          q: q,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize
+        })
+        setSearchValue(q)
       } catch (error) {
         console.error(error)
       }
-    }, 1000),
+    }, 500),
     [fetchTableData]
   )
 
@@ -300,10 +304,15 @@ function InComingAndOutGoingShipments({ type }) {
 
   const getSlNo = index => (paginationModel?.page + 1 - 1) * paginationModel?.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
+  const indexedRows = useMemo(
+    () =>
+      rows?.map((row, index) => ({
+        ...row,
+        sl_no: getSlNo(index)
+      })) || [],
+
+    [rows, paginationModel?.page, paginationModel?.pageSize]
+  )
 
   const fetchStoreList = async () => {
     try {
@@ -408,6 +417,7 @@ function InComingAndOutGoingShipments({ type }) {
           <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
             <Search
               placeholder='Search...'
+              value={searchValue}
               onChange={e => handleSearch(e.target.value)}
               onClear={() => handleSearch('')}
             />
@@ -438,32 +448,6 @@ function InComingAndOutGoingShipments({ type }) {
                 }}
               />
             )}
-
-            {/* <ControlledAutocomplete
-              name='selectedRequest'
-              label='Filter By Request'
-              control={control}
-              errors={{}}
-              options={requestOptions}
-              onChangeOverride={value => {
-                if (value) {
-                  setValue('selectedRequest', value)
-                  setTotal(0)
-                  setPaginationModel({ page: 0, pageSize: 50 })
-                } else setValue('selectedRequest', null)
-              }}
-              getOptionLabel={o => o.label}
-              isOptionEqualToValue={(o, v) => o.value === v.value}
-              textFieldProps={{
-                size: 'small',
-                InputProps: {
-                  sx: { fontSize: '0.875rem', height: 40 }
-                },
-                InputLabelProps: {
-                  sx: { fontSize: '0.875rem' }
-                }
-              }}
-            /> */}
           </Grid>
         </Grid>
         <TabContext value={shipmentTab}>
