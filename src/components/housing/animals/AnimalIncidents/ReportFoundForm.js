@@ -1,13 +1,5 @@
 import { LoadingButton } from '@mui/lab'
-import {
-  Autocomplete,
-  Drawer,
-  FormControl,
-  FormHelperText,
-  IconButton,
-  TextField,
-  Typography
-} from '@mui/material'
+import { Autocomplete, Drawer, FormControl, FormHelperText, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -23,7 +15,8 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-
+import { readAsync } from 'src/lib/windows/utils'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
 const defaultValues = {
   foundDate: dayjs(),
@@ -36,42 +29,29 @@ const defaultValues = {
   behaviourObservation: '',
   healthAssessment: '',
   injuryDetails: '',
-  immediatectionsTaken: '',
+  immediatectionsTaken: ''
 }
 
 const schema = yup.object().shape({
   foundDate: yup.date().required('Date is required'),
   foundTime: yup.date().required('Time is required'),
   location: yup.string().required('Location is required'),
-  foundBy: yup.string().required('Founder is required'),
-  notes: yup.string().required('Notes are required'),
-  attachment: yup.string().required('Attachment is required'),
-  physicalCondition: yup.string().required('Physical condition is required'),
-  behaviourObservation: yup.string().required('Behaviour observation is required'),
-  healthAssessment: yup.string().required('Health assessment is required'),
-  injuryDetails: yup.string().required('Injury details are required'),
-  immediatectionsTaken: yup.string().required('Immediate action taken is required'),
+  foundBy: yup.string().required('Founder is required')
 })
 
-
-const ReportFoundForm = ({
-  reportFoundForm,
-  setReportFoundForm,
-  animalId,
-}) => {
+const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
 
-  const [preparedByUsers, setPreparedByUsers] = useState([])
+  const [foundByUsers, setFoundByUsers] = useState([])
   const [defaultPreparedBy, setDefaultPreparedBy] = useState(null)
 
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFileName, setSelectedFileName] = useState(null)
 
-  const [previewUrl, setPreviewUrl] = useState(null)  // ADD THIS
+  const [previewUrl, setPreviewUrl] = useState(null) // ADD THIS
 
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
-
 
   const {
     control,
@@ -91,15 +71,34 @@ const ReportFoundForm = ({
     reValidateMode: 'onChange'
   })
 
+  const getUsers = async () => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      const zoo_id = userDetails?.user?.zoos[0].zoo_id
+      const Users = await getUserList({ zoo_id })
+
+      setFoundByUsers(Users?.data)
+    } catch (error) {
+      Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+    }
+  }
+
+  useEffect(() => {
+    if (reportFoundForm) {
+      getUsers()
+      // getUserData()
+    }
+  }, [reportFoundForm])
+
   const handleFileUpload = async (event, speciesId) => {
     const file = event?.target?.files[0]
 
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml']
     if (!file || !allowedTypes.includes(file.type)) {
       Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
+
       return
     }
-
 
     setSelectedFile(file)
     setPreviewUrl(URL.createObjectURL(file))
@@ -109,26 +108,72 @@ const ReportFoundForm = ({
       clearErrors('attachment')
     }
   }
+
   ////////////////////////////////////////////////////////////
   const onSubmit = async ({ localIdentifierType, LocalIdentifier }) => {
+    const {
+      incident_date,
+      incident_time,
+      foundBy,
+      notes,
+      attachment,
+      last_seen,
+      animal_behaviour_before_incident,
+      action_taken,
+      steps_to_prevent
+    } = data
+
+    const formData = new FormData()
+    formData.append('incident_type', 'missing')
+    formData.append('incident_date', moment(incident_date).format('YYYY-MM-DD'))
+    formData.append('incident_time', moment(incident_time).format('HH:mm:ss'))
+    formData.append('reported_by', foundBy.user_id)
+    formData.append('notes', notes)
+    formData.append(
+      'additional_info',
+      JSON.stringify({
+        last_seen,
+        animal_behaviour_before_incident,
+        action_taken,
+        steps_to_prevent
+      })
+    )
+
+    if (selectedFile) {
+      formData.append('media_attachment', [selectedFile])
+    }
+
+    if (isEdit) {
+      formData.append('incident_details_id', incidenceId)
+    } else {
+      formData.append('ref_id', animalId)
+    }
+
     setUploadingAttachment(true)
     try {
-      const res = await speciesAttachmentUpload({
-        species_id: speciesId,
-        attachment: selectedFile,
-        localIdentifierType,
-        LocalIdentifier
-      })
-      Toaster({ type: 'success', message: res.message })
-      fetchTableData()
-      setUploadDietDrawer(false)
-      reset()
-      setDefaultPreparedBy(null)
-      setSelectedFileName(null)
-      setSelectedFile(null)
-      handleSearch('')
-      if (speciesDetailsDrawer) {
-        getSpecieDetail(speciesId)
+      // console.log('second', formData)
+      if (isEdit) {
+        const res = await updateAnimalIncident(formData)
+        if (res.success) {
+          Toaster({ type: 'success', message: res.message || 'Incident updated successfully' })
+          fetchAnimalIncidents()
+          handleCloseFormDrawer()
+        } else {
+          fetchAnimalIncidents()
+          handleCloseFormDrawer()
+          Toaster({ type: 'error', message: res.message || 'Failed to update incident' })
+        }
+      } else {
+        const res = await createAnimalIncident(formData)
+        if (res.success) {
+          Toaster({ type: 'success', message: res.message || 'Incident created successfully' })
+          fetchAnimalIncidents()
+          handleCloseFormDrawer()
+        } else {
+          fetchAnimalIncidents()
+          handleCloseFormDrawer()
+          Toaster({ type: 'error', message: res.message || 'Failed to create incident' })
+        }
       }
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })
@@ -144,7 +189,6 @@ const ReportFoundForm = ({
       }
     }
   }, [previewUrl])
-
 
   const SpeciesDietCard = () => (
     <Box
@@ -170,7 +214,7 @@ const ReportFoundForm = ({
             fontWeight: '500',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            whiteSpace: 'nowrap'
           }}
         >
           Report Found Animal
@@ -192,8 +236,9 @@ const ReportFoundForm = ({
   const basicStyle = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '4px'
-    },
+    }
   }
+
   return (
     <Drawer
       anchor='right'
@@ -229,7 +274,6 @@ const ReportFoundForm = ({
                 gap: '24px'
               }}
             >
-
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <Typography
                   sx={{
@@ -237,22 +281,23 @@ const ReportFoundForm = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Found date and time
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: theme.palette.primary.contrastText,
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
-
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: theme.palette.primary.contrastText,
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='foundDate'
@@ -292,7 +337,7 @@ const ReportFoundForm = ({
                             label='Time'
                             format='hh:mm A'
                             sx={{
-                              ...basicStyle,
+                              ...basicStyle
                             }}
                             slotProps={{
                               textField: {
@@ -309,7 +354,6 @@ const ReportFoundForm = ({
                       )}
                     />
                   </FormControl>
-
                 </Box>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -319,20 +363,22 @@ const ReportFoundForm = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Location
                 </Typography>
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: theme.palette.primary.contrastText,
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: theme.palette.primary.contrastText,
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <Controller
                     name='location'
                     control={control}
@@ -341,13 +387,14 @@ const ReportFoundForm = ({
                       <TextField
                         {...field}
                         sx={{ ...basicStyle }}
-                        label='Location found'
+                        label='Location found *'
                         placeholder='Enter Location'
                         error={Boolean(errors.location)}
                         helperText={errors.location?.message}
                       />
                     )}
-                  /></Box>
+                  />
+                </Box>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <Typography
@@ -356,21 +403,23 @@ const ReportFoundForm = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Found by
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: theme.palette.primary.contrastText,
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: theme.palette.primary.contrastText,
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='foundBy'
@@ -379,7 +428,7 @@ const ReportFoundForm = ({
                       render={({ field: { value, onChange } }) => (
                         <Autocomplete
                           value={defaultPreparedBy}
-                          options={preparedByUsers}
+                          options={foundByUsers}
                           getOptionLabel={option => option.user_name}
                           isOptionEqualToValue={(option, value) => option?.user_id === value?.user_id}
                           onChange={(e, val) => {
@@ -394,7 +443,7 @@ const ReportFoundForm = ({
                               error={Boolean(errors.foundBy)}
                               helperText={errors?.foundBy?.message}
                               sx={{
-                                ...basicStyle,
+                                ...basicStyle
                               }}
                             />
                           )}
@@ -402,7 +451,9 @@ const ReportFoundForm = ({
                       )}
                     />
                     {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifierType?.message}</FormHelperText>
+                      <FormHelperText sx={{ color: 'error.main' }}>
+                        {errors?.localIdentifierType?.message}
+                      </FormHelperText>
                     )}
                   </FormControl>
                 </Box>
@@ -415,21 +466,23 @@ const ReportFoundForm = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Notes
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: theme.palette.primary.contrastText,
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: theme.palette.primary.contrastText,
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='notes'
@@ -445,7 +498,8 @@ const ReportFoundForm = ({
                           error={Boolean(errors.notes)}
                           helperText={errors.notes?.message}
                           sx={{
-                            ...basicStyle,
+                            ...basicStyle
+
                             // '& .MuiOutlinedInput-root': {
                             //   '& fieldset': {
                             //     borderColor: errors?.localIdentifier?.message && 'red !important',
@@ -474,7 +528,14 @@ const ReportFoundForm = ({
                           <input
                             type='file'
                             multiple
-                            accept={['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml']}
+                            accept={[
+                              'image/png',
+                              'image/jpeg',
+                              'image/jpg',
+                              'image/gif',
+                              'image/webp',
+                              'image/svg+xml'
+                            ]}
                             ref={fileInputRef}
                             style={{ display: 'none' }}
                             onChange={e => {
@@ -491,7 +552,8 @@ const ReportFoundForm = ({
                               gap: 7,
                               height: '48px',
                               border: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
-                              borderRadius: '10px',
+                              borderRadius: '10px'
+
                               // padding: 3
                             }}
                           >
@@ -516,7 +578,7 @@ const ReportFoundForm = ({
                       <FormHelperText sx={{ color: 'error.main' }}>{errors.attachment?.message}</FormHelperText>
                     )}
                   </FormControl>
-                  {selectedFile &&
+                  {selectedFile && (
                     <Box
                       sx={{
                         position: 'relative',
@@ -560,7 +622,7 @@ const ReportFoundForm = ({
                         />
                       </Box>
                     </Box>
-                  }
+                  )}
                 </Box>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -570,21 +632,23 @@ const ReportFoundForm = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Conditon of animal upon return
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: theme.palette.primary.contrastText,
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: theme.palette.primary.contrastText,
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <Controller
                     name='physicalCondition'
                     control={control}
@@ -663,7 +727,6 @@ const ReportFoundForm = ({
                       />
                     )}
                   />
-
                 </Box>
               </Box>
             </Box>
@@ -709,6 +772,3 @@ const ReportFoundForm = ({
 }
 
 export default ReportFoundForm
-
-
-
