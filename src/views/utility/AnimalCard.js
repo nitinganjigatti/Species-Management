@@ -206,6 +206,20 @@ const AnimalCard = ({ data, size }) => {
           </Typography>
         )}
 
+        {data?.age && (
+          <Typography
+            sx={{
+              fontSize: '13px',
+              fontWeight: 500,
+              fontStyle: 'italic',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Age : </span>
+            {data?.age || '-'}
+          </Typography>
+        )}
+
         {data?.type === 'group' && (
           <Typography
             variant='caption'
@@ -287,6 +301,19 @@ const AnimalCard = ({ data, size }) => {
           >
             <span>Site : </span>
             {data?.site_name}
+          </Typography>
+        )}
+        {data?.age && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Age : </span>
+            {data?.age}
           </Typography>
         )}
       </Box>

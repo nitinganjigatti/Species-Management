@@ -27,14 +27,15 @@ import {
   getUserReport,
   getMedicalReport,
   getAnimalAssessment,
-  getEnclosureAssessment
+  getEnclosureAssessment,
+  getDailyFoodWastageReport
 } from 'src/lib/api/report'
 
 const Animal = () => {
   const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
   const [errors, setErrors] = useState({})
@@ -96,14 +97,19 @@ const Animal = () => {
   useEffect(() => {
     if (enable_daily_report && reports_module && enable_daily_report) {
       setLoading(true)
+
       const fetchReportType = async () => {
         try {
           const response = await getReportTitle({
             page_no: paginationModel.page + 1,
             limit: paginationModel.pageSize
           })
-          if (response) {
-            setReportData(response)
+          if (Array.isArray(response)) {
+            const modifiedResponse = [
+              ...response,
+              { id: 12, title: 'Food Wastage', key: 'food_wastage', action: 'Download' }
+            ]
+            setReportData(modifiedResponse)
           } else {
             console.error('error >')
           }
@@ -150,6 +156,8 @@ const Animal = () => {
         response = await getAnimalAssessment(params)
       } else if (type === 'enclosure_assessment') {
         response = await getEnclosureAssessment(params)
+      } else if (type === 'food_wastage') {
+        response = await getDailyFoodWastageReport(params)
       } else {
         response = await getAnimalReport(params)
       }
@@ -241,11 +249,13 @@ const Animal = () => {
       flex: 0.7,
       headerAlign: 'left',
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.customColors.customHeadingTextColor, fontWeight: 500, fontSize: '14px', ml: 3 }}
-        >
-          {params.row.title}
-        </Typography>
+        <>
+          <Typography
+            sx={{ color: theme.palette.customColors.customHeadingTextColor, fontWeight: 500, fontSize: '14px', ml: 3 }}
+          >
+            {params.row.title}
+          </Typography>
+        </>
       )
     },
     {
@@ -302,13 +312,13 @@ const Animal = () => {
     <>
       {reports_module && enable_daily_report ? (
         <Card>
-          <CardHeader title={title} sx={{ mb: '16px' }} />
+          <CardHeader title={title} sx={{ paddingX: 5, mb: '16px' }} />
           <Box
             sx={{
               display: 'flex',
               flexWrap: 'wrap',
               justifyContent: 'flex-end',
-              px: '16px',
+              px: 5,
               mb: '16px'
             }}
           >
@@ -463,21 +473,20 @@ const Animal = () => {
               </Box>
             </Box>
           </Box>
-          <Box sx={{ width: '98%', margin: 4 }}>
-            <Box sx={{ borderRadius: '8px' }}>
-              <CommonTable
-                setPaginationModel={setPaginationModel}
-                indexedRows={reportRows}
-                total={''}
-                loading={loading}
-                disableColumnSorting={true}
-                columns={columns}
-                paginationModel={paginationModel}
-                disableColumnFilter={false}
-                rowHeight={70}
-                scrollbarSize={10}
-              />
-            </Box>
+          <Box sx={{ paddingX: 5, borderRadius: '8px' }}>
+            <CommonTable
+              setPaginationModel={setPaginationModel}
+              indexedRows={reportRows}
+              total={''}
+              loading={loading}
+              disableColumnSorting={true}
+              columns={columns}
+              hideFooterPagination
+              paginationModel={paginationModel}
+              disableColumnFilter={false}
+              rowHeight={70}
+              scrollbarSize={10}
+            />
           </Box>
         </Card>
       ) : (

@@ -93,7 +93,6 @@ const SpeciesAddEdit = ({
         return prev
       }
 
-      
       updated.export[exportIndex] = {
         ...updated.export[exportIndex],
         attachment: file
@@ -103,13 +102,7 @@ const SpeciesAddEdit = ({
     })
   }
 
-  const totalSpeciesCount = selectedExportData.export?.reduce(
-    (count, exportItem) => count + (exportItem.species?.length || 0),
-    0
-  )
-
   const handleRemoveOtherSpecies = index => {
-   
     const speciesIdToRemove = selectedExportData.others[index]?.id
 
     setSelectedExportData(prev => ({
@@ -160,6 +153,43 @@ const SpeciesAddEdit = ({
     setDetailType(type)
   }
 
+  const getCounts = selectedExportData => {
+    const speciesFromExport =
+      selectedExportData?.export?.reduce((sum, exp) => {
+        return sum + (exp.species?.length || 0)
+      }, 0) || 0
+
+    const speciesFromOthers = selectedExportData?.others?.length || 0
+
+    const speciesCount = speciesFromExport + speciesFromOthers
+
+    const animalsFromExport =
+      selectedExportData?.export?.reduce((sum, all) => {
+        const total = all.species?.reduce(
+          (s, sp) =>
+            s + Number(sp.male_count || 0) + Number(sp.female_count || 0) + Number(sp.undeterminate_count || 0),
+          0
+        )
+
+        return sum + (total || 0)
+      }, 0) || 0
+
+    const animalsFromOthers =
+      selectedExportData?.others?.reduce((sum, item) => {
+        return (
+          sum +
+          Number(item.species?.male_count || 0) +
+          Number(item.species?.female_count || 0) +
+          Number(item.species?.undeterminate_count || 0)
+        )
+      }, 0) || 0
+
+    const animalsCount = animalsFromExport + animalsFromOthers
+
+    return { speciesCount, animalsCount }
+  }
+  const { speciesCount, animalsCount } = getCounts(selectedExportData)
+
   return (
     <Box sx={{ pt: 0 }}>
       <Box sx={{ mt: 0 }}>
@@ -171,7 +201,7 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            Species : <strong>{totalSpeciesCount > 0 ? totalSpeciesCount : '0'}</strong>
+            Species : <strong>{speciesCount > 0 ? speciesCount : '0'}</strong>
           </Typography>
           <Typography
             sx={{
@@ -180,13 +210,12 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            Animals : <strong>{selectedExportData?.others?.length}</strong>
+            Animals : <strong>{animalsCount > 0 ? animalsCount : '0'}</strong>
           </Typography>
         </Box>
 
         {selectedExportData?.export?.length > 0 || selectedExportData?.others?.length > 0 ? (
           <>
-          
             {selectedExportData?.export?.length > 0 &&
               selectedExportData.export.map((all, index) => {
                 const totalAnimals =
@@ -210,7 +239,6 @@ const SpeciesAddEdit = ({
                     }}
                   >
                     <Paper elevation={3} sx={{ p: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
-                   
                       <Box display='flex' justifyContent='space-between' alignItems='start' mb={2}>
                         <Box>
                           <Typography
@@ -243,7 +271,7 @@ const SpeciesAddEdit = ({
                               }
                             }}
                           >
-                            {`This export id is part of ${all.linked_shipments_count ?? all.shipment_count ?? 0} `}
+                            {`This export ID is part of ${all.linked_shipments_count ?? all.shipment_count ?? 0} `}
                             {`${
                               (all.linked_shipments_count ?? all.shipment_count ?? 0) === 1 ? 'shipment' : 'shipments'
                             }`}
@@ -264,7 +292,6 @@ const SpeciesAddEdit = ({
                         </Box>
                       </Box>
 
-                    
                       <Box
                         sx={{
                           borderRadius: '8px',
@@ -428,7 +455,6 @@ const SpeciesAddEdit = ({
                 )
               })}
 
-         
             {selectedExportData?.others?.length > 0 && (
               <Box
                 sx={{
@@ -441,7 +467,6 @@ const SpeciesAddEdit = ({
                 }}
               >
                 <Paper elevation={3} sx={{ p: 0, backgroundColor: 'transparent', boxShadow: 'none' }}>
-               
                   <Box display='flex' justifyContent='space-between' alignItems='start' mb={2}>
                     <Box>
                       <Typography
@@ -450,6 +475,7 @@ const SpeciesAddEdit = ({
                         Other Animals (
                         {selectedExportData.others.reduce((sum, item) => {
                           const s = item.species || {}
+
                           return (
                             sum +
                             (parseInt(s.total_count) ||
@@ -463,7 +489,6 @@ const SpeciesAddEdit = ({
                     </Box>
                   </Box>
 
-                 
                   <Box
                     sx={{
                       borderRadius: '8px',
@@ -473,6 +498,7 @@ const SpeciesAddEdit = ({
                   >
                     {selectedExportData.others.map((item, index) => {
                       const species = item.species
+
                       const totalAnimals =
                         Number(species?.male_count || 0) +
                         Number(species?.female_count || 0) +
@@ -483,6 +509,7 @@ const SpeciesAddEdit = ({
                           sx={{
                             background: theme.palette.common.white,
                             pl: 4,
+
                             // pt: 3,
                             // pb: 4,
                             borderRadius: '8px',

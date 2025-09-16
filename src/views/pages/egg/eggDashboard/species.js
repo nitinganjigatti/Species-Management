@@ -22,6 +22,7 @@ import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 import DashboardExelExportButton from './exportDasboardDataExcel'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const Species = ({ openDiscard, setOpenDiscard }) => {
   const authData = useContext(AuthContext)
@@ -192,67 +193,68 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-          <Avatar
-            variant='rounded'
-            alt='Medicine Image'
-            sx={{
-              width: 35,
-              height: 35,
-              mr: 4,
-              p: 1,
-              objectFit: 'contain',
-              borderRadius: '50%',
-              background: '#E8F4F2'
-            }}
-          >
-            <img
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-              alt='Profile'
-            />
-          </Avatar>
+        <SpeciesCard species={{ ...params?.row, common_name: params.row?.default_common_name }} />
+        // <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+        //   <Avatar
+        //     variant='rounded'
+        //     alt='Medicine Image'
+        //     sx={{
+        //       width: 35,
+        //       height: 35,
+        //       mr: 4,
+        //       p: 1,
+        //       objectFit: 'contain',
+        //       borderRadius: '50%',
+        //       background: '#E8F4F2'
+        //     }}
+        //   >
+        //     <img
+        //       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        //       src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
+        //       alt='Profile'
+        //     />
+        //   </Avatar>
 
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '200px',
-                  boxSizing: 'border-box'
-                }}
-              >
-                {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
-              </Typography>
-            </Tooltip>
-            <Tooltip
-              title={
-                params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
-              }
-            >
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '200px'
-                }}
-              >
-                {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
-              </Typography>
-            </Tooltip>
-          </Box>
-        </Box>
+        //   <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        //     <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
+        //       <Typography
+        //         sx={{
+        //           color: theme.palette.primary.light,
+        //           fontSize: '16px',
+        //           fontWeight: '500',
+        //           lineHeight: '19.36px',
+        //           overflow: 'hidden',
+        //           textOverflow: 'ellipsis',
+        //           whiteSpace: 'nowrap',
+        //           width: '200px',
+        //           boxSizing: 'border-box'
+        //         }}
+        //       >
+        //         {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
+        //       </Typography>
+        //     </Tooltip>
+        //     <Tooltip
+        //       title={
+        //         params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
+        //       }
+        //     >
+        //       <Typography
+        //         sx={{
+        //           color: theme.palette.primary.light,
+        //           fontSize: '14px',
+        //           fontWeight: '400',
+        //           lineHeight: '16.94px',
+        //           overflow: 'hidden',
+        //           textOverflow: 'ellipsis',
+        //           whiteSpace: 'nowrap',
+        //           width: '200px'
+        //         }}
+        //       >
+        //         {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
+        //       </Typography>
+        //     </Tooltip>
+        //   </Box>
+        // </Box>
       )
     },
     {
@@ -2176,6 +2178,13 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   }
 
   const dataGridStyles = {
+    borderTopLeftRadius: '8px',
+    '& .MuiBox-root': { paddingX: 0 },
+    '.MuiDataGrid-main': {
+      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+      borderRadius: '8px'
+    },
+    '& .MuiDataGrid-footerContainer': { border: 'none !important' },
     '.MuiDataGrid-cell:focus': { outline: 'none' },
     '& .MuiDataGrid-row:hover': { cursor: 'pointer', backgroundColor: 'transparent' },
     '& .MuiDataGrid-row:hover .customButton': { display: 'block' },

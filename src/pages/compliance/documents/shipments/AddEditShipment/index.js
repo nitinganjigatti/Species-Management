@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem, Button, alpha } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, Select, MenuItem, Button, alpha, Tab, Tabs } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { getDocumentTypeList } from 'src/lib/api/compliance/exports'
+import { getMastersData } from 'src/lib/api/compliance/exports'
 import Toaster from 'src/components/Toaster'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import AnimalsData from 'src/views/pages/compliance/documents/shipment/forms/AnimalsData'
@@ -21,6 +22,7 @@ const AddEditShipment = () => {
   const [expanded, setExpanded] = useState(['permit-details'])
   const [showEdit, setShowEdit] = useState(true)
   const [showEditAnimals, setShowEditAnimals] = useState(true)
+  const [mastersData, setMastersData] = useState([])
   const [status, setStatus] = useState('draft')
   const [totalCount, setTotalCount] = useState(0)
   const [isFetching, setIsFetching] = useState(false)
@@ -30,8 +32,14 @@ const AddEditShipment = () => {
   const [airwaybillvalue, setAirwaybillvalue] = useState('')
   const [linkedDocumentsData, setlinkedDocumentsData] = useState({})
   const [shipmentIdval, setshipmentIdVal] = useState('')
+  const [activeTab, setActiveTab] = useState('completed')
   const animalsEditRef = useRef()
   const basicDetailsEditRef = useRef()
+  const basicDetailsRef = useRef()
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
 
   useEffect(() => {
     if (isEdit && action === 'edit') {
@@ -39,6 +47,20 @@ const AddEditShipment = () => {
       setShowEditAnimals(true)
     }
   }, [isEdit, action])
+
+  const handleStatusChange = async newStatus => {
+    if (basicDetailsRef.current && typeof basicDetailsRef.current.handleSave === 'function') {
+      try {
+        const success = await basicDetailsRef.current.handleSave(newStatus)
+
+        if (success) {
+          setStatus(newStatus)
+        }
+      } catch (error) {
+        console.error('Error saving status:', error)
+      }
+    }
+  }
 
   const rawValue = airwaybillvalue || ''
   const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
@@ -50,6 +72,7 @@ const AddEditShipment = () => {
     try {
       const params = {
         id: id || exportId,
+        status: activeTab,
         type: 'shipment'
       }
       const res = await getDocumentTypeList(params)
@@ -72,14 +95,20 @@ const AddEditShipment = () => {
     const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
     setDocumentList(updatedList)
     fetchDocumentTypeList()
+    setActiveTab('completed')
   }
 
   useEffect(() => {
     if (id) {
-      fetchDocumentTypeList()
       fetchLinkedDocuments()
     }
   }, [id])
+
+  useEffect(() => {
+    if (id) {
+      fetchDocumentTypeList()
+    }
+  }, [id, activeTab])
 
   const fetchLinkedDocuments = async () => {
     try {
@@ -107,6 +136,23 @@ const AddEditShipment = () => {
           : [...prev, panelId] // Open if closed
     )
   }
+
+  const fetchMastersData = async () => {
+    try {
+      const res = await getMastersData()
+      if (res?.success) {
+        const data = res.data
+        setMastersData(data)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+    }
+  }
+
+  useEffect(() => {
+    fetchMastersData()
+  }, [])
 
   return (
     <>
@@ -178,7 +224,7 @@ const AddEditShipment = () => {
           ) : (
             <Select
               value={status}
-              onChange={e => setStatus(e.target.value)}
+              onChange={e => handleStatusChange(e.target.value)}
               size='small'
               sx={{
                 minWidth: 140,
@@ -209,14 +255,18 @@ const AddEditShipment = () => {
         }
         expanded={expanded.includes('permit-details')}
         onChange={handleAccordionChange}
-        editable={showEdit && expanded.includes('permit-details') && id && action === 'details'}
+        editable={expanded.includes('permit-details') && id && action === 'details'}
         handleEditClick={() => {
+          setExpanded(['permit - details'])
           basicDetailsEditRef.current?.()
-          router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
+          linkedDocumentsData?.exports_count > 0 || exportCount > 0
+            ? router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=1`)
+            : router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit`)
         }}
         type='shipment'
       >
         <ShipmentBasicDetails
+          ref={basicDetailsRef}
           onEditClick={basicDetailsEditRef}
           setShowEdit={setShowEdit}
           showEdit={showEdit}
@@ -226,6 +276,10 @@ const AddEditShipment = () => {
           setAirwaybillvalue={setAirwaybillvalue}
           setshipmentIdVal={setshipmentIdVal}
           shipmentIdval={shipmentIdval}
+          setExpanded={setExpanded}
+          linkedDocumentsData={linkedDocumentsData}
+          mastersData={mastersData}
+          exportCount={exportCount}
         />
       </CustomAccordion>
 
@@ -253,6 +307,7 @@ const AddEditShipment = () => {
             showEditAnimals && expanded.includes('animals-details') && id && action === 'details' && exportCount > 0
           }
           handleEditClick={() => {
+            setExpanded(['animals - details'])
             animalsEditRef.current?.()
             router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=edit&export=${exportCount}`)
           }}
@@ -268,6 +323,10 @@ const AddEditShipment = () => {
               setTotalSpecies={setTotalSpecies}
               totalAnimals={totalAnimals}
               totalSpecies={totalSpecies}
+              setExpanded={setExpanded}
+              setShowEdit={setShowEdit}
+              fetchLinkedDocuments={fetchLinkedDocuments}
+              mastersData={mastersData}
             />
           </Box>
         </CustomAccordion>
@@ -308,13 +367,32 @@ const AddEditShipment = () => {
               </Typography>
             </Box>
           ) : (
-            <SupportingDocuments
-              isFetching={isFetching}
-              documentList={documentList}
-              totalCount={totalCount}
-              onAddEditSuccess={handleAddEditSuccess}
-              type='3'
-            />
+            <Box sx={{ width: '100%' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+                <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
+                  <Tab
+                    label={`Completed${
+                      activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                    }`}
+                    value='completed'
+                    sx={{ mr: 4 }}
+                  />
+                  <Tab
+                    label={`Pending${
+                      activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                    }`}
+                    value='pending'
+                  />
+                </Tabs>
+              </Box>
+              <SupportingDocuments
+                isFetching={isFetching}
+                documentList={documentList}
+                totalCount={totalCount}
+                onAddEditSuccess={handleAddEditSuccess}
+                type='3'
+              />
+            </Box>
           )}
         </CustomAccordion>
       )}

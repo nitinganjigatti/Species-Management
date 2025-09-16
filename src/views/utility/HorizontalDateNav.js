@@ -179,7 +179,7 @@ const ScrollContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   position: 'relative',
   px: theme.spacing(1),
-  height: '40px',
+  height: '48px',
   backgroundColor: '#E8F4F2',
   borderRadius: theme.spacing(1),
   width: '100%'
@@ -192,38 +192,46 @@ const DateScrollArea = styled(Box)(({ theme }) => ({
   whiteSpace: 'nowrap',
   flex: 1,
   height: '100%',
-  paddingLeft: theme.spacing(10), // Space for fixed year
+  paddingLeft: theme.spacing(25), // Space for fixed year
+  // paddingRight: theme.spacing(2), // Space for fixed year
   '&::-webkit-scrollbar': {
     display: 'none'
   },
   '-ms-overflow-style': 'none',
-  'scrollbar-width': 'none',
-  [theme.breakpoints.up('md')]: {
-    paddingLeft: 0,
-    overflowX: 'visible'
-  }
+  'scrollbar-width': 'none'
+
+  // [theme.breakpoints.up('md')]: {
+  //   paddingLeft: 0,
+  //   overflowX: 'visible'
+  // }
 }))
 
 const YearLabel = styled(Typography)(({ theme }) => ({
-  fontSize: '18px',
-  fontWeight: 600,
-  color: theme.palette.text.secondary,
-  padding: theme.spacing(1.25, 2),
+  fontSize: '20px',
+  fontWeight: 500,
+  backgroundColor: theme.palette.customColors.displaybgSecondary,
+  color: theme.palette.customColors.OnPrimaryContainer,
+
+  // padding: '8px 16px',
+  height: '100%',
   borderRadius: theme.spacing(0.75),
-  minWidth: '70px',
-  textAlign: 'center',
+  minWidth: '82px',
+
   flexShrink: 0,
   position: 'absolute',
-  left: theme.spacing(1),
+
   top: '50%',
   transform: 'translateY(-50%)',
-  backgroundColor: '#E8F4F2',
   zIndex: 1,
-  [theme.breakpoints.up('md')]: {
-    position: 'static',
-    transform: 'none',
-    backgroundColor: 'transparent'
-  }
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+
+  // [theme.breakpoints.up('md')]: {
+  //   position: 'static',
+  //   transform: 'none',
+  //   backgroundColor: 'transparent'
+  // }
 }))
 
 const DateButton = styled(Button, {
@@ -233,13 +241,15 @@ const DateButton = styled(Button, {
     position: 'relative',
     width: 120,
     minWidth: 120,
-    height: 'calc(100% - 8px)', // Account for container padding
+
+    // height: 'calc(100% - 8px)', // Account for container padding
+    height: '48px',
     marginLeft: theme.spacing(0.5),
     px: 1,
     py: 0,
     borderRadius: theme.spacing(0.75),
-    backgroundColor: isSelected ? '#37474f' : 'transparent',
-    color: isSelected ? '#FFF' : theme.palette.text.primary,
+    backgroundColor: isSelected ? theme.palette.customColors.OnPrimaryContainer : 'transparent',
+    color: isSelected ? theme.palette.customColors.OnPrimary : theme.palette.customColors.OnSurfaceVariant,
     fontSize: '14px',
     fontWeight: 500,
     textTransform: 'none',
@@ -272,7 +282,7 @@ const DateButton = styled(Button, {
       width: 8,
       height: 8,
       borderRadius: '50%',
-      backgroundColor: indicatorColor || '#ff5722',
+      backgroundColor: indicatorColor || theme.palette.customColors.error.main,
       opacity: hasIndicator ? 1 : 0,
       transition: 'opacity 0.2s ease'
     }

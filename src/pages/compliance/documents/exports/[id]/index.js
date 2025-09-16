@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha, Tabs, Tab } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import {
   getDocumentTypeList,
   getExportDetails,
   getLinkedImportsDetails,
-  getLinkedShipmentDetails
+  getLinkedShipmentDetails,
+  getMastersData
 } from 'src/lib/api/compliance/exports'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { useTheme } from '@mui/material/styles'
@@ -16,7 +17,6 @@ import ExportPermitDetailsContent from 'src/views/pages/compliance/documents/exp
 import LinkedImports from 'src/components/compliance/LinkedImports'
 import LinkedShipments from 'src/components/compliance/LinkedShipments'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
-import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
 import countryList from 'react-select-country-list'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 
@@ -35,7 +35,7 @@ const ExportPermitDetails = () => {
   const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
   const [linkedImports, setLinkedImports] = useState([])
   const [totalLinkedImports, setTotalLinkedImports] = useState(0)
-
+  const [activeTab, setActiveTab] = useState('completed')
   const [loading, setLoading] = useState(true)
 
   const [exportData, setExportData] = useState({
@@ -71,6 +71,7 @@ const ExportPermitDetails = () => {
     try {
       const params = {
         id: id || exportId,
+        status: activeTab,
         type: 'export'
       }
       const res = await getDocumentTypeList(params)
@@ -89,11 +90,27 @@ const ExportPermitDetails = () => {
     }
   }
 
+  const fetchMastersData = async () => {
+    try {
+      const res = await getMastersData()
+      if (res?.success) {
+        return res.data.document_type_id || null
+      }
+    } catch (error) {
+      console.error('Error fetching masters data:', error)
+      Toaster({ type: 'error', message: 'Error fetching masters data' })
+    }
+
+    return null
+  }
+
   const fetchExportDetails = async () => {
     setLoading(true)
     try {
+      const documentTypeIdFromRes = await fetchMastersData()
+
       const params = {
-        document_type_id: DOCUMENT_TYPE_ID
+        document_type_id: documentTypeIdFromRes
       }
       const res = await getExportDetails(id, params)
       if (res.success) {
@@ -159,24 +176,32 @@ const ExportPermitDetails = () => {
 
   const handleAddEditSuccess = () => {
     fetchDocumentTypeList()
+    setActiveTab('completed')
+  }
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
   }
 
   useEffect(() => {
     if (id) {
       fetchExportDetails()
-      fetchDocumentTypeList()
       fetchLinkedShipmentsDetails()
       fetchLinkedImportsDetails()
     }
   }, [id])
 
+  useEffect(() => {
+    if (id) {
+      fetchDocumentTypeList()
+    }
+  }, [id, activeTab])
+
   return (
     <>
       <Box sx={{ mb: 5 }}>
         <Breadcrumbs aria-label='breadcrumb'>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={() => router.push('/compliance')}>
-            Compliance
-          </Typography>
+          <Typography sx={{ color: 'inherit' }}>Compliance</Typography>
           <Typography
             sx={{ cursor: 'pointer', color: 'inherit' }}
             onClick={() => router.push('/compliance/documents/exports')}
@@ -225,13 +250,32 @@ const ExportPermitDetails = () => {
         expanded={expanded.includes('supporting-documents')}
         onChange={handleAccordionChange}
       >
-        <SupportingDocuments
-          isFetching={isFetching}
-          documentList={documentList}
-          totalCount={totalCount}
-          onAddEditSuccess={handleAddEditSuccess}
-          type='1'
-        />
+        <Box sx={{ width: '100%' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+            <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
+              <Tab
+                label={`Completed${
+                  activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                }`}
+                value='completed'
+                sx={{ mr: 4 }}
+              />
+              <Tab
+                label={`Pending${
+                  activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                }`}
+                value='pending'
+              />
+            </Tabs>
+          </Box>
+          <SupportingDocuments
+            isFetching={isFetching}
+            documentList={documentList}
+            totalCount={totalCount}
+            onAddEditSuccess={handleAddEditSuccess}
+            type='1'
+          />
+        </Box>
       </CustomAccordion>
       <CustomAccordion
         id='linked-imports'

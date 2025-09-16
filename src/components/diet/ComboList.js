@@ -180,7 +180,7 @@ const ComboList = props => {
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
             <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Add Combo
+              Add Mix
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -208,7 +208,7 @@ const ComboList = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                placeholder='Search combo'
+                placeholder='Search mix'
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {

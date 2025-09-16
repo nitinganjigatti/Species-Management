@@ -22,7 +22,8 @@ import DietReportDrawer from 'src/components/diet/drawers/DietReportDrawer'
 import {
   getGeneralSpeciesWiseReport,
   getSpeciesWiseReport,
-  getAnimalWiseInventoryPlanning
+  getAnimalWiseInventoryPlanning,
+  getGeneralSpeciesWiseComboReport
 } from 'src/lib/api/diet/kitchen'
 import { getTaxonomyList } from 'src/lib/api/diet/dietList'
 import Utility from 'src/utility'
@@ -51,6 +52,20 @@ const DietReportPage = () => {
       reportName: 'Inventory Estimate by Animal',
       reportTitle: 'Inventory quantities needed per animal',
       reportAlias: 'animal_wise_inventory_planning',
+      downloadStatus: false
+    },
+    {
+      id: 4,
+      reportName: 'Species Diet Report',
+      reportTitle: '',
+      reportAlias: 'species_diet',
+      downloadStatus: false
+    },
+    {
+      id: 5,
+      reportName: 'Species Site Diet Report',
+      reportTitle: '',
+      reportAlias: 'species_site_diet_report',
       downloadStatus: false
     }
 
@@ -206,8 +221,13 @@ const DietReportPage = () => {
         data = await getSpeciesWiseReport({ params: newParams })
       } else if (reportAlias === 'animal_wise_inventory_planning') {
         data = await getAnimalWiseInventoryPlanning({ params })
-      } else if (reportAlias === 'ingredient_wise_inventory_planning') {
-        // Add API call here
+      } else if (reportAlias === 'species_diet') {
+        data = await getGeneralSpeciesWiseComboReport({ params })
+      } else if (reportAlias === 'species_site_diet_report') {
+        const newParams = params
+        newParams.group_by_site = true
+        data = await getGeneralSpeciesWiseComboReport({ params })
+      } else {
       }
 
       if (data?.success) {

@@ -599,7 +599,7 @@ const ComboCard = ({
                         variant='body'
                         sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
                       >
-                        {item?.recipe_no ? item?.recipe_no : 'CMB- 000'}
+                        {item?.recipe_no ? item?.recipe_no : 'MIX- 000'}
                       </Typography>
                     </Box>
 
@@ -858,11 +858,11 @@ const ComboCard = ({
       >
         {fromrow === 'rowedit_combo' ? (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD COMBO
+            ADD MIX
           </Button>
         ) : (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD COMBO - {selectedCardCombo?.length} SELECTED
+            ADD MIX - {selectedCardCombo?.length} SELECTED
           </Button>
         )}
       </Box>

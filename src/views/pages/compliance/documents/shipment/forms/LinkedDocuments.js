@@ -59,7 +59,19 @@ const SectionBlock = ({ title, type, data }) => {
               px: 4
             }}
           >
-            <Typography sx={{ fontWeight: 500, color: theme.palette.primary.dark }}>
+            <Typography
+              sx={{ fontWeight: 500, color: theme.palette.primary.dark, cursor: 'pointer' }}
+              onClick={() => {
+                if (item?.export_number) {
+                  window.open(`/compliance/documents/exports/${item?.export_id}/?id=${item?.export_id}`, '_blank')
+                } else if (item?.import_number) {
+                  window.open(
+                    `/compliance/documents/imports/AddEditImport/?id=${item?.import_id}&action=details`,
+                    '_blank'
+                  )
+                }
+              }}
+            >
               {type} ID: {item.export_number || item.import_number}
             </Typography>
             <Typography

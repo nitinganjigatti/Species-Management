@@ -382,6 +382,7 @@ const AnimalList = () => {
         sortable: false,
         disableColumnMenu: true,
         width: 300,
+        headerStyle: { zIndex: 1099 },
         renderCell: params => (
           <Box sx={{ paddingY: '20px' }}>
             <AnimalCard data={params.row} />
@@ -393,7 +394,7 @@ const AnimalList = () => {
     return {
       field: fieldKey,
       headerName: header.label,
-      width: 210,
+      width: 170,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
@@ -404,7 +405,7 @@ const AnimalList = () => {
             ? // ? moment(params?.row[header?.key]).format('DD-MMM-YYYY').toLocaleLowerCase()
               moment(params?.row[header?.key]).format('DD-MMM-YYYY')
             : truncateText(params?.row[header?.key], 20)
-          : ''
+          : '-'
 
         const showTooltip = params?.value?.length > 20
 
@@ -494,6 +495,7 @@ const AnimalList = () => {
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
               <CardHeader
+                sx={{ px: animalId && 0 }}
                 title={
                   animalId ? (
                     <CardHeader
@@ -508,20 +510,6 @@ const AnimalList = () => {
                         <>
                           <Typography
                             sx={{
-                              fontSize: '24px',
-                              fontWeight: 600,
-                              fontFamily: 'Inter',
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden'
-                            }}
-                            variant='body2'
-                          >
-                            {selectedAnimal?.scientific_name}
-                          </Typography>
-
-                          <Typography
-                            sx={{
                               fontSize: '16px',
                               fontWeight: 400,
                               ml: 1,
@@ -533,6 +521,19 @@ const AnimalList = () => {
                             variant='body2'
                           >
                             {selectedAnimal?.common_name}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: '24px',
+                              fontWeight: 600,
+                              fontFamily: 'Inter',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                            variant='body2'
+                          >
+                            {selectedAnimal?.scientific_name}
                           </Typography>
                         </>
                       }

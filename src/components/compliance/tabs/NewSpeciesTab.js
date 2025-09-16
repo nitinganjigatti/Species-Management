@@ -48,7 +48,8 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
       const newItems =
         res?.data?.records?.map(item => ({
           ...item,
-          tsn_id: item?.taxonomy_id || item?.id
+          tsn_id: item?.taxonomy_id || null,
+          id: item?.id || null
         })) || []
       const totalCount = res?.data?.total || 0
 
@@ -95,7 +96,8 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
 
         if (res.success) {
           onAddSpecies({
-            tsn_id: res.data.id,
+            id: res.data.id,
+            tsn_id: null,
             common_name: formData.commonName.trim(),
             scientific_name: formData.scientificName.trim()
           })
@@ -112,7 +114,7 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
     }
   }
 
-  const filteredList = list.filter(species => !prevSelectedItems.some(item => item.tsn_id === species.tsn_id))
+  const filteredList = list.filter(species => !prevSelectedItems.some(item => item?.id == species?.id))
 
   return (
     <>
@@ -229,9 +231,9 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 2 }}>
         {filteredList.map(species => (
           <SelectableSpeciesCard
-            key={species.tsn_id}
+            key={species?.id}
             species={species}
-            selected={selectedItems.some(item => item.tsn_id === species.tsn_id)}
+            selected={selectedItems.some(item => item.id === species.id)}
             onClick={() => onToggle(species)}
             selectionType='radio'
           />

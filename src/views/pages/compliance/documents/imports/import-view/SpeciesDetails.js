@@ -185,7 +185,10 @@ const SpeciesDetailsContainer = ({
               <Box
                 component='span'
                 fontWeight={600}
-                sx={{ color: theme.palette?.primary?.dark, fontWeight: 500, fontSize: '14px' }}
+                sx={{ color: theme.palette?.primary?.dark, fontWeight: 500, fontSize: '14px', cursor: 'pointer' }}
+                onClick={() => {
+                  window.open(`/compliance/documents/exports/${data.id}/?id=${data.id}`, '_blank')
+                }}
               >
                 Export ID : <span>{data.export_number}</span>
               </Box>{' '}

@@ -14,7 +14,13 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 
 const PAGE_SIZE = 10
 
-const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
+const AnimalDrawer = ({
+  open,
+  onClose,
+  handleAnimalClick,
+  btnText = 'GENERATE OBSERVATION REPORT',
+  showAnimalFilter = true
+}) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -107,7 +113,9 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
           default_icon: animal?.default_icon,
           total_animal: animal?.total_animal,
           local_identifier_name: animal?.local_identifier_name,
-          local_identifier_value: animal?.local_identifier_value
+          local_identifier_value: animal?.local_identifier_value,
+          site_id: animal?.site_id,
+          enclosure_id: animal?.enclosure_id
         }))
       ) || [],
     [data]
@@ -224,79 +232,81 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
           </Grid> */}
         </Grid>
 
-        <Box
-          sx={{
-            background: theme.palette.customColors.bodyBg,
-            px: 4,
-            pt: 3,
-            pb: 3
-          }}
-        >
-          {horizontalLoading ? (
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 2,
-                pb: 1,
-                height: 48,
-                alignItems: 'center',
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
-                '-ms-overflow-style': 'none'
-              }}
-            >
-              {Array.from(new Array(4)).map((_, idx) => (
-                <Skeleton key={idx} variant='rectangular' width={150} height={40} sx={{ borderRadius: 1 }} />
-              ))}
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 2,
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': {
-                  display: 'none'
-                },
-                '-ms-overflow-style': 'none',
-                pb: 1
-              }}
-            >
-              {horizontalNavList.map((item, index) => (
-                <Button
-                  key={index}
-                  onClick={() => handleTabClick(item.type)}
-                  sx={{
-                    textTransform: 'none',
-                    borderRadius: '2',
-                    px: 3,
-                    py: 1.5,
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    whiteSpace: 'nowrap',
-                    minWidth: 'auto',
-                    flexShrink: 0,
-                    border: 'none',
-                    backgroundColor: activeTab === item.type ? '#1F515B' : '#0000000D',
-                    color: activeTab === item.type ? '#FFFFFF' : '#666666',
-                    '&:hover':
-                      activeTab === item.type
-                        ? {
-                            backgroundColor: '#1F515B !important'
-                          }
-                        : {
-                            backgroundColor: '#e0ecee'
-                          }
-                  }}
-                >
-                  {item.label} {activeTab === item.type && total ? ` (${total})` : ''}
-                </Button>
-              ))}
-            </Box>
-          )}
-        </Box>
+        {showAnimalFilter && (
+          <Box
+            sx={{
+              background: theme.palette.customColors.bodyBg,
+              px: 4,
+              pt: 3,
+              pb: 3
+            }}
+          >
+            {horizontalLoading ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  pb: 1,
+                  height: 48,
+                  alignItems: 'center',
+                  overflowX: 'auto',
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  '-ms-overflow-style': 'none'
+                }}
+              >
+                {Array.from(new Array(4)).map((_, idx) => (
+                  <Skeleton key={idx} variant='rectangular' width={150} height={40} sx={{ borderRadius: 1 }} />
+                ))}
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  overflowX: 'auto',
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': {
+                    display: 'none'
+                  },
+                  '-ms-overflow-style': 'none',
+                  pb: 1
+                }}
+              >
+                {horizontalNavList.map((item, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => handleTabClick(item.type)}
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: '2',
+                      px: 3,
+                      py: 1.5,
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      whiteSpace: 'nowrap',
+                      minWidth: 'auto',
+                      flexShrink: 0,
+                      border: 'none',
+                      backgroundColor: activeTab === item.type ? '#1F515B' : '#0000000D',
+                      color: activeTab === item.type ? '#FFFFFF' : '#666666',
+                      '&:hover':
+                        activeTab === item.type
+                          ? {
+                              backgroundColor: '#1F515B !important'
+                            }
+                          : {
+                              backgroundColor: '#e0ecee'
+                            }
+                    }}
+                  >
+                    {item.label} {activeTab === item.type && total ? ` (${total})` : ''}
+                  </Button>
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
 
         <Box
           sx={{
@@ -311,7 +321,7 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
             '&::-webkit-scrollbar': { display: 'none' },
             scrollbarWidth: 'none',
             '-ms-overflow-style': 'none',
-            py: 1
+            py: showAnimalFilter ? 1 : 4
           }}
         >
           {isFetching && list.length === 0 ? (
@@ -381,7 +391,7 @@ const AnimalDrawer = ({ open, onClose, handleAnimalClick }) => {
             onClick={onGenerateClick}
             sx={{ p: 3, fontWeight: 600 }}
           >
-            GENERATE OBSERVATION REPORT
+            {btnText}
           </Button>
         </Box>
       )}

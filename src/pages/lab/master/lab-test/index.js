@@ -1,6 +1,17 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 
-import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Tooltip, Typography, debounce } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardHeader,
+  IconButton,
+  Tooltip,
+  Typography,
+  debounce
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { DataGrid } from '@mui/x-data-grid'
 import toast from 'react-hot-toast'
@@ -27,7 +38,7 @@ const LabTest = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const editParamsInitialState = { id: null, label: null, sample_type_count: null, sub_test_count: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [resetForm, setResetForm] = useState(false)
@@ -180,13 +191,17 @@ const LabTest = () => {
       headerName: 'LAB TEST NAME',
       renderCell: params => (
         <Tooltip title={params.row.label ? params.row.label : '-'}>
-          <Typography noWrap variant='body2' sx={{
-            color: 'text.primary',
-            pl: 2,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
+          <Typography
+            noWrap
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              pl: 2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
             {params.row.label ? params.row.label : '-'}
           </Typography>
         </Tooltip>
@@ -260,13 +275,17 @@ const LabTest = () => {
           />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Tooltip title={params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}>
-              <Typography noWrap variant='body2' sx={{
-                color: 'text.primary',
-                fontSize: 14,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{
+                  color: 'text.primary',
+                  fontSize: 14,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
                 {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
               </Typography>
             </Tooltip>
@@ -279,7 +298,7 @@ const LabTest = () => {
                   fontSize: 12,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
@@ -361,6 +380,18 @@ const LabTest = () => {
 
             <DataGrid
               sx={{
+                paddingX: 5,
+                borderTopLeftRadius: '8px',
+                '& .MuiBox-root': {
+                  paddingX: 0
+                },
+                '.MuiDataGrid-main': {
+                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                  borderRadius: '8px'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  border: 'none !important'
+                },
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },

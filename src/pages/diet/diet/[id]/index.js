@@ -220,6 +220,7 @@ const DietDetail = () => {
             } else {
               setspeciesDataforFilter(prevData => {
                 const combinedData = [...prevData, ...resultData]
+
                 const uniqueData = combinedData.filter(
                   (item, index, self) =>
                     index ===
@@ -227,6 +228,7 @@ const DietDetail = () => {
                       selectionType === 'species' ? t.species_id === item.species_id : t.species_id === item.species_id
                     )
                 )
+
                 return uniqueData
               })
             }
@@ -1848,7 +1850,7 @@ const DietDetail = () => {
                                                                               display: 'block'
                                                                             }}
                                                                           >
-                                                                            Combo
+                                                                            Mix
                                                                           </Typography>
                                                                           <Typography
                                                                             sx={{
