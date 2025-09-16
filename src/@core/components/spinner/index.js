@@ -6,7 +6,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Image from 'next/image'
 
 import logoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
-import vantaraLogoAlt from 'public/images/branding/vantara/Weblogo_vantara_V.png'
+import vantaraLogoAlt from 'public/branding/vantara/Weblogo_vantara_V.png'
 
 const FallbackSpinner = ({ sx }) => {
   // ** Hook
