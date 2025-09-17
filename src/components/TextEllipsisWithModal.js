@@ -7,10 +7,12 @@ const truncateText = (text, limit) => {
   return text.length > limit ? text.slice(0, limit) + '...' : text
 }
 
-const TextEllipsisWithModal = ({ ...props }) => {
+const TextEllipsisWithModal = ({ enableDialog = true, ...props }) => {
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleOpen = () => setIsOpen(true)
+  const handleOpen = () => {
+    if (enableDialog) setIsOpen(true)
+  }
 
   const handleClose = () => setIsOpen(false)
 
