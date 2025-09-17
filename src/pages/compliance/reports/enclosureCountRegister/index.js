@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, Card, CardHeader, CircularProgress, IconButton, Tooltip, Typography } from '@mui/material'
+import { Box, Card, CardHeader, CircularProgress, IconButton, Tooltip, Typography, Skeleton } from '@mui/material'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
@@ -61,6 +61,7 @@ const EnclosureCountRegister = () => {
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 50
   })
+  const prevStatKeyRef = useRef({ siteId: null, type: '', sectionKey: '' })
 
   const reportCardEventHandler = () => {
     setOpenFilterDrawer(!openFilterDrawer)
@@ -133,6 +134,15 @@ const EnclosureCountRegister = () => {
     if (selectedItems?.Section?.length > 0) params.section_id = selectedItems.Section.join(',')
 
     let canceled = false
+    const sectionKey = (selectedItems?.Section || []).join(',')
+    const statKeyChanged =
+      (prevStatKeyRef.current.siteId !== siteId) ||
+      (prevStatKeyRef.current.type !== params.type) ||
+      (prevStatKeyRef.current.sectionKey !== sectionKey)
+
+    if (statKeyChanged) {
+      setRegisterStats(null)
+    }
     ;(async () => {
       try {
         setLoading(true)
@@ -179,18 +189,24 @@ const EnclosureCountRegister = () => {
           })
           setIndexedRows(rows)
           setTotal(animals.length)
-          setRegisterStats(res?.data?.stats || null)
+          if (statKeyChanged) {
+            setRegisterStats(res?.data?.stats || null)
+            prevStatKeyRef.current = { siteId, type: params.type, sectionKey }
+          }
         } else {
           setIndexedRows([])
           setTotal(0)
-          setRegisterStats(null)
+          if (statKeyChanged) {
+            setRegisterStats(null)
+            prevStatKeyRef.current = { siteId, type: params.type, sectionKey }
+          }
         }
       } catch (err) {
         if (!canceled) {
           console.error('Error fetching Enclosure Count Register:', err)
           setIndexedRows([])
           setTotal(0)
-          setRegisterStats(null)
+          if (statKeyChanged) setRegisterStats(null)
         }
       } finally {
         if (!canceled) setLoading(false)
@@ -453,19 +469,28 @@ const EnclosureCountRegister = () => {
   ]
 
   const downloadEnclosureCountRegister = async () => {
-    console.log('first')
+    const siteId = selectedSite?.site_id || router.query.site_id
+    if (!siteId || !selectedItems?.reportType) return
+
     const params = {
-      site_id: selectedSite?.site_id || router.query.site_id,
-      q: searchValue,
-      report_type: 'pdf'
+      site_id: siteId,
+      type: selectedItems?.reportType === 'individual' ? 'individual-wise' : 'species-wise',
+      q: searchValue || '',
+      page: (paginationModel?.page || 0) + 1,
+      limit: paginationModel?.pageSize || 50,
+      response_type: 'pdf'
     }
+    if (selectedItems?.Section?.length > 0) params.section_id = selectedItems.Section.join(',')
+
     try {
       setIsDownloading(true)
-      // await downloadPDF({
-      //   apiCall: getEnclosureCountRegister,
-      //   params,
-      //   fileName: `Observation_report_${Date.now()}.pdf`
-      // })
+      await downloadPDF({
+        apiCall: getEnclosureCountRegister,
+        params,
+        fileName: `enclosure_count_register_${
+          selectedItems?.reportType === 'individual' ? 'individual' : 'species'
+        }_${Date.now()}.pdf`
+      })
     } catch (error) {
       console.error('Error downloading report:', error)
     } finally {
@@ -619,39 +644,49 @@ const EnclosureCountRegister = () => {
                 backgroundColor: theme.palette.customColors.displaybgPrimary
               }}
             >
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontWeight: 400,
-                  letterSpacing: 0,
-                  fontFamily: 'Inter'
-                }}
-              >
-                Site: <span style={{ fontWeight: 500 }}>{registerStats?.site_name || '-'}</span>
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontWeight: 400,
-                  letterSpacing: 0,
-                  fontFamily: 'Inter'
-                }}
-              >
-                Sections: <span style={{ fontWeight: 500 }}>{registerStats?.total_sections || '-'}</span>
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontWeight: 400,
-                  letterSpacing: 0,
-                  fontFamily: 'Inter'
-                }}
-              >
-                Total Enclosures: <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
-              </Typography>
+              {(loading || !registerStats) ? (
+                <>
+                  <Skeleton variant='text' width={220} height={24} sx={{ borderRadius: 1 }} />
+                  <Skeleton variant='text' width={180} height={24} sx={{ borderRadius: 1 }} />
+                  <Skeleton variant='text' width={220} height={24} sx={{ borderRadius: 1 }} />
+                </>
+              ) : (
+                <>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 400,
+                      letterSpacing: 0,
+                      fontFamily: 'Inter'
+                    }}
+                  >
+                    Site: <span style={{ fontWeight: 500 }}>{registerStats?.site_name || '-'}</span>
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 400,
+                      letterSpacing: 0,
+                      fontFamily: 'Inter'
+                    }}
+                  >
+                    Sections: <span style={{ fontWeight: 500 }}>{registerStats?.total_sections || '-'}</span>
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 400,
+                      letterSpacing: 0,
+                      fontFamily: 'Inter'
+                    }}
+                  >
+                    Total Enclosures: <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
+                  </Typography>
+                </>
+              )}
             </Box>
             <StickyTable
               columns={selectedItems?.reportType === 'individual' ? individualColumns : specieColumn}
