@@ -7,6 +7,8 @@ const AnimalCard = ({ data, size }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
 
+  const fallBackImage = '/images/branding/Antz_logomark_h_color.svg'
+
   useEffect(() => {
     const img = new Image()
     img.src = data?.default_icon

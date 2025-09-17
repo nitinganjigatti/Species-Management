@@ -107,16 +107,15 @@ const PatientAdmitForm = () => {
       try {
         await getRoomsAndEnclosures({
           hospital_id: 1,
-          page: 1
+          page: 1,
+          is_occupied: 'available'
         }).then(res => {
           if (res?.success === true) {
             setHoldingEnclosures(
-              res?.data?.records
-                ?.filter(item => item?.is_occupied !== '1')
-                ?.map(item => ({
-                  label: item?.bed_name,
-                  value: item?.id
-                }))
+              res?.data?.records?.map(item => ({
+                label: item?.bed_name,
+                value: item?.id
+              }))
             )
           }
         })
@@ -451,7 +450,9 @@ const PatientAdmitForm = () => {
           boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
           display: 'flex',
           justifyContent: 'flex-end',
-          zIndex: 100
+          zIndex: 100,
+          borderTopLeftRadius: 1,
+          borderTopRightRadius: 1
         }}
       >
         <Box sx={{ display: 'flex', gap: 3 }}>

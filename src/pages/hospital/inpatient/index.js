@@ -25,7 +25,9 @@ const getVisitTypeLabel = title => {
   if (title === 'checkup') return 'Check up'
   if (title === 'emergency') return 'Emergency'
   if (title === 'follow_up') return 'Follow-up'
+  if (title === 'outpatient') return 'OUTPATIENT'
   if (title === 'opd') return 'OUTPATIENT'
+  if (title === 'planned') return 'Planned'
 }
 
 const HospitalInpatient = () => {
@@ -61,8 +63,7 @@ const HospitalInpatient = () => {
         limit: filters?.limit,
         search: filters?.q,
         hospital_id: 1,
-
-        // status: 'admitted',
+        status: 'admitted',
         visit_type: selectedVisitType,
         patient_category: 'inpatient'
       })
@@ -117,6 +118,11 @@ const HospitalInpatient = () => {
     [debouncedSearch]
   )
 
+  const handleSearchClear = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
 
   const indexedRows = rows.map((row, index) => ({
@@ -164,7 +170,7 @@ const HospitalInpatient = () => {
       )
     },
     {
-      width: 250,
+      width: 300,
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
@@ -180,12 +186,11 @@ const HospitalInpatient = () => {
                 fontFamily: 'Inter',
                 color: theme.palette.customColors.OnSurfaceVariant,
                 display: '-webkit-box',
-                WebkitLineClamp: 4,
+                WebkitLineClamp: 5,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'normal',
-                py: 4
+                whiteSpace: 'normal'
               }}
             >
               <>{params.row.purpose_of_visit || ''}</>
@@ -335,9 +340,15 @@ const HospitalInpatient = () => {
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id or animal id'
+                  placeholder='Search by medical Id / AID / animal identifier'
                   value={searchValue}
+                  onClear={handleSearchClear}
                   onChange={e => handleSearch(e.target.value)}
+                  textFielsSX={{
+                    '& .MuiInputBase-input::placeholder': {
+                      fontSize: '13px'
+                    }
+                  }}
                 />
               </Box>
               <Box sx={{ mr: 2 }}>
@@ -374,6 +385,10 @@ const HospitalInpatient = () => {
                 externalTableStyle={{
                   '& .MuiDataGrid-cell': {
                     padding: 4
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    // backgroundColor: 'transparent',
+                    cursor: 'pointer'
                   }
                 }}
               />

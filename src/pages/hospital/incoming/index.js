@@ -16,7 +16,8 @@ const visitTypeOptions = [
   { value: 'checkup', label: 'Checkup' },
   { value: 'emergency', label: 'Emergency' },
   { value: 'opd', label: 'Outpatients' },
-  { value: 'follow_up', label: 'Follow-up' }
+  { value: 'follow_up', label: 'Follow-up' },
+  { value: 'planned', label: 'Planned' }
 ]
 
 const getVisitTypeLabel = title => {
@@ -25,6 +26,7 @@ const getVisitTypeLabel = title => {
   if (title === 'follow_up') return 'Follow-up'
   if (title === 'outpatient') return 'OUTPATIENT'
   if (title === 'opd') return 'OUTPATIENT'
+  if (title === 'planned') return 'Planned'
 }
 
 const HospitalIncoming = () => {
@@ -59,7 +61,7 @@ const HospitalIncoming = () => {
         page_no: filters?.page,
         limit: filters?.limit,
         search: filters?.q,
-        hospital_id: 5,
+        hospital_id: 1,
         status: 'pending',
         visit_type: selectedVisitType,
         patient_category: 'incoming'
@@ -171,7 +173,7 @@ const HospitalIncoming = () => {
     },
 
     {
-      width: 250,
+      width: 300,
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
@@ -194,12 +196,11 @@ const HospitalIncoming = () => {
                   fontFamily: 'Inter',
                   color: theme.palette.customColors.OnSurfaceVariant,
                   display: '-webkit-box',
-                  WebkitLineClamp: 4,
+                  WebkitLineClamp: 5,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'normal',
-                  py: 4
+                  whiteSpace: 'normal'
                 }}
               >
                 <>{params.row.purpose_of_visit || ''}</>
@@ -319,8 +320,11 @@ const HospitalIncoming = () => {
               '& .MuiDataGrid-cell': {
                 padding: 4
               },
-              '& .MuiDataGrid-row:hover': {
-                backgroundColor: 'transparent'
+              '& .MuiDataGrid-cell:focus': {
+                outline: 'none'
+              },
+              '& .MuiDataGrid-cell:focus-within': {
+                outline: 'none'
               }
             }}
           />
