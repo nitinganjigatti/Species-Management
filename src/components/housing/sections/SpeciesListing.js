@@ -31,6 +31,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
 
   const [inputValue, setInputValue] = useState('')
   const [downloading, setDownloading] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
 
   const auth = useAuth()
   const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
@@ -200,6 +201,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
                       section_id: id
                     }
                   })
+                  setTotalCount(params.row?.animal_count || 0)
                 }}
               >
                 <Typography
@@ -347,7 +349,16 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
           />
         </Grid>
       </Box>
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalDrawer
+          totalCount={totalCount}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/species-icon-colored.svg'}
+          objectFit={'contain'}
+        />
+      )}
     </>
   )
 }

@@ -35,6 +35,7 @@ const EnclosureListing = ({
 
   const [inputValue, setInputValue] = useState('')
   const [downloading, setDownloading] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -255,6 +256,7 @@ const EnclosureListing = ({
                       enclosure_id: params.row.enclosure_id
                     }
                   })
+                  setTotalCount(params.row.enclosure_wise_animal_count || 0)
                 }}
               >
                 <Typography
@@ -287,7 +289,6 @@ const EnclosureListing = ({
                 }}
                 onClick={e => {
                   e.stopPropagation()
-
                 }}
               >
                 <Typography
@@ -394,7 +395,9 @@ const EnclosureListing = ({
           />
         </Grid>
       </Box>
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalDrawer totalCount={totalCount} open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
       {drawerType === 'sub-enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}

@@ -37,6 +37,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
 
   const [inputValue, setInputValue] = useState('')
   const [downloading, setDownloading] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
 
   const { data, isLoading } = useQuery({
     queryKey: ['species', id, filters],
@@ -187,7 +188,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             species={{
               common_name: params.row.common_name,
               scientific_name: params.row.complete_name,
-              default_icon: params.row.default_icon
+              default_icon: params.row.default_icon || '/images/housing/species-icon-colored.svg'
             }}
           />
         </Box>
@@ -226,6 +227,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
                       site_id: id
                     }
                   })
+                  setTotalCount(params.row.animal_count || 0)
                 }}
               >
                 <Typography
@@ -394,7 +396,16 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
         </Grid>
       </Box>
 
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalDrawer
+          totalCount={totalCount}
+          defaultImage={'/images/housing/species-icon-colored.svg'}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          objectFit={'contain'}
+        />
+      )}
     </>
   )
 }

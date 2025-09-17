@@ -78,14 +78,14 @@ const SectionDetails = () => {
   }
 
   const handleAmimalsInsightClick = () => {
-    setDrawerType('animals')
+    setDrawerType('animals-insights')
     setDrawerData({
       queryKey: 'insights-animals-section-drawer',
       id: zooId,
 
       name: data?.data?.section_name,
 
-      // image: params.row?.images?.[0]?.file,
+      // image: '/images/housing/section-animal.svg',
       params: {
         section_id: id
       }
@@ -208,7 +208,15 @@ const SectionDetails = () => {
             />
           </Box>
         </Card>
-        {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+        {drawerType === 'animals-insights' && (
+          <AnimalDrawer
+            totalCount={data?.data?.total_animals}
+            open={!!drawerData}
+            onClose={handleDrawerClose}
+            data={drawerData}
+            defaultImage={'/images/housing/section-colored-icon.svg'}
+          />
+        )}
         {drawerType === 'enclosures' && (
           <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
         )}

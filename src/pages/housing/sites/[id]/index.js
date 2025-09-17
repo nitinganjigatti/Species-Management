@@ -83,7 +83,7 @@ const SiteDetails = () => {
   }
 
   const handleAmimalsInsightClick = () => {
-    setDrawerType('animals')
+    setDrawerType('animals-insights')
     setDrawerData({
       queryKey: 'insights-animals-section-drawer',
       id: zooId,
@@ -197,7 +197,15 @@ const SiteDetails = () => {
             />
           </Box>
         </Card>
-        {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+        {drawerType === 'animals-insights' && (
+          <AnimalDrawer
+            totalCount={data?.data?.animal_count}
+            open={!!drawerData}
+            onClose={handleDrawerClose}
+            data={drawerData}
+            defaultImage={'/images/housing/site-icon-colored.svg'}
+          />
+        )}
         {drawerType === 'enclosures' && (
           <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
         )}

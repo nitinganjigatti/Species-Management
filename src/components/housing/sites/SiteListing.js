@@ -563,6 +563,7 @@ const Listing = ({
           open={!!drawerData}
           onClose={handleDrawerClose}
           data={drawerData}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
         />
       )}
       {drawerType === 'insights-animals' && (
@@ -571,6 +572,7 @@ const Listing = ({
           open={!!drawerData}
           onClose={handleDrawerClose}
           data={drawerData}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
         />
       )}
       {drawerType === 'enclosures' && (

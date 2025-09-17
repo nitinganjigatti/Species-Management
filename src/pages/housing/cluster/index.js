@@ -292,7 +292,8 @@ const Clusters = () => {
           <CellInfo
             value={params.row.cluster_name}
             subtitle={params.row.cluster_desc}
-            imgUrl={params.row.images?.[0]?.file || '/icons/cluster.svg'}
+            imgUrl={params.row.images?.[0]?.file}
+            defaultImage={'/images/housing/site-icon-colored.svg'}
             avatarUrl=''
             inchargeName=''
           />
@@ -575,6 +576,7 @@ const Clusters = () => {
           open={!!drawerData}
           onClose={handleDrawerClose}
           data={drawerData}
+          defaultImage={'/images/housing/cluster-icon-colored.svg'}
         />
       )}
       {drawerType === 'insights-animals' && (
@@ -583,6 +585,7 @@ const Clusters = () => {
           open={!!drawerData}
           onClose={handleDrawerClose}
           data={drawerData}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
         />
       )}
       {drawerType === 'enclosures' && (

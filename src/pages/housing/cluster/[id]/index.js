@@ -2,7 +2,7 @@ import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ClusterSites from 'src/components/housing/clusters/ClusterSites'
 import ClusterSpecies from 'src/components/housing/clusters/ClusterSpecies'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
@@ -51,7 +51,7 @@ const ClusterDetails = () => {
   }
 
   const handleAmimalsInsightClick = () => {
-    setDrawerType('animals')
+    setDrawerType('animals-insights')
     setDrawerData({
       queryKey: 'insights-animals-cluster-details-drawer',
       id: zooId,
@@ -169,7 +169,15 @@ const ClusterDetails = () => {
           </Box>
         </Card>
       </Box>
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals-insights' && (
+        <AnimalDrawer
+          totalCount={data?.data?.cluster_stats?.animals}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/cluster-icon-colored.svg'}
+        />
+      )}
     </>
   )
 }
