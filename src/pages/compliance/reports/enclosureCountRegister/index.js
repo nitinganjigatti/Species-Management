@@ -1,6 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Box, Card, CardHeader, CircularProgress, IconButton, Tooltip, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
+import debounce from 'lodash/debounce'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
@@ -25,6 +26,7 @@ const EnclosureCountRegister = () => {
   const [loading, setLoading] = useState(false)
   const [indexedRows, setIndexedRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [searchInput, setSearchInput] = useState(router.query.q || '')
   const [isDownloading, setIsDownloading] = useState(false)
   const [siteLoader, setSiteLoader] = useState(false)
 
@@ -221,28 +223,6 @@ const EnclosureCountRegister = () => {
   )
 
   const specieColumn = [
-    // {
-    //   width: 90,
-    //   field: 'id',
-    //   headerName: 'SL.NO',
-    //   sortable: false,
-    //   align: 'center',
-    //   headerAlign: 'center',
-    //   renderCell: params => (
-    //     <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    //       <Typography
-    //         sx={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '14px',
-    //           fontWeight: 500,
-    //           cursor: 'default'
-    //         }}
-    //       >
-    //         {params.row.sl_no}
-    //       </Typography>
-    //     </Box>
-    //   )
-    // },
     {
       minWidth: 250,
       width: 300,
@@ -473,6 +453,7 @@ const EnclosureCountRegister = () => {
   ]
 
   const downloadEnclosureCountRegister = async () => {
+    console.log('first')
     const params = {
       site_id: selectedSite?.site_id || router.query.site_id,
       q: searchValue,
@@ -521,6 +502,7 @@ const EnclosureCountRegister = () => {
 
     // Reset search and pagination
     setSearchValue('')
+    setSearchInput('')
     setPaginationModel({ page: 0, pageSize: 50 })
 
     // Remove site/section params from URL
@@ -537,7 +519,11 @@ const EnclosureCountRegister = () => {
 
   const headerAction = (
     <Box sx={{ display: 'flex', gap: '24px' }}>
-      <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadEnclosureCountRegister} />
+      <DownloadReport
+        isDownloading={isDownloading}
+        handleDownloadReport={downloadEnclosureCountRegister}
+        containerStyles={loading ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+      />
       <Box
         sx={{
           backgroundColor: '#0000000D',
@@ -549,22 +535,33 @@ const EnclosureCountRegister = () => {
           borderRadius: '50px'
         }}
       >
-        <IconButton onClick={clearUserSelection}>
+        <IconButton onClick={clearUserSelection} disabled={loading}>
           <Icon icon='mdi:close' color='red' fontSize={24} />
         </IconButton>
       </Box>
     </Box>
   )
 
+  // Debounced apply of search to trigger API
+  const applySearchDebounced = useCallback(
+    debounce(val => {
+      setSearchValue(val)
+      // Reset page after settling search
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    }, 600),
+    []
+  )
+
+  useEffect(() => {
+    return () => {
+      applySearchDebounced.cancel()
+    }
+  }, [applySearchDebounced])
+
   const handleSearchChange = e => {
     const value = e.target.value
-    setSearchValue(value)
-
-    if (paginationModel.page !== 0) {
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
-    }
-
-    // debouncedGetEnclosureCountRegister(value)
+    setSearchInput(value)
+    applySearchDebounced(value)
   }
 
   return (
@@ -585,8 +582,14 @@ const EnclosureCountRegister = () => {
               <Box sx={{ width: '100%' }}>
                 <Search
                   onChange={handleSearchChange}
+                  onClear={() => {
+                    setSearchInput('')
+                    setSearchValue('')
+                    setPaginationModel(prev => ({ ...prev, page: 0 }))
+                  }}
                   placeholder='Search by date or site type'
-                  value={searchValue}
+                  value={searchInput}
+                  disabled={loading}
                   width={297}
                   borderRadius='4px'
                   inputStyle={{ padding: '10px 12px' }}
