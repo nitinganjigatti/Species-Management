@@ -1479,25 +1479,25 @@ const AddLab = () => {
                               </CardContent>
                             </Card>
                           </Grid>
-                          <Grid item xs={12} md={12}>
-                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                              <LoadingButton
-                                onClick={() => router.push('/lab/lab-list/')}
-                                loading={submitLoader}
-                                variant='outlined'
-                              >
-                                Cancel
-                              </LoadingButton>
-                              <LoadingButton
-                                loading={submitLoader}
-                                onClick={handleSubmitData}
-                                type='submit'
-                                variant='outlined'
-                              >
-                                Submit
-                              </LoadingButton>
-                            </Box>
-                          </Grid>
+                          {/* <Grid item xs={12} md={12}> */}
+                          <Box sx={{ width: '100%', display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                            <LoadingButton
+                              onClick={() => router.push('/lab/lab-list/')}
+                              loading={submitLoader}
+                              variant='outlined'
+                            >
+                              Cancel
+                            </LoadingButton>
+                            <LoadingButton
+                              loading={submitLoader}
+                              onClick={handleSubmitData}
+                              type='submit'
+                              variant='outlined'
+                            >
+                              Submit
+                            </LoadingButton>
+                          </Box>
+                          {/* </Grid> */}
                         </Grid>
                       </form>
                     </CardContent>
