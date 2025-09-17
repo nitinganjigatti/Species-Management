@@ -195,7 +195,7 @@ const AnimalCard = ({ data, size }) => {
           </Typography>
         )}
 
-        {data?.scientific_name && (
+        {(data?.scientific_name || data?.complete_name) && (
           <Typography
             sx={{
               fontSize: '13px',
@@ -204,21 +204,21 @@ const AnimalCard = ({ data, size }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            {data?.scientific_name}
+            {data?.scientific_name || data?.complete_name}
           </Typography>
         )}
 
         {data?.age && (
           <Typography
             sx={{
-              fontSize: '13px',
-              fontWeight: 500,
-              fontStyle: 'italic',
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Age : </span>
-            {data?.age || '-'}
+            {data?.age}
           </Typography>
         )}
 
@@ -303,19 +303,6 @@ const AnimalCard = ({ data, size }) => {
           >
             <span>Site : </span>
             {data?.site_name}
-          </Typography>
-        )}
-        {data?.age && (
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 600,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span>Age : </span>
-            {data?.age}
           </Typography>
         )}
       </Box>

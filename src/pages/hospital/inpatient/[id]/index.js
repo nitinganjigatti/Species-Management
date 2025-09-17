@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Tab, Tabs, Typography, Box, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useState, Suspense, lazy, useMemo, useCallback } from 'react'
+import React, { useState, Suspense, lazy, useMemo, useCallback, useEffect } from 'react'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -11,8 +11,11 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import CloseIcon from '@mui/icons-material/Close'
+import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 
 const useDrawerState = () => {
+  const router = useRouter()
+
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
 
@@ -48,11 +51,50 @@ const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMoni
 const InpatientDetails = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { id, animal_id } = router.query
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [anchorEl, setAnchorEl] = useState(null)
+  const [patientLoading, setPatientLoading] = useState(false)
+  const [patientData, setPatientData] = useState(null)
+  const [animalData, setAnimalData] = useState({})
+  const [overviewData, setOverViewData] = useState({})
+
   const openMenu = Boolean(anchorEl)
+
+  useEffect(() => {
+    const getPatientInfo = async () => {
+      setPatientLoading(true)
+      try {
+        await getPatientDetails(id).then(res => {
+          if (res?.success === true) {
+            setPatientData(res?.data)
+            setAnimalData(res?.data?.animal_detail)
+            setOverViewData({
+              active_complaints_count: res?.data?.active_complaints_count,
+              active_diagnosis_count: res?.data?.active_diagnosis_count,
+              active_prescriptions_count: res?.data?.active_prescriptions_count,
+              treatment_monitoring: res?.data?.treatment_monitoring,
+              purpose_of_visit: res?.data?.purpose_of_visit,
+              created_by_full_name: res?.data?.created_by_full_name,
+              created_at: res?.data?.created_at,
+              created_by_profile_pic: res?.data?.created_by_profile_pic
+            })
+            setPatientLoading(false)
+          } else {
+            setPatientData(null)
+            setPatientLoading(false)
+          }
+        })
+      } catch (error) {
+        console.error('Cannot Fetch Patient Details', error)
+        setPatientLoading(false)
+      }
+    }
+
+    getPatientInfo()
+  }, [id])
 
   const handleMenuOpen = event => {
     console.log(event.currentTarget)
@@ -63,8 +105,6 @@ const InpatientDetails = () => {
   const handleMenuClose = () => {
     setAnchorEl(null)
   }
-
-  const { id } = router.query
 
   // Lazy load all components
 
@@ -139,16 +179,17 @@ const InpatientDetails = () => {
       selectedTab,
       setSelectedTab,
       ...drawerState,
-      patientId: id
+      patientId: id,
+      overviewData: overviewData
     }),
-    [selectedTab, drawerState, id]
+    [selectedTab, drawerState, id, overviewData]
   )
 
   return (
     <>
       <Box>
         {breadcrumbs}
-        <PatientCard patientId={id} />
+        <PatientCard animalData={animalData} patientData={patientData} loading={patientLoading} />
         <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
