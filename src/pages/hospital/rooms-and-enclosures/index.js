@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useCallback } from 'react'
 
 // ** MUI Imports
 import {
@@ -13,11 +13,10 @@ import {
   Typography,
   IconButton,
   useTheme,
-  Tooltip,
-  Badge
+  Tooltip
 } from '@mui/material'
 
-//icons
+// ** Custom Core Components
 import Icon from 'src/@core/components/icon'
 import { Add as AddIcon } from '@mui/icons-material'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
@@ -26,8 +25,6 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
-
-//toast
 import Toaster from 'src/components/Toaster'
 
 //api functions
@@ -38,12 +35,16 @@ import {
   updateRoomsAndEnclosures
 } from 'src/lib/api/hospital/roomsAndEnclosures'
 
-//router
+// ** Next.js Router
 import { useRouter } from 'next/router'
+import { debounce } from 'lodash'
 
 // ** React Query Hooks
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+
+// ** View component
 import AddEnclosures from 'src/views/pages/hospital/add-enclosure-drawer'
+import Search from 'src/views/utility/Search'
 
 const RoomsAndEnclosures = () => {
   const theme = useTheme()
@@ -60,15 +61,17 @@ const RoomsAndEnclosures = () => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [resetForm, setResetForm] = useState(false)
+  const [selectedOccupancy, setSelectedOccupancy] = useState(occupancyOptions)
   const [editParams, setEditParams] = useState(editParamsInitialState)
-  const [searchValue, setSearchValue] = useState(router.query.q || '')
-
-  const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
-  })
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [selectedItemToDelete, setSelectedItemToDelete] = useState(null)
+  const [searchValue, setSearchValue] = useState('')
+
+  const [filters, setFilters] = useState({
+    page: 1,
+    per_page: 50,
+    q: ''
+  })
 
   // ** styling for each occupancy status (for dropdown and chip backgrounds)
   const getOccupancyStyles = status => {
@@ -100,69 +103,163 @@ const RoomsAndEnclosures = () => {
     }
   }
 
-  // ** Update URL Query Parameters
-  const updateUrlParams = params => {
-    const query = {
-      ...router.query,
-      ...params,
-      hospital_id: 1
-    }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
-  }
+  useEffect(() => {
+    const { page = '1', per_page = '50', q = '' } = router.query
+    setFilters({
+      page: parseInt(page),
+      per_page: parseInt(per_page),
+      q
+    })
+    setSearchValue(q)
+  }, [router.query])
 
-  // ** Handle Pagination Change and Sync with URL
-  const handlePaginationChange = newModel => {
-    setPaginationModel(newModel)
-    updateUrlParams(newModel)
-  }
-
-  // ** Query Key and Params (memoized for stability)
-  const queryKey = useMemo(
-    () => ['enclosure-list', paginationModel.page, paginationModel.pageSize],
-    [paginationModel.page, paginationModel.pageSize]
-  )
-
-  const queryParams = useMemo(
-    () => ({
-      hospital_id: 1,
-      page: paginationModel.page + 1, // assuming backend expects 1-based pages
-      limit: paginationModel.pageSize
-    }),
-    [paginationModel.page, paginationModel.pageSize]
-  )
+  const queryKey = useMemo(() => ['enclosure-list', filters], [filters])
 
   // ** React Query: Fetch Room & Enclosure Data with Pagination
-  const {
-    data,
-    isFetching: loading,
-    refetch
-  } = useQuery({
+  const { data, isFetching, refetch } = useQuery({
     queryKey,
-    queryFn: () => getRoomsAndEnclosures(queryParams),
+    queryFn: () =>
+      getRoomsAndEnclosures({
+        hospital_id: 1, // later need to change dynamically hospital_id
+        page: filters.page,
+        per_page: filters.per_page
+      }),
     keepPreviousData: true,
-    staleTime: 1000 * 60 * 1 // 1 min cache
+    staleTime: 1000 * 60 * 1, // 1 min cache
+    refetchOnMount: true, // fetch latest when component mounts if stale
+    refetchOnWindowFocus: true
   })
-
-  // ** React Query: Fetch Room & Enclosure Data with Pagination
-  // const {
-  //   data,
-  //   isFetching: loading,
-  //   refetch
-  // } = useQuery({
-  //   queryKey: ['enclosure-list', paginationModel.page, paginationModel.pageSize],
-  //   queryFn: () =>
-  //     getRoomsAndEnclosures({
-  //       hospital_id: 1,
-  //       page: paginationModel.page + 1,
-  //       limit: paginationModel.pageSize
-  //     }),
-  //   keepPreviousData: true,
-  //   staleTime: 1000 * 60 * 1 // Optional: Cache data for 1 minute
-  // })
 
   // ** Extract Table Rows and Total Count
   const rows = data?.data?.records || []
-  const total = data?.data?.total ? parseInt(data.data.total) : 0
+  const total = parseInt(data?.data?.total) || 0
+
+  const updateUrlParams = updatedFilters => {
+    const params = new URLSearchParams()
+    Object.entries(updatedFilters).forEach(([key, value]) => {
+      if (value !== '') params.set(key, value.toString())
+    })
+    router.push({ pathname: router.pathname, query: params.toString() }, undefined, {
+      shallow: true
+    })
+  }
+
+  // ** Handle Pagination Change and Sync with URL
+  const handlePaginationChange = model => {
+    const updated = {
+      ...filters,
+      page: model.page + 1,
+      per_page: model.pageSize
+    }
+    setFilters(updated)
+    updateUrlParams(updated)
+  }
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        const updated = {
+          ...filters,
+          q: value,
+          page: 1
+        }
+        setFilters(updated)
+        updateUrlParams(updated)
+      }, 500),
+    [filters]
+  )
+
+  const handleSearch = useCallback(
+    value => {
+      setSearchValue(value)
+      debouncedSearch(value)
+    },
+    [debouncedSearch]
+  )
+
+  const handleSearchClear = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
+  const getSlNo = index => (filters.page - 1) * filters.per_page + index + 1
+
+  const indexedRows = rows.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  const addEventSidebarOpen = () => {
+    setEditParams(editParamsInitialState)
+    setResetForm(true)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    setOpenDrawer(false)
+  }
+
+  const handleDeleteDialogOpen = row => {
+    setDeleteDialog(true)
+    setSelectedItemToDelete(row)
+  }
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialog(false)
+    setSelectedItemToDelete(null)
+  }
+
+  // ** React Query: delete enclosures
+  const deleteEnclosureMutation = useMutation({
+    mutationFn: async id => {
+      const payload = { hospital_id: 1, bed_id: id } // later need to change  hospital_id
+
+      return await deleteRoomsAndEnclosures(payload)
+    },
+    onSuccess: response => {
+      Toaster({ type: 'success', message: response?.message || 'Enclosure deleted successfully' })
+      queryClient.invalidateQueries({ queryKey: ['enclosure-list'] })
+      handleDeleteDialogClose()
+    },
+    onError: error => {
+      console.error('Delete Error:', error)
+      Toaster({ type: 'error', message: error?.message || 'An error occurred while deleting' })
+    }
+  })
+
+  // ** Confirm Delete Action
+  const confirmDeleteAction = () => {
+    if (!selectedItemToDelete?.id) return
+    deleteEnclosureMutation.mutate(selectedItemToDelete.id)
+  }
+
+  // update and add enclosures
+  const handleSubmitData = async payload => {
+    setSubmitLoader(true)
+
+    try {
+      let response
+      if (editParams?.id) {
+        response = await updateRoomsAndEnclosures(editParams?.id, payload)
+      } else {
+        response = await addRoomsAndEnclosures(payload)
+      }
+      if (response?.success) {
+        setResetForm(true)
+        Toaster({ type: 'success', message: response?.message || 'Enclosure created successfully' })
+
+        await refetch() // Refetch data after successful submit
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+      }
+    } catch (error) {
+      console.error('Submit Error:', error)
+      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+    } finally {
+      setSubmitLoader(false)
+      setOpenDrawer(false)
+    }
+  }
 
   const columns = [
     {
@@ -177,13 +274,14 @@ const RoomsAndEnclosures = () => {
       )
     },
     {
-      minWidth: 250,
+      minWidth: 300,
       field: 'bed_name',
       headerName: 'Enclosure Name',
       textAlign: 'center',
       sortable: false,
       renderCell: params => (
         <TextEllipsisWithModal
+          enableDialog={false}
           text={params.row.bed_name}
           style={{
             color: theme.palette.customColors.OnSurfaceVariant,
@@ -205,7 +303,9 @@ const RoomsAndEnclosures = () => {
 
         const handleChange = event => {
           const newValue = event.target.value
-          setRows(prev => prev.map(row => (row.id === params.row.id ? { ...row, is_occupied: newValue } : row)))
+          setSelectedOccupancy(prev =>
+            prev.map(row => (row.id === params.row.id ? { ...row, is_occupied: newValue } : row))
+          )
         }
 
         return (
@@ -250,109 +350,16 @@ const RoomsAndEnclosures = () => {
       align: 'right',
       sortable: false,
       renderCell: params => (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          <Tooltip title='Delete' placement='top'>
-            <span>
-              <IconButton size='small' onClick={() => handleDeleteDialogOpen(params.row)}>
-                <Icon icon='mdi:delete' color={theme.palette.customColors.Error} />
-              </IconButton>
-            </span>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title='Delete'>
+            <IconButton size='small' onClick={() => handleDeleteDialogOpen(params.row)}>
+              <Icon icon='mdi:delete' color={theme.palette.customColors.Error} />
+            </IconButton>
           </Tooltip>
         </Box>
       )
     }
   ]
-
-  // Add serial numbers to each row based on current pagination
-  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-
-  // update and add enclosures
-  const handleSubmitData = async payload => {
-    setSubmitLoader(true)
-
-    try {
-      let response
-      if (editParams?.id !== null) {
-        response = await updateRoomsAndEnclosures(editParams.id, payload)
-      } else {
-        response = await addRoomsAndEnclosures(payload)
-      }
-      if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Successfully saved' })
-        setResetForm(true)
-
-        await refetch() // Refetch data after successful submit
-      } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to save' })
-      }
-    } catch (error) {
-      console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
-    } finally {
-      setSubmitLoader(false)
-      setOpenDrawer(false)
-    }
-  }
-
-  const handleSidebarOpen = () => {
-    setEditParams(editParamsInitialState)
-    setResetForm(true)
-    setOpenDrawer(true)
-  }
-
-  const handleSidebarClose = () => {
-    setOpenDrawer(false)
-  }
-
-  const handleDeleteDialogOpen = row => {
-    setDeleteDialog(true)
-    setSelectedItemToDelete(row)
-  }
-
-  const handleDeleteDialogClose = () => {
-    setDeleteDialog(false)
-    setSelectedItemToDelete(null)
-  }
-
-  // ** React Query: delete enclosures
-  const deleteEnclosureMutation = useMutation({
-    mutationFn: async id => {
-      const payload = { hospital_id: 1, bed_id: id }
-
-      return await deleteRoomsAndEnclosures(payload)
-    },
-    onSuccess: response => {
-      Toaster({ type: 'success', message: response?.message || 'Enclosure deleted successfully' })
-      queryClient.invalidateQueries({ queryKey: ['enclosure-list'] })
-      handleDeleteDialogClose()
-    },
-    onError: error => {
-      console.error('Delete Error:', error)
-      Toaster({ type: 'error', message: error?.message || 'An error occurred while deleting' })
-    }
-  })
-
-  // ** Confirm Delete Action
-  const confirmDeleteAction = () => {
-    if (!selectedItemToDelete?.id) return
-    deleteEnclosureMutation.mutate(selectedItemToDelete.id)
-  }
-
-  const handleSearch = value => {
-    setSearchValue(value)
-    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
-  }
 
   return (
     <>
@@ -378,7 +385,7 @@ const RoomsAndEnclosures = () => {
               variant='contained'
               startIcon={<AddIcon />}
               sx={{ py: 2, borderRadius: '4px' }}
-              onClick={handleSidebarOpen}
+              onClick={addEventSidebarOpen}
             >
               Add New
             </Button>
@@ -396,37 +403,18 @@ const RoomsAndEnclosures = () => {
             mb: 1
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: `1px solid ${theme.palette.customColors.Outline}`,
-              borderRadius: '4px',
-              padding: '0 8px',
-              height: '40px',
-              width: {
-                xs: '100%',
-                sm: '220px'
+          <Search
+            borderRadius={'4px'}
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            onClear={handleSearchClear}
+            placeholder='Search by Enclosure Name'
+            textFielsSX={{
+              '& .MuiInputBase-input::placeholder': {
+                fontSize: '13px'
               }
             }}
-          >
-            <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.onSurfaceVariant} />
-            <TextField
-              variant='outlined'
-              placeholder='Search'
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
+          />
           <Box
             sx={{
               display: 'flex',
@@ -455,20 +443,20 @@ const RoomsAndEnclosures = () => {
         </Box>
         {/* Table */}
         <CommonTable
-          loading={loading}
+          loading={isFetching}
           columns={columns}
           indexedRows={indexedRows}
           total={total}
           rowHeight={60}
-          searchValue={searchValue}
-          paginationModel={paginationModel}
+          paginationModel={{ page: filters.page - 1, pageSize: filters.per_page }}
           setPaginationModel={handlePaginationChange}
+          searchValue=''
         />
       </Card>
       {/* Drawer */}
       {openDrawer && (
         <AddEnclosures
-          addEventSidebarOpen={openDrawer}
+          handleSidebarOpen={openDrawer}
           handleSidebarClose={handleSidebarClose}
           handleSubmitData={handleSubmitData}
           resetForm={resetForm}

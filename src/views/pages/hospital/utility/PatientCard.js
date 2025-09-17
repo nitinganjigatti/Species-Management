@@ -2,34 +2,30 @@ import { Card, Typography, Box, IconButton, styled, CardContent, alpha } from '@
 import { Grid } from '@mui/material'
 import React from 'react'
 import { useTheme } from '@emotion/react'
-import { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
-
 import AnimalCard from 'src/views/utility/AnimalCard'
-import { StatusCard, VisitType } from './hospitalSnippets'
+import { VisitType } from './hospitalSnippets'
 import AdmissionStatusCard from '../inpatient/AdmissionStatusCard'
 
-const admissionData = [
-  { type: 'admitted_on', value: '2:30 pm • 1 Jan 2025' },
-  { type: 'admitted_by', value: 'Nihal Mehta' },
-  { type: 'admitted_for', value: '4 days' },
-  { type: 'holding_location', value: 'Cage 1, Patient Wing 2' },
-  { type: 'discharged_on', value: '12:10 pm • 12 Jan 2025' },
-  { type: 'discharged_by', value: 'Nihal Mehta' }
-]
-
-const animalData = {
-  sex: 'male',
-  animal_id: '6666/66',
-  common_name: 'Leopard',
-  scientific_name: 'Panthera pardus',
-  user_enclosure_name: 'Enclosure 4',
-  section_name: 'Leopard section',
-  site_name: 'Feline site'
+const getVisitTypeLabel = title => {
+  if (title === 'checkup') return 'Check up'
+  if (title === 'emergency') return 'Emergency'
+  if (title === 'follow_up') return 'Follow-up'
+  if (title === 'outpatient') return 'OUTPATIENT'
+  if (title === 'opd') return 'OUTPATIENT'
+  if (title === 'planned') return 'Planned'
+  if (title === 'inpatient') return 'INPATIENT'
 }
 
-const PatientCard = ({ patientData, patientId }) => {
+const PatientCard = ({ patientData, animalData, loading }) => {
   const theme = useTheme()
+
+  const admissionData = [
+    { type: 'admitted_on', value: patientData?.admitted_at },
+    { type: 'admitted_by', value: patientData?.admitted_by_full_name },
+    { type: 'admitted_for', value: patientData?.admitted_for_day },
+    { type: 'holding_location', value: patientData?.bed_name }
+  ]
 
   return (
     <>
@@ -94,11 +90,11 @@ const PatientCard = ({ patientData, patientId }) => {
                   }}
                 >
                   <StyledTypography fontSize={'20px'} fontWeight={500}>
-                    MED - 12345/69
+                    {patientData?.medical_record_code}
                   </StyledTypography>
                   <Box sx={{ display: 'flex', gap: 3 }}>
-                    <VisitType title={'INPATIENT'} />
-                    <VisitType title={'Check up'} />
+                    <VisitType title={getVisitTypeLabel(patientData?.treatment_type)} />
+                    <VisitType title={getVisitTypeLabel(patientData?.visit_type)} />
                   </Box>
                 </Box>
                 <Box
@@ -110,17 +106,22 @@ const PatientCard = ({ patientData, patientId }) => {
                     gap: 2
                   }}
                 >
-                  <StyledTypography>Hospital Case Id : HOS-12345 </StyledTypography>
-                  <Box
-                    sx={{
-                      display: { xs: 'none', sm: 'none', md: 'block' },
-                      height: '4px',
-                      width: '4px',
-                      borderRadius: '50%',
-                      background: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  />
-                  <StyledTypography>Chief veterinarian : Nihal Mehta</StyledTypography>
+                  {patientData?.case_code && (
+                    <>
+                      <StyledTypography>Hospital Case Id : {patientData?.case_code} </StyledTypography>
+                      <Box
+                        sx={{
+                          display: { xs: 'none', sm: 'none', md: 'block' },
+                          height: '4px',
+                          width: '4px',
+                          borderRadius: '50%',
+                          background: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      />
+                    </>
+                  )}
+
+                  <StyledTypography>Chief veterinarian : {patientData?.attend_by_full_name}</StyledTypography>
                 </Box>
               </Box>
               <Box
@@ -140,11 +141,13 @@ const PatientCard = ({ patientData, patientId }) => {
                     <Typography
                       sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnPrimaryContainer }}
                     >
-                      2nd Visit
+                      {patientData?.visit_label}
                     </Typography>
-                    <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.primary.main }}>
-                      Current visit
-                    </Typography>
+                    {patientData?.is_current_visit === '1' && (
+                      <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.primary.main }}>
+                        Current visit
+                      </Typography>
+                    )}
                   </Box>
                   <Icon icon={'mingcute:down-fill'} color={theme.palette.customColors.OnPrimaryContainer} />
                 </Box>

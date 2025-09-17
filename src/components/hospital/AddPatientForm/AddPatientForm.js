@@ -41,8 +41,8 @@ const defaultValues = {
   medicalRecordId: '',
   holdingEnclosure: null,
   medicalRecordChoice: 'new',
-  selectedAnimal: null, // Add to form state
-  selectedDoctor: null // Add to form state
+  selectedAnimal: null,
+  selectedDoctor: null
 }
 
 const treatmentType = [
@@ -60,7 +60,8 @@ const visitTypes = [
   { label: 'Check Up', value: 'checkup' },
   { label: 'Emergency', value: 'emergency' },
   { label: 'Outpatient', value: 'opd' },
-  { label: 'Follow up', value: 'follow_up' }
+  { label: 'Follow up', value: 'follow_up' },
+  { label: 'Planned', value: 'planned' }
 ]
 
 // Updated schema to validate form fields directly
@@ -116,16 +117,15 @@ const AddPatientForm = () => {
           hospital_id: 1,
           page: 1,
           per_page: 20,
+          is_occupied: 'available',
           search
         }).then(res => {
           if (res?.success === true) {
             setHoldingEnclosures(
-              res?.data?.records
-                ?.filter(item => item?.is_occupied !== '1')
-                ?.map(item => ({
-                  label: item?.bed_name,
-                  value: item?.id
-                }))
+              res?.data?.records?.map(item => ({
+                label: item?.bed_name,
+                value: item?.id
+              }))
             )
           }
         })
@@ -137,7 +137,7 @@ const AddPatientForm = () => {
     getHospitalBeds()
   }, [search])
 
-  const debouncedSearch = React.useMemo(() => debounce(val => setSearch(val), 500), [])
+  const debouncedSearch = React.useMemo(() => debounce(val => setSearch(val), 1000), [])
 
   useEffect(() => {
     const getAnimalIds = async () => {
@@ -238,11 +238,11 @@ const AddPatientForm = () => {
           <Typography onClick={() => router.back()} sx={{ cursor: 'pointer', color: 'text.primary' }}>
             Inpatient
           </Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>add-patient</Typography>
+          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Add Patient</Typography>
         </Breadcrumbs>
         <Card sx={{ mb: 4 }}>
-          <CardHeader title={RenderUtility.pageTitle('Add Patient')} />
-          <CardContent>
+          <CardHeader sx={{ pb: 1, px: 6, pt: 6 }} title={RenderUtility.pageTitle('Add Patient')} />
+          <CardContent sx={{ px: 6, pb: 6 }}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Box
                 sx={{
@@ -600,13 +600,20 @@ const AddPatientForm = () => {
           boxShadow: `0px -2px 8px ${theme.palette.customColors.shadowColor}`,
           display: 'flex',
           justifyContent: 'flex-end',
-          zIndex: 100
+          zIndex: 100,
+          borderTopLeftRadius: '8px',
+          borderTopRightRadius: '8px'
         }}
       >
         <Box sx={{ display: 'flex', gap: 3 }}>
           <Button
             variant='outlined'
-            sx={{ borderColor: theme.palette.customColors.Outline, py: '9px', px: 4, borderRadius: 0.5 }}
+            sx={{
+              borderColor: theme.palette.customColors.Outline,
+              borderRadius: 0.5,
+              minHeight: '56px',
+              minWidth: '160px'
+            }}
             onClick={() => router.back()}
           >
             CANCEL
@@ -615,7 +622,7 @@ const AddPatientForm = () => {
             loading={submitLoader}
             disabled={submitLoader}
             variant='contained'
-            sx={{ backgroundColor: theme.palette.primary.main, px: 4, py: '9px', borderRadius: 0.5 }}
+            sx={{ backgroundColor: theme.palette.primary.main, borderRadius: 0.5, minWidth: '160px' }}
             onClick={handleSubmit(onSubmit)}
           >
             ADMIT
