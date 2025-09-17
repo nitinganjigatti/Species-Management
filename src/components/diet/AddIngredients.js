@@ -40,12 +40,23 @@ const AddIngredients = props => {
     feedType,
     ingredientId,
     fromrow,
-    ingredientName
+    ingredientName,
+    setIngredientList,
+    ingredientList,
+    totalCount,
+    setTotalCount,
+    ingredientPage,
+    setIngredientPage,
+    reachedEnd,
+    setReachedEnd,
+    searchValue,
+    setSearchValue,
+    setSort,
+    sort
   } = props
   const theme = useTheme()
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
-  const [searchValue, setSearchValue] = useState('')
 
   const [remarks, setRemarks] = useState('')
 
@@ -54,16 +65,6 @@ const AddIngredients = props => {
 
   const [visibility, setVisibility] = useState([])
 
-  const [ingredientList, setIngredientList] = useState([])
-
-  const [totalCount, setTotalCount] = useState('')
-
-  let [ingredientPage, setIngredientPage] = useState(1)
-  const [reachedEnd, setReachedEnd] = useState(false)
-  const [sort, setSort] = useState('desc')
-  // const [uom, setUom] = useState([])
-  const [uomnew, setUomnew] = useState([])
-  // const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
   const [loading, setLoading] = useState(false)
 
@@ -108,7 +109,6 @@ const AddIngredients = props => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
-    //debouncedSearch('')
   }
 
   const handleChangeTopFeed = async event => {
@@ -338,7 +338,7 @@ const AddIngredients = props => {
     event?.stopPropagation()
 
     if (Object.keys(selectFeed).length === 0) {
-      toast.error('Ingredients are required', {
+      toast.error('Items are required', {
         duration: 1000
       })
     } else if (
@@ -360,39 +360,6 @@ const AddIngredients = props => {
     }
   }
 
-  useEffect(() => {
-    setReachedEnd(true)
-
-    try {
-      const params = {
-        page: ingredientPage,
-        q: fromrow !== 'rowedit_ingredient' ? searchValue : ingredientName,
-        sort,
-        limit: 20,
-        status: 1
-      }
-      getIngredientList({ params }).then(res => {
-        if (res?.data?.result?.length > 0) {
-          const newResults = res.data.result.filter(
-            item => !ingredientList.some(existingItem => existingItem.id === item.id)
-          )
-
-          // Combine previous and new results, ensuring unique IDs
-          const combinedList = [...ingredientList, ...newResults]
-          const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
-
-          setIngredientList(uniqueList)
-          setTotalCount(res?.data?.total_count)
-          setReachedEnd(false)
-        } else {
-          setReachedEnd(false)
-        }
-      })
-    } catch (error) {
-      console.error(error)
-    }
-  }, [ingredientId])
-
   const handleScroll = async e => {
     const container = e.target
     const threshold = 20
@@ -401,11 +368,10 @@ const AddIngredients = props => {
       const isNearBottom =
         container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
       if (isNearBottom) {
-        setIngredientPage(++ingredientPage)
-
+        setIngredientPage(prevPage => prevPage + 1)
         setReachedEnd(true)
         try {
-          const params = { page: ingredientPage, q: searchValue, sort, feed_type: feed, limit: 20, status: 1 }
+          const params = { page: ingredientPage + 1, q: searchValue, sort, feed_type: feed, limit: 20, status: 1 }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result?.length > 0) {
               setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
@@ -422,13 +388,11 @@ const AddIngredients = props => {
   }
 
   useEffect(() => {
-    // Filter out duplicates based on id and mealid
     const uniqueSelectedValues = allSelectedValues?.filter(
       (value, index, self) =>
         index === self.findIndex(v => v?.ingredient_id === value?.ingredient_id && v?.mealid === value?.mealid)
     )
 
-    // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
 
     const updatedSelectedCard =
@@ -439,7 +403,6 @@ const AddIngredients = props => {
 
     setSelectedCard(updatedSelectedCard)
 
-    // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
     const cardIds = selectedValuesWithCheckId?.map(item => item.ingredient_id)
     const days = selectedValuesWithCheckId?.map(item => item.days_of_week)
 
@@ -539,7 +502,6 @@ const AddIngredients = props => {
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCard(updatedSelectedCard)
 
-      // Remove only the matching item from selectFeed and size
       setSelectFeed(prev => {
         const newFeed = { ...prev }
         delete newFeed[itemId]
@@ -558,11 +520,10 @@ const AddIngredients = props => {
 
   let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
 
-  // Filter sortedIngredientList based on remarks and fromrow condition
   if (fromrow !== '' && fromrow === 'rowedit_ingredient') {
     sortedIngredientList = sortedIngredientList.filter(
       item => item.id === ingredientId && item.ingredient_name === ingredientName
-    ) // Compare with ingredientId state
+    )
   }
 
   return (
@@ -709,7 +670,7 @@ const AddIngredients = props => {
           onScroll={fromrow !== 'rowedit_ingredient' ? handleScroll : undefined}
         >
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 30 }}>
               <CircularProgress />
             </Box>
           ) : sortedIngredientList?.length > 0 ? (

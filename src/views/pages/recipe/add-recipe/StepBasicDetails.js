@@ -199,7 +199,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid size={{ xs: 12, sm: 6.17, md: 3.17 }}>
+              <Grid size={{ xs: 12, sm: 6.17, md: 4.99, lg: 3.77 }}>
                 <FormControl fullWidth>
                   {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                   {console.log(uomList, 'uomList')}

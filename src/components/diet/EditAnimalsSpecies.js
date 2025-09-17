@@ -550,7 +550,7 @@ const EditAnimalSpeciesMapped = ({
                                     minHeight: '100%'
                                   }}
                                 >
-                                  <SpeciesCard species={species} />
+                                  <SpeciesCard species={species} edit={true} />
                                 </Box>
 
                                 <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
@@ -766,7 +766,7 @@ const EditAnimalSpeciesMapped = ({
                                     minHeight: '100%'
                                   }}
                                 >
-                                  <AnimalCard data={species} size='16px' />
+                                  <AnimalCard data={species} size='16px' edit={true} />
                                 </Box>
 
                                 <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>

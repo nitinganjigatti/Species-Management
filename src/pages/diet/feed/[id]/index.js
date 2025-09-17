@@ -430,7 +430,7 @@ const FeedDetails = () => {
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='2'
-                                label='USED INGREDIENTS'
+                                label='USED ITEMS'
                               />
                             </TabList>
                             <TabPanel sx={{ paddingLeft: 0 }} value='1'>

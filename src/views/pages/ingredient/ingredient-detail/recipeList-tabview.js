@@ -215,7 +215,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_count',
-      headerName: 'NO OF INGREDIENTS',
+      headerName: 'NO OF ITEMS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 10 }}>
           {params.row.ingredient_count ? params.row.ingredient_count : '-'}
