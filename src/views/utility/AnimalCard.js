@@ -3,7 +3,7 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 
-const AnimalCard = ({ data, size }) => {
+const AnimalCard = ({ data, size, edit }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
 
@@ -117,7 +117,10 @@ const AnimalCard = ({ data, size }) => {
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
                 fontWeight: '600',
-                lineHeight: '19.36px'
+                lineHeight: '19.36px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: edit ? '118px' : '200px'
               }}
             >
               <span> {data?.local_identifier_name}: </span>
@@ -155,7 +158,10 @@ const AnimalCard = ({ data, size }) => {
                 fontSize: size ?? '16px',
                 fontWeight: 600,
                 lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant
+                color: theme.palette.customColors.OnSurfaceVariant,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: edit ? '118px' : '200px'
               }}
             >
               AID : {data?.animal_id}

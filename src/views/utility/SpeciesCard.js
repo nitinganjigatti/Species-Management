@@ -3,7 +3,7 @@ import { Box } from '@mui/system'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 
-function SpeciesCard({ species }) {
+function SpeciesCard({ species, edit }) {
   const theme = useTheme()
   const [loading, setLoading] = useState(true)
   const [imgSrc, setImgSrc] = useState(species?.default_icon)
@@ -75,19 +75,22 @@ function SpeciesCard({ species }) {
         )}
         {species.common_name && (
           <Tooltip title={species.common_name}>
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: 600,
-                display: '-webkit-box',
-                WebkitLineClamp: 1,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {species.common_name ? species.common_name : '-'}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: edit ? '120px' : '200px'
+                }}
+              >
+                {species.common_name ? species.common_name : '-'}
+              </Typography>
               {species?.is_primary === '1' && (
                 <Box
                   component='span'
@@ -105,7 +108,7 @@ function SpeciesCard({ species }) {
                   Primary Diet
                 </Box>
               )}
-            </Typography>
+            </Box>
           </Tooltip>
         )}
         {(species.scientific_name || species.complete_name) && (
