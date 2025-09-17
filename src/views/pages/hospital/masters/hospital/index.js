@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { useEffect, useContext, useMemo } from 'react'
 
 // ** MUI Imports
-import { useTheme, Card, Typography, IconButton, Drawer, Box, Button } from '@mui/material'
+import { useTheme, Card, Typography, IconButton, Drawer, Box } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
 // ** Custom Core Components
@@ -12,12 +12,22 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
 
+// ** Auth Context
+import { AuthContext } from 'src/context/AuthContext'
+
 // ** Custom Form Components
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
-import { addHospitalMaster, getHospitalMasterById } from 'src/lib/api/hospital/hospitalMaster'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
 const schema = yup.object().shape({
+  site_id: yup
+    .object()
+    .shape({
+      site_id: yup.string().required('Site Id is required'),
+      site_name: yup.string().required('Site Name is required')
+    })
+    .required('Site Name is required'),
   hospital_name: yup.string().trim().required('Hospital Name is required'),
   location: yup.string().trim().required('Location is required'),
   is_internal_hospital: yup.boolean().nullable()
@@ -26,19 +36,21 @@ const schema = yup.object().shape({
 const defaultValues = {
   hospital_name: '',
   location: '',
-  is_internal_hospital: false
+  is_internal_hospital: false,
+  site_id: null
 }
 
 const AddHospital = props => {
-  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const { handleSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
   const theme = useTheme()
-  console.log('aaaaaaaaaaaaaaaaaa', props)
+  const authData = useContext(AuthContext)
+
+  const getSitesList = authData?.userData?.user?.zoos?.[0]?.sites ?? []
 
   const {
     reset,
     control,
     handleSubmit,
-    setValue,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -48,54 +60,42 @@ const AddHospital = props => {
     reValidateMode: 'onChange'
   })
 
-  // add hospital
+  // Handle form submission to create or update hospital details
   const onSubmit = async data => {
+    const payload = {
+      hospital_name: data?.hospital_name,
+      is_internal_hospital: data?.is_internal_hospital === true ? '1' : '0',
+      site_id: data?.site_id?.site_id,
+      location: data?.location
+    }
     try {
-      const payload = {
-        hospital_name: data?.hospital_name,
-        is_internal_hospital: data?.is_internal_hospital === true ? '1' : '0',
-        site_id: 23,
-        location: data?.location
-      }
-
-      // await addHospitalMaster(payload)
-
       await handleSubmitData(payload)
     } catch (error) {
       console.error('Error submitting form:', error)
     }
   }
 
-  // prefill hospital data
-  // const getHospitals = useCallback(
-  //   async id => {
-  //     console.log(id, 'getHospitals')
-  //     const response = await getHospitalMasterById(id)
-  //     if (response?.success) {
-  //       const data = {
-  //         hospital_name: response.data?.hospital_name,
-  //         is_internal_hospital: response.data?.is_internal_hospital,
-  //         location: response.data?.location
-  //       }
-  //       reset(data)
-  //     }
-  //   },
-  //   [reset]
-  // )
-
+  // Prefill form on edit and reset to default values on closing
   useEffect(() => {
-    // prefill particular hospital data or reset form
-    if (editParams?.id !== null) {
-      reset(editParams)
+    if (editParams?.id) {
+      const selectedSite = getSitesList?.find(site => site?.site_id === Number(editParams?.site_id))
+
+      const prefill = {
+        hospital_name: editParams?.hospital_name,
+        location: editParams?.location,
+        is_internal_hospital: editParams?.is_internal_hospital === '1' ? true : false,
+        site_id: selectedSite
+      }
+      reset(prefill)
     } else if (resetForm) {
       reset(defaultValues)
     }
-  }, [resetForm, editParams, reset, setValue])
+  }, [resetForm, editParams, reset])
 
   return (
     <Drawer
       anchor='right'
-      open={addEventSidebarOpen}
+      open={handleSidebarOpen}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] } }}
     >
@@ -131,13 +131,27 @@ const AddHospital = props => {
         className='sidebar-body'
         sx={{
           backgroundColor: theme.palette.background.default,
-          p: theme => theme.spacing(6),
+          p: 6,
           flexGrow: 1
         }}
       >
-        <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <Card sx={{ p: theme => theme.spacing(6) }}>
+        <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
+          <Card sx={{ p: 6, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <ControlledAutocomplete
+                control={control}
+                name={'site_id'}
+                errors={errors}
+                label={'Site Name*'}
+                options={getSitesList}
+                getOptionLabel={option => option?.site_name || ''}
+                isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.site_id}>
+                    {option.site_name}
+                  </li>
+                )}
+              />
               <ControlledTextField
                 control={control}
                 errors={errors}
@@ -162,16 +176,6 @@ const AddHospital = props => {
                 labelPosition='start'
                 labelStyle={{ mr: 2 }}
               />
-              {/* {editParams?.id && (
-                <ControlledSwitch
-                  control={control}
-                  errors={errors}
-                  label={'Status'}
-                  name={'active'}
-                  labelPosition='start'
-                  labelStyle={{ mr: 2 }}
-                />
-              )} */}
             </Box>
           </Card>
           {/* Footer button */}
@@ -198,4 +202,4 @@ const AddHospital = props => {
   )
 }
 
-export default React.memo(AddHospital)
+export default AddHospital

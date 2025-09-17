@@ -7,6 +7,8 @@ const AnimalCard = ({ data, size, edit }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
 
+  const fallBackImage = '/images/branding/Antz_logomark_h_color.svg'
+
   useEffect(() => {
     const img = new Image()
     img.src = data?.default_icon
@@ -199,7 +201,7 @@ const AnimalCard = ({ data, size, edit }) => {
           </Typography>
         )}
 
-        {data?.scientific_name && (
+        {(data?.scientific_name || data?.complete_name) && (
           <Typography
             sx={{
               fontSize: '13px',
@@ -208,21 +210,21 @@ const AnimalCard = ({ data, size, edit }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            {data?.scientific_name}
+            {data?.scientific_name || data?.complete_name}
           </Typography>
         )}
 
         {data?.age && (
           <Typography
             sx={{
-              fontSize: '13px',
-              fontWeight: 500,
-              fontStyle: 'italic',
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
             <span>Age : </span>
-            {data?.age || '-'}
+            {data?.age}
           </Typography>
         )}
 
@@ -307,19 +309,6 @@ const AnimalCard = ({ data, size, edit }) => {
           >
             <span>Site : </span>
             {data?.site_name}
-          </Typography>
-        )}
-        {data?.age && (
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 600,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span>Age : </span>
-            {data?.age}
           </Typography>
         )}
       </Box>
