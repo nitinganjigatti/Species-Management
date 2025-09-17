@@ -642,6 +642,9 @@ export const GET_OBSERVATION_REPORT = `v1/notes/observation`
 
 export const GET_ANIMAL_FILTERS_LISTS = `/v1/collection/animal/stats`
 
+// Compliance: Enclosure Count Register
+export const GET_ANIMAL_COUNT_REGISTER = `v1/animal/count/register`
+
 export const ANIMAL_DETAILS_OVERVIEW = `animal/get-common-data-by-animal-id-new`
 
 export const ANIMAL_DETAILS_INCIDENT_LIST = `animal/incidentlist/`

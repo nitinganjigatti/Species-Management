@@ -56,6 +56,9 @@ const SiteDrawer = ({
 
   const [openSectionListDrawer, setOpenSectionListDrawer] = useState(false)
 
+  // Site and Report Type are mandatory for generating report
+  const canGenerate = (tempSelectedItems?.Site?.length || 0) > 0 && Boolean(tempSelectedItems?.reportType)
+
   const handleApplyFilter = () => {
     setSelectedItems({ ...tempSelectedItems })
     calculateFilterCount()
@@ -480,7 +483,13 @@ const SiteDrawer = ({
         >
           CANCEL ALL
         </LoadingButton>
-        <LoadingButton sx={{ flex: 1 }} variant='contained' size='large' onClick={handleApplyFilter}>
+        <LoadingButton
+          sx={{ flex: 1 }}
+          variant='contained'
+          size='large'
+          onClick={handleApplyFilter}
+          disabled={!canGenerate}
+        >
           generate
         </LoadingButton>
       </Box>

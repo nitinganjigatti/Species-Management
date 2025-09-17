@@ -3,7 +3,8 @@ import {
   GET_ANIMAL_FILTERS_LISTS,
   GET_ANIMAL_LIST_FOR_OBSERVATION_REPORT,
   GET_KEEPER_REPORT,
-  GET_OBSERVATION_REPORT
+  GET_OBSERVATION_REPORT,
+  GET_ANIMAL_COUNT_REGISTER
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../../utility'
 
@@ -34,6 +35,13 @@ export async function getObservationReport(params) {
 
 export async function getAnimalFilterList({ params }) {
   const response = await axiosGet({ url: `${GET_ANIMAL_FILTERS_LISTS}`, params })
+
+  return response?.data
+}
+
+// Enclosure Count Register
+export async function getEnclosureCountRegister(params) {
+  const response = await axiosGet({ url: `${GET_ANIMAL_COUNT_REGISTER}`, params })
 
   return response?.data
 }

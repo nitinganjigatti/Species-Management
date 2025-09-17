@@ -47,6 +47,7 @@ const EnclosureCountRegister = () => {
 
   const [showDetailsPopUp, setShowDetailsPopUp] = useState(false)
   const [animalDetailsData, setAnimalDetailsData] = useState({})
+  const [registerStats, setRegisterStats] = useState(null)
 
   //////////////////////////////////////////////////////////////
   const [searchTerm, setSearchTerm] = useState('')
@@ -102,155 +103,116 @@ const EnclosureCountRegister = () => {
   )
 
   useEffect(() => {
-    siteList()
+    if (openFilterDrawer) siteList()
   }, [openFilterDrawer, siteList])
 
-  // Mock data based on the image
+  // Sync selected site from filter drawer selections
   useEffect(() => {
-    const mockData = [
-      {
-        id: 1,
-        sl_no: 1,
-        common_name: 'Blue Poison Dart Frog',
-        scientific_name: 'Dendrobates tinctorius',
-        default_icon: 'abc',
-        enclosureName: 'Gagva Reserve for Carnivore Conservation',
-        male: 3,
-        female: 5,
-        others: 2,
-        total: 6
-      },
-      {
-        id: 2,
-        sl_no: 2,
-        common_name: 'Bengal Tiger',
-        scientific_name: 'Panthera tigris tigris',
-        default_icon: 'abc',
-        enclosureName: 'Veterinary Monitoring and Isolation Zone Unit',
-        male: 2,
-        female: 4,
-        others: 3,
-        total: 7
-      },
-      {
-        id: 3,
-        sl_no: 3,
-        common_name: 'African Elephant',
-        scientific_name: 'Loxodonta africana',
-        default_icon: 'abc',
-        enclosureName: 'Large Mammal Breeding Paddock Zone',
-        male: 1,
-        female: 1,
-        others: 4,
-        total: 8
-      },
-      {
-        id: 4,
-        sl_no: 4,
-        common_name: 'Snow Leopard',
-        scientific_name: 'Panthera uncia',
-        default_icon: 'abc',
-        enclosureName: 'Bucorvus leadbeateri',
-        male: 5,
-        female: 3,
-        others: 2,
-        total: 9
-      },
-      {
-        id: 5,
-        sl_no: 5,
-        common_name: 'Emperor Penguin',
-        scientific_name: 'Aptenodytes forsteri',
-        default_icon: 'abc',
-        enclosureName: 'Endangered Primate Conservation Enclosure Unit',
-        male: 1,
-        female: 1,
-        others: 5,
-        total: 4
-      },
-      {
-        id: 6,
-        sl_no: 6,
-        common_name: 'Great White Shark',
-        scientific_name: 'Carcharodon carcharias',
-        default_icon: 'abc',
-        enclosureName: 'Pongo pygmaeus pygmaeus',
-        male: 3,
-        female: 2,
-        others: 6,
-        total: 10
-      },
-      {
-        id: 7,
-        sl_no: 7,
-        common_name: 'Red Kangaroo',
-        scientific_name: 'Macropus rufus',
-        default_icon: 'abc',
-        enclosureName: 'Australian Outback',
-        male: 4,
-        female: 5,
-        others: 2,
-        total: 11
-      },
-      {
-        id: 8,
-        sl_no: 8,
-        common_name: 'Giant Panda',
-        scientific_name: 'Ailuropoda melanoleuca',
-        default_icon: 'abc',
-        enclosureName: 'Bamboo Forest',
-        male: 2,
-        female: 3,
-        others: 4,
-        total: 5
-      },
-      {
-        id: 9,
-        sl_no: 9,
-        common_name: 'Common Chimpanzee',
-        scientific_name: 'Pan troglodytes',
-        default_icon: 'abc',
-        enclosureName: 'Tropical Forest',
-        male: 2,
-        female: 6,
-        others: 3,
-        total: 8
-      },
-      {
-        id: 10,
-        sl_no: 10,
-        common_name: 'Arctic Fox',
-        scientific_name: 'Vulpes lagopus',
-        default_icon: 'abc',
-        enclosureName: 'Tundra',
-        male: 5,
-        female: 2,
-        others: 4,
-        total: 7
-      },
-      {
-        id: 11,
-        sl_no: 11,
-        common_name: 'Coral Reef Fish',
-        scientific_name: 'Various species',
-        default_icon: 'abc',
-        enclosureName: 'Coral Reefs',
-        male: 3,
-        female: 4,
-        others: 1,
-        total: 6
+    if (selectedItems?.Site?.length > 0 && siteData?.length > 0) {
+      const siteId = selectedItems.Site[0]
+      const site = siteData.find(s => String(s.site_id) === String(siteId))
+      if (site) setSelectedSite(site)
+    }
+  }, [selectedItems?.Site, siteData])
+
+  // Fetch list data — ensure single call when generating
+  useEffect(() => {
+    const siteId = selectedSite?.site_id || router.query.site_id
+    if (!siteId || !selectedItems?.reportType) return
+
+    const params = {
+      site_id: siteId,
+      type: selectedItems?.reportType === 'individual' ? 'individual' : 'species-wise',
+      q: searchValue || '',
+      page: (paginationModel?.page || 0) + 1,
+      limit: paginationModel?.pageSize || 50,
+      response_type: 'json'
+    }
+    if (selectedItems?.Section?.length > 0) params.section_id = selectedItems.Section.join(',')
+
+    let canceled = false
+    ;(async () => {
+      try {
+        setLoading(true)
+        const res = await getEnclosureCountRegister(params)
+        if (canceled) return
+        if (res?.success) {
+          const animals = res?.data?.animals || []
+          const rows = animals.map((item, idx) => {
+            if (selectedItems?.reportType === 'individual') {
+              return {
+                id: item.animal_id || idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
+                sl_no: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
+                animal_id: item.animal_id || null,
+                common_name: item['Common Name'] || item.common_name || '-',
+                scientific_name: item['Scientific Name'] || item.scientific_name || '-',
+                enclosureName: item.user_enclosure_name || '-',
+                user_enclosure_name: item.user_enclosure_name || '-',
+                sex: item.sex || '-',
+                primary_identifier_type: item.primary_identifier_type || null,
+                primary_identifier_value: item.primary_identifier_value || null,
+                // Map to AnimalCard expected keys
+                local_identifier_name: item.primary_identifier_type || null,
+                local_identifier_value: item.primary_identifier_value || null
+              }
+            }
+
+            // species-wise mapping
+            return {
+              id: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
+              sl_no: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
+              common_name: item['Common Name'] || item.common_name || '-',
+              scientific_name: item['Scientific Name'] || item.scientific_name || '-',
+              enclosureName: item.user_enclosure_name || '-',
+              user_enclosure_name: item.user_enclosure_name || '-',
+              male: Number(item.male_count || 0),
+              female: Number(item.female_count || 0),
+              others: Number(item.other_count || 0),
+              total: Number(item.total_count || 0),
+              primary_identifier_type: item.primary_identifier_type || null,
+              primary_identifier_value: item.primary_identifier_value || null,
+              local_identifier_name: item.primary_identifier_type || null,
+              local_identifier_value: item.primary_identifier_value || null
+            }
+          })
+          setIndexedRows(rows)
+          setTotal(animals.length)
+          setRegisterStats(res?.data?.stats || null)
+        } else {
+          setIndexedRows([])
+          setTotal(0)
+          setRegisterStats(null)
+        }
+      } catch (err) {
+        if (!canceled) {
+          console.error('Error fetching Enclosure Count Register:', err)
+          setIndexedRows([])
+          setTotal(0)
+          setRegisterStats(null)
+        }
+      } finally {
+        if (!canceled) setLoading(false)
       }
-    ]
-    setIndexedRows(mockData)
-    setTotal(mockData.length)
-  }, [])
+    })()
+
+    return () => {
+      canceled = true
+    }
+  }, [
+    selectedSite?.site_id,
+    selectedItems?.reportType,
+    selectedItems?.Section,
+    searchValue,
+    paginationModel?.page,
+    paginationModel?.pageSize,
+    router.query.site_id
+  ])
 
   const title = (
     <Typography
       sx={{
         fontSize: '24px',
         fontWeight: 500,
-        ml: '-12px',
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
@@ -259,28 +221,28 @@ const EnclosureCountRegister = () => {
   )
 
   const specieColumn = [
-    {
-      width: 90,
-      field: 'id',
-      headerName: 'SL.NO',
-      sortable: false,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: params => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'default'
-            }}
-          >
-            {params.row.sl_no}
-          </Typography>
-        </Box>
-      )
-    },
+    // {
+    //   width: 90,
+    //   field: 'id',
+    //   headerName: 'SL.NO',
+    //   sortable: false,
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   renderCell: params => (
+    //     <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    //       <Typography
+    //         sx={{
+    //           color: theme.palette.customColors.OnSurfaceVariant,
+    //           fontSize: '14px',
+    //           fontWeight: 500,
+    //           cursor: 'default'
+    //         }}
+    //       >
+    //         {params.row.sl_no}
+    //       </Typography>
+    //     </Box>
+    //   )
+    // },
     {
       minWidth: 250,
       width: 300,
@@ -296,18 +258,26 @@ const EnclosureCountRegister = () => {
       headerName: 'ENCLOSURE NAME',
       sortable: false,
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 400,
-            fontFamily: 'Inter',
-            letterSpacing: 0
-          }}
-        >
-          {params.row.enclosureName}
-        </Typography>
+        <Tooltip title={params.row.enclosureName} placement='top'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              letterSpacing: 0,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              mb: '16px',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.enclosureName}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -319,17 +289,25 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            fontFamily: 'Inter',
-            letterSpacing: 0
-          }}
-        >
-          {params.row.male}
-        </Typography>
+        <Tooltip title={params.row.male} placement='top'>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              letterSpacing: 0,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              mb: '16px',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.male}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -341,17 +319,25 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            fontFamily: 'Inter',
-            letterSpacing: 0
-          }}
-        >
-          {params.row.female}
-        </Typography>
+        <Tooltip title={params.row.female} placement='top'>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              letterSpacing: 0,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              mb: '16px',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.female}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -363,17 +349,25 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            fontFamily: 'Inter',
-            letterSpacing: 0
-          }}
-        >
-          {params.row.others}
-        </Typography>
+        <Tooltip title={params.row.others} placement='top'>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              letterSpacing: 0,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              mb: '16px',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.others}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -385,75 +379,66 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            fontFamily: 'Inter',
-            letterSpacing: 0
-          }}
-        >
-          {params.row.total}
-        </Typography>
+        <Tooltip title={params.row.total} placement='top'>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              letterSpacing: 0,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              mb: '16px',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.total}
+          </Typography>
+        </Tooltip>
       )
     }
   ]
 
-  const animalColumns = [
+  const individualColumns = [
     {
-      width: 220,
+      width: 320,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              overflow: 'hidden',
-              backgroundColor: '#e0e0e0',
-              flexShrink: 0
-            }}
-          >
-            {/* avatar placeholder; use params.row.default_icon if available */}
-          </Box>
-          <Box>
-            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-              {params.row.rn}
-            </Typography>
-            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-              {params.row.accession_no}
-            </Typography>
-            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
-              {params.row.common_name}
-            </Typography>
-            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
-              {params.row.scientific_name}
-            </Typography>
-          </Box>
+        <Box sx={{ py: 2 }}>
+          <AnimalCard data={params.row} size='14px' />
         </Box>
       )
     },
     {
-      minWidth: 400,
+      width: 200,
       field: 'enclosureName',
       headerName: 'ENCLOSURE NAME',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontWeight: 400,
-            letterSpacing: 0,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.enclosureName}
-        </Typography>
+        <Tooltip title={params.row.enclosureName} placement='top'>
+          <Typography
+            sx={{
+              fontSize: '16px',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontWeight: 400,
+              letterSpacing: 0,
+              fontFamily: 'Inter',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              mb: '16px',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.enclosureName}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -464,17 +449,25 @@ const EnclosureCountRegister = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontWeight: 500,
-            letterSpacing: 0,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.gender}
-        </Typography>
+        <Tooltip title={params.row.gender || params.row.sex} placement='top'>
+          <Typography
+            sx={{
+              fontSize: '16px',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontWeight: 500,
+              letterSpacing: 0,
+              fontFamily: 'Inter',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              mb: '16px',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.gender || params.row.sex}
+          </Typography>
+        </Tooltip>
       )
     }
   ]
@@ -513,10 +506,54 @@ const EnclosureCountRegister = () => {
     )
   }
 
+  // Reset all user selections and restore initial state (before any site selection)
+  const clearUserSelection = () => {
+    // Clear selected site and related stats/data
+    setSelectedSite(null)
+    setRegisterStats(null)
+    setIndexedRows([])
+    setTotal(0)
+
+    // Clear filters and temporary selections
+    setSelectedSections([])
+    setSelectedItems({ Site: [], Section: [], reportType: '' })
+    setTempSelectedItems({ Site: [], Section: [], reportType: '' })
+
+    // Reset search and pagination
+    setSearchValue('')
+    setPaginationModel({ page: 0, pageSize: 50 })
+
+    // Remove site/section params from URL
+    const { site_id, section_id, ...rest } = router.query
+    router.push(
+      {
+        pathname: router.pathname,
+        query: rest
+      },
+      undefined,
+      { shallow: false }
+    )
+  }
+
   const headerAction = (
-    <>
+    <Box sx={{ display: 'flex', gap: '24px' }}>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadEnclosureCountRegister} />
-    </>
+      <Box
+        sx={{
+          backgroundColor: '#0000000D',
+          height: '32px',
+          width: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50px'
+        }}
+      >
+        <IconButton onClick={clearUserSelection}>
+          <Icon icon='mdi:close' color='red' fontSize={24} />
+        </IconButton>
+      </Box>
+    </Box>
   )
 
   const handleSearchChange = e => {
@@ -534,39 +571,8 @@ const EnclosureCountRegister = () => {
     <>
       {selectedSite ? (
         <>
-          <Card>
-            <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
-            <Box sx={{ p: 5 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderRadius: '8px',
-                  background: '#E8F4F2',
-                  pl: 4
-                }}
-              >
-                <AnimalCard data={selectedSite} sx={{ border: 'none', background: 'none' }} animal={true} />
-                <Box
-                  sx={{
-                    backgroundColor: '#0000000D',
-                    height: { sm: '175px', xs: '190px' },
-                    width: '70px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderTopRightRadius: '8px',
-                    borderBottomRightRadius: '8px'
-                  }}
-                >
-                  <IconButton onClick={clearSiteSelection}>
-                    <Icon icon='mdi:close' color='red' fontSize={30} />
-                  </IconButton>
-                </Box>
-              </Box>
-            </Box>
-
+          <Card sx={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <CardHeader title={title} action={headerAction} sx={{ p: 0 }} />
             <Box
               sx={{
                 display: 'flex',
@@ -576,14 +582,22 @@ const EnclosureCountRegister = () => {
                 gap: 4
               }}
             >
-              <Box sx={{ width: '100%', px: 6 }}>
+              <Box sx={{ width: '100%' }}>
                 <Search
                   onChange={handleSearchChange}
                   placeholder='Search by date or site type'
                   value={searchValue}
-                  inputStyle={{ py: '10px', px: '12px' }}
-                  width={{ xs: '100%', sm: '60%', md: '50%' }}
+                  width={297}
+                  borderRadius='4px'
+                  inputStyle={{ padding: '10px 12px' }}
+                  textFielsSX={{
+                    height: '40px',
+                    '& fieldset': { borderColor: '#C3CEC7' },
+                    '&:hover fieldset': { borderColor: '#C3CEC7' },
+                    '&.Mui-focused fieldset': { borderColor: '#C3CEC7' }
+                  }}
                   sx={{
+                    gap: '4px',
                     '& .MuiInputBase-input::placeholder': {
                       fontSize: '14px',
                       fontWeight: 400
@@ -598,7 +612,7 @@ const EnclosureCountRegister = () => {
                 borderRadius: '8px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4,
+                gap: '4px',
                 backgroundColor: theme.palette.customColors.displaybgPrimary
               }}
             >
@@ -611,7 +625,7 @@ const EnclosureCountRegister = () => {
                   fontFamily: 'Inter'
                 }}
               >
-                Site: <span style={{ fontWeight: 500 }}>Animal Kingdom Park</span>
+                Site: <span style={{ fontWeight: 500 }}>{registerStats?.site_name || '-'}</span>
               </Typography>
               <Typography
                 sx={{
@@ -622,7 +636,7 @@ const EnclosureCountRegister = () => {
                   fontFamily: 'Inter'
                 }}
               >
-                Section: <span style={{ fontWeight: 500 }}>Section 234</span>
+                Sections: <span style={{ fontWeight: 500 }}>{registerStats?.total_sections || '-'}</span>
               </Typography>
               <Typography
                 sx={{
@@ -633,11 +647,11 @@ const EnclosureCountRegister = () => {
                   fontFamily: 'Inter'
                 }}
               >
-                Total Enclosures: <span style={{ fontWeight: 500 }}>23</span>
+                Total Enclosures: <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
               </Typography>
             </Box>
             <StickyTable
-              columns={specieColumn}
+              columns={selectedItems?.reportType === 'individual' ? individualColumns : specieColumn}
               rows={indexedRows}
               loading={loading}
               total={total}
