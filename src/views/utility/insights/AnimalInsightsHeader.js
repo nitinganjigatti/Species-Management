@@ -74,17 +74,6 @@ const AnimalInsightsHeader = ({
                     gap: 1
                   }}
                 >
-                <Box
-                  sx={{
-                    px: 4,
-                    py: 2,
-                    background: '#FFF',
-                    borderRadius: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}
-                >
                   <Typography sx={{ color: theme.palette.customColors.Error, fontWeight: 500, fontSize: '20px' }}>
                     Group
                   </Typography>
