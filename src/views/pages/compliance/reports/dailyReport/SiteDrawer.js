@@ -28,6 +28,7 @@ const SiteDrawer = ({
   const theme = useTheme()
 
   const [collapsed, setCollapsed] = useState(true)
+  const hasSiteSelection = Array.isArray(tempSelectedItems?.Site) && tempSelectedItems.Site.length > 0
 
   const handleApplyFilter = () => {
     setSelectedItems({ ...tempSelectedItems })
@@ -319,7 +320,13 @@ const SiteDrawer = ({
         >
           CANCEL ALL
         </LoadingButton>
-        <LoadingButton sx={{ flex: 1 }} variant='contained' size='large' onClick={handleApplyFilter}>
+        <LoadingButton
+          sx={{ flex: 1 }}
+          variant='contained'
+          size='large'
+          onClick={handleApplyFilter}
+          disabled={!hasSiteSelection}
+        >
           generate
         </LoadingButton>
       </Box>
