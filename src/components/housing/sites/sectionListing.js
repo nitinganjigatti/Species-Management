@@ -190,17 +190,23 @@ const SectionListing = ({
       params.field !== 'sections' &&
       params.field !== 'enclosures'
     ) {
-      router.push({
-        pathname: `/housing/sections/${params.row.section_id}`,
-        query: {
-          ...router.query,
-          sectionPage: filters.page,
-          sectionPageSize: filters.pageSize,
-          sectionSearch: filters.search,
-          sectionSortBy: filters.sortBy,
-          sectionSortOrder: filters.sortOrder
-        }
-      })
+      const query = { ...router.query }
+      query.tab && delete query.tab
+      router.push(
+        {
+          pathname: `/housing/sections/${params.row.section_id}`,
+          query: {
+            ...query,
+            sectionPage: filters.page,
+            sectionPageSize: filters.pageSize,
+            sectionSearch: filters.search,
+            sectionSortBy: filters.sortBy,
+            sectionSortOrder: filters.sortOrder
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
     }
   }
 

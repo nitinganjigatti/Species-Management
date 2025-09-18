@@ -337,10 +337,12 @@ const EnclosureListing = ({
       params.field !== 'sub_enclosure_count' &&
       params.field !== 'site_name'
     ) {
+      const query = { ...router.query }
+      query.tab && delete query.tab
       router.push({
         pathname: `/housing/enclosure/${params.row.enclosure_id}`,
         query: {
-          ...router.query,
+          ...query,
           enclosureTab: 'enclosures'
         }
       })

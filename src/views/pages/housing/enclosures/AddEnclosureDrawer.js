@@ -21,14 +21,18 @@ import * as yup from 'yup'
 
 const schema = yup.object().shape({
   enclosureName: yup.string().required('Enclosure name is required'),
-  environmentType: yup.string().required('Environment type is required'),
-  enclosureType: yup
+  environmentType: yup
     .object({
-      value: yup.string().required(),
+      value: yup.string().required('Environment type is required'),
       label: yup.string().required()
     })
-    .nullable()
-    .test('required', 'Enclosure type is required', value => value !== null),
+    .required('Environment type is required'),
+  enclosureType: yup
+    .object({
+      value: yup.string().required('Enclosure type is required'),
+      label: yup.string().required()
+    })
+    .required('Enclosure type is required'),
   section: yup
     .object({
       value: yup.string().required('Section is required'),
@@ -81,7 +85,7 @@ const AddEnclosureDrawer = ({
   } = useForm({
     defaultValues: {
       enclosureName: '',
-      environmentType: '',
+      environmentType: null,
       enclosureType: null,
       parentEnclosure: '',
       movableOrWalkable: '',
@@ -308,7 +312,7 @@ const AddEnclosureDrawer = ({
 
   useEffect(() => {
     if (selectedEnvironmentType && allEnclosureData) {
-      handleEnvironmentTypeChange(selectedEnvironmentType)
+      handleEnvironmentTypeChange(selectedEnvironmentType?.value)
     } else {
       setFilteredEnclosureTypes([])
     }
@@ -597,7 +601,7 @@ const AddEnclosureDrawer = ({
                       errors={errors}
                       sx={{ mt: 2 }}
                     />
-                    <ControlledSelect
+                    <ControlledAutocomplete
                       name={'environmentType'}
                       control={control}
                       label={'Environment Type*'}
@@ -605,9 +609,7 @@ const AddEnclosureDrawer = ({
                       errors={errors}
                       options={environmentTypes}
                       getOptionLabel={option => option.label}
-                      getOptionValue={option => option.value}
-
-                      // sx={{ mt: 4, mb: 6 }}
+                      isOptionEqualToValue={(option, value) => option?.value === value?.value}
                     />
                     <ControlledAutocomplete
                       name={'enclosureType'}
@@ -616,7 +618,7 @@ const AddEnclosureDrawer = ({
                       label={'Enclosure Type*'}
                       required={true}
                       options={filteredEnclosureTypes}
-                      getOptionLabel={option => option?.label || ''}
+                      getOptionLabel={option => option?.label}
                       isOptionEqualToValue={(option, value) => option?.value === value?.value}
                     />
                     <ControlledAutocomplete

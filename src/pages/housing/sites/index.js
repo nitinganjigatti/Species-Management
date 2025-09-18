@@ -134,6 +134,7 @@ const Sites = () => {
         /> */}
         <InsightsCard
           data={data?.data}
+          image={data?.data?.images?.[0]?.file}
           loading={isLoading}
           pageTitle={'All Site Insights'}
           isListingPage
