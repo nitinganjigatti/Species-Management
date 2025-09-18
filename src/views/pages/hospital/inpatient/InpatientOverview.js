@@ -2,13 +2,23 @@ import { Divider, Tooltip, Typography, useTheme } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import MoreMediaListing from 'src/components/MoreMediaListing'
-import { renderUserAvatarDetails } from 'src/utility/render'
 import HealthcareOverview from './TreatmentOverview'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { useRouter } from 'next/router'
 import { getAnimalTotalHospitalVisits } from 'src/lib/api/hospital/inpatient'
 import { useQuery } from '@tanstack/react-query'
+import Utility from 'src/utility'
+import { VisitType } from '../utility/hospitalSnippets'
+
+const getVisitTypeLabel = title => {
+  if (title === 'checkup') return 'Check up'
+  if (title === 'emergency') return 'Emergency'
+  if (title === 'follow_up') return 'Follow-up'
+  if (title === 'outpatient') return 'OUTPATIENT'
+  if (title === 'opd') return 'OUTPATIENT'
+  if (title === 'planned') return 'Planned'
+}
 
 const InpatientOverview = ({ overviewData }) => {
   const router = useRouter()
@@ -169,7 +179,7 @@ const InpatientOverview = ({ overviewData }) => {
       )
     },
     {
-      field: 'discharge_date',
+      field: 'admitted_at',
       headerName: 'ADMISSION',
       width: 150,
       headerAlign: 'left',
@@ -178,16 +188,16 @@ const InpatientOverview = ({ overviewData }) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {params.row.admission_date}
+            {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
           </Typography>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralSecondary }}>
-            {params.row.admission_time}
+            {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
           </Typography>
         </Box>
       )
     },
     {
-      field: 'discharged_date',
+      field: 'discharge_at',
       headerName: 'DISCHARGED',
       width: 150,
       headerAlign: 'left',
@@ -196,16 +206,16 @@ const InpatientOverview = ({ overviewData }) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {params.row.discharged_date}
+            {params?.row?.discharge_at ? Utility.convertUtcToLocalReadableDate(params?.row?.discharge_at) : 'NA'}
           </Typography>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralSecondary }}>
-            {params.row.discharge_time}
+            {params?.row?.discharge_at ? Utility.convertUTCToLocaltime(params?.row?.discharge_at) : 'NA'}
           </Typography>
         </Box>
       )
     },
     {
-      field: 'duration',
+      field: 'days_admitted',
       headerName: 'DURATION',
       width: 120,
       headerAlign: 'left',
@@ -213,21 +223,21 @@ const InpatientOverview = ({ overviewData }) => {
       sortable: false,
       renderCell: params => (
         <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.duration}
+          {`${params.row.days_admitted} days`}
         </Typography>
       )
     },
     {
-      field: 'case_type',
+      field: 'visit_type',
       headerName: 'CASE TYPE',
       width: 150,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.case_type}
-        </Typography>
+        <>
+          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
+        </>
       )
     },
     {

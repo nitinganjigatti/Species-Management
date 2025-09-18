@@ -61,7 +61,8 @@ const HospitalIncoming = () => {
         page_no: filters?.page,
         limit: filters?.limit,
         search: filters?.q,
-        hospital_id: 1,
+
+        hospital_id: 5,
         status: 'pending',
         visit_type: selectedVisitType,
         patient_category: 'incoming'
