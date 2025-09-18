@@ -136,9 +136,9 @@ const EnclosureCountRegister = () => {
     let canceled = false
     const sectionKey = (selectedItems?.Section || []).join(',')
     const statKeyChanged =
-      (prevStatKeyRef.current.siteId !== siteId) ||
-      (prevStatKeyRef.current.type !== params.type) ||
-      (prevStatKeyRef.current.sectionKey !== sectionKey)
+      prevStatKeyRef.current.siteId !== siteId ||
+      prevStatKeyRef.current.type !== params.type ||
+      prevStatKeyRef.current.sectionKey !== sectionKey
 
     if (statKeyChanged) {
       setRegisterStats(null)
@@ -158,6 +158,7 @@ const EnclosureCountRegister = () => {
                 animal_id: item.animal_id || null,
                 common_name: item['Common Name'] || item.common_name || '-',
                 scientific_name: item['Scientific Name'] || item.scientific_name || '-',
+                default_icon: item.default_icon || '-',
                 enclosureName: item.user_enclosure_name || '-',
                 user_enclosure_name: item.user_enclosure_name || '-',
                 sex: item.sex || '-',
@@ -175,6 +176,7 @@ const EnclosureCountRegister = () => {
               sl_no: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
               common_name: item['Common Name'] || item.common_name || '-',
               scientific_name: item['Scientific Name'] || item.scientific_name || '-',
+              default_icon: item.default_icon,
               enclosureName: item.user_enclosure_name || '-',
               user_enclosure_name: item.user_enclosure_name || '-',
               male: Number(item.male_count || 0),
@@ -188,7 +190,7 @@ const EnclosureCountRegister = () => {
             }
           })
           setIndexedRows(rows)
-          setTotal(animals.length)
+          setTotal(Number(res?.data?.stats?.total_count))
           if (statKeyChanged) {
             setRegisterStats(res?.data?.stats || null)
             prevStatKeyRef.current = { siteId, type: params.type, sectionKey }
@@ -226,6 +228,12 @@ const EnclosureCountRegister = () => {
     router.query.site_id
   ])
 
+  const pageTitle = !registerStats
+    ? 'Enclosure Count Register'
+    : selectedItems?.reportType === 'individual'
+    ? 'Animal count register'
+    : 'Species-wise animal count register'
+
   const title = (
     <Typography
       sx={{
@@ -234,7 +242,7 @@ const EnclosureCountRegister = () => {
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
-      Enclosure Count Register
+      {pageTitle}
     </Typography>
   )
 
@@ -644,7 +652,7 @@ const EnclosureCountRegister = () => {
                 backgroundColor: theme.palette.customColors.displaybgPrimary
               }}
             >
-              {(loading || !registerStats) ? (
+              {loading || !registerStats ? (
                 <>
                   <Skeleton variant='text' width={220} height={24} sx={{ borderRadius: 1 }} />
                   <Skeleton variant='text' width={180} height={24} sx={{ borderRadius: 1 }} />
@@ -692,7 +700,7 @@ const EnclosureCountRegister = () => {
               columns={selectedItems?.reportType === 'individual' ? individualColumns : specieColumn}
               rows={indexedRows}
               loading={loading}
-              total={total}
+              rowCount={total}
               rowHeight={72}
               paginationModel={paginationModel}
               setPaginationModel={setPaginationModel}
