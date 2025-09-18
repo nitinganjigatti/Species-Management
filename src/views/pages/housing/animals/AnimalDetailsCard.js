@@ -12,7 +12,8 @@ const AnimalDetailsCard = ({ data }) => {
     { label: 'Birth Date', value: data?.birthDate },
     { label: 'Age', value: data?.type === 'group' ? 'NA' : data?.age },
     { label: 'Contraception Status', value: data?.contraceptionStatus },
-    { label: 'Sexing Type', value: data?.sexingType }
+    { label: 'Sexing Type', value: data?.sexingType },
+    { label: 'Institution', value: data?.institutes_label }
   ]
 
   const right = [

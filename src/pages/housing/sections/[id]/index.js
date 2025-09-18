@@ -19,8 +19,8 @@ import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureD
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
-  { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
   { label: 'Enclosures', value: 'enclosures', component: EnclosureListing },
+  { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
   { label: 'Media', value: 'media', component: MediaListing }, // TODO: Update component as it is copied from site detail
   { label: 'Mortality', value: 'mortality', component: MortalityListing }, // TODO: Update component as it is copied from site detail
   {
@@ -157,10 +157,8 @@ const SectionDetails = () => {
           data={data?.data}
           loading={isLoading}
           zooName={data?.data?.section_name}
-
           // subtitle={data?.data?.site_description}
           userName={data?.data?.incharge_name}
-
           // description={data?.data?.incharges?.[0]?.full_name}
           // userImage={data?.data?.incharges?.[0]?.user_profile_pic}
           actions={{
@@ -179,7 +177,6 @@ const SectionDetails = () => {
             }
           }}
           haveInsightsViewAccess={insightsViewAccess}
-
           // onMessageClick={() => console.log('Message clicked')}
           error={error}
           statsData={statsData}

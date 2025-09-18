@@ -24,11 +24,11 @@ const schema = yup.object().shape({
   environmentType: yup.string().required('Environment type is required'),
   enclosureType: yup
     .object({
-      value: yup.string().required('Enclosure type is required'),
+      value: yup.string().required(),
       label: yup.string().required()
     })
-    .required('Enclosure type is required')
-    .nullable(),
+    .nullable()
+    .test('required', 'Enclosure type is required', value => value !== null),
   section: yup
     .object({
       value: yup.string().required('Section is required'),
@@ -42,7 +42,7 @@ const schema = yup.object().shape({
 
 const sunlightOptions = [
   { value: 'Moderate', label: 'Moderate' },
-  { value: 'God', label: 'God' },
+  { value: 'Good', label: 'Good' },
   { value: 'Bad', label: 'Bad' }
 ]
 
@@ -606,7 +606,8 @@ const AddEnclosureDrawer = ({
                       options={environmentTypes}
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
-                      sx={{ mt: 4, mb: 6 }}
+
+                      // sx={{ mt: 4, mb: 6 }}
                     />
                     <ControlledAutocomplete
                       name={'enclosureType'}
@@ -785,7 +786,7 @@ const AddEnclosureDrawer = ({
                   >
                     <Box>
                       <Typography variant='subtitle1' sx={{ mb: 2, color: 'text.secondary', fontWeight: 600 }}>
-                        Enclosure is Movable/Wakable?
+                        Enclosure is Movable/Walkable?
                       </Typography>
                       <Box
                         sx={{
