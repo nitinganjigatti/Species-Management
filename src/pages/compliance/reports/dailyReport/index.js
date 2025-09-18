@@ -1,7 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Box, Card, CardHeader, CircularProgress, IconButton, Typography } from '@mui/material'
-import { useRouter } from 'next/router'
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import SiteDrawer from 'src/views/pages/compliance/reports/dailyReport/SiteDrawer'
@@ -11,16 +10,24 @@ import StickyTable from 'src/views/table/sticky-table'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 
+// 👉 import your API util
+// expected signature: getComplianceDailyReport({ report_type, site_id, start_date, end_date })
+import { getComplianceDailyReport } from 'src/lib/api/compliance/reports'
+
 const DailyReport = () => {
   const theme = useTheme()
-  const router = useRouter()
   const authData = useContext(AuthContext)
 
+  // -------- UI / State --------
   const [selectedSite, setSelectedSite] = useState(null)
+  const [selectedSiteIds, setSelectedSiteIds] = useState([])
+
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [indexedRows, setIndexedRows] = useState([])
-  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [rawRows, setRawRows] = useState([])
+
+  const [searchValue, setSearchValue] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
   const [siteLoader, setSiteLoader] = useState(false)
 
@@ -30,136 +37,28 @@ const DailyReport = () => {
   const [openSiteListDrawer, setSiteListDrawer] = useState(false)
 
   const [siteData, setSiteData] = useState([])
-
-  const [selectedItems, setSelectedItems] = useState({
-    Site: []
-  })
-  const [tempSelectedItems, setTempSelectedItems] = useState(selectedItems)
+  const [selectedItems, setSelectedItems] = useState({ Site: [] })
+  const [tempSelectedItems, setTempSelectedItems] = useState({ Site: [] })
   const [filterCount, setFilterCount] = useState(0)
 
+  // Local pagination (no router now)
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 50
+    page: 0,
+    pageSize: 50
   })
 
-  const reportCardEventHandler = () => {
-    setOpenFilterDrawer(!openFilterDrawer)
-  }
+  // -------- Date Range (simple defaults; adjust as needed/UI adds later) --------
+  const [dateRange, setDateRange] = useState({
+    start_date: '2024-06-01',
+    end_date: '2025-09-15'
+  })
 
-  const handleSiteSelect = useCallback(
-    site => {
-      setSelectedSite({
-        site_id: site?.site_id,
-        site_name: site?.site_name,
-        site_type: site?.site_type,
-        location: site?.location,
-        description: site?.description
-      })
-      router.push(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, site_id: site?.site_id }
-        },
-        undefined,
-        { shallow: true }
-      )
-    },
-    [router]
-  )
-
-  const siteList = useCallback(
-    async (q = '') => {
-      try {
-        const sites = authData.userData.user.zoos[0]?.sites || []
-        const filteredSites = q ? sites.filter(site => site.site_name.toLowerCase().includes(q.toLowerCase())) : sites
-
-        setSiteData(prev =>
-          filteredSites.map(site => ({
-            site_id: site.id,
-            site_name: site.site_name,
-            ...site
-          }))
-        )
-      } catch (e) {
-        console.error('Error processing site list:', e)
-      }
-    },
-    [authData.userData.user.zoos]
-  )
-
-  useEffect(() => {
-    siteList()
-  }, [openFilterDrawer, siteList])
-
-  // Handle site selection from filter
-  useEffect(() => {
-    if (selectedItems?.Site?.length > 0 && siteData?.length > 0) {
-      const selectedSiteData = siteData.find(site => selectedItems.Site.includes(site.site_id))
-      if (selectedSiteData) {
-        handleSiteSelect(selectedSiteData)
-      }
-    } else if (selectedItems?.Site?.length === 0) {
-      setSelectedSite(null)
-    }
-  }, [selectedItems, siteData, handleSiteSelect])
-
-  // Mock observation data based on the image
-  useEffect(() => {
-    const mockData = [
-      {
-        id: 1,
-        sl_no: '01',
-        date: '25/04/2025',
-        animal_id: 'B123000123',
-        animal_name: 'Blue Macaw',
-        animal_type: 'Peach Fronted Conure',
-        section: 'Section: Name',
-        enclosure: 'Enclosure: Name',
-        observation_type: 'Enrichment, Medical',
-        observation_details:
-          'Behaviour-self maintenance behaviour, Behaviour-stalking & chasing activities, Sick, Dull, Inactive',
-        observation:
-          'Provide a bland, easily digestible diet. Avoid red meat or any raw feed until further notice. Offer fres water at all times. Ensure full course is completed even if symptoms improve.'
-      },
-      {
-        id: 2,
-        sl_no: '02',
-        date: '25/04/2025',
-        animal_id: 'B123000124',
-        animal_name: 'Scarlet Macaw',
-        animal_type: 'Peach Fronted Conure',
-        section: 'Section: Name',
-        enclosure: 'Enclosure: Name',
-        observation_type: 'Dietary',
-        observation_details: 'Special Diet, Intake',
-        observation:
-          'Provide a bland, easily digestible diet. Avoid red meat or any raw feed until further notice. Offer fres water at all times. Ensure full course is completed even if symptoms improve.'
-      },
-      {
-        id: 3,
-        sl_no: '03',
-        date: '25/04/2025',
-        animal_id: 'B123000125',
-        animal_name: 'Green Macaw',
-        animal_type: 'Peach Fronted Conure',
-        section: 'Section: Name',
-        enclosure: 'Enclosure: Name',
-        observation_type: 'Dietary',
-        observation_details: 'Special Diet, Intake',
-        observation:
-          'Provide a bland, easily digestible diet. Avoid red meat or any raw feed until further notice. Offer fres water at all times. Ensure full course is completed even if symptoms improve.'
-      }
-    ]
-    setIndexedRows(mockData)
-    setTotal(mockData.length)
-  }, [])
-
+  // -------- Helpers --------
   const title = (
     <Typography
       sx={{
         fontSize: '24px',
         fontWeight: 500,
-        ml: '-12px',
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
@@ -167,6 +66,223 @@ const DailyReport = () => {
     </Typography>
   )
 
+  // Load sites from auth (used both for drawer & default API param)
+  const loadSitesFromAuth = useCallback(() => {
+    try {
+      const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
+      const mapped = sites.map(s => ({
+        site_id: String(s.id ?? s.site_id ?? ''),
+        site_name: s.site_name,
+        ...s
+      }))
+      setSiteData(mapped)
+
+      // If nothing selected yet, default to all sites
+      if (!selectedSiteIds.length) {
+        const allIds = mapped.map(s => s.site_id).filter(Boolean)
+        setSelectedSiteIds(allIds)
+        setSelectedItems({ Site: allIds })
+        setTempSelectedItems({ Site: allIds })
+      }
+    } catch (e) {
+      console.error('Error loading site list from auth:', e)
+    }
+  }, [authData, selectedSiteIds.length])
+
+  useEffect(() => {
+    loadSitesFromAuth()
+  }, [loadSitesFromAuth])
+
+  // When user picks sites in the drawer, reflect to selection chip + fetch
+  useEffect(() => {
+    if (selectedItems?.Site?.length > 0 && siteData?.length > 0) {
+      const firstSelected = siteData.find(s => selectedItems.Site.includes(s.site_id))
+      setSelectedSite(
+        firstSelected
+          ? {
+              site_id: firstSelected.site_id,
+              site_name: firstSelected.site_name,
+              site_type: firstSelected.site_type,
+              location: firstSelected.location,
+              description: firstSelected.description
+            }
+          : null
+      )
+      setSelectedSiteIds(selectedItems.Site)
+    } else if (selectedItems?.Site?.length === 0) {
+      setSelectedSite(null)
+      setSelectedSiteIds([])
+    }
+  }, [selectedItems, siteData])
+
+  // -------- API: Fetch & Transform --------
+  const transformApiToRows = useCallback(apiData => {
+    const items = Array.isArray(apiData?.observationData) ? apiData.observationData : []
+    const rows = []
+    let i = 0
+
+    for (const block of items) {
+      const { ref_type, ref_id, animal_id, taxonomy, scientific_name, enclosure, section, site, date } = block
+
+      const detailsArr = Array.isArray(block.observation_details) ? block.observation_details : []
+
+      for (const d of detailsArr) {
+        i += 1
+        const child = Array.isArray(d.child_observation) ? d.child_observation.join(', ') : ''
+        const displayName = taxonomy || site || section || enclosure || animal_id || ref_id || '-'
+
+        const displayType =
+          scientific_name || (ref_type ? ref_type.charAt(0).toUpperCase() + ref_type.slice(1) : '') || ''
+
+        rows.push({
+          id: d.observation_id || `${ref_type}-${ref_id}-${i}`,
+          sl_no: String(i).padStart(2, '0'),
+          date: d.date_ || date || '',
+          animal_id: animal_id || '-',
+          animal_name: displayName, // we keep column title as "ANIMAL NAME" to reuse layout
+          animal_type: displayType,
+          section: section ? `Section: ${section}` : '-',
+          enclosure: enclosure ? `Enclosure: ${enclosure}` : '-',
+          observation_type: d.master_enrichment_type || '-',
+          observation_details: child || '-',
+          observation: d.details || d.observation || '-',
+          site: site || '-'
+        })
+      }
+    }
+
+    return rows
+  }, [])
+
+  const fetchDailyReport = useCallback(
+    async forceSiteIds => {
+      const ids = (forceSiteIds && forceSiteIds.length ? forceSiteIds : selectedSiteIds) || []
+      if (!ids.length) {
+        setRawRows([])
+        setIndexedRows([])
+        setTotal(0)
+        return
+      }
+
+      const params = {
+        report_type: 'json',
+        site_id: ids.join(','), // API expects comma-separated site ids
+        start_date: dateRange.start_date,
+        end_date: dateRange.end_date
+      }
+
+      setLoading(true)
+      try {
+        const res = await getComplianceDailyReport(params)
+        const payload = res?.data?.data || res?.data || res // support different wrappers
+        const rows = transformApiToRows(payload)
+        setRawRows(rows)
+      } catch (e) {
+        console.error('Error fetching daily report:', e)
+        setRawRows([])
+      } finally {
+        setLoading(false)
+      }
+    },
+    [dateRange.end_date, dateRange.start_date, selectedSiteIds, transformApiToRows]
+  )
+
+  // fetch whenever sites/date range change
+  useEffect(() => {
+    fetchDailyReport()
+  }, [fetchDailyReport])
+
+  // -------- Client search filter (date or observation type or details) --------
+  const filteredRows = useMemo(() => {
+    if (!searchValue.trim()) return rawRows
+    const q = searchValue.toLowerCase()
+    return rawRows.filter(
+      r =>
+        (r.date || '').toLowerCase().includes(q) ||
+        (r.observation_type || '').toLowerCase().includes(q) ||
+        (r.observation_details || '').toLowerCase().includes(q) ||
+        (r.observation || '').toLowerCase().includes(q)
+    )
+  }, [rawRows, searchValue])
+
+  // index + slice for current page (StickyTable can also take all rows and handle; here we keep total)
+  useEffect(() => {
+    const start = paginationModel.page * paginationModel.pageSize
+    const end = start + paginationModel.pageSize
+    const pageRows = filteredRows.slice(start, end).map((r, idx) => ({
+      ...r,
+      sl_no: String(start + idx + 1).padStart(2, '0')
+    }))
+    setIndexedRows(pageRows)
+    setTotal(filteredRows.length)
+  }, [filteredRows, paginationModel])
+
+  // -------- UI Actions --------
+  const reportCardEventHandler = () => setOpenFilterDrawer(true)
+
+  const handleSiteSelect = useCallback(
+    site => {
+      // single select helper (optional; drawer still supports multi)
+      setSelectedSite({
+        site_id: site?.site_id,
+        site_name: site?.site_name,
+        site_type: site?.site_type,
+        location: site?.location,
+        description: site?.description
+      })
+      if (site?.site_id) {
+        const ids = [site.site_id]
+        setSelectedItems({ Site: ids })
+        setTempSelectedItems({ Site: ids })
+        setSelectedSiteIds(ids)
+        setPaginationModel(p => ({ ...p, page: 0 }))
+        fetchDailyReport(ids)
+      }
+    },
+    [fetchDailyReport]
+  )
+
+  const clearSiteSelection = () => {
+    setSelectedSite(null)
+    // reset to all sites (from siteData), refetch
+    const allIds = siteData.map(s => s.site_id).filter(Boolean)
+    setSelectedItems({ Site: allIds })
+    setTempSelectedItems({ Site: allIds })
+    setSelectedSiteIds(allIds)
+    setPaginationModel(p => ({ ...p, page: 0 }))
+    fetchDailyReport(allIds)
+  }
+
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value)
+    if (paginationModel.page !== 0) {
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    }
+  }
+
+  const downloadDailyReport = async () => {
+    try {
+      setIsDownloading(true)
+      // If you already have a util to download PDF, call it here:
+      // await downloadPDF({
+      //   apiCall: getComplianceDailyReport,
+      //   params: {
+      //     report_type: 'pdf',
+      //     site_id: selectedSiteIds.join(','),
+      //     start_date: dateRange.start_date,
+      //     end_date: dateRange.end_date
+      //   },
+      //   fileName: `Observation_log_${Date.now()}.pdf`
+      // })
+    } catch (error) {
+      console.error('Error downloading report:', error)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  // -------- Columns (reused layout; values adapt by ref_type) --------
   const dailyReportsColumns = [
     {
       width: 80,
@@ -198,14 +314,7 @@ const DailyReport = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: 400,
-            fontFamily: 'Inter'
-          }}
-        >
+        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 400 }}>
           {params.row.date}
         </Typography>
       )
@@ -231,7 +340,7 @@ const DailyReport = () => {
               justifyContent: 'center'
             }}
           >
-            <Typography sx={{ fontSize: '12px', color: '#666' }}>🐦</Typography>
+            <Typography sx={{ fontSize: '12px', color: '#666' }}>📝</Typography>
           </Box>
           <Box sx={{ flex: 1 }}>
             <Box
@@ -246,23 +355,33 @@ const DailyReport = () => {
                 mb: 1
               }}
             >
-              <Typography sx={{ fontSize: '10px', color: 'white', fontWeight: 'bold' }}>M</Typography>
+              <Typography sx={{ fontSize: '10px', color: 'white', fontWeight: 'bold' }}>
+                {(params.row.site || '').slice(0, 1).toUpperCase() || 'S'}
+              </Typography>
             </Box>
+
+            {/* ID */}
             <Typography
               sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, mb: 0.5 }}
             >
               {params.row.animal_id}
             </Typography>
+
+            {/* Primary name */}
             <Typography
               sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 600, mb: 0.5 }}
             >
               {params.row.animal_name}
             </Typography>
+
+            {/* Type / ref_type */}
             <Typography
               sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, mb: 0.5 }}
             >
               {params.row.animal_type}
             </Typography>
+
+            {/* Section/Enclosure */}
             <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
               {params.row.section}
             </Typography>
@@ -282,13 +401,7 @@ const DailyReport = () => {
       renderCell: params => (
         <Box>
           <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              fontFamily: 'Inter',
-              mb: 1
-            }}
+            sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500, mb: 1 }}
           >
             {params.row.observation_type}
           </Typography>
@@ -297,7 +410,6 @@ const DailyReport = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               fontStyle: 'italic'
             }}
           >
@@ -318,7 +430,6 @@ const DailyReport = () => {
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
             fontWeight: 400,
-            fontFamily: 'Inter',
             lineHeight: 1.5
           }}
         >
@@ -328,93 +439,35 @@ const DailyReport = () => {
     }
   ]
 
-  const downloadDailyReport = async () => {
-    const params = {
-      site_id: selectedSite?.site_id || router.query.site_id,
-      q: searchValue,
-      report_type: 'pdf'
-    }
-    try {
-      setIsDownloading(true)
-
-      // await downloadPDF({
-      //   apiCall: getDailyReport,
-      //   params,
-      //   fileName: `Observation_log_${Date.now()}.pdf`
-      // })
-    } catch (error) {
-      console.error('Error downloading report:', error)
-    } finally {
-      setIsDownloading(false)
-    }
-  }
-
-  const clearSiteSelection = () => {
-    setSelectedSite(null)
-
-    const { site_id, ...rest } = router.query
-    router.push(
-      {
-        pathname: router.pathname,
-        query: rest
-      },
-      undefined,
-      { shallow: false }
-    )
-  }
-
   const headerAction = (
-    <>
+    <Box sx={{ display: 'flex' }}>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadDailyReport} />
-    </>
+      <Box
+        sx={{
+          backgroundColor: '#0000000D',
+          height: '32px',
+          width: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50px'
+        }}
+      >
+        <IconButton onClick={clearSiteSelection}>
+          <Icon icon='mdi:close' color='red' fontSize={30} />
+        </IconButton>
+      </Box>
+    </Box>
   )
-
-  const handleSearchChange = e => {
-    const value = e.target.value
-    setSearchValue(value)
-
-    if (paginationModel.page !== 0) {
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
-    }
-  }
 
   return (
     <>
-      {selectedSite ? (
+      {selectedSiteIds.length ? (
         <>
-          <Card>
-            <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
-            <Box sx={{ p: 5 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderRadius: '8px',
-                  background: '#E8F4F2',
-                  pl: 4
-                }}
-              >
-                <AnimalCard data={selectedSite} sx={{ border: 'none', background: 'none' }} animal={true} />
-                <Box
-                  sx={{
-                    backgroundColor: '#0000000D',
-                    height: { sm: '175px', xs: '190px' },
-                    width: '70px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderTopRightRadius: '8px',
-                    borderBottomRightRadius: '8px'
-                  }}
-                >
-                  <IconButton onClick={clearSiteSelection}>
-                    <Icon icon='mdi:close' color='red' fontSize={30} />
-                  </IconButton>
-                </Box>
-              </Box>
-            </Box>
+          <Card sx={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <CardHeader title={title} action={headerAction} sx={{ pb: 0 }} />
 
+            {/* Search */}
             <Box
               sx={{
                 display: 'flex',
@@ -427,11 +480,19 @@ const DailyReport = () => {
               <Box sx={{ width: '100%', px: 6 }}>
                 <Search
                   onChange={handleSearchChange}
-                  placeholder='Search by date or observation type'
+                  placeholder='Search by date, observation type or text'
                   value={searchValue}
-                  inputStyle={{ py: '10px', px: '12px' }}
-                  width={{ xs: '100%', sm: '60%', md: '50%' }}
+                  width={297}
+                  borderRadius='4px'
+                  inputStyle={{ padding: '10px 12px' }}
+                  textFielsSX={{
+                    height: '40px',
+                    '& fieldset': { borderColor: '#C3CEC7' },
+                    '&:hover fieldset': { borderColor: '#C3CEC7' },
+                    '&.Mui-focused fieldset': { borderColor: '#C3CEC7' }
+                  }}
                   sx={{
+                    gap: '4px',
                     '& .MuiInputBase-input::placeholder': {
                       fontSize: '14px',
                       fontWeight: 400
@@ -441,6 +502,7 @@ const DailyReport = () => {
               </Box>
             </Box>
 
+            {/* Site caption */}
             <Box
               sx={{
                 padding: '16px',
@@ -456,11 +518,18 @@ const DailyReport = () => {
                   fontSize: '14px',
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontWeight: 400,
-                  letterSpacing: 0,
-                  fontFamily: 'Inter'
+                  letterSpacing: 0
                 }}
               >
-                Site: <span style={{ fontWeight: 500 }}>Animal Kingdom Park</span>
+                Sites:{' '}
+                <span style={{ fontWeight: 500 }}>
+                  {selectedSiteIds.length === siteData.length
+                    ? 'All'
+                    : selectedSiteIds.map(id => siteData.find(s => s.site_id === id)?.site_name || id).join(', ')}
+                </span>
+              </Typography>
+              <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
+                Range: {dateRange.start_date} → {dateRange.end_date}
               </Typography>
             </Box>
           </Card>
@@ -474,18 +543,7 @@ const DailyReport = () => {
             paginationModel={paginationModel}
             setPaginationModel={setPaginationModel}
             searchValue={searchValue}
-            onPaginationModelChange={model => {
-              setPaginationModel(model)
-              router.replace({
-                pathname: router.pathname,
-                query: {
-                  ...router.query,
-                  page: model.page + 1,
-                  pageSize: model.pageSize,
-                  searchValue
-                }
-              })
-            }}
+            onPaginationModelChange={model => setPaginationModel(model)}
           />
         </>
       ) : siteLoader ? (
@@ -500,7 +558,7 @@ const DailyReport = () => {
               subtitle='No Site selected'
               description='Select any site to view its daily report'
               buttonText='SELECT SITE'
-              addHandler={reportCardEventHandler}
+              addHandler={() => setOpenFilterDrawer(true)}
             />
           </Card>
         </>

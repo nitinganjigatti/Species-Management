@@ -467,6 +467,7 @@ export const MEDICAL_REPORT = 'v1/medical/report'
 export const All_ANIMAL_LIST = 'v1/all/animal/report'
 
 export const REPORT_TYPE = 'v1/report/daily/report/type'
+export const COMPLIANCE_DAILY_REPORT = 'v1/get/daily/report'
 
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
