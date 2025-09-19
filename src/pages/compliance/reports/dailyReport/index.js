@@ -15,6 +15,7 @@ import Search from 'src/views/utility/Search'
 import { getComplianceDailyReport } from 'src/lib/api/compliance/reports'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Utility from 'src/utility'
+import { debounce } from 'lodash'
 
 const DailyReport = () => {
   const theme = useTheme()
@@ -29,7 +30,8 @@ const DailyReport = () => {
   const [indexedRows, setIndexedRows] = useState([])
   const [rawRows, setRawRows] = useState([])
 
-  const [searchValue, setSearchValue] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [searchValue, setSearchValue] = useState('') // applied to API
   const [isDownloading, setIsDownloading] = useState(false)
   const [siteLoader, setSiteLoader] = useState(false)
 
@@ -42,20 +44,12 @@ const DailyReport = () => {
   const [selectedItems, setSelectedItems] = useState({ Site: [] })
   const [tempSelectedItems, setTempSelectedItems] = useState({ Site: [] })
   const [filterCount, setFilterCount] = useState(0)
-
-  // Local pagination (no router now)
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 50
-  })
-
-  // -------- Date Range (simple defaults; adjust as needed/UI adds later) --------
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [dateRange, setDateRange] = useState({
     start_date: '2024-06-01',
     end_date: '2025-09-15'
   })
 
-  // -------- Helpers --------
   const title = (
     <Typography
       sx={{
@@ -159,44 +153,6 @@ const DailyReport = () => {
     return rows
   }, [])
 
-  const fetchDailyReport = useCallback(
-    async forceSiteIds => {
-      const ids = (forceSiteIds && forceSiteIds.length ? forceSiteIds : selectedSiteIds) || []
-      if (!ids.length) {
-        setRawRows([])
-        setIndexedRows([])
-        setTotal(0)
-        return
-      }
-
-      const params = {
-        report_type: 'json',
-        site_id: ids.join(','), // API expects comma-separated site ids
-        start_date: dateRange.start_date || '',
-        end_date: dateRange.end_date || ''
-      }
-
-      setLoading(true)
-      try {
-        const res = await getComplianceDailyReport(params)
-        const payload = res?.data?.data || res?.data || res // support different wrappers
-        const rows = transformApiToRows(payload)
-        setRawRows(rows)
-      } catch (e) {
-        console.error('Error fetching daily report:', e)
-        setRawRows([])
-      } finally {
-        setLoading(false)
-      }
-    },
-    [dateRange, selectedSiteIds, transformApiToRows]
-  )
-
-  // fetch whenever sites/date range change
-  useEffect(() => {
-    fetchDailyReport()
-  }, [fetchDailyReport])
-
   // -------- Client search filter (date or observation type or details) --------
   const filteredRows = useMemo(() => {
     if (!searchValue.trim()) return rawRows
@@ -225,6 +181,93 @@ const DailyReport = () => {
   // -------- UI Actions --------
   const reportCardEventHandler = () => setOpenFilterDrawer(true)
 
+  const clearSiteSelection = () => {
+    setSelectedSite(null)
+    // reset to all sites (from siteData), refetch
+    const allIds = siteData.map(s => s.site_id).filter(Boolean)
+    setSelectedItems({ Site: allIds })
+    setTempSelectedItems({ Site: allIds })
+    setSelectedSiteIds(allIds)
+    setPaginationModel(p => ({ ...p, page: 0 }))
+    fetchDailyReport(allIds)
+  }
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce(searchValue => {
+      // setPageNo(1)
+      setSearchValue(searchValue)
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    }, 500),
+    []
+  )
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
+
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchInput(value)
+    debouncedSearch(value)
+    // if (paginationModel.page !== 0) {
+    //   setPaginationModel(prev => ({ ...prev, page: 0 }))
+    // }
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      setDateRange({
+        start_date: Utility.formatDate(startDate),
+        end_date: Utility.formatDate(endDate)
+      })
+
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    } else {
+      setDateRange({ start_date: '', end_date: '' })
+    }
+  }
+
+  const fetchDailyReport = useCallback(
+    async forceSiteIds => {
+      const ids = Array.isArray(forceSiteIds) ? forceSiteIds : selectedSiteIds
+      if (!Array.isArray(ids) || ids.length === 0) {
+        setRawRows([])
+        setIndexedRows([])
+        setTotal(0)
+        return
+      }
+
+      const params = {
+        report_type: 'json',
+        site_id: ids.join(','), // ab yahan array guaranteed
+        start_date: dateRange.start_date || '',
+        end_date: dateRange.end_date || '',
+        ...(searchValue && { q: searchValue }) // server-side search
+      }
+
+      setLoading(true)
+      try {
+        const res = await getComplianceDailyReport(params)
+        const payload = res?.data?.data || res?.data || res // support different wrappers
+        const rows = transformApiToRows(payload)
+        setRawRows(rows)
+      } catch (e) {
+        console.error('Error fetching daily report:', e)
+        setRawRows([])
+      } finally {
+        setLoading(false)
+      }
+    },
+    [dateRange, selectedSiteIds, transformApiToRows, searchValue]
+  )
+
+  // fetch whenever sites/date range change
+  useEffect(() => {
+    fetchDailyReport()
+  }, [fetchDailyReport])
+
   const handleSiteSelect = useCallback(
     site => {
       // single select helper (optional; drawer still supports multi)
@@ -246,38 +289,6 @@ const DailyReport = () => {
     },
     [fetchDailyReport]
   )
-
-  const clearSiteSelection = () => {
-    setSelectedSite(null)
-    // reset to all sites (from siteData), refetch
-    const allIds = siteData.map(s => s.site_id).filter(Boolean)
-    setSelectedItems({ Site: allIds })
-    setTempSelectedItems({ Site: allIds })
-    setSelectedSiteIds(allIds)
-    setPaginationModel(p => ({ ...p, page: 0 }))
-    fetchDailyReport(allIds)
-  }
-
-  const handleSearchChange = e => {
-    const value = e.target.value
-    setSearchValue(value)
-    if (paginationModel.page !== 0) {
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
-    }
-  }
-
-  const handleDateRangeChange = (startDate, endDate) => {
-    if (startDate && endDate) {
-      setDateRange({
-        start_date: Utility.formatDate(startDate),
-        end_date: Utility.formatDate(endDate)
-      })
-
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
-    } else {
-      setDateRange({ start_date: '', end_date: '' })
-    }
-  }
 
   const downloadDailyReport = async () => {
     try {
@@ -476,7 +487,7 @@ const DailyReport = () => {
               <Search
                 onChange={handleSearchChange}
                 placeholder='Search by date, observation type or text'
-                value={searchValue}
+                value={searchInput}
                 width={342}
                 borderRadius='4px'
                 textFielsSX={{
