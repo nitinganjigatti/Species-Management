@@ -53,6 +53,9 @@ const InpatientDetails = () => {
   const theme = useTheme()
   const { id, animal_id } = router.query
 
+  console.log(id, 'medId')
+  console.log(animal_id, 'animalId')
+
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [anchorEl, setAnchorEl] = useState(null)
@@ -95,6 +98,8 @@ const InpatientDetails = () => {
 
     getPatientInfo()
   }, [id])
+
+  console.log(overviewData)
 
   const handleMenuOpen = event => {
     console.log(event.currentTarget)
@@ -180,7 +185,8 @@ const InpatientDetails = () => {
       setSelectedTab,
       ...drawerState,
       patientId: id,
-      overviewData: overviewData
+      overviewData: overviewData,
+      patientData: patientData
     }),
     [selectedTab, drawerState, id, overviewData]
   )

@@ -24,7 +24,7 @@ const dummyClinicalNotesData = [
   }
 ]
 
-const ClinicalNotes = () => {
+const ClinicalNotes = ({ patientData }) => {
   const [loading, setLoading] = useState(false)
   const [notes, setNotes] = useState([])
 
