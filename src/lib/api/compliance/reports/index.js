@@ -5,7 +5,8 @@ import {
   GET_KEEPER_REPORT,
   GET_OBSERVATION_REPORT,
   GET_ANIMAL_COUNT_REGISTER,
-  COMPLIANCE_DAILY_REPORT
+  COMPLIANCE_DAILY_REPORT,
+  OBSERVATION_MASTER_TYPE
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../../utility'
 
@@ -49,6 +50,12 @@ export async function getEnclosureCountRegister(params) {
 
 export async function getComplianceDailyReport(params) {
   const response = await axiosGet({ url: `${COMPLIANCE_DAILY_REPORT}`, params })
+
+  return response?.data
+}
+
+export async function getObservationMasterType(params) {
+  const response = await axiosGet({ url: `${OBSERVATION_MASTER_TYPE}`, params })
 
   return response?.data
 }

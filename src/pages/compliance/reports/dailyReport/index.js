@@ -1,16 +1,17 @@
 import { useTheme } from '@emotion/react'
-import { Box, Card, CardHeader, CircularProgress, IconButton, Typography } from '@mui/material'
+import { Autocomplete, Box, Card, CardHeader, CircularProgress, IconButton, TextField, Typography } from '@mui/material'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import SiteDrawer from 'src/views/pages/compliance/reports/dailyReport/SiteDrawer'
+import { downloadPDF } from 'src/utility'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import StickyTable from 'src/views/table/sticky-table'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 
-import { getComplianceDailyReport } from 'src/lib/api/compliance/reports'
+import { getComplianceDailyReport, getObservationMasterType } from 'src/lib/api/compliance/reports'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Utility from 'src/utility'
 import { debounce } from 'lodash'
@@ -47,6 +48,10 @@ const DailyReport = () => {
     start_date: '2024-06-01',
     end_date: '2025-09-15'
   })
+
+  const [defaultObservationType, setDefaultObservationType] = useState(null)
+  const [observationListLoader, setObservationListLoader] = useState(false)
+  const [observationList, setObservationList] = useState([])
 
   const title = (
     <Typography
@@ -168,6 +173,26 @@ const DailyReport = () => {
     setTotal(filteredRows.length)
   }, [filteredRows, paginationModel])
 
+  // Fetch nursery list with debouncing
+  const fetchObservationMasterType = async () => {
+    try {
+      setObservationListLoader(true)
+      const params = {
+        // page: 1,
+        // limit: 50,
+        // type: 'only_active',
+        // nursery_id: nurseryId,
+        // search: q
+      }
+      const res = await getObservationMasterType({ params })
+      setObservationList(res?.data || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setObservationListLoader(false)
+    }
+  }
+
   // -------- UI Actions --------
   const reportCardEventHandler = () => setOpenFilterDrawer(true)
 
@@ -276,6 +301,7 @@ const DailyReport = () => {
   // fetch whenever sites/date range change
   useEffect(() => {
     fetchDailyReport()
+    fetchObservationMasterType()
   }, [fetchDailyReport])
 
   const handleSiteSelect = useCallback(
@@ -301,19 +327,24 @@ const DailyReport = () => {
   )
 
   const downloadDailyReport = async () => {
+    const ids = Array.isArray(selectedSiteIds) ? selectedSiteIds : []
+    if (!ids.length) return
+
+    const params = {
+      report_type: 'pdf', // 👈 daily report API expects this
+      site_id: ids.join(','), // comma-separated site ids
+      start_date: dateRange.start_date || '',
+      end_date: dateRange.end_date || '',
+      ...(searchValue && { q: searchValue }) // include server-side search if any
+    }
     try {
       setIsDownloading(true)
       // If you already have a util to download PDF, call it here:
-      // await downloadPDF({
-      //   apiCall: getComplianceDailyReport,
-      //   params: {
-      //     report_type: 'pdf',
-      //     site_id: selectedSiteIds.join(','),
-      //     start_date: dateRange.start_date,
-      //     end_date: dateRange.end_date
-      //   },
-      //   fileName: `Observation_log_${Date.now()}.pdf`
-      // })
+      await downloadPDF({
+        apiCall: getComplianceDailyReport,
+        params,
+        fileName: `daily_report_${Date.now()}.pdf`
+      })
     } catch (error) {
       console.error('Error downloading report:', error)
     } finally {
@@ -431,7 +462,11 @@ const DailyReport = () => {
 
   const headerAction = (
     <Box sx={{ display: 'flex', gap: '16px' }}>
-      <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadDailyReport} />
+      <DownloadReport
+        isDownloading={isDownloading}
+        handleDownloadReport={downloadDailyReport}
+        containerStyles={loading ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+      />
       <Box
         sx={{
           backgroundColor: '#0000000D',
@@ -518,7 +553,94 @@ const DailyReport = () => {
                   }
                 }}
               />
-              <Box>
+              <Box sx={{ display: 'flex', gap: '16px' }}>
+                <Autocomplete
+                  value={defaultObservationType}
+                  disablePortal
+                  // disabled={isEdit || incubatorDetail}
+                  id='nursery'
+                  loading={observationListLoader}
+                  options={observationList?.length > 0 ? observationList : []}
+                  getOptionLabel={option => option.type_name}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  onChange={(e, val) => {
+                    if (val === null) {
+                      setDefaultObservationType(null)
+
+                      // return onChange('')
+                    } else {
+                      setDefaultObservationType(val)
+                    }
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      // onChange={e => {
+                      //   searchNursery(e.target.value)
+                      // }}
+                      {...params}
+                      label='Observation Type'
+                      placeholder='Search & Select'
+                      sx={{
+                        width: 200,
+
+                        /* ---- OUTER INPUT WRAPPER (outlined root) ---- */
+                        '& .MuiOutlinedInput-root': {
+                          height: 40,
+                          padding: 0, // wrapper padding zero, inner input pe actual padding
+                          borderRadius: '4px',
+
+                          /* real border is the notchedOutline fieldset */
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#C3CEC7',
+                            borderWidth: '1px'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#C3CEC7'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#C3CEC7'
+                          },
+
+                          /* ---- INNER INPUT (text area) ---- */
+                          '& .MuiAutocomplete-input': {
+                            padding: '8px 12px', // top/bottom = 8, left/right = 12
+                            fontSize: 14,
+                            lineHeight: 1.2
+                          },
+
+                          /* gap between input text and end-adornment (icon) */
+                          '& .MuiAutocomplete-endAdornment': {
+                            right: 8 // default se thoda andar
+                          }
+                        },
+
+                        /* ---- LABEL (when not focused/floating) ---- */
+                        '& .MuiInputLabel-root': {
+                          fontWeight: 400,
+                          fontSize: 14,
+                          color: '#7D8892'
+                        },
+                        /* floating label (focused ya value hone par) */
+                        '& .MuiInputLabel-shrink': {
+                          color: '#7D8892'
+                        },
+
+                        /* ---- PLACEHOLDER (appears when using placeholder) ---- */
+                        '& .MuiInputBase-input::placeholder': {
+                          fontWeight: 400,
+                          fontSize: 14,
+                          lineHeight: 1,
+                          letterSpacing: 0,
+                          color: '#C3CEC7',
+                          opacity: 1 // safari fix
+                        }
+                      }}
+
+                      // error={Boolean(errors.nursery)}
+                    />
+                  )}
+                />
+
                 <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={dateRange} />
               </Box>
             </Box>
