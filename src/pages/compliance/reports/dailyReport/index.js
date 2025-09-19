@@ -395,7 +395,7 @@ const DailyReport = () => {
   ]
 
   const headerAction = (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', gap: '16px' }}>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadDailyReport} />
       <Box
         sx={{
