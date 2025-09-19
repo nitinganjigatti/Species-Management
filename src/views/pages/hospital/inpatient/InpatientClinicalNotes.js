@@ -20,6 +20,8 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 // ** Custom Form Components
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import Utility from 'src/utility'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const defaultValues = {
   clinical_note_name: ''
@@ -106,7 +108,7 @@ const InpatientClinicalNotes = props => {
       </Box>
       {/*  Clinical Notes List */}
       {loading ? (
-        Array.from({ length: 3 }).map((_, index) => (
+        Array.from({ length: 2 }).map((_, index) => (
           <Box
             key={index}
             sx={{
@@ -123,44 +125,53 @@ const InpatientClinicalNotes = props => {
         ))
       ) : (
         <>
-          {clinicalNotesData?.map(data => {
-            return (
-              <Box
-                key={data.id}
-                sx={{
-                  p: 6,
-                  mb: 4,
-                  background: alpha(theme.palette.customColors.antzNotes80, 0.2),
-                  borderRadius: '8px'
-                }}
-              >
-                <MedicalIdChip
-                  leftImage
-                  medId={data.id}
-                  rightDot
-                  dotColor={theme.palette.primary.main}
-                  textColor={theme.palette.customColors.OnSurface}
-                />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-                  <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {data.note}
-                  </Typography>
+          {clinicalNotesData.length > 0 ? (
+            clinicalNotesData?.map(data => {
+              return (
+                <Box
+                  key={data?.note_id}
+                  sx={{
+                    p: 6,
+                    mb: 4,
+                    background: alpha(theme.palette.customColors.antzNotes80, 0.2),
+                    borderRadius: '8px'
+                  }}
+                >
+                  <MedicalIdChip
+                    leftImage
+                    medId={data?.medical_record_code}
+                    rightDot
+                    dotColor={theme.palette.primary.main}
+                    textColor={theme.palette.customColors.OnSurface}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
+                    <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVariant }}>
+                      {data?.note || 'NA'}
+                    </Typography>
 
-                  <Box sx={{ ml: 2, cursor: 'pointer' }}>
-                    <IconButton
-                      size='small'
-                      onClick={() => onDeleteNote(data.id)}
-                      sx={{ color: theme.palette.customColors.Tertiary }}
-                    >
-                      <CancelOutlinedIcon fontSize='small' />
-                    </IconButton>
+                    <Box sx={{ ml: 2, cursor: 'pointer' }}>
+                      <IconButton
+                        size='small'
+                        onClick={() => onDeleteNote(data.id)}
+                        sx={{ color: theme.palette.customColors.Tertiary }}
+                      >
+                        <CancelOutlinedIcon fontSize='small' />
+                      </IconButton>
+                    </Box>
                   </Box>
-                </Box>
 
-                <UserAvatarDetails user_name={data.author} date={data.date} show_time size='medium' />
-              </Box>
-            )
-          })}
+                  <UserAvatarDetails
+                    user_name={data?.created_by_user_name}
+                    date={Utility.convertUtcToLocalReadableDate(data?.created_at)}
+                    show_time
+                    size='medium'
+                  />
+                </Box>
+              )
+            })
+          ) : (
+            <NoDataFound variant='Seal' height={300} width={300} />
+          )}
         </>
       )}
     </>

@@ -713,3 +713,5 @@ export const ANIMAL_MEDICAL_ID_LIST = `medical/v2/`
 export const ADD_HOSPITAL_PATIENT = `/v1/hospital/create-transfer`
 
 export const GET_ANIMAL_TOTAL_HOSPITAL_VISIT = `v1/hospital/get-animal-hospital-visits`
+
+export const GET_CLINICAL_NOTES = 'medical/v2/225091/get-medical-common-data-v2'

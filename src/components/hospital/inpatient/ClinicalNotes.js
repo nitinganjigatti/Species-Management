@@ -1,93 +1,35 @@
-import React, { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import React from 'react'
+import { Toaster } from 'react-hot-toast'
+import { getClinicalNotes } from 'src/lib/api/hospital/clinicalNotesApi'
 
 // ** View Component
 import InpatientClinicalNotes from 'src/views/pages/hospital/inpatient/InpatientClinicalNotes'
 
-const dummyClinicalNotesData = [
-  {
-    id: 'MED - 12345/25',
-    note: 'Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Behavioral changes likely linked to minor environmental stress. No physical abnormalities.',
-    author: 'Jordan Stevenson',
-    date: '02 Jan 2025'
-  },
-  {
-    id: 'MED - 67890/26',
-    note: 'Patient shows signs of recovery. Monitoring to continue for the next 48 hours.',
-    author: 'Emily Clark',
-    date: '03 Jan 2025 '
-  },
-  {
-    id: 'MED - 12345/27',
-    note: 'Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Behavioral changes likely linked to minor environmental stress. No physical abnormalities. Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Behavioral changes likely linked to minor environmental stress. No physical abnormalities.Behavioral changes likely linked to minor environmental stress. No physical abnormalities observed. Behavioral changes likely linked to minor environmental stress. No physical abnormalities.',
-    author: 'Jordan Stevenson',
-    date: '02 Jan 2025 '
-  }
-]
-
 const ClinicalNotes = () => {
-  const [loading, setLoading] = useState(false)
-  const [notes, setNotes] = useState([])
-
-  const handleSubmitData = async payload => {
-    const dummy = {
-      id: `MED-${Date.now()}`,
-      note: payload,
-      author: 'Jordan Stevenson',
-      date: '02 Jan 2025 • 12 : 35 PM'
-    }
-    try {
-      setLoading(true)
-      setTimeout(() => {
-        setNotes(prev => [...prev, dummy])
-        setLoading(false)
-      }, [1000])
-    } catch (e) {
-      console.error('Failed to add note:', e)
-
-      setLoading(false)
-    } finally {
-      // setLoading(false)
-    }
+  const params = {
+    type: 'all',
+    page_no: 1,
+    medical_type: 'clinical_notes'
   }
 
-  const handleDeleteNote = id => {
-    setNotes(prev => prev.filter(note => note.id !== id))
-  }
-
-  useEffect(() => {
-    const getNotes = async () => {
-      try {
-        setLoading(true)
-        setTimeout(() => {
-          setNotes(dummyClinicalNotesData)
-          setLoading(false)
-        }, 1000)
-      } catch (error) {
-        console.error('Failed to fetch notes:', error)
-        setLoading(false)
-      }
+  const { data, isFetching } = useQuery({
+    queryKey: ['clinicalNotes', params],
+    queryFn: () => getClinicalNotes({ params }),
+    select: res => res?.data?.result || [],
+    keepPreviousData: true,
+    staleTime: 1 * 60 * 1000, // cache for 1 minutes
+    onError: error => {
+      Toaster({ type: 'error', message: error?.message || 'Failed to fetch data' })
     }
-
-    getNotes()
-  }, [])
-
-  //  useEffect(() => {
-  //   const getNotes = async () => {
-  //     try {
-  //     } catch (error) {
-  //       console.error('Failed to fetch notes:', error)
-  //     }
-  //   }
-
-  //   getNotes()
-  // }, [])
+  })
 
   return (
     <InpatientClinicalNotes
-      clinicalNotesData={notes}
-      handleSubmitData={handleSubmitData}
-      onDeleteNote={handleDeleteNote}
-      loading={loading}
+      clinicalNotesData={data}
+      handleSubmitData={() => {}}
+      onDeleteNote={() => {}}
+      loading={isFetching}
     />
   )
 }
