@@ -216,6 +216,19 @@ const DailyReport = () => {
     // }
   }
 
+  // put above return (with other handlers)
+  const handleSearchClear = () => {
+    // cancel any pending debounced apply
+    debouncedSearch.cancel?.()
+
+    setSearchInput('') // UI clear
+    setSearchValue('') // q='' -> server will ignore
+    setPaginationModel(p => ({ ...p, page: 0 }))
+
+    // optional: force immediate refetch (warna deps se next tick pe ho jayega)
+    fetchDailyReport()
+  }
+
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
       setDateRange({
@@ -485,6 +498,7 @@ const DailyReport = () => {
               }}
             >
               <Search
+                onClear={handleSearchClear}
                 onChange={handleSearchChange}
                 placeholder='Search by date, observation type or text'
                 value={searchInput}
