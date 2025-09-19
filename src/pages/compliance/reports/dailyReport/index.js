@@ -14,6 +14,7 @@ import Search from 'src/views/utility/Search'
 // expected signature: getComplianceDailyReport({ report_type, site_id, start_date, end_date })
 import { getComplianceDailyReport } from 'src/lib/api/compliance/reports'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import Utility from 'src/utility'
 
 const DailyReport = () => {
   const theme = useTheme()
@@ -171,8 +172,8 @@ const DailyReport = () => {
       const params = {
         report_type: 'json',
         site_id: ids.join(','), // API expects comma-separated site ids
-        start_date: dateRange.start_date,
-        end_date: dateRange.end_date
+        start_date: dateRange.start_date || '',
+        end_date: dateRange.end_date || ''
       }
 
       setLoading(true)
@@ -188,7 +189,7 @@ const DailyReport = () => {
         setLoading(false)
       }
     },
-    [dateRange.end_date, dateRange.start_date, selectedSiteIds, transformApiToRows]
+    [dateRange, selectedSiteIds, transformApiToRows]
   )
 
   // fetch whenever sites/date range change
@@ -262,6 +263,19 @@ const DailyReport = () => {
     setSearchValue(value)
     if (paginationModel.page !== 0) {
       setPaginationModel(prev => ({ ...prev, page: 0 }))
+    }
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      setDateRange({
+        start_date: Utility.formatDate(startDate),
+        end_date: Utility.formatDate(endDate)
+      })
+
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    } else {
+      setDateRange({ start_date: '', end_date: '' })
     }
   }
 
@@ -483,7 +497,7 @@ const DailyReport = () => {
                 }}
               />
               <Box>
-                <CommonDateRangePickers />
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={dateRange} />
               </Box>
             </Box>
 
