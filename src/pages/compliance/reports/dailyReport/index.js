@@ -10,8 +10,6 @@ import StickyTable from 'src/views/table/sticky-table'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 
-// 👉 import your API util
-// expected signature: getComplianceDailyReport({ report_type, site_id, start_date, end_date })
 import { getComplianceDailyReport } from 'src/lib/api/compliance/reports'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Utility from 'src/utility'
@@ -72,14 +70,6 @@ const DailyReport = () => {
         ...s
       }))
       setSiteData(mapped)
-
-      // If nothing selected yet, default to all sites
-      if (!selectedSiteIds.length) {
-        const allIds = mapped.map(s => s.site_id).filter(Boolean)
-        setSelectedSiteIds(allIds)
-        setSelectedItems({ Site: allIds })
-        setTempSelectedItems({ Site: allIds })
-      }
     } catch (e) {
       console.error('Error loading site list from auth:', e)
     }
@@ -182,14 +172,24 @@ const DailyReport = () => {
   const reportCardEventHandler = () => setOpenFilterDrawer(true)
 
   const clearSiteSelection = () => {
+    // koi pending debounced apply ho to cancel
+    debouncedSearch.cancel?.()
+
+    // site selection & filters reset
     setSelectedSite(null)
-    // reset to all sites (from siteData), refetch
-    const allIds = siteData.map(s => s.site_id).filter(Boolean)
-    setSelectedItems({ Site: allIds })
-    setTempSelectedItems({ Site: allIds })
-    setSelectedSiteIds(allIds)
-    setPaginationModel(p => ({ ...p, page: 0 }))
-    fetchDailyReport(allIds)
+    setSelectedItems({ Site: [] })
+    setTempSelectedItems({ Site: [] })
+    setSelectedSiteIds([])
+
+    // table/search state reset
+    setRawRows([])
+    setIndexedRows([])
+    setTotal(0)
+    setSearchInput('')
+    setSearchValue('')
+
+    // pagination reset (pageSize preserve)
+    setPaginationModel(prev => ({ page: 0, pageSize: prev.pageSize }))
   }
 
   // Debounced search function
@@ -211,9 +211,6 @@ const DailyReport = () => {
     const value = e.target.value
     setSearchInput(value)
     debouncedSearch(value)
-    // if (paginationModel.page !== 0) {
-    //   setPaginationModel(prev => ({ ...prev, page: 0 }))
-    // }
   }
 
   // put above return (with other handlers)
@@ -480,7 +477,7 @@ const DailyReport = () => {
                   letterSpacing: 0
                 }}
               >
-                {selectedSiteIds.length > 1 ? 'Sites' : 'Site'}:
+                {selectedSiteIds.length > 1 ? 'Sites' : 'Site'}:{' '}
                 <span style={{ fontWeight: 500 }}>
                   {selectedSiteIds.length === siteData.length
                     ? 'All'
