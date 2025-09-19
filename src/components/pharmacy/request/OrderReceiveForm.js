@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { forwardRef, useState, useEffect, useRef } from 'react'
+import React, { forwardRef, useState, useEffect, useRef, useCallback } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 import {
@@ -320,15 +320,10 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const handleStatusChange = (itemId, event) => {
     const { name, value } = event.target
-
-    const updatedData = {
-      ...disputeItemDetails,
-      item_details: disputeItemDetails.item_details.map(item =>
-        // item.id === itemId ? { ...item, status: event.target.value } : item
-        item.id === itemId ? { ...item, [name]: value } : item
-      )
-    }
-    setDisputeItemDetails(updatedData)
+    setDisputeItemDetails(prev => ({
+      ...prev,
+      item_details: prev.item_details.map(item => (item.id === itemId ? { ...item, [name]: value } : item))
+    }))
   }
 
   const clearStatus = (itemId, event) => {
@@ -365,7 +360,6 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       } else {
         response = await getShipmentOrderDetailsOfRequests(orderId, requestId)
       }
-
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
           const data = {
@@ -379,7 +373,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
             stock_name: el?.stock_name,
             from_store_name: el?.from_store_name,
             to_store_name: el?.to_store_name,
-            status: el.status ? el.status : '',
+            status: el.status ? el?.status : '',
             dispatch_id: el?.dispatch_id,
             dispatch_item_id: el?.dispatch_item_id,
             wrong_count_type: el?.wrong_count_type ? el?.wrong_count_type : '',
@@ -1127,7 +1121,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                         ...rejectItemsPayload,
                                         comment: e.target.value
                                       })
-                                      setRejectItemsError(null)
+                                      if (rejectItemsError) {
+                                        setRejectItemsError(null)
+                                      }
                                     }}
                                     label='Comment'
                                     sx={{
@@ -1467,7 +1463,15 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                 <span style={{ color: 'customColors.neutral_50' }}>Select Received Status</span>
                               </MenuItem>
                               {statusOptions?.map((item, index) => (
-                                <MenuItem key={index} value={item?.label}>
+                                <MenuItem
+                                  onClick={() => {
+                                    handleStatusChange(params.row.id, {
+                                      target: { name: 'status', value: item?.label }
+                                    })
+                                  }}
+                                  key={index}
+                                  value={item?.label}
+                                >
                                   {item?.label === 'Broken' || item?.label === 'Expired'
                                     ? `Received (${item?.label})`
                                     : item?.label === 'Missing'
