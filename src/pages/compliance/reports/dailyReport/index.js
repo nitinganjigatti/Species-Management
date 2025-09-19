@@ -13,6 +13,7 @@ import Search from 'src/views/utility/Search'
 // 👉 import your API util
 // expected signature: getComplianceDailyReport({ report_type, site_id, start_date, end_date })
 import { getComplianceDailyReport } from 'src/lib/api/compliance/reports'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 const DailyReport = () => {
   const theme = useTheme()
@@ -122,31 +123,34 @@ const DailyReport = () => {
     let i = 0
 
     for (const block of items) {
-      const { ref_type, ref_id, animal_id, taxonomy, scientific_name, enclosure, section, site, date } = block
+      const { ref_type, sex, ref_id, animal_id, taxonomy, scientific_name, enclosure, section, site, date } = block
 
       const detailsArr = Array.isArray(block.observation_details) ? block.observation_details : []
 
       for (const d of detailsArr) {
         i += 1
-        const child = Array.isArray(d.child_observation) ? d.child_observation.join(', ') : ''
-        const displayName = taxonomy || site || section || enclosure || animal_id || ref_id || '-'
+        const child = Array.isArray(d.child_observation) ? d.child_observation.join('• ') : ''
+        // const displayName = taxonomy || site || section || enclosure || animal_id || ref_id || '-'
 
-        const displayType =
-          scientific_name || (ref_type ? ref_type.charAt(0).toUpperCase() + ref_type.slice(1) : '') || ''
+        // const displayType =
+        //   scientific_name || (ref_type ? ref_type.charAt(0).toUpperCase() + ref_type.slice(1) : '') || ''
 
         rows.push({
           id: d.observation_id || `${ref_type}-${ref_id}-${i}`,
           sl_no: String(i).padStart(2, '0'),
           date: d.date_ || date || '',
           animal_id: animal_id || '-',
-          animal_name: displayName, // we keep column title as "ANIMAL NAME" to reuse layout
-          animal_type: displayType,
-          section: section ? `Section: ${section}` : '-',
-          enclosure: enclosure ? `Enclosure: ${enclosure}` : '-',
+          scientific_name: scientific_name || '-',
+          common_name: '',
+          // animal_name: displayName, // we keep column title as "ANIMAL NAME" to reuse layout
+          // animal_type: displayType,
+          section_name: section || '-',
+          user_enclosure_name: enclosure || '-',
           observation_type: d.master_enrichment_type || '-',
           observation_details: child || '-',
           observation: d.details || d.observation || '-',
-          site: site || '-'
+          site_name: site || '-',
+          sex: sex || '-'
         })
       }
     }
@@ -298,7 +302,8 @@ const DailyReport = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
               fontWeight: 400,
-              cursor: 'default'
+              letterSpacing: 0,
+              lineHeight: 1
             }}
           >
             {params.row.sl_no}
@@ -314,7 +319,15 @@ const DailyReport = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 400 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 400,
+            letterSpacing: 0,
+            lineHeight: 1
+          }}
+        >
           {params.row.date}
         </Typography>
       )
@@ -325,72 +338,7 @@ const DailyReport = () => {
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
       sortable: false,
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              overflow: 'hidden',
-              backgroundColor: '#e0e0e0',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <Typography sx={{ fontSize: '12px', color: '#666' }}>📝</Typography>
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Box
-              sx={{
-                width: 20,
-                height: 20,
-                backgroundColor: '#1976d2',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 1
-              }}
-            >
-              <Typography sx={{ fontSize: '10px', color: 'white', fontWeight: 'bold' }}>
-                {(params.row.site || '').slice(0, 1).toUpperCase() || 'S'}
-              </Typography>
-            </Box>
-
-            {/* ID */}
-            <Typography
-              sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, mb: 0.5 }}
-            >
-              {params.row.animal_id}
-            </Typography>
-
-            {/* Primary name */}
-            <Typography
-              sx={{ fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 600, mb: 0.5 }}
-            >
-              {params.row.animal_name}
-            </Typography>
-
-            {/* Type / ref_type */}
-            <Typography
-              sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, mb: 0.5 }}
-            >
-              {params.row.animal_type}
-            </Typography>
-
-            {/* Section/Enclosure */}
-            <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
-              {params.row.section}
-            </Typography>
-            <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
-              {params.row.enclosure}
-            </Typography>
-          </Box>
-        </Box>
-      )
+      renderCell: params => <AnimalCard data={params?.row} />
     },
     {
       minWidth: 250,
@@ -399,9 +347,15 @@ const DailyReport = () => {
       headerName: 'OBSERVATION TYPE',
       sortable: false,
       renderCell: params => (
-        <Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <Typography
-            sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500, mb: 1 }}
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              letterSpacing: 0,
+              lineHeight: 1
+            }}
           >
             {params.row.observation_type}
           </Typography>
@@ -410,7 +364,7 @@ const DailyReport = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
               fontWeight: 400,
-              fontStyle: 'italic'
+              letterSpacing: 0
             }}
           >
             {params.row.observation_details}
@@ -430,7 +384,8 @@ const DailyReport = () => {
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
             fontWeight: 400,
-            lineHeight: 1.5
+            letterSpacing: 0,
+            lineHeight: 1
           }}
         >
           {params.row.observation}
@@ -465,51 +420,17 @@ const DailyReport = () => {
       {selectedSiteIds.length ? (
         <>
           <Card sx={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <CardHeader title={title} action={headerAction} sx={{ pb: 0 }} />
-
-            {/* Search */}
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { sm: 'row', xs: 'column' },
-                justifyContent: { sm: 'space-between', xs: 'flex-start' },
-                alignItems: 'center',
-                gap: 4
-              }}
-            >
-              <Box sx={{ width: '100%', px: 6 }}>
-                <Search
-                  onChange={handleSearchChange}
-                  placeholder='Search by date, observation type or text'
-                  value={searchValue}
-                  width={297}
-                  borderRadius='4px'
-                  inputStyle={{ padding: '10px 12px' }}
-                  textFielsSX={{
-                    height: '40px',
-                    '& fieldset': { borderColor: '#C3CEC7' },
-                    '&:hover fieldset': { borderColor: '#C3CEC7' },
-                    '&.Mui-focused fieldset': { borderColor: '#C3CEC7' }
-                  }}
-                  sx={{
-                    gap: '4px',
-                    '& .MuiInputBase-input::placeholder': {
-                      fontSize: '14px',
-                      fontWeight: 400
-                    }
-                  }}
-                />
-              </Box>
-            </Box>
+            <CardHeader title={title} action={headerAction} sx={{ p: 0 }} />
 
             {/* Site caption */}
             <Box
               sx={{
-                padding: '16px',
+                height: '43px',
+                paddingLeft: '16px',
                 borderRadius: '8px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4,
+                justifyContent: 'center',
                 backgroundColor: theme.palette.customColors.displaybgPrimary
               }}
             >
@@ -521,30 +442,63 @@ const DailyReport = () => {
                   letterSpacing: 0
                 }}
               >
-                Sites:{' '}
+                {selectedSiteIds.length > 1 ? 'Sites' : 'Site'}:
                 <span style={{ fontWeight: 500 }}>
                   {selectedSiteIds.length === siteData.length
                     ? 'All'
                     : selectedSiteIds.map(id => siteData.find(s => s.site_id === id)?.site_name || id).join(', ')}
                 </span>
               </Typography>
-              <Typography sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
-                Range: {dateRange.start_date} → {dateRange.end_date}
-              </Typography>
             </Box>
-          </Card>
 
-          <StickyTable
-            columns={dailyReportsColumns}
-            rows={indexedRows}
-            loading={loading}
-            total={total}
-            rowHeight={120}
-            paginationModel={paginationModel}
-            setPaginationModel={setPaginationModel}
-            searchValue={searchValue}
-            onPaginationModelChange={model => setPaginationModel(model)}
-          />
+            {/* Search */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '24px'
+              }}
+            >
+              <Search
+                onChange={handleSearchChange}
+                placeholder='Search by date, observation type or text'
+                value={searchValue}
+                width={342}
+                borderRadius='4px'
+                textFielsSX={{
+                  height: '40px',
+                  '& fieldset': { borderColor: '#C3CEC7' },
+                  '&:hover fieldset': { borderColor: '#C3CEC7' },
+                  '&.Mui-focused fieldset': { borderColor: '#C3CEC7' }
+                }}
+                sx={{
+                  gap: '4px',
+                  '& .MuiInputBase-input::placeholder': {
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    lineHeight: '100%',
+                    letterSpacing: '0%',
+                    color: '#C3CEC7'
+                  }
+                }}
+              />
+              <Box>
+                <CommonDateRangePickers />
+              </Box>
+            </Box>
+
+            <StickyTable
+              columns={dailyReportsColumns}
+              rows={indexedRows}
+              loading={loading}
+              total={total}
+              rowHeight={120}
+              paginationModel={paginationModel}
+              setPaginationModel={setPaginationModel}
+              searchValue={searchValue}
+              onPaginationModelChange={model => setPaginationModel(model)}
+            />
+          </Card>
         </>
       ) : siteLoader ? (
         <Box display='flex' justifyContent='center' alignItems='center'>
