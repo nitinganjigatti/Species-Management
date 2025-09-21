@@ -99,7 +99,9 @@ const AddPatientForm = () => {
     watch,
     setValue,
     trigger,
-    clearErrors
+    clearErrors,
+    getValues,
+    reset
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -196,6 +198,8 @@ const AddPatientForm = () => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
           router.back()
+        } else {
+          Toaster({ type: 'error', message: res?.message })
         }
         setSubmitLoader(false)
       })
@@ -218,6 +222,11 @@ const AddPatientForm = () => {
   }
 
   const handleRemoveAnimal = () => {
+    reset(defaultValues, {
+      keepErrors: false,
+      keepDirty: false,
+      keepTouched: false
+    })
     setSelectedAnimal(null)
     setValue('selectedAnimal', null)
     setMedicalId([])
@@ -614,7 +623,18 @@ const AddPatientForm = () => {
               minHeight: '56px',
               minWidth: '160px'
             }}
-            onClick={() => router.back()}
+            onClick={() => {
+              reset(defaultValues, {
+                keepErrors: false,
+                keepDirty: false,
+                keepTouched: false
+              })
+              setSelectedAnimal(null)
+              setValue('selectedAnimal', null)
+              setMedicalId([])
+              setValue('medicalRecordChoice', 'new')
+              router.back()
+            }}
           >
             CANCEL
           </Button>

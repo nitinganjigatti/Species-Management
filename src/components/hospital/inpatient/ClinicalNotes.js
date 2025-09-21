@@ -6,7 +6,7 @@ import { getClinicalNotes } from 'src/lib/api/hospital/clinicalNotesApi'
 // ** View Component
 import InpatientClinicalNotes from 'src/views/pages/hospital/inpatient/InpatientClinicalNotes'
 
-const ClinicalNotes = () => {
+const ClinicalNotes = ({ patientData }) => {
   const params = {
     type: 'all',
     page_no: 1,
