@@ -15,6 +15,7 @@ import StickyTable from 'src/views/table/sticky-table'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { getEnclosureList } from 'src/lib/api/diet/dietList'
 
 const EnclosureCountRegister = () => {
   const theme = useTheme()
@@ -61,29 +62,54 @@ const EnclosureCountRegister = () => {
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 50
   })
-  const prevStatKeyRef = useRef({ siteId: null, type: '', sectionKey: '' })
+  // const prevStatKeyRef = useRef({ siteId: null, type: '', sectionKey: '' })
+  // const prevStatKeyRef = useRef({ siteKey: '', type: '', sectionKey: '' })
+  const prevStatKeyRef = useRef({ siteKey: '', type: '', sectionKey: '' })
+  const lastFetchKeyRef = useRef('')
+
+  // ----- derived keys -----
+  const siteIdsArr = (
+    selectedItems?.Site?.length
+      ? selectedItems.Site
+      : selectedSite?.site_id || router.query.site_id
+      ? [String(selectedSite?.site_id || router.query.site_id)]
+      : []
+  ).map(String)
+  const siteKey = siteIdsArr.join(',')
+  const typeKey =
+    selectedItems?.reportType === 'individual' ? 'individual' : selectedItems?.reportType ? 'species-wise' : ''
+  const sectionKey = (selectedItems?.Section || []).join(',')
+
+  const fetchKey = [siteKey, typeKey, sectionKey, searchValue, paginationModel?.page, paginationModel?.pageSize].join(
+    '|'
+  )
 
   const reportCardEventHandler = () => {
     setOpenFilterDrawer(!openFilterDrawer)
   }
 
-  const handleSiteSelect = site => {
-    setSelectedSite({
-      site_id: site?.site_id,
-      site_name: site?.site_name,
-      site_type: site?.site_type,
-      location: site?.location,
-      description: site?.description
-    })
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, site_id: site?.site_id }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }
+  // const fetchEnclosures = async (searchQuery = searchTerm) => {
+  //   if (!sectionId) return
+  //   setLoading(true)
+  //   try {
+  //     const params = {
+  //       section_id: sectionId,
+  //       page_no: pageNo,
+  //       limit: 15,
+  //       q: searchQuery
+  //     }
+  //     const response = await getEnclosureList(params)
+  //     const newEnclosures = response.data?.result || []
+  //     // setTotalCount(response.data?.total_count || 0)
+
+  //     setEnclosuresData(newEnclosures)
+  //     // setHasMore(newEnclosures.length > 0)
+  //   } catch (error) {
+  //     console.error('Error fetching enclosures:', error)
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   const siteList = useCallback(
     async (q = '') => {
@@ -91,9 +117,9 @@ const EnclosureCountRegister = () => {
         const sites = authData.userData.user.zoos[0]?.sites || []
         const filteredSites = q ? sites.filter(site => site.site_name.toLowerCase().includes(q.toLowerCase())) : sites
 
-        setSiteData(prev =>
+        setSiteData(
           filteredSites.map(site => ({
-            site_id: site.id,
+            site_id: String(site.id ?? site.site_id ?? ''), // <- robust
             site_name: site.site_name,
             ...site
           }))
@@ -120,24 +146,31 @@ const EnclosureCountRegister = () => {
 
   // Fetch list data — ensure single call when generating
   useEffect(() => {
-    const siteId = selectedSite?.site_id || router.query.site_id
-    if (!siteId || !selectedItems?.reportType) return
+    // const siteId = selectedSite?.site_id || router.query.site_id
+    // if (!siteId || !selectedItems?.reportType) return
+
+    if (!siteKey || !typeKey) return
+    if (fetchKey === lastFetchKeyRef.current) return
+    lastFetchKeyRef.current = fetchKey
 
     const params = {
-      site_id: siteId,
-      type: selectedItems?.reportType === 'individual' ? 'individual' : 'species-wise',
+      // site_id: siteIdsArr.join(','),
+      site_id: siteKey,
+      type: typeKey,
       q: searchValue || '',
       page: (paginationModel?.page || 0) + 1,
       limit: paginationModel?.pageSize || 50,
       response_type: 'json'
     }
-    if (selectedItems?.Section?.length > 0) params.section_id = selectedItems.Section.join(',')
+    // if (selectedItems?.Section?.length > 0) params.section_id = selectedItems.Section.join(',')
+    // if (selectedItems?.Section?.length) params.section_id = selectedItems.Section.join(',')
+    if (sectionKey) params.section_id = sectionKey
 
     let canceled = false
-    const sectionKey = (selectedItems?.Section || []).join(',')
+    // const sectionKey = (selectedItems?.Section || []).join(',')
     const statKeyChanged =
-      prevStatKeyRef.current.siteId !== siteId ||
-      prevStatKeyRef.current.type !== params.type ||
+      prevStatKeyRef.current.siteKey !== siteKey ||
+      prevStatKeyRef.current.type !== typeKey ||
       prevStatKeyRef.current.sectionKey !== sectionKey
 
     if (statKeyChanged) {
@@ -193,14 +226,14 @@ const EnclosureCountRegister = () => {
           setTotal(Number(res?.data?.stats?.total_count))
           if (statKeyChanged) {
             setRegisterStats(res?.data?.stats || null)
-            prevStatKeyRef.current = { siteId, type: params.type, sectionKey }
+            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey }
           }
         } else {
           setIndexedRows([])
           setTotal(0)
           if (statKeyChanged) {
             setRegisterStats(null)
-            prevStatKeyRef.current = { siteId, type: params.type, sectionKey }
+            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey }
           }
         }
       } catch (err) {
@@ -218,15 +251,7 @@ const EnclosureCountRegister = () => {
     return () => {
       canceled = true
     }
-  }, [
-    selectedSite?.site_id,
-    selectedItems?.reportType,
-    selectedItems?.Section,
-    searchValue,
-    paginationModel?.page,
-    paginationModel?.pageSize,
-    router.query.site_id
-  ])
+  }, [fetchKey])
 
   const pageTitle = !registerStats
     ? 'Enclosure Count Register'
@@ -477,11 +502,16 @@ const EnclosureCountRegister = () => {
   ]
 
   const downloadEnclosureCountRegister = async () => {
-    const siteId = selectedSite?.site_id || router.query.site_id
-    if (!siteId || !selectedItems?.reportType) return
+    // const siteId = selectedSite?.site_id || router.query.site_id
+    // if (!siteId || !selectedItems?.reportType) return
+    const siteIdsArr = (selectedItems?.Site?.length ? selectedItems.Site : []).map(String)
+    if (!siteIdsArr.length && (selectedSite?.site_id || router.query.site_id)) {
+      siteIdsArr.push(String(selectedSite?.site_id || router.query.site_id))
+    }
+    if (!siteIdsArr.length || !selectedItems?.reportType) return
 
     const params = {
-      site_id: siteId,
+      site_id: siteIdsArr.join(','),
       type: selectedItems?.reportType === 'individual' ? 'individual-wise' : 'species-wise',
       q: searchValue || '',
       page: (paginationModel?.page || 0) + 1,
@@ -555,7 +585,7 @@ const EnclosureCountRegister = () => {
       <DownloadReport
         isDownloading={isDownloading}
         handleDownloadReport={downloadEnclosureCountRegister}
-        containerStyles={loading ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+        containerStyles={loading || isDownloading ? { pointerEvents: 'none', opacity: 0.5 } : {}}
       />
       <Box
         sx={{
@@ -568,7 +598,7 @@ const EnclosureCountRegister = () => {
           borderRadius: '50px'
         }}
       >
-        <IconButton onClick={clearUserSelection} disabled={loading}>
+        <IconButton onClick={clearUserSelection} disabled={loading || isDownloading}>
           <Icon icon='mdi:close' color='red' fontSize={24} />
         </IconButton>
       </Box>

@@ -475,7 +475,7 @@ const DailyReport = () => {
       <DownloadReport
         isDownloading={isDownloading}
         handleDownloadReport={downloadDailyReport}
-        containerStyles={loading ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+        containerStyles={loading || isDownloading ? { pointerEvents: 'none', opacity: 0.5 } : {}}
       />
       <Box
         sx={{
@@ -488,7 +488,7 @@ const DailyReport = () => {
           borderRadius: '50px'
         }}
       >
-        <IconButton onClick={clearSiteSelection}>
+        <IconButton onClick={clearSiteSelection} disabled={loading || isDownloading}>
           <Icon icon='mdi:close' color='red' fontSize={30} />
         </IconButton>
       </Box>
