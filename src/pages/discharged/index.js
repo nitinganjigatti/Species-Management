@@ -28,9 +28,10 @@ const getVisitTypeLabel = title => {
   if (title === 'follow_up') return 'Follow-up'
   if (title === 'outpatient') return 'OUTPATIENT'
   if (title === 'opd') return 'OUTPATIENT'
+  if (title === 'planned') return 'Planned'
 }
 
-const HospitalOutPatient = () => {
+const HospitalDischarged = () => {
   const theme = useTheme()
   const router = useRouter()
 
@@ -172,7 +173,7 @@ const HospitalOutPatient = () => {
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
-      headerName: 'Purpose of Visit',
+      headerName: 'Discharge Summary',
       renderCell: params => (
         <>
           <Tooltip title={params.row.purpose_of_visit}>
@@ -199,19 +200,28 @@ const HospitalOutPatient = () => {
       )
     },
     {
-      width: 150,
+      width: 200,
       minWidth: 20,
-      field: 'medical_record_code',
+      field: 'admitted_at',
       sortable: false,
-      headerName: 'Medical Id',
+      headerName: 'Discharged',
       align: 'left',
       headerAlign: 'left',
 
       renderCell: params => (
         <>
-          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.medical_record_code}
-          </Typography>
+          <Box>
+            <Typography
+              sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
+            >
+              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
+            </Typography>
+            <Typography
+              sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
+            >
+              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
+            </Typography>
+          </Box>
         </>
       )
     },
@@ -220,7 +230,7 @@ const HospitalOutPatient = () => {
       minWidth: 20,
       field: 'admitted_at',
       sortable: false,
-      headerName: 'OPD Visit Date',
+      headerName: 'Admission',
       align: 'left',
       headerAlign: 'left',
 
@@ -292,20 +302,6 @@ const HospitalOutPatient = () => {
           </Typography>
         </>
       )
-    },
-    {
-      width: 200,
-      minWidth: 20,
-      field: 'doctor_full_name',
-      sortable: false,
-      headerName: 'Chief Doctor',
-      renderCell: params => (
-        <>
-          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.doctor_full_name ? params?.row?.doctor_full_name : '-'}
-          </Typography>
-        </>
-      )
     }
   ]
 
@@ -314,26 +310,18 @@ const HospitalOutPatient = () => {
       pathname: `/hospital/inpatient/${params.row.id}`
     })
 
-  const headerAction = (
-    <>
-      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/add-patient` })}>
-        ADD PATIENT
-      </Button>
-    </>
-  )
-
   return (
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
           <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>outpatient</Typography>
+          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Discharged</Typography>
         </Breadcrumbs>
         <Box>{/* This is for Hospital Card */}</Box>
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Outpatients')} action={headerAction} />
+            <CardHeader title={RenderUtility?.pageTitle('Discharged')} />
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
               <Box sx={{ ml: 2 }}>
                 <Search
@@ -389,4 +377,4 @@ const HospitalOutPatient = () => {
   )
 }
 
-export default HospitalOutPatient
+export default HospitalDischarged
