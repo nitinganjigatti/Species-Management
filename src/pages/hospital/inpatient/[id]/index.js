@@ -39,7 +39,7 @@ const useDrawerState = () => {
   }
 }
 const InpatientOverview = lazy(() => import('src/views/pages/hospital/inpatient/InpatientOverview'))
-const InpatientMedicalSummary = lazy(() => import('src/views/pages/hospital/inpatient/InpatientMedicalSummary'))
+const InpatientMedicalSummary = lazy(() => import('src/components/hospital/inpatient/InpatientMedicalSummary'))
 const ClinicalAssessment = lazy(() => import('src/components/hospital/inpatient/ClinicalAssessment'))
 const ClinicalNotes = lazy(() => import('src/components/hospital/inpatient/ClinicalNotes'))
 const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
