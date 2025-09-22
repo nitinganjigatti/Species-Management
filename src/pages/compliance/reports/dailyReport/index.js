@@ -1,20 +1,24 @@
-import { Autocomplete, Box, Card, CardHeader, CircularProgress, IconButton, TextField, Typography } from '@mui/material'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import Icon from 'src/@core/components/icon'
+
+import { Autocomplete, Box, Card, CardHeader, CircularProgress, IconButton, TextField, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { debounce } from 'lodash'
+
 import { AuthContext } from 'src/context/AuthContext'
-import SiteDrawer from 'src/views/pages/compliance/reports/dailyReport/SiteDrawer'
+import Utility from 'src/utility'
 import { downloadPDF } from 'src/utility'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
+
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import Icon from 'src/@core/components/icon'
+
+import SiteDrawer from 'src/views/pages/compliance/reports/dailyReport/SiteDrawer'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import StickyTable from 'src/views/table/sticky-table'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 
 import { getComplianceDailyReport, getObservationMasterType } from 'src/lib/api/compliance/reports'
-import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import Utility from 'src/utility'
-import { debounce } from 'lodash'
-import { useTheme } from '@mui/material/styles'
 
 const DailyReport = () => {
   const theme = useTheme()
@@ -120,10 +124,6 @@ const DailyReport = () => {
       for (const d of detailsArr) {
         i += 1
         const child = Array.isArray(d.child_observation) ? d.child_observation.join('• ') : ''
-        // const displayName = taxonomy || site || section || enclosure || animal_id || ref_id || '-'
-
-        // const displayType =
-        //   scientific_name || (ref_type ? ref_type.charAt(0).toUpperCase() + ref_type.slice(1) : '') || ''
 
         rows.push({
           id: d.observation_id || `${ref_type}-${ref_id}-${i}`,
@@ -132,8 +132,6 @@ const DailyReport = () => {
           animal_id: animal_id || '-',
           scientific_name: scientific_name || '-',
           common_name: '',
-          // animal_name: displayName, // we keep column title as "ANIMAL NAME" to reuse layout
-          // animal_type: displayType,
           section_name: section || '-',
           user_enclosure_name: enclosure || '-',
           observation_type: d.master_enrichment_type || '-',
@@ -250,7 +248,6 @@ const DailyReport = () => {
     setSearchValue('') // q='' -> server will ignore
     setPaginationModel(p => ({ ...p, page: 0 }))
 
-    // optional: force immediate refetch (warna deps se next tick pe ho jayega)
     fetchDailyReport()
   }
 
@@ -268,28 +265,26 @@ const DailyReport = () => {
   }
 
   const fetchDailyReport = useCallback(
-    async forceSiteIds => {
-      const ids = Array.isArray(forceSiteIds) ? forceSiteIds : selectedSiteIds
-      if (!Array.isArray(ids) || ids.length === 0) {
+    async ({ ids, range, q, obsTypeId }) => {
+      const siteIds = Array.isArray(ids) ? ids : []
+      if (!siteIds.length) {
         setRawRows([])
         setIndexedRows([])
         setTotal(0)
         return
       }
-
       const params = {
         report_type: 'json',
-        site_id: ids.join(','), // ab yahan array guaranteed
-        start_date: dateRange.start_date || '',
-        end_date: dateRange.end_date || '',
-        ...(searchValue && { q: searchValue }), // server-side search
-        ...(defaultObservationType?.id && { observation_type: defaultObservationType.id })
+        site_id: siteIds.join(','),
+        start_date: range?.start_date || '',
+        end_date: range?.end_date || '',
+        ...(q && { q }),
+        ...(obsTypeId && { observation_type: obsTypeId })
       }
-
       setLoading(true)
       try {
         const res = await getComplianceDailyReport(params)
-        const payload = res?.data?.data || res?.data || res // support different wrappers
+        const payload = res?.data?.data || res?.data || res
         const rows = transformApiToRows(payload)
         setRawRows(rows)
       } catch (e) {
@@ -299,14 +294,33 @@ const DailyReport = () => {
         setLoading(false)
       }
     },
-    [dateRange, selectedSiteIds, transformApiToRows, searchValue, defaultObservationType?.id]
+    [transformApiToRows]
   )
 
-  // fetch whenever sites/date range change
+  // Centralized trigger: sites / dates / search / obsType pe 1 hi call
   useEffect(() => {
-    fetchDailyReport()
-    fetchObservationMasterType()
-  }, [fetchDailyReport])
+    if (selectedSiteIds.length) {
+      fetchDailyReport({
+        ids: selectedSiteIds,
+        range: dateRange,
+        q: searchValue,
+        obsTypeId: defaultObservationType?.id
+      })
+    } else {
+      setRawRows([])
+      setIndexedRows([])
+      setTotal(0)
+    }
+    // fetchObservationMasterType()
+  }, [
+    fetchDailyReport,
+    // explicit deps to trigger once per change:
+    selectedSiteIds.join(','), // array -> string to avoid ref churn
+    dateRange.start_date,
+    dateRange.end_date,
+    searchValue,
+    defaultObservationType?.id
+  ])
 
   const handleSiteSelect = useCallback(
     site => {
@@ -571,9 +585,6 @@ const DailyReport = () => {
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   onChange={(e, val) => {
                     setDefaultObservationType(val ?? null)
-                    if (selectedSiteIds?.length) {
-                      fetchDailyReport()
-                    }
                   }}
                   clearOnEscape
                   disableClearable={false}
