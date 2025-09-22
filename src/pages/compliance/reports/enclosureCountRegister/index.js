@@ -727,7 +727,7 @@ const EnclosureCountRegister = () => {
       ) : (
         <>
           <Card sx={{ p: 6 }}>
-            <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
+            <CardHeader title={title} sx={{ p: 0, pb: 4 }} />
             <ReportCard
               subtitle='No Site selected'
               description='Select any Site to view its report'

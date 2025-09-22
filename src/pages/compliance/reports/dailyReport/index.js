@@ -1,6 +1,16 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
-import { Autocomplete, Box, Card, CardHeader, CircularProgress, IconButton, TextField, Typography } from '@mui/material'
+import {
+  Autocomplete,
+  Box,
+  Card,
+  CardHeader,
+  CircularProgress,
+  IconButton,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { debounce } from 'lodash'
 
@@ -192,9 +202,6 @@ const DailyReport = () => {
     }
   }
 
-  // -------- UI Actions --------
-  const reportCardEventHandler = () => setOpenFilterDrawer(true)
-
   const clearSiteSelection = () => {
     // koi pending debounced apply ho to cancel
     debouncedSearch.cancel?.()
@@ -248,7 +255,13 @@ const DailyReport = () => {
     setSearchValue('') // q='' -> server will ignore
     setPaginationModel(p => ({ ...p, page: 0 }))
 
-    fetchDailyReport()
+    // fetchDailyReport()
+    fetchDailyReport({
+      ids: selectedSiteIds,
+      range: dateRange,
+      q: '', // clear search
+      obsTypeId: defaultObservationType?.id
+    })
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
@@ -265,7 +278,7 @@ const DailyReport = () => {
   }
 
   const fetchDailyReport = useCallback(
-    async ({ ids, range, q, obsTypeId }) => {
+    async ({ ids, range, q, obsTypeId } = {}) => {
       const siteIds = Array.isArray(ids) ? ids : []
       if (!siteIds.length) {
         setRawRows([])
@@ -311,7 +324,7 @@ const DailyReport = () => {
       setIndexedRows([])
       setTotal(0)
     }
-    // fetchObservationMasterType()
+    fetchObservationMasterType()
   }, [
     fetchDailyReport,
     // explicit deps to trigger once per change:
@@ -321,28 +334,6 @@ const DailyReport = () => {
     searchValue,
     defaultObservationType?.id
   ])
-
-  const handleSiteSelect = useCallback(
-    site => {
-      // single select helper (optional; drawer still supports multi)
-      setSelectedSite({
-        site_id: site?.site_id,
-        site_name: site?.site_name,
-        site_type: site?.site_type,
-        location: site?.location,
-        description: site?.description
-      })
-      if (site?.site_id) {
-        const ids = [site.site_id]
-        setSelectedItems({ Site: ids })
-        setTempSelectedItems({ Site: ids })
-        setSelectedSiteIds(ids)
-        setPaginationModel(p => ({ ...p, page: 0 }))
-        fetchDailyReport(ids)
-      }
-    },
-    [fetchDailyReport]
-  )
 
   const downloadDailyReport = async () => {
     const ids = Array.isArray(selectedSiteIds) ? selectedSiteIds : []
@@ -480,7 +471,7 @@ const DailyReport = () => {
   ]
 
   const headerAction = (
-    <Box sx={{ display: 'flex', gap: '16px' }}>
+    <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
       <DownloadReport
         isDownloading={isDownloading}
         handleDownloadReport={downloadDailyReport}
@@ -523,21 +514,34 @@ const DailyReport = () => {
                 backgroundColor: theme.palette.customColors.displaybgPrimary
               }}
             >
+              {/* <Tooltip
+                title={
+                  selectedSiteIds.length === siteData.length
+                    ? 'All'
+                    : selectedSiteIds.map(id => siteData.find(s => s.site_id === id)?.site_name || id).join(', ')
+                }
+              > */}
               <Typography
                 sx={{
+                  width: '100%',
                   fontSize: '14px',
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontWeight: 400,
-                  letterSpacing: 0
+                  letterSpacing: 0,
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis'
                 }}
               >
                 {selectedSiteIds.length > 1 ? 'Sites' : 'Site'}:{' '}
                 <span style={{ fontWeight: 500 }}>
                   {selectedSiteIds.length === siteData.length
                     ? 'All'
-                    : selectedSiteIds.map(id => siteData.find(s => s.site_id === id)?.site_name || id).join(', ')}
+                    : // : selectedSiteIds.map(id => siteData.find(s => s.site_id === id)?.site_name || id).join(', ')}
+                      selectedSiteIds.length}
                 </span>
               </Typography>
+              {/* </Tooltip> */}
             </Box>
 
             {/* Search */}
@@ -666,7 +670,7 @@ const DailyReport = () => {
       ) : (
         <>
           <Card sx={{ p: 6 }}>
-            <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
+            <CardHeader title={title} sx={{ p: 0, pb: 4 }} />
             <ReportCard
               subtitle='No Site selected'
               description='Select any site to view its daily report'
