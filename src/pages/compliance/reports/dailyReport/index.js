@@ -1,4 +1,3 @@
-import { useTheme } from '@emotion/react'
 import { Autocomplete, Box, Card, CardHeader, CircularProgress, IconButton, TextField, Typography } from '@mui/material'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -15,6 +14,7 @@ import { getComplianceDailyReport, getObservationMasterType } from 'src/lib/api/
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Utility from 'src/utility'
 import { debounce } from 'lodash'
+import { useTheme } from '@mui/material/styles'
 
 const DailyReport = () => {
   const theme = useTheme()
@@ -186,10 +186,11 @@ const DailyReport = () => {
       }
       const res = await getObservationMasterType({ params })
       setObservationList(res?.data || [])
+      setObservationListLoader(false)
     } catch (e) {
       console.error(e)
     } finally {
-      setObservationListLoader(false)
+      // setObservationListLoader(false)
     }
   }
 
@@ -205,6 +206,8 @@ const DailyReport = () => {
     setSelectedItems({ Site: [] })
     setTempSelectedItems({ Site: [] })
     setSelectedSiteIds([])
+
+    setDefaultObservationType(null)
 
     // table/search state reset
     setRawRows([])
@@ -279,7 +282,8 @@ const DailyReport = () => {
         site_id: ids.join(','), // ab yahan array guaranteed
         start_date: dateRange.start_date || '',
         end_date: dateRange.end_date || '',
-        ...(searchValue && { q: searchValue }) // server-side search
+        ...(searchValue && { q: searchValue }), // server-side search
+        ...(defaultObservationType?.id && { observation_type: defaultObservationType.id })
       }
 
       setLoading(true)
@@ -295,7 +299,7 @@ const DailyReport = () => {
         setLoading(false)
       }
     },
-    [dateRange, selectedSiteIds, transformApiToRows, searchValue]
+    [dateRange, selectedSiteIds, transformApiToRows, searchValue, defaultObservationType?.id]
   )
 
   // fetch whenever sites/date range change
@@ -335,7 +339,8 @@ const DailyReport = () => {
       site_id: ids.join(','), // comma-separated site ids
       start_date: dateRange.start_date || '',
       end_date: dateRange.end_date || '',
-      ...(searchValue && { q: searchValue }) // include server-side search if any
+      ...(searchValue && { q: searchValue }), // include server-side search if any
+      ...(defaultObservationType?.id && { observation_type: defaultObservationType.id })
     }
     try {
       setIsDownloading(true)
@@ -526,7 +531,8 @@ const DailyReport = () => {
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                gap: '24px'
+                gap: '24px',
+                flexWrap: 'wrap'
               }}
             >
               <Search
@@ -564,14 +570,13 @@ const DailyReport = () => {
                   getOptionLabel={option => option.type_name}
                   isOptionEqualToValue={(option, value) => option?.id === value?.id}
                   onChange={(e, val) => {
-                    if (val === null) {
-                      setDefaultObservationType(null)
-
-                      // return onChange('')
-                    } else {
-                      setDefaultObservationType(val)
+                    setDefaultObservationType(val ?? null)
+                    if (selectedSiteIds?.length) {
+                      fetchDailyReport()
                     }
                   }}
+                  clearOnEscape
+                  disableClearable={false}
                   renderInput={params => (
                     <TextField
                       // onChange={e => {
@@ -591,48 +596,29 @@ const DailyReport = () => {
 
                           /* real border is the notchedOutline fieldset */
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#C3CEC7',
-                            borderWidth: '1px'
+                            borderColor: '#C3CEC7'
                           },
                           '&:hover .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#C3CEC7'
                           },
                           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#C3CEC7'
+                            borderColor: theme.palette.primary.main
                           },
 
                           /* ---- INNER INPUT (text area) ---- */
                           '& .MuiAutocomplete-input': {
                             padding: '8px 12px', // top/bottom = 8, left/right = 12
-                            fontSize: 14,
-                            lineHeight: 1.2
-                          },
-
-                          /* gap between input text and end-adornment (icon) */
-                          '& .MuiAutocomplete-endAdornment': {
-                            right: 8 // default se thoda andar
+                            fontSize: 14
                           }
                         },
 
-                        /* ---- LABEL (when not focused/floating) ---- */
                         '& .MuiInputLabel-root': {
-                          fontWeight: 400,
-                          fontSize: 14,
-                          color: '#7D8892'
+                          top: '50%', // vertical align
+                          transform: 'translate(14px, -50%) scale(1)' // center label
                         },
-                        /* floating label (focused ya value hone par) */
                         '& .MuiInputLabel-shrink': {
-                          color: '#7D8892'
-                        },
-
-                        /* ---- PLACEHOLDER (appears when using placeholder) ---- */
-                        '& .MuiInputBase-input::placeholder': {
-                          fontWeight: 400,
-                          fontSize: 14,
-                          lineHeight: 1,
-                          letterSpacing: 0,
-                          color: '#C3CEC7',
-                          opacity: 1 // safari fix
+                          top: 0,
+                          transform: 'translate(14px, -9px) scale(0.75)' // focus/value hone par default float
                         }
                       }}
 
@@ -641,7 +627,11 @@ const DailyReport = () => {
                   )}
                 />
 
-                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={dateRange} />
+                <CommonDateRangePickers
+                  // sx={{ maxWidth: '400px' }}
+                  onChange={handleDateRangeChange}
+                  filterDates={dateRange}
+                />
               </Box>
             </Box>
 
