@@ -1078,6 +1078,7 @@ const AddIngredientswithChoice = props => {
                       id='demo-simple-select-label'
                       placeholder='Add Remarks (optional)'
                       variant='standard'
+                      autoComplete='off'
                       slotProps={{
                         input: {
                           disableUnderline: true
