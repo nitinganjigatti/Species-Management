@@ -714,4 +714,8 @@ export const ADD_HOSPITAL_PATIENT = `/v1/hospital/create-transfer`
 
 export const GET_ANIMAL_TOTAL_HOSPITAL_VISIT = `v1/hospital/get-animal-hospital-visits`
 
-export const GET_CLINICAL_NOTES = 'medical/v2/225091/get-medical-common-data-v2'
+export const GET_CLINICAL_NOTES = 'get-medical-common-data-v2'
+
+export const DELETE_CLINICAL_NOTES = 'medical/attachment-remove/'
+
+export const CREATE_CLINICAL_NOTES = 'v1/hospital/add-clinical-notes'
