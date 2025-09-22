@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
+import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -332,6 +333,7 @@ const HospitalInpatient = () => {
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Inpatient</Typography>
         </Breadcrumbs>
+        <HospitalAnalytics />
         <Box>{/* This is for Hospital Card */}</Box>
         <Box sx={{ mt: 6 }}>
           <Card>
