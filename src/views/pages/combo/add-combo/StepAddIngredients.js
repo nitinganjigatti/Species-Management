@@ -61,7 +61,7 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  recipe_name: yup.string().required('Combo name is required')
+  recipe_name: yup.string().required('Mix name is required')
 })
 
 const StepAddIngredients = ({
@@ -512,7 +512,7 @@ const StepAddIngredients = ({
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ mb: 5, px: 5, mt: 5, float: 'left' }}>
-            <Typography variant='h6'>Combo details</Typography>
+            <Typography variant='h6'>Mix details</Typography>
           </Box>
           <ScrollToFieldError errors={errors} />
           <Grid container spacing={5} sx={{ px: 5 }}>
@@ -525,7 +525,7 @@ const StepAddIngredients = ({
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       value={value}
-                      label='Combo name *'
+                      label='Mix name *'
                       name='recipe_name'
                       error={Boolean(errors.recipe_name)}
                       onChange={onChange}

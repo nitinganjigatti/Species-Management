@@ -2,6 +2,7 @@ import { Box, Stack, Tooltip, Typography } from '@mui/material'
 import React from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultName, completeName, eggIcon, tab }) => {
   const theme = useTheme()
@@ -26,6 +27,8 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
               ? theme.palette.customColors.Tertiary
               : eggCondition === 'Cracked'
               ? theme.palette.customColors.moderateSecondary
+              : eggCondition === 'Thin-Shelled'
+              ? theme.palette.primary.light
               : egg_status === 'Fresh'
               ? theme.palette.primary.dark
               : egg_status === 'Fertile'
@@ -47,16 +50,28 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           }}
         >
           {imgURl ? (
-            <img
-              src={imgURl}
-              alt='Default'
-              style={{
+            // <img
+            //   src={imgURl}
+            //   alt='Default'
+            //   style={{
+            //     width: '100%',
+            //     height: '100%',
+            //     borderRadius: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? '' : '50%',
+            //     padding: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? '2px' : '0px',
+            //     objectFit: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? 'fill' : 'cover'
+            //   }}
+            // />
+            <FallbackAvatar
+              sx={{
                 width: '100%',
                 height: '100%',
                 borderRadius: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? '' : '50%',
                 padding: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? '2px' : '0px',
                 objectFit: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? 'fill' : 'cover'
               }}
+              variant='circular'
+              src={imgURl}
+              alt='Default'
             />
           ) : (
             <Icon icon='mdi:user' />

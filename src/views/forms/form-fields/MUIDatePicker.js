@@ -18,7 +18,7 @@ const MUIDatePicker = ({
   label = 'Select Date',
   minDate,
   maxDate,
-  format = 'Do MMM YY',
+  format = 'Do MMM YYYY',
   views,
   disabled = false,
   error = false,

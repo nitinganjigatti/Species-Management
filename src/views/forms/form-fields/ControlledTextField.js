@@ -21,6 +21,8 @@ const ControlledTextField = ({
   onInput,
   dateReader = false,
   formHelperTextBackgroundColor = 'inherit',
+  inputBackgroundColor = 'inherit',
+  borderRadius = '10px',
   placeholder,
   sx = {},
   size = 'large'
@@ -51,19 +53,26 @@ const ControlledTextField = ({
           onKeyDown={onKeyDown}
           onPaste={onPaste}
           onInput={onInput}
-          placeholder={placeholder}
-          sx={sx}
-          size={size}
           slotProps={{
             input: { readOnly },
             htmlInput: inputProps,
             formHelperText: {
               sx: {
-                backgroundColor: formHelperTextBackgroundColor,
+                // backgroundColor: formHelperTextBackgroundColor,
                 margin: 0,
                 px: '14px',
                 pt: '3px'
               }
+            }
+          }}
+          sx={{
+            ...sx,
+            '& .MuiFormControl-root .MuiTextField-root': {
+              borderRadius: borderRadius
+            },
+            '& .MuiInputBase-input': {
+              borderRadius: borderRadius,
+              backgroundColor: inputBackgroundColor ? inputBackgroundColor : 'inherit'
             }
           }}
         />

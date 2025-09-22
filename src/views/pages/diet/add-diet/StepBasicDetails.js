@@ -152,7 +152,7 @@ const StepBasicDetails = ({
 
   const combos = [
     // { label: 'No' },
-    { label: 'Combo' },
+    { label: 'Mix' },
     { label: 'Items' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
@@ -229,7 +229,6 @@ const StepBasicDetails = ({
       )
 
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
-       
         const matchedMealData = formData.meal_data.find(
           mealData =>
             Array.isArray(mealData.ingredient) &&
@@ -241,7 +240,6 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-          
           const matchedIngredient = matchedMealData.ingredient.find(
             ingredient =>
               String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
@@ -280,7 +278,6 @@ const StepBasicDetails = ({
     )
 
     setAllRecipeSelectedValues(prevState => {
-     
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
@@ -291,8 +288,6 @@ const StepBasicDetails = ({
       )
 
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
-       
-
         const matchedMealData = formData.meal_data.find(
           mealData =>
             Array.isArray(mealData.recipe) &&
@@ -304,7 +299,6 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-        
           const matchedRecipe = matchedMealData.recipe.find(
             recipe =>
               String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
@@ -344,7 +338,6 @@ const StepBasicDetails = ({
     )
 
     setAllComboSelectedValues(prevState => {
-     
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
@@ -366,7 +359,6 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-         
           const matchedCombo = matchedMealData.combo?.find(
             combo =>
               String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
@@ -418,7 +410,7 @@ const StepBasicDetails = ({
       const flattenedIngredients = formData.meal_data?.flatMap(all =>
         all.ingredient?.map(ing => ({
           ...ing,
-          ingredient_id: String(ing.ingredient_id) 
+          ingredient_id: String(ing.ingredient_id)
         }))
       )
       setAllSelectedValues(flattenedIngredients)
@@ -426,7 +418,7 @@ const StepBasicDetails = ({
       const flattenedRecipes = formData.meal_data?.flatMap(all =>
         all.recipe?.map(ing => ({
           ...ing,
-          recipe_id: String(ing.recipe_id), 
+          recipe_id: String(ing.recipe_id),
           ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
         }))
       )
@@ -436,7 +428,7 @@ const StepBasicDetails = ({
       const flattenedCombos = formData.meal_data?.flatMap(all =>
         all.combo?.map(ing => ({
           ...ing,
-          recipe_id: String(ing.recipe_id), 
+          recipe_id: String(ing.recipe_id),
           ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
         }))
       )
@@ -474,7 +466,6 @@ const StepBasicDetails = ({
   }, [formData, reset])
 
   useEffect(() => {
-   
     if (checkid) {
       const filteredValues = allSelectedValues.filter(value => value?.mealid === checkid)
 
@@ -673,7 +664,6 @@ const StepBasicDetails = ({
         return
       }
 
-     
       const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
 
       if (lastOverlapIndex !== -1) {
@@ -952,7 +942,7 @@ const StepBasicDetails = ({
                 ingredientList: updatedIngredientList?.length > 0 ? updatedIngredientList : undefined
               }
             })
-            .filter(ingWithChoice => ingWithChoice.ingredientList) 
+            .filter(ingWithChoice => ingWithChoice.ingredientList)
 
           return {
             ...field,
@@ -1091,7 +1081,7 @@ const StepBasicDetails = ({
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Prepared by *'
+                              label='Nutritionist *'
                               placeholder='Search & Select'
                               error={Boolean(errors.dietitian_id)}
                               name='dietitian_id'
@@ -1248,7 +1238,7 @@ const StepBasicDetails = ({
                                     errors.meal_data[index] &&
                                     errors.meal_data[index]?.meal_from_time
                                       ? 'red'
-                                      : undefined 
+                                      : undefined
                                 }
                               }}
                               renderInput={params => (
@@ -1495,7 +1485,7 @@ const StepBasicDetails = ({
                 allComboSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Combo</Typography>
+                      <Typography variant='h6'>Mix</Typography>
                     </Box>
 
                     <Grid
@@ -1527,7 +1517,7 @@ const StepBasicDetails = ({
                               sm:
                                 recipe.label === 'No'
                                   ? 0.5
-                                  : recipe.label === 'Combo'
+                                  : recipe.label === 'Mix'
                                   ? 2.2
                                   : recipe.label === 'Items'
                                   ? 1.9
@@ -1535,7 +1525,7 @@ const StepBasicDetails = ({
                               md:
                                 recipe.label === 'No'
                                   ? 0.5
-                                  : recipe.label === 'Combo'
+                                  : recipe.label === 'Mix'
                                   ? 2.3
                                   : recipe.label === 'Items'
                                   ? 1.5
@@ -2163,7 +2153,7 @@ const StepBasicDetails = ({
                     onClick={() => addEventSidebarOpen(field, index, 'combo')}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD COMBO
+                    ADD MIX
                   </Typography>
                   <Typography
                     className='item_cls'

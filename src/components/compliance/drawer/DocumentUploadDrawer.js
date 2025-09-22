@@ -141,14 +141,15 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
               errors={errors}
               required
             />
-
-            <ControlledTextField
-              name='reference_number'
-              label='Reference Number*'
-              control={control}
-              errors={errors}
-              fullWidth
-            />
+            <Box>
+              <ControlledTextField
+                name='reference_number'
+                label='Reference Number*'
+                control={control}
+                errors={errors}
+                fullWidth
+              />
+            </Box>
 
             <Typography
               sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '1.25rem' }}

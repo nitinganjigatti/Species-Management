@@ -1,7 +1,7 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import get from 'lodash/get'
-import { TextField } from '@mui/material'
+import { FormControl, FormHelperText, TextField } from '@mui/material'
 
 const ControlledTextArea = ({
   name,
@@ -13,8 +13,6 @@ const ControlledTextArea = ({
   disabled = false,
   readOnly = false,
   rows = 4,
-  maxRows,
-  minRows,
   placeholder,
   onChangeOverride,
   inputProps = {},
@@ -27,39 +25,40 @@ const ControlledTextArea = ({
   const helperText = error?.message || ''
 
   return (
-    <Controller
-      name={name}
-      control={control}
-      rules={{ required }}
-      render={({ field }) => (
-        <TextField
-          {...field}
-          fullWidth={fullWidth}
-          value={field.value || ''}
-          label={label}
-          placeholder={placeholder}
-          multiline
-          rows={rows}
-          maxRows={maxRows}
-          minRows={minRows}
-          disabled={disabled}
-          error={Boolean(error)}
-          helperText={helperText}
-          onChange={e => {
-            field.onChange(e)
-            if (onChangeOverride) onChangeOverride(e)
-          }}
-          onKeyDown={onKeyDown}
-          onPaste={onPaste}
-          onInput={onInput}
-          sx={sx}
-          slotProps={{
-            input: { readOnly },
-            htmlInput: inputProps
-          }}
-        />
-      )}
-    />
+    <FormControl>
+      <Controller
+        name={name}
+        control={control}
+        rules={{ required }}
+        render={({ field }) => (
+          <TextField
+            {...field}
+            fullWidth={fullWidth}
+            value={field.value || ''}
+            label={label}
+            placeholder={placeholder}
+            multiline
+            rows={rows}
+            disabled={disabled}
+            error={Boolean(error)}
+            // helperText={helperText}
+            onChange={e => {
+              field.onChange(e)
+              if (onChangeOverride) onChangeOverride(e)
+            }}
+            onKeyDown={onKeyDown}
+            onPaste={onPaste}
+            onInput={onInput}
+            sx={sx}
+            slotProps={{
+              input: { readOnly },
+              htmlInput: inputProps
+            }}
+          />
+        )}
+      />
+      {error && <FormHelperText sx={{ color: 'red' }}>{error?.message}</FormHelperText>}
+    </FormControl>
   )
 }
 

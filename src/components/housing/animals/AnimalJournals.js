@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Typography, Button, Avatar, TextField, Tooltip, Autocomplete, CircularProgress, Skeleton } from '@mui/material'
+import {
+  Box,
+  Typography,
+  Button,
+  Avatar,
+  TextField,
+  Tooltip,
+  Autocomplete,
+  CircularProgress,
+  Skeleton
+} from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@mui/material/styles'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
@@ -21,6 +31,7 @@ import Utility from 'src/utility'
 import Timeline from '@mui/lab/Timeline'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useRouter } from 'next/router'
 
 const categoriesData = [
   { categoryId: 1, categoryName: 'Technology' },
@@ -47,6 +58,8 @@ const categoriesData = [
 
 const AnimalJournals = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
 
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTab, setSelectedTab] = useState('active') // or 'inactive'
@@ -106,7 +119,8 @@ const AnimalJournals = () => {
 
   const fetchAnimalJournalLogs = async () => {
     const params = {
-      animal_id: '233012',
+      animal_id: id,
+      category: 'animal_family_tree',
       page: 1,
       limit: 10
     }
@@ -130,7 +144,6 @@ const AnimalJournals = () => {
     getUsers()
     getUserData()
   }, [])
-
 
   const AnimalJournalLog = () => {
     const Timeline = styled(MuiTimeline)({
@@ -157,7 +170,10 @@ const AnimalJournals = () => {
                 mb: 2
               }}
             >
-              <Icon icon='mdi:calendar-blank-outline' style={{ fontSize: 24, color: theme.palette.customColors.neutralPrimary }} />
+              <Icon
+                icon='mdi:calendar-blank-outline'
+                style={{ fontSize: 24, color: theme.palette.customColors.neutralPrimary }}
+              />
               <Typography
                 sx={{
                   fontWeight: 500,
@@ -209,9 +225,11 @@ const AnimalJournals = () => {
                     }}
                   >
                     <Avatar sx={{ width: 32, height: 32 }}>
-                      {item?.incon ? <img alt='img' style={{ height: '100%', width: '100%' }} src={item?.incon} /> :
+                      {item?.incon ? (
+                        <img alt='img' style={{ height: '100%', width: '100%' }} src={item?.incon} />
+                      ) : (
                         <Icon icon='mdi:account' width={20} height={20} />
-                      }
+                      )}
                     </Avatar>
                     {group.entries.length === index + 1 ? null : <TimelineConnector />}
                   </TimelineSeparator>
@@ -226,7 +244,6 @@ const AnimalJournals = () => {
                     }}
                   >
                     <Box sx={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '200px' }}>
                         <Typography
                           sx={{
@@ -242,19 +259,48 @@ const AnimalJournals = () => {
                           {item.type}
                         </Typography>
 
-                        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: 12, letterSpacing: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontWeight: 400,
+                            fontSize: 12,
+                            letterSpacing: 0,
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden'
+                          }}
+                        >
                           {item.category
                             .split('_')
                             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ')
-                          }
+                            .join(' ')}
                         </Typography>
                         <Tooltip title={item.title}>
-                          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: 16, letterSpacing: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                          <Typography
+                            sx={{
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 500,
+                              fontSize: 16,
+                              letterSpacing: 0,
+                              whiteSpace: 'nowrap',
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden'
+                            }}
+                          >
                             {Utility.toPascalSentenceCase(item.title)}
                           </Typography>
                         </Tooltip>
-                        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 600, fontSize: 12, letterSpacing: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.neutralSecondary,
+                            fontWeight: 600,
+                            fontSize: 12,
+                            letterSpacing: 0,
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden'
+                          }}
+                        >
                           {Utility.convertUTCToLocaltime(item.time)}
                         </Typography>
                       </Box>
@@ -281,37 +327,49 @@ const AnimalJournals = () => {
                                 item.type === 'Medical'
                                   ? theme.palette.customColors.Tertiary
                                   : item.type === 'Vaccination'
-                                    ? theme.palette.primary.dark
-                                    : theme.palette.customColors.addPrimary
+                                  ? theme.palette.primary.dark
+                                  : theme.palette.customColors.addPrimary
                             }}
                           >
                             {item.code}
                           </Typography>
                         )}
 
-
-                        {item?.category && <Typography sx={{ fontWeight: 600, fontSize: '14px', color: item.type === 'Medical' ? theme.palette.customColors.Tertiary : item.type === 'Vaccination' ? theme.palette.primary.dark : theme.palette.customColors.addPrimary }}>
-                          {item?.details?.medical_record_number}
-                        </Typography>}
+                        {item?.category && (
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '14px',
+                              color:
+                                item.type === 'Medical'
+                                  ? theme.palette.customColors.Tertiary
+                                  : item.type === 'Vaccination'
+                                  ? theme.palette.primary.dark
+                                  : theme.palette.customColors.addPrimary
+                            }}
+                          >
+                            {item?.details?.medical_record_number}
+                          </Typography>
+                        )}
 
                         {Object.entries(item.details)
-                          .filter(([key, value]) =>
-                            key !== 'medical_record_number' &&
-                            value !== null &&
-                            value !== undefined &&
-                            !(Array.isArray(value) && value.length === 0) &&
-                            !(typeof value === 'string' && value.trim() === '')
+                          .filter(
+                            ([key, value]) =>
+                              key !== 'medical_record_number' &&
+                              value !== null &&
+                              value !== undefined &&
+                              !(Array.isArray(value) && value.length === 0) &&
+                              !(typeof value === 'string' && value.trim() === '')
                           )
                           .map(([key, value]) => {
                             const isDateString =
-                              typeof value === 'string' &&
-                              /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value); // Matches "YYYY-MM-DD HH:mm:ss"
+                              typeof value === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value) // Matches "YYYY-MM-DD HH:mm:ss"
 
                             const formattedValue = isDateString
                               ? Utility.convertUTCToLocalDate(value)
                               : Array.isArray(value)
-                                ? value.join(', ')
-                                : value;
+                              ? value.join(', ')
+                              : value
 
                             return (
                               <Tooltip key={key} title={`${key}: ${formattedValue}`}>
@@ -340,9 +398,8 @@ const AnimalJournals = () => {
                                   </span>
                                 </Typography>
                               </Tooltip>
-                            );
+                            )
                           })}
-
 
                         {item.createdBy && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -369,8 +426,6 @@ const AnimalJournals = () => {
                             </Box>
                           </Box>
                         )}
-
-
                       </Box>
                     </Box>
                   </TimelineContent>
@@ -504,7 +559,7 @@ const AnimalJournals = () => {
   return (
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: 4 }}>
-        <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        {/* <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <Button
             onClick={() => setSelectedTab('active')}
             variant={selectedTab === 'active' ? 'contained' : 'text'}
@@ -562,7 +617,7 @@ const AnimalJournals = () => {
           >
             Mortality
           </Button>
-        </Box>
+        </Box> */}
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', rowGap: 4, columnGap: 2, flexWrap: 'wrap' }}>
           <Box />
@@ -595,7 +650,6 @@ const AnimalJournals = () => {
             />
           </Box>  */}
           <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-
             <Autocomplete
               sx={{ width: '200px', height: '40px' }}
               value={selectedUser}
@@ -652,14 +706,16 @@ const AnimalJournals = () => {
           setDateRange={setDateRange}
         />
 
-        {journalLogsLoading ?
+        {journalLogsLoading ? (
           <TimelineSkeleton />
-          : animalJournalLogs.length > 0 ?
-            <AnimalJournalLog /> : <NoDataFound variant='Seal' />
-        }
-
+        ) : animalJournalLogs.length > 0 ? (
+          <AnimalJournalLog />
+        ) : (
+          <NoDataFound variant='Seal' />
+        )}
       </Box>
-    </>)
+    </>
+  )
 }
 
 export default AnimalJournals

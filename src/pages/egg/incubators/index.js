@@ -7,7 +7,6 @@ import {
   Tooltip,
   Box,
   Breadcrumbs,
-  Grid,
   TextField,
   FormControl,
   Autocomplete,
@@ -40,7 +39,7 @@ const IncubatorsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
 
@@ -136,7 +135,7 @@ const IncubatorsList = () => {
 
   const columns = [
     {
-      minWidth: 80,
+      width: 70,
       field: 'id',
       headerName: 'SL.NO',
       align: 'center',
@@ -155,8 +154,8 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.27,
-      minWidth: 30,
+      // flex: 0.27,
+      minWidth: 140,
       sortable: false,
       field: 'incubator_code',
       headerName: 'INCUBATOR ID',
@@ -175,8 +174,8 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.35,
-      minWidth: 30,
+      // flex: 0.35,
+      minWidth: 140,
       sortable: false,
       field: 'incubator_name',
       headerName: 'INCUBATOR NAME',
@@ -199,27 +198,31 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      // flex: 0.3,
+      minWidth: 120,
       sortable: false,
       field: 'availability',
       headerName: 'AVAILABILITY',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.primary.dark,
-            fontSize: '14px',
-            fontWeight: '500',
-            lineHeight: '16.94px'
-          }}
-        >
-          {params.row.availability ? params.row.availability : '-'}
-        </Typography>
+        <Tooltip title={params.row.availability ? params.row.availability : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.primary.dark,
+              fontSize: '14px',
+              fontWeight: '500',
+              lineHeight: '16.94px',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.availability ? params.row.availability : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      flex: 0.3,
-      minWidth: 20,
+      // flex: 0.3,
+      minWidth: 140,
       sortable: false,
       field: 'site_name',
       headerName: 'SITE',
@@ -241,8 +244,8 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 20,
+      // flex: 0.3,
+      minWidth: 140,
       sortable: false,
       field: 'room_name',
       headerName: 'ROOM',
@@ -264,8 +267,8 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.12,
-      minWidth: 20,
+      // flex: 0.12,
+      width: 60,
       sortable: false,
       align: 'right',
       field: 'no_of_eggs',
@@ -284,10 +287,10 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 140,
       sortable: false,
-      align: 'center',
+      // align: 'center',
       field: 'active',
       headerName: 'Status',
       renderCell: params => (
@@ -308,8 +311,8 @@ const IncubatorsList = () => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 60,
+      // flex: 0.5,
+      minWidth: 220,
       sortable: false,
       field: 'added_by',
       headerName: 'ADDED BY',
@@ -400,7 +403,7 @@ const IncubatorsList = () => {
             <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
             <TextField
               variant='outlined'
-              placeholder='Search...'
+              placeholder='Search'
               onChange={e =>
                 handleSearch(
                   e.target.value,

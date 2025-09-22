@@ -18,6 +18,7 @@ import { getAllSites } from 'src/lib/api/housing'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import AddSiteDrawer from 'src/views/pages/housing/sites/AddSiteDrawer'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDrawer, setSiteDrawer }) => {
   const theme = useTheme()
@@ -419,13 +420,10 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
             pl: 2
           }}
         >
-          {RenderUtility.renderUserAvatarDetails(
-            params.row.incharge_image,
-            params.row.incharge_name,
-            '',
-            theme.palette.customColors.OnSurfaceVariant,
-            '14px'
-          )}
+          <UserAvatarDetails
+            profile_image={params.row?.incharge_image}
+            user_name={params.row?.incharge_name}
+          />
         </Box>
       )
     },

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import { Autocomplete, TextField, FormControl } from '@mui/material'
+import { Autocomplete, TextField, FormControl, FormHelperText } from '@mui/material'
 import get from 'lodash/get'
 
 const ControlledAutocomplete = ({
@@ -16,12 +16,14 @@ const ControlledAutocomplete = ({
   onKeyUp = () => {},
   onItemClear = () => {},
   onBlur = () => {},
+  onInputChange = () => {},
   getOptionLabel = option => option.label || '',
   isOptionEqualToValue = (option, value) => option.value === value?.value,
   renderOption = null,
   textFieldProps = {},
   autocompleteProps = {},
   formHelperTextBackgroundColor = 'inherit',
+  inputBackgroundColor = 'inherit',
   sx = {}
 }) => {
   if (!options) return
@@ -48,12 +50,22 @@ const ControlledAutocomplete = ({
                 onItemClear()
               }
             }}
+            onInputChange={(e, value, reason) => {
+              if (reason === 'input') {
+                onInputChange(value)
+              }
+            }}
             onKeyUp={onKeyUp}
             onBlur={onBlur}
             loading={loading}
             noOptionsText='Type to search'
             renderOption={renderOption}
-            sx={sx}
+            sx={{
+              '& .MuiInputBase-root': {
+                backgroundColor: inputBackgroundColor,
+              },
+              ...sx
+            }}
             {...autocompleteProps}
             renderInput={params => (
               <TextField
@@ -61,13 +73,11 @@ const ControlledAutocomplete = ({
                 label={label}
                 placeholder='Search & Select'
                 error={Boolean(fieldError)}
-                helperText={fieldError?.value?.message || fieldError?.label?.message || fieldError?.message}
                 {...textFieldProps}
                 slotProps={{
                   ...textFieldProps.slotProps,
                   formHelperText: {
                     sx: {
-                      backgroundColor: formHelperTextBackgroundColor, // Inherit background color from parent
                       margin: 0,
                       px: '14px',
                       pt: '3px',
@@ -97,6 +107,7 @@ const ControlledAutocomplete = ({
           />
         )}
       />
+      {fieldError && <FormHelperText>{fieldError?.message}</FormHelperText>}
     </FormControl>
   )
 }

@@ -224,7 +224,7 @@ const RequestedProductDetails = props => {
                                 fontWeight: 400,
                                 maxWidth: '70%'
                               }}
-                              limit='150'
+                              limit='110'
                               iconColor={theme.palette.customColors.moderateSecondary}
                             />
                           )}
@@ -238,7 +238,6 @@ const RequestedProductDetails = props => {
                     nestedChildElm?.request_status !== 'Not Available' &&
                     nestedChildElm?.request_status !== 'Rejected' &&
                     selectedPharmacy.type !== 'local' && (
-
                       <MenuWithDots
                         options={generateOptions(nestedChildElm, nestedChildElm?.id)}
                         disabled={selectedPharmacy.type === 'local'}
@@ -260,7 +259,6 @@ const RequestedProductDetails = props => {
                       gap: 2,
                       justifyContent: 'space-between'
 
-                      // border: '1px solid red'
                       // backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.1)
                     }}
                   >

@@ -20,6 +20,7 @@ import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import AddCluster from 'src/views/pages/housing/AddCluster/AddCluster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import Error404 from 'src/pages/404'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const Clusters = () => {
   const theme = useTheme()
@@ -277,7 +278,7 @@ const Clusters = () => {
           <CellInfo
             value={params.row.cluster_name}
             subtitle={params.row.cluster_desc}
-            imgUrl={params.row.images?.[0]?.file}
+            imgUrl={params.row.images?.[0]?.file || '/icons/cluster.svg'}
             avatarUrl=''
             inchargeName=''
           />
@@ -402,13 +403,7 @@ const Clusters = () => {
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
         >
-          {RenderUtility.renderUserAvatarDetails(
-            params.row.incharge_image,
-            params.row.incharge_name,
-            '',
-            theme.palette.customColors.OnSurfaceVariant,
-            '14px'
-          )}
+          <UserAvatarDetails profile_image={params.row?.incharge_image} user_name={params.row?.incharge_name} />
         </Box>
       )
     },

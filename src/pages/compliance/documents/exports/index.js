@@ -15,8 +15,9 @@ import { useTheme } from '@mui/material/styles'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
-import moment from 'moment'
+import { ExportButton } from 'src/views/utility/render-snippets'
 import { format, subMonths } from 'date-fns'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const CitesExportPermitIndex = () => {
   const router = useRouter()
@@ -28,11 +29,13 @@ const CitesExportPermitIndex = () => {
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [sortModel, setSortModel] = useState([])
+  const [exportLoading, setExportLoading] = useState(false)
 
-  const [filterDate, setFilterDate] = useState({
-    startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
-    endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
-  })
+  // const [filterDate, setFilterDate] = useState({
+  //   startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+  //   endDate: Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  // })
+  const [filterDate, setFilterDate] = useState({})
 
   // Filter states
   const [filterCount, setFilterCount] = useState(0)
@@ -102,6 +105,52 @@ const CitesExportPermitIndex = () => {
     setLoading(false)
   }, [searchValue, paginationModel, sortModel, filterDate, selectedOptions])
 
+  const handleExport = async () => {
+    setExportLoading(true)
+    try {
+      const formatDate = dateString => {
+        if (!dateString) return null
+
+        return new Date(dateString).toISOString().split('T')[0]
+      }
+
+      const prepareFilterParams = key => {
+        return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+      }
+
+      const params = {
+        q: searchValue,
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        sort: sortModel?.[0]?.sort,
+        sortBy: sortModel?.[0]?.field,
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        species: prepareFilterParams('Species'),
+        exporting_country: prepareFilterParams('Exporting country'),
+        exporter: prepareFilterParams('Exporter'),
+        importer: prepareFilterParams('Importer'),
+        missing_docs: prepareFilterParams('Documents'),
+        response_type: 'csv'
+      }
+
+      const res = await getExportList(params)
+
+      const fileUrl = res?.data
+      if (fileUrl) {
+        Utility.downloadFileFromURL(fileUrl, `Exports Report`)
+        Toaster({ type: 'success', message: res?.message || 'Report downloaded successfully!' })
+      } else {
+        Toaster({ type: 'error', message: 'File URL not found in response' })
+      }
+    } catch (error) {
+      console.error('Error exporting report:', error)
+      Toaster({ type: 'error', message: 'Failed to download the report' })
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchExportPermits()
   }, [fetchExportPermits])
@@ -131,20 +180,36 @@ const CitesExportPermitIndex = () => {
   // Columns definition (same as before)
   const columns = [
     {
+      flex: 0.01,
+      minWidth: 100,
+      field: 'uid',
+      headerName: 'SL.NO',
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {params.value}
+        </Typography>
+      )
+    },
+    {
       flex: 0.12,
       minWidth: 150,
       field: 'export_number',
       headerName: 'Export ID',
       renderCell: params => (
-        <Typography
-          sx={{
-            cursor: 'pointer',
-            px: 2,
-            width: '100%'
-          }}
-        >
-          {params.value}
-        </Typography>
+        <Tooltip title={params.value || ''}>
+          <Typography
+            sx={{
+              px: 2,
+              width: '100%',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              cursor: 'default'
+            }}
+          >
+            {params.value}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -257,13 +322,15 @@ const CitesExportPermitIndex = () => {
       headerName: 'Created By',
       renderCell: params => (
         <Box sx={{ px: 2 }}>
-          {params.row.created_by_user_name
-            ? RenderUtility.renderUserAvatarDetails({
-                profile_image: params?.row?.created_user_profile_pic,
-                user_name: params?.row?.created_by_user_name,
-                date: moment(params?.row?.created_at).format('YYYY-MM-DD')
-              })
-            : '-'}
+          {params.row.created_by_user_name ? (
+            <UserAvatarDetails
+              profile_image={params?.row?.created_user_profile_pic}
+              user_name={params?.row?.created_by_user_name}
+              date={params?.row?.created_at}
+            />
+          ) : (
+            '-'
+          )}
         </Box>
       )
     },
@@ -274,13 +341,15 @@ const CitesExportPermitIndex = () => {
       headerName: 'Updated By',
       renderCell: params => (
         <Box sx={{ px: 2 }}>
-          {params.row.updated_by_user_name
-            ? RenderUtility.renderUserAvatarDetails({
-                profile_image: params?.row?.updated_user_profile_pic,
-                user_name: params?.row?.updated_by_user_name,
-                date: moment(params?.row?.updated_at).format('YYYY-MM-DD')
-              })
-            : '-'}
+          {params.row.updated_by_user_name ? (
+            <UserAvatarDetails
+              profile_image={params?.row?.updated_user_profile_pic}
+              user_name={params?.row?.updated_by_user_name}
+              date={params?.row?.updated_at}
+            />
+          ) : (
+            '-'
+          )}
         </Box>
       )
     }
@@ -289,7 +358,7 @@ const CitesExportPermitIndex = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Compliance</Typography>
+        <Typography sx={{ color: 'inherit' }}>Compliance</Typography>
         <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>CITES Export Permit</Typography>
       </Breadcrumbs>
 
@@ -327,6 +396,7 @@ const CitesExportPermitIndex = () => {
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                 />
               </Box>
+              <ExportButton loading={exportLoading} tooltip='Download Report' onClick={handleExport} />
               <Button
                 variant='outlined'
                 sx={{

@@ -100,9 +100,10 @@ const IncubatorDetails = () => {
   const [allocationDate, setAllocationDate] = useState(null)
   const [collectedDate, setCollectedDate] = useState(null)
   const [defaultSpecie, setDefaultSpecie] = useState(null)
+  const [speciesLoader, setSpeciesLoader] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
 
-  let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
+  let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -586,6 +587,8 @@ const IncubatorDetails = () => {
 
   const getspeciesFunc = async q => {
     try {
+      setSpeciesLoader(true)
+
       const res = await getSpeciesList({ q })
 
       if (res?.data?.success) {
@@ -599,15 +602,16 @@ const IncubatorDetails = () => {
     } catch (error) {
       setSpeciesList([])
       Toaster({ type: 'error', message: error.message || 'Something went wrong while updating status' })
+    } finally {
+      setSpeciesLoader(false)
     }
   }
 
   const searchSpecies = useCallback(
     debounce(async query => {
-      if (!query) return
-
       try {
-        await getspeciesFunc(query)
+        // Trim the query to handle spaces and pass it to the API
+        await getspeciesFunc(query?.trim())
       } catch (error) {
         console.error('Error fetching species:', error)
       }
@@ -767,8 +771,9 @@ const IncubatorDetails = () => {
           </Breadcrumbs>
           <Card>
             <CardContent
-              style={{ paddingBottom: 0 }}
               sx={{
+                paddingBottom: 0,
+                paddingX: 4,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px'
@@ -1028,6 +1033,7 @@ const IncubatorDetails = () => {
                         width: '100%',
                         '& .MuiOutlinedInput-root': {
                           height: 40,
+
                           // width: 200,
                           borderRadius: '4px'
                         },
@@ -1118,6 +1124,7 @@ const IncubatorDetails = () => {
                     disablePortal
                     sx={{ width: 220 }}
                     id='species'
+                    loading={speciesLoader}
                     options={speciesList?.length > 0 ? speciesList : []}
                     getOptionLabel={option => option.default_common_name}
                     isOptionEqualToValue={(option, value) => option?.taxonomy_id === value?.taxonomy_id}

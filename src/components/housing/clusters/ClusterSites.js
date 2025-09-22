@@ -13,6 +13,7 @@ import SpeciesDrawer from '../utils/SpeciesDrawer'
 import AnimalDrawer from '../utils/AnimalDrawer'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
   const router = useRouter()
@@ -358,16 +359,12 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
       align: 'left',
       headerAlign: 'left',
       sortable: false,
-      renderCell: params =>
-        RenderUtility.renderUserAvatarDetails(
-          params.row.incharge_image,
-          params.row.incharge_name,
-          '',
-          theme.palette.customColors.OnSurfaceVariant,
-          '14px'
-
-          //  theme.palette.customColors.OnSurfaceVariant,
-        )
+      renderCell: params => (
+        <UserAvatarDetails
+          profile_image={params.row?.incharge_image}
+          user_name={params.row?.incharge_name}
+        />
+      )
     },
     {
       width: 150,

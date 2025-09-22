@@ -80,7 +80,7 @@ export const FilterButton = ({
   const theme = useTheme()
 
   return (
-    <Tooltip placement={placement} title={tooltip}>
+    <Tooltip placement={placement}>
       <Box
         sx={{
           display: 'flex',

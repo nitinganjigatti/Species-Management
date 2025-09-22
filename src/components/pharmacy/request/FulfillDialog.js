@@ -1,22 +1,19 @@
 // ** React Imports
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import TextField from '@mui/material/TextField'
 import { styled, createTheme } from '@mui/material/styles'
 import FormGroup from '@mui/material/FormGroup'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { FormControl, FormHelperText } from '@mui/material'
+import { Grid, Button, Typography, alpha } from '@mui/material'
 
 // ** MUI Imports
-
-import Grid from '@mui/material/Grid'
 
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 
 import { CardContent, Card } from '@mui/material'
-import Typography from '@mui/material/Typography'
-import { Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
 import Table from '@mui/material/Table'
@@ -45,7 +42,11 @@ import { useRouter } from 'next/router'
 
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
+import { useTheme } from '@emotion/react'
+
 const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails, reqColor }) => {
+  const theme = useTheme()
+
   const defaultValues = {
     product_batches: [
       {
@@ -353,7 +354,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const toggleLocalTable = () => {
     setIsLocalTableVisible(!isLocalTableVisible)
   }
-  const theme = createTheme()
 
   const StyledText = styled('span')({
     textDecoration: 'none',
@@ -369,67 +369,33 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     display: 'inline-block'
   })
 
-  const handleAddRemoveSalts = (fields, index) => {
+  const handleAddRemoveBatches = (fields, index) => {
     if (fields.length === 1) {
-      return <>{addSaltButton()}</>
+      return <>{addButton()}</>
     }
     if (fields.length - 1 === index && index > 0) {
       return (
         <>
-          {addSaltButton()}
-          {removeSaltButton(index)}
+          {addButton()}
+          {removeButton(index)}
         </>
       )
     } else if (index <= 0 && fields.length - 1 <= 0) {
       return (
         <>
-          {addSaltButton()}
-          {clearSaltFields(index)}
+          {addButton()}
+          {clearBatchFields(index)}
         </>
       )
     } else if (index <= 0 && fields.length > 0) {
-      return <>{clearSaltFields(index)}</>
+      return <>{clearBatchFields(index)}</>
     } else {
-      return <>{removeSaltButton(index)}</>
+      return <>{removeButton(index)}</>
     }
   }
 
-  const addSaltButton = () => {
+  const addButton = () => {
     return (
-      // eslint-disable-next-line lines-around-comment
-      // <Button
-      //   variant='outlined'
-      //   startIcon={<Icon icon='fluent:add-32-light' />}
-      //   onClick={() => {
-      //     //setSalts([])
-      //     append({
-      //       batch_no: '',
-      //       expiry_date: '',
-      //       qty: 0
-      //     })
-      //   }}
-      //   sx={{
-      //     marginRight: '4px',
-      //     borderRadius: '8px',
-      //     height: '100%',
-
-      //     padding: '8px',
-
-      //     width: '26px',
-      //     backgroundColor: '#FFFFFF !important',
-
-      //     color: 'customColors.Secondary',
-
-      //     // border: '1px solid customColors.Secondary'
-      //     border: '1px solid #00D6C9',
-      //     '&:hover': {
-      //       backgroundColor: '#FFFFFF !important',
-      //       border: '1px solid #00D6C9'
-      //     }
-      //   }}
-      // >
-      //   Add
-      // </Button>
       <Box
         sx={{
           display: 'flex',
@@ -439,18 +405,13 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       >
         <Icon
           style={{
-            backgroundColor: '#F2FFF8',
-            color: '#37BD69',
             height: '42px',
             width: '42px',
-
-            // height: '56px',
-            // width: '56px',
-            border: '1px solid #37BD69',
+            backgroundColor: theme.palette.customColors.Surface,
+            color: theme.palette.primary.main,
+            border: `1px solid ${theme.palette.primary.main}`,
             borderRadius: '8px',
             cursor: 'pointer'
-
-            // marginRight: '10px'
           }}
           onClick={() => {
             //setSalts([])
@@ -466,7 +427,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     )
   }
 
-  const removeSaltButton = index => {
+  const removeButton = index => {
     return (
       <Box
         sx={{
@@ -478,14 +439,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       >
         <Icon
           style={{
-            backgroundColor: '#FFD3D333',
-            color: '#E93353',
+            backgroundColor: alpha(theme.palette.customColors.Error, 0.1),
+            color: theme.palette.customColors.Error,
+            border: `1px solid ${theme.palette.customColors.Error}`,
             height: '42px',
             width: '42px',
-
-            // height: '56px',
-            // width: '56px',
-            border: '1px solid #E93353',
             borderRadius: '8px',
             cursor: 'pointer',
             marginLeft: '10px'
@@ -502,40 +460,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     )
   }
 
-  const clearSaltFields = index => {
+  const clearBatchFields = index => {
     return (
-      // eslint-disable-next-line lines-around-comment
-      // <Button
-      //   variant='outlined'
-      //   onClick={() => {
-      //     var tempDefaultSalts = defaultSalts
-      //     tempDefaultSalts[index] = undefined
-      //     setDefaultSalts(tempDefaultSalts)
-      //     remove(index)
-      //     insert(index, {})
-      //   }}
-      // >
-      //   Clear
-      // </Button>
-
-      // <Box>
-      //   <Icon
-      // onClick={() => {
-      //   // var tempDefaultSalts = defaultSalts
-      //   // tempDefaultSalts[index] = undefined
-      //   // setDefaultSalts(tempDefaultSalts)
-
-      //   if (fields?.length > 1) {
-      //     remove(index)
-      //   } else {
-      //     remove(index)
-      //     insert(index, {})
-      //   }
-      // }}
-      //     icon='material-symbols-light:close'
-      //   />
-      // </Box>
-
       <Box
         sx={{
           display: 'flex',
@@ -545,14 +471,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       >
         <Icon
           style={{
-            backgroundColor: '#FFD3D333',
-            color: '#E93353',
             height: '42px',
             width: '42px',
-            // eslint-disable-next-line lines-around-comment
-            // height: '56px',
-            // width: '56px',
-            border: '1px solid #E93353',
+            backgroundColor: alpha(theme.palette.customColors.Error, 0.1),
+            color: theme.palette.customColors.Error,
+            border: `1px solid ${theme.palette.customColors.Error}`,
             borderRadius: '8px',
             cursor: 'pointer',
             marginLeft: '10px'
@@ -901,20 +824,21 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               </Grid>
               <Grid item size={{ xs: 12, sm: 12 }}>
                 <FormGroup>
-                  {fields.map((field, index) => (
+                  {fields?.map((field, index) => (
                     <Grid
                       container
                       key={field.id}
                       sx={{
                         marginTop: '0px',
                         mb: 4,
+
                         backgroundColor: 'customColors.neutral05',
                         borderRadius: 1,
                         display: 'flex',
                         flexDirection: 'row',
 
                         // justifyContent: 'center',
-                        alignItems: 'flex-start',
+                        // alignItems: 'flex-start',
 
                         // gap: 1,
                         gap: { xs: 5, sm: 0 },
@@ -924,7 +848,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       }}
                     >
                       <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
-                        <FormControl fullWidth sx={{ position: 'relative' }}>
+                        <FormControl fullWidth>
                           <Controller
                             name={`product_batches[${index}].batch_no`}
                             control={control}
@@ -1069,17 +993,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             <FormHelperText
                               sx={{
                                 color: 'error.main',
-
-                                // position: 'absolute',
-                                // bottom: '-30px',
-                                // left: 0,
+                                left: 0,
                                 width: '100%',
                                 ml: 0
-
-                                // bottom: {
-                                //   xs: '-18px',
-                                //   sm: batchItems[index]?.stock_type === 'non_medical' ? '-18px' : '-30px'
-                                // }
                               }}
                             >
                               {errors?.product_batches?.[index]?.batch_no?.message}
@@ -1090,38 +1006,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                       {batchItems[index]?.stock_type === 'non_medical' ? null : (
                         <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
-                          {/* <FormControl fullWidth sx={{ position: 'relative' }}>
-                            <Controller
-                              name={`product_batches[${index}].expiry_date`}
-                              control={control}
-                              rules={{ required: false }}
-                              render={({ field: { value, onChange } }) => (
-                                <TextField
-                                  disabled
-                                  value={value}
-                                  label='Expiry Date'
-                                  onChange={onChange}
-                                  placeholder='Expiry Date'
-                                  sx={{ backgroundColor: 'white', borderRadius: 1 }}
-                                  error={Boolean(errors?.product_batches?.[index]?.expiry_date)}
-                                  name={`product_batches[${index}].expiry_date`}
-                                />
-                              )}
-                            />
-                            {errors?.product_batches?.[index]?.expiry_date && (
-                              <FormHelperText
-                                sx={{
-                                  color: 'error.main',
-
-                                  left: 0,
-                                  width: '100%',
-                                  ml: 0
-                                }}
-                              >
-                                {errors?.product_batches?.[index]?.expiry_date?.message}
-                              </FormHelperText>
-                            )}
-                          </FormControl> */}
                           <ControlledTextField
                             name={`product_batches[${index}].expiry_date`}
                             label='Expiry Date*'
@@ -1129,12 +1013,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             errors={errors}
                             readOnly={true}
                             dateReader={true}
-                            sx={{ backgroundColor: 'white', borderRadius: 1 }}
+                            inputBackgroundColor={theme.palette.customColors.OnPrimary}
                           />
                         </Grid>
                       )}
                       <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
-                        <FormControl fullWidth sx={{ position: 'relative' }}>
+                        <FormControl fullWidth>
                           <Controller
                             name={`product_batches[${index}].multiplier`}
                             control={control}
@@ -1158,17 +1042,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         </FormControl>
                       </Grid>
                       <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
-                        <FormControl fullWidth sx={{ position: 'relative' }}>
+                        <FormControl fullWidth>
                           <Controller
                             name={`product_batches[${index}].qty`}
                             control={control}
-                            rules={{
-                              required: true,
-                              validate: {
-                                positiveNumber: value =>
-                                  parseInt(value, 10) > 0 || 'Please enter a number greater than 0'
-                              }
-                            }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='text'
@@ -1178,7 +1055,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                   onChange(e)
                                   setQuantityError(false)
                                 }}
-                                sx={{ backgroundColor: 'white', borderRadius: 1 }}
+                                sx={{
+                                  backgroundColor: 'white',
+                                  borderRadius: 1
+                                }}
                                 placeholder='Quantity'
                                 error={Boolean(errors?.product_batches?.[index]?.qty)}
                                 name={`product_batches[${index}].qty`}
@@ -1188,17 +1068,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               />
                             )}
                           />
-                          {/* <Box
-                            sx={{
-                              position: 'absolute',
-                              top: '55px',
-                              left: 0,
-                              width: '100%',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start'
-                            }}
-                          > */}
+
                           {errors?.product_batches?.[index]?.qty && (
                             <FormHelperText
                               sx={{
@@ -1237,7 +1107,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           mt: errors?.product_batches?.[index] ? { xs: '0', sm: '7px' } : '0px'
                         }}
                       >
-                        {handleAddRemoveSalts(fields, index)}
+                        {handleAddRemoveBatches(fields, index)}
                       </Grid>
                     </Grid>
                   ))}
@@ -1576,4 +1446,4 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   )
 }
 
-export default FulfillDialog
+export default React.memo(FulfillDialog)

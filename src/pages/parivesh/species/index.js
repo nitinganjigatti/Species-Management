@@ -562,7 +562,7 @@ const SpeciesList = () => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ mt: 4 }}>
-            <CardHeader title={`Species Overview by Organization's`} action={headerAction} />
+            <CardHeader title={`Species Overview by Organizations`} action={headerAction} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}

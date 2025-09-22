@@ -123,6 +123,12 @@ export async function getAssessmentTypesList(params) {
   return response.data
 }
 
+export async function getDailyFoodWastageReport(params) {
+  const response = await axiosGet({ url: `v1/food/wastage/report`, params })
+
+  return response?.data
+}
+
 // export async function getMortalityList(params) {
 //   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
 //   return response.data

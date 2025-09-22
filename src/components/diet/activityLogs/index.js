@@ -330,8 +330,10 @@ const ActivityLogs = ({
                                         }`} */}
                                     {item.action === 'diet_assign'
                                       ? 'Diet Assigned'
-                                      : `${item.action.charAt(0).toUpperCase() + item.action.slice(1) + ' '} ${
-                                          activity_type.charAt(0).toUpperCase() + activity_type.slice(1)
+                                      : `${item.action.charAt(0).toUpperCase() + item.action.slice(1)} ${
+                                          activity_type === 'combo'
+                                            ? 'Mix'
+                                            : activity_type.charAt(0).toUpperCase() + activity_type.slice(1)
                                         }`}
                                   </Typography>
                                 </Box>

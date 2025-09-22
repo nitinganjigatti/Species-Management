@@ -1,9 +1,9 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Card, CardHeader, Typography, Button, Box, Checkbox, Tooltip, FormControl } from '@mui/material'
+import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl, Tooltip } from '@mui/material'
 import { Popover } from '@mui/material'
-import { TabContext, TabList } from '@mui/lab'
+import { TabContext } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 
 import { AuthContext } from 'src/context/AuthContext'
@@ -14,8 +14,9 @@ import Error404 from 'src/pages/404'
 import StickyTable from 'src/views/table/sticky-table'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 
-import { getReportFilterList, getSpeciesListing } from 'src/lib/api/report'
+import { getReportFilterList } from 'src/lib/api/report'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import ReactTable from 'src/views/table/ReactTable'
 
 const SpeciesReport = () => {
   const router = useRouter()
@@ -39,7 +40,8 @@ const SpeciesReport = () => {
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
-  const [speciesList, setSpeciesList] = useState([])
+
+  // const [speciesList, setSpeciesList] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
   const [sites, setSites] = useState(
@@ -94,17 +96,17 @@ const SpeciesReport = () => {
     await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
 
-  useEffect(() => {
-    const fetchSpeciesList = async () => {
-      const response = await getSpeciesListing()
-      if (response.success) {
-        setSpeciesList(response.data.result)
-      } else {
-        console.error('Error something went wrong')
-      }
-    }
-    fetchSpeciesList()
-  }, [])
+  // useEffect(() => {
+  //   const fetchSpeciesList = async () => {
+  //     const response = await getSpeciesListing()
+  //     if (response.success) {
+  //       setSpeciesList(response.data.result)
+  //     } else {
+  //       console.error('Error something went wrong')
+  //     }
+  //   }
+  //   fetchSpeciesList()
+  // }, [])
 
   const title = (
     <>
@@ -249,6 +251,7 @@ const SpeciesReport = () => {
         sortable: false,
         disableColumnMenu: true,
         width: 320,
+        headerStyle: { zIndex: 1099 },
         renderCell: params => <SpeciesCard species={params.row} />
       }
     }
@@ -263,48 +266,67 @@ const SpeciesReport = () => {
       disableColumnMenu: true,
       textAlign: 'center',
       renderCell: params => (
-        <Tooltip
-          title={
-            params?.row
-              ? params?.row[header.key]
-              : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-                params?.row[header.key] === undefined
-              ? 0
-              : '-'
-          }
-        >
-          <Box
-            sx={{
-              width: '140px',
-              height: '25px',
-              display: 'flex',
-              alignItems: 'center',
-              position: 'relative',
-              cursor: 'pointer'
-            }}
-          >
-            <Typography
+        <>
+          {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null ? (
+            <Box
               sx={{
-                color: getCellTextColor(header.label),
-                backgroundColor: getCellBackgroundColor(header.label),
-                borderRadius: '4px',
-                padding: '4px 16px',
-                fontWeight: 400,
-                textAlign: 'left',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis'
+                width: '100px',
+                height: '25px',
+                display: 'flex',
+                alignItems: 'center',
+                position: 'relative',
+                cursor: 'pointer',
+                '&:hover::after': {
+                  content: `"${
+                    params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
+                      ? params?.row[header.key]
+                      : ''
+                  }"`,
+                  position: 'absolute',
+                  top: '-30px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                  zIndex: 9999,
+                  pointerEvents: 'none'
+                }
               }}
             >
-              {params?.row
-                ? params?.row[header.key]
-                : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-                  params?.row[header.key] === undefined
-                ? 0
-                : '-'}
+              <Typography
+                sx={{
+                  color: getCellTextColor(header.label),
+                  backgroundColor: getCellBackgroundColor(header.label),
+                  borderRadius: '4px',
+                  padding: getCellBackgroundColor(header.label) !== 'transparent' ? '4px 16px' : '0',
+                  fontWeight: 400,
+                  textAlign: 'left',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
+                  ? params?.row[header.key]
+                  : ''}
+              </Typography>
+            </Box>
+          ) : (
+            <Typography
+              sx={{
+                color: getCellTextColor(header.label)
+
+                // padding: '4px 16px'
+              }}
+            >
+              -
             </Typography>
-          </Box>
-        </Tooltip>
+          )}
+        </>
       )
     }
   })
@@ -411,7 +433,9 @@ const SpeciesReport = () => {
           return acc
         }, {})
       }
-      setSelectedSites(['All Sites'])
+
+      // setSelectedSites(['All Sites'])
+      setSelectedSites([])
     } else {
       params = {
         site_ids: selectedSiteIDs.toString(),
@@ -641,27 +665,27 @@ const SpeciesReport = () => {
                 )}
               </Box>
 
-              <Box sx={{ width: '98%', margin: 4 }}>
-                <Box sx={{ borderRadius: '8px' }}>
-                  <StickyTable
-                    rows={reportRows}
-                    rowCount={total}
-                    rowHeight={70}
-                    headerHeight={47}
-                    pagination={true}
-                    columns={columns.length && columns}
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    rowsInView={10}
-                    rowsInViewOptions={[5, 7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={isLoading}
-                    onRowClick={handleRowClick}
-                    downloadExcel
-                    headerName='Species'
-                    searchMode='server'
-                  />
-                </Box>
+              <Box sx={{ padding: 5 }}>
+                <ReactTable
+                  rows={reportRows}
+                  rowCount={total}
+                  rowHeight={70}
+                  headerHeight={47}
+                  pagination={true}
+                  columns={columns.length && columns}
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  rowsInView={10}
+                  rowsInViewOptions={[5, 7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={isLoading}
+                  onRowClick={handleRowClick}
+                  // downloadExcel
+                  serverSide
+                  modifyColumnPinning
+                  headerName='Species General Report'
+                  searchMode='server'
+                />
               </Box>
             </TabContext>
           </Card>

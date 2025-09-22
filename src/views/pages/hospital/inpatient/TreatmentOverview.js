@@ -73,34 +73,34 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor }) =
   )
 }
 
-const HealthcareOverview = () => {
+const HealthcareOverview = ({ data }) => {
   const theme = useTheme()
 
   const statsData = [
     {
       icon: '/icons/hospital/TreatmentMonitoring.svg',
-      count: 12,
+      count: data?.treatment_monitoring,
       label: 'Treatment Monitoring',
       color: theme.palette.customColors.Error,
       backgroundColor: '#FFD3D333'
     },
     {
       icon: '/icons/hospital/ActiveSymptoms.svg',
-      count: 12,
+      count: data?.active_diagnosis_count,
       label: 'Active Clinical assessment',
       color: theme.palette.primary.dark,
       backgroundColor: '#FCF4AE99'
     },
     {
       icon: '/icons/hospital/ActiveClinicalAassesment.svg',
-      count: 12,
+      count: data?.active_complaints_count,
       label: 'Active Symptoms',
       color: theme.palette.primary.main,
       backgroundColor: '#E1F9EDCC'
     },
     {
       icon: '/icons/hospital/Prescription.svg',
-      count: 12,
+      count: data?.active_prescriptions_count,
       label: 'Prescription',
       color: theme.palette.customColors.addPrimary,
       backgroundColor: theme.palette.customColors.bodyBg

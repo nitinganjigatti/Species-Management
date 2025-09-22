@@ -9,7 +9,12 @@ import Icon from 'src/@core/components/icon'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { getTaxonomyListForReport } from 'src/lib/api/report'
 
-function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspeciesFilter, setOpenspeciesFilter }) {
+function AssessmentSpeciesListingDrawer({
+  selectedSpecie,
+  setSelectedSpecie,
+  openspeciesFilter,
+  setOpenspeciesFilter
+}) {
   const theme = useTheme()
   const drawerContentRef = useRef(null)
   const searchInputRef = useRef(null)
@@ -126,7 +131,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
             searchInputRef.current.focus()
           }
         })
-      }, 500) 
+      }, 500)
 
       return () => clearTimeout(timeout)
     }
@@ -370,4 +375,4 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
   )
 }
 
-export default AssessmentSpeciesFilter
+export default AssessmentSpeciesListingDrawer

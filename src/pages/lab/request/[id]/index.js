@@ -61,6 +61,7 @@ import {
   GetRequestDetails,
   GetRequestPopUp,
   DeleteLAbRequestAttachment,
+
   // GetLabListByTestId,
   postBulkStatus,
   postBulkTransfer,
@@ -116,11 +117,13 @@ const RequestDetails = () => {
   const [rowId, setRowId] = useState(null)
 
   const [searchValue, setSearchValue] = useState('')
+
   // const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [testId, setTestId] = useState([])
   const [requestId, setRequestId] = useState()
+
   // const [labId, setLab_id] = useState('')
 
   const [testName, setTestName] = useState()
@@ -233,30 +236,30 @@ const RequestDetails = () => {
       permissions?.allow_full_access || (permissions?.allow_upload_reports && permissions?.perform_tests)
         ? statusList
         : permissions?.allow_upload_reports && permissions?.perform_tests
-          ? statusList
-          : permissions?.perform_tests
-            ? // ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)) // commneted cause of getting completed on status value so we are taking keys instead of status
-            statusList?.filter(item =>
-              [
-                'awaiting_sample',
-                'sample_received',
-                'sample_rejected',
-                'sample_clotted',
-                'sample_haemolysed',
-                'completed_insufficient_samples',
-                'inprogress'
-              ].includes(item.key)
-            )
-            : // : permissions?.transfer_tests && permissions?.perform_tests
-            // ? [
-            //     ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
-            //     ...statusList?.filter(item =>
-            //       ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
-            //     )
-            //   ]
-            // https://antzsystems.atlassian.net/browse/WD-1784?linkSource=email
-            // need to discuss commented ones in ticket they are asking for it
-            null
+        ? statusList
+        : permissions?.perform_tests
+        ? // ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)) // commneted cause of getting completed on status value so we are taking keys instead of status
+          statusList?.filter(item =>
+            [
+              'awaiting_sample',
+              'sample_received',
+              'sample_rejected',
+              'sample_clotted',
+              'sample_haemolysed',
+              'completed_insufficient_samples',
+              'inprogress'
+            ].includes(item.key)
+          )
+        : // : permissions?.transfer_tests && permissions?.perform_tests
+          // ? [
+          //     ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
+          //     ...statusList?.filter(item =>
+          //       ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
+          //     )
+          //   ]
+          // https://antzsystems.atlassian.net/browse/WD-1784?linkSource=email
+          // need to discuss commented ones in ticket they are asking for it
+          null
     if (filteredStatusBlockData) {
       setFilteredStatusData(filteredStatusBlockData)
     }
@@ -295,6 +298,7 @@ const RequestDetails = () => {
       const testReports = requestData[0]?.test_reports || []
 
       setStatusList(response?.data?.lab_test_status_master)
+
       // setLab_id(requestData[0]?.lab_id)
       setAnimalId(requestData[0]?.animal_details?.animal_id)
       setLabRequestId(requestData[0]?.request_id)
@@ -342,7 +346,6 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = async params => {
-
     const hasCompleted = selectedRowData?.filter(item =>
       [
         'completed',
@@ -368,9 +371,9 @@ const RequestDetails = () => {
       setTestSampleName(params?.row?.sample_name)
       setTestId([params?.row?.id])
       await getAccessLabs(LabRequestId, labTestId)
-
     } else {
       setFromParam(false)
+
       // setTransferStatus(params?.row?.status)
       if (selectedRow?.length === 1) {
         setTestName(selectedRowData[0]?.test_name)
@@ -521,13 +524,14 @@ const RequestDetails = () => {
       align: 'center',
       renderCell: params => {
         const isSelected = selectedRowData?.some(item => item?.id === params?.id)
+
         return (
           <>
             <Box sx={{ minWidth: 260 }}>
               {shouldShowDropdown && handleRowPermission({ params }) ? (
                 <FormControl fullWidth variant='outlined'>
                   <Select
-                    disabled={isSelected}
+                    // disabled={isSelected}
                     size='small'
                     labelId='demo-simple-select-label'
                     id='demo-simple-select'
@@ -539,56 +543,56 @@ const RequestDetails = () => {
                       fontSize: '14px',
                       backgroundColor:
                         params.row.status === 'pending' ||
-                          params.row.status === 'transferred' ||
-                          params.row.status === 'awaiting_sample' ||
-                          params.row.status === 'sample_clotted' ||
-                          params.row.status === 'completed_insufficient_samples' ||
-                          params.row.status === 'sample_haemolysed' ||
-                          params.row.status === 'sample_rejected'
-                          ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
+                        params.row.status === 'sample_rejected'
+                          ? 'rgba(255, 0, 0, 0.1)'
                           : params.row.status === 'completed'
-                            ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
-                            : params.row.status === 'inprogress'
-                              ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
-                              : params.row.status === 'sample_received'
-                                ? 'rgba(0, 128, 0, 0.1)'
-                                : 'rgba(0, 128, 0, 0.1)',
+                          ? 'rgba(0, 128, 0, 0.1)'
+                          : params.row.status === 'inprogress'
+                          ? 'rgba(228, 184, 25, 0.1)'
+                          : params.row.status === 'sample_received'
+                          ? 'rgba(0, 128, 0, 0.1)'
+                          : 'rgba(0, 128, 0, 0.1)',
 
                       color:
                         params.row.status === 'pending' ||
-                          params.row.status === 'transferred' ||
-                          params.row.status === 'awaiting_sample' ||
-                          params.row.status === 'sample_clotted' ||
-                          params.row.status === 'completed_insufficient_samples' ||
-                          params.row.status === 'sample_haemolysed' ||
-                          params.row.status === 'sample_rejected'
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
+                        params.row.status === 'sample_rejected'
                           ? theme.palette.customColors.customDropdownColor
                           : params.row.status === 'completed'
-                            ? theme.palette.primary.main
-                            : params.row.status === 'inprogress'
-                              ? theme.palette.customColors.moderateSecondary
-                              : params.row.status === 'sample_received'
-                                ? theme.palette.primary.main
-                                : theme.palette.primary.main,
+                          ? theme.palette.primary.main
+                          : params.row.status === 'inprogress'
+                          ? theme.palette.customColors.moderateSecondary
+                          : params.row.status === 'sample_received'
+                          ? theme.palette.primary.main
+                          : theme.palette.primary.main,
 
                       borderRadius: '8px',
                       '& .MuiSelect-icon': {
                         color:
                           params.row.status === 'pending' ||
-                            params.row.status === 'transferred' ||
-                            params.row.status === 'awaiting_sample' ||
-                            params.row.status === 'sample_clotted' ||
-                            params.row.status === 'completed_insufficient_samples' ||
-                            params.row.status === 'sample_haemolysed' ||
-                            params.row.status === 'sample_rejected'
+                          params.row.status === 'transferred' ||
+                          params.row.status === 'awaiting_sample' ||
+                          params.row.status === 'sample_clotted' ||
+                          params.row.status === 'completed_insufficient_samples' ||
+                          params.row.status === 'sample_haemolysed' ||
+                          params.row.status === 'sample_rejected'
                             ? theme.palette.customColors.customDropdownColor
                             : params.row.status === 'completed'
-                              ? theme.palette.primary.main
-                              : params.row.status === 'inprogress'
-                                ? theme.palette.customColors.moderateSecondary
-                                : params.row.status === 'sample_received'
-                                  ? theme.palette.primary.main
-                                  : theme.palette.primary.main
+                            ? theme.palette.primary.main
+                            : params.row.status === 'inprogress'
+                            ? theme.palette.customColors.moderateSecondary
+                            : params.row.status === 'sample_received'
+                            ? theme.palette.primary.main
+                            : theme.palette.primary.main
                       },
 
                       '&:hover .MuiOutlinedInput-notchedOutline': {
@@ -614,20 +618,20 @@ const RequestDetails = () => {
                     style={{
                       color:
                         params.row.status === 'pending' ||
-                          params.row.status === 'transferred' ||
-                          params.row.status === 'awaiting_sample' ||
-                          params.row.status === 'sample_clotted' ||
-                          params.row.status === 'completed_insufficient_samples' ||
-                          params.row.status === 'sample_haemolysed' ||
-                          params.row.status === 'sample_rejected'
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
+                        params.row.status === 'sample_rejected'
                           ? theme.palette.customColors.customDropdownColor
                           : params.row.status === 'completed'
-                            ? theme.palette.primary.main
-                            : params.row.status === 'inprogress'
-                              ? theme.palette.customColors.moderateSecondary
-                              : params.row.status === 'sample_received'
-                                ? theme.palette.primary.main
-                                : theme.palette.primary.main
+                          ? theme.palette.primary.main
+                          : params.row.status === 'inprogress'
+                          ? theme.palette.customColors.moderateSecondary
+                          : params.row.status === 'sample_received'
+                          ? theme.palette.primary.main
+                          : theme.palette.primary.main
                     }}
                   >
                     {params.row.status_label}
@@ -640,98 +644,76 @@ const RequestDetails = () => {
       }
     },
     ...(permissions?.allow_full_access ||
-      permissions?.transfer_tests ||
-      permissions?.perform_tests ||
-      permissions?.allow_upload_reports
+    permissions?.transfer_tests ||
+    permissions?.perform_tests ||
+    permissions?.allow_upload_reports
       ? [
-        {
-          // flex: 0.2,
-          width: 300,
-          field: 'References',
-          headerName: 'References',
-          sortable: false,
-          renderCell: params => (
-            <>
-              <Box sx={{ display: 'flex', gap: 4 }}>
-                {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
-                  <Box
-                    onClick={e => handleOpenShowFile(e, params)}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      justifyContent: 'center',
-                      bgcolor: 'rgba(0, 0, 0, 0.05)',
-                      p: 2,
-                      borderRadius: '15px',
-                      width: 50,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <img src='/images/attach_file.png' alt='default icon' style={{ width: 12 }} />
-                    <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: '15px' }}>
-                      {
-                        params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
-                          ? params.row.attachments.images.length + params.row.attachments.docs.length
-                          : params?.row?.attachments?.images?.length > 0
+          {
+            // flex: 0.2,
+            width: 300,
+            field: 'References',
+            headerName: 'References',
+            sortable: false,
+            renderCell: params => (
+              <>
+                <Box sx={{ display: 'flex', gap: 4 }}>
+                  {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
+                    <Box
+                      onClick={e => handleOpenShowFile(e, params)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        justifyContent: 'center',
+                        bgcolor: 'rgba(0, 0, 0, 0.05)',
+                        p: 2,
+                        borderRadius: '15px',
+                        width: 50,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <img src='/images/attach_file.png' alt='default icon' style={{ width: 12 }} />
+                      <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: '15px' }}>
+                        {
+                          params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
+                            ? params.row.attachments.images.length + params.row.attachments.docs.length
+                            : params?.row?.attachments?.images?.length > 0
                             ? params.row.attachments.images.length
                             : params?.row?.attachments?.docs
-                              ? params.row.attachments.docs.length
-                              : null
+                            ? params.row.attachments.docs.length
+                            : null
 
-                        // params?.row?.attachments?.docs?.length
-                      }
-                    </Typography>
-                  </Box>
-                ) : null}
+                          // params?.row?.attachments?.docs?.length
+                        }
+                      </Typography>
+                    </Box>
+                  ) : null}
 
-                <Stack
-                  direction='row'
-                  className='customButton'
-                  spacing={3}
-                  sx={{
-                    ml:
-                      params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0
-                        ? 0
-                        : 16
-                  }}
-                >
-                  <>
-                    {(permissions?.allow_full_access || permissions?.allow_upload_reports) && (
-                      <Tooltip
-                        title='Upload'
-                        arrow
-                        placement='top-start'
-                        sx={{
-                          bgColor: 'red',
-                          '& .MuiTooltip-tooltip': {
-                            backgroundColor: 'blue', // Set your desired color
-                            color: 'white' // Change text color if needed
-                          }
-                        }}
-                      >
-                        <IconButton
-                          variant='outlined'
-                          size='small'
+                  <Stack
+                    direction='row'
+                    className='customButton'
+                    spacing={3}
+                    sx={{
+                      ml:
+                        params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0
+                          ? 0
+                          : 16
+                    }}
+                  >
+                    <>
+                      {(permissions?.allow_full_access || permissions?.allow_upload_reports) && (
+                        <Tooltip
+                          title='Upload'
+                          arrow
+                          placement='top-start'
                           sx={{
-                            p: 2,
-                            '&:hover': {
-                              backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                            bgColor: 'red',
+                            '& .MuiTooltip-tooltip': {
+                              backgroundColor: 'blue', // Set your desired color
+                              color: 'white' // Change text color if needed
                             }
                           }}
-                          onClick={e => {
-                            e.stopPropagation(), handleOpenUploader(e, params)
-                          }}
                         >
-                          <Icon icon='tabler:upload' width='24' height='24' color={'rgba(68, 84, 74, 1)'} />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                  </>
-                  <>
-                    {(permissions?.allow_full_access || permissions?.transfer_tests) &&
-                      params.row.status.split('_')[0] !== 'completed' && (
-                        <Tooltip title='Transfer' arrow placement='top-start'>
                           <IconButton
                             variant='outlined'
                             size='small'
@@ -742,23 +724,45 @@ const RequestDetails = () => {
                               }
                             }}
                             onClick={e => {
-                              e.stopPropagation(), handleOpenTransfer(params)
+                              e.stopPropagation(), handleOpenUploader(e, params)
                             }}
                           >
-                            <Icon
-                              icon='mingcute:transfer-3-line'
-                              width='24'
-                              height='24'
-                              color={'rgba(68, 84, 74, 1)'}
-                            />
+                            <Icon icon='tabler:upload' width='24' height='24' color={'rgba(68, 84, 74, 1)'} />
                           </IconButton>
                         </Tooltip>
                       )}
-                  </>
+                    </>
+                    <>
+                      {(permissions?.allow_full_access || permissions?.transfer_tests) &&
+                        params.row.status.split('_')[0] !== 'completed' && (
+                          <Tooltip title='Transfer' arrow placement='top-start'>
+                            <IconButton
+                              variant='outlined'
+                              size='small'
+                              sx={{
+                                p: 2,
+                                '&:hover': {
+                                  backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                                }
+                              }}
+                              onClick={e => {
+                                e.stopPropagation(), handleOpenTransfer(params)
+                              }}
+                            >
+                              <Icon
+                                icon='mingcute:transfer-3-line'
+                                width='24'
+                                height='24'
+                                color={'rgba(68, 84, 74, 1)'}
+                              />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                    </>
 
-                  {(permissions?.allow_full_access ||
-                    permissions?.perform_tests ||
-                    permissions?.allow_upload_reports) && (
+                    {(permissions?.allow_full_access ||
+                      permissions?.perform_tests ||
+                      permissions?.allow_upload_reports) && (
                       <Tooltip title='Notes' arrow placement='top-start'>
                         <IconButton
                           variant='outlined'
@@ -782,12 +786,12 @@ const RequestDetails = () => {
                         </IconButton>
                       </Tooltip>
                     )}
-                </Stack>
-              </Box>
-            </>
-          )
-        }
-      ]
+                  </Stack>
+                </Box>
+              </>
+            )
+          }
+        ]
       : []),
     ,
   ]
@@ -807,7 +811,8 @@ const RequestDetails = () => {
   const handleCloseTransfer = () => {
     reset()
     setOpenTransfer(false)
-    handleClosePopover()
+
+    // handleClosePopover()
     setTestId([])
     setLab([])
   }
@@ -908,6 +913,7 @@ const RequestDetails = () => {
     e.stopPropagation()
 
     const testId = item?.id
+
     // setFileId(item?.id)
     try {
       setDeleteAttachmentLoader(true)
@@ -1153,40 +1159,40 @@ const RequestDetails = () => {
                                 style={{
                                   color:
                                     data?.status === 'pending' ||
-                                      data?.status === 'transferred' ||
-                                      data?.status === 'awaiting_sample' ||
-                                      data?.status === 'sample_rejected'
+                                    data?.status === 'transferred' ||
+                                    data?.status === 'awaiting_sample' ||
+                                    data?.status === 'sample_rejected'
                                       ? theme.palette.customColors.customDropdownColor
                                       : data?.status === 'completed'
-                                        ? theme.palette.primary.main
-                                        : data?.status === 'inprogress'
-                                          ? theme.palette.customColors.moderateSecondary
-                                          : data?.status === 'sample_received'
-                                            ? theme.palette.primary.main
-                                            : theme.palette.primary.main
+                                      ? theme.palette.primary.main
+                                      : data?.status === 'inprogress'
+                                      ? theme.palette.customColors.moderateSecondary
+                                      : data?.status === 'sample_received'
+                                      ? theme.palette.primary.main
+                                      : theme.palette.primary.main
                                 }}
                               >
                                 {data?.status === 'awaiting_sample'
                                   ? 'Awaiting sample'
                                   : data?.status === 'sample_received'
-                                    ? 'Sample received'
-                                    : data?.status === 'sample_rejected'
-                                      ? 'sample rejected'
-                                      : data?.status === 'completed_positive'
-                                        ? 'completed positive'
-                                        : data?.status === 'completed_negative'
-                                          ? 'completed negative'
-                                          : data?.status === 'completed_detected'
-                                            ? 'completed detected'
-                                            : data?.status === 'completed_not_detected'
-                                              ? 'completed not detected'
-                                              : data?.status === 'completed_inconclusive'
-                                                ? 'completed inconclusive'
-                                                : data?.status === 'completed'
-                                                  ? 'Completed'
-                                                  : data?.status === 'completed_insufficient_samples'
-                                                    ? 'Completed - Insufficient Samples'
-                                                    : 'In Progress'}
+                                  ? 'Sample received'
+                                  : data?.status === 'sample_rejected'
+                                  ? 'sample rejected'
+                                  : data?.status === 'completed_positive'
+                                  ? 'completed positive'
+                                  : data?.status === 'completed_negative'
+                                  ? 'completed negative'
+                                  : data?.status === 'completed_detected'
+                                  ? 'completed detected'
+                                  : data?.status === 'completed_not_detected'
+                                  ? 'completed not detected'
+                                  : data?.status === 'completed_inconclusive'
+                                  ? 'completed inconclusive'
+                                  : data?.status === 'completed'
+                                  ? 'Completed'
+                                  : data?.status === 'completed_insufficient_samples'
+                                  ? 'Completed - Insufficient Samples'
+                                  : 'In Progress'}
                               </span>
                             </Typography>
                           </TableCell>
@@ -1210,9 +1216,7 @@ const RequestDetails = () => {
       ) : (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography color='inherit'>
-              Labs
-            </Typography>
+            <Typography color='inherit'>Labs</Typography>
             <Typography
               sx={{ cursor: 'pointer' }}
               color='inherit'
@@ -1227,7 +1231,7 @@ const RequestDetails = () => {
             </Typography>
             <Typography
               sx={{
-                color: 'text.primary',
+                color: 'text.primary'
               }}
             >
               Lab request details
@@ -1242,6 +1246,7 @@ const RequestDetails = () => {
                 <Box
                   sx={{
                     width: '400px',
+
                     // maxWidth: '400px',
                     display: 'flex',
                     flexDirection: 'row',
@@ -1340,76 +1345,76 @@ const RequestDetails = () => {
                             fontSize: '14px',
                             backgroundColor:
                               headerStatus === 'pending' ||
-                                headerStatus === 'transferred' ||
-                                headerStatus === 'awaiting_sample' ||
-                                headerStatus === 'sample_clotted' ||
-                                headerStatus === 'completed_insufficient_samples' ||
-                                headerStatus === 'sample_haemolysed' ||
-                                headerStatus === 'sample_rejected'
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_clotted' ||
+                              headerStatus === 'completed_insufficient_samples' ||
+                              headerStatus === 'sample_haemolysed' ||
+                              headerStatus === 'sample_rejected'
                                 ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                                 : headerStatus === 'completed'
-                                  ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
-                                  : headerStatus === 'inprogress'
-                                    ? 'rgba(228, 184, 25, 0.1)'
-                                    : headerStatus === 'sample_received'
-                                      ? 'rgba(0, 128, 0, 0.1)'
-                                      : 'rgba(0, 128, 0, 0.1)',
+                                ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                                : headerStatus === 'inprogress'
+                                ? 'rgba(228, 184, 25, 0.1)'
+                                : headerStatus === 'sample_received'
+                                ? 'rgba(0, 128, 0, 0.1)'
+                                : 'rgba(0, 128, 0, 0.1)',
 
                             color:
                               headerStatus === 'pending' ||
-                                headerStatus === 'transferred' ||
-                                headerStatus === 'awaiting_sample' ||
-                                headerStatus === 'sample_clotted' ||
-                                headerStatus === 'completed_insufficient_samples' ||
-                                headerStatus === 'sample_haemolysed' ||
-                                headerStatus === 'sample_rejected'
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_clotted' ||
+                              headerStatus === 'completed_insufficient_samples' ||
+                              headerStatus === 'sample_haemolysed' ||
+                              headerStatus === 'sample_rejected'
                                 ? theme.palette.customColors.customDropdownColor
                                 : headerStatus === 'completed'
-                                  ? theme.palette.primary.main
-                                  : headerStatus === 'inprogress'
-                                    ? theme.palette.customColors.moderateSecondary
-                                    : headerStatus === 'sample_received'
-                                      ? theme.palette.primary.main
-                                      : theme.palette.primary.main,
+                                ? theme.palette.primary.main
+                                : headerStatus === 'inprogress'
+                                ? theme.palette.customColors.moderateSecondary
+                                : headerStatus === 'sample_received'
+                                ? theme.palette.primary.main
+                                : theme.palette.primary.main,
 
                             borderRadius: '8px',
 
                             '& .MuiSelect-icon': {
                               color:
                                 headerStatus === 'pending' ||
-                                  headerStatus === 'transferred' ||
-                                  headerStatus === 'awaiting_sample' ||
-                                  headerStatus === 'sample_clotted' ||
-                                  headerStatus === 'completed_insufficient_samples' ||
-                                  headerStatus === 'sample_haemolysed' ||
-                                  headerStatus === 'sample_rejected'
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_clotted' ||
+                                headerStatus === 'completed_insufficient_samples' ||
+                                headerStatus === 'sample_haemolysed' ||
+                                headerStatus === 'sample_rejected'
                                   ? theme.palette.customColors.customDropdownColor
                                   : headerStatus === 'completed'
-                                    ? theme.palette.primary.main
-                                    : headerStatus === 'inprogress'
-                                      ? theme.palette.customColors.moderateSecondary
-                                      : headerStatus === 'sample_received'
-                                        ? theme.palette.primary.main
-                                        : theme.palette.primary.main
+                                  ? theme.palette.primary.main
+                                  : headerStatus === 'inprogress'
+                                  ? theme.palette.customColors.moderateSecondary
+                                  : headerStatus === 'sample_received'
+                                  ? theme.palette.primary.main
+                                  : theme.palette.primary.main
                             },
 
                             '&:hover .MuiOutlinedInput-notchedOutline': {
                               border: '0',
                               borderColor:
                                 headerStatus === 'pending' ||
-                                  headerStatus === 'transferred' ||
-                                  headerStatus === 'awaiting_sample' ||
-                                  headerStatus === 'sample_rejected' ||
-                                  headerStatus === 'sample_clotted' ||
-                                  headerStatus === 'completed_insufficient_samples' ||
-                                  headerStatus === 'sample_haemolysed' ||
-                                  headerStatus === 'sample_received'
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_rejected' ||
+                                headerStatus === 'sample_clotted' ||
+                                headerStatus === 'completed_insufficient_samples' ||
+                                headerStatus === 'sample_haemolysed' ||
+                                headerStatus === 'sample_received'
                                   ? theme.palette.customColors.customDropdownColor // Custom red border for these statuses
                                   : headerStatus === 'completed'
-                                    ? theme.palette.primary.main // Custom green border for completed
-                                    : headerStatus === 'inprogress'
-                                      ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
-                                      : theme.palette.primary.main // Default green border
+                                  ? theme.palette.primary.main // Custom green border for completed
+                                  : headerStatus === 'inprogress'
+                                  ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
+                                  : theme.palette.primary.main // Default green border
                             },
                             '& .MuiOutlinedInput-notchedOutline': {
                               border: '0'
@@ -1473,6 +1478,15 @@ const RequestDetails = () => {
                 },
                 '& .MuiDataGrid-row .customButton': {
                   display: 'none'
+                },
+                '& .MuiDataGrid-row.Mui-selected': {
+                  backgroundColor: 'white !important'
+                },
+                '& .MuiDataGrid-row.Mui-selected:hover': {
+                  backgroundColor: 'white !important'
+                },
+                '& .MuiDataGrid-row.Mui-selected.MuiDataGrid-row--focused': {
+                  backgroundColor: 'white !important'
                 }
               }}
               autoHeight
@@ -1492,9 +1506,9 @@ const RequestDetails = () => {
           </Card>
 
           {permissions?.allow_upload_reports ||
-            permissions?.allow_full_access ||
-            image?.length > 0 ||
-            document?.length > 0 ? (
+          permissions?.allow_full_access ||
+          image?.length > 0 ||
+          document?.length > 0 ? (
             <Card sx={{ mt: 5 }}>
               <Box sx={{ py: 5, px: 5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
@@ -1800,11 +1814,7 @@ const RequestDetails = () => {
                           />
                         )}
                       />
-                      {errors.lab_name && (
-                        <FormHelperText>
-                          {errors?.lab_name?.message}
-                        </FormHelperText>
-                      )}
+                      {errors.lab_name && <FormHelperText>{errors?.lab_name?.message}</FormHelperText>}
                     </FormControl>
                   </Grid>
                   <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
@@ -1889,7 +1899,7 @@ const RequestDetails = () => {
                     variant='outlined'
                     size='large'
 
-                  // disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
+                    // disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
                     Cancel
                   </LoadingButton>

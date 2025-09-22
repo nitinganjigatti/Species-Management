@@ -20,20 +20,26 @@ const composeHospitalNavigation = () => {
     path: '/hospital/inpatient'
   }
 
+  const outpatient = {
+    title: 'Outpatients',
+    path: '/hospital/outpatient'
+  }
+
   const doctorsANdStaffs = {
-    title: 'Doctors And Staffs',
+    title: 'Doctors & Staffs',
     path: '/hospital/doctors-and-staffs',
     icon: 'tabler:align-box-top-left'
   }
 
   const roomsAndEnclosures = {
-    title: 'Rooms/Enclosures',
+    title: 'Rooms / Enclosures',
     path: '/hospital/rooms-and-enclosures',
     icon: 'tabler:align-box-top-left'
   }
 
   const hospitalMastersParent = {
     title: 'Masters',
+    key: 'hospital-masters',
     path: '/hospital/masters',
     icon: 'tabler:align-box-top-left',
     children: []
@@ -56,6 +62,7 @@ const composeHospitalNavigation = () => {
 
   patientsParent.children.push(incoming)
   patientsParent.children.push(inpatient)
+  patientsParent.children.push(outpatient)
 
   hospitalMastersParent.children.push(monitoringMaster)
   hospitalMastersParent.children.push(anesthesiaMaster)

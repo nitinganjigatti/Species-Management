@@ -19,7 +19,7 @@ const AnimalInsightsHeader = ({
 }) => {
   const theme = useTheme()
 
-  const { commonName, scientificName, speciesTitle } = headerDetails
+  const { commonName, scientificName } = headerDetails
 
   return (
     <>
@@ -46,16 +46,34 @@ const AnimalInsightsHeader = ({
               </Typography>
             )}
             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-              {headerDetails?.isAlive === "0" && (
-                <Box sx={{ px: 4, py: 2, background: theme.palette.customColors.Error, borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              {headerDetails?.isAlive === '0' && (
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: theme.palette.customColors.Error,
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
                   <img src='/icons/died_symbol_icon.svg' alt='died' height={'20px'} width={'20px'} />
-                  <Typography sx={{ color: '#FFF', fontWeight: 500, fontSize: '20px' }}>
-                    Dead
-                  </Typography>
+                  <Typography sx={{ color: '#FFF', fontWeight: 500, fontSize: '20px' }}>Dead</Typography>
                 </Box>
               )}
               {headerDetails?.isGrouped && (
-                <Box sx={{ px: 4, py: 2, background: '#FFF', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: '#FFF',
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
                   <Typography sx={{ color: theme.palette.customColors.Error, fontWeight: 500, fontSize: '20px' }}>
                     Group
                   </Typography>
@@ -90,29 +108,29 @@ const AnimalInsightsHeader = ({
             gap: 6
           }}
         >
-          <Box>
-            {speciesTitle && (
-              <Typography sx={{ color: theme.palette.common.white, fontSize: '1.5rem', fontWeight: '600' }}>
-                {speciesTitle}
-              </Typography>
-            )}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.2 }}>
+            <Typography sx={{ color: theme.palette.common.white, fontSize: '14px', fontWeight: '600' }}>
+              Species
+            </Typography>
             {isSpeciesDetails && (
               <>
                 {commonName && (
-                  <Typography sx={{ color: theme.palette.common.white, fontSize: '2.5rem', fontWeight: '600' }}>
+                  <Typography sx={{ color: theme.palette.common.white, fontSize: '24px', fontWeight: '600' }}>
                     {commonName}
                   </Typography>
                 )}
                 {scientificName && (
-                  <Typography sx={{ mt: 0.5, color: theme.palette.common.white, fontSize: '1.4rem' }}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.common.white,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      fontStyle: 'italic'
+                    }}
+                  >
                     {scientificName}
                   </Typography>
                 )}
-              </>
-            )}
-            {isSpeciesListing && ( //Will start working when collection module starts
-              <>
-                <Box></Box>
               </>
             )}
           </Box>

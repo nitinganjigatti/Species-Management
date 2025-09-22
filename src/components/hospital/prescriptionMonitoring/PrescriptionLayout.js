@@ -1,10 +1,27 @@
-import { Grid } from '@mui/system'
-import React from 'react'
+import { Grid, Box } from '@mui/system'
+import React, { useState } from 'react'
 import PrescriptionMonitoringGrid from './PrescriptionMonitoringGrid'
+import { MedicineScheduleView } from 'src/views/pages/hospital/prescription-monitoring'
+import { Button } from '@mui/material'
 
 function PrescriptionLayout({ drawerType }) {
   // const { drawerType } = drawerType
   console.log('drawerState', drawerType)
+
+  const exampleMedicine = {
+    name: 'Dolo 650 tablet',
+    medId: 'MED - 12345/25',
+    startDate: '1 Jan 2025',
+    endDate: '04 Jan 2025',
+    dosageCount: '3 Times',
+    frequency: 'Everyday',
+    duration: '3 days',
+    deliveryRoute: 'Oral',
+    notes: 'Lorem ipsum dolor sit amet consectetur adipiscin ipsum dolor...',
+    lastEdited: 'Last edited on 10:34 AM • 02 Jan 2025'
+  }
+
+  const [openSchedule, setOpenSchedule] = useState(false)
 
   const medication = [
     {
@@ -255,11 +272,22 @@ function PrescriptionLayout({ drawerType }) {
   ]
 
   return (
-    <div>
+    <Box>
       <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-        <PrescriptionMonitoringGrid medications={medication} />
+        <Button onClick={() => setOpenSchedule(true)}>View Sample Schedule</Button>
+        <Grid xs={12}>
+          <PrescriptionMonitoringGrid medications={medication} />
+        </Grid>
       </Grid>
-    </div>
+
+      <MedicineScheduleView
+        open={openSchedule}
+        onClose={() => setOpenSchedule(false)}
+        medicineData={exampleMedicine}
+        onStopMedicine={() => setOpenSchedule(false)}
+        onAddDosage={() => {}}
+      />
+    </Box>
   )
 }
 
