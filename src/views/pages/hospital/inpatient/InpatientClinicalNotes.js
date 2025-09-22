@@ -137,6 +137,7 @@ const InpatientClinicalNotes = props => {
                     date={Utility.convertUtcToLocalReadableDate(data?.created_at)}
                     show_time
                     size='medium'
+                    profile_image={data?.user_created_profile_pic}
                   />
                 </Box>
               )
