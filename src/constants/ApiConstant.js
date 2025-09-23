@@ -554,7 +554,7 @@ export const ADD_SECTION = `/zoos/createsection`
 
 export const CREATE_SITE = '/zoos/createZooSite'
 
-export const ADD_ENCLOSURE_TO_HOUSING = `/enclosure/create-enclosure`
+export const ADD_ENCLOSURE_TO_HOUSING = `enclosure/create-enclosure`
 
 export const GET_ENCLOSURE_SETTINGS = `/enclosure/settings`
 
