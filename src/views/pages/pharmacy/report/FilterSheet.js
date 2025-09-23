@@ -14,6 +14,7 @@ import {
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const FilterSheet = ({
   open,
@@ -328,28 +329,32 @@ const FilterSheet = ({
               <Box sx={{ ml: 2, overflowY: 'auto' }}>
                 <Box sx={{ ml: 2, pb: 17 }}>
                   {activeCategory === 'Site' ? (
-                    filteredOptions.map((option, index) => (
-                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <FormControlLabel
-                          label={
-                            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                              {option.site_name}
-                            </Typography>
-                          }
-                          control={
-                            <Checkbox
-                              checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
-                              onChange={() => handleToggleOption(option.site_id, activeCategory)}
-                            />
-                          }
-                        />
-                      </Box>
-                    ))
+                    filteredOptions.length > 0 ? (
+                      filteredOptions.map((option, index) => (
+                        <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <FormControlLabel
+                            label={
+                              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                                {option.site_name}
+                              </Typography>
+                            }
+                            control={
+                              <Checkbox
+                                checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                                onChange={() => handleToggleOption(option.site_id, activeCategory)}
+                              />
+                            }
+                          />
+                        </Box>
+                      ))
+                    ) : (
+                      <NoDataFound variant='Seal' />
+                    )
                   ) : isLoader ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
                       <CircularProgress />
                     </Box>
-                  ) : (
+                  ) : filteredOptions.length > 0 ? (
                     filteredOptions.map((option, index) => (
                       <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                         <FormControlLabel
@@ -367,6 +372,8 @@ const FilterSheet = ({
                         />
                       </Box>
                     ))
+                  ) : (
+                    <NoDataFound variant='Seal' />
                   )}
                 </Box>
               </Box>
