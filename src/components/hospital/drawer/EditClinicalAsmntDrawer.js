@@ -34,7 +34,8 @@ const EditClinicalAsmntDrawer = ({
   notes,
   setNotes,
   status,
-  setStatus
+  setStatus,
+  isSubmitLoading
 }) => {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
@@ -83,10 +84,10 @@ const EditClinicalAsmntDrawer = ({
           <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
             <MedicalIdChip
               leftImage
-              medId={medical_record_id || ''}
+              medId={medical_record_id ? `MID-${medical_record_id}` : ''}
               textColor={theme.palette.customColors.OnPrimaryContainer}
             />
-            <Typography 
+            <Typography
               sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 3, fontWeight: 400, fontSize: '14px' }}
             >
               {selectedSymptom?.created_by_user_name} • {Utility.formatDisplayDate(selectedSymptom?.created_at)}
@@ -268,6 +269,7 @@ const EditClinicalAsmntDrawer = ({
         </Box>
 
         <SideSheetActionButtons
+          isSubmitLoading={isSubmitLoading}
           addLabel='UPDATE'
           cancelLabel='CANCEL'
           onAdd={handleSave}

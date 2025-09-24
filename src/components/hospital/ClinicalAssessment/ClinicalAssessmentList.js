@@ -1,5 +1,14 @@
 import React, { useState } from 'react'
-import { Box, TextField, FormControlLabel, Checkbox, InputAdornment, Typography } from '@mui/material'
+import {
+  Box,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  InputAdornment,
+  Typography,
+  CircularProgress,
+  Skeleton
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 
@@ -10,6 +19,8 @@ export default function ClinicalAssessmentList({
   onSelect,
   handleTabChange,
   currentTab,
+  isTabsLoading,
+  isListLoading,
   tabOptions,
   searchTerm,
   setSearchTerm
@@ -49,38 +60,48 @@ export default function ClinicalAssessmentList({
           }}
         >
           <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-            {tabOptions?.map(tab => (
-              <Box
-                key={tab}
-                onClick={() => handleTabChange(tab?.category, tab?.id)}
-                sx={{
-                  flexShrink: 0,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  px: '16px',
-                  py: '8px',
-                  borderRadius: '8px',
-                  backgroundColor:
-                    currentTab === tab?.category
-                      ? theme.palette.secondary.dark
-                      : theme.palette.customColors.mdAntzNeutral,
-                  cursor: 'pointer'
-                }}
-              >
-                <Typography
-                  sx={{
-                    color:
-                      currentTab === tab?.category
-                        ? theme.palette.primary.contrastText
-                        : theme.palette.customColors.neutralPrimary,
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {`${tab?.category} - ${tab?.child_count}`}
-                </Typography>
-              </Box>
-            ))}
+            {isTabsLoading
+              ? Array.from(new Array(4)).map((_, index) => (
+                  <Skeleton
+                    key={index}
+                    variant='rounded'
+                    width={120}
+                    height={40}
+                    sx={{ flexShrink: 0, borderRadius: '8px' }}
+                  />
+                ))
+              : tabOptions?.map(tab => (
+                  <Box
+                    key={tab}
+                    onClick={() => handleTabChange(tab?.category, tab?.id)}
+                    sx={{
+                      flexShrink: 0,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      px: '16px',
+                      py: '8px',
+                      borderRadius: '8px',
+                      backgroundColor:
+                        currentTab === tab?.category
+                          ? theme.palette.secondary.dark
+                          : theme.palette.customColors.mdAntzNeutral,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color:
+                          currentTab === tab?.category
+                            ? theme.palette.primary.contrastText
+                            : theme.palette.customColors.neutralPrimary,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {`${tab?.category} - ${tab?.child_count}`}
+                    </Typography>
+                  </Box>
+                ))}
           </Box>
         </Box>
       </Box>
@@ -105,7 +126,21 @@ export default function ClinicalAssessmentList({
       </Box>
 
       <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>
-        {filteredSymptoms.length === 0 ? (
+        {isListLoading ? (
+          <Box
+            sx={{
+              background: theme.palette.common.white,
+              height: 500,
+              borderRadius: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : filteredSymptoms.length === 0 ? (
           <Box
             sx={{
               background: theme.palette.common.white,

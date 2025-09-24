@@ -188,6 +188,7 @@ const ClinicalAssessment = () => {
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Assessment updated successfully' })
+        fetchClinicalAssessments(1, searchQuery, getStatusFilter())
         setIsDrawerOpen(false)
       } else {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' }) // TODO: Replace with actual error message
@@ -359,6 +360,7 @@ const ClinicalAssessment = () => {
           setStatus={setStatus}
           setNotes={setNotes}
           onSave={updateAssessment}
+          isSubmitLoading={isSubmitLoading}
         />
       )}
     </Box>

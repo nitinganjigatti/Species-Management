@@ -27,6 +27,7 @@ export default function AddClinicalAssessmentPage() {
   const [status, setStatus] = useState('')
   const [localSearch, setLocalSearch] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isTabsLoading, setIsTabsLoading] = useState(false)
 
   const { id, animalId, medicalRecordId } = router.query
   
@@ -56,6 +57,8 @@ export default function AddClinicalAssessmentPage() {
   // Fetch diagnosis types (categories)
   const fetchDiagnosisTypes = useCallback(async () => {
     try {
+      setIsTabsLoading(true)
+
       const params = {
         include_all:1,
         type:"diagnosis"
@@ -72,6 +75,8 @@ export default function AddClinicalAssessmentPage() {
     } catch (error) {
       console.error('Error fetching diagnosis types:', error)
       setTabOptions([])
+    } finally {
+      setIsTabsLoading(false)
     }
   }, [])
 
@@ -178,48 +183,55 @@ export default function AddClinicalAssessmentPage() {
 
   const handleAddAssessment = async () => {
     if (selectedSymptoms.length === 0) {
-      Toaster({ type: 'error', message: 'Please select at least one symptom' })
-      
-    return
+      Toaster({ type: 'error', message: 'Please select at least one Assessment' })
+
+      return
     }
+    setIsSubmitLoading(true)
 
     const diagnosis = selectedSymptoms.map(symptom => ({
       id: symptom?.id,
       name: symptom?.name,
       additional_info: {
-        status: symptom?.status?.toLowerCase() || "",
+        status: symptom?.status?.toLowerCase() || '',
         clinical_assessment: symptom.clinicalAsmnt.toLowerCase(),
-        note: symptom?.notes || "",
-        isChronic: symptom?.chronicVal === "Yes",
-        prognosis: symptom?.prognosisVal?.toLowerCase() || ""
+        note: symptom?.notes || '',
+        isChronic: symptom?.chronicVal === 'Yes',
+        prognosis: symptom?.prognosisVal?.toLowerCase() || ''
       }
-    }));
+    }))
 
     const payload = {
       medical_record_id: medicalRecordId,
       animal_id: JSON.stringify([animalId]),
       diagnosis: JSON.stringify(diagnosis)
     }
-    setIsSubmitLoading(true)
 
     try {
       const response = await addClinicalAssessment(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Assessment created successfully' })
-        router.push({ pathname: `/hospital/inpatient/${id}`, query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: "clinical-assessment" } })
+        router.push({
+          pathname: `/hospital/inpatient/${id}`,
+          query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinical-assessment' }
+        })
       } else {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
       }
     } catch (error) {
       console.error('Submit Error:', error)
       Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+    } finally {
       setIsSubmitLoading(false)
     }
   }
 
   const handleAssessmentCancel = () => {
-    router.push({ pathname: `/hospital/inpatient/${id}`, query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: "clinical-assessment" } })
+    router.push({
+      pathname: `/hospital/inpatient/${id}`,
+      query: { animal_id: animalId, medical_record_id: medicalRecordId, tab: 'clinical-assessment' }
+    })
   }
 
   return (
@@ -255,7 +267,7 @@ export default function AddClinicalAssessmentPage() {
             currentTab={currentTab}
             tabOptions={tabOptions}
             searchTerm={localSearch}
-            setSearchTerm={(value) => {
+            setSearchTerm={value => {
               setLocalSearch(value)
               debouncedSearch(value)
             }}
@@ -263,6 +275,8 @@ export default function AddClinicalAssessmentPage() {
             hasMore={hasMore}
             loaderRef={loaderRef}
             totalCount={totalCount}
+            isTabsLoading={isTabsLoading}
+            isListLoading={isLoading}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -275,6 +289,7 @@ export default function AddClinicalAssessmentPage() {
       </Grid>
 
       <ActionButtons
+        isSubmitLoading={isSubmitLoading}
         cancelLabel='CANCEL'
         addLabel='ADD'
         onCancel={handleAssessmentCancel}
@@ -299,6 +314,7 @@ export default function AddClinicalAssessmentPage() {
           setStatus={setStatus}
           setNotes={setNotes}
           onSave={addSymptomDetails}
+          isSubmitLoading={isSubmitLoading}
         />
       )}
     </Box>

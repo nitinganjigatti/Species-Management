@@ -1,8 +1,8 @@
 import React from 'react'
-import { Box } from '@mui/material'
+import { Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
-const SideSheetActionButtons = ({ addLabel, cancelLabel, onAdd, onCancel, width, height }) => {
+const SideSheetActionButtons = ({ addLabel, cancelLabel, onAdd, onCancel, width, height, isSubmitLoading }) => {
   const theme = useTheme()
 
   return (
@@ -40,6 +40,7 @@ const SideSheetActionButtons = ({ addLabel, cancelLabel, onAdd, onCancel, width,
       <Box
         component='button'
         onClick={onAdd}
+        disabled={isSubmitLoading}
         sx={{
           flex: 1,
           width,
@@ -49,11 +50,15 @@ const SideSheetActionButtons = ({ addLabel, cancelLabel, onAdd, onCancel, width,
           color: theme.palette.common.white,
           fontWeight: 500,
           fontSize: '15px',
-          cursor: 'pointer',
-          border: 'none'
+          cursor: isSubmitLoading ? 'not-allowed' : 'pointer',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 2
         }}
       >
-        {addLabel}
+        {isSubmitLoading ? <CircularProgress size={20} color='inherit' /> : addLabel}
       </Box>
     </Box>
   )

@@ -74,7 +74,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <MedicalIdChip
             leftImage
-            medId={record?.medical_record_id || ''}
+            medId={record?.medical_record_id ? `MID-${record.medical_record_id}` : ''}
             rightDot
             dotColor={isActive ? theme.palette.primary.main : theme.palette.success.main}
             textColor={theme.palette.customColors.OnSurface}
