@@ -5,6 +5,7 @@ import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
@@ -35,6 +36,8 @@ const HospitalInpatient = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const { selectedHospital } = useHospital()
+
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
 
@@ -57,13 +60,13 @@ const HospitalInpatient = () => {
   }, [router.query])
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['inpatients-listings', filters, selectedVisitType],
+    queryKey: ['inpatients-listings', filters, selectedVisitType, selectedHospital?.id],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         search: filters?.q,
-        hospital_id: 1,
+        hospital_id: selectedHospital?.id,
         status: 'admitted',
         visit_type: selectedVisitType,
         patient_category: 'inpatient'
@@ -335,7 +338,6 @@ const HospitalInpatient = () => {
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Inpatient</Typography>
         </Breadcrumbs>
         <HospitalAnalytics />
-        <Box>{/* This is for Hospital Card */}</Box>
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Inpatients')} action={headerAction} />

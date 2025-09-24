@@ -33,6 +33,7 @@ import { addHospitalPatient } from 'src/lib/api/hospital/inpatient'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
+import { useHospital } from 'src/context/HospitalContext'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -83,6 +84,8 @@ const AddPatientForm = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const { selectedHospital } = useHospital()
+
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [openAnimalDrawer, setAnimalDrawer] = useState(false)
@@ -116,7 +119,7 @@ const AddPatientForm = () => {
     const getHospitalBeds = async () => {
       try {
         await getRoomsAndEnclosures({
-          hospital_id: 1,
+          hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
           is_occupied: 'available',
@@ -137,7 +140,7 @@ const AddPatientForm = () => {
     }
 
     getHospitalBeds()
-  }, [search])
+  }, [search, selectedHospital?.id])
 
   const debouncedSearch = React.useMemo(() => debounce(val => setSearch(val), 1000), [])
 
@@ -177,7 +180,7 @@ const AddPatientForm = () => {
         entity_items: JSON.stringify([selectedAnimal?.animal_id]),
         source_id: selectedAnimal?.enclosure_id,
         source_type: 'enclosure',
-        destination_id: '1', //Later change to hospital id
+        destination_id: selectedHospital?.id, //Later change to hospital id
         destination_type: 'hospital',
         transfer_type: 'inter',
         visit_type: data?.visitType,

@@ -7,9 +7,11 @@ import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
+import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -33,6 +35,8 @@ const getVisitTypeLabel = title => {
 const HospitalOutPatient = () => {
   const theme = useTheme()
   const router = useRouter()
+
+  const { selectedHospital } = useHospital()
 
   const authData = useContext(AuthContext)
 
@@ -58,13 +62,13 @@ const HospitalOutPatient = () => {
   }, [router.query])
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['outpatients-listings', filters, selectedVisitType],
+    queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         search: filters?.q,
-        hospital_id: 5,
+        hospital_id: selectedHospital?.id,
         status: 'opd',
         visit_type: selectedVisitType,
         visit_category: 'outpatient',
@@ -330,7 +334,7 @@ const HospitalOutPatient = () => {
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
           <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>outpatient</Typography>
         </Breadcrumbs>
-        <Box>{/* This is for Hospital Card */}</Box>
+        <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Outpatients')} action={headerAction} />
