@@ -53,9 +53,6 @@ const InpatientDetails = () => {
   const theme = useTheme()
   const { id, animal_id } = router.query
 
-  console.log(id, 'medId')
-  console.log(animal_id, 'animalId')
-
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [anchorEl, setAnchorEl] = useState(null)

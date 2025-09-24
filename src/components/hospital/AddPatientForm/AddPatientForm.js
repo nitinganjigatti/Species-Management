@@ -33,6 +33,7 @@ import { addHospitalPatient } from 'src/lib/api/hospital/inpatient'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
+import { useHospital } from 'src/context/HospitalContext'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -83,6 +84,8 @@ const AddPatientForm = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const { selectedHospital } = useHospital()
+
   const [medicalId, setMedicalId] = useState([])
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
   const [openAnimalDrawer, setAnimalDrawer] = useState(false)
@@ -116,7 +119,7 @@ const AddPatientForm = () => {
     const getHospitalBeds = async () => {
       try {
         await getRoomsAndEnclosures({
-          hospital_id: 1,
+          hospital_id: selectedHospital?.id,
           page: 1,
           per_page: 20,
           is_occupied: 'available',
@@ -137,7 +140,7 @@ const AddPatientForm = () => {
     }
 
     getHospitalBeds()
-  }, [search])
+  }, [search, selectedHospital?.id])
 
   const debouncedSearch = React.useMemo(() => debounce(val => setSearch(val), 1000), [])
 
@@ -177,7 +180,7 @@ const AddPatientForm = () => {
         entity_items: JSON.stringify([selectedAnimal?.animal_id]),
         source_id: selectedAnimal?.enclosure_id,
         source_type: 'enclosure',
-        destination_id: '1', //Later change to hospital id
+        destination_id: selectedHospital?.id, //Later change to hospital id
         destination_type: 'hospital',
         transfer_type: 'inter',
         visit_type: data?.visitType,
@@ -338,7 +341,7 @@ const AddPatientForm = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            border: `1px solid ${theme.palette.customColors.Outline}`,
+                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                             borderRadius: 1,
                             p: 4,
                             background: theme.palette.customColors.Surface
@@ -378,18 +381,8 @@ const AddPatientForm = () => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Purpose of visit
+                      Visit Type
                     </Typography>
-                    <ControlledTextArea
-                      control={control}
-                      name={'purposeOfVisit'}
-                      errors={errors}
-                      sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
-                      label={'Enter Purpose of Visit'}
-                      rows={selectedAnimal ? 5.8 : 1}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <ControlledSelect
                       control={control}
                       name={'visitType'}
@@ -399,6 +392,20 @@ const AddPatientForm = () => {
                       sx={{ background: theme.palette.customColors.Surface }}
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Purpose of visit
+                    </Typography>
+                    <ControlledTextArea
+                      control={control}
+                      name={'purposeOfVisit'}
+                      errors={errors}
+                      sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
+                      label={'Enter Purpose of Visit'}
                     />
                   </Grid>
                 </Grid>

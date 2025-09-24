@@ -65,11 +65,9 @@ const HospitalDischarged = () => {
         page_no: filters?.page,
         limit: filters?.limit,
         search: filters?.q,
-        hospital_id: 5,
-        status: 'opd',
+        hospital_id: 1,
         visit_type: selectedVisitType,
-        visit_category: 'outpatient',
-        patient_category: 'outpatient'
+        patient_category: 'discharge'
       })
   })
 

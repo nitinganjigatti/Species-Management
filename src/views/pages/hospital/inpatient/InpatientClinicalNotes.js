@@ -1,5 +1,5 @@
 import React from 'react'
-import { Typography, Box, Button, IconButton, Skeleton } from '@mui/material'
+import { Typography, Box, Button, IconButton, Skeleton, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import { alpha, useTheme } from '@mui/material/styles'
@@ -55,7 +55,11 @@ const InpatientClinicalNotes = props => {
 
         {/* Clinical Note Form */}
         <form noValidate autoComplete='off' onSubmit={!isSubmitting ? handleSubmit(onSubmit) : undefined}>
-          <ControlledTextArea name='note' control={control} placeholder='Add notes' fullWidth={true} minRows={3} />
+          <Grid container>
+            <Grid size={{ xs: 12 }}>
+              <ControlledTextArea name='note' control={control} placeholder='Add notes' fullWidth={true} minRows={3} />
+            </Grid>
+          </Grid>
 
           {clinical_note_name?.trim() && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
@@ -137,6 +141,7 @@ const InpatientClinicalNotes = props => {
                     date={Utility.convertUtcToLocalReadableDate(data?.created_at)}
                     show_time
                     size='medium'
+                    profile_image={data?.user_created_profile_pic}
                   />
                 </Box>
               )
