@@ -12,6 +12,7 @@ import { getClinicalAssessments, updateClinicalAssessment } from 'src/lib/api/ho
 import EditClinicalAsmntDrawer from '../drawer/EditClinicalAsmntDrawer'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 const PAGE_SIZE = 10
 
@@ -30,6 +31,7 @@ const ClinicalAssessment = () => {
   const [selectedAssessment, setSelectedAssessment] = useState(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false)
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
@@ -190,6 +192,7 @@ const ClinicalAssessment = () => {
         Toaster({ type: 'success', message: response?.message || 'Assessment updated successfully' })
         fetchClinicalAssessments(1, searchQuery, getStatusFilter())
         setIsDrawerOpen(false)
+        setIsSaveDialogOpen(false)
       } else {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' }) // TODO: Replace with actual error message
       }
@@ -359,8 +362,23 @@ const ClinicalAssessment = () => {
           status={status}
           setStatus={setStatus}
           setNotes={setNotes}
-          onSave={updateAssessment}
-          isSubmitLoading={isSubmitLoading}
+          onSave={() => setIsSaveDialogOpen(true)}
+        />
+      )}
+
+      {isSaveDialogOpen && (
+        <ConfirmationDialog
+          dialogBoxStatus={isSaveDialogOpen}
+          onClose={() => setIsSaveDialogOpen(false)}
+          title={'Are you sure you want to save the changes?'}
+          cancelText={'CANCEL'}
+          confirmBtnStyle={{ background: theme.palette.primary.main, py: 2 }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{ background: theme.palette.customColors.mdAntzNeutral, p: 4 }}
+          confirmAction={updateAssessment} // Run actual add logic here
+          loading={isSubmitLoading}
+          ConfirmationText={'YES'}
+          description={''}
         />
       )}
     </Box>
