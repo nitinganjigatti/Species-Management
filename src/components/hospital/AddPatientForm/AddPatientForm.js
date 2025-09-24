@@ -338,7 +338,7 @@ const AddPatientForm = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            border: `1px solid ${theme.palette.customColors.Outline}`,
+                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                             borderRadius: 1,
                             p: 4,
                             background: theme.palette.customColors.Surface
@@ -378,18 +378,8 @@ const AddPatientForm = () => {
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Purpose of visit
+                      Visit Type
                     </Typography>
-                    <ControlledTextArea
-                      control={control}
-                      name={'purposeOfVisit'}
-                      errors={errors}
-                      sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
-                      label={'Enter Purpose of Visit'}
-                      rows={selectedAnimal ? 5.8 : 1}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <ControlledSelect
                       control={control}
                       name={'visitType'}
@@ -399,6 +389,20 @@ const AddPatientForm = () => {
                       sx={{ background: theme.palette.customColors.Surface }}
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Purpose of visit
+                    </Typography>
+                    <ControlledTextArea
+                      control={control}
+                      name={'purposeOfVisit'}
+                      errors={errors}
+                      sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
+                      label={'Enter Purpose of Visit'}
                     />
                   </Grid>
                 </Grid>
