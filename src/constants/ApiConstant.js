@@ -731,3 +731,9 @@ export const GET_CLINICAL_DIAGNOSIS_TYPE = 'medical/get-complaint-diagnosis-type
 export const ADD_CLINICAL_ASSESSMENT = 'v1/hospital/add-clinical-assessment'
 
 export const UPDATE_CLINICAL_ASSESSMENT = 'medical/v2/update-diagnosis-prescription'
+
+// Hospital Analytics
+
+export const HOSPITAL_LISTING = 'v1/hospital/listing'
+
+export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'
