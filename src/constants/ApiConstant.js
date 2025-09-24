@@ -719,3 +719,11 @@ export const GET_CLINICAL_NOTES = 'get-medical-common-data-v2'
 export const DELETE_CLINICAL_NOTES = 'medical/attachment-remove/'
 
 export const CREATE_CLINICAL_NOTES = 'v1/hospital/add-clinical-notes'
+
+export const GET_SYMPTOM_LISTING = 'medical/get-complaint-diagnosis-type'
+
+export const ADD_HOSPITAL_SYMPTOMS = 'v1/hospital/add-symptoms'
+
+export const UPDATE_HOSPITAL_SYMPTOMS = 'update-diagnosis-prescription'
+
+export const GET_ACTIVITY_LIST = 'record-details'

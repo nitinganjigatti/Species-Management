@@ -2,7 +2,7 @@ import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box, Button, useMediaQuery } from '@mui/material'
 
-export default function ActionButtons({ cancelLabel, addLabel, onCancel, onAdd, width, height }) {
+export default function ActionButtons({ cancelLabel, addLabel, onCancel, onAdd, width, height, disabled }) {
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('lg'))
   return (
@@ -44,6 +44,7 @@ export default function ActionButtons({ cancelLabel, addLabel, onCancel, onAdd, 
       <Button
         variant='contained'
         onClick={onAdd}
+        disabled={disabled}
         sx={{
           borderRadius: '8px',
           textTransform: 'uppercase',

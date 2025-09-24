@@ -8,19 +8,15 @@ import {
   Grid,
   IconButton,
   Drawer,
-  Divider,
   InputAdornment,
   alpha
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
-import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
-import Utility from 'src/utility'
-import dayjs from 'dayjs'
 
-const AddEditSymptomDrawer = ({
+const AddSymptomDrawer = ({
   open,
   onClose,
   selectedSymptom,
@@ -32,17 +28,13 @@ const AddEditSymptomDrawer = ({
   durationUnit,
   setDurationUnit,
   notes,
-  setNotes,
-  status,
-  setStatus,
-  activityListData
+  setNotes
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
-  const activities = [1, 2, 3]
+
   const handleSave = () => {
     onSave({
-      status,
       severity,
       durationValue,
       durationUnit,
@@ -52,32 +44,6 @@ const AddEditSymptomDrawer = ({
 
   const handleCancel = () => {
     onClose()
-  }
-
-  const formatDateTime = dateTime => {
-    if (!dateTime) return ''
-    return dayjs(dateTime).format('hh:mm A • DD MMM YYYY')
-  }
-
-  const processedActivities =
-    activityListData?.complaint_notes
-      ?.map(activity => ({
-        ...activity,
-        isSystemGenerated: activity?.is_system_generated === 1,
-        oldSeverity: activity?.notes_dump?.old_data?.severity || '',
-        newSeverity: activity?.notes_dump?.new_data?.severity || '',
-        createdBy: activity?.created_by_user_name || 'Unknown',
-        formattedTime: formatDateTime(activity?.created_at),
-        note: activity.note || 'N/A'
-      }))
-
-      .sort((a, b) => {
-        return b.isSystemGenerated - a.isSystemGenerated
-      }) || []
-
-  const handleEditActivity = value => {
-    console.log(value, 'value')
-    // alert('kkk')
   }
 
   return (
@@ -107,45 +73,11 @@ const AddEditSymptomDrawer = ({
           </Box>
         </Box>
 
-        <Box sx={{ pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
+        <Box
+          sx={{ pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, height: '100vh' }}
+        >
           <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
-            <Typography
-              sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 500, fontSize: '16px' }}
-            >
-              {selectedSymptom?.medical_record_code || 'N/A'}
-            </Typography>
-            <Typography
-              sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 3, fontWeight: 400, fontSize: '14px' }}
-            >
-              {selectedSymptom?.created_by_user_name || selectedSymptom?.additional_info?.resolved_user_name}{' '}
-              <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-              {Utility.convertUTCToLocaltime(selectedSymptom?.created_at)}
-              <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-              {Utility?.formatDisplayDate(selectedSymptom?.created_at)}
-            </Typography>
-
-            <Typography
-              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
-            >
-              Status
-            </Typography>
-            <Select
-              value={status}
-              onChange={e => setStatus(e.target.value)}
-              fullWidth
-              sx={{
-                background: theme.palette.common.white,
-                color: theme.palette.common.black,
-                mb: 0,
-                borderRadius: '4px',
-                '& .MuiSelect-select': { py: 4.0 }
-              }}
-            >
-              <MenuItem value='active'>Active</MenuItem>
-              <MenuItem value='closed'>Inactive</MenuItem>
-            </Select>
-
-            <Box sx={{ display: 'flex', gap: 2, mt: 6 }}>
+            <Box sx={{ display: 'flex', gap: 2, mt: 0 }}>
               <Box>
                 <Typography
                   sx={{
@@ -260,13 +192,10 @@ const AddEditSymptomDrawer = ({
               }}
             />
           </Box>
-          <Divider color={theme.palette.customColors.OutlineVariant} />
-
-          <ActivityList activities={processedActivities} onEdit={handleEditActivity} />
         </Box>
 
         <SideSheetActionButtons
-          addLabel='UPDATE'
+          addLabel='ADD'
           cancelLabel='CANCEL'
           onAdd={handleSave}
           onCancel={handleCancel}
@@ -278,4 +207,4 @@ const AddEditSymptomDrawer = ({
   )
 }
 
-export default React.memo(AddEditSymptomDrawer)
+export default React.memo(AddSymptomDrawer)
