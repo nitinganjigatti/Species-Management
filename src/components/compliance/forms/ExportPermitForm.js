@@ -139,15 +139,17 @@ export const exportPermitValidationSchema = yup.object().shape({
                   value: yup.string().required('Gender is required')
                 })
                 .required('Gender is required'),
-              identifier_type: yup
-                .object()
-                .shape({
-                  label: yup.string().required('Identifier type is required'),
-                  value: yup.string().required('Identifier type is required')
-                })
-                .required('Identifier type is required')
+
+              // identifier_type: yup
+              //   .object()
+              //   .shape({
+              //     label: yup.string().required('Identifier type is required'),
+              //     value: yup.string().required('Identifier type is required')
+              //   })
+              //   .required('Identifier type is required')
 
               // identifier_value: yup.string().required('Identifier value is required')
+
               // animal_type: yup.string().required('Animal type is required'),
               // animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
             })

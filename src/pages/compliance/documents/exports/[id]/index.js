@@ -123,6 +123,9 @@ const ExportPermitDetails = () => {
             ? countryListOptions.find(country => country.value === res?.data?.exporting_country)?.label
             : '-'
         })
+        if (id && !documentList.length) fetchDocumentTypeList()
+        fetchLinkedShipmentsDetails()
+        fetchLinkedImportsDetails()
       } else {
         Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
       }
@@ -186,13 +189,11 @@ const ExportPermitDetails = () => {
   useEffect(() => {
     if (id) {
       fetchExportDetails()
-      fetchLinkedShipmentsDetails()
-      fetchLinkedImportsDetails()
     }
   }, [id])
 
   useEffect(() => {
-    if (id) {
+    if (id && documentList?.length) {
       fetchDocumentTypeList()
     }
   }, [id, activeTab])
@@ -243,40 +244,42 @@ const ExportPermitDetails = () => {
           </>
         )}
       </CustomAccordion>
-      <CustomAccordion
-        id='supporting-documents'
-        title='Supporting Documents'
-        docsCount={`${uploadedFileCount}/${totalCount}`}
-        expanded={expanded.includes('supporting-documents')}
-        onChange={handleAccordionChange}
-      >
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
-            <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
-              <Tab
-                label={`Completed${
-                  activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
-                }`}
-                value='completed'
-                sx={{ mr: 4 }}
-              />
-              <Tab
-                label={`Pending${
-                  activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
-                }`}
-                value='pending'
-              />
-            </Tabs>
+      {documentList?.length ? (
+        <CustomAccordion
+          id='supporting-documents'
+          title='Supporting Documents'
+          docsCount={`${uploadedFileCount}/${totalCount}`}
+          expanded={expanded.includes('supporting-documents')}
+          onChange={handleAccordionChange}
+        >
+          <Box sx={{ width: '100%' }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+              <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
+                <Tab
+                  label={`Completed${
+                    activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                  }`}
+                  value='completed'
+                  sx={{ mr: 4 }}
+                />
+                <Tab
+                  label={`Pending${
+                    activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                  }`}
+                  value='pending'
+                />
+              </Tabs>
+            </Box>
+            <SupportingDocuments
+              isFetching={isFetching}
+              documentList={documentList}
+              totalCount={totalCount}
+              onAddEditSuccess={handleAddEditSuccess}
+              type='1'
+            />
           </Box>
-          <SupportingDocuments
-            isFetching={isFetching}
-            documentList={documentList}
-            totalCount={totalCount}
-            onAddEditSuccess={handleAddEditSuccess}
-            type='1'
-          />
-        </Box>
-      </CustomAccordion>
+        </CustomAccordion>
+      ) : null}
       <CustomAccordion
         id='linked-imports'
         title={`Linked Imports - ${totalLinkedImports}`}

@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Box, Button, Card, CardHeader, Checkbox, Popover, Typography, Tooltip } from '@mui/material'
+import { Box, Button, Card, CardHeader, Checkbox, Popover, Typography, Tooltip, CircularProgress } from '@mui/material'
 import { TabContext } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 import toast from 'react-hot-toast'
@@ -554,7 +554,11 @@ const AnimalList = () => {
               />
 
               <Typography
-                onClick={() => (animalId ? getSpecificAnimalDataToExport() : getAnimalDataToExport())}
+                onClick={
+                  isDownloading
+                    ? undefined
+                    : () => (animalId ? getSpecificAnimalDataToExport() : getAnimalDataToExport())
+                }
                 sx={{
                   fontSize: '20px',
                   fontWeight: '400',
@@ -562,12 +566,21 @@ const AnimalList = () => {
                   color: theme.palette.primary.OnSurface,
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer',
+                  cursor: isDownloading ? 'not-allowed' : 'pointer',
                   mr: 4
                 }}
+                aria-disabled={isDownloading}
               >
                 Download report
-                <img src='/images/download1.png' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+                {isDownloading ? (
+                  <CircularProgress size={22} sx={{ ml: 2 }} />
+                ) : (
+                  <img
+                    src='/images/download1.png'
+                    alt='download icon'
+                    style={{ marginLeft: 8, width: 30, height: 30 }}
+                  />
+                )}
               </Typography>
             </Box>
 
@@ -795,7 +808,7 @@ const AnimalList = () => {
               </Box>
               <Box sx={{ width: '100%', p: 5 }}>
                 <StickyTable
-                  rows={reportRows?.length ? reportRows : []}
+                  rows={reportRows?.length > 0 ? reportRows : []}
                   rowCount={total}
                   rowHeight={86}
                   headerHeight={47}

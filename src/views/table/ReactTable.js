@@ -97,7 +97,7 @@ const MemoBodyRow = React.memo(
     isRowSelected,
     toggleRowCheckbox,
     checkboxSX,
-    setRowRef // <-- NEW (attach DOM ref)
+    setRowRef
   }) {
     const pageRows = row?.table?.getRowModel?.().rows || []
     const isLastRow = row.index === pageRows.length - 1
@@ -116,7 +116,7 @@ const MemoBodyRow = React.memo(
 
     return (
       <TableRow
-        ref={el => setRowRef?.(row.index, el)} // <-- attach
+        ref={el => setRowRef?.(row.index, el)}
         key={row.id}
         onClickCapture={handleRowClickCapture}
         sx={{
@@ -145,23 +145,26 @@ const MemoBodyRow = React.memo(
             textAlign: column.id === '_select' ? 'center' : cellTextAlign,
             padding: column.id === '_select' ? '0 8px' : '8px 16px',
             backgroundColor: isPinned ? theme.palette.background?.paper || '#fff' : 'transparent',
+
+            // ---- column-level customizations (from columns array) ----
             ...(originalColumn.style || {}),
             ...(originalColumn.cellStyle || {}),
             ...(originalColumn.sx || {}),
             ...(originalColumn.cellSx || {}),
+            ...(originalColumn.columnStyle || {}), // <-- NEW: respect `columnStyle`
+
+            // component-level cell style
             ...cellStyle,
+
+            // keep pinning last so sticky offsets/sizes always win
             ...getCommonPinningStyles(column),
+
             zIndex: isPinned ? 100 : 1
           }
 
           if (selectionEnabled && column.id === '_select') {
             return (
-              <TableCell
-                data-no-rowclick // <- mark this cell so row click ignores it
-                key={cell.id}
-                sx={baseSx}
-                onClick={e => e.stopPropagation()}
-              >
+              <TableCell data-no-rowclick key={cell.id} sx={baseSx} onClick={e => e.stopPropagation()}>
                 <MemoSelectionCell
                   selected={isRowSelected}
                   indeterminate={row.getIsSomeSelected?.() || false}
@@ -258,7 +261,7 @@ const ReactTable = ({
   const theme = useTheme()
   const tableContainerRef = useRef(null)
 
-  // --- NEW: stable row refs map (by page index) ---
+  // --- stable row refs map (by page index) ---
   const rowRefs = useRef({})
   const setRowRef = useCallback((idx, el) => {
     rowRefs.current[idx] = el
@@ -464,6 +467,14 @@ const ReactTable = ({
 
   const hasData = Array.isArray(rows) && rows.length > 0
 
+  // ---- Hide header ONLY on first load while data is empty & loading ----
+  const [hideHeaderInitial, setHideHeaderInitial] = useState(true)
+  useEffect(() => {
+    if (hideHeaderInitial && (!loading || hasData)) setHideHeaderInitial(false)
+  }, [loading, hasData, hideHeaderInitial])
+
+  const isHeaderVisible = hasBaseColumns && !(hideHeaderInitial && loading && !hasData)
+
   // ---------- ✅ UNIQUE ROW IDS ----------
   const getRowUniqueId = useCallback(
     (originalRow, index) => {
@@ -516,25 +527,22 @@ const ReactTable = ({
     col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
   )
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
-    currentRowsInView * rowHeight + headerHeight + (hasSubHeader ? subHeaderHeight : 0)
+    currentRowsInView * rowHeight + (isHeaderVisible ? headerHeight : 0) + (hasSubHeader ? subHeaderHeight : 0)
   )
 
   useEffect(() => {
-    // wait for paint to ensure DOM sizes are accurate
     const id = requestAnimationFrame(() => {
       const pageRows = table.getRowModel().rows || []
       const visibleCount = Math.min(currentRowsInView, pageRows.length)
 
-      // pick first & last visible row (by page index)
       const firstIdx = pageRows[0]?.index
       const lastIdx = pageRows[Math.max(0, visibleCount - 1)]?.index
 
       const firstEl = firstIdx != null ? rowRefs.current[firstIdx] : null
       const lastEl = lastIdx != null ? rowRefs.current[lastIdx] : null
 
-      // actual header height from THEAD (fallback to prop)
-      const headEl = tableContainerRef.current?.querySelector('thead')
-      const actualHeaderH = headEl?.offsetHeight ?? headerHeight
+      const headEl = isHeaderVisible ? tableContainerRef.current?.querySelector('thead') : null
+      const actualHeaderH = isHeaderVisible ? headEl?.offsetHeight ?? headerHeight : 0
 
       const subHeaderH = hasSubHeader ? subHeaderHeight : 0
 
@@ -547,12 +555,11 @@ const ReactTable = ({
         rowsBlockHeight = visibleCount * rowHeight
       }
 
-      const fudge = 0 // borders/scrollbar rounding
-      setDynamicTableHeight(actualHeaderH + subHeaderH + rowsBlockHeight + fudge)
+      setDynamicTableHeight(actualHeaderH + subHeaderH + rowsBlockHeight)
     })
 
     return () => cancelAnimationFrame(id)
-  }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader])
+  }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader, isHeaderVisible])
 
   // ---- Column menu ----
   const handleColumnMenuClick = (event, column) => {
@@ -617,16 +624,21 @@ const ReactTable = ({
                 padding: '8px 16px',
                 '&:first-of-type': { borderTopLeftRadius: 6 },
                 '&:last-of-type': { borderTopRightRadius: 6 },
-                ...headerStyle,
-                ...(originalColumn.headerStyle || {}),
-                ...(originalColumn.headerSx || {}),
-                ...(originalColumn.sx || {}),
-                ...getCommonPinningStyles(column),
 
+                // component-level header style
+                ...headerStyle,
+
+                // pinning + base sticky
+                ...getCommonPinningStyles(column),
                 position: 'sticky',
                 top: 0,
                 backgroundClip: 'padding-box',
-                zIndex: isPinned ? 800 : 110
+                zIndex: isPinned ? 800 : 110,
+
+                // ---- per-column overrides LAST (let user force zIndex/left/padding etc) ----
+                ...(originalColumn.headerStyle || {}),
+                ...(originalColumn.headerSx || {}),
+                ...(originalColumn.sx || {})
               }}
               onClick={e => e.stopPropagation()}
             >
@@ -649,7 +661,7 @@ const ReactTable = ({
                   )}
                 </Box>
 
-                {modifyColumnPinning && column.id !== '_select' && (
+                {modifyColumnPinning && column.id !== '_select' && originalColumn.disablePinMenu !== true && (
                   <IconButton size='small' onClick={e => handleColumnMenuClick(e, column)} sx={{ opacity: 0.7 }}>
                     <MoreVertIcon fontSize='small' />
                   </IconButton>
@@ -694,7 +706,7 @@ const ReactTable = ({
         isRowSelected={!!rowSelectionState[row.id]}
         toggleRowCheckbox={handleRowCheckboxChange}
         checkboxSX={checkboxSX}
-        setRowRef={setRowRef} // <-- pass setter
+        setRowRef={setRowRef}
       />
     ))
   }
@@ -806,9 +818,8 @@ const ReactTable = ({
         component={Paper}
         sx={{
           borderRadius: '8px !important',
-          height: loading && !hasData ? loadingHeight : dynamicTableHeight, // exact height
-          minHeight: headerHeight + rowHeight + 8,
-          // boxSizing: 'content-box', // borders shouldn't steal space
+          height: loading && !hasData ? loadingHeight : dynamicTableHeight,
+          minHeight: (isHeaderVisible ? headerHeight : 0) + rowHeight + 8,
           position: 'relative',
           border: '1px solid #ddd',
           overflowX: 'auto',
@@ -826,7 +837,8 @@ const ReactTable = ({
             tableLayout: 'fixed'
           }}
         >
-          {hasBaseColumns ? <TableHead>{renderTableHeader()}</TableHead> : null}
+          {/* ✅ Header hidden only on first load when loading && no data */}
+          {isHeaderVisible ? <TableHead>{renderTableHeader()}</TableHead> : null}
           <TableBody>{renderTableBody()}</TableBody>
         </Table>
       </TableContainer>

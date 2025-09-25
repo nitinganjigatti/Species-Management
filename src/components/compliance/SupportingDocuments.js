@@ -101,9 +101,11 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-        {completedCount}/{totalCount} Documents added
-      </Typography>
+      {documentList?.length ? (
+        <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
+          {completedCount}/{totalCount} Documents added
+        </Typography>
+      ) : null}
 
       <List
         sx={{

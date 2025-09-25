@@ -3,7 +3,7 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 
-const AnimalCard = ({ data, size }) => {
+const AnimalCard = ({ data, size, edit }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
 
@@ -58,16 +58,17 @@ const AnimalCard = ({ data, size }) => {
         {avatarContent}
         <Avatar
           sx={{
-            width: data?.sex === 'undetermined' || data?.sex === 'indeterminate' ? 32 : 24,
+            width:
+              data?.sex?.toLowerCase() === 'undetermined' || data?.sex?.toLowerCase() === 'indeterminate' ? 32 : 24,
             height: 24,
             bgcolor:
               data?.type === 'group'
                 ? theme.palette.customColors.addPrimary
-                : data?.sex === 'male'
+                : data?.sex?.toLowerCase() === 'male'
                 ? theme.palette.customColors.SecondaryContainer
-                : data?.sex === 'female'
+                : data?.sex?.toLowerCase() === 'female'
                 ? theme.palette.customColors.AntzTertiary
-                : data?.sex === 'undetermined' || data?.sex === 'indeterminate'
+                : data?.sex?.toLowerCase() === 'undetermined' || data?.sex?.toLowerCase() === 'indeterminate'
                 ? theme.palette.customColors.displaybgSecondary
                 : theme.palette.customColors.SecondaryContainer,
             objectFit: 'contain',
@@ -81,15 +82,15 @@ const AnimalCard = ({ data, size }) => {
           {/* Gender / Group initials */}
           {data?.type === 'group' ? (
             <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>G</Typography>
-          ) : data?.sex === 'male' ? (
+          ) : data?.sex?.toLowerCase() === 'male' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}>
               M
             </Typography>
-          ) : data?.sex === 'female' ? (
+          ) : data?.sex?.toLowerCase() === 'female' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
-          ) : data?.sex === 'undetermined' ? (
+          ) : data?.sex?.toLowerCase() === 'undetermined' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>UD</Typography>
-          ) : data?.sex === 'indeterminate' ? (
+          ) : data?.sex?.toLowerCase() === 'indeterminate' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
               ID
             </Typography>
@@ -119,7 +120,10 @@ const AnimalCard = ({ data, size }) => {
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
                 fontWeight: '600',
-                lineHeight: '19.36px'
+                lineHeight: '19.36px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: edit ? '118px' : '200px'
               }}
             >
               <span> {data?.local_identifier_name}: </span>
@@ -157,7 +161,10 @@ const AnimalCard = ({ data, size }) => {
                 fontSize: size ?? '16px',
                 fontWeight: 600,
                 lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant
+                color: theme.palette.customColors.OnSurfaceVariant,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: edit ? '118px' : '200px'
               }}
             >
               AID : {data?.animal_id}

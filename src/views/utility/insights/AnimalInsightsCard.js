@@ -100,7 +100,9 @@ const AnimalInsightsCard = ({
                   <Grid container spacing={2}>
                     <Grid item size={{ xs: 12, md: 4 }}>
                       <Typography variant='h6' sx={{ fontWeight: 200, color: theme.palette.common.white }}>
-                        AID: {animalDetails?.aid ? animalDetails?.aid : 'NA'}
+                        {animalDetails?.identifierName && animalDetails?.localIdentifier
+                          ? `${animalDetails?.identifierName} : ${animalDetails?.localIdentifier}`
+                          : `AID: ${animalDetails?.aid ? animalDetails?.aid : 'NA'}`}
                       </Typography>
                       <Typography variant='h6' sx={{ fontWeight: 200, mt: 2, color: theme.palette.common.white }}>
                         Enclosure: {animalDetails?.enclosure ? animalDetails?.enclosure : 'NA'}

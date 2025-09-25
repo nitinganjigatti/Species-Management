@@ -69,7 +69,7 @@ const IncidentDetailsCard = ({ item, index, data }) => {
             justifyContent: 'center'
           }}
         ></Box>
-        {data.length === index + 1 ? null : <TimelineConnector />}
+        {data?.length === index + 1 ? null : <TimelineConnector />}
       </TimelineSeparator>
       <TimelineContent
         sx={{

@@ -80,7 +80,7 @@ const EggSecondSecion = ({
   const [probableParentSideBar, setProbableParentSideBar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
 
-  const [addWeightSidebar, setaddWeightSidebar] = useState(false)
+  const [addWeightSidebar, setAddWeightSidebar] = useState(false)
   const [editWeight, setEditWeight] = useState(false)
   const [allWeightSidebarOpen, setAllWeightSidebarOpen] = useState(false)
 
@@ -141,7 +141,7 @@ const EggSecondSecion = ({
     <>
       {!(eggDetails?.egg_status === 'Discard') && (
         <Button
-          onClick={() => setaddWeightSidebar(true)}
+          onClick={() => setAddWeightSidebar(true)}
           sx={{ fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
           startIcon={<Icon icon='mdi:add' fontSize={20} />}
         >
@@ -151,10 +151,17 @@ const EggSecondSecion = ({
     </>
   )
 
+  const formatDay = date => moment(Utility.convertUTCToLocal(date)).format('YYYY-MM-DD')
+
+  const chartData = rows.map(row => ({
+    x: formatDay(row.created_at), // day-wise
+    y: Number(row.assessment_value)
+  }))
+
   const series = [
     {
       name: 'Actual Value',
-      data: rowsWeight
+      data: chartData
     }
   ]
 
@@ -162,41 +169,25 @@ const EggSecondSecion = ({
     chart: {
       type: 'line',
       height: 350,
-      toolbar: {
-        show: false
-      }
+      toolbar: { show: false }
     },
-    stroke: {
-      curve: 'smooth',
-      width: 2
-    },
-    markers: {
-      size: 4,
-      hover: {
-        sizeOffset: 2
-      }
-    },
+    stroke: { curve: 'smooth', width: 2 },
+    markers: { size: 4 },
     tooltip: {
       shared: true,
       intersect: false,
-      y: {
-        formatter: val => `${val}g`
-      }
+      y: { formatter: val => `${val}g` }
     },
     xaxis: {
-      categories: Array.from({ length: 21 }, (_, i) => i + 1),
-      title: {
-        text: 'Days'
+      type: 'category', // <-- important
+      title: { text: 'Days' },
+      labels: {
+        rotate: -45,
+        formatter: val => moment(val).format('DD MMM') // pretty format
       }
     },
     yaxis: {
-      title: {
-        text: 'Weight (g)'
-      }
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'center'
+      title: { text: 'Weight (g)' }
     },
     colors: [theme.palette.primary.main]
   }
@@ -316,7 +307,7 @@ const EggSecondSecion = ({
               setEditWeight(true)
               setValue('assessment_value', params?.row?.assessment_value)
               setValue('assessment_id', params?.row?.id)
-              setaddWeightSidebar(true)
+              setAddWeightSidebar(true)
             }}
             style={{ cursor: 'pointer' }}
             icon='ic:outline-edit'
@@ -378,25 +369,22 @@ const EggSecondSecion = ({
     if (editWeight) {
       try {
         EditAssesment(paramsEdit).then(res => {
-          // console.log(res, 'res')
           if (res.success) {
             // Success toaster
             Toaster({ type: 'success', message: res.message || 'Weight updated successfully!' })
             reset()
-            setaddWeightSidebar(false)
+            setAddWeightSidebar(false)
             setEditWeight(false)
             setValue('assessment_id', '')
             setSubmitAssementloader(false)
             getDetails(egg_id)
             fetchTableData()
           } else {
-            // Error toaster with backend message
             Toaster({ type: 'error', message: res.message || 'Failed to update weight' })
             setSubmitAssementloader(false)
           }
         })
       } catch (error) {
-        // console.error(error)
         Toaster({ type: 'error', message: 'Something went wrong while updating weight' })
         setSubmitAssementloader(false)
       }
@@ -404,21 +392,18 @@ const EggSecondSecion = ({
       try {
         AddAssesment(params).then(res => {
           if (res.success) {
-            // Success toaster
             Toaster({ type: 'success', message: res.message || 'Weight added successfully!' })
             reset()
-            setaddWeightSidebar(false)
+            setAddWeightSidebar(false)
             setSubmitAssementloader(false)
             getDetails(egg_id)
             fetchTableData()
           } else {
-            // Error toaster with backend message
             Toaster({ type: 'error', message: res.message || 'Failed to add weight' })
             setSubmitAssementloader(false)
           }
         })
       } catch (error) {
-        // console.error(error)
         Toaster({ type: 'error', message: 'Something went wrong while adding weight' })
         setSubmitAssementloader(false)
       }
@@ -580,7 +565,7 @@ const EggSecondSecion = ({
               size='small'
               sx={{ color: 'text.primary' }}
               onClick={() => {
-                setaddWeightSidebar(false)
+                setAddWeightSidebar(false)
                 setEditWeight(false)
                 reset()
               }}
@@ -1282,7 +1267,7 @@ const EggSecondSecion = ({
                                   setEditWeight(true)
                                   setValue('assessment_value', row?.assessment_value)
                                   setValue('assessment_id', row?.id)
-                                  setaddWeightSidebar(true)
+                                  setAddWeightSidebar(true)
                                 }}
                                 style={{ cursor: 'pointer' }}
                                 icon='ic:outline-edit'

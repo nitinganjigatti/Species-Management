@@ -426,7 +426,7 @@ const DashboardFilter = ({
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
           <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
-            Filter {filterList?.length > 0 && -filterList?.length}{' '}
+            Filter - {filterList?.length > 0 && filterList?.length}{' '}
           </Typography>
         </Box>
 
