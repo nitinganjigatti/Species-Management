@@ -206,7 +206,7 @@ const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit, submit
                     />
                   </Grid>
                   <Grid size={{ xs: 6 }}>
-                    <ControlledSelectWithTextField
+                    {/* <ControlledSelectWithTextField
                       firstSelectFieldName={'quantity'}
                       textFieldName={`schedules`}
                       control={control}
@@ -219,8 +219,8 @@ const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit, submit
                       getOptionValue={option => option.value}
                       required
                       sx={{ backgroundColor: alpha(theme.palette.customColors.mdAntzNeutral, 0.05) }}
-                    />
-                    <ControlledSelectWithTextField
+                    /> */}
+                    {/* <ControlledSelectWithTextField
                       textFieldName={'quantity'}
                       control={control}
                       errors={errors}
@@ -231,7 +231,7 @@ const AdministerMedicineModal = ({ open, onClose, medicineData, onSubmit, submit
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                       required
-                    />
+                    /> */}
                   </Grid>
                   <Grid size={{ xs: 12 }}>
                     <Typography

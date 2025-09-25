@@ -25,6 +25,11 @@ const composeHospitalNavigation = () => {
     path: '/hospital/outpatient'
   }
 
+  const discharged = {
+    title: 'Discharged',
+    path: '/hospital/discharged'
+  }
+
   const doctorsANdStaffs = {
     title: 'Doctors & Staffs',
     path: '/hospital/doctors-and-staffs',
@@ -63,6 +68,7 @@ const composeHospitalNavigation = () => {
   patientsParent.children.push(incoming)
   patientsParent.children.push(inpatient)
   patientsParent.children.push(outpatient)
+  patientsParent.children.push(discharged)
 
   hospitalMastersParent.children.push(monitoringMaster)
   hospitalMastersParent.children.push(anesthesiaMaster)

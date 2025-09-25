@@ -59,6 +59,7 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
             display: 'flex',
             p: 7,
             overflow: 'auto'
+
             //py: 10
           }}
         >
@@ -106,19 +107,21 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                   {symptom.clinicalAsmnt}
                 </Typography>
 
-                <Typography
-                  variant='body2'
-                  sx={{
-                    textAlign: 'left',
-                    color: getSeverityColor(selected[idx]?.prognosisVal).color,
-                    display: 'inline',
-                    ml: 2,
-                    fontSize: '14px',
-                    fontWeight: 500
-                  }}
-                >
-                  • {symptom.prognosisVal}
-                </Typography>
+                {symptom.prognosisVal && (
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      textAlign: 'left',
+                      color: getSeverityColor(selected[idx]?.prognosisVal).color,
+                      display: 'inline',
+                      ml: 2,
+                      fontSize: '14px',
+                      fontWeight: 500
+                    }}
+                  >
+                    • {symptom.prognosisVal}
+                  </Typography>
+                )}
 
                 {selected[idx]?.chronicVal === 'Yes' ? (
                   <Typography
@@ -138,7 +141,7 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                   ''
                 )}
               </Box>
-              <IconButton onClick={() => onRemove(symptom.name)}>
+              <IconButton onClick={() => onRemove(symptom)}>
                 <CloseIcon sx={{ color: '#1F515B', fontSize: '22px' }} />
               </IconButton>
             </Box>

@@ -348,6 +348,10 @@ export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) =
   }
 }
 
+const capitalizeFirstLetter = string => {
+  return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -376,7 +380,8 @@ const Utility = {
   formatIdentifierType,
   hexToHex8,
   getUpcomingHours,
-  downloadPDF
+  downloadPDF,
+  capitalizeFirstLetter
 }
 
 export default Utility
