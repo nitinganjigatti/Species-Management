@@ -468,6 +468,10 @@ export const All_ANIMAL_LIST = 'v1/all/animal/report'
 
 export const REPORT_TYPE = 'v1/report/daily/report/type'
 
+export const COMPLIANCE_DAILY_REPORT = 'v1/get/daily/report'
+
+export const OBSERVATION_MASTER_TYPE = 'observation/master-type'
+
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
@@ -643,6 +647,9 @@ export const GET_ANIMAL_LIST_FOR_OBSERVATION_REPORT = `v1/collection/animal/list
 export const GET_OBSERVATION_REPORT = `v1/notes/observation`
 
 export const GET_ANIMAL_FILTERS_LISTS = `/v1/collection/animal/stats`
+
+// Compliance: Enclosure Count Register
+export const GET_ANIMAL_COUNT_REGISTER = `v1/animal/count/register`
 
 export const ANIMAL_DETAILS_OVERVIEW = `animal/get-common-data-by-animal-id-new`
 

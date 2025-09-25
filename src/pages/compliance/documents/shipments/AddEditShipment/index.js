@@ -247,7 +247,7 @@ const AddEditShipment = () => {
 
       <CustomAccordion
         id='permit-details'
-        docsCount={!isBasicEditable && !expanded.includes('permit-details') && id ? `ID: ${formattedValue}` : null}
+        docsCount={!isBasicEditable && !expanded.includes('permit-details') && id ? `ID: ${rawValue}` : null}
         title={
           <Typography sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}>
             Basic Details
