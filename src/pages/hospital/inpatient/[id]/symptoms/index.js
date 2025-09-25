@@ -79,7 +79,8 @@ export default function AddSymptomsPage() {
       const params = {
         page_no: pageNo,
         type: 'complaints',
-        q: query
+        q: query,
+        medical_record_id: medical_record_id
       }
 
       const response = await getSymptomsListForAdding(params)

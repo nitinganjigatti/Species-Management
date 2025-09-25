@@ -17,6 +17,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
+import { updateSymptoms } from 'src/lib/api/hospital/symptoms'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
 
@@ -36,7 +37,8 @@ const AddEditSymptomDrawer = ({
   status,
   setStatus,
   activityListData,
-  activityLoader
+  activityLoader,
+  temporarilySelected
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
@@ -67,7 +69,7 @@ const AddEditSymptomDrawer = ({
         isSystemGenerated: activity?.is_system_generated === 1,
         oldSeverity: activity?.notes_dump?.old_data?.severity || '',
         newSeverity: activity?.notes_dump?.new_data?.severity || '',
-        createdBy: activity?.created_by_user_name || 'Unknown',
+        createdBy: activity?.created_by_user_name || '',
         formattedTime: formatDateTime(activity?.created_at),
         note: activity.note || 'N/A'
       }))
@@ -78,6 +80,7 @@ const AddEditSymptomDrawer = ({
 
   const handleEditActivity = value => {
     console.log(value, 'value')
+    console.log(temporarilySelected, 'temporarilySelected')
     // alert('kkk')
   }
 

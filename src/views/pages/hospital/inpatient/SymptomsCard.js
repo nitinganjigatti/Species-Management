@@ -286,7 +286,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
                     lineHeight: '1.4'
                   }}
                 >
-                  {record?.additional_info?.latest_comment || 'N/A'}
+                  {record?.additional_info?.latest_comment || ''}
                 </Typography>
               </Tooltip>
             )}
@@ -346,6 +346,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           onSave={addSymptomDetails}
           activityListData={activityListData}
           activityLoader={activityLoader}
+          temporarilySelected={temporarilySelected}
         />
       )}
       {isDeleteDialogOpen && (
