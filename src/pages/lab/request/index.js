@@ -38,6 +38,7 @@ const ListOfRequest = () => {
   const [labSelected, setLabSelected] = useState()
   const [lab, setLab] = useState(authData?.userData?.modules?.lab_data?.lab)
   const [stats, setStats] = useState()
+
   const [selectedLab, setSelectedLab] = useState(
     authData?.userData?.modules?.lab_data?.lab.length > 0 ? authData?.userData?.modules?.lab_data?.lab[0]?.lab_id : null
   )
@@ -220,6 +221,7 @@ const ListOfRequest = () => {
       width: 200,
       field: 'Reports',
       headerName: 'Reports',
+
       // align: 'center',
       sortable: false,
       renderCell: params => (
@@ -384,6 +386,7 @@ const ListOfRequest = () => {
     const storedLabData = await readAsync('selectedLAB')
     if (storedLabData) {
       setSelectedLab(value)
+
       // remove('selectedLAB')
     } else {
       setSelectedLab(value)
@@ -488,6 +491,11 @@ const ListOfRequest = () => {
                       label='Select Lab'
                       onChange={event => handleLabChange(event.target.value)}
                       sx={{ fontWeight: 'bold', borderRadius: '5px' }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: { maxHeight: 300, overflowY: 'auto' }
+                        }
+                      }}
                     >
                       {lab?.map((item, index) => (
                         <MenuItem key={item?.lab_id} value={item?.lab_id}>
