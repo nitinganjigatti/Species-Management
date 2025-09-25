@@ -29,12 +29,6 @@ const tabConfig = [
   { label: 'Media', value: 'media', component: AnimalMedia }
 ]
 
-const animalHeaderDetails = {
-  commonName: 'Macaw',
-  scientificName: 'Somatogyrus somatogyrus',
-  qrCodeUrl: 'abcd'
-}
-
 const AnimalDetais = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -80,16 +74,19 @@ const AnimalDetais = () => {
             accessionDate: Utility.formatDisplayDate(ad?.accession_date),
             birthDate: Utility.formatDisplayDate(ad?.birth_date),
             age: ad?.age,
+            type: ad?.type,
             taxonomyId: ad.taxonomy_id,
             contraceptionStatus: ad?.contraception_status,
             sexingType: ad?.sexing_type,
-            collectionType: ad?.collection_type,
+            collectionType: ad?.master_collection_type,
             organisation: ad?.organization_name,
             ownershipTerm: ad?.ownership_terms_label,
             localIdentifier: ad?.local_identifier_value,
             isAlive: ad?.is_alive,
             identifierName: ad?.local_identifier_name,
-            isGrouped: Number(ad?.total_animal) > 1 ? true : false
+            isGrouped: Number(ad?.total_animal) > 1 ? true : false,
+            in_transit: ad?.in_transit,
+            animal_transfered: ad?.animal_transfered
           })
           setEnclosureDetails({
             enclusreId: ed?.user_enclosure_name,
@@ -116,7 +113,7 @@ const AnimalDetais = () => {
 
   // Switch to overview tab if currently on mortality tab but animal is alive
   useEffect(() => {
-    if (selectedTab === 'mortality' && animalDetails.isAlive === "1") {
+    if (selectedTab === 'mortality' && animalDetails.isAlive === '1') {
       setSelectedTab('overview')
     }
   }, [animalDetails.isAlive, selectedTab])
@@ -124,7 +121,7 @@ const AnimalDetais = () => {
   // Filter tabs based on animal's alive status
   const filteredTabConfig = tabConfig.filter(tab => {
     if (tab.value === 'mortality') {
-      return animalDetails.isAlive === "0"
+      return animalDetails.isAlive === '0'
     }
 
     return true
@@ -142,8 +139,8 @@ const AnimalDetais = () => {
   const TabsSkeleton = () => (
     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
       <Box sx={{ display: 'flex', gap: 2, p: 2 }}>
-        {[1, 2, 3, 4, 5, 6].map((item) => (
-          <Skeleton key={item} variant="rectangular" width={80} height={36} sx={{ borderRadius: 1 }} />
+        {[1, 2, 3, 4, 5, 6].map(item => (
+          <Skeleton key={item} variant='rectangular' width={80} height={36} sx={{ borderRadius: 1 }} />
         ))}
       </Box>
     </Box>
@@ -154,26 +151,26 @@ const AnimalDetais = () => {
     <Box sx={{ p: 4 }}>
       {/* Animal Details Section */}
       <Card sx={{ p: 4, mb: 4 }}>
-        <Skeleton variant="text" width={180} height={28} sx={{ mb: 3 }} />
+        <Skeleton variant='text' width={180} height={28} sx={{ mb: 3 }} />
 
         {/* Animal details grid */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
           {/* Left column */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {[1, 2, 3, 4, 5, 6].map((item) => (
+            {[1, 2, 3, 4, 5, 6].map(item => (
               <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Skeleton variant="text" width={120} height={20} />
-                <Skeleton variant="text" width={100} height={20} />
+                <Skeleton variant='text' width={120} height={20} />
+                <Skeleton variant='text' width={100} height={20} />
               </Box>
             ))}
           </Box>
 
           {/* Right column */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {[1, 2, 3, 4, 5, 6].map((item) => (
+            {[1, 2, 3, 4, 5, 6].map(item => (
               <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Skeleton variant="text" width={120} height={20} />
-                <Skeleton variant="text" width={100} height={20} />
+                <Skeleton variant='text' width={120} height={20} />
+                <Skeleton variant='text' width={100} height={20} />
               </Box>
             ))}
           </Box>
@@ -182,26 +179,26 @@ const AnimalDetais = () => {
 
       {/* Enclosure Details Section */}
       <Card sx={{ p: 4 }}>
-        <Skeleton variant="text" width={200} height={28} sx={{ mb: 3 }} />
+        <Skeleton variant='text' width={200} height={28} sx={{ mb: 3 }} />
 
         {/* Enclosure details grid */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
           {/* Left column */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {[1, 2, 3].map((item) => (
+            {[1, 2, 3].map(item => (
               <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Skeleton variant="text" width={140} height={20} />
-                <Skeleton variant="text" width={120} height={20} />
+                <Skeleton variant='text' width={140} height={20} />
+                <Skeleton variant='text' width={120} height={20} />
               </Box>
             ))}
           </Box>
 
           {/* Right column */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {[1, 2, 3].map((item) => (
+            {[1, 2, 3].map(item => (
               <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Skeleton variant="text" width={140} height={20} />
-                <Skeleton variant="text" width={120} height={20} />
+                <Skeleton variant='text' width={140} height={20} />
+                <Skeleton variant='text' width={120} height={20} />
               </Box>
             ))}
           </Box>
@@ -259,11 +256,7 @@ const AnimalDetais = () => {
         </Card>
       </Box>
       {qrDialogOpen && (
-        <AnimalQRCard
-          open={qrDialogOpen}
-          handleClose={() => setQrDialogOpen(false)}
-          speciesData={qrData}
-        />
+        <AnimalQRCard open={qrDialogOpen} handleClose={() => setQrDialogOpen(false)} speciesData={qrData} />
       )}
     </>
   )

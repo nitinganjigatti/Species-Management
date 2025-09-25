@@ -20,7 +20,15 @@ import { useAuth } from 'src/hooks/useAuth'
 import AddSiteDrawer from 'src/views/pages/housing/sites/AddSiteDrawer'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
-const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDrawer, setSiteDrawer }) => {
+const Listing = ({
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData,
+  siteDrawer,
+  setSiteDrawer,
+  totalAnimalsCount
+}) => {
   const theme = useTheme()
   const router = useRouter()
   const auth = useAuth()
@@ -37,6 +45,7 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
     sortBy: '',
     sortOrder: 'asc'
   })
+  const [totalAnimalCount, setTotalAnimalCount] = useState(0)
 
   const [downloading, setDownloading] = useState(false)
 
@@ -308,6 +317,7 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
                       site_id: params.row.site_id
                     }
                   })
+                  setTotalAnimalCount(params.row.animal_count || 0)
                 }}
               >
                 <Typography
@@ -420,10 +430,7 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
             pl: 2
           }}
         >
-          <UserAvatarDetails
-            profile_image={params.row?.incharge_image}
-            user_name={params.row?.incharge_name}
-          />
+          <UserAvatarDetails profile_image={params.row?.incharge_image} user_name={params.row?.incharge_name} />
         </Box>
       )
     },
@@ -550,7 +557,24 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData, siteDra
         <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
       {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalsDrawer
+          totalCount={totalAnimalCount}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
+        />
+      )}
+      {drawerType === 'insights-animals' && (
+        <AnimalsDrawer
+          totalCount={totalAnimalsCount}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
+        />
+      )}
       {drawerType === 'enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}

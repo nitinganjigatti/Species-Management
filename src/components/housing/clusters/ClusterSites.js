@@ -32,6 +32,8 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
     sortOrder: 'asc'
   })
 
+  const [totalCount, setTotalCount] = useState(0)
+
   const auth = useAuth()
   const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
@@ -213,6 +215,7 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
           value={params.row.site_name}
           subtitle={''}
           imgUrl={params.row.images?.[0]?.file}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
           avatarUrl={''}
           inchagename={''}
         />
@@ -290,6 +293,7 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
                       site_id: params.row.site_id
                     }
                   })
+                  setTotalCount(params.row.animal_count || 0)
                 }}
               >
                 <Typography
@@ -360,10 +364,7 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <UserAvatarDetails
-          profile_image={params.row?.incharge_image}
-          user_name={params.row?.incharge_name}
-        />
+        <UserAvatarDetails profile_image={params.row?.incharge_image} user_name={params.row?.incharge_name} />
       )
     },
     {
@@ -480,7 +481,15 @@ const ClusterSites = ({ drawerType, setDrawerType, drawerData, setDrawerData }) 
         </Grid>
       </Box>
       {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalDrawer
+          totalCount={totalCount}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
+        />
+      )}
       {drawerType === 'enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}

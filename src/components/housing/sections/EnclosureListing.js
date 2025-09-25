@@ -35,6 +35,7 @@ const EnclosureListing = ({
 
   const [inputValue, setInputValue] = useState('')
   const [downloading, setDownloading] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -212,21 +213,21 @@ const EnclosureListing = ({
     },
     ...(insightsViewAccess
       ? [
-          {
-            width: 160,
-            field: 'species_count',
-            headerName: 'SPECIES',
-            headerAlign: 'left',
-            align: 'left',
-            sortable: false,
-            renderCell: params => (
-              <Typography
-                sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-              >
-                {params.row.species_count || '-'}
-              </Typography>
-            )
-          },
+          // {
+          //   width: 160,
+          //   field: 'species_count',
+          //   headerName: 'SPECIES',
+          //   headerAlign: 'left',
+          //   align: 'left',
+          //   sortable: false,
+          //   renderCell: params => (
+          //     <Typography
+          //       sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+          //     >
+          //       {params.row.species_count || '-'}
+          //     </Typography>
+          //   )
+          // },
           {
             width: 160,
             field: 'enclosure_wise_animal_count',
@@ -255,6 +256,7 @@ const EnclosureListing = ({
                       enclosure_id: params.row.enclosure_id
                     }
                   })
+                  setTotalCount(params.row.enclosure_wise_animal_count || 0)
                 }}
               >
                 <Typography
@@ -287,7 +289,6 @@ const EnclosureListing = ({
                 }}
                 onClick={e => {
                   e.stopPropagation()
-
                 }}
               >
                 <Typography
@@ -336,10 +337,12 @@ const EnclosureListing = ({
       params.field !== 'sub_enclosure_count' &&
       params.field !== 'site_name'
     ) {
+      const query = { ...router.query }
+      query.tab && delete query.tab
       router.push({
         pathname: `/housing/enclosure/${params.row.enclosure_id}`,
         query: {
-          ...router.query,
+          ...query,
           enclosureTab: 'enclosures'
         }
       })
@@ -394,7 +397,9 @@ const EnclosureListing = ({
           />
         </Grid>
       </Box>
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalDrawer totalCount={totalCount} open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
       {drawerType === 'sub-enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}

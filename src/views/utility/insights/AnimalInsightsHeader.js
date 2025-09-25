@@ -45,7 +45,7 @@ const AnimalInsightsHeader = ({
                 {scientificName}
               </Typography>
             )}
-            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               {headerDetails?.isAlive === '0' && (
                 <Box
                   sx={{
@@ -79,6 +79,43 @@ const AnimalInsightsHeader = ({
                   </Typography>
                 </Box>
               )}
+              {headerDetails?.in_transit ? (
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: theme.palette.customColors.TertiaryContainer,
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 500, fontSize: '20px' }}
+                  >
+                    In Transit
+                  </Typography>
+                </Box>
+              ) : headerDetails?.animal_transfered === '1' ? (
+                <Box
+                  sx={{
+                    px: 4,
+                    py: 2,
+                    background: theme.palette.customColors.TertiaryContainer,
+                    borderRadius: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Typography
+                    sx={{ color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 500, fontSize: '20px' }}
+                  >
+                    Transferred
+                  </Typography>
+                </Box>
+              ) : null}
             </Box>
           </Box>
           <Box>
