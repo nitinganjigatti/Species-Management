@@ -35,7 +35,8 @@ const AddEditSymptomDrawer = ({
   setNotes,
   status,
   setStatus,
-  activityListData
+  activityListData,
+  activityLoader
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
@@ -262,7 +263,7 @@ const AddEditSymptomDrawer = ({
           </Box>
           <Divider color={theme.palette.customColors.OutlineVariant} />
 
-          <ActivityList activities={processedActivities} onEdit={handleEditActivity} />
+          <ActivityList activities={processedActivities} onEdit={handleEditActivity} activityLoader={activityLoader} />
         </Box>
 
         <SideSheetActionButtons

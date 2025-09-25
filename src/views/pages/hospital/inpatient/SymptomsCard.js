@@ -26,12 +26,14 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [pendingDetails, setPendingDetails] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [activityLoader, setactivityLoader] = useState(false)
   const [activityListData, setActivityListData] = useState()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
   const handleClickDetail = async recordData => {
     console.log(recordData, 'recordData')
     try {
+      setactivityLoader(true)
       setSymptomDrawerNewOpen(true)
       setSeverity(
         recordData?.additional_info?.severity === 'Mild'
@@ -55,11 +57,14 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
       if (response?.success) {
         setActivityListData(response?.data || [])
+        setactivityLoader(false)
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to fetch notes.' })
+        setactivityLoader(false)
       }
     } catch (error) {
       console.error('Error fetching notes for symptom:', error)
+      setactivityLoader(false)
       Toaster({ type: 'error', message: 'An error occurred while fetching notes.' })
     }
   }
@@ -340,6 +345,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           setNotes={setNotes}
           onSave={addSymptomDetails}
           activityListData={activityListData}
+          activityLoader={activityLoader}
         />
       )}
       {isDeleteDialogOpen && (

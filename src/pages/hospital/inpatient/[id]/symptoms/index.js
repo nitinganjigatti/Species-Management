@@ -162,6 +162,7 @@ export default function AddSymptomsPage() {
   const handleAddClick = async () => {
     try {
       if (selectedSymptoms.length === 0) {
+        Toaster({ type: 'error', message: 'Please select at least one Symptom' })
         return
       }
       setAddLoading(true)
@@ -207,14 +208,14 @@ export default function AddSymptomsPage() {
   return (
     <Box sx={{ p: 3 }}>
       <AnimalDetails
-        image='/leopard.jpg'
+        image={patientData?.animal_detail?.default_icon}
         name={patientData?.animal_detail?.common_name}
         scientificName={patientData?.animal_detail?.complete_name}
         identifierValue={patientData?.animal_detail?.local_identifier_value}
         identifierName={patientData?.animal_detail?.local_identifier_name}
         admittedDays={patientData?.admitted_for_day}
         location={patientData?.bed_name}
-        vet='Dr. Nitin A Ganjigatti'
+        vet=''
         ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
           patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
         }`}
@@ -263,7 +264,7 @@ export default function AddSymptomsPage() {
         onAdd={handleAddClick}
         width={200}
         height={50}
-        disabled={addLoading || selectedSymptoms.length === 0}
+        isSubmitLoading={addLoading}
       />
 
       {temporarilySelected && (
