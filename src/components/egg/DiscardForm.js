@@ -162,6 +162,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
       } else {
         setValue('image', updatedImages)
       }
+
       return updatedImages
     })
 
@@ -172,6 +173,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
       } else {
         setValue('image', updatedFiles)
       }
+
       return updatedFiles
     })
   }
@@ -194,6 +196,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
         setImgSrc('')
         setIsOpen(false)
         setLoader(false)
+
         // Toaster({ type: 'success', message: res?.message || 'Egg discarded successfully' })
         Toaster({ type: 'success', message: 'Egg discarded successfully' })
 
@@ -202,6 +205,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
         if (GetGalleryImgList) GetGalleryImgList({ ref_id: eggID, ref_type: 'egg' })
       } else {
         setLoader(false)
+
         // Toaster({ type: 'error', message: res?.message || 'Failed to discard the egg' })
         Toaster({ type: 'error', message: 'Failed to discard the egg' })
       }
@@ -282,12 +286,26 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                       {discardReason?.map((item, index) => (
                         <Box
                           key={item?.id}
+                          role='button'
+                          tabIndex={0}
+                          onClick={() => field.onChange(item?.id)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              field.onChange(item?.id)
+                            }
+                          }}
                           sx={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             border: 1,
-                            borderColor: theme.palette.customColors.OutlineVariant,
+                            borderColor:
+                              field.value === item?.id
+                                ? theme.palette.primary.main
+                                : theme.palette.customColors.OutlineVariant,
+                            backgroundColor: field.value === item?.id ? theme.palette.action.hover : 'transparent',
+                            cursor: 'pointer',
                             p: 2,
                             mb: discardReason.length - 1 === index ? 0 : 4,
                             borderRadius: '5px'

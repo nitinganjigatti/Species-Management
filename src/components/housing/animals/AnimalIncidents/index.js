@@ -52,6 +52,7 @@ const AnimalIncidents = () => {
   const [animalListData, setAnimalListData] = useState([])
   const [animalListCount, setAnimalListCount] = useState(0)
   const [incidentDetailsData, setIncidentDetailsData] = useState({})
+  const [incidentDetailsDate, setIncidentDetailsDate] = useState('')
 
   const [animalIncidentForm, setAnimalIncidentForm] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
@@ -64,10 +65,12 @@ const AnimalIncidents = () => {
   const fetchAnimalIncidents = async () => {
     try {
       setAnimalListLoading(true)
-      console.log('sam', animalId)
+
+      // console.log('sam', animalId)
       if (animalId) {
         const res = await getAnimalIncidentList(animalId)
-        console.log('res', res)
+
+        // console.log('res', res)
         setAnimalListData(res?.data?.result)
         setAnimalListCount(res?.data?.total_count)
       }
@@ -106,16 +109,8 @@ const AnimalIncidents = () => {
     }
     const handleMenuClose = () => setAnchorEl(null)
 
-    if (animalListLoading === true)
-      return (
-        <Box sx={{ textAlign: 'center' }}>
-          <Skeleton variant='rectangular' height={84} sx={{ borderRadius: 1, mb: 1 }} />
-        </Box>
-      )
-
     return data.map((incident, index) => (
       <Box key={index}>
-
         <Grid
           container
           sx={{
@@ -282,7 +277,7 @@ const AnimalIncidents = () => {
             </Tooltip>
           </Grid>
           <Grid item size={{ xs: 2, sm: 1, md: 0.5 }}>
-            <IconButton size='small' onClick={(e) => handleMenuOpen(e, incident)}>
+            <IconButton size='small' onClick={e => handleMenuOpen(e, incident)}>
               <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:dots-vertical' />
             </IconButton>
 
@@ -295,9 +290,12 @@ const AnimalIncidents = () => {
             >
               <MenuItem
                 onClick={() => {
-                  fetchAnimalIncidentDetails(selectedIncident?.incident_id)
-                  setActivtyLogSideBar(true)
-                  handleMenuClose()
+                  setIncidentDetailsDate(selectedIncident?.created_at)
+                  setTimeout(() => {
+                    fetchAnimalIncidentDetails(selectedIncident?.incident_id)
+                    setActivtyLogSideBar(true)
+                    handleMenuClose()
+                  }, 200)
                 }}
               >
                 View Details
@@ -306,23 +304,29 @@ const AnimalIncidents = () => {
               <MenuItem
                 onClick={() => {
                   setIsEdit(true)
-                  setEditData(selectedIncident?.incident_details?.[index])
+                  // Prefer the 'missing' detail if available; otherwise fallback to first
+                  const editDetail =
+                    selectedIncident?.incident_details?.find(d => d?.incident_type === 'missing') ||
+                    selectedIncident?.incident_details?.[0]
+                  setEditData(editDetail)
                   setAnimalIncidentForm(true)
                   handleMenuClose()
                 }}
               >
                 Edit Incident
               </MenuItem>
-              {selectedIncident?.current_incident_type !== 'missing' &&
+              {selectedIncident?.current_incident_type !== 'missing' && (
                 <MenuItem
                   onClick={() => {
+                    setIncidentDetailsDate(selectedIncident?.incident_details?.created_at)
                     setMissReportIncidence('Found')
                     setMissReportIncidentForm(true)
                     handleMenuClose()
                   }}
                 >
                   Misreport Found
-                </MenuItem>}
+                </MenuItem>
+              )}
 
               <MenuItem
                 onClick={() => {
@@ -371,13 +375,22 @@ const AnimalIncidents = () => {
           open={activtyLogSideBar}
           ModalProps={{ keepMounted: true }}
           sx={{
-            '& .MuiDrawer-paper': { width: ['100%', 520] },
+            // Ensure the Drawer paper fills the viewport height and uses flex layout
+            '& .MuiDrawer-paper': {
+              width: ['100%', 520],
+              height: '100vh',
+              maxHeight: '100vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            },
             height: '100vh',
             '& .css-e1dg5m-MuiCardContent-root': {
               pt: 0
             }
           }}
         >
+          {/* Header (sticky) */}
           <Box
             sx={{
               pb: 4,
@@ -421,7 +434,15 @@ const AnimalIncidents = () => {
             </Box>
           </Box>
 
-          <Box sx={{ px: 4, py: 6, overflowY: 'auto', backgroundColor: theme.palette.customColors.Background }}>
+          <Box
+            sx={{
+              px: 4,
+              py: 6,
+              overflowY: 'auto',
+              backgroundColor: theme.palette.customColors.Background,
+              flex: 1
+            }}
+          >
             <Box
               sx={{
                 backgroundColor: theme.palette.primary.contrastText,
@@ -483,7 +504,8 @@ const AnimalIncidents = () => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    10 Apr 2024 • 12:28 PM
+                    {moment(Utility.convertUTCToLocalDate(incidentDetailsDate)).format('DD MMM YYYY')} •
+                    {Utility.convertUTCToLocaltime(incidentDetailsDate)}
                   </Typography>
                 </Box>
               </Box>
@@ -539,34 +561,55 @@ const AnimalIncidents = () => {
           <Box
             sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}
           >
-            <Typography
-              sx={{
-                fontSize: 20,
-                letterSpacing: 0,
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant
+            {' '}
+            {animalListLoading ? (
+              <Box sx={{ textAlign: 'center' }}>
+                <Skeleton variant='rectangular' height={40} width={200} sx={{ borderRadius: 1, mb: 1 }} />
+              </Box>
+            ) : (
+              <Typography
+                sx={{
+                  fontSize: 20,
+                  letterSpacing: 0,
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {animalListCount > 0 && `${animalListCount > 1 ? 'Incidents' : 'Incident'} (${animalListCount})`}
+              </Typography>
+            )}
+            <Button
+              onClick={() => {
+                setIsEdit(false)
+                setEditData(null)
+                setAnimalIncidentForm(true)
               }}
+              variant='contained'
+              sx={{ height: '40px' }}
             >
-              {animalListCount > 0 && `${animalListCount > 1 ? 'Incidents' : 'Incident'} (${animalListCount})`}
-            </Typography>
-            <Button onClick={() => setAnimalIncidentForm(true)} variant='contained' sx={{ height: '40px' }}>
               <Icon icon='mdi:plus' />
               Report incident
             </Button>
           </Box>
 
-          {animalListData?.length > 0 ? <IncidentCardList
-            data={animalListData?.length ? animalListData : []}
-            onViewDetails={() => setActivtyLogSideBar(true)}
-            onEdit={() => console.log('Edit incident')}
-            onMisreport={(incident, type) => {
-              setMissReportIncidence(type)
-              setMissReportIncidentForm(true)
-            }}
-            onReportFound={() => setReportFoundForm(true)}
-          />
-            : <NoDataFound />
-          }
+          {animalListLoading ? (
+            <Box sx={{ textAlign: 'center' }}>
+              <Skeleton variant='rectangular' height={84} sx={{ borderRadius: 1, mb: 1 }} />
+            </Box>
+          ) : animalListData?.length > 0 ? (
+            <IncidentCardList
+              data={animalListData?.length ? animalListData : []}
+              onViewDetails={() => setActivtyLogSideBar(true)}
+              onEdit={() => console.log('Edit incident')}
+              onMisreport={(incident, type) => {
+                setMissReportIncidence(type)
+                setMissReportIncidentForm(true)
+              }}
+              onReportFound={() => setReportFoundForm(true)}
+            />
+          ) : (
+            <NoDataFound />
+          )}
         </Box>
       </Box>
 

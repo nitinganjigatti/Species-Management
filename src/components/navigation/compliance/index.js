@@ -43,6 +43,11 @@ const composeComplianceNavigation = () => {
   //   path: '/compliance/documents/animals'
   // }
 
+  const species = {
+    title: 'Species',
+    path: '/compliance/species'
+  }
+
   const mastersParent = {
     title: 'Masters',
     path: '/compliance/documents/masters',
@@ -69,6 +74,7 @@ const composeComplianceNavigation = () => {
   const reportsParent = {
     title: 'Reports',
     path: '/compliance/documents/reports',
+    key: 'compliance-reports',
     icon: '',
     children: []
   }
@@ -88,12 +94,22 @@ const composeComplianceNavigation = () => {
     path: '/compliance/reports/biologistDiary'
   }
 
+  const enclosureCountRegister = {
+    title: 'Enclosure Count Register',
+    path: '/compliance/reports/enclosureCountRegister'
+  }
+
+  const dailyReport = {
+    title: 'Daily Report',
+    path: '/compliance/reports/dailyReport'
+  }
+
   // Add all items under Documents
-  documentsParent.children.push(exports, imports, shipments, mastersParent, reportsParent)
+  documentsParent.children.push(exports, imports, shipments, species, mastersParent, reportsParent)
 
   mastersParent.children.push(masterdocuments, masterimports, masterexports)
 
-  reportsParent.children.push(observation, keeperDiary, biologistDiary)
+  reportsParent.children.push(observation, keeperDiary, biologistDiary, enclosureCountRegister, dailyReport)
 
   const complianceNavigation = [complianceTitle, documentsParent]
 

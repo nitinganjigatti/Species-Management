@@ -1,194 +1,213 @@
-import { Card, Typography, Box, IconButton } from '@mui/material'
+import { Card, Typography, Box, IconButton, styled, CardContent, alpha } from '@mui/material'
 import { Grid } from '@mui/material'
 import React from 'react'
-import Icon from 'src/@core/components/icon'
-import AnimalCard from '../../lab/AnimalCard'
 import { useTheme } from '@emotion/react'
-import { useRouter } from 'next/router'
-import {
-  MoreVert as MoreVertIcon,
-  KeyboardArrowDown as ArrowDownIcon,
-  CalendarToday as CalendarIcon,
-  Person as PersonIcon,
-  Home as HomeIcon,
-  Schedule as ScheduleIcon
-} from '@mui/icons-material'
-import { StatusCard, VisitType } from 'src/views/utility/render-snippets'
-import { rgbaToHex } from 'src/@core/utils/rgba-to-hex'
+import Icon from 'src/@core/components/icon'
+import AnimalCard from 'src/views/utility/AnimalCard'
+import { VisitType } from './hospitalSnippets'
+import AdmissionStatusCard from '../inpatient/AdmissionStatusCard'
 
-const PatientCard = ({ patientData }) => {
+const getVisitTypeLabel = title => {
+  if (title === 'checkup') return 'Check up'
+  if (title === 'emergency') return 'Emergency'
+  if (title === 'follow_up') return 'Follow-up'
+  if (title === 'outpatient') return 'OUTPATIENT'
+  if (title === 'opd') return 'OUTPATIENT'
+  if (title === 'planned') return 'Planned'
+  if (title === 'inpatient') return 'INPATIENT'
+}
+
+const PatientCard = ({ patientData, animalData, loading }) => {
   const theme = useTheme()
-  const router = useRouter()
+
+  const admissionData = [
+    { type: 'admitted_on', value: patientData?.admitted_at },
+    { type: 'admitted_by', value: patientData?.admitted_by_full_name },
+    { type: 'admitted_for', value: patientData?.admitted_for_day },
+    { type: 'holding_location', value: patientData?.bed_name }
+  ]
 
   return (
-    <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
-      <Grid
-        container
-        gap={2}
-        alignItems='center'
-        justifyContent='space-between'
-        mb={4}
-        sx={{
-          borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
-          py: 4,
-          px: 6
-        }}
-      >
-        <Grid
-          size={{ xs: 8 }}
+    <>
+      <Box>
+        <Card
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            gap: 1
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-            <Typography
-              variant='h6'
-              sx={{
-                fontWeight: 600,
-                color: '#1F515B',
-                fontSize: { xs: '1.1rem', md: '1.5rem' }
-              }}
-            >
-              Case ID: 12345/25
-            </Typography>
-            <VisitType title={'Emergency'} />
-            <VisitType title={'Check up'} />
-          </Box>
-          <Typography
-            variant='body2'
-            sx={{
-              color: '#44544A',
-              fontSize: '1rem',
-              mt: 1
-            }}
-          >
-            Chief veterinarian: Nihal Mehta
-          </Typography>
-        </Grid>
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: 0,
 
-        <Grid
-          size={{ xs: 3 }}
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-end'
+            borderBottom: `0.5px solid ${theme.palette.divider}`,
+            elevation: 'none',
+            boxShadow: 'none'
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'row',
+                display: { xs: 'flex', sm: 'none' },
                 alignItems: 'center',
-                gap: 4,
-                borderRadius: '999px',
-                backgroundColor: '#1F515B',
-                px: 4,
-                py: 3,
-                minWidth: 180,
-                position: 'relative'
+                justifyContent: 'space-between',
+                width: '100%'
               }}
             >
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <Typography
-                  sx={{
-                    color: '#fff',
-                    fontWeight: 600,
-                    fontSize: '1rem'
-                  }}
-                >
-                  1st Follow Up
-                </Typography>
-
-                <Typography
-                  sx={{
-                    color: '#6EFFA1',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    mt: 0.3
-                  }}
-                >
-                  Current visit
-                </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  p: 3,
+                  background: theme.palette.customColors.Background,
+                  borderRadius: 1,
+                  gap: 5
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                  <Typography
+                    sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnPrimaryContainer }}
+                  >
+                    2nd Visit
+                  </Typography>
+                  <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.primary.main }}>
+                    Current visit
+                  </Typography>
+                </Box>
+                <Icon icon={'mingcute:down-fill'} color={theme.palette.customColors.OnPrimaryContainer} />
               </Box>
-              <Icon icon={'mdi-chevron-down'} color='white' fontSize={34} />
+              <Box>
+                <IconButton>
+                  <Icon icon={'pepicons-pop:dots-y'} />
+                </IconButton>
+              </Box>
             </Box>
-            <IconButton>
-              <Icon icon={'mdi-dots-vertical'} fontSize={30} color='#44544A' />
-            </IconButton>
-          </Box>
-        </Grid>
-      </Grid>
-      <Grid container gap={2} sx={{ px: 6, py: 4, alignItems: 'center', justifyContent: 'space-between' }}>
-        <Grid size={{ sm: 4 }}>
-          <AnimalCard textColor={theme.palette.customColors.OnSurfaceVariant} />
-        </Grid>
-        <Grid size={{ sm: 7 }}>
-          <Grid container spacing={6}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <StatusCard
-                icon={PersonIcon}
-                title={'Admitted on'}
-                subtitle={'12 Aug 2024'}
-                iconColor={theme.palette.primary.dark}
-                iconBgColor={theme.palette.customColors.OnBackground}
-              />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    justifyContent: 'flex-start',
+                    gap: 3
+                  }}
+                >
+                  <StyledTypography fontSize={'20px'} fontWeight={500}>
+                    {patientData?.medical_record_code}
+                  </StyledTypography>
+                  <Box sx={{ display: 'flex', gap: 3 }}>
+                    <VisitType title={getVisitTypeLabel(patientData?.treatment_type)} />
+                    <VisitType title={getVisitTypeLabel(patientData?.visit_type)} />
+                  </Box>
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { md: 'row', sm: 'column', xs: 'column' },
+                    alignItems: { sm: 'flex-start', md: 'center', xs: 'flex-start' },
+                    justifyContent: 'flex-start',
+                    gap: 2
+                  }}
+                >
+                  {patientData?.case_code && (
+                    <>
+                      <StyledTypography>Hospital Case Id : {patientData?.case_code} </StyledTypography>
+                      <Box
+                        sx={{
+                          display: { xs: 'none', sm: 'none', md: 'block' },
+                          height: '4px',
+                          width: '4px',
+                          borderRadius: '50%',
+                          background: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      />
+                    </>
+                  )}
+
+                  <StyledTypography>Chief veterinarian : {patientData?.attend_by_full_name}</StyledTypography>
+                </Box>
+              </Box>
+              <Box
+                sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', justifyContent: 'flex-end', gap: 5 }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    p: 3,
+                    background: theme.palette.customColors.Background,
+                    borderRadius: 1,
+                    gap: 5
+                  }}
+                >
+                  <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                    <Typography
+                      sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnPrimaryContainer }}
+                    >
+                      {patientData?.visit_label}
+                    </Typography>
+                    {patientData?.is_current_visit === '1' && (
+                      <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.primary.main }}>
+                        Current visit
+                      </Typography>
+                    )}
+                  </Box>
+                  <Icon icon={'mingcute:down-fill'} color={theme.palette.customColors.OnPrimaryContainer} />
+                </Box>
+                <Box>
+                  <IconButton>
+                    <Icon icon={'pepicons-pop:dots-y'} />
+                  </IconButton>
+                </Box>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+        <Card sx={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, boxShadow: 'none', elevation: 'none' }}>
+          <CardContent>
+            <Grid container spacing={8} alignItems='stretch'>
+              <Grid
+                size={{ xs: 12, sm: 12, md: 5 }}
+                sx={{
+                  background: `linear-gradient(90deg, ${alpha(
+                    theme.palette.customColors.SecondaryContainer,
+                    0.6
+                  )}, ${alpha(theme.palette.customColors.TertiaryContainer, 0.6)})`,
+                  py: 4,
+                  px: 6,
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  minHeight: 'fit-content'
+                }}
+              >
+                <AnimalCard data={animalData} />
+              </Grid>
+              <Grid
+                size={{ xs: 12, sm: 12, md: 7 }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  minHeight: 'fit-content'
+                }}
+              >
+                <Grid container spacing={2} columnSpacing={4} rowSpacing={4}>
+                  {admissionData.map((item, index) => (
+                    <Grid key={index} size={{ xs: 12, sm: 6 }}>
+                      <AdmissionStatusCard type={item?.type} value={item?.value} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Grid>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <StatusCard
-                icon={PersonIcon}
-                title={'Admitted By'}
-                subtitle={'Nihal Kishor'}
-                iconColor={theme.palette.primary.dark}
-                iconBgColor={theme.palette.customColors.OnBackground}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <StatusCard
-                icon={ScheduleIcon}
-                title={'Admitted For'}
-                subtitle={'4 days'}
-                iconColor={theme.palette.customColors.moderateSecondary}
-                iconBgColor={'#FCF4AE99'}
-                subtitleSx={{ fontWeight: 600 }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <StatusCard
-                icon={HomeIcon}
-                title={'Holding Location'}
-                subtitle={'Cage 1, Patient Wing 2'}
-                iconColor={theme.palette.customColors.moderateSecondary}
-                iconBgColor={'#FCF4AE99'}
-                subtitleSx={{ fontWeight: 600 }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <StatusCard
-                icon={HomeIcon}
-                title={'Discharged On'}
-                subtitle={'12 Aug 2024'}
-                iconColor={'#FA6140'}
-                iconBgColor={'#FFBDA866'}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <StatusCard
-                icon={HomeIcon}
-                title={'Discharged By'}
-                subtitle={'Nihal Mehta'}
-                iconColor={'#FA6140'}
-                iconBgColor={'#FFBDA866'}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-    </Card>
+          </CardContent>
+        </Card>
+      </Box>
+    </>
   )
 }
 
 export default PatientCard
+
+const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize }) => ({
+  fontSize: fontSize || '1rem',
+  fontWeight: fontWeight || 400,
+  color: theme.palette.customColors.OnSurfaceVariant
+}))

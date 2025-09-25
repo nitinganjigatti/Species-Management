@@ -27,6 +27,8 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
               ? theme.palette.customColors.Tertiary
               : eggCondition === 'Cracked'
               ? theme.palette.customColors.moderateSecondary
+              : eggCondition === 'Thin-Shelled'
+              ? theme.palette.primary.light
               : egg_status === 'Fresh'
               ? theme.palette.primary.dark
               : egg_status === 'Fertile'

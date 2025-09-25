@@ -23,7 +23,9 @@ const ControlledTextField = ({
   formHelperTextBackgroundColor = 'inherit',
   inputBackgroundColor = 'inherit',
   borderRadius = '10px',
-  sx = {}
+  placeholder,
+  sx = {},
+  size = 'large'
 }) => {
   const error = get(errors, name)
   const helperText = error?.message || ''

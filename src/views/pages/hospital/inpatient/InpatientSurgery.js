@@ -3,6 +3,7 @@ import { Box, Grid } from '@mui/system'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import MediaCard from 'src/views/utility/MediaCard'
+import { useRouter } from 'next/router'
 
 const surgeries = [
   'S1235/25',
@@ -147,6 +148,11 @@ const MediaScroller = () => {
 
 function InpatientSurgery() {
   const theme = useTheme()
+  const router = useRouter()
+
+  const handleAddSurgeryRecord = () => {
+    router.push(`/hospital/inpatient/AddSurgeryRecord`)
+  }
 
   const [activeSurgery, setActiveSurgery] = useState(surgeries[0])
 
@@ -171,7 +177,8 @@ function InpatientSurgery() {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { sm: 'center', xs: 'fl' },
+
+          // alignItems: { sm: 'center', xs: 'fl' },
           gap: '24px'
         }}
       >
@@ -219,7 +226,11 @@ function InpatientSurgery() {
         </Box>
 
         {/* RIGHT: content-size only */}
-        <Button variant='contained' sx={{ flex: '0 0 auto', whiteSpace: 'nowrap' }}>
+        <Button
+          onClick={handleAddSurgeryRecord}
+          variant='contained'
+          sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+        >
           Add SURGERY RECORD
         </Button>
       </Box>
@@ -259,7 +270,7 @@ function InpatientSurgery() {
           <Grid sx={{ px: '8px' }} container spacing={4}>
             {Object.entries(basicDetails).map(([label, value]) => (
               <Grid item size={{ xs: 6, md: 3 }} key={label}>
-                <Tooltip>
+                <Tooltip title={label.replace(/([A-Z])/g, ' $1')}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -276,7 +287,7 @@ function InpatientSurgery() {
                     {label.replace(/([A-Z])/g, ' $1')}
                   </Typography>
                 </Tooltip>
-                <Tooltip>
+                <Tooltip title={value}>
                   <Typography
                     sx={{
                       fontWeight: 400,
@@ -300,7 +311,7 @@ function InpatientSurgery() {
           <Grid sx={{ px: '8px' }} container spacing={4}>
             {Object.entries(surgeryDetails).map(([label, value]) => (
               <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={label}>
-                <Tooltip>
+                <Tooltip title={label.replace(/([A-Z])/g, ' $1')}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -317,7 +328,7 @@ function InpatientSurgery() {
                     {label.replace(/([A-Z])/g, ' $1')}
                   </Typography>
                 </Tooltip>
-                <Tooltip>
+                <Tooltip title={value}>
                   <Typography
                     sx={{
                       fontWeight: 400,
@@ -349,30 +360,44 @@ function InpatientSurgery() {
               </Typography>
 
               {/* Paragraph */}
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  mb: 1.5
-                }}
-              >
-                {surgeryNotes.paragraph}
-              </Typography>
+              <Tooltip title={surgeryNotes.paragraph}>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    mb: 1.5,
+                    display: '-webkit-box', // for multiline ellipsis
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    WebkitLineClamp: 5,
+                    WebkitBoxOrient: 'vertical'
+                  }}
+                >
+                  {surgeryNotes.paragraph}
+                </Typography>
+              </Tooltip>
 
               {/* Findings */}
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  mb: 1.5
-                }}
-              >
-                <strong>Findings:</strong> {surgeryNotes.findings}
-              </Typography>
+              <Tooltip title={`Findings: ${surgeryNotes.findings}`}>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    mb: 1.5,
+                    display: '-webkit-box',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical'
+                  }}
+                >
+                  <strong>Findings:</strong> {surgeryNotes.findings}
+                </Typography>
+              </Tooltip>
 
               {/* Procedure performed */}
               <Typography
@@ -389,17 +414,24 @@ function InpatientSurgery() {
               <Box component='ul' sx={{ ml: '-8px', mt: 0, mb: 1 }}>
                 {surgeryNotes.procedurePerformed.map((item, idx) => (
                   <li key={idx}>
-                    <Typography
-                      component='span'
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        letterSpacing: 0,
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }}
-                    >
-                      {item}
-                    </Typography>
+                    <Tooltip title={item}>
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          letterSpacing: 0,
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          display: '-webkit-box', // for multiline ellipsis
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical'
+                        }}
+                      >
+                        {item}
+                      </Typography>
+                    </Tooltip>
                   </li>
                 ))}
               </Box>
@@ -430,24 +462,22 @@ function InpatientSurgery() {
               </Typography>
             </Box>
             <Box>
-              <Tooltip>
-                <Typography
-                  sx={{
-                    mb: '4px',
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    letterSpacing: 0,
-                    color: theme.palette.customColors.neutralSecondary,
-                    textTransform: 'capitalize',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Complication
-                </Typography>
-              </Tooltip>
-              <Tooltip>
+              <Typography
+                sx={{
+                  mb: '4px',
+                  fontWeight: 400,
+                  fontSize: '14px',
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.neutralSecondary,
+                  textTransform: 'capitalize',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Complication
+              </Typography>
+              <Tooltip title={'None'}>
                 <Typography
                   sx={{
                     fontWeight: 400,
@@ -480,33 +510,37 @@ function InpatientSurgery() {
             }}
           >
             <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.neutralSecondary,
-                  textTransform: 'capitalize',
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                Anaesthesia Id
-              </Typography>
-              <Typography
-                sx={{
-                  fontWeight: 400,
-                  fontSize: '16px',
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                AN12466 | 24 Jun 2024
-              </Typography>
+              <Tooltip title={'Anaesthesia Id'}>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.neutralSecondary,
+                    textTransform: 'capitalize',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Anaesthesia Id
+                </Typography>
+              </Tooltip>
+              <Tooltip title={'AN123456 | 24 Jun 2024'}>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  AN12466 | 24 Jun 2024
+                </Typography>
+              </Tooltip>
             </Box>
             <Typography
               sx={{
@@ -526,7 +560,7 @@ function InpatientSurgery() {
           <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {Object.entries(careInstructions).map(([label, value]) => (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }} key={label}>
-                <Tooltip>
+                <Tooltip title={label.replace(/([A-Z])/g, ' $1')}>
                   <Typography
                     sx={{
                       mb: '4px',
@@ -543,7 +577,7 @@ function InpatientSurgery() {
                     {label.replace(/([A-Z])/g, ' $1')}
                   </Typography>
                 </Tooltip>
-                <Tooltip>
+                <Tooltip title={value}>
                   <Typography
                     sx={{
                       fontWeight: 400,

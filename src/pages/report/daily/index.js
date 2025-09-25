@@ -35,7 +35,7 @@ const Animal = () => {
   const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
   const [errors, setErrors] = useState({})
@@ -312,13 +312,13 @@ const Animal = () => {
     <>
       {reports_module && enable_daily_report ? (
         <Card>
-          <CardHeader title={title} sx={{ mb: '16px' }} />
+          <CardHeader title={title} sx={{ paddingX: 5, mb: '16px' }} />
           <Box
             sx={{
               display: 'flex',
               flexWrap: 'wrap',
               justifyContent: 'flex-end',
-              px: '16px',
+              px: 5,
               mb: '16px'
             }}
           >
@@ -473,21 +473,20 @@ const Animal = () => {
               </Box>
             </Box>
           </Box>
-          <Box sx={{ width: '98%', margin: 4 }}>
-            <Box sx={{ borderRadius: '8px' }}>
-              <CommonTable
-                setPaginationModel={setPaginationModel}
-                indexedRows={reportRows}
-                total={''}
-                loading={loading}
-                disableColumnSorting={true}
-                columns={columns}
-                paginationModel={paginationModel}
-                disableColumnFilter={false}
-                rowHeight={70}
-                scrollbarSize={10}
-              />
-            </Box>
+          <Box sx={{ paddingX: 5, borderRadius: '8px' }}>
+            <CommonTable
+              setPaginationModel={setPaginationModel}
+              indexedRows={reportRows}
+              total={''}
+              loading={loading}
+              disableColumnSorting={true}
+              columns={columns}
+              hideFooterPagination
+              paginationModel={paginationModel}
+              disableColumnFilter={false}
+              rowHeight={70}
+              scrollbarSize={10}
+            />
           </Box>
         </Card>
       ) : (

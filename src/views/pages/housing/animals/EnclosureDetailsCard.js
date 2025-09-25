@@ -39,27 +39,31 @@ const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
         width: '100%',
         boxSizing: 'border-box',
         mt: 6,
-        display: 'flex', flexDirection: 'column',
+        display: 'flex',
+        flexDirection: 'column',
         gap: '24px'
       }}
     >
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} >
-        <Typography sx={{ color: 'customColors.OnSurfaceVariant', lineHeight: 1, fontWeight: 500, fontSize: '20px', letterSpacing: 0 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography
+          sx={{
+            color: 'customColors.OnSurfaceVariant',
+            lineHeight: 1,
+            fontWeight: 500,
+            fontSize: '20px',
+            letterSpacing: 0
+          }}
+        >
           Enclosure Details
         </Typography>
-        <IconButton sx={{ p: 1 }} onClick={onEditClick}>
+        {/* <IconButton sx={{ p: 1 }} onClick={onEditClick}>
           <EditOutlinedIcon sx={{ fontSize: '24px', color: '#6b7a7a' }} />
-        </IconButton>
+        </IconButton> */}
       </Box>
 
       {/* Info Blocks */}
-      <Grid
-        container
-        alignItems='center'
-        justifyContent='flex-start'
-        spacing={'24px'}
-      >
+      <Grid container alignItems='center' justifyContent='flex-start' spacing={'24px'}>
         {info.map((item, idx) => (
           <Grid
             key={item.label}
@@ -70,11 +74,21 @@ const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
               gap: '8px',
               pr: 2,
               alignItems: 'center',
-              borderRight: { xs: 'none', sm: idx % 2 === 1 ? 'none' : '0.5px solid #006D354D', md: info.length === idx + 1 ? 'none' : '0.5px solid #006D354D' },
+              borderRight: {
+                xs: 'none',
+                sm: idx % 2 === 1 ? 'none' : '0.5px solid #006D354D',
+                md: info.length === idx + 1 ? 'none' : '0.5px solid #006D354D'
+              },
               minWidth: 0
             }}
           >
-            <Image height={32} width={32} src={item.icon} alt='Cluster Icon' style={{ height: '32px', width: '32px' }} />
+            <Image
+              height={32}
+              width={32}
+              src={item.icon}
+              alt='Cluster Icon'
+              style={{ height: '32px', width: '32px' }}
+            />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
               <Tooltip title={item.label}>
                 <Typography
@@ -85,7 +99,7 @@ const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
                     letterSpacing: 0,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    textOverflow: 'ellipsis'
                   }}
                 >
                   {item.label}

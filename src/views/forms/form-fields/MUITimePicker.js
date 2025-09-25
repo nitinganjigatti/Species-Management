@@ -12,55 +12,59 @@ dayjs.extend(localizedFormat)
 const locale = 'en'
 
 const MUITimePicker = ({
-    value,
-    onChange,
-    label = 'Select Time',
-    format = 'hh:mm A',
-    views = ['hours', 'minutes'],
-    disabled = false,
-    error = false,
-    helperText = '',
-    ampm = true,
-    minutesStep = 1,
-    sx = {}
+  value,
+  onChange,
+  label = 'Select Time',
+  format = 'hh:mm A',
+  views = ['hours', 'minutes'],
+  disabled = false,
+  error = false,
+  helperText = '',
+  ampm = true,
+  minutesStep = 1,
+  sx = {},
+  size = 'large'
 }) => {
-    // Apply locale globally
-    dayjs.locale(locale)
+  // Apply locale globally
+  dayjs.locale(locale)
 
-    return (
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={locale}>
-            <TimePicker
-                value={value}
-                onChange={onChange}
-                label={label}
-                disabled={disabled}
-                views={views}
-                format={format}
-                ampm={ampm}
-                minutesStep={minutesStep}
-                slotProps={{
-                    textField: {
-                        fullWidth: true,
-                        error,
-                        helperText,
-                        sx: {
-                            '& .MuiInputAdornment-root .MuiIconButton-root': {
-                                alignSelf: 'center'
-                            },
-                            '& .MuiInputBase-root': {
-                                alignItems: 'center'
-                            },
-                            ...sx
-                        }
-                    }
-                }}
-                sx={{
-                    width: '100%',
-                    ...sx
-                }}
-            />
-        </LocalizationProvider>
-    )
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={locale}>
+      <TimePicker
+        value={value}
+        onChange={onChange}
+        label={label}
+        disabled={disabled}
+        views={views}
+        format={format}
+        ampm={ampm}
+        minutesStep={minutesStep}
+        slotProps={{
+          textField: {
+            fullWidth: true,
+            error,
+            helperText,
+            size,
+            sx: {
+              '& .MuiInputAdornment-root .MuiIconButton-root': {
+                alignSelf: 'center'
+              },
+              '& .MuiInputBase-root': {
+                alignItems: 'center'
+              },
+
+              ...sx
+            }
+          }
+        }}
+        sx={{
+          width: '100%',
+
+          ...sx
+        }}
+      />
+    </LocalizationProvider>
+  )
 }
 
 export default React.memo(MUITimePicker)

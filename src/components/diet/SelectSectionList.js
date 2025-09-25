@@ -68,14 +68,30 @@ const SelectSectionList = ({
     }
   }
 
+  // useEffect(() => {
+  //   if (open && siteId) {
+  //     fetchSections()
+  //   }
+  //   if (!open && siteId && openFilterDrawer) {
+  //     fetchSections()
+  //   }
+  // }, [open, siteId, openFilterDrawer, pageNo])
+
+  // Fetch only when the Section drawer is opened, and when pagination advances while open
   useEffect(() => {
     if (open && siteId) {
+      // Reset pagination and list when opening or site changes
+      setPageNo(1)
+      setSectionsData([])
       fetchSections()
     }
-    if (!open && siteId && openFilterDrawer) {
+  }, [open, siteId])
+
+  useEffect(() => {
+    if (open && siteId && pageNo > 1) {
       fetchSections()
     }
-  }, [open, siteId, openFilterDrawer, pageNo])
+  }, [pageNo])
 
   useEffect(() => {
     if (open && tempSelectedItems?.Section) {

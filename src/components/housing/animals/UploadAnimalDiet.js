@@ -12,12 +12,13 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
 import imageUploader from 'public/images/gallery_add_Icon.png'
+
 import UploadDocIcon from 'public/icons/Upload_doc_icon.png'
 
 import { useForm, Controller } from 'react-hook-form'
@@ -25,7 +26,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { readAsync } from 'src/lib/windows/utils'
+import { AuthContext } from 'src/context/AuthContext'
 
 const defaultValues = {
   dietitian_id: '',
@@ -46,8 +47,9 @@ function UploadAnimalDiet({
   fetchTableData,
   animalData
 }) {
-  const theme = useTheme()
-  const fileInputRef = useRef(null)
+    const theme = useTheme()
+    const fileInputRef = useRef(null)
+    const authData = useContext(AuthContext)
 
   const [preparedByUsers, setPreparedByUsers] = useState([])
   const [defaultPreparedBy, setDefaultPreparedBy] = useState(null)
@@ -75,23 +77,29 @@ function UploadAnimalDiet({
     reValidateMode: 'onChange'
   })
 
-  useEffect(() => {
-    if (uploadAnimalDietDrawer) {
-      getUsers()
-    }
-  }, [uploadAnimalDietDrawer])
+    useEffect(() => {
+        if (uploadAnimalDietDrawer) {
+            getUsers()
+            // Prefill with current user when opening
+            const user = authData?.userData?.user
+            if (user) {
+                const current = { user_id: user?.user_id, user_name: `${user?.user_first_name} ${user?.user_last_name}` }
+                setDefaultPreparedBy(current)
+                setValue('dietitian_id', current.user_id)
+            }
+        }
+    }, [uploadAnimalDietDrawer, authData])
 
-  const getUsers = async () => {
-    try {
-      const userDetails = await readAsync('userDetails')
-      const zoo_id = userDetails?.user?.zoos[0].zoo_id
-      const Users = await getUserList({ zoo_id })
-
-      setPreparedByUsers(Users?.data)
-    } catch (error) {
-      Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+    const getUsers = async () => {
+        try {
+            const zoo_id = authData?.userData?.user?.zoos?.[0]?.zoo_id
+            if (!zoo_id) return
+            const Users = await getUserList({ zoo_id })
+            setPreparedByUsers(Users?.data)
+        } catch (error) {
+            Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+        }
     }
-  }
 
   const handleFileUpload = async (event, speciesId) => {
     const file = event?.target?.files[0]
