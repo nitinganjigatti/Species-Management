@@ -1,7 +1,17 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Card, CardHeader, Typography, Button, Box, Checkbox, FormControl, Tooltip } from '@mui/material'
+import {
+  Card,
+  CardHeader,
+  Typography,
+  Button,
+  Box,
+  Checkbox,
+  FormControl,
+  CircularProgress,
+  Tooltip
+} from '@mui/material'
 import { Popover } from '@mui/material'
 import { TabContext } from '@mui/lab'
 import { useTheme } from '@emotion/react'
@@ -460,7 +470,7 @@ const SpeciesReport = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
               <CardHeader title={title} />
               <Typography
-                onClick={() => getStatisticsDataToExport()}
+                onClick={isDownloading ? undefined : () => getStatisticsDataToExport()}
                 sx={{
                   fontSize: '20px',
                   fontWeight: '400',
@@ -468,12 +478,21 @@ const SpeciesReport = () => {
                   color: theme.palette.primary.OnSurface,
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer',
+                  cursor: isDownloading ? 'not-allowed' : 'pointer',
                   mr: 4
                 }}
+                aria-disabled={isDownloading}
               >
                 Download report
-                <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+                {isDownloading ? (
+                  <CircularProgress size={22} sx={{ ml: 2 }} />
+                ) : (
+                  <img
+                    src='/images/download1.svg'
+                    alt='download icon'
+                    style={{ marginLeft: 8, width: 30, height: 30 }}
+                  />
+                )}
               </Typography>
             </Box>
 
@@ -672,7 +691,7 @@ const SpeciesReport = () => {
                   rowHeight={70}
                   headerHeight={47}
                   pagination={true}
-                  columns={columns.length && columns}
+                  columns={columns?.length ? columns : []}
                   pageSizeOptions={[7, 10, 25, 50]}
                   rowsInView={10}
                   rowsInViewOptions={[5, 7, 10, 25, 50]}
@@ -680,8 +699,8 @@ const SpeciesReport = () => {
                   onPaginationModelChange={setPaginationModel}
                   loading={isLoading}
                   onRowClick={handleRowClick}
-                  // downloadExcel
                   serverSide
+                  rowSelection
                   modifyColumnPinning
                   headerName='Species General Report'
                   searchMode='server'
