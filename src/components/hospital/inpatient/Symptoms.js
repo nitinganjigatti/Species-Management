@@ -1,194 +1,89 @@
-import React, { useEffect, useState } from 'react'
-import { Box, Button, Typography, FormControlLabel } from '@mui/material'
+import React, { useEffect, useState, useCallback } from 'react'
+import { Box, Button, Typography, CircularProgress, debounce } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useRouter } from 'next/router'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
+import { getSymptomsList } from 'src/lib/api/hospital/symptoms'
 import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
 
-// Sample medical records data
-const symptomsRecords = [
-  {
-    id: 'MED-12345/25',
-    title: 'Gum infection',
-    type: 'Diagnosis',
-    status: 'resolved',
-    severity: 'Low',
-    category: 'Chronic',
-    activity: '+2',
-    days: 10,
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
-    lastUpdated: '12:05 PM • 19 May 2025',
-    resolvedBy: {
-      name: 'Jordan Stevenson',
-      avatar: 'JS',
-      date: '02 Jan 2025 • 12:35 PM'
-    }
-  },
-  {
-    id: 'MED-12345/25',
-    title: 'Gum infection',
-    type: 'Diagnosis',
-    status: 'active',
-    severity: 'Medium',
-    category: 'Chronic',
-    activity: '+2',
-    days: 10,
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
-    lastUpdated: '12:05 PM • 19 May 2025',
-    resolvedBy: {
-      name: 'Jordan Stevenson',
-      avatar: 'JS',
-      date: '02 Jan 2025 • 12:35 PM'
-    }
-  },
-  {
-    id: 'MED-12345/25',
-    title: 'Coagulopathy',
-    type: 'Diagnosis',
-    status: 'active',
-    severity: 'High',
-    category: 'Chronic',
-    activity: '+2',
-    days: 10,
-    clinicalAssessment: 'Differential → Diagnosis',
-    chronic: 'No',
-    prognosis: 'Favourable',
-    notes:
-      'Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted Mild oral plaque formation inside beak noted',
-    lastUpdated: '12:05 PM • 19 May 2025',
-    resolvedBy: {
-      name: 'Jordan Stevenson',
-      avatar: 'JS',
-      date: '02 Jan 2025 • 12:35 PM'
-    }
-  },
-  {
-    id: 'MED-12345/25',
-    title: 'Assessment Name 3',
-    type: 'Diagnosis',
-    status: 'active',
-    severity: 'Extreme',
-    category: 'Chronic',
-    activity: '+2',
-    days: 10,
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
-    lastUpdated: '12:05 PM • 19 May 2025',
-    resolvedBy: {
-      name: 'Jordan Stevenson',
-      avatar: 'JS',
-      date: '02 Jan 2025 • 12:35 PM'
-    }
-  },
-  {
-    id: 'MED-12345/25',
-    title: 'Assessment Name 3',
-    type: 'Diagnosis',
-    status: 'active',
-    severity: 'Low',
-    category: 'Chronic',
-    activity: '+2',
-    days: 10,
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
-    lastUpdated: '12:05 PM • 19 May 2025',
-    resolvedBy: {
-      name: 'Jordan Stevenson',
-      avatar: 'JS',
-      date: '02 Jan 2025 • 12:35 PM'
-    }
-  },
-  {
-    id: 'MED-12345/25',
-    title: 'Assessment Name 3',
-    type: 'Diagnosis',
-    status: 'active',
-    severity: 'Medium',
-    category: 'Chronic',
-    activity: '+2',
-    days: 10,
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
-    lastUpdated: '12:05 PM • 19 May 2025',
-    resolvedBy: {
-      name: 'Jordan Stevenson',
-      avatar: 'JS',
-      date: '02 Jan 2025 • 12:35 PM'
-    }
-  },
-  {
-    id: 'MED-12345/25',
-    title: 'Gum infection',
-    type: 'Differential',
-    status: 'active',
-    severity: 'Extreme',
-    category: null,
-    activity: '+2',
-    days: 10,
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore',
-    lastUpdated: '12:05 PM • 19 May 2025',
-    highlighted: true
-  }
-]
-
-const Symptoms = () => {
+const Symptoms = ({ selectedTab, patientData }) => {
   const router = useRouter()
+  const { id, animal_id } = router.query
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
   const [records, setRecords] = useState([])
-
-  const activeRecords = symptomsRecords.filter(record => record.status === 'active')
-  const resolvedRecords = symptomsRecords.filter(record => record.status === 'resolved')
+  const [recordTypeCount, setRecordTypeCount] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const theme = useTheme()
 
   const tabs = ['Active', 'Resolved', 'All']
 
-  const getFilteredRecords = () => {
-    let records = symptomsRecords
-
-    switch (currentTab) {
-      case 'Active':
-        records = activeRecords
-        break
-      case 'Resolved':
-        records = resolvedRecords
-        break
-      case 'All':
-      default:
-        records = symptomsRecords
-        break
-    }
-
-    if (searchQuery) {
-      records = records.filter(
-        record =>
-          record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          record.id.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-    setRecords(records)
-
-    return records
+  const tabTypeMap = {
+    Active: 'active',
+    Resolved: 'closed',
+    All: 'all'
   }
+
+  const fetchSymptoms = async (query = '') => {
+    try {
+      setLoading(true)
+      const params = {
+        type: tabTypeMap[currentTab],
+        page_no: 1,
+        medical_type: 'complaint',
+        q: query
+      }
+
+      if (currentRecordOnly && patientData?.medical_record_id) {
+        params.medical_record_id = patientData?.medical_record_id
+      }
+
+      const response = await getSymptomsList(animal_id, params)
+
+      if (response.success === true) {
+        setRecords(response?.data?.result || [])
+        setRecordTypeCount(response?.data)
+        setTotalCount(response?.data?.total_count)
+      }
+    } catch (error) {
+      console.error('Error fetching symptoms:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const debouncedFetchSymptoms = useCallback(
+    debounce(query => {
+      fetchSymptoms(query)
+    }, 500),
+    [currentTab, patientData, animal_id]
+  )
 
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
   }
 
   useEffect(() => {
-    getFilteredRecords()
-  }, [currentTab])
+    if (selectedTab === 'symptoms') {
+      if (searchQuery.trim()) {
+        debouncedFetchSymptoms(searchQuery.trim())
+      } else {
+        fetchSymptoms('')
+      }
+    }
+  }, [selectedTab, currentTab, searchQuery, currentRecordOnly])
+
+  const handleSearchClear = () => {
+    setSearchQuery('')
+  }
 
   return (
     <Box>
-      {/* Header with Tabs and Controls */}
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <Box
           sx={{
@@ -211,43 +106,55 @@ const Symptoms = () => {
               }}
             >
               <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-                {tabs.map(tab => (
-                  <Box
-                    key={tab}
-                    onClick={() => handleTabChange(tab)}
-                    sx={{
-                      flexShrink: 0,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      px: '16px',
-                      py: '8px',
-                      borderRadius: '8px',
-                      backgroundColor:
-                        currentTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Typography
+                {tabs.map(tab => {
+                  const countKey = tabTypeMap[tab]
+                  const tabCount = recordTypeCount?.[countKey] || 0
+                  return (
+                    <Box
+                      key={tab}
+                      onClick={() => handleTabChange(tab)}
                       sx={{
-                        color:
-                          currentTab === tab
-                            ? theme.palette.primary.contrastText
-                            : theme.palette.customColors.neutralPrimary,
-                        whiteSpace: 'nowrap'
+                        flexShrink: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        px: '16px',
+                        py: '8px',
+                        borderRadius: '8px',
+                        backgroundColor:
+                          currentTab === tab ? theme.palette.secondary.dark : theme.palette.customColors.mdAntzNeutral,
+                        cursor: 'pointer'
                       }}
                     >
-                      {tab}
-                    </Typography>
-                  </Box>
-                ))}
+                      <Typography
+                        sx={{
+                          color:
+                            currentTab === tab
+                              ? theme.palette.primary.contrastText
+                              : theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {tab} - {tabCount}
+                      </Typography>
+                    </Box>
+                  )
+                })}
               </Box>
             </Box>
           </Box>
 
           <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-            <Button variant='contained' startIcon={<AddIcon />} onClick={() => router.push('/hospital/symptoms')}>
+            <Search value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onClear={handleSearchClear} />
+            <Button
+              variant='contained'
+              startIcon={<AddIcon />}
+              onClick={() =>
+                router.push(
+                  `/hospital/inpatient/${id}/symptoms/?animal_id=${animal_id}&medical_record_id=${patientData?.medical_record_id}`
+                )
+              }
+            >
               ADD NEW
             </Button>
           </Box>
@@ -262,16 +169,35 @@ const Symptoms = () => {
         />
       </Box>
 
-      {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {records?.map((record, index) => (
-          <SymptomsCard
-            key={index}
-            record={record}
-            isDifferential={record.type === 'Differential'}
-            isResolved={record.status === 'resolved'}
-          />
-        ))}
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+            <CircularProgress />
+          </Box>
+        ) : records?.length === 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '70%',
+              textAlign: 'center'
+            }}
+          >
+            <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+          </Box>
+        ) : (
+          records.map((record, index) => (
+            <SymptomsCard
+              key={index}
+              record={record}
+              isDifferential={record.type === 'Differential'}
+              isResolved={record.status === 'closed'}
+              fetchSymptoms={fetchSymptoms}
+            />
+          ))
+        )}
       </Box>
     </Box>
   )

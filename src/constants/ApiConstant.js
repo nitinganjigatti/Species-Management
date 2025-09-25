@@ -719,3 +719,28 @@ export const GET_CLINICAL_NOTES = 'get-medical-common-data-v2'
 export const DELETE_CLINICAL_NOTES = 'medical/attachment-remove/'
 
 export const CREATE_CLINICAL_NOTES = 'v1/hospital/add-clinical-notes'
+
+export const GET_SYMPTOM_LISTING = 'medical/get-complaint-diagnosis-type'
+
+export const ADD_HOSPITAL_SYMPTOMS = 'v1/hospital/add-symptoms'
+
+export const UPDATE_HOSPITAL_SYMPTOMS = 'update-diagnosis-prescription'
+
+export const GET_ACTIVITY_LIST = 'record-details'
+// Clinical Assessment
+
+export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/225091/get-medical-common-data-v2'
+
+export const GET_CLINICAL_DIAGNOSIS_LIST = 'medical/v2/get-complaint-diagnosis-list'
+
+export const GET_CLINICAL_DIAGNOSIS_TYPE = 'medical/get-complaint-diagnosis-type'
+
+export const ADD_CLINICAL_ASSESSMENT = 'v1/hospital/add-clinical-assessment'
+
+export const UPDATE_CLINICAL_ASSESSMENT = 'medical/v2/update-diagnosis-prescription'
+
+// Hospital Analytics
+
+export const HOSPITAL_LISTING = 'v1/hospital/listing'
+
+export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'

@@ -107,7 +107,7 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
                 </Typography>
                 {symptom.notes && <Typography variant='body2'>Notes: {symptom.notes}</Typography>} */}
               </Box>
-              <IconButton onClick={() => onRemove(symptom.name)}>
+              <IconButton onClick={() => onRemove(symptom.id)}>
                 <CloseIcon sx={{ color: '#1F515B', fontSize: '22px' }} />
               </IconButton>
             </Box>

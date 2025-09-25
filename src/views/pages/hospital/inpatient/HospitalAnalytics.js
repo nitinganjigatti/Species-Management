@@ -1,8 +1,11 @@
 import React from 'react'
-import { Box, Card, CardContent, Typography, Avatar, Grid, useTheme } from '@mui/material'
+import { Box, Card, CardContent, Typography, Avatar, Grid, useTheme, CircularProgress } from '@mui/material'
+import { useHospital } from 'src/context/HospitalContext'
+import HospitalDropdown from 'src/components/hospital/inpatient/HospitalDropdown'
 
 const HospitalAnalytics = () => {
   const theme = useTheme()
+  const { selectedHospital, hospitalStats, isHospitalStatsLoading } = useHospital()
 
   return (
     <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -12,7 +15,7 @@ const HospitalAnalytics = () => {
           overflow: 'visible'
         }}
       >
-        <CardContent sx={{ p: 4, mr: { md:'80px' } }}>
+        <CardContent sx={{ p: 4, mr: { md: '80px' } }}>
           <Grid container spacing={4} alignItems='center' justifyContent='space-between'>
             {/* Hospital Info Section */}
             <Grid item xs={12} md={3}>
@@ -39,69 +42,70 @@ const HospitalAnalytics = () => {
                     }
                   }}
                 />
-                <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      mb: 0.5,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontWeight: 500,
-                      fontSize: '20px'
-                    }}
-                  >
-                    Feline care hospital
-                  </Typography>
+                <Box sx={{ textAlign: { md: 'left' } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <HospitalDropdown />
+                  </Box>
                   <Typography
                     variant='body2'
                     sx={{
                       color: theme.palette.customColors.neutralSecondary,
-                      fontSize: '14px'
+                      fontSize: '14px',
+                      pl: 1
                     }}
                   >
-                    Hospital
+                    {selectedHospital ? selectedHospital.location : '-'}
                   </Typography>
                 </Box>
               </Box>
             </Grid>
 
             {/* Metrics Section */}
-            {/* Total Rooms */}
+            {/* Total Beds */}
             <Grid item xs={4} md={2}>
               <Box>
-                <Typography
-                  sx={{
-                    mb: 1,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 600,
-                    fontSize: '16px'
-                  }}
-                >
-                  12
-                </Typography>
+                {isHospitalStatsLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 600,
+                      fontSize: '16px'
+                    }}
+                  >
+                    {hospitalStats ? hospitalStats.total_beds : '-'}
+                  </Typography>
+                )}
                 <Typography
                   sx={{
                     color: theme.palette.customColors.neutralSecondary,
                     fontSize: '14px'
                   }}
                 >
-                  Total rooms
+                  Total beds
                 </Typography>
               </Box>
             </Grid>
 
-            {/* Available */}
+            {/* Available Beds */}
             <Grid item xs={4} md={2}>
               <Box>
-                <Typography
-                  sx={{
-                    mb: 1,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 600,
-                    fontSize: '16px'
-                  }}
-                >
-                  4
-                </Typography>
+                {isHospitalStatsLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 600,
+                      fontSize: '16px'
+                    }}
+                  >
+                    {hospitalStats ? hospitalStats.available_beds : '-'}
+                  </Typography>
+                )}
                 <Typography
                   variant='body2'
                   sx={{
@@ -114,19 +118,23 @@ const HospitalAnalytics = () => {
               </Box>
             </Grid>
 
-            {/* Occupied */}
+            {/* Occupied Beds */}
             <Grid item xs={4} md={2}>
               <Box>
-                <Typography
-                  sx={{
-                    mb: 1,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 600,
-                    fontSize: '16px'
-                  }}
-                >
-                  8
-                </Typography>
+                {isHospitalStatsLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 600,
+                      fontSize: '16px'
+                    }}
+                  >
+                    {hospitalStats ? hospitalStats.occupied_beds : '-'}
+                  </Typography>
+                )}
                 <Typography
                   variant='body2'
                   sx={{
@@ -141,23 +149,21 @@ const HospitalAnalytics = () => {
 
             {/* Site Information */}
             <Grid item xs={12} md={3}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center'
-                }}
-              >
-                <Typography
-                  sx={{
-                    mb: 1,
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 600,
-                    fontSize: '16px'
-                  }}
-                >
-                  R&Rsite
-                </Typography>
+              <Box>
+                {isHospitalStatsLoading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 600,
+                      fontSize: '16px'
+                    }}
+                  >
+                    {selectedHospital?.site_id || '-'}
+                  </Typography>
+                )}
                 <Typography
                   variant='body2'
                   sx={{

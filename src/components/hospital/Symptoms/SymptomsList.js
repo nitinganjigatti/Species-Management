@@ -1,13 +1,31 @@
-import React, { useState } from 'react'
-import { Box, TextField, FormControlLabel, Checkbox, InputAdornment, Typography } from '@mui/material'
+import React from 'react'
+import {
+  Box,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  InputAdornment,
+  Typography,
+  CircularProgress,
+  IconButton
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
+import ClearIcon from '@mui/icons-material/Clear'
 
-export default function SymptomsList({ symptoms, temporarilySelected, selectedSymptoms, onSelect }) {
+export default function SymptomsList({
+  symptoms,
+  temporarilySelected,
+  selectedSymptoms,
+  onSelect,
+  searchQuery,
+  handleSearchChange,
+  handleClearSearch,
+  handleScroll,
+  loading,
+  searching
+}) {
   const theme = useTheme()
-  const [searchTerm, setSearchTerm] = useState('')
-
-  const filteredSymptoms = symptoms.filter(symptom => symptom.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
     <Box sx={{ pt: 1 }}>
@@ -16,13 +34,20 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
         fullWidth
         size='small'
         sx={{ mb: 2, borderRadius: '8px' }}
-        value={searchTerm}
-        onChange={e => setSearchTerm(e.target.value)}
+        value={searchQuery}
+        onChange={handleSearchChange}
         slotProps={{
           input: {
             startAdornment: (
               <InputAdornment position='start'>
                 <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
+              </InputAdornment>
+            ),
+            endAdornment: searchQuery && (
+              <InputAdornment position='end'>
+                <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
+                  <ClearIcon fontSize='small' />
+                </IconButton>
               </InputAdornment>
             )
           }
@@ -43,8 +68,12 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
         SYMPTOMS
       </Typography>
 
-      <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>
-        {filteredSymptoms.length === 0 ? (
+      <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
+        {searching ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <CircularProgress />
+          </Box>
+        ) : symptoms.length === 0 && !loading ? (
           <Box
             sx={{
               background: theme.palette.common.white,
@@ -62,13 +91,13 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
             </Typography>
           </Box>
         ) : (
-          filteredSymptoms.map((symptom, index) => {
-            const isSelected = selectedSymptoms.includes(symptom)
-            const isTemporarilySelected = temporarilySelected === symptom
+          symptoms.map((symptom, index) => {
+            const isSelected = selectedSymptoms.includes(symptom?.id)
+            const isTemporarilySelected = temporarilySelected?.id === symptom?.id
 
             return (
               <Box
-                key={index}
+                key={symptom?.id}
                 sx={{
                   background:
                     isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
@@ -91,7 +120,7 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
                       }}
                     />
                   }
-                  label={symptom}
+                  label={symptom?.name}
                   sx={{
                     flex: 1,
                     m: 0,
@@ -105,6 +134,12 @@ export default function SymptomsList({ symptoms, temporarilySelected, selectedSy
               </Box>
             )
           })
+        )}
+
+        {loading && !searching && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
         )}
       </Box>
     </Box>

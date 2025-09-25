@@ -1,10 +1,12 @@
-import { Box, Button, Card, CardHeader, Grid, MenuItem, Select, Typography, useTheme } from '@mui/material'
+import { Box, Breadcrumbs, Button, Card, CardHeader, Grid, MenuItem, Select, Typography, useTheme } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import RenderUtility from 'src/utility/render'
+import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -33,6 +35,10 @@ const HospitalIncoming = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const { selectedHospital } = useHospital()
+
+  console.log(selectedHospital)
+
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
 
@@ -55,14 +61,14 @@ const HospitalIncoming = () => {
   }, [router.query])
 
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['incoming-patients', filters, selectedVisitType],
+    queryKey: ['incoming-patients', filters, selectedVisitType, selectedHospital?.id],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         search: filters?.q,
 
-        hospital_id: 5,
+        hospital_id: selectedHospital?.id,
         status: 'pending',
         visit_type: selectedVisitType,
         patient_category: 'incoming'
@@ -269,68 +275,78 @@ const HospitalIncoming = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader title={RenderUtility?.pageTitle('Incoming Patient')} />
-        <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ ml: 2 }}>
-            <Search
-              borderRadius='4px'
-              width='343px'
-              placeholder='Search by medical Id / AID / animal identifier'
-              value={searchValue}
-              onClear={handleSearchClear}
-              onChange={e => handleSearch(e.target.value)}
-              textFielsSX={{
-                '& .MuiInputBase-input::placeholder': {
-                  fontSize: '13px'
-                }
+      <Box>
+        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
+          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
+          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Incoming</Typography>
+        </Breadcrumbs>
+        <HospitalAnalytics />
+        <Box sx={{ mt: 6 }}>
+          <Card>
+            <CardHeader title={RenderUtility?.pageTitle('Incoming Patient')} />
+            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+              <Box sx={{ ml: 2 }}>
+                <Search
+                  borderRadius='4px'
+                  width='343px'
+                  placeholder='Search by medical Id / AID / animal identifier'
+                  value={searchValue}
+                  onClear={handleSearchClear}
+                  onChange={e => handleSearch(e.target.value)}
+                  textFielsSX={{
+                    '& .MuiInputBase-input::placeholder': {
+                      fontSize: '13px'
+                    }
+                  }}
+                />
+              </Box>
+              <Box sx={{ mr: 2 }}>
+                <Select
+                  size='small'
+                  value={selectedVisitType}
+                  displayEmpty
+                  onChange={e => setSelectedVisitType(e.target.value)}
+                >
+                  {visitTypeOptions?.map((item, index) => (
+                    <MenuItem key={index} value={item?.value}>
+                      {item?.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Box></Box>
+              </Box>
+            </Box>
+            <Grid
+              sx={{
+                mx: { xs: 3, md: 5 }
               }}
-            />
-          </Box>
-          <Box sx={{ mr: 2 }}>
-            <Select
-              size='small'
-              value={selectedVisitType}
-              displayEmpty
-              onChange={e => setSelectedVisitType(e.target.value)}
             >
-              {visitTypeOptions?.map((item, index) => (
-                <MenuItem key={index} value={item?.value}>
-                  {item?.label}
-                </MenuItem>
-              ))}
-            </Select>
-            <Box></Box>
-          </Box>
+              <CommonTable
+                columns={columns}
+                indexedRows={indexedRows}
+                total={total}
+                loading={isFetching}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                setPaginationModel={handlePaginationModelChange}
+                searchValue=''
+                getRowHeight={() => 'auto'}
+                externalTableStyle={{
+                  '& .MuiDataGrid-cell': {
+                    padding: 4
+                  },
+                  '& .MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+                  '& .MuiDataGrid-cell:focus-within': {
+                    outline: 'none'
+                  }
+                }}
+              />
+            </Grid>
+          </Card>
         </Box>
-        <Grid
-          sx={{
-            mx: { xs: 3, md: 5 }
-          }}
-        >
-          <CommonTable
-            columns={columns}
-            indexedRows={indexedRows}
-            total={total}
-            loading={isFetching}
-            paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-            setPaginationModel={handlePaginationModelChange}
-            searchValue=''
-            getRowHeight={() => 'auto'}
-            externalTableStyle={{
-              '& .MuiDataGrid-cell': {
-                padding: 4
-              },
-              '& .MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
-              '& .MuiDataGrid-cell:focus-within': {
-                outline: 'none'
-              }
-            }}
-          />
-        </Grid>
-      </Card>
+      </Box>
     </>
   )
 }
