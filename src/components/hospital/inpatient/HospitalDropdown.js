@@ -46,7 +46,7 @@ const HospitalDropdown = () => {
 
         if (response?.success) {
           const newHospitals = response.data.hospitals
-          updateHospitals(append ? [...hospitals, ...newHospitals] : newHospitals, append)
+          updateHospitals(append ? [...hospitals, ...newHospitals] : newHospitals, false)
           setTotalPages(response.data.total_pages)
           setHasMore(pageNum < response.data.total_pages)
 

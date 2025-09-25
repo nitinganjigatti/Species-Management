@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Box, Grid, Typography } from '@mui/material'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { Box, Breadcrumbs, Grid, Typography } from '@mui/material'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
@@ -66,6 +66,8 @@ export default function AddClinicalAssessmentPage() {
       const res = await getDiagnosisList(params) // This gets categories
       if (res.success) {
         const categories = res.data?.result || []
+
+        // setTabOptions([{ category: 'All', id: '' }, ...categories])
         setTabOptions(categories)
         if (categories.length > 0) {
           setCurrentTab(categories[0]?.category || '')
@@ -234,8 +236,28 @@ export default function AddClinicalAssessmentPage() {
     })
   }
 
+  const handleBack = useCallback(() => {
+      router.back()
+    }, [router])
+
+  const breadcrumbs = useMemo(
+      () => (
+        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+          <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
+          <Typography sx={{ color: 'inherit' }}>Patients</Typography>
+          <Typography sx={{ color: 'inherit' }}>
+            Inpatient
+          </Typography>
+          <Typography sx={{ color: 'text.primary', cursor: 'pointer' }} onClick={handleBack}>Details</Typography>
+          <Typography sx={{ color: 'text.primary' }}>Add Clinical Assessment</Typography>
+        </Breadcrumbs>
+      ),
+      [handleBack]
+    )
+
   return (
     <Box sx={{ p: 3 }}>
+      {breadcrumbs}
       <AnimalDetails
         image='/leopard.jpg'
         name='Leopard'
