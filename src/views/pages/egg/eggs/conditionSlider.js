@@ -1457,10 +1457,10 @@ const ConditionSlider = ({
                               ref={getFieldRef('sexingType')}
                             >
                               {[
-                                { id: 'male', name: 'MALE' },
-                                { id: 'female', name: 'FEMALE' },
-                                { id: 'indeterminate', name: 'INDETERMINATE' },
-                                { id: 'undetermined', name: 'UNDETERMINED' }
+                                { id: 'male', name: 'Male' },
+                                { id: 'female', name: 'Female' },
+                                { id: 'indeterminate', name: 'Indeterminate' },
+                                { id: 'undetermined', name: 'Undetermined' }
                               ].map(val => (
                                 <MenuItem key={val?.id} value={val?.id}>
                                   {val?.name}
