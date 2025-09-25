@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
   Box,
   Typography,
@@ -7,7 +7,6 @@ import {
   TextField,
   Grid,
   IconButton,
-  Paper,
   Drawer,
   Divider,
   InputAdornment,
@@ -15,10 +14,11 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
-import EditIcon from '@mui/icons-material/Edit'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
+import Utility from 'src/utility'
+import dayjs from 'dayjs'
 
 const AddEditSymptomDrawer = ({
   open,
@@ -34,7 +34,8 @@ const AddEditSymptomDrawer = ({
   notes,
   setNotes,
   status,
-  setStatus
+  setStatus,
+  activityListData
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
@@ -51,6 +52,32 @@ const AddEditSymptomDrawer = ({
 
   const handleCancel = () => {
     onClose()
+  }
+
+  const formatDateTime = dateTime => {
+    if (!dateTime) return ''
+    return dayjs(dateTime).format('hh:mm A • DD MMM YYYY')
+  }
+
+  const processedActivities =
+    activityListData?.complaint_notes
+      ?.map(activity => ({
+        ...activity,
+        isSystemGenerated: activity?.is_system_generated === 1,
+        oldSeverity: activity?.notes_dump?.old_data?.severity || '',
+        newSeverity: activity?.notes_dump?.new_data?.severity || '',
+        createdBy: activity?.created_by_user_name || 'Unknown',
+        formattedTime: formatDateTime(activity?.created_at),
+        note: activity.note || 'N/A'
+      }))
+
+      .sort((a, b) => {
+        return b.isSystemGenerated - a.isSystemGenerated
+      }) || []
+
+  const handleEditActivity = value => {
+    console.log(value, 'value')
+    // alert('kkk')
   }
 
   return (
@@ -72,7 +99,7 @@ const AddEditSymptomDrawer = ({
         <Box sx={{ px: 5, pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Box display='flex' alignItems='center' gap={3}>
-              <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{selectedSymptom}</Typography>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{selectedSymptom?.name}</Typography>
             </Box>
             <IconButton onClick={onClose}>
               <CloseIcon />
@@ -85,12 +112,16 @@ const AddEditSymptomDrawer = ({
             <Typography
               sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 500, fontSize: '16px' }}
             >
-              MED-00023
+              {selectedSymptom?.medical_record_code || 'N/A'}
             </Typography>
             <Typography
               sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 3, fontWeight: 400, fontSize: '14px' }}
             >
-              Dr Nitin Ashok Ganjigatti • 12:05 PM • 19 May 2025
+              {selectedSymptom?.created_by_user_name || selectedSymptom?.additional_info?.resolved_user_name}{' '}
+              <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
+              {Utility.convertUTCToLocaltime(selectedSymptom?.created_at)}
+              <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
+              {Utility?.formatDisplayDate(selectedSymptom?.created_at)}
             </Typography>
 
             <Typography
@@ -110,8 +141,8 @@ const AddEditSymptomDrawer = ({
                 '& .MuiSelect-select': { py: 4.0 }
               }}
             >
-              <MenuItem value='Active'>Active</MenuItem>
-              <MenuItem value='Inactive'>Inactive</MenuItem>
+              <MenuItem value='active'>Active</MenuItem>
+              <MenuItem value='closed'>Inactive</MenuItem>
             </Select>
 
             <Box sx={{ display: 'flex', gap: 2, mt: 6 }}>
@@ -172,7 +203,12 @@ const AddEditSymptomDrawer = ({
                 <TextField
                   type='number'
                   value={durationValue}
-                  onChange={e => setDurationValue(e.target.value)}
+                  onChange={e => {
+                    const val = e.target.value
+                    if (val === '' || Number(val) >= 1) {
+                      setDurationValue(val)
+                    }
+                  }}
                   sx={{ width: 260 }}
                   slotProps={{
                     input: {
@@ -226,7 +262,7 @@ const AddEditSymptomDrawer = ({
           </Box>
           <Divider color={theme.palette.customColors.OutlineVariant} />
 
-          <ActivityList activities={activities} />
+          <ActivityList activities={processedActivities} onEdit={handleEditActivity} />
         </Box>
 
         <SideSheetActionButtons

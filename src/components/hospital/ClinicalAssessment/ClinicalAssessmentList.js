@@ -1,13 +1,33 @@
 import React, { useState } from 'react'
-import { Box, TextField, FormControlLabel, Checkbox, InputAdornment, Typography } from '@mui/material'
+import {
+  Box,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  InputAdornment,
+  Typography,
+  CircularProgress,
+  Skeleton
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 
-export default function ClinicalAssessmentList({ symptoms, temporarilySelected, selectedSymptoms, onSelect }) {
+export default function ClinicalAssessmentList({
+  symptoms,
+  temporarilySelected,
+  selectedSymptoms,
+  onSelect,
+  handleTabChange,
+  currentTab,
+  isTabsLoading,
+  isListLoading,
+  tabOptions,
+  searchTerm,
+  setSearchTerm
+}) {
   const theme = useTheme()
-  const [searchTerm, setSearchTerm] = useState('')
 
-  const filteredSymptoms = symptoms.filter(symptom => symptom.label.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredSymptoms = symptoms
 
   return (
     <Box sx={{ pt: 1 }}>
@@ -15,7 +35,7 @@ export default function ClinicalAssessmentList({ symptoms, temporarilySelected, 
         placeholder='Search'
         fullWidth
         size='small'
-        sx={{ mb: 2, borderRadius: '8px' }}
+        sx={{ mb: 3, borderRadius: '8px' }}
         value={searchTerm}
         onChange={e => setSearchTerm(e.target.value)}
         slotProps={{
@@ -29,7 +49,64 @@ export default function ClinicalAssessmentList({ symptoms, temporarilySelected, 
         }}
       />
 
-      <Typography
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box
+          sx={{
+            flex: '1 1 auto',
+            minWidth: 0,
+            overflowX: 'auto',
+            scrollbarColor: 'transparent transparent',
+            columnGap: 4
+          }}
+        >
+          <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
+            {isTabsLoading
+              ? Array.from(new Array(4)).map((_, index) => (
+                  <Skeleton
+                    key={index}
+                    variant='rounded'
+                    width={120}
+                    height={40}
+                    sx={{ flexShrink: 0, borderRadius: '8px' }}
+                  />
+                ))
+              : tabOptions?.map(tab => (
+                  <Box
+                    key={tab}
+                    onClick={() => handleTabChange(tab?.category, tab?.id)}
+                    sx={{
+                      flexShrink: 0,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      px: '16px',
+                      py: '8px',
+                      borderRadius: '8px',
+                      backgroundColor:
+                        currentTab === tab?.category
+                          ? theme.palette.secondary.dark
+                          : theme.palette.customColors.mdAntzNeutral,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color:
+                          currentTab === tab?.category
+                            ? theme.palette.primary.contrastText
+                            : theme.palette.customColors.neutralPrimary,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {`${tab?.category} - ${tab?.child_count}`}
+                    </Typography>
+                  </Box>
+                ))}
+          </Box>
+        </Box>
+      </Box>
+
+      <Box
         sx={{
           color: theme.palette.customColors.deepDark,
           fontSize: '12px',
@@ -39,16 +116,31 @@ export default function ClinicalAssessmentList({ symptoms, temporarilySelected, 
           mt: 3,
           background: theme.palette.customColors.mdAntzNeutral,
           display: 'flex',
+
           //justifyContent: 'space-between',
           alignItems: 'center'
         }}
       >
         <Box sx={{ flex: 1 }}>CLINICAL ASSESSMENT</Box>
         <Box sx={{ minWidth: '192px', textAlign: 'left' }}>TYPE</Box>
-      </Typography>
+      </Box>
 
       <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>
-        {filteredSymptoms.length === 0 ? (
+        {isListLoading ? (
+          <Box
+            sx={{
+              background: theme.palette.common.white,
+              height: 500,
+              borderRadius: '8px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : filteredSymptoms.length === 0 ? (
           <Box
             sx={{
               background: theme.palette.common.white,
@@ -67,8 +159,8 @@ export default function ClinicalAssessmentList({ symptoms, temporarilySelected, 
           </Box>
         ) : (
           filteredSymptoms.map((symptom, index) => {
-            const isSelected = selectedSymptoms.includes(symptom.label)
-            const isTemporarilySelected = temporarilySelected === symptom.label
+            const isSelected = selectedSymptoms.includes(symptom.id)
+            const isTemporarilySelected = temporarilySelected?.id === symptom.id
 
             return (
               <Box
@@ -88,14 +180,14 @@ export default function ClinicalAssessmentList({ symptoms, temporarilySelected, 
                   control={
                     <Checkbox
                       checked={isSelected || isTemporarilySelected}
-                      onChange={() => onSelect(symptom.label)}
+                      onChange={() => onSelect(symptom)}
                       sx={{
                         transform: 'scale(0.8)',
                         padding: '4px'
                       }}
                     />
                   }
-                  label={symptom.label}
+                  label={symptom.name}
                   sx={{
                     flex: 1,
                     m: 0,
@@ -114,7 +206,7 @@ export default function ClinicalAssessmentList({ symptoms, temporarilySelected, 
                     fontWeight: 400
                   }}
                 >
-                  {symptom.type}
+                  {symptom.category_name}
                 </Typography>
               </Box>
             )

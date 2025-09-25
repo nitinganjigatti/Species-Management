@@ -10,6 +10,7 @@ import { getAnimalTotalHospitalVisits } from 'src/lib/api/hospital/inpatient'
 import { useQuery } from '@tanstack/react-query'
 import Utility from 'src/utility'
 import { VisitType } from '../utility/hospitalSnippets'
+import { useHospital } from 'src/context/HospitalContext'
 
 const getVisitTypeLabel = title => {
   if (title === 'checkup') return 'Check up'
@@ -23,6 +24,8 @@ const getVisitTypeLabel = title => {
 const InpatientOverview = ({ overviewData }) => {
   const router = useRouter()
   const theme = useTheme()
+
+  const { selectedHospital } = useHospital()
 
   const { id, animal_id } = router.query
 
@@ -47,7 +50,7 @@ const InpatientOverview = ({ overviewData }) => {
         page_no: filters?.page,
         limit: filters?.limit,
         animal_id: animal_id,
-        hospital_id: 1 //Hospital_id needs t be changed once hospital listing is done
+        hospital_id: selectedHospital?.id
       })
   })
 

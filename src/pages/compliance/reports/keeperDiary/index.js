@@ -199,7 +199,7 @@ const KeeperDiaryReport = () => {
         </Box>
 
         {/* Right box with light background and red close icon */}
-        <Box
+        {/* <Box
           sx={{
             backgroundColor: '#0000000D',
             height: { sm: '98px', xs: '120px' },
@@ -214,7 +214,7 @@ const KeeperDiaryReport = () => {
           <IconButton onClick={clearUserSelection}>
             <Icon icon='mdi:close' color='red' fontSize={30} />
           </IconButton>
-        </Box>
+        </Box> */}
       </Box>
     )
   }
@@ -245,7 +245,26 @@ const KeeperDiaryReport = () => {
     }
   }
 
-  const headerAction = <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadKeeperDiaryReport} />
+  const headerAction = (
+    <Box sx={{ display: 'flex', gap: '24px' }}>
+      <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadKeeperDiaryReport} />
+      <Box
+        sx={{
+          backgroundColor: '#0000000D',
+          height: '32px',
+          width: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50px'
+        }}
+      >
+        <IconButton onClick={clearUserSelection}>
+          <Icon icon='mdi:close' color='red' fontSize={24} />
+        </IconButton>
+      </Box>
+    </Box>
+  )
 
   const columns = [
     {

@@ -25,7 +25,7 @@ const ControlledTextArea = ({
   const helperText = error?.message || ''
 
   return (
-    <FormControl>
+    <FormControl fullWidth={true}>
       <Controller
         name={name}
         control={control}

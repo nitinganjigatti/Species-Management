@@ -43,6 +43,8 @@ const SectionListing = ({
     sortOrder: 'asc'
   })
 
+  const [totalCount, setTotalCount] = useState(0)
+
   const auth = useAuth()
   const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
@@ -188,17 +190,23 @@ const SectionListing = ({
       params.field !== 'sections' &&
       params.field !== 'enclosures'
     ) {
-      router.push({
-        pathname: `/housing/sections/${params.row.section_id}`,
-        query: {
-          ...router.query,
-          sectionPage: filters.page,
-          sectionPageSize: filters.pageSize,
-          sectionSearch: filters.search,
-          sectionSortBy: filters.sortBy,
-          sectionSortOrder: filters.sortOrder
-        }
-      })
+      const query = { ...router.query }
+      query.tab && delete query.tab
+      router.push(
+        {
+          pathname: `/housing/sections/${params.row.section_id}`,
+          query: {
+            ...query,
+            sectionPage: filters.page,
+            sectionPageSize: filters.pageSize,
+            sectionSearch: filters.search,
+            sectionSortBy: filters.sortBy,
+            sectionSortOrder: filters.sortOrder
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
     }
   }
 
@@ -345,6 +353,7 @@ const SectionListing = ({
                 onClick={e => {
                   e.stopPropagation()
                   setDrawerType('animals')
+                  setTotalCount(params.row.animal_count || 0)
                   setDrawerData({
                     queryKey: 'section-animals-drawer',
                     id: params.row.section_id,
@@ -413,10 +422,7 @@ const SectionListing = ({
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <UserAvatarDetails
-          profile_image={params.row?.incharge_image}
-          user_name={params.row?.incharge_name}
-        />
+        <UserAvatarDetails profile_image={params.row?.incharge_image} user_name={params.row?.incharge_name} />
       )
     },
     {
@@ -539,7 +545,15 @@ const SectionListing = ({
         </Grid>
       </Box>
       {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalDrawer
+          totalCount={totalCount}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/section-icon-colored.png'}
+        />
+      )}
       {drawerType === 'enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}

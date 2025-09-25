@@ -38,6 +38,8 @@ const EnclosureWiseSpecies = ({
     sortOrder: 'asc'
   })
 
+  const [totalCount, setTotalCount] = useState(0)
+
   const auth = useAuth()
   const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
@@ -219,6 +221,7 @@ const EnclosureWiseSpecies = ({
                       taxonomy_id: params.row.tsn_id
                     }
                   })
+                  setTotalCount(params.row.animal_count || 0)
                 }}
               >
                 <Typography
@@ -395,7 +398,6 @@ const EnclosureWiseSpecies = ({
           }}
         >
           <CommonTable
-
             // onRowClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
@@ -413,7 +415,9 @@ const EnclosureWiseSpecies = ({
           />
         </Grid>
       </Box>
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalDrawer totalCount={totalCount} open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
     </>
   )
 }

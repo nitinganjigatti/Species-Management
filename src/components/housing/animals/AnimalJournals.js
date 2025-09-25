@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -22,7 +22,7 @@ import { timelineItemClasses } from '@mui/lab'
 
 import MuiTimeline from '@mui/lab/Timeline'
 import JournalFilterSheet from './journalFilter'
-import { read, readAsync } from 'src/lib/windows/utils'
+import { AuthContext } from 'src/context/AuthContext'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import Toaster from 'src/components/Toaster'
 
@@ -60,6 +60,7 @@ const AnimalJournals = () => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+  const authData = useContext(AuthContext)
 
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTab, setSelectedTab] = useState('active') // or 'inactive'
@@ -99,22 +100,24 @@ const AnimalJournals = () => {
 
   const getUsers = async () => {
     try {
-      const userDetails = await readAsync('userDetails')
-      const zoo_id = userDetails?.user?.zoos[0].zoo_id
+      const zoo_id = authData?.userData?.user?.zoos?.[0]?.zoo_id
+      if (!zoo_id) return
       const Users = await getUserList({ zoo_id })
-
       setUsers(Users?.data)
     } catch (error) {
-      Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+      console.error(String(error) || 'Failed to fetch user data.')
+      // Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
     }
   }
 
   const getUserData = () => {
-    const result = read('userDetails')
-    setSelectedUser({
-      user_id: result?.user?.user_id,
-      user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}`
-    })
+    const result = authData?.userData
+    if (result?.user?.user_id) {
+      setSelectedUser({
+        user_id: result?.user?.user_id,
+        user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}`
+      })
+    }
   }
 
   const fetchAnimalJournalLogs = async () => {
@@ -130,10 +133,14 @@ const AnimalJournals = () => {
       if (res.success) {
         setAnimalJournalLogs(res?.data?.data)
       } else {
-        Toaster({ type: 'error', message: String(res.message) || 'Failed to fetch journal logs.' })
+        console.error(String(res.message) || 'Failed to fetch journal logs.')
+
+        // Toaster({ type: 'error', message: String(res.message) || 'Failed to fetch journal logs.' })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: String(error) || 'Failed to fetch journal logs.' })
+      console.error(String(error) || 'Failed to fetch journal logs.')
+
+      // Toaster({ type: 'error', message: String(error) || 'Failed to fetch journal logs.' })
     } finally {
       setJournalLogsLoading(false)
     }
@@ -143,7 +150,8 @@ const AnimalJournals = () => {
     fetchAnimalJournalLogs()
     getUsers()
     getUserData()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authData])
 
   const AnimalJournalLog = () => {
     const Timeline = styled(MuiTimeline)({
@@ -384,7 +392,11 @@ const AnimalJournals = () => {
                                     overflow: 'hidden'
                                   }}
                                 >
-                                  {key} :
+                                  {key
+                                    .replace(/_/g, ' ')
+                                    .toLowerCase()
+                                    .replace(/^./, s => s.toUpperCase())}{' '}
+                                  :
                                   <span
                                     style={{
                                       fontWeight: 500,
@@ -711,7 +723,7 @@ const AnimalJournals = () => {
         ) : animalJournalLogs.length > 0 ? (
           <AnimalJournalLog />
         ) : (
-          <NoDataFound variant='Seal' />
+          <NoDataFound width={250} height={250} variant='Seal' />
         )}
       </Box>
     </>

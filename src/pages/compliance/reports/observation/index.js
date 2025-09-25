@@ -352,9 +352,24 @@ const ObservationReport = () => {
   }
 
   const headerAction = (
-    <>
+    <Box sx={{ display: 'flex', gap: '24px' }}>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadObservationReport} />
-    </>
+      <Box
+        sx={{
+          backgroundColor: '#0000000D',
+          height: '32px',
+          width: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50px'
+        }}
+      >
+        <IconButton onClick={clearAnimalSelection}>
+          <Icon icon='mdi:close' color='red' fontSize={24} />
+        </IconButton>
+      </Box>
+    </Box>
   )
 
   const handleSearchChange = e => {
@@ -382,11 +397,11 @@ const ObservationReport = () => {
                   alignItems: 'center',
                   borderRadius: '8px',
                   background: '#E8F4F2',
-                  pl: 4
+                  p: '16px'
                 }}
               >
                 <AnimalCard data={selectedAnimal} sx={{ border: 'none', background: 'none' }} animal={true} />
-                <Box
+                {/* <Box
                   sx={{
                     backgroundColor: '#0000000D',
                     height: { sm: '175px', xs: '190px' },
@@ -401,7 +416,7 @@ const ObservationReport = () => {
                   <IconButton onClick={clearAnimalSelection}>
                     <Icon icon='mdi:close' color='red' fontSize={30} />
                   </IconButton>
-                </Box>
+                </Box> */}
               </Box>
             </Box>
 

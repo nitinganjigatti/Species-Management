@@ -18,6 +18,7 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 
 // ** Auth Context
 import { AuthContext } from 'src/context/AuthContext'
+import { useHospital } from 'src/context/HospitalContext'
 
 const schema = yup.object().shape({
   site_id: yup
@@ -49,6 +50,7 @@ const AddEnclosures = props => {
   const { handleSidebarOpen, handleSidebarClose, submitLoader, editParams, handleSubmitData, resetForm } = props
   const theme = useTheme()
   const authData = useContext(AuthContext)
+  const { selectedHospital } = useHospital()
 
   const sitesList = useMemo(() => {
     return authData?.userData?.user?.zoos?.[0]?.sites || []
@@ -70,7 +72,7 @@ const AddEnclosures = props => {
   // Handle form submission to create or update enclosures details
   const onSubmit = async data => {
     const payLoad = {
-      hospital_id: 1, // later need to change dynamically hospital_id
+      hospital_id: selectedHospital?.id,
       site_id: data?.site_id?.site_id,
       bed_name: data?.bed_name,
       prefix: data?.prefix,

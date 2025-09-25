@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography, Drawer, IconButton, Grid, Chip } from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Grid, Chip, Tooltip } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
@@ -55,8 +55,23 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
           >
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Species Name</Typography>
-                <Typography sx={{ fontWeight: 500 }}>{specie.common_name || '-'}</Typography>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Common Name</Typography>
+                {specie?.common_name && <Tooltip title={specie?.common_name} arrow>
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      wordBreak: 'break-word',
+                      maxWidth: '100%'
+                    }}
+                  >
+                    {specie?.common_name || '-'}
+                  </Typography>
+                </Tooltip>}
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
@@ -139,7 +154,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Animals with identifier ({specie?.animals?.length})
+              Animals ({specie?.animals?.length})
             </Typography>
           ) : null}
 
@@ -190,38 +205,47 @@ const AnimalDetailDrawer = ({ open, onClose, specie }) => {
                       justifyContent: 'center',
                       alignItems: 'center',
                       borderRadius: '4px',
-                      fontSize: '1rem'
+                      fontSize: '1rem',
+                      flexShrink: 0
                     }}
                   >
                     {animal.gender ? animal.gender[0].toUpperCase() : '-'}
                   </Box>
-                  <Box>
-                    <Box sx={{ fontSize: '0.875rem' }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Box
+                      sx={{ fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    >
                       Species:{' '}
-                      <Typography
-                        component='span'
-                        sx={{
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          color: theme.palette.customColors.OnSurfaceVariant
-                        }}
-                      >
-                        {specie.common_name || '-'}
-                      </Typography>
+                      {specie?.common_name && (
+                        <Tooltip title={specie?.common_name} arrow>
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '0.875rem',
+                              fontWeight: 500,
+                              color: theme.palette.customColors.OnSurfaceVariant
+                            }}
+                          >
+                            {specie?.common_name || '-'}
+                          </Typography>
+                        </Tooltip>
+                      )}
                     </Box>
-                    <Box sx={{ fontSize: '0.875rem' }}>
-                      {Utility.formatIdentifierType(animal.identifier_type)}:{' '}
-                      <Typography
-                        component='span'
-                        sx={{
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          color: theme.palette.customColors.OnSurfaceVariant
-                        }}
-                      >
-                        {animal.identifier_value || '-'}
-                      </Typography>
-                    </Box>
+                    {animal?.identifier_type && animal?.identifier_value && (
+                      <Box sx={{ fontSize: '0.875rem' }}>
+                        {Utility.formatIdentifierType(animal.identifier_type)}:{' '}
+                        <Typography
+                          component='span'
+                          sx={{
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          {animal.identifier_value || '-'}
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                 </Box>
               ))}

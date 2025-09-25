@@ -1,10 +1,11 @@
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
-import { Box, Button, useMediaQuery } from '@mui/material'
+import { Box, Button, CircularProgress, useMediaQuery } from '@mui/material'
 
-export default function ActionButtons({ cancelLabel, addLabel, onCancel, onAdd, width, height }) {
+export default function ActionButtons({ cancelLabel, addLabel, onCancel, onAdd, width, height, isSubmitLoading }) {
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('lg'))
+
   return (
     <Box
       sx={{
@@ -44,16 +45,19 @@ export default function ActionButtons({ cancelLabel, addLabel, onCancel, onAdd, 
       <Button
         variant='contained'
         onClick={onAdd}
+        disabled={isSubmitLoading}
         sx={{
           borderRadius: '8px',
           textTransform: 'uppercase',
           fontWeight: 500,
           fontSize: '15px',
           width,
-          height
+          height,
+          display: 'flex',
+          gap: 2
         }}
       >
-        {addLabel}
+        {isSubmitLoading ? <CircularProgress size={20} color='inherit' /> : addLabel}
       </Button>
     </Box>
   )

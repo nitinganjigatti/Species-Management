@@ -18,6 +18,7 @@ const AnimalDetailsDrawer = ({
   const theme = useTheme()
   const router = useRouter()
   const { action } = router.query
+
   const handleClick = () => {
     setanimalCountDrawerOpen(true)
     setCurrentSpeciesId(animalDetails.tsn_id)
@@ -104,7 +105,7 @@ const AnimalDetailsDrawer = ({
             <Grid container spacing={2}>
               <Grid size={{ xs: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
-                  Species Name
+                  Common Name
                 </Typography>
                 <Typography
                   fontWeight={500}
@@ -256,6 +257,7 @@ const AnimalDetailsDrawer = ({
                       width: 40,
                       height: 40,
                       borderRadius: '4px'
+
                       //ml: 4
                     }}
                   >

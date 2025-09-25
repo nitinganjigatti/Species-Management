@@ -58,16 +58,17 @@ const AnimalCard = ({ data, size, edit }) => {
         {avatarContent}
         <Avatar
           sx={{
-            width: data?.sex === 'undetermined' || data?.sex === 'indeterminate' ? 32 : 24,
+            width:
+              data?.sex?.toLowerCase() === 'undetermined' || data?.sex?.toLowerCase() === 'indeterminate' ? 32 : 24,
             height: 24,
             bgcolor:
               data?.type === 'group'
                 ? theme.palette.customColors.addPrimary
-                : data?.sex === 'male'
+                : data?.sex?.toLowerCase() === 'male'
                 ? theme.palette.customColors.SecondaryContainer
-                : data?.sex === 'female'
+                : data?.sex?.toLowerCase() === 'female'
                 ? theme.palette.customColors.AntzTertiary
-                : data?.sex === 'undetermined' || data?.sex === 'indeterminate'
+                : data?.sex?.toLowerCase() === 'undetermined' || data?.sex?.toLowerCase() === 'indeterminate'
                 ? theme.palette.customColors.displaybgSecondary
                 : theme.palette.customColors.SecondaryContainer,
             objectFit: 'contain',
@@ -81,15 +82,15 @@ const AnimalCard = ({ data, size, edit }) => {
           {/* Gender / Group initials */}
           {data?.type === 'group' ? (
             <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>G</Typography>
-          ) : data?.sex === 'male' ? (
+          ) : data?.sex?.toLowerCase() === 'male' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}>
               M
             </Typography>
-          ) : data?.sex === 'female' ? (
+          ) : data?.sex?.toLowerCase() === 'female' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
-          ) : data?.sex === 'undetermined' ? (
+          ) : data?.sex?.toLowerCase() === 'undetermined' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>UD</Typography>
-          ) : data?.sex === 'indeterminate' ? (
+          ) : data?.sex?.toLowerCase() === 'indeterminate' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
               ID
             </Typography>
