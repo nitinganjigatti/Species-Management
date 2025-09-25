@@ -356,7 +356,7 @@ const AddIngredients = props => {
       onChange(selectedCard)
       setSelectedIngredient(selectedCard)
 
-      return toast.success('Ingredient selected')
+      return toast.success('Item selected')
     }
   }
 
@@ -873,6 +873,12 @@ const AddIngredients = props => {
                                   },
                                   '& .MuiOutlinedInput-root': {
                                     borderRadius: '0px'
+                                  },
+                                  '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+                                    borderColor:
+                                      selectFeed[item.id]?.id !== size[item.id]?.id
+                                        ? theme.palette.customColors.errorText
+                                        : 'none'
                                   }
                                 }}
                                 MenuProps={{
@@ -971,6 +977,7 @@ const AddIngredients = props => {
                             placeholder='Add Remarks (optional)'
                             variant='standard'
                             // InputProps={{ disableUnderline: true }}
+                            autoComplete='off'
                             slotProps={{
                               input: {
                                 disableUnderline: true
