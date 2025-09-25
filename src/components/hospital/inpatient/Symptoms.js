@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { Box, Button, Typography, CircularProgress, debounce } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useRouter } from 'next/router'
@@ -18,8 +18,11 @@ const Symptoms = ({ selectedTab, patientData }) => {
   const [recordTypeCount, setRecordTypeCount] = useState([])
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
 
   const theme = useTheme()
+  const observerRef = useRef(null)
 
   const tabs = ['Active', 'Resolved', 'All']
 
@@ -29,12 +32,19 @@ const Symptoms = ({ selectedTab, patientData }) => {
     All: 'all'
   }
 
-  const fetchSymptoms = async (query = '') => {
+  const getCurrentTabCount = () => {
+    return recordTypeCount?.[tabTypeMap[currentTab]] || 0
+  }
+
+  const fetchSymptoms = async (query = '', newPage = 1, append = false) => {
     try {
-      setLoading(true)
+      if (newPage === 1) setLoading(true)
+      else setIsFetchingMore(true)
+
       const params = {
         type: tabTypeMap[currentTab],
-        page_no: 1,
+        page_no: newPage,
+        limit: 20,
         medical_type: 'complaint',
         q: query
       }
@@ -46,37 +56,62 @@ const Symptoms = ({ selectedTab, patientData }) => {
       const response = await getSymptomsList(animal_id, params)
 
       if (response.success === true) {
-        setRecords(response?.data?.result || [])
+        setRecords(prevRecords => (append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []))
         setRecordTypeCount(response?.data)
-        setTotalCount(response?.data?.total_count)
+        setTotalCount(response?.data?.total_count || 0)
       }
     } catch (error) {
       console.error('Error fetching symptoms:', error)
     } finally {
       setLoading(false)
+      setIsFetchingMore(false)
     }
   }
 
   const debouncedFetchSymptoms = useCallback(
     debounce(query => {
-      fetchSymptoms(query)
+      setPage(1)
+      fetchSymptoms(query, 1, false)
     }, 500),
-    [currentTab, patientData, animal_id]
+    [currentTab, patientData, animal_id, currentRecordOnly]
   )
 
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
+    setPage(1)
   }
 
   useEffect(() => {
     if (selectedTab === 'symptoms') {
+      setPage(1)
       if (searchQuery.trim()) {
         debouncedFetchSymptoms(searchQuery.trim())
       } else {
-        fetchSymptoms('')
+        fetchSymptoms('', 1, false)
       }
     }
   }, [selectedTab, currentTab, searchQuery, currentRecordOnly])
+
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect()
+
+    const observer = new IntersectionObserver(entries => {
+      const firstEntry = entries[0]
+      const currentTabCount = getCurrentTabCount()
+      if (firstEntry.isIntersecting && !isFetchingMore && !loading && records?.length < currentTabCount) {
+        const nextPage = page + 1
+        setPage(nextPage)
+        fetchSymptoms(searchQuery.trim(), nextPage, true)
+      }
+    })
+
+    const scrollTrigger = document.getElementById('infinite-scroll-trigger')
+    if (scrollTrigger) observer.observe(scrollTrigger)
+
+    observerRef.current = observer
+
+    return () => observer.disconnect()
+  }, [page, loading, searchQuery, records, isFetchingMore, currentTab, recordTypeCount])
 
   const handleSearchClear = () => {
     setSearchQuery('')
@@ -197,6 +232,23 @@ const Symptoms = ({ selectedTab, patientData }) => {
               fetchSymptoms={fetchSymptoms}
             />
           ))
+        )}
+
+        <Box
+          id='infinite-scroll-trigger'
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            py: 1
+          }}
+        >
+          {isFetchingMore && <CircularProgress size={24} />}
+        </Box>
+
+        {!loading && !isFetchingMore && records?.length >= getCurrentTabCount() && (
+          <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled }}>
+            No more symptoms to load
+          </Typography>
         )}
       </Box>
     </Box>

@@ -2,7 +2,17 @@ import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box, Avatar, Typography, Grid, Tooltip } from '@mui/material'
 
-export default function AnimalDetails({ image, name, scientificName, ageGender, aid, admittedDays, location, vet }) {
+export default function AnimalDetails({
+  image,
+  name,
+  scientificName,
+  ageGender,
+  identifierValue,
+  identifierName,
+  admittedDays,
+  location,
+  vet
+}) {
   const theme = useTheme()
   return (
     <Box
@@ -86,9 +96,9 @@ export default function AnimalDetails({ image, name, scientificName, ageGender, 
             variant='caption'
             sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '14px', fontWeight: 400 }}
           >
-            AID
+            {identifierName}
           </Typography>
-          <Tooltip title={aid}>
+          <Tooltip title={identifierValue}>
             <Typography
               sx={{
                 fontWeight: 500,
@@ -100,7 +110,7 @@ export default function AnimalDetails({ image, name, scientificName, ageGender, 
                 maxWidth: 70
               }}
             >
-              {aid}
+              {identifierValue}
             </Typography>
           </Tooltip>
         </Grid>
