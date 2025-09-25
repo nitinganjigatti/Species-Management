@@ -4,6 +4,7 @@ import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
 import { useRouter } from 'next/router'
 import { getSymptomsListForAdding, addSymptoms } from 'src/lib/api/hospital/symptoms'
+import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import SymptomsList from 'src/components/hospital/Symptoms/SymptomsList'
 import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
@@ -31,6 +32,7 @@ export default function AddSymptomsPage() {
   const [searching, setSearching] = useState(false)
   const [resetPagination, setResetPagination] = useState(false)
   const [addLoading, setAddLoading] = useState(false)
+  const [patientData, setPatientData] = useState(null)
 
   const debounce = (func, delay) => {
     let timer
@@ -135,6 +137,28 @@ export default function AddSymptomsPage() {
     fetchSymptoms('', 1, false)
   }, [fetchSymptoms])
 
+  useEffect(() => {
+    const getPatientInfo = async () => {
+      //setPatientLoading(true)
+      try {
+        await getPatientDetails(id).then(res => {
+          if (res?.success === true) {
+            setPatientData(res?.data)
+            // setPatientLoading(false)
+          } else {
+            setPatientData(null)
+            // setPatientLoading(false)
+          }
+        })
+      } catch (error) {
+        console.error('Cannot Fetch Patient Details', error)
+        setPatientLoading(false)
+      }
+    }
+
+    getPatientInfo()
+  }, [id])
+
   const handleAddClick = async () => {
     try {
       if (selectedSymptoms.length === 0) {
@@ -184,13 +208,16 @@ export default function AddSymptomsPage() {
     <Box sx={{ p: 3 }}>
       <AnimalDetails
         image='/leopard.jpg'
-        name='Leopard'
-        scientificName='Panthera pardus'
-        aid='123456'
-        admittedDays='6 Days'
-        location='Cage 1, Patient Wing 2'
+        name={patientData?.animal_detail?.common_name}
+        scientificName={patientData?.animal_detail?.complete_name}
+        identifierValue={patientData?.animal_detail?.local_identifier_value}
+        identifierName={patientData?.animal_detail?.local_identifier_name}
+        admittedDays={patientData?.admitted_for_day}
+        location={patientData?.bed_name}
         vet='Dr. Nitin A Ganjigatti'
-        ageGender='2y 5m . male'
+        ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
+          patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
+        }`}
       />
 
       <Grid

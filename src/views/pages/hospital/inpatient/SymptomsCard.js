@@ -30,9 +30,16 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
   const handleClickDetail = async recordData => {
+    console.log(recordData, 'recordData')
     try {
       setSymptomDrawerNewOpen(true)
-      setSeverity(recordData?.additional_info?.severity)
+      setSeverity(
+        recordData?.additional_info?.severity === 'Mild'
+          ? 'Low'
+          : recordData?.additional_info?.severity === 'Moderate'
+          ? 'Medium'
+          : recordData?.additional_info?.severity
+      )
       setDurationValue(recordData?.additional_info?.duration)
       setDurationUnit(recordData?.additional_info?.duration_unit)
       setStatus(recordData?.status)
