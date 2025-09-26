@@ -80,7 +80,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
   const handleConfirmAddSymptom = async () => {
     if (!pendingDetails) return
-
+    console.log(pendingDetails, 'pendingDetails')
     try {
       setDeleteLoading(true)
       const payload = {
@@ -92,7 +92,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
         severity: pendingDetails?.severity,
         duration: pendingDetails?.durationValue,
         duration_unit: pendingDetails?.durationUnit,
-        status: pendingDetails?.status
+        status: pendingDetails?.status,
+        note: pendingDetails?.notes
       }
 
       const response = await updateSymptoms(payload)

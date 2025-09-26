@@ -729,7 +729,7 @@ export const CREATE_CLINICAL_NOTES = 'v1/hospital/add-clinical-notes'
 
 export const GET_SYMPTOM_LISTING = 'medical/get-complaint-diagnosis-type'
 
-export const ADD_HOSPITAL_SYMPTOMS = 'v1/hospital/add-symptoms'
+export const ADD_HOSPITAL_SYMPTOMS = 'medical/update-complaints'
 
 export const UPDATE_HOSPITAL_SYMPTOMS = 'update-diagnosis-prescription'
 
