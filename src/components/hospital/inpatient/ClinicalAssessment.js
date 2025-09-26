@@ -8,7 +8,7 @@ import { useRouter } from 'next/router'
 import ClinicalAssessmentCard from '../../../views/pages/hospital/inpatient/ClinicalAssessmentCard'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import debounce from 'lodash/debounce'
-import { getClinicalAssessments, updateClinicalAssessment } from 'src/lib/api/hospital/clinicalAssessment'
+import { getClinicalAssessments, getNotes, updateClinicalAssessment } from 'src/lib/api/hospital/clinicalAssessment'
 import EditClinicalAsmntDrawer from '../drawer/EditClinicalAsmntDrawer'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
@@ -32,6 +32,7 @@ const ClinicalAssessment = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false)
+  const [activityListData, setActivityListData] = useState()
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
@@ -82,13 +83,14 @@ const ClinicalAssessment = () => {
           medical_type: 'diagnosis',
           page_no: pageNum,
           limit: PAGE_SIZE,
+          animal_id: animal_id || '',
           q: search,
           medical_record_id: currentRecordOnly && medical_record_id ? medical_record_id : ''
         })
 
         if (res.success) {
           const newItems = res.data?.result || []
-          const totalCount = parseInt(res.data?.totalMedicalRecordCount || 0)
+          const totalCount = parseInt(res.data?.total_count || 0)
 
           setTotal(totalCount)
           setTabCounts({
@@ -152,7 +154,7 @@ const ClinicalAssessment = () => {
     }
   }
 
-  const handleAssessmentClick = assessment => {
+  const handleAssessmentClick = async assessment => {
     setSelectedAssessment(assessment)
     setTemporarilySelected(assessment)
     setClinicalAsmnt(assessment?.additional_info?.clinical_assessment || 'primary')
@@ -167,18 +169,36 @@ const ClinicalAssessment = () => {
       assessment?.additional_info?.status ? Utility.capitalizeFirstLetter(assessment.additional_info.status) : 'Active'
     )
     setIsDrawerOpen(true)
+    try {
+      const params = {
+        entity: 'diagnosis',
+        medical_id: assessment?.medical_record_id,
+        record_id: assessment?.main_diagnosis_id // TODO: Check with backend for correct param
+      }
+
+      const response = await getNotes(params)
+
+      if (response?.success) {
+        setActivityListData(response?.data || [])
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to fetch notes.' })
+      }
+    } catch (error) {
+      console.error('Error fetching notes for symptom:', error)
+      Toaster({ type: 'error', message: 'An error occurred while fetching notes.' })
+    }
   }
 
   const updateAssessment = async () => {
     const payload = {
       main_id: selectedAssessment?.id || '',
       med_id: medical_record_id || '',
-      type: clinicalAsmnt?.toUpperCase() || '',
+      type: 'diagnosis',
       is_system_generated: false,
       animal_id: animal_id || '',
       note: notes || '',
       clinical_assessment: clinicalAsmnt?.toLowerCase() || '',
-      prognosis: prognosisVal.toLowerCase() || 'good',
+      prognosis: prognosisVal.toLowerCase() || '',
       isChronic: chronicVal === 'Yes',
       status: status?.toLowerCase() || ''
     }
@@ -363,6 +383,7 @@ const ClinicalAssessment = () => {
           setStatus={setStatus}
           setNotes={setNotes}
           onSave={() => setIsSaveDialogOpen(true)}
+          activityListData={activityListData}
         />
       )}
 
