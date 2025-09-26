@@ -183,7 +183,8 @@ const InpatientDetails = () => {
       ...drawerState,
       patientId: id,
       overviewData: overviewData,
-      patientData: patientData
+      patientData: patientData,
+      loading: patientLoading
     }),
     [selectedTab, drawerState, id, overviewData]
   )

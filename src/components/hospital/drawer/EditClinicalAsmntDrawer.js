@@ -35,7 +35,8 @@ const EditClinicalAsmntDrawer = ({
   setNotes,
   status,
   setStatus,
-  isSubmitLoading
+  isSubmitLoading,
+  activityListData
 }) => {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
@@ -55,6 +56,26 @@ const EditClinicalAsmntDrawer = ({
 
   const handleCancel = () => {
     onClose()
+  }
+
+  const processedActivities =
+    activityListData?.complaint_notes
+      ?.map(activity => ({
+        ...activity,
+        isSystemGenerated: activity?.is_system_generated === 1,
+        oldSeverity: activity?.notes_dump?.old_data?.severity || '',
+        newSeverity: activity?.notes_dump?.new_data?.severity || '',
+        createdBy: activity?.created_by_user_name || 'Unknown',
+        formattedTime: Utility.formatDisplayDate(activity?.created_at),
+        note: activity.note || ''
+      }))
+
+      .sort((a, b) => {
+        return b.isSystemGenerated - a.isSystemGenerated
+      }) || []
+
+  const handleEditActivity = value => {
+    console.log(value, 'value')
   }
 
   return (
@@ -265,18 +286,20 @@ const EditClinicalAsmntDrawer = ({
           </Box>
           <Divider color={theme.palette.customColors.OutlineVariant} />
 
-          <ActivityList activities={activities} />
+          <ActivityList activities={processedActivities} onEdit={handleEditActivity} />
         </Box>
 
-        <SideSheetActionButtons
-          isSubmitLoading={isSubmitLoading}
-          addLabel='UPDATE'
-          cancelLabel='CANCEL'
-          onAdd={handleSave}
-          onCancel={handleCancel}
-          width={260}
-          height={50}
-        />
+        <Box sx={{ position: 'fixed', bottom: 0 }}>
+          <SideSheetActionButtons
+            isSubmitLoading={isSubmitLoading}
+            addLabel='UPDATE'
+            cancelLabel='CANCEL'
+            onAdd={handleSave}
+            onCancel={handleCancel}
+            width={260}
+            height={50}
+          />
+        </Box>
       </Box>
     </Drawer>
   )
