@@ -3,7 +3,7 @@ import { Box, Typography, Paper, IconButton, alpha, CircularProgress } from '@mu
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useTheme } from '@mui/material/styles'
 
-const ActivityList = ({ activities, onEdit, activityLoader }) => {
+const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = false }) => {
   const theme = useTheme()
 
   return (
@@ -95,7 +95,7 @@ const ActivityList = ({ activities, onEdit, activityLoader }) => {
                               mb: 0.5
                             }}
                           >
-                            Comment
+                            {isFromAssessment ? 'Notes' : 'Comment'}
                           </Typography>
                           <Typography
                             sx={{

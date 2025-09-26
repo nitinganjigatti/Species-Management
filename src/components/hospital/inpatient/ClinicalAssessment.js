@@ -8,7 +8,12 @@ import { useRouter } from 'next/router'
 import ClinicalAssessmentCard from '../../../views/pages/hospital/inpatient/ClinicalAssessmentCard'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import debounce from 'lodash/debounce'
-import { getClinicalAssessments, getNotes, updateClinicalAssessment } from 'src/lib/api/hospital/clinicalAssessment'
+import {
+  getClinicalAssessments,
+  getNotes,
+  updateClinicalAssessment,
+  updateNotes
+} from 'src/lib/api/hospital/clinicalAssessment'
 import EditClinicalAsmntDrawer from '../drawer/EditClinicalAsmntDrawer'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
@@ -33,6 +38,10 @@ const ClinicalAssessment = () => {
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false)
   const [activityListData, setActivityListData] = useState()
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [noteRecord, setNoteRecord] = useState(null)
+  const [isNotesOpen, setIsNotesOpen] = useState(false)
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
@@ -46,6 +55,87 @@ const ClinicalAssessment = () => {
   const theme = useTheme()
 
   const tabs = ['Active', 'Resolved', 'All']
+
+  const handleUpdateNotes = async newNotes => {
+    if (!selectedAssessment) return
+    setIsUpdating(true)
+
+    try {
+      const payload = {
+        main_id: selectedAssessment?.main_diagnosis_id,
+        med_id: selectedAssessment?.medical_record_id,
+        type: 'DIAGNOSIS',
+        note: notes || '',
+        note_id: noteRecord?.note_id || ''
+      }
+      const response = await updateNotes(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Notes updated successfully.' })
+        setNotes('')
+        setIsNotesOpen(false)
+        setNoteRecord(null)
+        setIsDrawerOpen(false)
+
+        // Optionally refresh activity list
+        const notesResponse = await getNotes({
+          entity: 'diagnosis',
+          medical_id: selectedAssessment?.medical_record_id,
+          record_id: selectedAssessment?.main_diagnosis_id
+        })
+        if (notesResponse?.success) {
+          setActivityListData(notesResponse?.data || [])
+        }
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
+      }
+    } catch (error) {
+      console.error('Error updating notes:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteNotes = async () => {
+    if (!selectedAssessment) return
+    setIsDeleting(true)
+
+    // try {
+    //   const payload = {
+    //     entity: 'diagnosis',
+    //     medical_id: selectedAssessment?.medical_record_id,
+    //     record_id: selectedAssessment?.main_diagnosis_id
+    //   }
+    //   const response = await updateNotes(payload)
+
+    //   if (response?.success) {
+    //     Toaster({ type: 'success', message: response?.message || 'Notes deleted successfully.' })
+    //     setNotes('')
+
+    //     // Optionally refresh activity list
+    //     const notesResponse = await getNotes({
+    //       entity: 'diagnosis',
+    //       medical_id: selectedAssessment?.medical_record_id,
+    //       record_id: selectedAssessment?.main_diagnosis_id
+    //     })
+    //     if (notesResponse?.success) {
+    //       setActivityListData(notesResponse?.data || [])
+    //     }
+    //   } else {
+    //     Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
+    //   }
+    // } catch (error) {
+    //   console.error('Error deleting notes:', error)
+    // } finally {
+    //   setIsDeleting(false)
+    // }
+  }
+
+  const handleEditNoteClick = item => {
+    console.log(item, 'item')
+    setNoteRecord(item)
+    setNotes(item?.note || '')
+  }
 
   // Debounced search
   const debouncedSearch = useRef(
@@ -172,8 +262,8 @@ const ClinicalAssessment = () => {
     try {
       const params = {
         entity: 'diagnosis',
-        medical_id: assessment?.medical_record_id,
-        record_id: assessment?.main_diagnosis_id // TODO: Check with backend for correct param
+        medical_id: assessment?.medical_record_id || '',
+        record_id: assessment?.main_diagnosis_id || ''
       }
 
       const response = await getNotes(params)
@@ -191,9 +281,9 @@ const ClinicalAssessment = () => {
 
   const updateAssessment = async () => {
     const payload = {
-      main_id: selectedAssessment?.id || '',
+      main_id: selectedAssessment?.main_diagnosis_id || '',
       med_id: medical_record_id || '',
-      type: 'diagnosis',
+      type: 'DIAGNOSIS',
       is_system_generated: false,
       animal_id: animal_id || '',
       note: notes || '',
@@ -384,6 +474,13 @@ const ClinicalAssessment = () => {
           setNotes={setNotes}
           onSave={() => setIsSaveDialogOpen(true)}
           activityListData={activityListData}
+          isDeleting={isDeleting}
+          isUpdating={isUpdating}
+          handleUpdateNotes={handleUpdateNotes}
+          handleDeleteNotes={handleDeleteNotes}
+          handleEditNoteClick={handleEditNoteClick}
+          isNotesOpen={isNotesOpen}
+          setIsNotesOpen={setIsNotesOpen}
         />
       )}
 

@@ -19,6 +19,7 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
+import EditNotes from '../inpatient/EditNotes'
 
 const EditClinicalAsmntDrawer = ({
   open,
@@ -36,7 +37,15 @@ const EditClinicalAsmntDrawer = ({
   status,
   setStatus,
   isSubmitLoading,
-  activityListData
+  activityLoader,
+  activityListData,
+  isDeleting,
+  isUpdating,
+  handleUpdateNotes,
+  handleDeleteNotes,
+  handleEditNoteClick,
+  isNotesOpen,
+  setIsNotesOpen
 }) => {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
@@ -59,23 +68,26 @@ const EditClinicalAsmntDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.complaint_notes
+    activityListData?.diagnosis_notes
       ?.map(activity => ({
         ...activity,
         isSystemGenerated: activity?.is_system_generated === 1,
         oldSeverity: activity?.notes_dump?.old_data?.severity || '',
         newSeverity: activity?.notes_dump?.new_data?.severity || '',
-        createdBy: activity?.created_by_user_name || 'Unknown',
+        createdBy: activity?.created_by_user_name || '',
         formattedTime: Utility.formatDisplayDate(activity?.created_at),
-        note: activity.note || ''
+        note: activity.note || '',
+        clinicalAssessment: activity?.notes_dump?.new_data?.clinical_assessment || '',
+        isFromAssessment: true
       }))
 
       .sort((a, b) => {
         return b.isSystemGenerated - a.isSystemGenerated
       }) || []
 
-  const handleEditActivity = value => {
-    console.log(value, 'value')
+  const handleEditActivity = item => {
+    setIsNotesOpen(true)
+    handleEditNoteClick(item)
   }
 
   return (
@@ -285,8 +297,14 @@ const EditClinicalAsmntDrawer = ({
             />
           </Box>
           <Divider color={theme.palette.customColors.OutlineVariant} />
-
-          <ActivityList activities={processedActivities} onEdit={handleEditActivity} />
+          <Box sx={{ mb: '80px' }}>
+            <ActivityList
+              activities={processedActivities}
+              onEdit={handleEditActivity}
+              activityLoader={activityLoader}
+              isFromAssessment
+            />
+          </Box>
         </Box>
 
         <Box sx={{ position: 'fixed', bottom: 0 }}>
@@ -301,6 +319,16 @@ const EditClinicalAsmntDrawer = ({
           />
         </Box>
       </Box>
+      <EditNotes
+        open={isNotesOpen}
+        onClose={() => setIsNotesOpen(false)}
+        notes={notes}
+        setNotes={setNotes}
+        isUpdating={isUpdating}
+        isDeleting={isDeleting}
+        handleUpdate={handleUpdateNotes}
+        handleDelete={handleDeleteNotes}
+      />
     </Drawer>
   )
 }
