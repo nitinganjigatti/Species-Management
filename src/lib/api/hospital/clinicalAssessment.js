@@ -4,7 +4,8 @@ import {
   GET_CLINICAL_DIAGNOSIS_LIST,
   GET_CLINICAL_DIAGNOSIS_TYPE,
   GET_NOTES,
-  UPDATE_CLINICAL_ASSESSMENT
+  UPDATE_CLINICAL_ASSESSMENT,
+  UPDATE_NOTES
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -64,6 +65,18 @@ export async function updateClinicalAssessment(payLoad) {
 export async function getNotes(params) {
   try {
     const url = GET_NOTES
+
+    const response = await axiosPost({ url, body: params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching clinical notes:', error.message)
+  }
+}
+
+export async function updateNotes(params) {
+  try {
+    const url = UPDATE_NOTES
 
     const response = await axiosPost({ url, body: params })
 

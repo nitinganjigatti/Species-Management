@@ -287,14 +287,18 @@ export default function AddClinicalAssessmentPage() {
       {breadcrumbs}
       <AnimalDetails
         image={patientData?.animal_detail?.default_icon}
-        name={patientData?.animal_detail?.common_name || ''}
-        scientificName={patientData?.animal_detail?.complete_name || ''}
+        name={patientData?.animal_detail?.common_name || '-'}
+        scientificName={patientData?.animal_detail?.complete_name || '-'}
         identifierName={patientData?.animal_detail?.local_identifier_name || ''}
         identifierValue={patientData?.animal_detail?.local_identifier_value || ''}
         admittedDays={patientData?.admitted_for_day || ''}
-        location={patientData?.bed_name || ''}
-        vet='Dr. Nitin A Ganjigatti'
-        ageGender={`${patientData?.animal_detail?.age || ''} ${patientData?.animal_detail?.sex || ''}`}
+        location={patientData?.bed_name || '-'}
+        vet={patientData?.attend_by_full_name || '-'}
+        ageGender={
+          (patientData?.animal_detail?.age || patientData?.animal_detail?.sex)
+            ? `${patientData?.animal_detail?.age || ''} ${patientData?.animal_detail?.sex || ''}`
+            : '-'
+        }
         isLoading={patientLoading}
       />
 
