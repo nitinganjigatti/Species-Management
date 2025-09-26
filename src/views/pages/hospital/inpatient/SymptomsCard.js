@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -30,13 +30,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
   const [activityLoader, setactivityLoader] = useState(false)
   const [activityListData, setActivityListData] = useState()
   const [symptomNoteModal, setSymptomNoteModal] = useState(false)
-  const [isNotesOpen, setIsNotesOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
   const handleClickDetail = async recordData => {
-    console.log(recordData, 'recordData')
     try {
       setactivityLoader(true)
       setSymptomDrawerNewOpen(true)
@@ -78,7 +76,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
       return response
     } catch (error) {
       console.error('Error fetching notes for symptom:', error)
-      throw error // rethrow so the caller can handle it
+      throw error
     }
   }
 
@@ -93,7 +91,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
   const handleConfirmAddSymptom = async () => {
     if (!pendingDetails) return
-    console.log(pendingDetails, 'pendingDetails')
+
     try {
       setDeleteLoading(true)
       const payload = {
@@ -365,13 +363,12 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           temporarilySelected={temporarilySelected}
           setSymptomNoteModal={setSymptomNoteModal}
           symptomNoteModal={symptomNoteModal}
-          setIsNotesOpen={setIsNotesOpen}
-          isNotesOpen={isNotesOpen}
           fetchNotesForSymptom={fetchNotesForSymptom}
           setIsUpdating={setIsUpdating}
           isUpdating={isUpdating}
           setIsDeleting={setIsDeleting}
           isDeleting={isDeleting}
+          setActivityListData={setActivityListData}
         />
       )}
       {isDeleteDialogOpen && (

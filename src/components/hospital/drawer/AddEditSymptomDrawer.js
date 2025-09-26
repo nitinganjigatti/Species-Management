@@ -5,7 +5,6 @@ import {
   Select,
   MenuItem,
   TextField,
-  Grid,
   IconButton,
   Drawer,
   Divider,
@@ -17,9 +16,10 @@ import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
-import { updateSymptoms } from 'src/lib/api/hospital/symptoms'
+import { updateNotes } from 'src/lib/api/hospital/clinicalAssessment'
+import { deleteNoteSymptoms } from 'src/lib/api/hospital/symptoms'
 import Utility from 'src/utility'
-import dayjs from 'dayjs'
+import Toaster from 'src/components/Toaster'
 import EditNotes from '../inpatient/EditNotes'
 
 const AddEditSymptomDrawer = ({
@@ -44,13 +44,12 @@ const AddEditSymptomDrawer = ({
   temporarilySelected,
   setSymptomNoteModal,
   symptomNoteModal,
-  setIsNotesOpen,
-  isNotesOpen,
   fetchNotesForSymptom,
   setIsUpdating,
   isUpdating,
   setIsDeleting,
-  isDeleting
+  isDeleting,
+  setActivityListData
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
@@ -88,24 +87,20 @@ const AddEditSymptomDrawer = ({
       }) || []
 
   const handleEditActivity = value => {
-    console.log(value, 'value')
-    console.log(temporarilySelected, 'temporarilySelected')
     setSymptomNoteModal(true)
     setNotes(value?.note)
     setNoteId(value?.note_id)
-    // alert('kkk')
   }
 
   const handleCloseModal = () => {
     setSymptomNoteModal(false)
   }
 
-  const handleUpdateClick = () => {
-    console.log(notes, 'notes')
-  }
-
   const handleUpdateNotes = async newNotes => {
-    if (!selectedAssessment) return
+    if (!notes?.trim()) {
+      Toaster({ type: 'error', message: 'Please enter notes before updating.' })
+      return
+    }
     setIsUpdating(true)
 
     try {
@@ -121,11 +116,14 @@ const AddEditSymptomDrawer = ({
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Notes updated successfully.' })
         setNotes('')
-        setIsNotesOpen(false)
-        // setNoteRecord(null)
-        // setIsDrawerOpen(false)
-        onClose()
-        fetchNotesForSymptom()
+        setSymptomNoteModal(false)
+
+        const responseNotes = await fetchNotesForSymptom(temporarilySelected)
+        if (responseNotes?.success === true) {
+          setActivityListData(responseNotes?.data || [])
+        }
+        // onClose()
+        //fetchNotesForSymptom()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
       }
@@ -133,6 +131,36 @@ const AddEditSymptomDrawer = ({
       console.error('Error updating notes:', error)
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteNotes = async () => {
+    if (!notes?.trim()) {
+      Toaster({ type: 'error', message: 'Please enter notes to delete.' })
+      return
+    }
+    setIsDeleting(true)
+
+    try {
+      const response = await deleteNoteSymptoms(noteId)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Notes deleted successfully.' })
+        setNotes('')
+        setSymptomNoteModal(false)
+        const responseNotes = await fetchNotesForSymptom(temporarilySelected)
+        if (responseNotes?.success === true) {
+          setActivityListData(responseNotes?.data || [])
+        }
+        //onClose()
+        //fetchNotesForSymptom()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
+      }
+    } catch (error) {
+      console.error('Error deleting notes:', error)
+    } finally {
+      setIsDeleting(false)
     }
   }
 

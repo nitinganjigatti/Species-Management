@@ -733,6 +733,8 @@ export const ADD_HOSPITAL_SYMPTOMS = 'medical/update-complaints'
 
 export const UPDATE_HOSPITAL_SYMPTOMS = 'update-diagnosis-prescription'
 
+export const DELETE_NOTE_SYMPTOM = 'medical/v2/delete-note/complaint'
+
 export const GET_ACTIVITY_LIST = 'record-details'
 
 // Clinical Assessment
