@@ -20,6 +20,7 @@ import SideSheetActionButtons from '../SideSheetActionButtons'
 import { updateSymptoms } from 'src/lib/api/hospital/symptoms'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
+import EditNotes from '../inpatient/EditNotes'
 
 const AddEditSymptomDrawer = ({
   open,
@@ -38,11 +39,13 @@ const AddEditSymptomDrawer = ({
   setStatus,
   activityListData,
   activityLoader,
-  temporarilySelected
+  temporarilySelected,
+  setSymptomNoteModal,
+  symptomNoteModal
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
-  const activities = [1, 2, 3]
+
   const handleSave = () => {
     onSave({
       status,
@@ -55,11 +58,6 @@ const AddEditSymptomDrawer = ({
 
   const handleCancel = () => {
     onClose()
-  }
-
-  const formatDateTime = dateTime => {
-    if (!dateTime) return ''
-    return dayjs(dateTime).format('hh:mm A • DD MMM YYYY')
   }
 
   const processedActivities =
@@ -83,7 +81,17 @@ const AddEditSymptomDrawer = ({
   const handleEditActivity = value => {
     console.log(value, 'value')
     console.log(temporarilySelected, 'temporarilySelected')
+    setSymptomNoteModal(true)
+    setNotes(value?.note)
     // alert('kkk')
+  }
+
+  const handleCloseModal = () => {
+    setSymptomNoteModal(false)
+  }
+
+  const handleUpdateClick = () => {
+    console.log(notes, 'notes')
   }
 
   return (
@@ -258,7 +266,7 @@ const AddEditSymptomDrawer = ({
               fullWidth
               multiline
               rows={3}
-              value={notes}
+              //value={notes}
               onChange={e => setNotes(e.target.value)}
               sx={{
                 background: theme.palette.common.white,
@@ -280,6 +288,13 @@ const AddEditSymptomDrawer = ({
           height={50}
         />
       </Box>
+      <EditNotes
+        open={symptomNoteModal}
+        onClose={handleCloseModal}
+        setNotes={setNotes}
+        notes={notes}
+        handleUpdate={handleUpdateClick}
+      />
     </Drawer>
   )
 }

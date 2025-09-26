@@ -28,6 +28,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [activityLoader, setactivityLoader] = useState(false)
   const [activityListData, setActivityListData] = useState()
+  const [symptomNoteModal, setSymptomNoteModal] = useState(false)
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
   const handleClickDetail = async recordData => {
@@ -348,6 +349,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           activityListData={activityListData}
           activityLoader={activityLoader}
           temporarilySelected={temporarilySelected}
+          setSymptomNoteModal={setSymptomNoteModal}
+          symptomNoteModal={symptomNoteModal}
         />
       )}
       {isDeleteDialogOpen && (

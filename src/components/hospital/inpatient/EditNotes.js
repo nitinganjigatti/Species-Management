@@ -8,10 +8,10 @@ const EditNotes = ({ open, onClose, notes, setNotes, isUpdating, isDeleting, han
   const theme = useTheme()
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="sm"
+    <Dialog
+      open={open}
+      // onClose={onClose}
+      maxWidth='sm'
       fullWidth
       slotProps={{
         paper: {
