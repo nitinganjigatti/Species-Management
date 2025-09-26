@@ -35,13 +35,22 @@ const AddEditSymptomDrawer = ({
   setDurationUnit,
   notes,
   setNotes,
+  setNoteId,
+  noteId,
   status,
   setStatus,
   activityListData,
   activityLoader,
   temporarilySelected,
   setSymptomNoteModal,
-  symptomNoteModal
+  symptomNoteModal,
+  setIsNotesOpen,
+  isNotesOpen,
+  fetchNotesForSymptom,
+  setIsUpdating,
+  isUpdating,
+  setIsDeleting,
+  isDeleting
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
@@ -83,6 +92,7 @@ const AddEditSymptomDrawer = ({
     console.log(temporarilySelected, 'temporarilySelected')
     setSymptomNoteModal(true)
     setNotes(value?.note)
+    setNoteId(value?.note_id)
     // alert('kkk')
   }
 
@@ -92,6 +102,38 @@ const AddEditSymptomDrawer = ({
 
   const handleUpdateClick = () => {
     console.log(notes, 'notes')
+  }
+
+  const handleUpdateNotes = async newNotes => {
+    if (!selectedAssessment) return
+    setIsUpdating(true)
+
+    try {
+      const payload = {
+        main_id: temporarilySelected?.complaint_id,
+        med_id: temporarilySelected?.medical_record_id,
+        type: 'COMPLAINT',
+        note: notes || '',
+        note_id: noteId || ''
+      }
+      const response = await updateNotes(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Notes updated successfully.' })
+        setNotes('')
+        setIsNotesOpen(false)
+        // setNoteRecord(null)
+        // setIsDrawerOpen(false)
+        onClose()
+        fetchNotesForSymptom()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
+      }
+    } catch (error) {
+      console.error('Error updating notes:', error)
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   return (
@@ -293,7 +335,10 @@ const AddEditSymptomDrawer = ({
         onClose={handleCloseModal}
         setNotes={setNotes}
         notes={notes}
-        handleUpdate={handleUpdateClick}
+        isUpdating={isUpdating}
+        isDeleting={isDeleting}
+        handleUpdate={handleUpdateNotes}
+        handleDelete={handleDeleteNotes}
       />
     </Drawer>
   )
