@@ -1,6 +1,7 @@
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box, Avatar, Typography, Grid, Tooltip, CircularProgress } from '@mui/material'
+import AnimalDetailsShimmer from 'src/views/pages/hospital/inpatient/shimmer/AnimalDetailsShimmer'
 
 export default function AnimalDetails({
   image,
@@ -17,21 +18,7 @@ export default function AnimalDetails({
   const theme = useTheme()
 
   if (isLoading) {
-    return (
-      <Box
-        sx={{
-          p: 6,
-          borderRadius: '8px',
-          bgcolor: theme.palette.common.white,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: 120
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    )
+    return <AnimalDetailsShimmer />
   }
 
   return (

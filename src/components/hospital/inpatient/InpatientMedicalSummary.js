@@ -1,15 +1,15 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import GroupedTimeline from 'src/views/pages/hospital/inpatient/GroupedTimeline'
 import { getAnimalJournalLogs } from 'src/lib/api/housing'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 
 const InpatientMedicalSummary = () => {
   const [filters, setFilters] = useState({
     page: 1,
-    limit: 50,
+    limit: 10,
     q: '',
     module_filter: ''
   })
@@ -18,8 +18,9 @@ const InpatientMedicalSummary = () => {
   const router = useRouter()
   const { animal_id, id } = router.query
 
+  // Update filters when query changes
   useEffect(() => {
-    const { page = '1', limit = '50', q = '', module_filter = '' } = router.query
+    const { page = '1', limit = '10', q = '', module_filter = '' } = router.query
 
     setFilters({
       page: parseInt(page),
@@ -65,6 +66,13 @@ const InpatientMedicalSummary = () => {
     searchMedicalSummaryData(value, filters)
   }
 
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      searchMedicalSummaryData.cancel() // cancel pending debounce when component unmounts
+    }
+  }, [searchMedicalSummaryData])
+
   //  Medical type dropdown change handler
   const handleMedicalTypeChange = type => {
     const updated = { ...filters, module_filter: type, page: 1 }
@@ -81,11 +89,36 @@ const InpatientMedicalSummary = () => {
     updateUrlParams(resetFilters)
   }
 
+  // Fetch function
+  const fetchAnimalJournalLogs = async ({ pageParam = 1, filters, animal_id }) => {
+    const res = await getAnimalJournalLogs({
+      ...filters,
+      page: pageParam,
+      animal_id
+    })
+
+    return res?.data
+  }
+
+  // Pagination function
+  const getNextPage = (lastPage, pages) => {
+    const totalCount = Number(lastPage?.total_count) || 0
+    const fetchedCount = pages.reduce((sum, p) => sum + (p?.data?.length || 0), 0)
+
+    return fetchedCount < totalCount ? pages.length + 1 : undefined
+  }
+
   //  Fetch medical summary data
-  const { data: medicalSummaryData, isFetching } = useQuery({
+  const {
+    data: medicalSummaryData = [],
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
     queryKey: ['animalMedicalSummary', animal_id, filters],
-    queryFn: () => getAnimalJournalLogs({ ...filters, animal_id }),
-    select: res => res?.data?.data || [],
+    queryFn: ({ pageParam = 1 }) => fetchAnimalJournalLogs({ pageParam, filters, animal_id }),
+    getNextPageParam: getNextPage,
     enabled: !!animal_id,
     refetchOnWindowFocus: false, //Avoid unnecessary refetching when switching tabs
     onError: error => {
@@ -93,15 +126,42 @@ const InpatientMedicalSummary = () => {
     }
   })
 
+  // Combine all pages of data
+  const allMedicalEntries = useMemo(() => {
+    return medicalSummaryData?.pages?.flatMap(page => page?.data || []) || []
+  }, [medicalSummaryData])
+
+  // Infinite scroll
+  const observer = useRef()
+
+  const lastTimelineRef = useCallback(
+    node => {
+      if (isFetchingNextPage || !hasNextPage) return
+      if (observer.current) observer.current.disconnect()
+
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          fetchNextPage()
+        }
+      })
+
+      if (node) observer.current.observe(node)
+    },
+    [isFetchingNextPage, hasNextPage, fetchNextPage]
+  )
+
   return (
     <GroupedTimeline
-      medicalSummaryData={medicalSummaryData}
-      isLoading={isFetching}
+      medicalSummaryData={allMedicalEntries}
+      isLoading={isFetching && allMedicalEntries.length === 0}
       searchQuery={searchValue}
       onSearchChange={handleSearchChange}
       medicalType={filters.module_filter}
       onMedicalTypeChange={handleMedicalTypeChange}
       onClearSearch={handleClearFilters}
+      lastTimelineRef={lastTimelineRef}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
     />
   )
 }

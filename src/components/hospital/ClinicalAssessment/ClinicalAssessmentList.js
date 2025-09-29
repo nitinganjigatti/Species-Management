@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
+import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 
 export default function ClinicalAssessmentList({
   symptoms,
@@ -126,20 +127,8 @@ export default function ClinicalAssessmentList({
       </Box>
 
       <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>
-        {isListLoading ? (
-          <Box
-            sx={{
-              background: theme.palette.common.white,
-              height: 500,
-              borderRadius: '8px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <CircularProgress />
-          </Box>
+        {isTabsLoading || isListLoading ? (
+          <ClinicalAssessmentListShimmer rows={8} />
         ) : filteredSymptoms.length === 0 ? (
           <Box
             sx={{

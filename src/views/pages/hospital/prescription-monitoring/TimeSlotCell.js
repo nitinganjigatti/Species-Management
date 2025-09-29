@@ -6,6 +6,7 @@ const TimeSlotCell = ({ hasSchedule, status, scheduledTime, dosage, onClick, con
   <>
     {hasSchedule ? (
       <Box
+        onClick={onClick}
         sx={{
           display: 'flex',
           flexDirection: 'row',
