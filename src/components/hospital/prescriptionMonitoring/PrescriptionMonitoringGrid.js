@@ -232,7 +232,12 @@ const TimeTooltip = styled(Box)(({ theme }) => ({
   }
 }))
 
-const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => {}, onRemoveMetric = () => {} }) => {
+const PrescriptionMonitoringGrid = ({
+  medications = [],
+  onTimeSlotClick = () => {},
+  onRemoveMetric = () => {},
+  onOpenPrescriptionCard = () => {}
+}) => {
   const theme = useTheme()
 
   const scrollContainerRef = useRef(null)
@@ -893,6 +898,10 @@ const PrescriptionMonitoringGrid = ({ medications = [], onTimeSlotClick = () => 
                             onClick={() => {
                               console.log('medicine scheduledTime', timeSlot?.value?.scheduledTime)
                               console.log('slot time', timeSlot?.value)
+                              console.log('status', status)
+                              if (status === 'pending') {
+                                onOpenPrescriptionCard()
+                              }
                             }}
                             config={timeSlotGridConfig(status)}
                             theme={theme}
