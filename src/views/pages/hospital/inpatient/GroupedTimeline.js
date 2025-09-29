@@ -1,7 +1,8 @@
 import React from 'react'
-import { Box, FormControl, MenuItem, Select, Skeleton, Tooltip, Typography } from '@mui/material'
+import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Tooltip, Typography } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem'
+import { timelineOppositeContentClasses } from '@mui/lab'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import TimelineContent from '@mui/lab/TimelineContent'
@@ -9,13 +10,11 @@ import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import { useTheme, styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import { timelineOppositeContentClasses } from '@mui/lab'
 import Search from 'src/views/utility/Search'
 import { FilterButton } from 'src/views/utility/render-snippets'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
-import { Grid } from '@mui/system'
 
 const medicalTypeOptions = [
   { label: 'All Activities', value: '' },
@@ -81,11 +80,12 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
         <Grid
           container
           wrap='nowrap' // Prevents wrapping
-          sx={{ minWidth: '540px' }} // Minimum width similar to iPad layout
+          sx={{ xs: '100%', minWidth: '540px' }} // Minimum width similar to iPad layout
         >
           <Grid size={{ xs: 3 }} sx={{ display: 'flex', flexDirection: 'column' }}>
             <TextEllipsisWithModal
               placement='top'
+              enableDialog={false}
               text={snakeToTitleCase(entry?.title)}
               style={{
                 fontWeight: 600,
@@ -95,6 +95,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
               }}
             />
             <TextEllipsisWithModal
+              enableDialog={false}
               text={snakeToTitleCase(
                 entry?.details?.medical_record_number ? entry?.details?.medical_record_number : 'NA'
               )}
@@ -148,7 +149,7 @@ const TimelineSection = ({ section }) => {
   if (!section?.entries || section.entries.length === 0) return
 
   return (
-    <Box>
+    <Box sx={{}}>
       <StyledSectionHeader>
         <CalendarTodayIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
         <StyledTypography fontSize={'1.25rem'} color={theme.palette.customColors.OnPrimaryContainer}>
@@ -176,22 +177,36 @@ const GroupedTimeline = ({
   onSearchChange,
   onMedicalTypeChange,
   medicalType,
-  onClearSearch
+  onClearSearch,
+  lastTimelineRef,
+  hasNextPage,
+  isFetchingNextPage
 }) => {
+  const theme = useTheme()
+
   return (
     <>
-      <Box sx={{ width: '100%', mt: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Box sx={{ width: '100%', mt: '1.5rem', display: 'flex', flexDirection: 'column' }}>
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: { xs: 'center', sm: 'space-between' },
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: 3,
+              mb: '1.5rem'
+            }}
+          >
             <Search
               borderRadius={'4px'}
-              width={222}
+              width={{ xs: '100%', sm: 222 }}
               value={searchQuery}
               onChange={e => onSearchChange(e.target.value)}
               onClear={onClearSearch}
             />
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <FormControl sx={{ m: 1, minWidth: 120 }}>
+              <FormControl sx={{ minWidth: 120, flex: 1, m: 0 }}>
                 <Select
                   value={medicalType}
                   onChange={e => onMedicalTypeChange(e.target.value)}
@@ -199,11 +214,11 @@ const GroupedTimeline = ({
                   inputProps={{ 'aria-label': 'Without label' }}
                   sx={{
                     height: 40,
-                    width: 200,
+                    width: { xs: '100%', sm: 200 },
                     borderRadius: '4px'
                   }}
                 >
-                  {medicalTypeOptions.map(type => (
+                  {medicalTypeOptions?.map(type => (
                     <MenuItem key={type.value} value={type.value}>
                       {type.label}
                     </MenuItem>
@@ -217,10 +232,31 @@ const GroupedTimeline = ({
 
           {isLoading ? (
             <TimelineSkeleton />
-          ) : medicalSummaryData.length > 0 ? (
-            medicalSummaryData?.map((section, index) => (
-              <TimelineSection key={`${section?.date}-${index}`} section={section} />
-            ))
+          ) : medicalSummaryData?.length > 0 ? (
+            <>
+              {medicalSummaryData?.map((section, index) => {
+                const isLast = index === medicalSummaryData.length - 1
+
+                return (
+                  <Box key={`${section?.date}-${index}`} ref={isLast ? lastTimelineRef : null} sx={{ mb: '1rem' }}>
+                    <TimelineSection section={section} />
+                  </Box>
+                )
+              })}
+              {/* Show skeleton only when fetching more pages and we already have data */}
+              {isFetchingNextPage && medicalSummaryData.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <TimelineSkeleton />
+                </Box>
+              )}
+
+              {/*  Show "No more data" */}
+              {!hasNextPage && medicalSummaryData.length > 0 && (
+                <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
+                  No more medical summary data to load
+                </StyledTypography>
+              )}
+            </>
           ) : (
             <NoDataFound variant='Seal' height={300} width={300} />
           )}
@@ -233,7 +269,7 @@ const GroupedTimeline = ({
 export default GroupedTimeline
 
 // Styled Components
-const StyledTimeline = styled(Timeline)(({ theme }) => ({
+const StyledTimeline = styled(Timeline)(() => ({
   [`& .${timelineOppositeContentClasses.root}`]: {
     flex: 0,
     minWidth: '5rem',
@@ -246,7 +282,7 @@ const StyledTimeline = styled(Timeline)(({ theme }) => ({
   }
 }))
 
-const StyledTimelineOppositeContent = styled(TimelineOppositeContent)(({ theme }) => ({
+const StyledTimelineOppositeContent = styled(TimelineOppositeContent)(() => ({
   display: 'flex',
   justifyContent: 'start',
   alignItems: 'center'
@@ -254,20 +290,24 @@ const StyledTimelineOppositeContent = styled(TimelineOppositeContent)(({ theme }
 
 const StyledTimelineContent = styled(Grid)(({ theme, borderTop }) => ({
   marginLeft: '0.625rem',
-  padding: '1.4rem 0',
+  padding: '1.5rem 0',
   borderTop: borderTop || 'none',
-
-  // Default: No scroll on larger screens
-  overflowX: 'unset',
+  overflowX: 'hidden',
 
   [`@media (max-width: 768px)`]: {
     overflowX: 'auto',
     WebkitOverflowScrolling: 'touch',
-    scrollbarWidth: 'auto', // Firefox
-    msOverflowStyle: 'auto', // IE/Edge
+
+    // Hide scrollbar (Chrome, Safari)
     '&::-webkit-scrollbar': {
-      display: 'block' // Chrome, Safari
-    }
+      display: 'none'
+    },
+
+    // Hide scrollbar (Firefox)
+    scrollbarWidth: 'none',
+
+    // Hide scrollbar (IE/Edge)
+    msOverflowStyle: 'none'
   }
 }))
 
@@ -286,6 +326,7 @@ const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, colo
   color: color || theme.palette.customColors.OnSurfaceVariant
 }))
 
+// skeleton loader
 const TimelineSkeleton = () => {
   return (
     <Timeline
