@@ -753,6 +753,8 @@ export const GET_NOTES = 'medical/v2/record-details'
 
 export const UPDATE_NOTES = 'medical/v2/update-diagnosis-prescription'
 
+export const DELETE_NOTE_CLINICAL_ASSESSMENT = 'medical/v2/delete-note/diagnosis'
+
 // Hospital Analytics
 
 export const HOSPITAL_LISTING = 'v1/hospital/listing'

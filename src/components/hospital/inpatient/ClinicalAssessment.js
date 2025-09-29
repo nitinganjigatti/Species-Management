@@ -9,6 +9,7 @@ import ClinicalAssessmentCard from '../../../views/pages/hospital/inpatient/Clin
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import debounce from 'lodash/debounce'
 import {
+  deleteNote,
   getClinicalAssessments,
   getNotes,
   updateClinicalAssessment,
@@ -102,35 +103,38 @@ const ClinicalAssessment = () => {
     if (!selectedAssessment) return
     setIsDeleting(true)
 
-    // try {
-    //   const payload = {
-    //     entity: 'diagnosis',
-    //     medical_id: selectedAssessment?.medical_record_id,
-    //     record_id: selectedAssessment?.main_diagnosis_id
-    //   }
-    //   const response = await updateNotes(payload)
+    try {
+      const payload = {
+        entity: 'diagnosis',
+        medical_id: selectedAssessment?.medical_record_id,
+        record_id: selectedAssessment?.main_diagnosis_id
+      }
+      const response = await deleteNote(noteRecord?.note_id, payload)
 
-    //   if (response?.success) {
-    //     Toaster({ type: 'success', message: response?.message || 'Notes deleted successfully.' })
-    //     setNotes('')
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Notes deleted successfully.' })
+        setNotes('')
+        setIsNotesOpen(false)
+        setNoteRecord(null)
+        setIsDrawerOpen(false)
 
-    //     // Optionally refresh activity list
-    //     const notesResponse = await getNotes({
-    //       entity: 'diagnosis',
-    //       medical_id: selectedAssessment?.medical_record_id,
-    //       record_id: selectedAssessment?.main_diagnosis_id
-    //     })
-    //     if (notesResponse?.success) {
-    //       setActivityListData(notesResponse?.data || [])
-    //     }
-    //   } else {
-    //     Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
-    //   }
-    // } catch (error) {
-    //   console.error('Error deleting notes:', error)
-    // } finally {
-    //   setIsDeleting(false)
-    // }
+        // Optionally refresh activity list
+        // const notesResponse = await getNotes({
+        //   entity: 'diagnosis',
+        //   medical_id: selectedAssessment?.medical_record_id,
+        //   record_id: selectedAssessment?.main_diagnosis_id
+        // })
+        // if (notesResponse?.success) {
+        //   setActivityListData(notesResponse?.data || [])
+        // }
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
+      }
+    } catch (error) {
+      console.error('Error deleting notes:', error)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const handleEditNoteClick = item => {
