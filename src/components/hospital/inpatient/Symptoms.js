@@ -15,7 +15,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
   const [records, setRecords] = useState([])
-  const [recordTypeCount, setRecordTypeCount] = useState([])
+  const [recordTypeCount, setRecordTypeCount] = useState({})
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -56,6 +56,9 @@ const Symptoms = ({ selectedTab, patientData }) => {
       const response = await getSymptomsList(animal_id, params)
 
       if (response.success === true) {
+        if (newPage > 1 && response?.data?.result?.length === 0) {
+          return
+        }
         setRecords(prevRecords => (append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []))
         setRecordTypeCount(response?.data)
         setTotalCount(response?.data?.total_count || 0)
@@ -79,6 +82,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
+    setRecords([])
+    setRecordTypeCount({})
   }
 
   useEffect(() => {
@@ -98,7 +103,13 @@ const Symptoms = ({ selectedTab, patientData }) => {
     const observer = new IntersectionObserver(entries => {
       const firstEntry = entries[0]
       const currentTabCount = getCurrentTabCount()
-      if (firstEntry.isIntersecting && !isFetchingMore && !loading && records?.length < currentTabCount) {
+      if (
+        firstEntry.isIntersecting &&
+        !isFetchingMore &&
+        !loading &&
+        records.length > 0 &&
+        records?.length < currentTabCount
+      ) {
         const nextPage = page + 1
         setPage(nextPage)
         fetchSymptoms(searchQuery.trim(), nextPage, true)
