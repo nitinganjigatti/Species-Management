@@ -69,7 +69,7 @@ export default function AddClinicalAssessmentPage() {
         medical_record_id: medicalRecordId || ''
       }
       const res = await getDiagnosisList(params) // This gets categories
-      if (res.success) {
+      if (res?.success) {
         const categories = res.data?.result || []
 
         // setTabOptions([{ category: 'All', id: '' }, ...categories])
