@@ -18,6 +18,7 @@ import EditClinicalAsmntDrawer from '../drawer/EditClinicalAsmntDrawer'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 
 const PAGE_SIZE = 10
 
@@ -42,6 +43,7 @@ const ClinicalAssessment = () => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [noteRecord, setNoteRecord] = useState(null)
   const [isNotesOpen, setIsNotesOpen] = useState(false)
+  const [activityLoader, setActivityLoader] = useState(false)
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
@@ -260,6 +262,8 @@ const ClinicalAssessment = () => {
     )
     setIsDrawerOpen(true)
     try {
+      setActivityLoader(true)
+
       const params = {
         entity: 'diagnosis',
         medical_id: assessment?.medical_record_id || '',
@@ -276,6 +280,8 @@ const ClinicalAssessment = () => {
     } catch (error) {
       console.error('Error fetching notes for symptom:', error)
       Toaster({ type: 'error', message: 'An error occurred while fetching notes.' })
+    } finally {
+      setActivityLoader(false)
     }
   }
 
@@ -419,6 +425,8 @@ const ClinicalAssessment = () => {
 
       {/* Records List */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* Loading State */}
+        {isLoading && filteredRecords.length === 0 && <ClinicalAssessmentShimmer count={5} />}
         {filteredRecords.map((record, index) => (
           <ClinicalAssessmentCard
             key={record.id || index}
@@ -429,17 +437,10 @@ const ClinicalAssessment = () => {
           />
         ))}
 
-        {/* Loading State */}
-        {isLoading && filteredRecords.length === 0 && (
-          <Box display='flex' justifyContent='center' py={4}>
-            <CircularProgress />
-          </Box>
-        )}
-
         {/* Infinite Scroll Loader */}
         {(isLoading || hasMore) && filteredRecords.length > 0 && (
           <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
-            <CircularProgress />
+            <ClinicalAssessmentShimmer count={3} />
           </Box>
         )}
 
@@ -474,6 +475,7 @@ const ClinicalAssessment = () => {
           setNotes={setNotes}
           onSave={() => setIsSaveDialogOpen(true)}
           activityListData={activityListData}
+          activityLoader={activityLoader}
           isDeleting={isDeleting}
           isUpdating={isUpdating}
           handleUpdateNotes={handleUpdateNotes}

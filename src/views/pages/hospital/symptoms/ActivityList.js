@@ -2,9 +2,14 @@ import React from 'react'
 import { Box, Typography, Paper, IconButton, alpha, CircularProgress } from '@mui/material'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useTheme } from '@mui/material/styles'
+import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
 
 const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = false }) => {
   const theme = useTheme()
+
+  if (activityLoader) {
+    return <ActivityListShimmer count={3} />
+  }
 
   return (
     <Box sx={{ px: 5, py: 5 }}>
