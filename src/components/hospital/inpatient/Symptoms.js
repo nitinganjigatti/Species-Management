@@ -7,6 +7,7 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
 import { getSymptomsList } from 'src/lib/api/hospital/symptoms'
 import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
+import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 
 const Symptoms = ({ selectedTab, patientData }) => {
   const router = useRouter()
@@ -217,8 +218,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', py: 2 }}>
+            <ClinicalAssessmentShimmer rows={8} />
           </Box>
         ) : records?.length === 0 ? (
           <Box
