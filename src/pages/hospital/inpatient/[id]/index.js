@@ -96,11 +96,7 @@ const InpatientDetails = () => {
     getPatientInfo()
   }, [id])
 
-  console.log(overviewData)
-
   const handleMenuOpen = event => {
-    console.log(event.currentTarget)
-
     setAnchorEl(event.currentTarget)
   }
 
@@ -183,7 +179,8 @@ const InpatientDetails = () => {
       ...drawerState,
       patientId: id,
       overviewData: overviewData,
-      patientData: patientData
+      patientData: patientData,
+      loading: patientLoading
     }),
     [selectedTab, drawerState, id, overviewData]
   )
@@ -196,14 +193,7 @@ const InpatientDetails = () => {
         <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                size='large'
-                edge='start'
-                color='inherit'
-                aria-label='menu'
-                onClick={handleMenuOpen}
-                sx={{ mb: 1 }}
-              >
+              <IconButton size='large' edge='start' color='inherit' aria-label='menu' onClick={handleMenuOpen}>
                 <MenuIcon />
               </IconButton>
               <Menu

@@ -5,7 +5,6 @@ import {
   Select,
   MenuItem,
   TextField,
-  Grid,
   IconButton,
   Drawer,
   Divider,
@@ -17,8 +16,11 @@ import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
+import { updateNotes } from 'src/lib/api/hospital/clinicalAssessment'
+import { deleteNoteSymptoms } from 'src/lib/api/hospital/symptoms'
 import Utility from 'src/utility'
-import dayjs from 'dayjs'
+import Toaster from 'src/components/Toaster'
+import EditNotes from '../inpatient/EditNotes'
 
 const AddEditSymptomDrawer = ({
   open,
@@ -33,13 +35,25 @@ const AddEditSymptomDrawer = ({
   setDurationUnit,
   notes,
   setNotes,
+  setNoteId,
+  noteId,
   status,
   setStatus,
-  activityListData
+  activityListData,
+  activityLoader,
+  temporarilySelected,
+  setSymptomNoteModal,
+  symptomNoteModal,
+  fetchNotesForSymptom,
+  setIsUpdating,
+  isUpdating,
+  setIsDeleting,
+  isDeleting,
+  setActivityListData
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
-  const activities = [1, 2, 3]
+
   const handleSave = () => {
     onSave({
       status,
@@ -54,11 +68,6 @@ const AddEditSymptomDrawer = ({
     onClose()
   }
 
-  const formatDateTime = dateTime => {
-    if (!dateTime) return ''
-    return dayjs(dateTime).format('hh:mm A • DD MMM YYYY')
-  }
-
   const processedActivities =
     activityListData?.complaint_notes
       ?.map(activity => ({
@@ -66,8 +75,10 @@ const AddEditSymptomDrawer = ({
         isSystemGenerated: activity?.is_system_generated === 1,
         oldSeverity: activity?.notes_dump?.old_data?.severity || '',
         newSeverity: activity?.notes_dump?.new_data?.severity || '',
-        createdBy: activity?.created_by_user_name || 'Unknown',
-        formattedTime: formatDateTime(activity?.created_at),
+        createdBy: activity?.created_by_user_name || '',
+        formattedTime: `${Utility.convertUTCToLocaltime(activity?.created_at)} • ${Utility.formatDisplayDate(
+          activity?.created_at
+        )}`,
         note: activity.note || 'N/A'
       }))
 
@@ -76,8 +87,81 @@ const AddEditSymptomDrawer = ({
       }) || []
 
   const handleEditActivity = value => {
-    console.log(value, 'value')
-    // alert('kkk')
+    setSymptomNoteModal(true)
+    setNotes(value?.note)
+    setNoteId(value?.note_id)
+  }
+
+  const handleCloseModal = () => {
+    setSymptomNoteModal(false)
+  }
+
+  const handleUpdateNotes = async newNotes => {
+    if (!notes?.trim()) {
+      Toaster({ type: 'error', message: 'Please enter notes before updating.' })
+      return
+    }
+    setIsUpdating(true)
+
+    try {
+      const payload = {
+        main_id: temporarilySelected?.complaint_id,
+        med_id: temporarilySelected?.medical_record_id,
+        type: 'COMPLAINT',
+        note: notes || '',
+        note_id: noteId || ''
+      }
+      const response = await updateNotes(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Notes updated successfully.' })
+        setNotes('')
+        setSymptomNoteModal(false)
+
+        const responseNotes = await fetchNotesForSymptom(temporarilySelected)
+        if (responseNotes?.success === true) {
+          setActivityListData(responseNotes?.data || [])
+        }
+        // onClose()
+        //fetchNotesForSymptom()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
+      }
+    } catch (error) {
+      console.error('Error updating notes:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteNotes = async () => {
+    if (!notes?.trim()) {
+      Toaster({ type: 'error', message: 'Please enter notes to delete.' })
+      return
+    }
+    setIsDeleting(true)
+
+    try {
+      const response = await deleteNoteSymptoms(noteId)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Notes deleted successfully.' })
+        setNotes('')
+        setSymptomNoteModal(false)
+        const responseNotes = await fetchNotesForSymptom(temporarilySelected)
+        if (responseNotes?.success === true) {
+          setActivityListData(responseNotes?.data || [])
+        }
+        //onClose()
+        //fetchNotesForSymptom()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
+      }
+    } catch (error) {
+      console.error('Error deleting notes:', error)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -252,7 +336,7 @@ const AddEditSymptomDrawer = ({
               fullWidth
               multiline
               rows={3}
-              value={notes}
+              //value={notes}
               onChange={e => setNotes(e.target.value)}
               sx={{
                 background: theme.palette.common.white,
@@ -262,7 +346,7 @@ const AddEditSymptomDrawer = ({
           </Box>
           <Divider color={theme.palette.customColors.OutlineVariant} />
 
-          <ActivityList activities={processedActivities} onEdit={handleEditActivity} />
+          <ActivityList activities={processedActivities} onEdit={handleEditActivity} activityLoader={activityLoader} />
         </Box>
 
         <SideSheetActionButtons
@@ -274,6 +358,16 @@ const AddEditSymptomDrawer = ({
           height={50}
         />
       </Box>
+      <EditNotes
+        open={symptomNoteModal}
+        onClose={handleCloseModal}
+        setNotes={setNotes}
+        notes={notes}
+        isUpdating={isUpdating}
+        isDeleting={isDeleting}
+        handleUpdate={handleUpdateNotes}
+        handleDelete={handleDeleteNotes}
+      />
     </Drawer>
   )
 }

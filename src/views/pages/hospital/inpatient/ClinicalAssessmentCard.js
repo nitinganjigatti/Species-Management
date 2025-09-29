@@ -25,7 +25,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
         ? 'Differential → Diagnosis'
         : '',
     chronic: record.additional_info?.isChronic ? 'Yes' : 'No',
-    prognosis: record?.prognosis,
+    prognosis: Utility.capitalizeFirstLetter(record?.prognosis),
     notes:
       record.additional_info?.latest_note || record.additional_info?.start_note || record.additional_info?.stop_note,
     description: record.latest_note?.note || record.additional_info?.latest_note,
@@ -53,7 +53,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
         padding: { xs: '16px', sm: '20px', md: '24px' },
         backgroundColor: resolved
           ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
-          : !isDifferential && getSeverityColor(mappedRecord.severity).bgColor,
+          : !isDifferential && getSeverityColor(mappedRecord.prognosis).bgColor,
         cursor: 'pointer'
       }}
     >
@@ -105,7 +105,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
               }}
             />
 
-            {mappedRecord?.severity && (
+            {mappedRecord?.prognosis && (
               <Box
                 component='span'
                 sx={{
@@ -115,7 +115,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
                   fontWeight: 500,
                   color: resolved
                     ? theme.palette.customColors.neutralSecondary
-                    : getSeverityColor(mappedRecord?.severity).color,
+                    : getSeverityColor(mappedRecord?.prognosis).color,
                   '&:before': {
                     content: { xs: '""', sm: '"•"' },
                     marginRight: { xs: 0, sm: '4px' },
@@ -123,7 +123,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
                   }
                 }}
               >
-                {mappedRecord.severity || ''}
+                {mappedRecord.prognosis || ''}
               </Box>
             )}
 
@@ -200,7 +200,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
                 sx={{
                   fontSize: '0.875rem',
                   color: getPrognosisColor
-                    ? getPrognosisColor(mappedRecord.prognosis).color
+                    ? getSeverityColor(mappedRecord.prognosis).color
                     : theme.palette.customColors.OnSurfaceVarient,
                   fontWeight: 600
                 }}

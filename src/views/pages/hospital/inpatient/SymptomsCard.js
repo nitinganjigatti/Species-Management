@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -21,17 +21,22 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
   const [durationValue, setDurationValue] = useState(1)
   const [durationUnit, setDurationUnit] = useState('Days')
   const [notes, setNotes] = useState('')
+  const [noteId, setNoteId] = useState('')
   const [status, setStatus] = useState('')
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [pendingDetails, setPendingDetails] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [activityLoader, setactivityLoader] = useState(false)
   const [activityListData, setActivityListData] = useState()
+  const [symptomNoteModal, setSymptomNoteModal] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
   const handleClickDetail = async recordData => {
-    console.log(recordData, 'recordData')
     try {
+      setactivityLoader(true)
       setSymptomDrawerNewOpen(true)
       setSeverity(
         recordData?.additional_info?.severity === 'Mild'
@@ -45,13 +50,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
       setStatus(recordData?.status)
       setTemporarilySelected(recordData)
 
-      const params = {
-        entity: 'complaint',
-        medical_id: recordData?.medical_record_id,
-        record_id: recordData?.complaint_id
-      }
-
-      const response = await getNotesListForSymptom(params)
+      const response = await fetchNotesForSymptom(recordData)
 
       if (response?.success) {
         setActivityListData(response?.data || [])
@@ -59,8 +58,25 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
         Toaster({ type: 'error', message: response?.message || 'Failed to fetch notes.' })
       }
     } catch (error) {
-      console.error('Error fetching notes for symptom:', error)
       Toaster({ type: 'error', message: 'An error occurred while fetching notes.' })
+    } finally {
+      setactivityLoader(false)
+    }
+  }
+
+  const fetchNotesForSymptom = async recordData => {
+    const params = {
+      entity: 'complaint',
+      medical_id: recordData?.medical_record_id,
+      record_id: recordData?.complaint_id
+    }
+
+    try {
+      const response = await getNotesListForSymptom(params)
+      return response
+    } catch (error) {
+      console.error('Error fetching notes for symptom:', error)
+      throw error
     }
   }
 
@@ -87,7 +103,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
         severity: pendingDetails?.severity,
         duration: pendingDetails?.durationValue,
         duration_unit: pendingDetails?.durationUnit,
-        status: pendingDetails?.status
+        status: pendingDetails?.status,
+        note: pendingDetails?.notes
       }
 
       const response = await updateSymptoms(payload)
@@ -281,7 +298,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
                     lineHeight: '1.4'
                   }}
                 >
-                  {record?.additional_info?.latest_comment || 'N/A'}
+                  {record?.additional_info?.latest_comment || ''}
                 </Typography>
               </Tooltip>
             )}
@@ -338,8 +355,20 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           status={status}
           setStatus={setStatus}
           setNotes={setNotes}
+          setNoteId={setNoteId}
+          noteId={noteId}
           onSave={addSymptomDetails}
           activityListData={activityListData}
+          activityLoader={activityLoader}
+          temporarilySelected={temporarilySelected}
+          setSymptomNoteModal={setSymptomNoteModal}
+          symptomNoteModal={symptomNoteModal}
+          fetchNotesForSymptom={fetchNotesForSymptom}
+          setIsUpdating={setIsUpdating}
+          isUpdating={isUpdating}
+          setIsDeleting={setIsDeleting}
+          isDeleting={isDeleting}
+          setActivityListData={setActivityListData}
         />
       )}
       {isDeleteDialogOpen && (

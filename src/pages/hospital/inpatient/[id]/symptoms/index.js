@@ -33,6 +33,7 @@ export default function AddSymptomsPage() {
   const [resetPagination, setResetPagination] = useState(false)
   const [addLoading, setAddLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
+  const [patientLoading, setPatientLoading] = useState(false)
 
   const debounce = (func, delay) => {
     let timer
@@ -79,7 +80,8 @@ export default function AddSymptomsPage() {
       const params = {
         page_no: pageNo,
         type: 'complaints',
-        q: query
+        q: query,
+        medical_record_id: medical_record_id
       }
 
       const response = await getSymptomsListForAdding(params)
@@ -139,15 +141,15 @@ export default function AddSymptomsPage() {
 
   useEffect(() => {
     const getPatientInfo = async () => {
-      //setPatientLoading(true)
+      setPatientLoading(true)
       try {
         await getPatientDetails(id).then(res => {
           if (res?.success === true) {
             setPatientData(res?.data)
-            // setPatientLoading(false)
+            setPatientLoading(false)
           } else {
             setPatientData(null)
-            // setPatientLoading(false)
+            setPatientLoading(false)
           }
         })
       } catch (error) {
@@ -162,6 +164,7 @@ export default function AddSymptomsPage() {
   const handleAddClick = async () => {
     try {
       if (selectedSymptoms.length === 0) {
+        Toaster({ type: 'error', message: 'Please select at least one Symptom' })
         return
       }
       setAddLoading(true)
@@ -207,17 +210,18 @@ export default function AddSymptomsPage() {
   return (
     <Box sx={{ p: 3 }}>
       <AnimalDetails
-        image='/leopard.jpg'
+        image={patientData?.animal_detail?.default_icon}
         name={patientData?.animal_detail?.common_name}
         scientificName={patientData?.animal_detail?.complete_name}
         identifierValue={patientData?.animal_detail?.local_identifier_value}
         identifierName={patientData?.animal_detail?.local_identifier_name}
         admittedDays={patientData?.admitted_for_day}
-        location={patientData?.bed_name}
-        vet='Dr. Nitin A Ganjigatti'
+        location={patientData?.bed_name || 'N/A'}
+        vet={patientData?.attend_by_full_name || 'N/A'}
         ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
           patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
         }`}
+        isLoading={patientLoading}
       />
 
       <Grid
@@ -263,7 +267,7 @@ export default function AddSymptomsPage() {
         onAdd={handleAddClick}
         width={200}
         height={50}
-        disabled={addLoading || selectedSymptoms.length === 0}
+        isSubmitLoading={addLoading}
       />
 
       {temporarilySelected && (

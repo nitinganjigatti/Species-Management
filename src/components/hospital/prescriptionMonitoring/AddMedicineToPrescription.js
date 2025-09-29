@@ -9,7 +9,6 @@ import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import PrescriptionMedicineList from 'src/views/pages/hospital/prescription-monitoring/PrescriptionMedicineList'
 import ScheduleMedicine from 'src/views/pages/hospital/prescription-monitoring/ScheduleMedicine'
-import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-monitoring/MedicinePrescriptionCard'
 
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
@@ -124,7 +123,6 @@ export default function AddMedicineToPrescription() {
   const [selectedMedicine, setSelectedMedicine] = useState(null)
   const [temporarilySelectedMedicine, setTemporarilySelectedMedicine] = useState(null)
   const [medicineDrawerOpen, setMedicineDrawerOpen] = useState(false)
-  const [prescriptionCardOpen, setPrescriptionCardOpen] = useState(false)
   const [clinicalAssessment, setClinicalAssessment] = useState('')
   const [prognosisValue, setPrognosisValue] = useState('')
   const [chronicValue, setChronicValue] = useState('No')
@@ -402,33 +400,6 @@ export default function AddMedicineToPrescription() {
     setTemporarilySelectedMedicine(null)
   }
 
-  // Handle prescription card actions
-  const handleOpenPrescriptionCard = () => {
-    setPrescriptionCardOpen(true)
-  }
-
-  const handleClosePrescriptionCard = () => {
-    setPrescriptionCardOpen(false)
-  }
-
-  const handleStopMedicine = medicineData => {
-    console.log('Stop medicine:', medicineData)
-
-    // Add your logic here
-  }
-
-  const handleAddNewDosage = medicineData => {
-    console.log('Add new dosage:', medicineData)
-
-    // Add your logic here
-  }
-
-  const handleRefreshEntry = (entryId, medicineData) => {
-    console.log('Refresh entry:', entryId, medicineData)
-
-    // Add your logic here
-  }
-
   // Add medicine details to the selected medicine (if needed)
   const addMedicineDetails = details => {
     setSelectedMedicine({ ...temporarilySelectedMedicine, ...details })
@@ -499,82 +470,8 @@ export default function AddMedicineToPrescription() {
         <Grid size={{ xs: 12, md: 5, lg: 5 }}>
           <ScheduleMedicine control={control} errors={errors} selectedMedicineTo={watch('selectMedicineType')} />
         </Grid>
-
-        {/* Button to open prescription card */}
-        <Grid size={{ xs: 12 }}>
-          <Button variant='outlined' onClick={handleOpenPrescriptionCard} sx={{ mt: 2 }}>
-            View Medicine Prescription Details
-          </Button>
-        </Grid>
       </Grid>
 
-      {/* Medicine Prescription Card Drawer */}
-      <MedicinePrescriptionCard
-        open={prescriptionCardOpen}
-        onClose={handleClosePrescriptionCard}
-        medicineData={{
-          name: selectedMedicine?.label || 'Dolo 650 tablet',
-          medId: selectedMedicine?.id || 'MED - 12345/25',
-          startDate: '1 Jan 2025',
-          endDate: '04 Jan 2025',
-          dosage: '3 Times',
-          frequency: 'Everyday',
-          duration: '3 days',
-          deliveryRoute: 'Oral',
-          notes: 'Lorem ipsum dolor sit amet consectetur adipiscin ipsum dolor...',
-          lastEdited: 'Last edited on 10:34 AM • 02 Jan 2025',
-          defaultTab: 2
-        }}
-        dosageEntries={[
-          {
-            id: 1,
-            time: '07:00 AM',
-            status: 'Administered',
-            variant: 'administered',
-            dosage: '10 mg/kg',
-            amount: '310 mg',
-            wastage: 'Wastage - 200 mg',
-            wastageNote: 'Lorem impsum doal sit amet sit lip alu lorem ipsum dolar',
-            batchNumber: 'BTC2345',
-            administeredBy: 'Jordan Stevenson',
-            administeredAt: '02 Jan 2025 • 12 : 35 PM',
-            icon: 'mdi:check-circle'
-          },
-          {
-            id: 2,
-            time: '11:00 AM',
-            status: 'Skipped',
-            variant: 'skipped',
-            dosage: '10 mg/kg',
-            amount: '310 mg',
-            administeredBy: 'Jordan Stevenson',
-            administeredAt: '02 Jan 2025 • 12 : 35 PM',
-            icon: 'jam:stop-sign'
-          },
-          {
-            id: 3,
-            time: '04:00 PM',
-            status: 'Stopped',
-            variant: 'stopped',
-            dosage: '10 mg/kg',
-            amount: '310 mg',
-            administeredBy: 'Jordan Stevenson',
-            administeredAt: '02 Jan 2025 • 12 : 35 PM',
-            icon: 'jam:stop-sign',
-            isStrikethrough: true
-          }
-        ]}
-        dateOptions={[
-          { label: '2025', value: 0, isYear: true },
-          { label: 'Sun 01 Jan', value: 1 },
-          { label: 'Mon 02 Jan', value: 2, hasStatus: true },
-          { label: 'Tue 03 Jan', value: 3 },
-          { label: 'Wed 04 Jan', value: 4 }
-        ]}
-        onStopMedicine={handleStopMedicine}
-        onAddNewDosage={handleAddNewDosage}
-        onRefreshEntry={handleRefreshEntry}
-      />
       <ActionButtons
         cancelLabel='CANCEL'
         addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
