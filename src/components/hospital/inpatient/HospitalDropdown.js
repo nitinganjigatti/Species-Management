@@ -40,7 +40,7 @@ const HospitalDropdown = () => {
         const params = {
           page: pageNum,
           limit: 10,
-          search: search?.trim()
+          q: search?.trim()
         }
         const response = await getHospitalListing(params)
 

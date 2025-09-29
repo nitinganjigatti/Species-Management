@@ -11,6 +11,7 @@ import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import { addClinicalAssessment, getDiagnosisList, getDiagnosysType } from 'src/lib/api/hospital/clinicalAssessment'
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
+import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 
 const PAGE_SIZE = 10
 
@@ -28,9 +29,11 @@ export default function AddClinicalAssessmentPage() {
   const [localSearch, setLocalSearch] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [isTabsLoading, setIsTabsLoading] = useState(false)
+  const [patientData, setPatientData] = useState(null)
+  const [patientLoading, setPatientLoading] = useState(false)
 
   const { id, animalId, medicalRecordId } = router.query
-  
+
   // API states
   const [allAssessments, setAllAssessments] = useState([])
   const [tabOptions, setTabOptions] = useState([])
@@ -60,8 +63,10 @@ export default function AddClinicalAssessmentPage() {
       setIsTabsLoading(true)
 
       const params = {
-        include_all:1,
-        type:"diagnosis"
+        include_all: 1,
+        type: 'diagnosis',
+        request_from: 'web_hospital',
+        medical_record_id: medicalRecordId || ''
       }
       const res = await getDiagnosisList(params) // This gets categories
       if (res.success) {
@@ -179,9 +184,7 @@ export default function AddClinicalAssessmentPage() {
     setSelectedSymptoms(prev => prev.filter(s => s.id !== symptom?.id))
   }
 
-  const availableSymptoms = allAssessments.filter(symptom => 
-    !selectedSymptoms.some(s => s.id === symptom.id)
-  )
+  const availableSymptoms = allAssessments.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
 
   const handleAddAssessment = async () => {
     if (selectedSymptoms.length === 0) {
@@ -195,7 +198,7 @@ export default function AddClinicalAssessmentPage() {
       id: symptom?.id,
       name: symptom?.name,
       additional_info: {
-        status: symptom?.status?.toLowerCase() || '',
+        status: symptom?.status?.toLowerCase() || 'active',
         clinical_assessment: symptom.clinicalAsmnt.toLowerCase(),
         note: symptom?.notes || '',
         isChronic: symptom?.chronicVal === 'Yes',
@@ -237,36 +240,66 @@ export default function AddClinicalAssessmentPage() {
   }
 
   const handleBack = useCallback(() => {
-      router.back()
-    }, [router])
+    router.back()
+  }, [router])
 
   const breadcrumbs = useMemo(
-      () => (
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ color: 'inherit' }}>Patients</Typography>
-          <Typography sx={{ color: 'inherit' }}>
-            Inpatient
-          </Typography>
-          <Typography sx={{ color: 'text.primary', cursor: 'pointer' }} onClick={handleBack}>Details</Typography>
-          <Typography sx={{ color: 'text.primary' }}>Add Clinical Assessment</Typography>
-        </Breadcrumbs>
-      ),
-      [handleBack]
-    )
+    () => (
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
+        <Typography sx={{ color: 'inherit' }}>Patients</Typography>
+        <Typography sx={{ color: 'inherit' }}>Inpatient</Typography>
+        <Typography sx={{ color: 'text.primary', cursor: 'pointer' }} onClick={handleBack}>
+          Details
+        </Typography>
+        <Typography sx={{ color: 'text.primary' }}>Add Clinical Assessment</Typography>
+      </Breadcrumbs>
+    ),
+    [handleBack]
+  )
+
+  const getPatientInfo = async () => {
+    setPatientLoading(true)
+    try {
+      await getPatientDetails(id).then(res => {
+        if (res?.success === true) {
+          setPatientData(res?.data)
+          setPatientLoading(false)
+        } else {
+          setPatientData(null)
+          setPatientLoading(false)
+        }
+      })
+    } catch (error) {
+      console.error('Cannot Fetch Patient Details', error)
+      setPatientLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (id) {
+      getPatientInfo()
+    }
+  }, [id])
 
   return (
     <Box sx={{ p: 3 }}>
       {breadcrumbs}
       <AnimalDetails
-        image='/leopard.jpg'
-        name='Leopard'
-        scientificName='Panthera pardus'
-        aid='123456'
-        admittedDays='6 Days'
-        location='Cage 1, Patient Wing 2'
-        vet='Dr. Nitin A Ganjigatti'
-        ageGender='2y 5m . male'
+        image={patientData?.animal_detail?.default_icon}
+        name={patientData?.animal_detail?.common_name || '-'}
+        scientificName={patientData?.animal_detail?.complete_name || '-'}
+        identifierName={patientData?.animal_detail?.local_identifier_name || ''}
+        identifierValue={patientData?.animal_detail?.local_identifier_value || ''}
+        admittedDays={patientData?.admitted_for_day || ''}
+        location={patientData?.bed_name || '-'}
+        vet={patientData?.attend_by_full_name || '-'}
+        ageGender={
+          (patientData?.animal_detail?.age || patientData?.animal_detail?.sex)
+            ? `${patientData?.animal_detail?.age || ''} ${patientData?.animal_detail?.sex || ''}`
+            : '-'
+        }
+        isLoading={patientLoading}
       />
 
       <Grid

@@ -33,6 +33,7 @@ export default function AddSymptomsPage() {
   const [resetPagination, setResetPagination] = useState(false)
   const [addLoading, setAddLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
+  const [patientLoading, setPatientLoading] = useState(false)
 
   const debounce = (func, delay) => {
     let timer
@@ -79,7 +80,8 @@ export default function AddSymptomsPage() {
       const params = {
         page_no: pageNo,
         type: 'complaints',
-        q: query
+        q: query,
+        medical_record_id: medical_record_id
       }
 
       const response = await getSymptomsListForAdding(params)
@@ -139,15 +141,15 @@ export default function AddSymptomsPage() {
 
   useEffect(() => {
     const getPatientInfo = async () => {
-      //setPatientLoading(true)
+      setPatientLoading(true)
       try {
         await getPatientDetails(id).then(res => {
           if (res?.success === true) {
             setPatientData(res?.data)
-            // setPatientLoading(false)
+            setPatientLoading(false)
           } else {
             setPatientData(null)
-            // setPatientLoading(false)
+            setPatientLoading(false)
           }
         })
       } catch (error) {
@@ -214,11 +216,12 @@ export default function AddSymptomsPage() {
         identifierValue={patientData?.animal_detail?.local_identifier_value}
         identifierName={patientData?.animal_detail?.local_identifier_name}
         admittedDays={patientData?.admitted_for_day}
-        location={patientData?.bed_name}
-        vet=''
+        location={patientData?.bed_name || 'N/A'}
+        vet={patientData?.attend_by_full_name || 'N/A'}
         ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
           patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
         }`}
+        isLoading={patientLoading}
       />
 
       <Grid
