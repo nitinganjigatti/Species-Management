@@ -262,7 +262,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           {record?.additional_info &&
             (hasData(record?.latest_note?.notes_dump?.new_data) ||
               hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Tooltip title={record?.additional_info?.notes} arrow placement='top'>
+              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
@@ -276,7 +276,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
                     lineHeight: '1.4'
                   }}
                 >
-                  Notes : {record?.additional_info?.notes || 'N/A'}
+                  Notes : {record?.latest_note?.note || 'N/A'}
                 </Typography>
               </Tooltip>
             )}
@@ -284,7 +284,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           {record?.additional_info &&
             !hasData(record?.latest_note?.notes_dump?.new_data) &&
             !hasData(record?.latest_note?.notes_dump?.old_data) && (
-              <Tooltip title={record?.additional_info?.latest_note} arrow placement='top'>
+              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
@@ -298,7 +298,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
                     lineHeight: '1.4'
                   }}
                 >
-                  {record?.additional_info?.latest_note || ''}
+                  {record?.latest_note?.note || ''}
                 </Typography>
               </Tooltip>
             )}
