@@ -369,7 +369,6 @@ const AnimalHistoryReport = () => {
                         width: '100%',
                         aspectRatio: 1 / 1.2,
                         height: '100%',
-                        // height: { xs: 200, md: 188 },
                         objectFit: 'cover',
                         borderRadius: '8px'
                       }}
@@ -418,27 +417,37 @@ const AnimalHistoryReport = () => {
                   >
                     {summaryFields.map(field => (
                       <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={field.label}>
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: 400,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            letterSpacing: 0
-                          }}
-                        >
-                          {field.label}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '16px',
-                            fontWeight: 600,
-                            color: theme.palette.text.primary,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            letterSpacing: 0
-                          }}
-                        >
-                          {field.value}
-                        </Typography>
+                        <Tooltip title={field?.label || ''}>
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: 400,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              letterSpacing: 0,
+                              textOverflow: 'ellipsis',
+                              textWrap: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {field.label}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title={field?.value || ''}>
+                          <Typography
+                            key={`${field.label}-value`}
+                            sx={{
+                              width: '100%',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 600,
+                              fontSize: '16px',
+                              textOverflow: 'ellipsis',
+                              textWrap: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {field?.value || 'NA'}
+                          </Typography>
+                        </Tooltip>
                       </Grid>
                     ))}
                   </Grid>
@@ -467,25 +476,37 @@ const AnimalHistoryReport = () => {
                   <Grid container spacing={3}>
                     {studbookDetails.map(detail => (
                       <Grid item size={{ xs: 12, md: 6 }} key={detail.label}>
-                        <Typography
-                          sx={{
-                            fontSize: '12px',
-                            fontWeight: 500,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            textTransform: 'uppercase'
-                          }}
-                        >
-                          {detail.label}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '16px',
-                            fontWeight: 600,
-                            color: theme.palette.text.primary
-                          }}
-                        >
-                          {detail.value}
-                        </Typography>
+                        <Tooltip title={detail?.label || ''}>
+                          <Typography
+                            sx={{
+                              fontSize: '12px',
+                              fontWeight: 500,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              textTransform: 'uppercase',
+                              textOverflow: 'ellipsis',
+                              textWrap: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {detail.label}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title={detail?.value || ''}>
+                          <Typography
+                            key={`${detail.label}-value`}
+                            sx={{
+                              width: '100%',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 600,
+                              fontSize: '16px',
+                              textOverflow: 'ellipsis',
+                              textWrap: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {detail?.value || 'NA'}
+                          </Typography>
+                        </Tooltip>
                       </Grid>
                     ))}
                   </Grid>
@@ -619,26 +640,37 @@ const AnimalHistoryReport = () => {
                   <Grid container spacing={3}>
                     {deathDetails.map(detail => (
                       <Grid item size={{ xs: 12, sm: 6 }} key={detail.label}>
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: 400,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            textTransform: 'uppercase'
-                          }}
-                        >
-                          {detail.label}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '16px',
-                            letterSpacing: 0,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontWeight: 600
-                          }}
-                        >
-                          {detail.value}
-                        </Typography>
+                        <Tooltip title={detail?.label || ''}>
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: 400,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              textTransform: 'uppercase',
+                              textOverflow: 'ellipsis',
+                              textWrap: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {detail.label}
+                          </Typography>
+                        </Tooltip>
+                        <Tooltip title={detail?.value || ''}>
+                          <Typography
+                            key={`${detail.label}-value`}
+                            sx={{
+                              width: '100%',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: 600,
+                              fontSize: '16px',
+                              textOverflow: 'ellipsis',
+                              textWrap: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {detail?.value || 'NA'}
+                          </Typography>
+                        </Tooltip>
                       </Grid>
                     ))}
                   </Grid>
