@@ -271,7 +271,8 @@ const ReactTable = ({
     const left = []
     const right = []
     ;(cols || []).forEach((c, i) => {
-      const id = c.field || `column_${i}`
+      // const id = c.field || `column_${i}`
+      const id = c.id || c.field || `column_${i}`
       if (c.pinned === 'left') left.push(id)
       else if (c.pinned === 'right') right.push(id)
     })
@@ -593,11 +594,18 @@ const ReactTable = ({
   })
 
   // ---- Dynamic height with REAL measurements ----
-  const hasSubHeader = processedColumns.some(
-    col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
-  )
+  // const hasSubHeader = processedColumns.some(
+  //   col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
+  // )
+
+  const hasSubHeader = table.getHeaderGroups().length > 1
+
+  // const [dynamicTableHeight, setDynamicTableHeight] = useState(
+  //   currentRowsInView * rowHeight + (isHeaderVisible ? headerHeight : 0) + (hasSubHeader ? subHeaderHeight : 0)
+  // )
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
-    currentRowsInView * rowHeight + (isHeaderVisible ? headerHeight : 0) + (hasSubHeader ? subHeaderHeight : 0)
+    currentRowsInView * rowHeight +
+      (isHeaderVisible ? headerHeight + (table.getHeaderGroups().length - 1) * subHeaderHeight : 0)
   )
 
   useEffect(() => {
@@ -976,7 +984,11 @@ const ReactTable = ({
         sx={{
           borderRadius: '8px !important',
           height: loading && !hasData ? loadingHeight : dynamicTableHeight,
-          minHeight: (isHeaderVisible ? headerHeight : 0) + rowHeight + 8,
+          // minHeight: (isHeaderVisible ? headerHeight : 0) + rowHeight + 8,
+          minHeight:
+            (isHeaderVisible ? headerHeight + (table.getHeaderGroups().length - 1) * subHeaderHeight : 0) +
+            rowHeight +
+            8,
           position: 'relative',
           border: '1px solid #ddd',
           overflowX: 'auto',
