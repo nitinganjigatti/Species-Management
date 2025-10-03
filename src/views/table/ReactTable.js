@@ -143,7 +143,13 @@ const MemoBodyRow = React.memo(
             borderBottom: isLastRow ? 'none' : '1px solid #ddd',
             borderRight: isPinned && '1px solid #ddd',
             textAlign: column.id === '_select' ? 'center' : cellTextAlign,
-            padding: column.id === '_select' ? '0 8px' : '8px 16px',
+            // padding: column.id === '_select' ? '0 8px' : '8px 16px',
+            padding:
+              originalColumn.width != null && column.id !== '_select'
+                ? 0
+                : column.id === '_select'
+                ? '0 8px'
+                : '8px 16px',
             backgroundColor: isPinned ? theme.palette.background?.paper || '#fff' : 'transparent',
 
             // ---- column-level customizations (from columns array) ----
@@ -158,7 +164,7 @@ const MemoBodyRow = React.memo(
 
             // keep pinning last so sticky offsets/sizes always win
             ...getCommonPinningStyles(column),
-
+            boxSizing: 'border-box',
             zIndex: isPinned ? 100 : 1
           }
 
@@ -186,7 +192,14 @@ const MemoBodyRow = React.memo(
               }}
               sx={baseSx}
             >
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
+              {originalColumn.width != null && column.id !== '_select' ? (
+                <Box sx={{ px: 2, py: 1, width: '100%' }}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </Box>
+              ) : (
+                flexRender(cell.column.columnDef.cell, cell.getContext())
+              )}
             </TableCell>
           )
         })}
@@ -401,16 +414,22 @@ const ReactTable = ({
       }
 
       // LEAF COLUMN
+      // const accessorKey = col.field
+      // const size = col.width || col.minWidth || 150
+
       const accessorKey = col.field
-      const size = col.width || col.minWidth || 150
+      const explicitWidth = typeof col.width === 'number'
+      const size = explicitWidth ? col.width : col.minWidth || 150
+      const minSize = explicitWidth ? col.width : col.minWidth || 100
+      const maxSize = explicitWidth ? col.width : col.maxWidth || 500
 
       return {
         id,
         accessorFn: accessorKey ? row => getByPath(row, accessorKey) : undefined,
         header: col.headerName || col.field || id,
         size,
-        minSize: col.minWidth || 100,
-        maxSize: col.maxWidth || 500,
+        minSize,
+        maxSize,
         enableSorting: col.sortable !== false,
         enableColumnFilter: true,
         enablePinning: true,
@@ -788,10 +807,12 @@ const ReactTable = ({
                 color: '#444',
                 textAlign: originalColumn.headerAlign || originalColumn.textAlign || 'left',
                 height: cellHeight,
-                padding: '8px 16px',
+                // padding: '8px 16px',
+                padding: originalColumn.width != null && column.id !== '_select' ? 0 : '8px 16px',
 
                 // pinning + sticky stacking
                 ...getCommonPinningStyles(column),
+                boxSizing: 'border-box',
                 position: 'sticky',
                 top: topOffset,
                 backgroundClip: 'padding-box',
@@ -805,7 +826,18 @@ const ReactTable = ({
               onClick={e => e.stopPropagation()}
             >
               {isPlaceholder ? null : (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                // <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    px: originalColumn.width != null && column.id !== '_select' ? 2 : 0,
+                    py: originalColumn.width != null && column.id !== '_select' ? 1 : 0,
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}
+                >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {column.getCanSort() ? (
                       <TableSortLabel
