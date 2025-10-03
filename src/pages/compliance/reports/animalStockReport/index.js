@@ -1,489 +1,319 @@
 import { useTheme } from '@emotion/react'
-import { Box, Card, CardHeader, CircularProgress, Grid, IconButton, Tooltip, Typography } from '@mui/material'
-import { format, subMonths } from 'date-fns'
-import { debounce } from 'lodash'
-import { useRouter } from 'next/router'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import Icon from 'src/@core/components/icon'
-import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { getAnimalStockReport as getAnimalStockReport } from 'src/lib/api/compliance/reports'
-import { getAnimalDetailsOverview } from 'src/lib/api/housing'
-import Utility, { downloadPDF } from 'src/utility'
-import AnimalDrawer from 'src/views/pages/compliance/reports/animalStockReport/AnimalDrawer'
-import { DownloadReport } from 'src/views/pages/compliance/utility'
-import ReportCard from 'src/views/pages/report/ReportCard'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-import AnimalCard from 'src/views/utility/AnimalCard'
-import ObservationCard from 'src/views/utility/ObservationCard'
-import Search from 'src/views/utility/Search'
+import { Box, Card, CardHeader, Typography } from '@mui/material'
+import { useMemo } from 'react'
+import ReactTable from 'src/views/table/ReactTable'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
+
+const SPECIES_IMAGE = '/images/avatars/1.png'
+
+const withTotal = stock => ({
+  ...stock,
+  t: (stock.m || 0) + (stock.f || 0) + (stock.o || 0)
+})
+
+const createClosingStock = ({ opening, births, acquisitions, disposals, deaths }) => {
+  const compute = key =>
+    (opening[key] || 0) + (births[key] || 0) + (acquisitions[key] || 0) - (disposals[key] || 0) - (deaths[key] || 0)
+
+  return withTotal({
+    m: compute('m'),
+    f: compute('f'),
+    o: compute('o')
+  })
+}
+
+const buildRow = ({
+  id,
+  primary,
+  secondary,
+  image = SPECIES_IMAGE,
+  opening,
+  births,
+  acquisitions,
+  disposals,
+  deaths
+}) => {
+  const openingStock = withTotal(opening)
+  const birthStock = withTotal(births)
+  const acquisitionStock = withTotal(acquisitions)
+  const disposalStock = withTotal(disposals)
+  const deathStock = withTotal(deaths)
+
+  const closingStock = createClosingStock({
+    opening: openingStock,
+    births: birthStock,
+    acquisitions: acquisitionStock,
+    disposals: disposalStock,
+    deaths: deathStock
+  })
+
+  return {
+    id,
+    species: {
+      primary,
+      secondary,
+      image
+    },
+    speciesCard: {
+      default_icon: image,
+      common_name: primary,
+      scientific_name: secondary,
+      primary_identifier_type: 'Species ID',
+      primary_identifier_value: id.toUpperCase()
+    },
+    openingStock,
+    births: birthStock,
+    acquisitions: acquisitionStock,
+    disposals: disposalStock,
+    deaths: deathStock,
+    closingStock
+  }
+}
+
+const STOCK_DATA = [
+  buildRow({
+    id: 'row-1',
+    primary: 'African Grey Parrot',
+    secondary: 'Budgerigar',
+    opening: { m: 150, f: 150, o: 150 },
+    births: { m: 150, f: 150, o: 150 },
+    acquisitions: { m: 150, f: 150, o: 150 },
+    disposals: { m: 150, f: 150, o: 150 },
+    deaths: { m: 150, f: 150, o: 150 }
+  }),
+  buildRow({
+    id: 'row-2',
+    primary: 'Hyacinth Macaw',
+    secondary: 'Lovebird',
+    opening: { m: 220, f: 220, o: 220 },
+    births: { m: 220, f: 220, o: 220 },
+    acquisitions: { m: 220, f: 220, o: 220 },
+    disposals: { m: 220, f: 220, o: 220 },
+    deaths: { m: 220, f: 220, o: 220 }
+  }),
+  buildRow({
+    id: 'row-3',
+    primary: 'Amazon Parrot',
+    secondary: 'Eclectus Parrot',
+    opening: { m: 190, f: 190, o: 190 },
+    births: { m: 190, f: 190, o: 190 },
+    acquisitions: { m: 190, f: 190, o: 190 },
+    disposals: { m: 190, f: 190, o: 190 },
+    deaths: { m: 190, f: 190, o: 190 }
+  }),
+  buildRow({
+    id: 'row-4',
+    primary: 'Nanday Parakeet',
+    secondary: 'Canary Winged Parakeet',
+    opening: { m: 165, f: 165, o: 165 },
+    births: { m: 165, f: 165, o: 165 },
+    acquisitions: { m: 165, f: 165, o: 165 },
+    disposals: { m: 165, f: 165, o: 165 },
+    deaths: { m: 165, f: 165, o: 165 }
+  }),
+  buildRow({
+    id: 'row-5',
+    primary: 'Senegal Parrot',
+    secondary: 'Pionus Parrot',
+    opening: { m: 140, f: 140, o: 140 },
+    births: { m: 140, f: 140, o: 140 },
+    acquisitions: { m: 140, f: 140, o: 140 },
+    disposals: { m: 140, f: 140, o: 140 },
+    deaths: { m: 140, f: 140, o: 140 }
+  }),
+  buildRow({
+    id: 'row-6',
+    primary: 'Green Cheek Conure',
+    secondary: 'Crimson Rosella',
+    opening: { m: 210, f: 210, o: 210 },
+    births: { m: 210, f: 210, o: 210 },
+    acquisitions: { m: 210, f: 210, o: 210 },
+    disposals: { m: 210, f: 210, o: 210 },
+    deaths: { m: 210, f: 210, o: 210 }
+  }),
+  buildRow({
+    id: 'row-7',
+    primary: 'Sun Conure',
+    secondary: 'Parrotlet',
+    opening: { m: 175, f: 175, o: 175 },
+    births: { m: 175, f: 175, o: 175 },
+    acquisitions: { m: 175, f: 175, o: 175 },
+    disposals: { m: 175, f: 175, o: 175 },
+    deaths: { m: 175, f: 175, o: 175 }
+  }),
+  buildRow({
+    id: 'row-8',
+    primary: 'Saddle-Backed Tern',
+    secondary: "Bourke's Parakeet",
+    opening: { m: 160, f: 160, o: 160 },
+    births: { m: 160, f: 160, o: 160 },
+    acquisitions: { m: 160, f: 160, o: 160 },
+    disposals: { m: 160, f: 160, o: 160 },
+    deaths: { m: 160, f: 160, o: 160 }
+  }),
+  buildRow({
+    id: 'row-9',
+    primary: 'Lories',
+    secondary: 'Macaw',
+    opening: { m: 250, f: 250, o: 250 },
+    births: { m: 250, f: 250, o: 250 },
+    acquisitions: { m: 250, f: 250, o: 250 },
+    disposals: { m: 250, f: 250, o: 250 },
+    deaths: { m: 250, f: 250, o: 250 }
+  }),
+  buildRow({
+    id: 'row-10',
+    primary: 'Cockatiel',
+    secondary: 'Indian Ring Neck',
+    opening: { m: 145, f: 145, o: 145 },
+    births: { m: 145, f: 145, o: 145 },
+    acquisitions: { m: 145, f: 145, o: 145 },
+    disposals: { m: 145, f: 145, o: 145 },
+    deaths: { m: 145, f: 145, o: 145 }
+  }),
+  buildRow({
+    id: 'row-11',
+    primary: 'Scarlet Macaw',
+    secondary: 'Tamarin Parakeet',
+    opening: { m: 230, f: 230, o: 230 },
+    births: { m: 230, f: 230, o: 230 },
+    acquisitions: { m: 230, f: 230, o: 230 },
+    disposals: { m: 230, f: 230, o: 230 },
+    deaths: { m: 230, f: 230, o: 230 }
+  }),
+  buildRow({
+    id: 'row-12',
+    primary: 'Yellow-Naped Amazon',
+    secondary: 'Rainbow Lorikeet',
+    opening: { m: 240, f: 240, o: 240 },
+    births: { m: 240, f: 240, o: 240 },
+    acquisitions: { m: 240, f: 240, o: 240 },
+    disposals: { m: 240, f: 240, o: 240 },
+    deaths: { m: 240, f: 240, o: 240 }
+  }),
+  buildRow({
+    id: 'row-13',
+    primary: 'Cockatoo',
+    secondary: 'Quaker Parrot',
+    opening: { m: 180, f: 180, o: 180 },
+    births: { m: 180, f: 180, o: 180 },
+    acquisitions: { m: 180, f: 180, o: 180 },
+    disposals: { m: 180, f: 180, o: 180 },
+    deaths: { m: 180, f: 180, o: 180 }
+  })
+]
+
+const metricKeys = [
+  { key: 'm', label: 'M' },
+  { key: 'f', label: 'F' },
+  { key: 'o', label: 'O' },
+  { key: 't', label: 'T' }
+]
+
+const createNumberCell =
+  theme =>
+  ({ value }) =>
+    (
+      <Typography
+        sx={{
+          fontSize: '14px',
+          fontWeight: 500,
+          letterSpacing: 0,
+          color: theme.palette.customColors.OnSurfaceVariant,
+          textAlign: 'center'
+        }}
+      >
+        {value ?? '-'}
+      </Typography>
+    )
+
+const createMetricGroup = (field, headerName, renderNumber) => ({
+  id: field,
+  headerName,
+  pinned: 'left',
+  headerAlign: 'center',
+  textAlign: 'center',
+  columns: metricKeys.map(metric => ({
+    id: `${field}_${metric.key}`,
+    field: `${field}.${metric.key}`,
+    headerName: metric.label,
+    width: 96,
+    minWidth: 80,
+    textAlign: 'center',
+    headerAlign: 'center',
+    sortable: false,
+    renderCell: renderNumber
+  }))
+})
+
+const createColumns = theme => {
+  const numberCell = createNumberCell(theme)
+
+  return [
+    {
+      id: 'species',
+      field: 'species.primary',
+      headerName: 'Species Name',
+      // pinned: 'left',
+      pinned: 'left',
+      sortable: false,
+      headerAlign: 'left',
+      textAlign: 'left',
+      renderCell: ({ row }) => (
+        <SpeciesCard
+          species={{
+            default_icon: row?.speciesCard?.default_icon || row?.species?.image || SPECIES_IMAGE,
+            common_name: row?.speciesCard?.common_name || row?.species?.primary,
+            scientific_name: row?.speciesCard?.scientific_name || row?.species?.secondary,
+            primary_identifier_type: row?.speciesCard?.primary_identifier_type || 'Species ID',
+            primary_identifier_value:
+              row?.speciesCard?.primary_identifier_value ||
+              (typeof row?.id === 'string' ? row.id.toUpperCase() : row?.id ?? 'STOCK-ID')
+          }}
+        />
+      )
+    },
+    createMetricGroup('openingStock', 'Opening Stock', numberCell),
+    createMetricGroup('births', 'Births', numberCell),
+    createMetricGroup('acquisitions', 'Acquisitions', numberCell),
+    createMetricGroup('disposals', 'Disposals', numberCell),
+    createMetricGroup('deaths', 'Deaths', numberCell),
+    createMetricGroup('closingStock', 'Closing Stock', numberCell)
+  ]
+}
 
 const AnimalStockReport = () => {
   const theme = useTheme()
-  const router = useRouter()
 
-  const handleAnimalSelect = animal => {
-    setSelectedAnimal({
-      animal_id: animal?.animal_id,
-      default_common_name: animal?.default_common_name,
-      scientific_name: animal?.scientific_name ?? animal?.complete_name,
-      user_enclosure_name: animal?.user_enclosure_name,
-      section_name: animal?.section_name,
-      site_name: animal?.site_name,
-      type: animal?.type,
-      sex: animal?.sex,
-      default_icon: animal?.default_icon,
-      total_animal: animal?.total_animal,
-      local_identifier_name: animal?.local_identifier_name,
-      local_identifier_value: animal?.local_identifier_value
-    })
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, animal_id: animal?.animal_id }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }
-
-  const [animalDrawer, setAnimalDrawer] = useState(false)
-  const [selectedAnimal, setSelectedAnimal] = useState(null)
-  const [rows, setRows] = useState([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [animalLoader, setAnimalLoader] = useState(false)
-
-  const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
-    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
-  })
-
-  const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 50
-  })
-
-  useEffect(() => {
-    if (router.query.animal_id && !selectedAnimal) {
-      const fetchAnimal = async () => {
-        setAnimalLoader(true)
-        try {
-          const res = await getAnimalDetailsOverview({
-            animal_id: router.query.animal_id
-          })
-
-          if (res?.success) {
-            setSelectedAnimal({
-              animal_id: res?.data?.animal_details?.animal_id,
-              default_common_name: res?.data?.animal_details?.common_name,
-              scientific_name: res?.data?.animal_details?.scientific_name ?? res?.data?.animal_details?.complete_name,
-              user_enclosure_name: res?.data?.animal_details?.user_enclosure_name,
-              section_name: res?.data?.animal_details?.section_name,
-              site_name: res?.data?.animal_details?.site_name,
-              type: res?.data?.animal_details?.type,
-              sex: res?.data?.animal_details?.sex,
-              default_icon: res?.data?.animal_details?.default_icon,
-              total_animal: res?.data?.animal_details?.total_animal,
-              local_identifier_name: res?.data?.animal_details?.local_identifier_name,
-              local_identifier_value: res?.data?.animal_details?.local_identifier_value
-            })
-            setAnimalLoader(false)
-          }
-        } catch (err) {
-          console.error('Error fetching user by id:', err)
-        }
-      }
-
-      fetchAnimal()
-    }
-  }, [router.query.animal_id])
-
-  const reportCardEventHandler = () => {
-    setAnimalDrawer(!animalDrawer)
-  }
-
-  const title = (
-    <Typography
-      sx={{
-        fontSize: '24px',
-        fontWeight: 500,
-        ml: '-12px',
-        color: theme.palette.customColors.OnSurfaceVariant
-      }}
-    >
-      Animal Stock Report
-    </Typography>
-  )
-
-  const fetchAnimalStockReport = useCallback(
-    async (q = '') => {
-      try {
-        setLoading(true)
-
-        const params = {
-          animal_id: selectedAnimal?.animal_id || router.query.animal_id,
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-          report_type: 'json',
-          ...(q && { q })
-        }
-
-        await getAnimalStockReport(params).then(res => {
-          if (res?.success === true) {
-            setTotal(parseInt(res?.data?.total))
-            setRows(res?.data?.observationData)
-          } else {
-            setTotal(parseInt(res?.data?.total))
-            setRows([])
-          }
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
-        setLoading(false)
-      }
-    },
-    [filterDates, selectedAnimal?.animal_id, paginationModel.page, paginationModel.pageSize]
-  )
-
-  const debouncedGetAnimalStockReport = useMemo(
-    () =>
-      debounce(search => {
-        fetchAnimalStockReport(search)
-      }, 500),
-    [fetchAnimalStockReport]
-  )
-
-  useEffect(() => {
-    if (selectedAnimal) {
-      fetchAnimalStockReport(searchValue)
-    }
-  }, [selectedAnimal, filterDates, paginationModel.page, paginationModel.pageSize, fetchAnimalStockReport])
-
-  useEffect(() => {
-    return () => {
-      debouncedGetAnimalStockReport.cancel()
-    }
-  }, [debouncedGetAnimalStockReport])
-
-  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    id: row.id || index,
-    sl_no: getSlNo(index)
-  }))
-
-  const columns = [
-    {
-      width: 90,
-      field: 'id',
-      headerName: 'SL.NO',
-      sortable: false,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: params => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'default'
-            }}
-          >
-            {parseInt(params.row.sl_no) + '.'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'date',
-      headerName: 'DATE',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(Utility.convertUTCToLocalDateTime(params.row.date_time))}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 300,
-      field: 'master_enrichment_type',
-      headerName: 'Stock Type',
-      sortable: false,
-      renderCell: params => (
-        <>
-          <ObservationCard
-            title={params.row.master_enrichment_type}
-            description={params.row.child_enrichment_type}
-            containerStyle={{ my: 4 }}
-          />
-        </>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 350,
-      field: 'details',
-      headerName: 'Details',
-      sortable: false,
-      renderCell: params => (
-        <>
-          <Tooltip title={params.row.details || ''} arrow placement='bottom'>
-            <Typography
-              sx={{
-                fontSize: '16px',
-                p: '0.5rem',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                display: '-webkit-box',
-                WebkitLineClamp: 3, // Max 4 lines
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'normal',
-                lineHeight: '2rem',
-                maxHeight: 'rem' // 4 lines * 1.5rem line-height
-              }}
-            >
-              {params.row.details}
-            </Typography>
-          </Tooltip>
-        </>
-      )
-    },
-    {
-      minWidth: 250,
-      field: 'reported_by',
-      sortable: false,
-      headerName: 'Reported By ',
-      renderCell: params => (
-        <>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-              {params?.row?.reported_by}
-            </Typography>
-            <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-              {Utility.convertUTCToLocaltime(params?.row?.date_time)}
-            </Typography>
-          </Box>
-        </>
-      )
-    }
-  ]
-
-  const handleDateRangeChange = (startDate, endDate) => {
-    if (startDate && endDate) {
-      const formattedStartDate = Utility.formatDate(startDate)
-      const formattedEndDate = Utility.formatDate(endDate)
-      setFilterDates({
-        startDate: formattedStartDate,
-        endDate: formattedEndDate
-      })
-    } else {
-      setFilterDates({
-        startDate: '',
-        endDate: ''
-      })
-    }
-  }
-
-  const downloadAnimalStockReport = async () => {
-    const params = {
-      animal_id: selectedAnimal?.animal_id || router.query.animal_id,
-      q: searchValue,
-      ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-      ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-      report_type: 'pdf'
-    }
-    try {
-      setIsDownloading(true)
-      await downloadPDF({
-        apiCall: getAnimalStockReport,
-        params,
-        fileName: `AnimalStock_report_${Date.now()}.pdf`
-      })
-    } catch (error) {
-      console.error('Error downloading report:', error)
-    } finally {
-      setIsDownloading(false)
-    }
-  }
-
-  const clearAnimalSelection = () => {
-    setSelectedAnimal(null)
-
-    const { animal_id, ...rest } = router.query
-    router.push(
-      {
-        pathname: router.pathname,
-        query: rest
-      },
-      undefined,
-      { shallow: false }
-    )
-  }
-
-  const headerAction = (
-    <Box sx={{ display: 'flex', gap: '24px' }}>
-      <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadAnimalStockReport} />
-      <Box
-        sx={{
-          backgroundColor: '#0000000D',
-          height: '32px',
-          width: '32px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '50px'
-        }}
-      >
-        <IconButton onClick={clearAnimalSelection}>
-          <Icon icon='mdi:close' color='red' fontSize={24} />
-        </IconButton>
-      </Box>
-    </Box>
-  )
-
-  const handleSearchChange = e => {
-    const value = e.target.value
-    setSearchValue(value)
-
-    if (paginationModel.page !== 0) {
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
-    }
-
-    debouncedGetAnimalStockReport(value)
-  }
+  const rows = useMemo(() => STOCK_DATA, [])
+  const columns = useMemo(() => createColumns(theme), [theme])
 
   return (
-    <>
-      {selectedAnimal ? (
-        <>
-          <Card>
-            <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
-            <Box sx={{ p: 5 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderRadius: '8px',
-                  background: '#E8F4F2',
-                  p: '16px'
-                }}
-              >
-                <AnimalCard data={selectedAnimal} sx={{ border: 'none', background: 'none' }} animal={true} />
-              </Box>
-            </Box>
-
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { sm: 'row', xs: 'column' },
-                justifyContent: { sm: 'space-between', xs: 'flex-start' },
-                alignItems: 'center',
-                gap: 4
-              }}
-            >
-              <Box sx={{ width: '100%', px: 6 }}>
-                <Search
-                  onChange={handleSearchChange}
-                  placeholder='Search by date or stock type'
-                  value={searchValue}
-                  inputStyle={{ py: '10px', px: '12px' }}
-                  width={{ xs: '100%', sm: '60%', md: '50%' }}
-                  sx={{
-                    '& .MuiInputBase-input::placeholder': {
-                      fontSize: '14px',
-                      fontWeight: 400
-                    }
-                  }}
-                />
-              </Box>
-
-              <Box sx={{ px: 6, width: { xs: '100%', sm: '70%' } }}>
-                <CommonDateRangePickers
-                  filterDates={filterDates}
-                  onChange={handleDateRangeChange}
-                  useCustomText={true}
-                  customText='Select a Date Range'
-                />
-              </Box>
-            </Box>
-            <Grid
-              sx={{
-                margin: '0px 1.375rem 0px 1.375rem'
-              }}
-            >
-              <CommonTable
-                columns={columns}
-                indexedRows={indexedRows}
-                loading={loading}
-                total={total}
-                getRowHeight={() => 'auto'}
-                paginationModel={paginationModel}
-                setPaginationModel={setPaginationModel}
-                searchValue={searchValue}
-                onPaginationModelChange={model => {
-                  setPaginationModel(model)
-                  router.replace({
-                    pathname: router.pathname,
-                    query: {
-                      ...router.query,
-                      page: model.page + 1,
-                      pageSize: model.pageSize,
-                      searchValue
-                    }
-                  })
-                }}
-              />
-            </Grid>
-          </Card>
-        </>
-      ) : animalLoader ? (
-        <Box display='flex' justifyContent='center' alignItems='center'>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          <Card sx={{ p: 6 }}>
-            <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
-            <ReportCard
-              subtitle='No Site Selected'
-              description='Select any site to view its Animal Stock report'
-              buttonText='SELECT SITE'
-              addHandler={reportCardEventHandler}
-            />
-          </Card>
-        </>
-      )}
-
-      {animalDrawer && (
-        <AnimalDrawer
-          open={animalDrawer}
-          onClose={() => setAnimalDrawer(false)}
-          selectedAnimal={selectedAnimal}
-          setSelectedAnimal={setSelectedAnimal}
-          handleAnimalClick={handleAnimalSelect}
+    <Card>
+      <CardHeader
+        title={
+          <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+            Animal Stock Report
+          </Typography>
+        }
+      />
+      <Box sx={{ p: 5 }}>
+        <ReactTable
+          rows={rows}
+          columns={columns}
+          rowCount={rows.length}
+          pagination={false}
+          rowHeight={82}
+          headerHeight={48}
+          subHeaderHeight={32}
+          cellStyle={{ padding: '12px 16px' }}
+          rowsInView={rows.length}
+          paginationModel={{ page: 0, pageSize: rows.length }}
+          tableContainerSx={{ maxHeight: 'unset' }}
+          modifyColumnPinning
         />
-      )}
-    </>
+      </Box>
+    </Card>
   )
 }
 
