@@ -513,7 +513,7 @@ const AddIngredientswithChoice = props => {
         setListOfIngredient(updatedListOfIngredient)
         onChange(updatedListOfIngredient)
 
-        toast.success('Ingredient updated successfully!')
+        toast.success('Item updated successfully!')
 
         return
       }
@@ -576,7 +576,7 @@ const AddIngredientswithChoice = props => {
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
-      toast.success('Ingredient added successfully!')
+      toast.success('Item added successfully!')
     }
   }
 
