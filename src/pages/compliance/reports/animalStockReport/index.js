@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
-import { Box, Card, CardHeader, IconButton, Typography } from '@mui/material'
-import { useMemo, useState, useCallback } from 'react'
+import { Box, Button, Card, CardHeader, IconButton, Typography } from '@mui/material'
+import { useMemo, useState, useCallback, useContext, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
 import ReactTable from 'src/views/table/ReactTable'
 import Search from 'src/views/utility/Search'
@@ -8,6 +8,9 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
+import ReportCard from 'src/views/pages/report/ReportCard'
+import SiteDrawer from 'src/views/pages/compliance/reports/animalStockReport/SiteDrawer'
+import { AuthContext } from 'src/context/AuthContext'
 
 const SPECIES_IMAGE = '/images/avatars/1.png'
 
@@ -289,25 +292,73 @@ const createColumns = theme => {
 
 const AnimalStockReport = () => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
 
   const [searchValue, setSearchValue] = useState('')
   const [filterDates, setFilterDates] = useState({ startDate: '', endDate: '' })
   const [isDownloading, setIsDownloading] = useState(false)
+  const [selectedSite, setSelectedSite] = useState(null)
+  const [isSiteDrawerOpen, setIsSiteDrawerOpen] = useState(false)
+  const [siteData, setSiteData] = useState([])
 
-  // mock site selection for now
-  const selectedSite = useMemo(
-    () => ({
-      name: 'Animal Kingdom Park',
-      image: '/images/avatars/1.png'
-    }),
-    []
+  const loadSitesFromAuth = useCallback(() => {
+    try {
+      const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
+      const mapped = sites.map(site => ({
+        ...site,
+        id: String(site.id ?? site.site_id ?? ''),
+        site_id: String(site.id ?? site.site_id ?? ''),
+        site_name: site.site_name || site.name || 'Unnamed Site'
+      }))
+      setSiteData(mapped)
+    } catch (error) {
+      console.error('Error loading site list for Animal Stock Report:', error)
+    }
+  }, [authData])
+
+  useEffect(() => {
+    loadSitesFromAuth()
+  }, [loadSitesFromAuth])
+
+  const drawerSites = useMemo(
+    () =>
+      siteData
+        .filter(site => site.id)
+        .map(site => {
+          const descriptionParts = [site.site_type, site.location].filter(Boolean)
+          const description = descriptionParts.length ? descriptionParts.join(' · ') : site.description || ''
+
+          return {
+            ...site,
+            id: site.id,
+            name: site.site_name || site.name || 'Unnamed Site',
+            image: site.site_image || site.image || '/images/housing/site-icon-colored.svg',
+            description
+          }
+        }),
+    [siteData]
   )
+
+  useEffect(() => {
+    if (!selectedSite) return
+
+    const exists = drawerSites.some(site => site.id === selectedSite.id)
+    if (!exists) {
+      setSelectedSite(null)
+    }
+  }, [drawerSites, selectedSite])
 
   const rows = useMemo(() => STOCK_DATA, [])
   const filteredRows = useMemo(() => {
-    if (!searchValue) return rows
+    if (!selectedSite) {
+      return []
+    }
 
-    const needle = searchValue.toLowerCase()
+    if (!searchValue.trim()) {
+      return rows
+    }
+
+    const needle = searchValue.trim().toLowerCase()
 
     return rows.filter(row => {
       const primary = row?.species?.primary?.toLowerCase?.() || ''
@@ -315,12 +366,16 @@ const AnimalStockReport = () => {
 
       return primary.includes(needle) || secondary.includes(needle)
     })
-  }, [rows, searchValue])
+  }, [rows, searchValue, selectedSite])
 
   const columns = useMemo(() => createColumns(theme), [theme])
 
   const handleSearchChange = useCallback(event => {
     setSearchValue(event.target.value)
+  }, [])
+
+  const handleSearchClear = useCallback(() => {
+    setSearchValue('')
   }, [])
 
   const handleDateRangeChange = useCallback((startDate, endDate) => {
@@ -340,10 +395,16 @@ const AnimalStockReport = () => {
     }
   }, [])
 
-  const handleClearFilters = () => {
+  const handleClearSelection = useCallback(() => {
+    setSelectedSite(null)
     setSearchValue('')
     setFilterDates({ startDate: '', endDate: '' })
-  }
+  }, [])
+
+  const handleSiteSelect = useCallback(site => {
+    setSelectedSite(site)
+    setIsSiteDrawerOpen(false)
+  }, [])
 
   const title = (
     <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -354,112 +415,153 @@ const AnimalStockReport = () => {
   const headerAction = (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
-      <IconButton onClick={handleClearFilters} sx={{ backgroundColor: '#0000000D' }}>
-        <Icon icon='mdi:close' color='red' fontSize={20} />
-      </IconButton>
+      {selectedSite && (
+        <Box
+          sx={{
+            backgroundColor: '#0000000D',
+            height: '32px',
+            width: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50px'
+          }}
+        >
+          <IconButton onClick={handleClearSelection} size='small'>
+            <Icon icon='mdi:close' color='red' fontSize={24} />
+          </IconButton>
+        </Box>
+      )}
     </Box>
   )
 
   return (
-    <Card>
-      <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
-      <Box sx={{ p: 5 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderRadius: '8px',
-            background: '#E8F4F2',
-            p: '16px'
-          }}
-        >
-          <Box sx={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center' }}>
-            <FallbackAvatar
-              src={selectedSite?.image || SPECIES_IMAGE}
-              alt={selectedSite?.name || 'Selected Site'}
-              sx={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }}
-            />
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <Typography
+    <>
+      <Card>
+        <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
+        {selectedSite ? (
+          <>
+            <Box sx={{ p: 5 }}>
+              <Box
                 sx={{
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderRadius: '8px',
+                  background: '#E8F4F2',
+                  p: '16px'
                 }}
               >
-                Site
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: 5600,
-                  letterSpacing: 0,
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                {selectedSite?.name}
-              </Typography>
+                <Box sx={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center' }}>
+                  <FallbackAvatar
+                    src={selectedSite?.image || SPECIES_IMAGE}
+                    alt={selectedSite?.name || 'Selected Site'}
+                    sx={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      Site
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      {selectedSite?.name}
+                    </Typography>
+                    {selectedSite?.description && (
+                      <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.onSurfaceVariant }}>
+                        {selectedSite.description}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+                {/* <Button variant='outlined' onClick={() => setIsSiteDrawerOpen(true)} sx={{ borderRadius: '8px' }}>
+                  Change Site
+                </Button> */}
+              </Box>
             </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 4,
+                px: 6,
+                pb: 4
+              }}
+            >
+              <Search
+                placeholder='Search by species name'
+                value={searchValue}
+                onChange={handleSearchChange}
+                onClear={handleSearchClear}
+                borderRadius='4px'
+                sx={{
+                  '& .MuiInputBase-input::placeholder': {
+                    fontSize: '14px',
+                    fontWeight: 400
+                  },
+                  width: '297px'
+                }}
+              />
+
+              <CommonDateRangePickers
+                filterDates={filterDates}
+                onChange={handleDateRangeChange}
+                // useCustomText
+                // customText='Select a Date Range'
+              />
+            </Box>
+
+            <Box sx={{ p: 5, pt: 0 }}>
+              <ReactTable
+                rows={filteredRows}
+                columns={columns}
+                rowCount={filteredRows.length}
+                pagination={false}
+                rowHeight={82}
+                headerHeight={48}
+                subHeaderHeight={32}
+                cellStyle={{ padding: '12px 16px' }}
+                rowsInView={filteredRows.length}
+                paginationModel={{ page: 0, pageSize: filteredRows.length || 1 }}
+                tableContainerSx={{ maxHeight: 'unset' }}
+                modifyColumnPinning
+              />
+            </Box>
+          </>
+        ) : (
+          <Box sx={{ p: 6 }}>
+            <ReportCard
+              subtitle='No Site Selected'
+              description='Select any site to view its Animal Stock report'
+              buttonText='SELECT SITE'
+              addHandler={() => setIsSiteDrawerOpen(true)}
+            />
           </Box>
-        </Box>
-      </Box>
+        )}
+      </Card>
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { sm: 'row', xs: 'column' },
-          justifyContent: { sm: 'space-between', xs: 'flex-start' },
-          alignItems: 'center',
-          gap: 4,
-          px: 6,
-          pb: 4
-        }}
-      >
-        <Search
-          placeholder='Search by species name'
-          value={searchValue}
-          onChange={handleSearchChange}
-          borderRadius='4px'
-          inputStyle={{ py: '10px', px: '12px', borderRadius: '4px' }}
-          width={{ xs: '100%', sm: '60%', md: '50%' }}
-          sx={{
-            '& .MuiInputBase-input::placeholder': {
-              fontSize: '14px',
-              fontWeight: 400
-            },
-            width: '100%'
-          }}
-        />
-
-        <Box sx={{ width: { xs: '100%', sm: '70%' } }}>
-          <CommonDateRangePickers
-            filterDates={filterDates}
-            onChange={handleDateRangeChange}
-            useCustomText
-            customText='Select a Date Range'
-          />
-        </Box>
-      </Box>
-
-      <Box sx={{ p: 5, pt: 0 }}>
-        <ReactTable
-          rows={filteredRows}
-          columns={columns}
-          rowCount={filteredRows.length}
-          pagination={false}
-          rowHeight={82}
-          headerHeight={48}
-          subHeaderHeight={32}
-          cellStyle={{ padding: '12px 16px' }}
-          rowsInView={filteredRows.length}
-          paginationModel={{ page: 0, pageSize: filteredRows.length || 1 }}
-          tableContainerSx={{ maxHeight: 'unset' }}
-          modifyColumnPinning
-        />
-      </Box>
-    </Card>
+      <SiteDrawer
+        open={isSiteDrawerOpen}
+        onClose={() => setIsSiteDrawerOpen(false)}
+        sites={drawerSites}
+        selectedSiteId={selectedSite?.id ?? null}
+        onSelect={handleSiteSelect}
+      />
+    </>
   )
 }
 
