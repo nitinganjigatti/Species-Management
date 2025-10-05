@@ -130,6 +130,7 @@ const MemoBodyRow = React.memo(
           const column = cell.column
           const isPinned = column.getIsPinned()
           const originalColumn = column.columnDef.meta?.originalColumn || {}
+          const explicit = !!originalColumn.__explicitWidth
 
           const cellTextAlign =
             originalColumn.textAlign ||
@@ -144,12 +145,13 @@ const MemoBodyRow = React.memo(
             borderRight: isPinned && '1px solid #ddd',
             textAlign: column.id === '_select' ? 'center' : cellTextAlign,
             // padding: column.id === '_select' ? '0 8px' : '8px 16px',
-            padding:
-              originalColumn.width != null && column.id !== '_select'
-                ? 0
-                : column.id === '_select'
-                ? '0 8px'
-                : '8px 16px',
+            // padding:
+            //   originalColumn.width != null && column.id !== '_select'
+            //     ? 0
+            //     : column.id === '_select'
+            //     ? '0 8px'
+            //     : '8px 16px',
+            padding: explicit && column.id !== '_select' ? 0 : column.id === '_select' ? '0 8px' : '8px 16px',
             backgroundColor: isPinned ? theme.palette.background?.paper || '#fff' : 'transparent',
 
             // ---- column-level customizations (from columns array) ----
@@ -193,8 +195,8 @@ const MemoBodyRow = React.memo(
               sx={baseSx}
             >
               {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
-              {originalColumn.width != null && column.id !== '_select' ? (
-                <Box sx={{ px: 2, py: 1, width: '100%' }}>
+              {explicit && column.id !== '_select' ? (
+                <Box sx={{ px: 2, py: 1, width: '100%', minWidth: 0 }}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </Box>
               ) : (
@@ -417,11 +419,16 @@ const ReactTable = ({
       // const accessorKey = col.field
       // const size = col.width || col.minWidth || 150
 
+      // const accessorKey = col.field
+      // const explicitWidth = typeof col.width === 'number'
+      // const size = explicitWidth ? col.width : col.minWidth || 150
+      // const minSize = explicitWidth ? col.width : col.minWidth || 100
+      // const maxSize = explicitWidth ? col.width : col.maxWidth || 500
       const accessorKey = col.field
-      const explicitWidth = typeof col.width === 'number'
-      const size = explicitWidth ? col.width : col.minWidth || 150
-      const minSize = explicitWidth ? col.width : col.minWidth || 100
-      const maxSize = explicitWidth ? col.width : col.maxWidth || 500
+      const explicitWidth = Number.isFinite(col.width)
+      const size = explicitWidth ? col.width : col.minWidth ?? 150
+      const minSize = explicitWidth ? col.width : col.minWidth ?? 100
+      const maxSize = explicitWidth ? col.width : col.maxWidth ?? 500
 
       return {
         id,
@@ -455,7 +462,7 @@ const ReactTable = ({
           )
         },
         meta: {
-          originalColumn: col,
+          originalColumn: { ...col, __explicitWidth: explicitWidth }, // 👈 flag for padding logic
           textAlign: col.textAlign || 'left',
           headerAlign: col.headerAlign || 'left'
         }
@@ -792,6 +799,7 @@ const ReactTable = ({
 
           const topOffset = getHeaderTop(depth, headerHeight, subHeaderHeight)
           const cellHeight = depth === 0 ? headerHeight : subHeaderHeight
+          const explicit = !!originalColumn.__explicitWidth
 
           return (
             <TableCell
@@ -808,7 +816,8 @@ const ReactTable = ({
                 textAlign: originalColumn.headerAlign || originalColumn.textAlign || 'left',
                 height: cellHeight,
                 // padding: '8px 16px',
-                padding: originalColumn.width != null && column.id !== '_select' ? 0 : '8px 16px',
+                // padding: originalColumn.width != null && column.id !== '_select' ? 0 : '8px 16px',
+                padding: explicit && column.id !== '_select' ? 0 : '8px 16px',
 
                 // pinning + sticky stacking
                 ...getCommonPinningStyles(column),
@@ -832,8 +841,10 @@ const ReactTable = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    px: originalColumn.width != null && column.id !== '_select' ? 2 : 0,
-                    py: originalColumn.width != null && column.id !== '_select' ? 1 : 0,
+                    // px: originalColumn.width != null && column.id !== '_select' ? 2 : 0,
+                    // py: originalColumn.width != null && column.id !== '_select' ? 1 : 0,
+                    px: explicit && column.id !== '_select' ? 2 : 0,
+                    py: explicit && column.id !== '_select' ? 1 : 0,
                     width: '100%',
                     boxSizing: 'border-box'
                   }}
@@ -1038,6 +1049,12 @@ const ReactTable = ({
             tableLayout: 'fixed'
           }}
         >
+          <colgroup>
+            {table.getAllLeafColumns().map(col => {
+              const w = col.getSize()
+              return <col key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} />
+            })}
+          </colgroup>
           {/* ✅ Header hidden only on first load when loading && no data */}
           {isHeaderVisible ? <TableHead>{renderTableHeader()}</TableHead> : null}
           <TableBody>{renderTableBody()}</TableBody>

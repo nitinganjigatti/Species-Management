@@ -253,8 +253,8 @@ const createColumns = theme => {
     {
       id: 'species',
       field: 'species.primary',
+      width: 280,
       headerName: 'Species Name',
-      // pinned: 'left',
       pinned: 'left',
       sortable: false,
       headerAlign: 'left',
