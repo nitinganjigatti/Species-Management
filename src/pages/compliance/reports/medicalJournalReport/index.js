@@ -1070,6 +1070,7 @@ const MedicalJournalReport = () => {
               <Box sx={{ width: '100%', px: 6 }}>
                 <Search
                   onChange={handleSearchChange}
+                  borderRadius='4px'
                   placeholder='Search by date or observation type'
                   value={searchValue}
                   inputStyle={{ py: '10px', px: '12px' }}

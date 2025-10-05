@@ -1,8 +1,13 @@
 import { useTheme } from '@emotion/react'
-import { Box, Card, CardHeader, Typography } from '@mui/material'
-import { useMemo } from 'react'
+import { Box, Card, CardHeader, IconButton, Typography } from '@mui/material'
+import { useMemo, useState, useCallback } from 'react'
+import Icon from 'src/@core/components/icon'
 import ReactTable from 'src/views/table/ReactTable'
+import Search from 'src/views/utility/Search'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { DownloadReport } from 'src/views/pages/compliance/utility'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const SPECIES_IMAGE = '/images/avatars/1.png'
 
@@ -285,30 +290,171 @@ const createColumns = theme => {
 const AnimalStockReport = () => {
   const theme = useTheme()
 
+  const [searchValue, setSearchValue] = useState('')
+  const [filterDates, setFilterDates] = useState({ startDate: '', endDate: '' })
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  // mock site selection for now
+  const selectedSite = useMemo(
+    () => ({
+      name: 'Animal Kingdom Park',
+      image: '/images/avatars/1.png'
+    }),
+    []
+  )
+
   const rows = useMemo(() => STOCK_DATA, [])
+  const filteredRows = useMemo(() => {
+    if (!searchValue) return rows
+
+    const needle = searchValue.toLowerCase()
+
+    return rows.filter(row => {
+      const primary = row?.species?.primary?.toLowerCase?.() || ''
+      const secondary = row?.species?.secondary?.toLowerCase?.() || ''
+
+      return primary.includes(needle) || secondary.includes(needle)
+    })
+  }, [rows, searchValue])
+
   const columns = useMemo(() => createColumns(theme), [theme])
+
+  const handleSearchChange = useCallback(event => {
+    setSearchValue(event.target.value)
+  }, [])
+
+  const handleDateRangeChange = useCallback((startDate, endDate) => {
+    if (startDate && endDate) {
+      setFilterDates({ startDate, endDate })
+    } else {
+      setFilterDates({ startDate: '', endDate: '' })
+    }
+  }, [])
+
+  const handleDownloadReport = useCallback(async () => {
+    try {
+      setIsDownloading(true)
+      await new Promise(resolve => setTimeout(resolve, 500))
+    } finally {
+      setIsDownloading(false)
+    }
+  }, [])
+
+  const handleClearFilters = () => {
+    setSearchValue('')
+    setFilterDates({ startDate: '', endDate: '' })
+  }
+
+  const title = (
+    <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+      Animal Stock Report
+    </Typography>
+  )
+
+  const headerAction = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      <DownloadReport isDownloading={isDownloading} handleDownloadReport={handleDownloadReport} />
+      <IconButton onClick={handleClearFilters} sx={{ backgroundColor: '#0000000D' }}>
+        <Icon icon='mdi:close' color='red' fontSize={20} />
+      </IconButton>
+    </Box>
+  )
 
   return (
     <Card>
-      <CardHeader
-        title={
-          <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Animal Stock Report
-          </Typography>
-        }
-      />
+      <CardHeader title={title} action={headerAction} sx={{ pl: 8, pb: 0 }} />
       <Box sx={{ p: 5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderRadius: '8px',
+            background: '#E8F4F2',
+            p: '16px'
+          }}
+        >
+          <Box sx={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center' }}>
+            <FallbackAvatar
+              src={selectedSite?.image || SPECIES_IMAGE}
+              alt={selectedSite?.name || 'Selected Site'}
+              sx={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }}
+            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Site
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 5600,
+                  letterSpacing: 0,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {selectedSite?.name}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { sm: 'row', xs: 'column' },
+          justifyContent: { sm: 'space-between', xs: 'flex-start' },
+          alignItems: 'center',
+          gap: 4,
+          px: 6,
+          pb: 4
+        }}
+      >
+        <Search
+          placeholder='Search by species name'
+          value={searchValue}
+          onChange={handleSearchChange}
+          borderRadius='4px'
+          inputStyle={{ py: '10px', px: '12px', borderRadius: '4px' }}
+          width={{ xs: '100%', sm: '60%', md: '50%' }}
+          sx={{
+            '& .MuiInputBase-input::placeholder': {
+              fontSize: '14px',
+              fontWeight: 400
+            },
+            width: '100%'
+          }}
+        />
+
+        <Box sx={{ width: { xs: '100%', sm: '70%' } }}>
+          <CommonDateRangePickers
+            filterDates={filterDates}
+            onChange={handleDateRangeChange}
+            useCustomText
+            customText='Select a Date Range'
+          />
+        </Box>
+      </Box>
+
+      <Box sx={{ p: 5, pt: 0 }}>
         <ReactTable
-          rows={rows}
+          rows={filteredRows}
           columns={columns}
-          rowCount={rows.length}
+          rowCount={filteredRows.length}
           pagination={false}
           rowHeight={82}
           headerHeight={48}
           subHeaderHeight={32}
           cellStyle={{ padding: '12px 16px' }}
-          rowsInView={rows.length}
-          paginationModel={{ page: 0, pageSize: rows.length }}
+          rowsInView={filteredRows.length}
+          paginationModel={{ page: 0, pageSize: filteredRows.length || 1 }}
           tableContainerSx={{ maxHeight: 'unset' }}
           modifyColumnPinning
         />
