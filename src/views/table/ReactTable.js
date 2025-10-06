@@ -263,19 +263,22 @@ const ReactTable = ({
 
   // --- stable row refs map (by page index) ---
   const rowRefs = useRef({})
+
   const setRowRef = useCallback((idx, el) => {
     rowRefs.current[idx] = el
   }, [])
 
   const getDefaultPinningFromColumns = useCallback(cols => {
     const left = []
+
     const right = []
     ;(cols || []).forEach((c, i) => {
       const id = c.field || `column_${i}`
       if (c.pinned === 'left') left.push(id)
       else if (c.pinned === 'right') right.push(id)
     })
-    return { left, right }
+    
+return { left, right }
   }, [])
 
   const defaultPinning = useMemo(() => getDefaultPinningFromColumns(columns), [columns, getDefaultPinningFromColumns])
@@ -287,7 +290,8 @@ const ReactTable = ({
       const right = pin.right ? [...pin.right] : []
       if (selectionPinned === 'left' && !left.includes('_select')) left.unshift('_select')
       if (selectionPinned === 'right' && !right.includes('_select')) right.unshift('_select')
-      return { left, right }
+      
+return { left, right }
     },
     [rowSelection, selectionPinned]
   )
@@ -337,7 +341,8 @@ const ReactTable = ({
   // ---- Columns ----
   const baseColumns = useMemo(() => {
     if (!Array.isArray(columns)) return []
-    return columns.map((col, index) => ({
+    
+return columns.map((col, index) => ({
       id: col.field || `column_${index}`,
       accessorKey: col.field,
       header: col.headerName || col.field,
@@ -352,7 +357,8 @@ const ReactTable = ({
         const cellProps = { row: row.original, value, field: col.field }
         if (col.renderCell) return col.renderCell(cellProps)
         if (React.isValidElement(value)) return value
-        return (
+        
+return (
           <Typography
             sx={{
               fontSize: '14px',
@@ -411,7 +417,8 @@ const ReactTable = ({
                     delete next[r.id]
                   })
                 }
-                return next
+                
+return next
               })
             }}
             checkboxSX={checkboxSX}
@@ -452,7 +459,8 @@ const ReactTable = ({
       if (!filtered.length && rowsInViewOptions?.length) {
         filtered.push(Math.min(maxView, rowsInViewOptions[0]))
       }
-      return Array.from(new Set(filtered)).sort((a, b) => a - b)
+      
+return Array.from(new Set(filtered)).sort((a, b) => a - b)
     } catch {
       return rowsInViewOptions || []
     }
@@ -482,9 +490,11 @@ const ReactTable = ({
       const base = raw !== null && raw !== undefined && raw !== '' ? String(raw) : `__auto_idx_${index}`
       if (serverSide) {
         const absIndex = paginationModel.page * paginationModel.pageSize + index
-        return `${base}__pg_${absIndex}`
+        
+return `${base}__pg_${absIndex}`
       }
-      return base
+      
+return base
     },
     [rowIdKey, serverSide, paginationModel.page, paginationModel.pageSize]
   )
@@ -526,6 +536,7 @@ const ReactTable = ({
   const hasSubHeader = processedColumns.some(
     col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
   )
+
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
     currentRowsInView * rowHeight + (isHeaderVisible ? headerHeight : 0) + (hasSubHeader ? subHeaderHeight : 0)
   )
@@ -566,10 +577,12 @@ const ReactTable = ({
     setAnchorEl(event.currentTarget)
     setMenuColumn(column)
   }
+
   const handleColumnMenuClose = () => {
     setAnchorEl(null)
     setMenuColumn(null)
   }
+
   const handlePinColumn = (columnId, position) => {
     const col = table.getAllLeafColumns().find(c => c.id === columnId)
     if (col) col.pin(position || false)
@@ -588,7 +601,8 @@ const ReactTable = ({
       const next = { ...prev }
       if (checked) next[rowId] = true
       else delete next[rowId]
-      return next
+      
+return next
     })
   }, [])
 
@@ -714,7 +728,8 @@ const ReactTable = ({
   // ---- Footer ----
   const renderFooter = () => {
     if (!pagination) return null
-    return (
+    
+return (
       <Box
         sx={{
           display: 'flex',

@@ -268,6 +268,7 @@ const SelectSiteList = ({
                 </ListItemAvatar>
                 <ListItemText
                   primary={site?.site_name}
+
                   //secondary={site.location || '-'}
                   slotProps={{
                     secondary: {

@@ -531,6 +531,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                                 isOptionEqualToValue={(option, value) =>
                                   parseInt(option?.rack_id) === parseInt(value?.rack_id)
                                 }
+
                                 // onChange={(e, val) => {
                                 //   if (val === null) {
                                 //     var rack = defaultRack

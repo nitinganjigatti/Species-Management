@@ -307,6 +307,7 @@ function UploadDiet({
                     <Controller
                       name='notes'
                       control={control}
+
                       //   rules={{ required: !editNurseryId }}
                       render={({ field: { value, onChange } }) => (
                         <Grid onClick={() => fileInputRef.current.click()} item size={{ md: 12, sm: 12, xs: 12 }}>
@@ -445,6 +446,7 @@ function UploadDiet({
             variant='contained'
             size='large'
             sx={{ height: '58px', width: '514px', mx: 4 }}
+
             // onClick={() => {
             //   handleSubmit()
             // }}

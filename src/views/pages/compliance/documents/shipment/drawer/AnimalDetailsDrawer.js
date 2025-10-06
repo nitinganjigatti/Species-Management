@@ -28,6 +28,7 @@ const AnimalDetailsDrawer = ({
   return (
     <Drawer
       open={open}
+
       //onClose={onClose}
       anchor='right'
     >

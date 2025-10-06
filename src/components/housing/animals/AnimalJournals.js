@@ -106,6 +106,7 @@ const AnimalJournals = () => {
       setUsers(Users?.data)
     } catch (error) {
       console.error(String(error) || 'Failed to fetch user data.')
+
       // Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
     }
   }

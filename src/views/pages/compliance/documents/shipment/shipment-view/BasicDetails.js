@@ -9,6 +9,7 @@ const BasicDetails = ({ airwaybillvalue, fileNumberValue, selectedId, startDate,
   const theme = useTheme()
   const auth = useAuth()
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
+
   // const rawValue = airwaybillvalue || ''
   // const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
   // const formattedValue =
@@ -42,7 +43,8 @@ const BasicDetails = ({ airwaybillvalue, fileNumberValue, selectedId, startDate,
 
     return imgPath?.default
   }
-  return (
+  
+return (
     <>
       {!loader && airwaybillvalue ? (
         <Box

@@ -304,6 +304,8 @@ const AnimalIncidents = () => {
               <MenuItem
                 onClick={() => {
                   setIsEdit(true)
+
+
                   // Prefer the 'missing' detail if available; otherwise fallback to first
                   const editDetail =
                     selectedIncident?.incident_details?.find(d => d?.incident_type === 'missing') ||

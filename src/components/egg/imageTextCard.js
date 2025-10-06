@@ -50,6 +50,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           }}
         >
           {imgURl ? (
+
             // <img
             //   src={imgURl}
             //   alt='Default'

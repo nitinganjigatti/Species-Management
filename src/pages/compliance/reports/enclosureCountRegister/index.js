@@ -91,6 +91,7 @@ const EnclosureCountRegister = () => {
       : []
   ).map(String)
   const siteKey = siteIdsArr.join(',')
+
   const typeKey =
     selectedItems?.reportType === 'individual' ? 'individual' : selectedItems?.reportType ? 'species-wise' : ''
   const sectionKey = (selectedItems?.Section || []).join(',')
@@ -132,6 +133,8 @@ const EnclosureCountRegister = () => {
     },
     [sectionId, siteKey]
   )
+
+
   // Debounced server search
   const debouncedEnclosureSearch = useMemo(
     () => debounce(q => fetchEnclosures(q, sectionId, siteKey), 400),
@@ -198,6 +201,7 @@ const EnclosureCountRegister = () => {
     if (selectedEnclosure?.enclosure_id) params.enclosure_id = selectedEnclosure.enclosure_id
 
     let canceled = false
+
     const statKeyChanged =
       prevStatKeyRef.current.siteKey !== siteKey ||
       prevStatKeyRef.current.type !== typeKey ||
@@ -213,6 +217,7 @@ const EnclosureCountRegister = () => {
         if (canceled) return
         if (res?.success) {
           const animals = res?.data?.animals || []
+
           const rows = animals.map((item, idx) => {
             if (selectedItems?.reportType === 'individual') {
               return {
@@ -227,6 +232,7 @@ const EnclosureCountRegister = () => {
                 sex: item.sex || '-',
                 primary_identifier_type: item.primary_identifier_type || null,
                 primary_identifier_value: item.primary_identifier_value || null,
+
                 // Map to AnimalCard expected keys
                 local_identifier_name: item.primary_identifier_type || null,
                 local_identifier_value: item.primary_identifier_value || null
@@ -623,6 +629,7 @@ const EnclosureCountRegister = () => {
   const applySearchDebounced = useCallback(
     debounce(val => {
       setSearchValue(val)
+
       // Reset page after settling search
       setPaginationModel(prev => ({ ...prev, page: 0 }))
     }, 600),

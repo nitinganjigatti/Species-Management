@@ -46,6 +46,7 @@ const NurseryList = () => {
   const fetchTableData = useCallback(
     async (q = '', siteId) => {
       setLoading(true)
+
       const params = {
         sort,
         search: q,
@@ -202,6 +203,7 @@ const NurseryList = () => {
       sortable: false,
       align: 'left',
       field: 'active',
+
       // headerAlign: 'left',
       headerName: 'Status',
       renderCell: params => (
@@ -300,7 +302,8 @@ const NurseryList = () => {
   const handleCellClick = params => router.push(`/egg/nursery/${params.row.id}`)
 
   if (!nurseryPermission && !collectionPermission) return <ErrorScreen />
-  return (
+  
+return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography sx={{ cursor: 'pointer' }} color='inherit'>
@@ -427,6 +430,7 @@ const NurseryList = () => {
           hideFooterSelectedRowCount
           disableColumnSelector
           disableColumnMenu
+
           // columnVisibilityModel={{
           //   sl_no: false
           // }}

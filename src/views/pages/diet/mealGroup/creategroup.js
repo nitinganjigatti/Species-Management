@@ -96,7 +96,8 @@ const CreateMealGroup = ({
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       setGroupNameError(true)
-      return
+      
+return
     }
     setGroupNameError(false)
 
@@ -262,6 +263,7 @@ const CreateMealGroup = ({
           sx={{ height: '58px' }}
           fullWidth
           disabled={loading}
+
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'

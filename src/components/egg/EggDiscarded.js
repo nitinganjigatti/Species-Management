@@ -201,6 +201,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
       )}
 
       <Dialog open={iseOpen} 
+
       // onClose={() => setOpenDiscardDialog(false)}
       onClose={() => setIsOpen(false)}
       >

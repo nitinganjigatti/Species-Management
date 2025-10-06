@@ -12,7 +12,17 @@ import AddIcon from '@mui/icons-material/Add'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 
-export default function ScheduleMedicine({ control, errors, selectedMedicineTo }) {
+export default function ScheduleMedicine({ control, errors, selectedMedicineTo, medicalMasterData }) {
+  console.log('medicalMasterData', medicalMasterData)
+
+  const {
+    caseTypes,
+    prescriptionMeasurementType,
+    prescriptionDosageMeasurementType,
+    prescriptionDuration,
+    prescriptionFrequency,
+    prescriptionDeliveryRoute
+  } = medicalMasterData
   const theme = useTheme()
 
   // Options for selects
@@ -145,7 +155,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
               label='Set Frequency'
               control={control}
               errors={errors}
-              options={frequencyOptions}
+              options={prescriptionFrequency}
               getOptionLabel={option => option.label}
               getOptionValue={option => option.value}
               required
@@ -169,7 +179,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
               size='large'
               control={control}
               errors={errors}
-              options={doseTypeOptions}
+              options={prescriptionDosageMeasurementType}
               getOptionLabel={option => option.label}
               getOptionValue={option => option.value}
               required
@@ -209,7 +219,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                   selectFieldName={`schedules.${idx}.unit`}
                   control={control}
                   errors={errors}
-                  options={unitOptions}
+                  options={prescriptionMeasurementType}
                   label='Quantity'
                   placeholder='Enter quantity'
                   type='number'
@@ -279,7 +289,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
               size='large'
               control={control}
               errors={errors}
-              options={deliveryRouteOptions}
+              options={prescriptionDeliveryRoute}
               getOptionLabel={option => option.label}
               getOptionValue={option => option.value}
               required
@@ -327,7 +337,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                 size='large'
                 control={control}
                 errors={errors}
-                options={durationUnitOptions}
+                options={prescriptionDuration}
                 required
                 getOptionLabel={option => option.label}
                 getOptionValue={option => option.value}

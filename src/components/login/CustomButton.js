@@ -28,6 +28,7 @@ const CustomButton = ({
         ...sx
       }}
       {...rest}
+
       // disabled={loading} // Disable button when loading
     >
       {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : children}

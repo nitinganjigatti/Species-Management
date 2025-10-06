@@ -73,7 +73,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
     try {
       const response = await getNotesListForSymptom(params)
-      return response
+      
+return response
     } catch (error) {
       console.error('Error fetching notes for symptom:', error)
       throw error
@@ -94,6 +95,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
     try {
       setDeleteLoading(true)
+
       const payload = {
         main_id: temporarilySelected?.complaint_id,
         med_id: temporarilySelected?.medical_record_id,

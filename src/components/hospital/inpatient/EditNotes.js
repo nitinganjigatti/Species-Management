@@ -10,6 +10,7 @@ const EditNotes = ({ open, onClose, notes, setNotes, isUpdating, isDeleting, han
   return (
     <Dialog
       open={open}
+
       // onClose={onClose}
       maxWidth='sm'
       fullWidth

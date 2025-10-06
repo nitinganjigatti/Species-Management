@@ -474,6 +474,7 @@ const AnimalIdentifier = () => {
             )}
           </MenuItem>
         ) : (
+
           // Show edit and delete options for active identifiers
           <>
             <MenuItem

@@ -11,6 +11,7 @@ import ActionButtons from '../FooterActionbuttons'
 import TimeSlotCell from 'src/views/pages/hospital/prescription-monitoring/TimeSlotCell'
 import MetricCard from 'src/views/pages/hospital/prescription-monitoring/MetricCard'
 import Router from 'next/router'
+import { useRouter } from 'next/router'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -239,6 +240,9 @@ const PrescriptionMonitoringGrid = ({
   onOpenPrescriptionCard = () => {}
 }) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id, animal_id, medical_record_id } = router.query
+  console.log(router.query, 'router.query')
 
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
@@ -782,7 +786,13 @@ const PrescriptionMonitoringGrid = ({
         <Grid item size={{ xs: 2, sm: 2 }}>
           <Button
             onClick={() => {
-              Router.push('/hospital/inpatient/2/schedule-prescription')
+              router.push({
+                pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+                query: {
+                  animal_id,
+                  medical_record_id
+                }
+              })
             }}
             sx={{ height: '48px', width: '100%' }}
             variant='contained'

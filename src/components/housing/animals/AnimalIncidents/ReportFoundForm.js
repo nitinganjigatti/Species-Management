@@ -16,6 +16,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+
 // Use AuthContext instead of direct storage access
 import { AuthContext } from 'src/context/AuthContext'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
@@ -88,6 +89,7 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
   useEffect(() => {
     if (reportFoundForm) {
       getUsers()
+
       // Prefill current user as founder
       const user = authData?.userData?.user
       if (user) {
@@ -167,6 +169,7 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
       const res = await createAnimalIncident(formData)
       if (res.success) {
         Toaster({ type: 'success', message: res.message || 'Incident created successfully' })
+
         // Optional: refresh list if parent passes a callback in future
         // fetchAnimalIncidents?.()
         reset()
@@ -308,6 +311,7 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
                             sx={{
                               ...basicStyle
                             }}
+
                             // value={allocationDate}
                             onChange={newDate => {
                               if (newDate) {
@@ -328,6 +332,7 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
                     <Controller
                       name='foundTime'
                       control={control}
+
                       // defaultValue={dayjs()} // or null
                       render={({ field }) => (
                         <LocalizationProvider LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -756,6 +761,7 @@ const ReportFoundForm = ({ reportFoundForm, setReportFoundForm, animalId }) => {
             variant='contained'
             size='large'
             sx={{ height: '58px', width: '514px', mx: 4 }}
+
             // onClick={() => {
             //   handleSubmit()
             // }}

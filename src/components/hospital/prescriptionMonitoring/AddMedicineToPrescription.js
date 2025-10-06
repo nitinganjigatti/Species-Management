@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Box, Grid, Typography, Button } from '@mui/material'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import { useTheme } from '@mui/material/styles'
@@ -9,6 +9,12 @@ import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import PrescriptionMedicineList from 'src/views/pages/hospital/prescription-monitoring/PrescriptionMedicineList'
 import ScheduleMedicine from 'src/views/pages/hospital/prescription-monitoring/ScheduleMedicine'
+import { getSymptomsListForAdding, addSymptoms } from 'src/lib/api/hospital/symptoms'
+import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import { useRouter } from 'next/router'
+import { getMedicineList } from 'src/lib/api/hospital/medicineList'
+import { debounce } from 'lodash'
+import { getMedicalMasterData } from 'src/lib/api/hospital/medicalMaster'
 
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
@@ -105,6 +111,9 @@ export default function AddMedicineToPrescription() {
     medicineStatus: '',
     controlSubstanceFiles: []
   }
+  const router = useRouter()
+
+  const { id, animal_id, medical_record_id } = router.query
 
   const {
     control,
@@ -122,273 +131,30 @@ export default function AddMedicineToPrescription() {
   // Only one medicine can be selected at a time
   const [selectedMedicine, setSelectedMedicine] = useState(null)
   const [temporarilySelectedMedicine, setTemporarilySelectedMedicine] = useState(null)
-  const [medicineDrawerOpen, setMedicineDrawerOpen] = useState(false)
-  const [clinicalAssessment, setClinicalAssessment] = useState('')
-  const [prognosisValue, setPrognosisValue] = useState('')
-  const [chronicValue, setChronicValue] = useState('No')
-  const [medicineNotes, setMedicineNotes] = useState('')
-  const [medicineStatus, setMedicineStatus] = useState('')
+  const [patientData, setPatientData] = useState(null)
+  const [patientLoading, setPatientLoading] = useState(false)
 
-  const medicineList = [
-    // Respiratory Medications
-    {
-      id: 'MED001',
-      label: 'Dextromethorphan',
-      genericName: 'Dextromethorphan Hydrobromide',
-      type: 'Respiratory',
-      indication: 'Cough suppressant',
-      symptoms: ['Coughing', 'Labored Breathing']
-    },
-    {
-      id: 'MED002',
-      label: 'Robitussin',
-      genericName: 'Guaifenesin',
-      type: 'Respiratory',
-      indication: 'Expectorant for chest congestion',
-      symptoms: ['Coughing', 'Labored Breathing']
-    },
-    {
-      id: 'MED003',
-      label: 'Ventolin',
-      genericName: 'Salbutamol',
-      type: 'Respiratory',
-      indication: 'Bronchodilator for asthma',
-      symptoms: ['Labored Breathing', 'Coughing']
-    },
-    {
-      id: 'MED004',
-      label: 'Azithral',
-      genericName: 'Azithromycin',
-      type: 'Respiratory',
-      indication: 'Antibiotic for respiratory infections',
-      symptoms: ['Nasal or eye discharge', 'Coughing']
-    },
-    {
-      id: 'MED005',
-      label: 'Augmentin',
-      genericName: 'Amoxicillin + Clavulanic Acid',
-      type: 'Respiratory',
-      indication: 'Antibiotic for bacterial infections',
-      symptoms: ['Nasal or eye discharge', 'Coughing']
-    },
+  // Pagination and search states for medicines
+  const [apiMedicineList, setApiMedicineList] = useState([])
+  const [medicineSearchQuery, setMedicineSearchQuery] = useState('')
+  const [medicineLoading, setMedicineLoading] = useState(false)
+  const [totalMedicines, setTotalMedicines] = useState(0)
+  const [searching, setSearching] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [resetPagination, setResetPagination] = useState(false)
+  const [page, setPage] = useState(1)
 
-    // Digestive Medications
-    {
-      id: 'MED006',
-      label: 'Emeset',
-      genericName: 'Ondansetron',
-      type: 'Digestive',
-      indication: 'Anti-nausea, appetite improvement',
-      symptoms: ['Loss of appetite']
-    },
-    {
-      id: 'MED007',
-      label: 'Digene',
-      genericName: 'Magnesium Hydroxide + Aluminium Hydroxide',
-      type: 'Digestive',
-      indication: 'Antacid for stomach upset',
-      symptoms: ['Loss of appetite']
-    },
-    {
-      id: 'MED008',
-      label: 'Pantop',
-      genericName: 'Pantoprazole',
-      type: 'Digestive',
-      indication: 'Proton pump inhibitor for acidity',
-      symptoms: ['Loss of appetite']
-    },
-    {
-      id: 'MED009',
-      label: 'Domperidone',
-      genericName: 'Domperidone',
-      type: 'Digestive',
-      indication: 'Anti-nausea, prokinetic agent',
-      symptoms: ['Loss of appetite']
-    },
-
-    {
-      id: 'MED010',
-      label: 'Dolo',
-      genericName: 'Paracetamol',
-      type: 'Musculoskeletal',
-      indication: 'Pain relief and fever reduction',
-      symptoms: ['Limping or abnormal gait']
-    },
-    {
-      id: 'MED011',
-      label: 'Brufen',
-      genericName: 'Ibuprofen',
-      type: 'Musculoskeletal',
-      indication: 'NSAID for pain and inflammation',
-      symptoms: ['Limping or abnormal gait']
-    },
-    {
-      id: 'MED012',
-      label: 'Voveran',
-      genericName: 'Diclofenac',
-      type: 'Musculoskeletal',
-      indication: 'NSAID for pain and inflammation',
-      symptoms: ['Limping or abnormal gait']
-    },
-    {
-      id: 'MED013',
-      label: 'Gabapin',
-      genericName: 'Gabapentin',
-      type: 'Musculoskeletal',
-      indication: 'Neuropathic pain relief',
-      symptoms: ['Limping or abnormal gait']
-    },
-    {
-      id: 'MED014',
-      label: 'Tramacet',
-      genericName: 'Tramadol + Paracetamol',
-      type: 'Musculoskeletal',
-      indication: 'Moderate to severe pain relief',
-      symptoms: ['Limping or abnormal gait']
-    },
-
-    {
-      id: 'MED015',
-      label: 'Lasix',
-      genericName: 'Furosemide',
-      type: 'General',
-      indication: 'Diuretic for fluid retention',
-      symptoms: ['Swelling']
-    },
-    {
-      id: 'MED016',
-      label: 'Aldactone',
-      genericName: 'Spironolactone',
-      type: 'General',
-      indication: 'Diuretic, reduces swelling',
-      symptoms: ['Swelling']
-    },
-    {
-      id: 'MED003',
-      label: 'Ventolin',
-      genericName: 'Salbutamol',
-      type: 'Respiratory',
-      indication: 'Bronchodilator for asthma',
-      symptoms: ['Labored Breathing', 'Coughing']
-    },
-    {
-      id: 'MED004',
-      label: 'Azithral',
-      genericName: 'Azithromycin',
-      type: 'Respiratory',
-      indication: 'Antibiotic for respiratory infections',
-      symptoms: ['Nasal or eye discharge', 'Coughing']
-    },
-    {
-      id: 'MED005',
-      label: 'Augmentin',
-      genericName: 'Amoxicillin + Clavulanic Acid',
-      type: 'Respiratory',
-      indication: 'Antibiotic for bacterial infections',
-      symptoms: ['Nasal or eye discharge', 'Coughing']
-    },
-
-    // Digestive Medications
-    {
-      id: 'MED006',
-      label: 'Emeset',
-      genericName: 'Ondansetron',
-      type: 'Digestive',
-      indication: 'Anti-nausea, appetite improvement',
-      symptoms: ['Loss of appetite']
-    },
-    {
-      id: 'MED007',
-      label: 'Digene',
-      genericName: 'Magnesium Hydroxide + Aluminium Hydroxide',
-      type: 'Digestive',
-      indication: 'Antacid for stomach upset',
-      symptoms: ['Loss of appetite']
-    },
-    {
-      id: 'MED008',
-      label: 'Pantop',
-      genericName: 'Pantoprazole',
-      type: 'Digestive',
-      indication: 'Proton pump inhibitor for acidity',
-      symptoms: ['Loss of appetite']
-    },
-    {
-      id: 'MED009',
-      label: 'Domperidone',
-      genericName: 'Domperidone',
-      type: 'Digestive',
-      indication: 'Anti-nausea, prokinetic agent',
-      symptoms: ['Loss of appetite']
-    },
-
-    {
-      id: 'MED010',
-      label: 'Dolo',
-      genericName: 'Paracetamol',
-      type: 'Musculoskeletal',
-      indication: 'Pain relief and fever reduction',
-      symptoms: ['Limping or abnormal gait']
-    },
-    {
-      id: 'MED011',
-      label: 'Brufen',
-      genericName: 'Ibuprofen',
-      type: 'Musculoskeletal',
-      indication: 'NSAID for pain and inflammation',
-      symptoms: ['Limping or abnormal gait']
-    },
-    {
-      id: 'MED012',
-      label: 'Voveran',
-      genericName: 'Diclofenac',
-      type: 'Musculoskeletal',
-      indication: 'NSAID for pain and inflammation',
-      symptoms: ['Limping or abnormal gait']
-    },
-    {
-      id: 'MED013',
-      label: 'Gabapin',
-      genericName: 'Gabapentin',
-      type: 'Musculoskeletal',
-      indication: 'Neuropathic pain relief',
-      symptoms: ['Limping or abnormal gait']
-    },
-    {
-      id: 'MED014',
-      label: 'Tramacet',
-      genericName: 'Tramadol + Paracetamol',
-      type: 'Musculoskeletal',
-      indication: 'Moderate to severe pain relief',
-      symptoms: ['Limping or abnormal gait']
-    },
-
-    {
-      id: 'MED015',
-      label: 'Lasix',
-      genericName: 'Furosemide',
-      type: 'General',
-      indication: 'Diuretic for fluid retention',
-      symptoms: ['Swelling']
-    },
-    {
-      id: 'MED016',
-      label: 'Aldactone',
-      genericName: 'Spironolactone',
-      type: 'General',
-      indication: 'Diuretic, reduces swelling',
-      symptoms: ['Swelling']
-    }
-  ]
+  const [medicalMasterData, setMedicalMasterData] = useState([])
 
   // Select a medicine to add details (single-select)
   const handleMedicineSelect = medicine => {
     if (medicine) {
       setValue('selectedMedicineId', medicine.id, { shouldValidate: true })
       setValue('selectedMedicine', medicine, { shouldValidate: true })
-      setTemporarilySelectedMedicine(medicine)
-      setSelectedMedicine(medicine)
-      setMedicineDrawerOpen(true)
+      setTemporarilySelectedMedicine({ id: medicine.id, name: medicine.name })
+      setSelectedMedicine({ id: medicine.id, name: medicine.name })
+
+      // setMedicineDrawerOpen(true)
     }
   }
 
@@ -404,25 +170,158 @@ export default function AddMedicineToPrescription() {
   const addMedicineDetails = details => {
     setSelectedMedicine({ ...temporarilySelectedMedicine, ...details })
     setTemporarilySelectedMedicine(null)
-    setMedicineDrawerOpen(false)
+
+    // setMedicineDrawerOpen(false)
   }
 
-  // List of medicines not yet selected (for single-select, just filter out the selected one)
-  const availableMedicines = selectedMedicine
-    ? medicineList.filter(med => med.label !== selectedMedicine.label)
-    : medicineList
+  const fetchMedicalMasterData = useCallback(async () => {
+    try {
+      const response = await getMedicalMasterData()
+      if (response?.success) {
+        setMedicalMasterData(response?.data)
+      } else {
+        setMedicalMasterData([])
+      }
+    } catch (error) {
+      console.error('Error fetching medical master data:', error.message)
+    }
+  }, [])
+
+  const fetchMedicines = useCallback(
+    async (query = '', pageNo = 1, append = false) => {
+      try {
+        // setMedicineLoading(true)
+        if (pageNo === 1) {
+          setSearching(true)
+        } else {
+          setMedicineLoading(true)
+        }
+
+        const params = {
+          q: query,
+          page_no: pageNo,
+          screen: 'Medicine'
+
+          // limit: 10
+        }
+        const response = await getMedicineList({ params })
+        if (response?.success) {
+          const medicines = response.data.brand_name.result || []
+          const totalCount = parseInt(response.data.brand_name.count) || 0
+          const newResults = response.data.brand_name.result || []
+          const totalRecords = parseInt(response.data.brand_name.count) || 0
+
+          setApiMedicineList(prev => (append ? [...prev, ...newResults] : newResults))
+          setTotalMedicines(totalRecords)
+          setHasMore(pageNo * 20 < totalRecords)
+        }
+      } catch (error) {
+        console.error('Error fetching medicines:', error)
+
+        return []
+      } finally {
+        setMedicineLoading(false)
+        setSearching(false)
+        setResetPagination(false)
+      }
+    },
+    [apiMedicineList.length]
+  )
+
+  // Handle search query changes
+  // const handleMedicineSearch = useCallback(
+  //   searchQuery => {
+  //     setMedicineSearchQuery(searchQuery)
+  //     setCurrentPage(1)
+  //     setApiMedicineList([])
+  //     fetchMedicines(searchQuery, 1, true)
+  //   },
+  //   [fetchMedicines]
+  // )
+
+  const debouncedSearch = useCallback(
+    debounce(query => {
+      setResetPagination(true)
+      setPage(1)
+      fetchMedicines(query, 1, false)
+    }, 500),
+    []
+  )
+
+  const handleMedicineSearch = e => {
+    const value = e.target.value
+    setMedicineSearchQuery(value)
+    debouncedSearch(value)
+  }
+
+  const handleClearSearch = () => {
+    setMedicineSearchQuery('')
+    setPage(1)
+    fetchMedicines('', 1, false)
+  }
+
+  const handleScroll = e => {
+    if (resetPagination || medicineLoading || !hasMore) return
+    const bottom = e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 50
+
+    if (bottom) {
+      const nextPage = page + 1
+      setPage(nextPage)
+      fetchMedicines(medicineSearchQuery, nextPage, true)
+    }
+  }
+
+  // Load more medicines for pagination
+  // const loadMoreMedicines = useCallback(async () => {
+  //   if (!medicineLoading && hasMoreData) {
+  //     const nextPage = currentPage + 1
+  //     setCurrentPage(nextPage)
+  //     await fetchMedicines(medicineSearchQuery, nextPage, false)
+  //   }
+  // }, [currentPage, medicineSearchQuery, medicineLoading, hasMoreData, fetchMedicines])
+
+  useEffect(() => {
+    fetchMedicines('', 1, true)
+    fetchMedicalMasterData()
+  }, [])
+
+  useEffect(() => {
+    const getPatientInfo = async () => {
+      setPatientLoading(true)
+      try {
+        await getPatientDetails(id).then(res => {
+          if (res?.success === true) {
+            setPatientData(res?.data)
+            setPatientLoading(false)
+          } else {
+            setPatientData(null)
+            setPatientLoading(false)
+          }
+        })
+      } catch (error) {
+        console.error('Cannot Fetch Patient Details', error)
+        setPatientLoading(false)
+      }
+    }
+
+    getPatientInfo()
+  }, [id])
 
   return (
     <Box sx={{ p: 3 }}>
       <AnimalDetails
-        image='/leopard.jpg'
-        name='Leopard'
-        scientificName='Panthera pardus'
-        aid='123456'
-        admittedDays='6 Days'
-        location='Cage 1, Patient Wing 2'
-        vet='Dr. Nitin A Ganjigatti'
-        ageGender='2y 5m . male'
+        image={patientData?.animal_detail?.default_icon}
+        name={patientData?.animal_detail?.common_name}
+        scientificName={patientData?.animal_detail?.complete_name}
+        identifierValue={patientData?.animal_detail?.local_identifier_value}
+        identifierName={patientData?.animal_detail?.local_identifier_name}
+        admittedDays={patientData?.admitted_for_day}
+        location={patientData?.bed_name || 'N/A'}
+        vet={patientData?.attend_by_full_name || 'N/A'}
+        ageGender={`${patientData?.animal_detail?.age || 'N/A'}${
+          patientData?.animal_detail?.sex ? ` . ${patientData?.animal_detail?.sex}` : ''
+        }`}
+        isLoading={patientLoading}
       />
 
       <Grid
@@ -460,15 +359,27 @@ export default function AddMedicineToPrescription() {
 
         <Grid size={{ xs: 12, md: 7, lg: 7 }}>
           <PrescriptionMedicineList
-            medicineList={medicineList}
+            medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
-            selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
+            // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
+            selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
             onSelect={handleMedicineSelect}
+            searchQuery={medicineSearchQuery}
+            handleSearchChange={handleMedicineSearch}
+            handleClearSearch={handleClearSearch}
+            handleScroll={handleScroll}
+            loading={medicineLoading}
+            searching={searching}
             error={errors.selectedMedicine?.message || errors.selectedMedicineId?.message}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 5, lg: 5 }}>
-          <ScheduleMedicine control={control} errors={errors} selectedMedicineTo={watch('selectMedicineType')} />
+          <ScheduleMedicine
+            medicalMasterData={medicalMasterData}
+            control={control}
+            errors={errors}
+            selectedMedicineTo={watch('selectMedicineType')}
+          />
         </Grid>
       </Grid>
 

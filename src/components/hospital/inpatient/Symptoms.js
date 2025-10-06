@@ -144,7 +144,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
                 {tabs.map(tab => {
                   const countKey = tabTypeMap[tab]
                   const tabCount = recordTypeCount?.[countKey] || 0
-                  return (
+                  
+return (
                     <Box
                       key={tab}
                       onClick={() => handleTabChange(tab)}

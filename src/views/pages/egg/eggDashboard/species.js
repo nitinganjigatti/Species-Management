@@ -106,6 +106,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       slots={{
         transition: Fade
       }}
+
       //TransitionComponent={Fade}
       title={
         <Box
@@ -194,6 +195,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       headerName: 'SPECIES',
       renderCell: params => (
         <SpeciesCard species={{ ...params?.row, common_name: params.row?.default_common_name }} />
+
         // <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
         //   <Avatar
         //     variant='rounded'
@@ -277,6 +279,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           }}
         >
           <Typography
+
             // onClick={e => {
             //   e.stopPropagation()
             //   getdrawerspeciesFunc(

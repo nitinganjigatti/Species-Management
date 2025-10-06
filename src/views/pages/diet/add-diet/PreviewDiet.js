@@ -1158,6 +1158,7 @@ const StepPreviewDiet = ({
                         {formData.diet_type_name === 'By Gender' ? (
                           <>
                             <TableCell
+
                               //colSpan={12}
                               sx={{
                                 border: 'none',
@@ -1171,6 +1172,7 @@ const StepPreviewDiet = ({
                               <Typography>GENERIC</Typography>
                             </TableCell>
                             <TableCell
+
                               // colSpan={12}
                               sx={{
                                 border: 'none',
@@ -1262,6 +1264,7 @@ const StepPreviewDiet = ({
                               <Typography>Undetermined</Typography>
                             </TableCell>
                             <TableCell
+
                               // colSpan={12}
                               sx={{
                                 border: 'none',
@@ -1840,7 +1843,8 @@ const StepPreviewDiet = ({
 
                                                           return meal.quantity + (uomName ? ' ' + uomName : '')
                                                         }
-                                                        return null
+                                                        
+return null
                                                       })
                                                       .filter(Boolean)
 

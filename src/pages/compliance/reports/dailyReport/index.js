@@ -58,6 +58,7 @@ const DailyReport = () => {
   const [tempSelectedItems, setTempSelectedItems] = useState({ Site: [] })
   const [filterCount, setFilterCount] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+
   const [dateRange, setDateRange] = useState({
     start_date: '2024-06-01',
     end_date: '2025-09-15'
@@ -83,6 +84,7 @@ const DailyReport = () => {
   const loadSitesFromAuth = useCallback(() => {
     try {
       const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
+
       const mapped = sites.map(s => ({
         site_id: String(s.id ?? s.site_id ?? ''),
         site_name: s.site_name,
@@ -160,7 +162,8 @@ const DailyReport = () => {
   const filteredRows = useMemo(() => {
     if (!searchValue.trim()) return rawRows
     const q = searchValue.toLowerCase()
-    return rawRows.filter(
+    
+return rawRows.filter(
       r =>
         (r.date || '').toLowerCase().includes(q) ||
         (r.observation_type || '').toLowerCase().includes(q) ||
@@ -173,6 +176,7 @@ const DailyReport = () => {
   useEffect(() => {
     const start = paginationModel.page * paginationModel.pageSize
     const end = start + paginationModel.pageSize
+
     const pageRows = filteredRows.slice(start, end).map((r, idx) => ({
       ...r,
       sl_no: String(start + idx + 1).padStart(2, '0')
@@ -185,6 +189,7 @@ const DailyReport = () => {
   const fetchObservationMasterType = async () => {
     try {
       setObservationListLoader(true)
+
       const params = {
         // page: 1,
         // limit: 50,
@@ -284,8 +289,10 @@ const DailyReport = () => {
         setRawRows([])
         setIndexedRows([])
         setTotal(0)
-        return
+        
+return
       }
+
       const params = {
         report_type: 'json',
         site_id: siteIds.join(','),
@@ -327,6 +334,7 @@ const DailyReport = () => {
     fetchObservationMasterType()
   }, [
     fetchDailyReport,
+
     // explicit deps to trigger once per change:
     selectedSiteIds.join(','), // array -> string to avoid ref churn
     dateRange.start_date,
@@ -349,6 +357,7 @@ const DailyReport = () => {
     }
     try {
       setIsDownloading(true)
+
       // If you already have a util to download PDF, call it here:
       await downloadPDF({
         apiCall: getComplianceDailyReport,
@@ -581,6 +590,7 @@ const DailyReport = () => {
                 <Autocomplete
                   value={defaultObservationType}
                   disablePortal
+
                   // disabled={isEdit || incubatorDetail}
                   id='nursery'
                   loading={observationListLoader}
@@ -594,6 +604,7 @@ const DailyReport = () => {
                   disableClearable={false}
                   renderInput={params => (
                     <TextField
+
                       // onChange={e => {
                       //   searchNursery(e.target.value)
                       // }}
@@ -643,6 +654,7 @@ const DailyReport = () => {
                 />
 
                 <CommonDateRangePickers
+
                   // sx={{ maxWidth: '400px' }}
                   onChange={handleDateRangeChange}
                   filterDates={dateRange}

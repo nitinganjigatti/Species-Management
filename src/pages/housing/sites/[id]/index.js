@@ -189,6 +189,7 @@ const SiteDetails = () => {
               return
             }
           }}
+
           // onMessageClick={() => console.log('Message clicked')}
           error={error}
           statsData={statsData}

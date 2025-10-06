@@ -760,3 +760,9 @@ export const DELETE_NOTE_CLINICAL_ASSESSMENT = 'medical/v2/delete-note/diagnosis
 export const HOSPITAL_LISTING = 'v1/hospital/listing'
 
 export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'
+
+//Hospital prescription monitoring
+
+export const MEDICINE_LIST = 'medical/medicine-search'
+
+export const MEDICAL_MASTER_DATA = 'medical/masterdata'
