@@ -13,7 +13,7 @@ import {
   CircularProgress
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-
+import { getSpeciesList } from 'src/lib/api/compliance/exports'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import { getMastersOrganization } from 'src/lib/api/egg/egg/createAnimal'
@@ -279,16 +279,10 @@ const AnimalFilterDrawer = ({
         }
         case MENU.SPECIES: {
           const params = query ? { page_no: 1, limit: 50, search: query } : { page_no: 1, limit: 50 }
-          const res = await getAllSpeciesList(params)
-          items = (res?.data?.listing || []).map(species => ({
+          const res = await getSpeciesList(params)
+          items = (res?.data?.data || []).map(species => ({
             label: species?.common_name || species?.complete_name || species?.scientific_name || 'Unknown species',
-            value: species?.tsn_id
-              ? String(species.tsn_id)
-              : species?.species_id
-              ? String(species.species_id)
-              : species?.id
-              ? String(species.id)
-              : species?.common_name,
+            value: species?.taxonomy_id ? String(species.taxonomy_id) : species?.taxonomy_id,
             image: species?.default_icon
           }))
           break
