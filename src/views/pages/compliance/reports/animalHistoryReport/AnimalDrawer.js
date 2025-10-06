@@ -11,8 +11,60 @@ import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import AnimalFilterDrawer from './AnimalFilterDrawer'
 
 const PAGE_SIZE = 10
+
+const EMPTY_FILTERS = {
+  Organizations: [],
+  'Site, Sec or Encl.': [],
+  Species: [],
+  Gender: [],
+  Age: [],
+  Mortality: []
+}
+
+const buildFilterParams = filters => {
+  if (!filters) return {}
+
+  const params = {}
+
+  const organizationIds = filters['Organizations']?.filter(Boolean) || []
+  if (organizationIds.length) params.organization_ids = organizationIds.map(String).join(',')
+
+  const locations = filters['Site, Sec or Encl.'] || []
+  const siteIds = []
+  const sectionIds = []
+  const enclosureIds = []
+
+  locations.forEach(value => {
+    if (typeof value !== 'string') return
+    const [type, id] = value.split(':')
+    if (!id) return
+
+    if (type === 'site') siteIds.push(id)
+    else if (type === 'section') sectionIds.push(id)
+    else if (type === 'enclosure') enclosureIds.push(id)
+  })
+
+  if (siteIds.length) params.site_ids = siteIds.join(',')
+  if (sectionIds.length) params.section_ids = sectionIds.join(',')
+  if (enclosureIds.length) params.enclosure_ids = enclosureIds.join(',')
+
+  const speciesIds = filters['Species']?.filter(Boolean) || []
+  if (speciesIds.length) params.species_ids = speciesIds.map(String).join(',')
+
+  const genders = filters['Gender']?.filter(Boolean) || []
+  if (genders.length) params.genders = genders.join(',')
+
+  const ageGroups = filters['Age']?.filter(Boolean) || []
+  if (ageGroups.length) params.age_groups = ageGroups.join(',')
+
+  const mortalityReasons = filters['Mortality']?.filter(Boolean) || []
+  if (mortalityReasons.length) params.mortality_reasons = mortalityReasons.map(String).join(',')
+
+  return params
+}
 
 const AnimalDrawer = ({
   open,
@@ -30,9 +82,15 @@ const AnimalDrawer = ({
   const [activeTab, setActiveTab] = useState('all_animals')
   const [horizontalLoading, setHorizontalLoading] = useState(true)
   const [horizontalNavList, setHorizontalNavList] = useState([])
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState(() => ({ ...EMPTY_FILTERS }))
+  const [filterCount, setFilterCount] = useState(0)
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
+
+  const filterParams = useMemo(() => buildFilterParams(appliedFilters), [appliedFilters])
+  const filtersKey = useMemo(() => JSON.stringify(filterParams), [filterParams])
 
   useEffect(() => {
     const getAnimalsHorizontalNavigation = async () => {
@@ -63,14 +121,15 @@ const AnimalDrawer = ({
   }
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Animal-History-Report', search, activeTab],
+    queryKey: ['animal-List-Animal-History-Report', search, activeTab, filtersKey],
     queryFn: async ({ pageParam = 1 }) => {
       const params = {
         page_no: pageParam,
         limit: PAGE_SIZE,
         q: search,
         type: activeTab,
-        end_date: formatDate(new Date())
+        end_date: formatDate(new Date()),
+        ...filterParams
       }
       const res = await getAnimalListForObservationReport(params)
 
@@ -92,11 +151,17 @@ const AnimalDrawer = ({
 
   useEffect(() => {
     if (!open) {
-      queryClient.cancelQueries(['animal-List-Animal-History-Report', search])
+      setFilterDrawerOpen(false)
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) {
+      queryClient.cancelQueries({ queryKey: ['animal-List-Animal-History-Report', search, activeTab, filtersKey] })
       remove()
       cooldownRef.current = false
     }
-  }, [open, search, queryClient, remove])
+  }, [open, search, activeTab, filtersKey, queryClient, remove])
 
   const list = useMemo(
     () =>
@@ -163,19 +228,20 @@ const AnimalDrawer = ({
   }
 
   return (
-    <Drawer
-      anchor='right'
-      open={open}
-      ModalProps={{ keepMounted: true }}
-      sx={{
-        '& .MuiDrawer-paper': {
-          width: ['100%', '562px'],
-          display: 'flex',
-          flexDirection: 'column',
-          bgcolor: theme.palette.customColors.bodyBg
-        }
-      }}
-    >
+    <>
+      <Drawer
+        anchor='right'
+        open={open}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: ['100%', '562px'],
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: theme.palette.customColors.bodyBg
+          }
+        }}
+      >
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF' }}>
           <Typography
@@ -209,7 +275,7 @@ const AnimalDrawer = ({
             pb: 4
           }}
         >
-          <Grid item size={{ xs: 12, sm: 12 }}>
+          <Grid item size={{ xs: 12, sm: showAnimalFilter ? 10 : 12 }}>
             <Search
               width='100%'
               placeholder='Search by Animal name, AID or Identifier'
@@ -219,17 +285,24 @@ const AnimalDrawer = ({
               inputStyle={{ py: '18px', px: '12px' }}
             />
           </Grid>
-          {/* <Grid
-            item
-            size={{ xs: 12, sm: 1.5 }}
-            sx={{
-              display: 'none',
-              justifyContent: { xs: 'flex-end', sm: 'center' },
-              mt: { xs: 2, sm: 0 }
-            }}
-          >
-            <FilterButton />
-          </Grid> */}
+          {showAnimalFilter && (
+            <Grid
+              item
+              size={{ xs: 12, sm: 2 }}
+              sx={{
+                display: 'flex',
+                justifyContent: { xs: 'flex-end', sm: 'center' },
+                mt: { xs: 2, sm: 0 }
+              }}
+            >
+              <FilterButton
+                onClick={() => setFilterDrawerOpen(true)}
+                appliedFiltersCount={filterCount}
+                icon='ic:round-tune'
+                placement='bottom'
+              />
+            </Grid>
+          )}
         </Grid>
 
         {showAnimalFilter && (
@@ -395,7 +468,23 @@ const AnimalDrawer = ({
           </Button>
         </Box>
       )}
-    </Drawer>
+      </Drawer>
+      <AnimalFilterDrawer
+        open={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        onApplyFilters={options => {
+          const nextFilters = { ...EMPTY_FILTERS }
+          Object.keys(nextFilters).forEach(key => {
+            nextFilters[key] = Array.isArray(options?.[key]) ? [...options[key]] : []
+          })
+          setAppliedFilters(nextFilters)
+          setFilterDrawerOpen(false)
+        }}
+        onSubmitLoading={isFetching}
+        setFilterCount={setFilterCount}
+        initialSelectedOptions={appliedFilters}
+      />
+    </>
   )
 }
 
