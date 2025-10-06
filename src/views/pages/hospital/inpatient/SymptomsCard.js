@@ -264,7 +264,7 @@ return response
           {record?.additional_info &&
             (hasData(record?.latest_note?.notes_dump?.new_data) ||
               hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Tooltip title={record?.additional_info?.latest_comment} arrow placement='top'>
+              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
@@ -278,7 +278,7 @@ return response
                     lineHeight: '1.4'
                   }}
                 >
-                  Notes : {record?.additional_info?.latest_comment || 'N/A'}
+                  Notes : {record?.latest_note?.note || 'N/A'}
                 </Typography>
               </Tooltip>
             )}
@@ -286,7 +286,7 @@ return response
           {record?.additional_info &&
             !hasData(record?.latest_note?.notes_dump?.new_data) &&
             !hasData(record?.latest_note?.notes_dump?.old_data) && (
-              <Tooltip title={record?.additional_info?.latest_comment} arrow placement='top'>
+              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
@@ -300,7 +300,7 @@ return response
                     lineHeight: '1.4'
                   }}
                 >
-                  {record?.additional_info?.latest_comment || ''}
+                  {record?.latest_note?.note || ''}
                 </Typography>
               </Tooltip>
             )}
