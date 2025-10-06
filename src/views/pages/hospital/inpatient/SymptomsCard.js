@@ -11,7 +11,7 @@ import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/sym
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 
-const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
+const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id } = router.query
@@ -73,8 +73,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
     try {
       const response = await getNotesListForSymptom(params)
-      
-return response
+
+      return response
     } catch (error) {
       console.error('Error fetching notes for symptom:', error)
       throw error
@@ -116,7 +116,8 @@ return response
 
         setSelectedSymptoms(pendingDetails)
         setSymptomDrawerNewOpen(false)
-        fetchSymptoms()
+        fetchSymptoms('', 1, false)
+        setPage(1)
         setDeleteLoading(false)
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to update symptom.' })

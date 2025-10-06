@@ -156,8 +156,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
                 {tabs.map(tab => {
                   const countKey = tabTypeMap[tab]
                   const tabCount = recordTypeCount?.[countKey] || 0
-                  
-return (
+
+                  return (
                     <Box
                       key={tab}
                       onClick={() => handleTabChange(tab)}
@@ -240,6 +240,7 @@ return (
             <SymptomsCard
               key={index}
               record={record}
+              setPage={setPage}
               isDifferential={record.type === 'Differential'}
               isResolved={record.status === 'closed'}
               fetchSymptoms={fetchSymptoms}
@@ -258,7 +259,7 @@ return (
           {isFetchingMore && <CircularProgress size={24} />}
         </Box>
 
-        {!loading && !isFetchingMore && records?.length >= getCurrentTabCount() && (
+        {!loading && !isFetchingMore && records?.length >= 1 && (
           <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled }}>
             No more symptoms to load
           </Typography>
