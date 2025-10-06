@@ -533,7 +533,13 @@ const AnimalFilterDrawer = ({
     const { locked = false, disabled = false, onRemove, onClick, collapseKey } = options
 
     return (
-      <Card sx={{ border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
+      <Card
+        sx={{
+          width: '100%',
+          border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
+          boxShadow: 'none'
+        }}
+      >
         <CardHeader
           title={title}
           onClick={disabled || locked ? undefined : onClick}
@@ -636,7 +642,7 @@ const AnimalFilterDrawer = ({
       )}
 
       {selectedMenu === MENU.LOCATION && (
-        <Box sx={{ display: 'flex', lexDirection: 'column', gap: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {renderLocationCard('Select Site', locationSelections.Site, getSiteName, {
             locked: locationSelections.Section.length > 0 || locationSelections.Enclosure.length > 0,
             onRemove: handleRemoveSite,
