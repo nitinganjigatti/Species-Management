@@ -394,7 +394,10 @@ const SelectEnclosureList = ({
               borderRadius: '8px',
               '&:hover': { bgcolor: '#218838' }
             }}
-            onClick={() => onSelectEnclosures(selectedEnclosures)}
+            onClick={() => {
+              onSelectEnclosures(selectedEnclosures)
+              onClose?.()
+            }}
             disabled={selectedEnclosures.length <= 0}
           >
             CONTINUE
