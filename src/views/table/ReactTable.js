@@ -327,26 +327,72 @@ const ReactTable = ({
     '& .MuiSvgIcon-root': { fontSize: 18 }
   }
 
-  const getCommonPinningStyles = useCallback(column => {
-    const isPinned = column.getIsPinned()
-    const isFirstLeftPinned = isPinned === 'left' && column.getIsFirstColumn('left')
-    const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left')
-    const isFirstRightPinnedColumn = isPinned === 'right' && column.getIsFirstColumn('right')
-    const size = column.getSize()
+  const getCommonPinningStyles = useCallback((column, header) => {
+    if (!column) return {}
+
+    const directPin = column.getIsPinned?.() || false
+
+    const leafColumnsFromColumn = column.getLeafColumns?.() || []
+    const leafColumnsFromHeader = header?.getLeafHeaders?.()?.map(h => h.column) || []
+    const effectiveLeafColumns = leafColumnsFromColumn.length
+      ? leafColumnsFromColumn
+      : leafColumnsFromHeader
+
+    const pinnedLeafColumns = effectiveLeafColumns.filter(col => col?.getIsPinned?.())
+    const allLeafPinnedSameSide =
+      effectiveLeafColumns.length > 0 &&
+      pinnedLeafColumns.length === effectiveLeafColumns.length &&
+      pinnedLeafColumns.every(leaf => leaf.getIsPinned?.() === pinnedLeafColumns[0]?.getIsPinned?.())
+
+    const inheritedPin = allLeafPinnedSameSide ? pinnedLeafColumns[0]?.getIsPinned?.() : false
+    const effectivePin = directPin || inheritedPin
+
+    const baseSize = header?.getSize?.() || column.getSize?.() || 0
+    let width = baseSize
+
+    let left
+    let right
+
+    if (effectivePin) {
+      if (pinnedLeafColumns.length) {
+        width = pinnedLeafColumns.reduce((total, leaf) => total + (leaf?.getSize?.() || 0), 0)
+      }
+
+      if (effectivePin === 'left') {
+        const refLeaf = pinnedLeafColumns[0] || column
+        const start = header?.getStart?.() ?? refLeaf?.getStart?.('left') ?? 0
+        left = `${start}px`
+      }
+
+      if (effectivePin === 'right') {
+        const refLeaf = pinnedLeafColumns[pinnedLeafColumns.length - 1] || column
+        const after = refLeaf?.getAfter?.('right') ?? 0
+        right = `${after}px`
+      }
+    }
+
+    const firstPinnedLeaf = pinnedLeafColumns[0]
+    const lastPinnedLeaf = pinnedLeafColumns[pinnedLeafColumns.length - 1]
+
+    const isLastLeftPinned = lastPinnedLeaf?.getIsLastColumn?.('left') || column.getIsLastColumn?.('left')
+    const isFirstRightPinned = firstPinnedLeaf?.getIsFirstColumn?.('right') || column.getIsFirstColumn?.('right')
 
     return {
-      boxShadow: isLastLeftPinnedColumn
-        ? '-4px 0 4px -4px rgba(0,0,0,0.2) inset'
-        : isFirstRightPinnedColumn
-        ? '4px 0 4px -4px rgba(0,0,0,0.2) inset'
-        : undefined,
-      left: isPinned === 'left' ? (isFirstLeftPinned ? 0 : `${column.getStart('left')}px`) : undefined,
-      right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
-      position: isPinned ? 'sticky' : 'relative',
-      width: size,
-      minWidth: size,
-      maxWidth: size,
-      zIndex: isPinned ? 1000 : 1
+      boxShadow:
+        effectivePin === 'left'
+          ? isLastLeftPinned
+            ? '-4px 0 4px -4px rgba(0,0,0,0.2) inset'
+            : undefined
+          : effectivePin === 'right' && isFirstRightPinned
+          ? '4px 0 4px -4px rgba(0,0,0,0.2) inset'
+          : undefined,
+      left,
+      right,
+      position: effectivePin ? 'sticky' : 'relative',
+      width,
+      minWidth: width,
+      maxWidth: width,
+      zIndex: effectivePin ? 1000 : 1
     }
   }, [])
 
@@ -675,8 +721,23 @@ const ReactTable = ({
     setMenuColumn(null)
   }
   const handlePinColumn = (columnId, position) => {
-    const col = table.getAllLeafColumns().find(c => c.id === columnId)
-    if (col) col.pin(position || false)
+    const column = table.getColumn(columnId) || table.getAllLeafColumns().find(c => c.id === columnId)
+
+    if (column) {
+      const targetPosition = position || false
+
+      // Pinning a parent/group column should move all of its leaves together.
+      column.pin(targetPosition)
+
+      const leafColumns = column.getLeafColumns?.() || []
+      if (leafColumns.length && (leafColumns.length > 1 || leafColumns[0] !== column)) {
+        leafColumns.forEach(leaf => {
+          if (leaf !== column) {
+            leaf.pin(targetPosition)
+          }
+        })
+      }
+    }
     handleColumnMenuClose()
   }
 
@@ -820,7 +881,7 @@ const ReactTable = ({
                 padding: explicit && column.id !== '_select' ? 0 : '8px 16px',
 
                 // pinning + sticky stacking
-                ...getCommonPinningStyles(column),
+                ...getCommonPinningStyles(column, header),
                 boxSizing: 'border-box',
                 position: 'sticky',
                 top: topOffset,
