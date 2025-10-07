@@ -328,22 +328,39 @@ const ReactTable = ({
   }
 
   const getCommonPinningStyles = useCallback((column, header) => {
-    if (!column || !column.getIsPinned) return {}
-
-    const pinSide = column.getIsPinned()
-    if (!pinSide) return {}
+    if (!column) return {}
 
     const leafColumns = column.getLeafColumns?.() || []
     const leafHeaders = header?.getLeafHeaders?.() || []
-    const effectiveLeafs = leafHeaders.length
-      ? leafHeaders.map(h => h.column)
+    const headerLeafColumns = leafHeaders
+      .filter(h => !h.subHeaders || h.subHeaders.length === 0)
+      .map(h => h.column)
+
+    const effectiveLeafs = headerLeafColumns.length
+      ? headerLeafColumns
       : leafColumns.length
       ? leafColumns
       : [column]
-    const firstLeaf = effectiveLeafs[0]
-    const lastLeaf = effectiveLeafs[effectiveLeafs.length - 1]
 
-    const sizeValue = header?.getSize?.() ?? column.getSize?.() ?? firstLeaf?.getSize?.() ?? 0
+    const leafPinSides = effectiveLeafs
+      .map(leaf => (leaf?.getIsPinned ? leaf.getIsPinned() : false))
+      .filter(Boolean)
+
+    if (!leafPinSides.length) return {}
+
+    const uniformPin = leafPinSides.every(side => side === leafPinSides[0]) ? leafPinSides[0] : null
+    if (!uniformPin) return {}
+
+    const pinSide = uniformPin
+    const targetLeafs = effectiveLeafs.filter(leaf => leaf?.getIsPinned?.() === pinSide)
+    const fallbackLeafs = targetLeafs.length ? targetLeafs : effectiveLeafs
+    const firstLeaf = fallbackLeafs[0]
+    const lastLeaf = fallbackLeafs[fallbackLeafs.length - 1]
+
+    const sizeValue =
+      header?.getSize?.() ??
+      fallbackLeafs.reduce((total, leaf) => total + (leaf?.getSize?.() || 0), 0) ??
+      column.getSize?.()
     const width = Number.isFinite(sizeValue) ? sizeValue : undefined
 
     const styles = {
