@@ -328,72 +328,54 @@ const ReactTable = ({
   }
 
   const getCommonPinningStyles = useCallback((column, header) => {
-    if (!column) return {}
+    if (!column || !column.getIsPinned) return {}
 
-    const directPin = column.getIsPinned?.() || false
+    const pinSide = column.getIsPinned()
+    if (!pinSide) return {}
 
-    const leafColumnsFromColumn = column.getLeafColumns?.() || []
-    const leafColumnsFromHeader = header?.getLeafHeaders?.()?.map(h => h.column) || []
-    const effectiveLeafColumns = leafColumnsFromColumn.length
-      ? leafColumnsFromColumn
-      : leafColumnsFromHeader
+    const leafColumns = column.getLeafColumns?.() || []
+    const leafHeaders = header?.getLeafHeaders?.() || []
+    const effectiveLeafs = leafHeaders.length
+      ? leafHeaders.map(h => h.column)
+      : leafColumns.length
+      ? leafColumns
+      : [column]
+    const firstLeaf = effectiveLeafs[0]
+    const lastLeaf = effectiveLeafs[effectiveLeafs.length - 1]
 
-    const pinnedLeafColumns = effectiveLeafColumns.filter(col => col?.getIsPinned?.())
-    const allLeafPinnedSameSide =
-      effectiveLeafColumns.length > 0 &&
-      pinnedLeafColumns.length === effectiveLeafColumns.length &&
-      pinnedLeafColumns.every(leaf => leaf.getIsPinned?.() === pinnedLeafColumns[0]?.getIsPinned?.())
+    const sizeValue = header?.getSize?.() ?? column.getSize?.() ?? firstLeaf?.getSize?.() ?? 0
+    const width = Number.isFinite(sizeValue) ? sizeValue : undefined
 
-    const inheritedPin = allLeafPinnedSameSide ? pinnedLeafColumns[0]?.getIsPinned?.() : false
-    const effectivePin = directPin || inheritedPin
+    const styles = {
+      position: 'sticky',
+      zIndex: 1000
+    }
 
-    const baseSize = header?.getSize?.() || column.getSize?.() || 0
-    let width = baseSize
+    if (width !== undefined) {
+      styles.width = width
+      styles.minWidth = width
+      styles.maxWidth = width
+    }
 
-    let left
-    let right
+    if (pinSide === 'left') {
+      const offset = firstLeaf?.getStart?.('left') ?? header?.getStart?.() ?? column.getStart?.('left')
+      if (typeof offset === 'number') styles.left = `${offset}px`
+      else if (offset != null) styles.left = offset
 
-    if (effectivePin) {
-      if (pinnedLeafColumns.length) {
-        width = pinnedLeafColumns.reduce((total, leaf) => total + (leaf?.getSize?.() || 0), 0)
+      if (lastLeaf?.getIsLastColumn?.('left')) {
+        styles.boxShadow = '-4px 0 4px -4px rgba(0,0,0,0.2) inset'
       }
+    } else if (pinSide === 'right') {
+      const offset = lastLeaf?.getAfter?.('right') ?? header?.getAfter?.() ?? column.getAfter?.('right')
+      if (typeof offset === 'number') styles.right = `${offset}px`
+      else if (offset != null) styles.right = offset
 
-      if (effectivePin === 'left') {
-        const refLeaf = pinnedLeafColumns[0] || column
-        const start = header?.getStart?.() ?? refLeaf?.getStart?.('left') ?? 0
-        left = `${start}px`
-      }
-
-      if (effectivePin === 'right') {
-        const refLeaf = pinnedLeafColumns[pinnedLeafColumns.length - 1] || column
-        const after = refLeaf?.getAfter?.('right') ?? 0
-        right = `${after}px`
+      if (firstLeaf?.getIsFirstColumn?.('right')) {
+        styles.boxShadow = '4px 0 4px -4px rgba(0,0,0,0.2) inset'
       }
     }
 
-    const firstPinnedLeaf = pinnedLeafColumns[0]
-    const lastPinnedLeaf = pinnedLeafColumns[pinnedLeafColumns.length - 1]
-
-    const isLastLeftPinned = lastPinnedLeaf?.getIsLastColumn?.('left') || column.getIsLastColumn?.('left')
-    const isFirstRightPinned = firstPinnedLeaf?.getIsFirstColumn?.('right') || column.getIsFirstColumn?.('right')
-
-    return {
-      boxShadow:
-        effectivePin === 'left'
-          ? isLastLeftPinned
-            ? '-4px 0 4px -4px rgba(0,0,0,0.2) inset'
-            : undefined
-          : effectivePin === 'right' && isFirstRightPinned
-          ? '4px 0 4px -4px rgba(0,0,0,0.2) inset'
-          : undefined,
-      left,
-      right,
-      position: effectivePin ? 'sticky' : 'relative',
-      width,
-      minWidth: width,
-      maxWidth: width,
-      zIndex: effectivePin ? 1000 : 1
-    }
+    return styles
   }, [])
 
   // ---- Columns ----
@@ -1111,10 +1093,23 @@ const ReactTable = ({
           }}
         >
           <colgroup>
-            {table.getAllLeafColumns().map(col => {
-              const w = col.getSize()
-              return <col key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} />
-            })}
+            {(() => {
+              const left = table.getLeftLeafColumns?.() || []
+              const centerSource = table.getCenterLeafColumns?.() || table.getVisibleLeafColumns?.() || []
+              const right = table.getRightLeafColumns?.() || []
+
+              const center = centerSource.filter(col => !left.includes(col) && !right.includes(col))
+
+              const fallback = table.getAllLeafColumns?.() || []
+              const ordered = (left.length || right.length)
+                ? [...left, ...center, ...right]
+                : fallback
+
+              return ordered.map(col => {
+                const w = col.getSize()
+                return <col key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} />
+              })
+            })()}
           </colgroup>
           {/* ✅ Header hidden only on first load when loading && no data */}
           {isHeaderVisible ? <TableHead>{renderTableHeader()}</TableHead> : null}
