@@ -292,6 +292,7 @@ const AnimalDrawer = ({
               <Box
                 onClick={() => setFilterDrawerOpen(true)}
                 sx={{
+                  cursor: 'pointer',
                   height: '56px',
                   minWidth: '56px',
                   borderRadius: '8px',
