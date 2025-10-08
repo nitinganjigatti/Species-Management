@@ -128,7 +128,8 @@ const MemoBodyRow = React.memo(
       >
         {row.getVisibleCells().map(cell => {
           const column = cell.column
-          const isPinned = column.getIsPinned()
+          const pinnedState = column.getIsPinned?.()
+          const isPinned = pinnedState === 'left' || pinnedState === 'right'
           const originalColumn = column.columnDef.meta?.originalColumn || {}
           const explicit = !!originalColumn.__explicitWidth
 
@@ -316,6 +317,7 @@ const ReactTable = ({
   const [columnPinning, setColumnPinning] = useState(() => withSelectionInPinning(defaultPinning))
   const [anchorEl, setAnchorEl] = useState(null)
   const [menuColumn, setMenuColumn] = useState(null)
+  const [menuHeader, setMenuHeader] = useState(null)
 
   // ✅ Global (cross-page) selection
   const [rowSelectionState, setRowSelectionState] = useState({})
@@ -327,73 +329,120 @@ const ReactTable = ({
     '& .MuiSvgIcon-root': { fontSize: 18 }
   }
 
-  const getCommonPinningStyles = useCallback((column, header) => {
-    if (!column) return {}
+  const resolveLeafColumns = useCallback((column, header) => {
+    if (!column) return []
 
-    const leafColumns = column.getLeafColumns?.() || []
-    const leafHeaders = header?.getLeafHeaders?.() || []
-    const headerLeafColumns = leafHeaders
-      .filter(h => !h.subHeaders || h.subHeaders.length === 0)
-      .map(h => h.column)
+    const seen = new Set()
 
-    const effectiveLeafs = headerLeafColumns.length
-      ? headerLeafColumns
-      : leafColumns.length
-      ? leafColumns
-      : [column]
+    const collect = items => {
+      const result = []
 
-    const leafPinSides = effectiveLeafs
-      .map(leaf => (leaf?.getIsPinned ? leaf.getIsPinned() : false))
-      .filter(Boolean)
+      ;(items || []).forEach(item => {
+        const col = item?.column ?? item
+        if (!col) return
 
-    if (!leafPinSides.length) return {}
+        const id = col.id
+        if (!id || seen.has(id)) return
 
-    const uniformPin = leafPinSides.every(side => side === leafPinSides[0]) ? leafPinSides[0] : null
-    if (!uniformPin) return {}
+        const subLeafs = col.getLeafColumns?.()
+        if (Array.isArray(subLeafs) && subLeafs.length > 0 && subLeafs.some(sub => sub && sub !== col)) {
+          result.push(...collect(subLeafs))
+        } else {
+          seen.add(id)
+          result.push(col)
+        }
+      })
 
-    const pinSide = uniformPin
-    const targetLeafs = effectiveLeafs.filter(leaf => leaf?.getIsPinned?.() === pinSide)
-    const fallbackLeafs = targetLeafs.length ? targetLeafs : effectiveLeafs
-    const firstLeaf = fallbackLeafs[0]
-    const lastLeaf = fallbackLeafs[fallbackLeafs.length - 1]
-
-    const sizeValue =
-      header?.getSize?.() ??
-      fallbackLeafs.reduce((total, leaf) => total + (leaf?.getSize?.() || 0), 0) ??
-      column.getSize?.()
-    const width = Number.isFinite(sizeValue) ? sizeValue : undefined
-
-    const styles = {
-      position: 'sticky',
-      zIndex: 1000
+      return result
     }
 
-    if (width !== undefined) {
-      styles.width = width
-      styles.minWidth = width
-      styles.maxWidth = width
+    if (header) {
+      const headerLeaves = collect(header.getLeafHeaders?.())
+      if (headerLeaves.length) return headerLeaves
     }
 
-    if (pinSide === 'left') {
-      const offset = firstLeaf?.getStart?.('left') ?? header?.getStart?.() ?? column.getStart?.('left')
-      if (typeof offset === 'number') styles.left = `${offset}px`
-      else if (offset != null) styles.left = offset
+    const columnLeaves = collect(column.getLeafColumns?.())
+    if (columnLeaves.length) return columnLeaves
 
-      if (lastLeaf?.getIsLastColumn?.('left')) {
-        styles.boxShadow = '-4px 0 4px -4px rgba(0,0,0,0.2) inset'
-      }
-    } else if (pinSide === 'right') {
-      const offset = lastLeaf?.getAfter?.('right') ?? header?.getAfter?.() ?? column.getAfter?.('right')
-      if (typeof offset === 'number') styles.right = `${offset}px`
-      else if (offset != null) styles.right = offset
-
-      if (firstLeaf?.getIsFirstColumn?.('right')) {
-        styles.boxShadow = '4px 0 4px -4px rgba(0,0,0,0.2) inset'
-      }
-    }
-
-    return styles
+    return [column]
   }, [])
+
+  const getPinSummary = useCallback(
+    (column, header) => {
+      const leafs = resolveLeafColumns(column, header)
+      let hasLeft = false
+      let hasRight = false
+      let hasUnpinned = false
+
+      leafs.forEach(leaf => {
+        const side = leaf?.getIsPinned?.()
+        if (side === 'left') hasLeft = true
+        else if (side === 'right') hasRight = true
+        else hasUnpinned = true
+      })
+
+      if ((hasLeft && hasRight) || (hasLeft && hasUnpinned) || (hasRight && hasUnpinned)) return 'mixed'
+      if (hasLeft) return 'left'
+      if (hasRight) return 'right'
+      return 'none'
+    },
+    [resolveLeafColumns]
+  )
+
+  const getCommonPinningStyles = useCallback(
+    (column, header) => {
+      if (!column) return {}
+
+      const summary = getPinSummary(column, header)
+      if (summary === 'none' || summary === 'mixed') return {}
+
+      const leafs = resolveLeafColumns(column, header)
+      const pinnedLeafs = leafs.filter(leaf => leaf?.getIsPinned?.() === summary)
+
+      if (!pinnedLeafs.length) return {}
+
+      if (pinnedLeafs.length !== leafs.length) return {}
+
+      const firstLeaf = pinnedLeafs[0]
+      const lastLeaf = pinnedLeafs[pinnedLeafs.length - 1]
+
+      const widthFromLeaves = pinnedLeafs.reduce((total, leaf) => total + (leaf?.getSize?.() || 0), 0)
+      const widthCandidate = Number.isFinite(widthFromLeaves) && widthFromLeaves > 0 ? widthFromLeaves : header?.getSize?.()
+      const width = typeof widthCandidate === 'number' && Number.isFinite(widthCandidate) ? widthCandidate : undefined
+
+      const styles = {
+        position: 'sticky',
+        zIndex: 1000
+      }
+
+      if (width !== undefined) {
+        styles.width = width
+        styles.minWidth = width
+        styles.maxWidth = width
+      }
+
+      if (summary === 'left') {
+        const offset = firstLeaf?.getStart?.('left') ?? header?.getStart?.() ?? column.getStart?.('left')
+        if (typeof offset === 'number') styles.left = `${offset}px`
+        else if (offset != null) styles.left = offset
+
+        if (lastLeaf?.getIsLastColumn?.('left')) {
+          styles.boxShadow = '-4px 0 4px -4px rgba(0,0,0,0.2) inset'
+        }
+      } else if (summary === 'right') {
+        const offset = lastLeaf?.getAfter?.('right') ?? header?.getAfter?.() ?? column.getAfter?.('right')
+        if (typeof offset === 'number') styles.right = `${offset}px`
+        else if (offset != null) styles.right = offset
+
+        if (firstLeaf?.getIsFirstColumn?.('right')) {
+          styles.boxShadow = '4px 0 4px -4px rgba(0,0,0,0.2) inset'
+        }
+      }
+
+      return styles
+    },
+    [getPinSummary, resolveLeafColumns]
+  )
 
   // ---- Columns ----
   // const baseColumns = useMemo(() => {
@@ -711,30 +760,31 @@ const ReactTable = ({
   }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader, isHeaderVisible])
 
   // ---- Column menu ----
-  const handleColumnMenuClick = (event, column) => {
+  const handleColumnMenuClick = (event, column, header) => {
     setAnchorEl(event.currentTarget)
     setMenuColumn(column)
+    setMenuHeader(header || null)
   }
   const handleColumnMenuClose = () => {
     setAnchorEl(null)
     setMenuColumn(null)
+    setMenuHeader(null)
   }
   const handlePinColumn = (columnId, position) => {
     const column = table.getColumn(columnId) || table.getAllLeafColumns().find(c => c.id === columnId)
 
     if (column) {
-      const targetPosition = position || false
+      const targetLeafs = resolveLeafColumns(column, menuHeader)
 
-      // Pinning a parent/group column should move all of its leaves together.
-      column.pin(targetPosition)
+      const applyPin = (targetColumn, nextPosition) => {
+        const normalized = nextPosition === 'left' || nextPosition === 'right' ? nextPosition : false
+        targetColumn.pin(normalized)
+      }
 
-      const leafColumns = column.getLeafColumns?.() || []
-      if (leafColumns.length && (leafColumns.length > 1 || leafColumns[0] !== column)) {
-        leafColumns.forEach(leaf => {
-          if (leaf !== column) {
-            leaf.pin(targetPosition)
-          }
-        })
+      if (targetLeafs.length) {
+        targetLeafs.forEach(leaf => applyPin(leaf, position))
+      } else {
+        applyPin(column, position)
       }
     }
     handleColumnMenuClose()
@@ -852,14 +902,16 @@ const ReactTable = ({
           const isPlaceholder = header.isPlaceholder
           const column = header.column
           const originalColumn = column.columnDef.meta?.originalColumn || {}
-          const isPinned = column.getIsPinned()
-
           // If this header has no children (leaf in this row), span down to fill remaining rows
           const rowSpan = header.subHeaders?.length ? 1 : Math.max(1, maxDepth - depth + 1)
 
           const topOffset = getHeaderTop(depth, headerHeight, subHeaderHeight)
           const cellHeight = depth === 0 ? headerHeight : subHeaderHeight
           const explicit = !!originalColumn.__explicitWidth
+
+          const headerPinSummary = getPinSummary(column, header)
+          const isPinned = headerPinSummary === 'left' || headerPinSummary === 'right'
+          const showPinIcon = isPinned
 
           return (
             <TableCell
@@ -892,20 +944,20 @@ const ReactTable = ({
                 ...(originalColumn.headerSx || {}),
                 ...(originalColumn.sx || {})
               }}
-              onClick={e => e.stopPropagation()}
-            >
+             onClick={e => e.stopPropagation()}
+           >
               {isPlaceholder ? null : (
                 // <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box
                   sx={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    // px: originalColumn.width != null && column.id !== '_select' ? 2 : 0,
-                    // py: originalColumn.width != null && column.id !== '_select' ? 1 : 0,
-                    px: explicit && column.id !== '_select' ? 2 : 0,
-                    py: explicit && column.id !== '_select' ? 1 : 0,
-                    width: '100%',
+                   alignItems: 'center',
+                   justifyContent: 'space-between',
+                   // px: originalColumn.width != null && column.id !== '_select' ? 2 : 0,
+                   // py: originalColumn.width != null && column.id !== '_select' ? 1 : 0,
+                   px: explicit && column.id !== '_select' ? 2 : 0,
+                   py: explicit && column.id !== '_select' ? 1 : 0,
+                   width: '100%',
                     boxSizing: 'border-box'
                   }}
                 >
@@ -922,13 +974,17 @@ const ReactTable = ({
                     ) : (
                       flexRender(column.columnDef.header, header.getContext())
                     )}
-                    {column.id !== '_select' && column.getIsPinned() && (
+                    {column.id !== '_select' && showPinIcon && (
                       <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />
                     )}
                   </Box>
 
                   {modifyColumnPinning && column.id !== '_select' && originalColumn.disablePinMenu !== true && (
-                    <IconButton size='small' onClick={e => handleColumnMenuClick(e, column)} sx={{ opacity: 0.7 }}>
+                    <IconButton
+                      size='small'
+                      onClick={e => handleColumnMenuClick(e, column, header)}
+                      sx={{ opacity: 0.7 }}
+                    >
                       <MoreVertIcon fontSize='small' />
                     </IconButton>
                   )}
@@ -1067,15 +1123,16 @@ const ReactTable = ({
   }
 
   // ---- Column pinning menu ----
+  const menuPinSummary = menuColumn ? getPinSummary(menuColumn, menuHeader) : 'none'
   const columnMenu = (
     <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleColumnMenuClose}>
-      {menuColumn?.getIsPinned() !== 'left' && (
+      {menuPinSummary !== 'left' && (
         <MenuItem onClick={() => handlePinColumn(menuColumn?.id, 'left')}>Pin to Left</MenuItem>
       )}
-      {menuColumn?.getIsPinned() !== 'right' && (
+      {menuPinSummary !== 'right' && (
         <MenuItem onClick={() => handlePinColumn(menuColumn?.id, 'right')}>Pin to Right</MenuItem>
       )}
-      {menuColumn?.getIsPinned() && <MenuItem onClick={() => handlePinColumn(menuColumn?.id, false)}>Unpin</MenuItem>}
+      {menuPinSummary !== 'none' && <MenuItem onClick={() => handlePinColumn(menuColumn?.id, false)}>Unpin</MenuItem>}
     </Menu>
   )
 
