@@ -766,3 +766,5 @@ export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'
 export const MEDICINE_LIST = 'medical/medicine-search'
 
 export const MEDICAL_MASTER_DATA = 'medical/masterdata'
+
+export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'

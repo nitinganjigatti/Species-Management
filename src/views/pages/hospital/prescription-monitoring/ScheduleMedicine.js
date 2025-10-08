@@ -13,8 +13,6 @@ import ControlledSelectWithTextField from 'src/views/forms/form-fields/Controlle
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 
 export default function ScheduleMedicine({ control, errors, selectedMedicineTo, medicalMasterData }) {
-  console.log('medicalMasterData', medicalMasterData)
-
   const {
     caseTypes,
     prescriptionMeasurementType,
@@ -390,7 +388,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                 </Grid>
                 <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                   <ControlledTextField
-                    name='dosageDuration.value'
+                    name='quantity'
                     label='Quantity'
                     control={control}
                     errors={errors}
@@ -407,7 +405,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                 </Grid>
                 <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                   <ControlledSelect
-                    name='dosageDuration.unit'
+                    name='uom'
                     label={'UOM'}
                     sx={{
                       textAlign: 'left',
@@ -416,7 +414,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                     size='large'
                     control={control}
                     errors={errors}
-                    options={[]}
+                    options={prescriptionMeasurementType}
                     required
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
@@ -433,7 +431,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                       borderRadius: '4px'
                     }
                   }}
-                  name='notes'
+                  name='wastage_notes'
                   label='Enter Notes'
                   control={control}
                   errors={errors}
@@ -456,7 +454,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
               </Grid>
               <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
                 <ControlledTextField
-                  name='dosageDuration.value'
+                  name='batch_number'
                   label='Enter batch number if any (optional)'
                   control={control}
                   errors={errors}

@@ -4,7 +4,6 @@ import { axiosGet } from '../utility'
 export async function getMedicalMasterData(params) {
   try {
     const url = `${MEDICAL_MASTER_DATA}`
-    debugger
 
     const response = await axiosGet({ url, params })
 
@@ -13,3 +12,5 @@ export async function getMedicalMasterData(params) {
     console.error('Error fetching medical master data:', error.message)
   }
 }
+
+

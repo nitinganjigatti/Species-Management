@@ -15,6 +15,8 @@ import { useRouter } from 'next/router'
 import { getMedicineList } from 'src/lib/api/hospital/medicineList'
 import { debounce } from 'lodash'
 import { getMedicalMasterData } from 'src/lib/api/hospital/medicalMaster'
+import { addPrescription } from 'src/lib/api/hospital/prescription'
+import Utility from 'src/utility'
 
 export default function AddMedicineToPrescription() {
   const theme = useTheme()
@@ -30,7 +32,7 @@ export default function AddMedicineToPrescription() {
       .object()
       .nullable()
       .required('Please select a medicine')
-      .test('is-valid-medicine', 'Please select a valid medicine', value => value && value.id && value.label),
+      .test('is-valid-medicine', 'Please select a valid medicine', value => value && value.id),
     selectMedicineType: yup.string().oneOf(['Schedule', 'Direct Administer']).required('Please select medicine type'),
 
     // Schedule form data
@@ -89,8 +91,8 @@ export default function AddMedicineToPrescription() {
     selectedMedicineId: '',
     selectedMedicine: null,
     selectMedicineType: 'Schedule',
-    frequency: 'everyday',
-    doseType: 'fixed-dose',
+    frequency: '',
+    doseType: '',
     schedules: [
       {
         time: '',
@@ -98,18 +100,18 @@ export default function AddMedicineToPrescription() {
         unit: ''
       }
     ],
-    deliveryRoute: 'oral',
+    deliveryRoute: '',
     prescriptionStartDate: null,
     dosageDuration: {
       value: 5,
-      unit: 'days'
+      unit: null
     },
     notes: '',
     clinicalAssessment: '',
     prognosisValue: '',
     chronicValue: 'No',
     medicineStatus: '',
-    controlSubstanceFiles: []
+    controlSubstanceFiles: null
   }
   const router = useRouter()
 
@@ -178,7 +180,26 @@ export default function AddMedicineToPrescription() {
     try {
       const response = await getMedicalMasterData()
       if (response?.success) {
-        setMedicalMasterData(response?.data)
+        setMedicalMasterData({
+          ...response?.data,
+          prescriptionFrequency:
+            response?.data?.prescriptionFrequency?.map(item => ({ ...item, value: item.key })) || [],
+          prescriptionDosageMeasurementType:
+            response?.data?.prescriptionDosageMeasurementType?.map(item => ({ ...item, value: item.key })) || [],
+          prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
+          prescriptionMeasurementType:
+            response?.data?.prescriptionMeasurementType?.map(item => ({
+              ...item,
+              label: item.unit_name,
+              value: item.uom_abbr
+            })) || [],
+          prescriptionDeliveryRoute:
+            response?.data?.prescriptionDeliveryRoute?.map(item => ({
+              ...item,
+              label: item.delivery,
+              value: item.route_abbr
+            })) || []
+        })
       } else {
         setMedicalMasterData([])
       }
@@ -307,6 +328,155 @@ export default function AddMedicineToPrescription() {
     getPatientInfo()
   }, [id])
 
+  const submitHandler = async () => {
+    handleSubmit(async data => {
+      try {
+        console.log('Form data to submit:', data)
+
+        const interval = medicalMasterData?.prescriptionDuration?.find(
+          item => item?.value === data?.dosageDuration?.unit
+        )
+
+        // Prepare schedule doses array
+        const scheduleDoses = data.schedules.map((schedule, index) => ({
+          id: '',
+          time: schedule.time ? Utility.convertUTCToLocaltime(schedule.time) : '',
+          quantity: schedule.quantity,
+          unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
+          old_time: schedule.time ? Utility.convertUTCToLocaltime(schedule.time) : '',
+          string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData),
+          unit_name: schedule.unit,
+          created_at: schedule.time // TODO: Check with backend -> UTC
+        }))
+
+        // Prepare the main payload
+        const payload = {
+          medical_record_id: medical_record_id,
+          data: JSON.stringify([
+            {
+              id: temporarilySelectedMedicine?.id, // Prescription id
+              controlled_substance: false,
+              side_effect: false,
+              medical_record_id: medical_record_id,
+              created_for: 'medical',
+              dose_type: data.doseType,
+              delivery_route_id: getDeliveryRouteId(data.deliveryRoute, medicalMasterData),
+              delivery_route_name: data.deliveryRoute,
+              frequency: data.frequency,
+              interval_id: interval?.id || '',
+              interval: interval?.value || '',
+              interval_string_id: interval?.string_id || '',
+              notes: data.notes || '',
+              start_date: data.prescriptionStartDate, // TODO: Check for proper date format
+              end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+              status: 'active',
+              restart_reason: '',
+              will_restart: false,
+              duration_qty: data.dosageDuration.value.toString(),
+              dosage: null,
+              duration: `${data.dosageDuration.value} ${data.dosageDuration.unit}`,
+              duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+              duration_string_id: getDurationStringId(data?.dosageDuration?.unit, medicalMasterData),
+              duration_id: getDurationId(data.dosageDuration.unit, medicalMasterData),
+              created_at: new Date().toISOString(),
+              schedule_doses: scheduleDoses,
+              frequency_id: getFrequencyId(data.frequency, medicalMasterData) || '',
+              frequency_key: data.frequency
+            }
+          ])
+        }
+
+        console.log('Final payload:', payload)
+
+        // API call to add prescription
+        // Uncomment and use your actual API function
+        const response = await addPrescription(JSON.stringify(payload))
+
+        // For now, just log the payload
+        if (response?.success) {
+          console.log('Prescription added successfully', response)
+
+          // router.back(); // or navigate to another page
+        } else {
+          console.error('Failed to add prescription:', response?.message)
+        }
+      } catch (error) {
+        console.error('Error submitting prescription:', error)
+      }
+    })()
+  }
+
+  const getIntervalId = (frequency, medicalMasterData) => {
+    const freq = medicalMasterData?.prescriptionFrequency?.find(item => item.frequency === frequency)
+
+    return freq?.id || '1' // Default to 1 if not found
+  }
+
+  const getUnitIdFromName = (unitName, medicalMasterData) => {
+    const unit = medicalMasterData?.prescriptionMeasurementType?.find(
+      item => item.unit_name === unitName || item.uom_abbr === unitName
+    )
+
+    return unit?.id || '8' // Default to 8 if not found
+  }
+
+  const getStringIdFromUnitName = (unitName, medicalMasterData) => {
+    const unit = medicalMasterData?.prescriptionMeasurementType?.find(
+      item => item.unit_name === unitName || item.uom_abbr === unitName
+    )
+
+    return unit?.string_id || 'antz-prescription-dosage.t'
+  }
+
+  const getDeliveryRouteId = (routeName, medicalMasterData) => {
+    const route = medicalMasterData?.prescriptionDeliveryRoute?.find(
+      item => item.delivery === routeName || item.route_abbr === routeName
+    )
+
+    return route?.id || '7' // Default to 7 if not found
+  }
+
+  const getFrequencyId = (frequency, medicalMasterData) => {
+    const freq = medicalMasterData?.prescriptionFrequency?.find(
+      item => item?.name === frequency || item?.key === frequency
+    )
+
+    return freq?.id || ''
+  }
+
+  const calculateEndDate = (startDate, dosageDuration) => {
+    const start = new Date(startDate)
+    let endDate = new Date(start)
+
+    switch (dosageDuration.unit) {
+      case 'days':
+        endDate.setDate(start.getDate() + dosageDuration.value)
+        break
+      case 'weeks':
+        endDate.setDate(start.getDate() + dosageDuration.value * 7)
+        break
+      case 'months':
+        endDate.setMonth(start.getMonth() + dosageDuration.value)
+        break
+      default:
+        endDate.setDate(start.getDate() + dosageDuration.value)
+    }
+
+    return endDate.toISOString().replace('T', ' ').substring(0, 19)
+  }
+
+  const getDurationStringId = (durationUnit, medicalMasterData) => {
+    const duration = medicalMasterData?.prescriptionDuration?.find(item => item.key === durationUnit)
+
+    return duration?.string_id || 'antz-prescription.days'
+  }
+
+  const getDurationId = (durationUnit, medicalMasterData) => {
+    const duration = medicalMasterData?.prescriptionDuration?.find(item => item.key === durationUnit)
+
+    return duration?.id || '2'
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <AnimalDetails
@@ -387,9 +557,7 @@ export default function AddMedicineToPrescription() {
         cancelLabel='CANCEL'
         addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
         onCancel={() => console.log('Cancelled')}
-        onAdd={handleSubmit(data => {
-          console.log('Form data to submit:', data)
-        })}
+        onAdd={submitHandler}
         width={200}
         height={50}
       />
