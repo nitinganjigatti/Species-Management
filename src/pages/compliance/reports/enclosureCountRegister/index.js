@@ -540,7 +540,7 @@ const EnclosureCountRegister = () => {
 
     const params = {
       site_id: siteIdsArr.join(','),
-      type: selectedItems?.reportType === 'individual' ? 'individual-wise' : 'species-wise',
+      type: selectedItems?.reportType === 'individual' ? 'individual' : 'species-wise',
       q: searchValue || '',
       page: (paginationModel?.page || 0) + 1,
       limit: paginationModel?.pageSize || 50,
