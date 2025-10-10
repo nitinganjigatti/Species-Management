@@ -59,7 +59,7 @@ const DailyReport = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [dateRange, setDateRange] = useState({
-    start_date: '2024-06-01',
+    start_date: '2020-01-01',
     end_date: '2025-09-15'
   })
 
