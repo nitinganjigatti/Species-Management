@@ -352,7 +352,7 @@ const StepAddIngredients = ({
 
       return Toaster({
         type: 'error',
-        message: 'Please fill in all fields for By Percentage'
+        message: 'Please fill in all mandatory fields'
       })
     }
 
@@ -366,7 +366,7 @@ const StepAddIngredients = ({
 
       return Toaster({
         type: 'error',
-        message: `Please fill in all fields in By Percentage at index ${firstIncompleteIndex + 1}.`
+        message: `Please fill in all mandatory fields at index ${firstIncompleteIndex + 1}.`
       })
     }
 
