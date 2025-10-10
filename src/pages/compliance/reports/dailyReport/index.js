@@ -58,8 +58,8 @@ const DailyReport = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [dateRange, setDateRange] = useState({
-    startDate: '2020-01-01',
-    endDate: Utility.formatDate(new Date())
+    startDate: '',
+    endDate: ''
   })
 
   const [defaultObservationType, setDefaultObservationType] = useState(null)
