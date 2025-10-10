@@ -41,7 +41,6 @@ const DailyReport = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [indexedRows, setIndexedRows] = useState([])
-  const [rawRows, setRawRows] = useState([])
 
   const [searchInput, setSearchInput] = useState('')
   const [searchValue, setSearchValue] = useState('') // applied to API
@@ -121,10 +120,10 @@ const DailyReport = () => {
   }, [selectedItems, siteData])
 
   // -------- API: Fetch & Transform --------
-  const transformApiToRows = useCallback(apiData => {
+  const transformApiToRows = useCallback((apiData, baseIndex = 0) => {
     const items = Array.isArray(apiData?.observationData) ? apiData.observationData : []
     const rows = []
-    let i = 0
+    let counter = baseIndex
 
     for (const block of items) {
       const { ref_type, sex, ref_id, animal_id, taxonomy, scientific_name, enclosure, section, site, date } = block
@@ -132,12 +131,12 @@ const DailyReport = () => {
       const detailsArr = Array.isArray(block.observation_details) ? block.observation_details : []
 
       for (const d of detailsArr) {
-        i += 1
+        counter += 1
         const child = Array.isArray(d.child_observation) ? d.child_observation.join('• ') : ''
 
         rows.push({
-          id: d.observation_id || `${ref_type}-${ref_id}-${i}`,
-          sl_no: String(i).padStart(2, '0'),
+          id: d.observation_id || `${ref_type}-${ref_id}-${counter}`,
+          sl_no: String(counter).padStart(2, '0'),
           date: d.date_ || date || '',
           animal_id: animal_id || '-',
           scientific_name: scientific_name || '-',
@@ -155,31 +154,6 @@ const DailyReport = () => {
 
     return rows
   }, [])
-
-  // -------- Client search filter (date or observation type or details) --------
-  const filteredRows = useMemo(() => {
-    if (!searchValue.trim()) return rawRows
-    const q = searchValue.toLowerCase()
-    return rawRows.filter(
-      r =>
-        (r.date || '').toLowerCase().includes(q) ||
-        (r.observation_type || '').toLowerCase().includes(q) ||
-        (r.observation_details || '').toLowerCase().includes(q) ||
-        (r.observation || '').toLowerCase().includes(q)
-    )
-  }, [rawRows, searchValue])
-
-  // index + slice for current page (StickyTable can also take all rows and handle; here we keep total)
-  useEffect(() => {
-    const start = paginationModel.page * paginationModel.pageSize
-    const end = start + paginationModel.pageSize
-    const pageRows = filteredRows.slice(start, end).map((r, idx) => ({
-      ...r,
-      sl_no: String(start + idx + 1).padStart(2, '0')
-    }))
-    setIndexedRows(pageRows)
-    setTotal(filteredRows.length)
-  }, [filteredRows, paginationModel])
 
   // Fetch nursery list with debouncing
   const fetchObservationMasterType = async () => {
@@ -215,7 +189,6 @@ const DailyReport = () => {
     setDefaultObservationType(null)
 
     // table/search state reset
-    setRawRows([])
     setIndexedRows([])
     setTotal(0)
     setSearchInput('')
@@ -260,7 +233,8 @@ const DailyReport = () => {
       ids: selectedSiteIds,
       range: dateRange,
       q: '', // clear search
-      obsTypeId: defaultObservationType?.id
+      obsTypeId: defaultObservationType?.id,
+      page: 0
     })
   }
 
@@ -282,19 +256,25 @@ const DailyReport = () => {
   }
 
   const fetchDailyReport = useCallback(
-    async ({ ids, range, q, obsTypeId } = {}) => {
+    async ({ ids, range, q, obsTypeId, page, limit } = {}) => {
       const siteIds = Array.isArray(ids) ? ids : []
       if (!siteIds.length) {
-        setRawRows([])
         setIndexedRows([])
         setTotal(0)
         return
       }
+
+      const resolvedPage = typeof page === 'number' ? page : paginationModel.page || 0
+      const resolvedLimit = typeof limit === 'number' ? limit : paginationModel.pageSize || 50
+      const baseIndex = resolvedPage * resolvedLimit
+
       const params = {
         report_type: 'json',
         site_id: siteIds.join(','),
         start_date: range?.start_date || '',
         end_date: range?.end_date || '',
+        page_no: resolvedPage + 1,
+        limit: resolvedLimit,
         ...(q && { q }),
         ...(obsTypeId && { observation_type: obsTypeId })
       }
@@ -302,16 +282,19 @@ const DailyReport = () => {
       try {
         const res = await getComplianceDailyReport(params)
         const payload = res?.data?.data || res?.data || res
-        const rows = transformApiToRows(payload)
-        setRawRows(rows)
+        const rows = transformApiToRows(payload, baseIndex)
+        const totalCount = Number(res?.data?.data?.total_count ?? 0)
+        setIndexedRows(rows)
+        setTotal(totalCount)
       } catch (e) {
         console.error('Error fetching daily report:', e)
-        setRawRows([])
+        setIndexedRows([])
+        setTotal(0)
       } finally {
         setLoading(false)
       }
     },
-    [transformApiToRows]
+    [paginationModel.page, paginationModel.pageSize, transformApiToRows]
   )
 
   // Centralized trigger: sites / dates / search / obsType pe 1 hi call
@@ -324,7 +307,6 @@ const DailyReport = () => {
         obsTypeId: defaultObservationType?.id
       })
     } else {
-      setRawRows([])
       setIndexedRows([])
       setTotal(0)
     }
@@ -349,7 +331,7 @@ const DailyReport = () => {
       start_date: dateRange.start_date || '',
       end_date: dateRange.end_date || '',
       ...(searchValue && { q: searchValue }), // include server-side search if any
-      ...(defaultObservationType?.id && { observation_type: defaultObservationType.id })
+      ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id })
     }
     try {
       setIsDownloading(true)
