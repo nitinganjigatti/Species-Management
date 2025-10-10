@@ -58,8 +58,8 @@ const DailyReport = () => {
   const [filterCount, setFilterCount] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [dateRange, setDateRange] = useState({
-    start_date: '2020-01-01',
-    end_date: '2025-09-15'
+    startDate: '2020-01-01',
+    endDate: Utility.formatDate(new Date())
   })
 
   const [defaultObservationType, setDefaultObservationType] = useState(null)
@@ -241,14 +241,13 @@ const DailyReport = () => {
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
       setDateRange({
-        start_date: Utility.formatDate(startDate),
-        end_date: Utility.formatDate(endDate)
+        startDate: Utility.formatDate(startDate),
+        endDate: Utility.formatDate(endDate)
       })
     } else {
-      // fallback for "All time" selection: cover entire data window
       setDateRange({
-        start_date: '2020-01-01',
-        end_date: Utility.formatDate(new Date())
+        startDate: '',
+        endDate: ''
       })
     }
 
@@ -268,11 +267,16 @@ const DailyReport = () => {
       const resolvedLimit = typeof limit === 'number' ? limit : paginationModel.pageSize || 50
       const baseIndex = resolvedPage * resolvedLimit
 
+      const rawStartDate = range?.startDate ?? range?.start_date ?? ''
+      const rawEndDate = range?.endDate ?? range?.end_date ?? ''
+      const startDateForApi = rawStartDate || '2020-01-01'
+      const endDateForApi = rawEndDate || Utility.formatDate(new Date())
+
       const params = {
         report_type: 'json',
         site_id: siteIds.join(','),
-        start_date: range?.start_date || '',
-        end_date: range?.end_date || '',
+        start_date: startDateForApi,
+        end_date: endDateForApi,
         page_no: resolvedPage + 1,
         limit: resolvedLimit,
         ...(q && { q }),
@@ -315,8 +319,8 @@ const DailyReport = () => {
     fetchDailyReport,
     // explicit deps to trigger once per change:
     selectedSiteIds.join(','), // array -> string to avoid ref churn
-    dateRange.start_date,
-    dateRange.end_date,
+    dateRange.startDate,
+    dateRange.endDate,
     searchValue,
     defaultObservationType?.id
   ])
@@ -325,11 +329,14 @@ const DailyReport = () => {
     const ids = Array.isArray(selectedSiteIds) ? selectedSiteIds : []
     if (!ids.length) return
 
+    const startDateForApi = dateRange.startDate || '2020-01-01'
+    const endDateForApi = dateRange.endDate || Utility.formatDate(new Date())
+
     const params = {
       report_type: 'pdf', // 👈 daily report API expects this
       site_id: ids.join(','), // comma-separated site ids
-      start_date: dateRange.start_date || '',
-      end_date: dateRange.end_date || '',
+      start_date: startDateForApi,
+      end_date: endDateForApi,
       ...(searchValue && { q: searchValue }), // include server-side search if any
       ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id })
     }
