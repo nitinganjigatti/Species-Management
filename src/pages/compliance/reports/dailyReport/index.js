@@ -270,11 +270,15 @@ const DailyReport = () => {
         start_date: Utility.formatDate(startDate),
         end_date: Utility.formatDate(endDate)
       })
-
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
     } else {
-      setDateRange({ start_date: '', end_date: '' })
+      // fallback for "All time" selection: cover entire data window
+      setDateRange({
+        start_date: '2020-01-01',
+        end_date: Utility.formatDate(new Date())
+      })
     }
+
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
   }
 
   const fetchDailyReport = useCallback(
@@ -423,7 +427,7 @@ const DailyReport = () => {
       headerName: 'OBSERVATION TYPE',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', py: 2 }}>
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
