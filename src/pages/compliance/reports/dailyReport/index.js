@@ -640,7 +640,7 @@ const DailyReport = () => {
               columns={dailyReportsColumns}
               rows={indexedRows}
               loading={loading}
-              total={total}
+              rowCount={total}
               rowHeight={120}
               paginationModel={paginationModel}
               setPaginationModel={setPaginationModel}
