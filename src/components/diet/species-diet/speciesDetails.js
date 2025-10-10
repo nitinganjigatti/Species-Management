@@ -162,7 +162,10 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   pt: '6px',
                   width: 48,
                   height: 48,
-                  background: theme.palette.customColors.avatarBackground,
+                  background:
+                    type === 'attach'
+                      ? theme.palette.customColors.avatarBackground
+                      : theme.palette.customColors.mdAntzNeutral,
                   overflow: 'hidden'
                 }}
               >
