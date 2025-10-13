@@ -228,7 +228,7 @@ const AnimalAssessment = () => {
               {selectedAssessmentType?.assessments_type_label}
             </span>
           ) : (
-            ''
+            ' '
           )
       }))
     ]
@@ -740,16 +740,16 @@ const AnimalAssessment = () => {
 
               {!initialLoad && (
                 <>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 4,
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        mt: 1
-                      }}
-                    >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 4,
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mt: 1
+                    }}
+                  >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                       <TextField
                         inputRef={searchRef}
@@ -883,8 +883,9 @@ const AnimalAssessment = () => {
                       loading={isLoading}
                       // downloadExcel
                       serverSide
-                      rowSelection
+                      // rowSelection
                       modifyColumnPinning
+                      hideHeaderWhenEmpty
                       searchMode='server'
 
                       // disableColumnSorting={true}
