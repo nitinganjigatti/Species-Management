@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   Autocomplete,
@@ -65,6 +65,7 @@ const DailyReport = () => {
   const [defaultObservationType, setDefaultObservationType] = useState(null)
   const [observationListLoader, setObservationListLoader] = useState(false)
   const [observationList, setObservationList] = useState([])
+  const skipNextAutoFetchRef = useRef(false)
 
   const title = (
     <Typography
@@ -222,6 +223,7 @@ const DailyReport = () => {
     setPaginationModel(p => ({ ...p, page: 0 }))
 
     // fetchDailyReport()
+    skipNextAutoFetchRef.current = true
     fetchDailyReport({
       ids: selectedSiteIds,
       range: dateRange,
@@ -297,6 +299,12 @@ const DailyReport = () => {
   // Centralized trigger: sites / dates / search / obsType pe 1 hi call
   useEffect(() => {
     if (selectedSiteIds.length) {
+      if (skipNextAutoFetchRef.current) {
+        skipNextAutoFetchRef.current = false
+        fetchObservationMasterType()
+        return
+      }
+
       fetchDailyReport({
         ids: selectedSiteIds,
         range: dateRange,
@@ -306,6 +314,7 @@ const DailyReport = () => {
     } else {
       setIndexedRows([])
       setTotal(0)
+      skipNextAutoFetchRef.current = false
     }
     fetchObservationMasterType()
   }, [
