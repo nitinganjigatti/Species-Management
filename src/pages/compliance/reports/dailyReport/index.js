@@ -156,25 +156,18 @@ const DailyReport = () => {
   }, [])
 
   // Fetch nursery list with debouncing
-  const fetchObservationMasterType = async () => {
+  const fetchObservationMasterType = useCallback(async () => {
+    if (observationList.length) return
     try {
       setObservationListLoader(true)
-      const params = {
-        // page: 1,
-        // limit: 50,
-        // type: 'only_active',
-        // nursery_id: nurseryId,
-        // search: q
-      }
-      const res = await getObservationMasterType({ params })
+      const res = await getObservationMasterType({ params: {} })
       setObservationList(res?.data || [])
-      setObservationListLoader(false)
     } catch (e) {
       console.error(e)
     } finally {
-      // setObservationListLoader(false)
+      setObservationListLoader(false)
     }
-  }
+  }, [observationList.length])
 
   const clearSiteSelection = () => {
     // koi pending debounced apply ho to cancel
