@@ -633,7 +633,7 @@ const ReactTable = ({
                 position: 'sticky',
                 top: 0,
                 backgroundClip: 'padding-box',
-                zIndex: isPinned ? 800 : 110,
+                zIndex: isPinned ? 1100 : 110,
 
                 // ---- per-column overrides LAST (let user force zIndex/left/padding etc) ----
                 ...(originalColumn.headerStyle || {}),
