@@ -38,7 +38,8 @@ function SpeciesCard({ species, edit }) {
                   ? '50%'
                   : 'unset'
             }}
-            src={imgSrc}
+            // src={imgSrc}
+            src={species?.default_icon || '/images/housing/species-icon-colored.svg'}
             alt={species.scientific_name}
             slotProps={{
               img: {

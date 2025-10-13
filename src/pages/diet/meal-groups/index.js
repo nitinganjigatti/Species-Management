@@ -1898,6 +1898,7 @@ const MealGroup = () => {
           groupId={groupId}
           mealId={mealId}
           handleEditSearch={handleEditSearch}
+          fetchSiteStats={fetchSiteStats}
         />
       )}
       {enclosureDrawer && (
