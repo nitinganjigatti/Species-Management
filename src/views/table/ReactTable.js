@@ -477,8 +477,7 @@ const ReactTable = ({
   }, [loading, hasData, hideHeaderInitial])
 
   const shouldHideForEmptyState = hideHeaderWhenEmpty && !hasData
-  const isHeaderVisible =
-    hasBaseColumns && !(shouldHideForEmptyState || (hideHeaderInitial && loading && !hasData))
+  const isHeaderVisible = hasBaseColumns && !(shouldHideForEmptyState || (hideHeaderInitial && loading && !hasData))
 
   // ---------- ✅ UNIQUE ROW IDS ----------
   const getRowUniqueId = useCallback(
@@ -494,7 +493,7 @@ const ReactTable = ({
     [rowIdKey, serverSide, paginationModel.page, paginationModel.pageSize]
   )
 
-  // ---- Table ----
+  // ---- Table -----
   const table = useReactTable({
     data: rows,
     columns: processedColumns,
