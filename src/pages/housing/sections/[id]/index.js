@@ -133,24 +133,24 @@ const SectionDetails = () => {
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
-    useEffect(() => {
-      // Updating URL with tab parameter when tab changes
-      router.push(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, tab: selectedTab }
-        },
-        undefined,
-        { shallow: true }
-      )
-    }, [selectedTab])
+  useEffect(() => {
+    // Updating URL with tab parameter when tab changes
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: selectedTab }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }, [selectedTab])
 
-    // To read the tab parameter on component mount
-    useEffect(() => {
-      if (router.query.tab) {
-        setSelectedTab(router.query.tab)
-      }
-    }, [router.query.tab])
+  // To read the tab parameter on component mount
+  useEffect(() => {
+    if (router.query.tab) {
+      setSelectedTab(router.query.tab)
+    }
+  }, [router.query.tab])
 
   // useEffect(() => {
   //   const tabFromQuery = router.query?.enclosureTab
@@ -177,10 +177,8 @@ const SectionDetails = () => {
           loading={isLoading}
           zooName={data?.data?.section_name}
           image={data?.data?.images?.[0]?.file}
-
           // subtitle={data?.data?.site_description}
           userName={data?.data?.incharge_name}
-
           // description={data?.data?.incharges?.[0]?.full_name}
           // userImage={data?.data?.incharges?.[0]?.user_profile_pic}
           actions={{
@@ -198,8 +196,13 @@ const SectionDetails = () => {
               return
             }
           }}
+          onMessageClick={() => {
+            const phoneNumber = data?.data?.incharge_phone_number || ''
+            if (phoneNumber) {
+              window.open(`sms:${phoneNumber}`)
+            } else return
+          }}
           haveInsightsViewAccess={insightsViewAccess}
-
           // onMessageClick={() => console.log('Message clicked')}
           error={error}
           statsData={statsData}
