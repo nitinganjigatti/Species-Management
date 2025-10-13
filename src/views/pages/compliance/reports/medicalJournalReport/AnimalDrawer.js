@@ -287,7 +287,7 @@ const AnimalDrawer = ({
               }}
             />
 
-            {/* {showAnimalFilter && (
+            {showAnimalFilter && (
               <Box
                 onClick={() => setFilterDrawerOpen(true)}
                 sx={{
@@ -309,7 +309,7 @@ const AnimalDrawer = ({
                   // placement='bottom'
                 />
               </Box>
-            )} */}
+            )}
           </Box>
 
           {showAnimalFilter && (

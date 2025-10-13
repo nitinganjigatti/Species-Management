@@ -1,17 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Drawer, Avatar, Typography, IconButton, CircularProgress, Button, Skeleton } from '@mui/material'
+import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Skeleton, Avatar } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@emotion/react'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import Search from 'src/views/utility/Search'
-import { FilterButton } from 'src/views/utility/render-snippets'
-import { Grid } from '@mui/system'
 import { debounce } from 'lodash'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import AnimalFilterDrawer from './AnimalFilterDrawer'
+import { useTheme } from '@mui/material/styles'
 
 const PAGE_SIZE = 10
 
@@ -20,7 +18,8 @@ const EMPTY_FILTERS = {
   'Site, Sec or Encl.': [],
   Species: [],
   Gender: [],
-  Age: []
+  Age: [],
+  Mortality: []
 }
 
 const buildFilterParams = filters => {
@@ -59,6 +58,9 @@ const buildFilterParams = filters => {
   const ageGroups = filters['Age']?.filter(Boolean) || []
   if (ageGroups.length) params.age_groups = ageGroups.join(',')
 
+  const mortalityReasons = filters['Mortality']?.filter(Boolean) || []
+  if (mortalityReasons.length) params.mortality_reasons = mortalityReasons.map(String).join(',')
+
   return params
 }
 
@@ -66,7 +68,7 @@ const AnimalDrawer = ({
   open,
   onClose,
   handleAnimalClick,
-  btnText = 'GENERATE OBSERVATION REPORT',
+  btnText = 'GENERATE ANIMAL HISTORY REPORT',
   showAnimalFilter = true
 }) => {
   const theme = useTheme()
@@ -117,7 +119,7 @@ const AnimalDrawer = ({
   }
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Observation-Report', search, activeTab, filtersKey],
+    queryKey: ['animal-List-Animal-History-Report', search, activeTab, filtersKey],
     queryFn: async ({ pageParam = 1 }) => {
       const params = {
         page_no: pageParam,
@@ -153,7 +155,7 @@ const AnimalDrawer = ({
 
   useEffect(() => {
     if (!open) {
-      queryClient.cancelQueries({ queryKey: ['animal-List-Observation-Report', search, activeTab, filtersKey] })
+      queryClient.cancelQueries({ queryKey: ['animal-List-Animal-History-Report', search, activeTab, filtersKey] })
       remove()
       cooldownRef.current = false
     }
@@ -273,21 +275,20 @@ const AnimalDrawer = ({
             }}
           >
             <Search
-              width='100%'
               placeholder='Search by Animal name, AID or Identifier'
               value={localSearch}
               onChange={handleSearchChange}
+              fullWidth
               onClear={handleSearchClear}
-              inputStyle={{ py: '18px', px: '12px' }}
               sx={{
                 width: '100%',
                 '& .MuiTextField-root': {
                   width: '100%'
                 }
               }}
+              inputStyle={{ py: '18px', px: '12px', width: '100%' }}
             />
-
-            {/* {showAnimalFilter && (
+            {showAnimalFilter && (
               <Box
                 onClick={() => setFilterDrawerOpen(true)}
                 sx={{
@@ -309,7 +310,7 @@ const AnimalDrawer = ({
                   // placement='bottom'
                 />
               </Box>
-            )} */}
+            )}
           </Box>
 
           {showAnimalFilter && (
