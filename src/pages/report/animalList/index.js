@@ -204,7 +204,7 @@ const AnimalList = () => {
       } else {
         setDataList([])
         setTotal(0)
-        toast.error('Something went wrong')
+        toast.error(response?.message)
       }
     } catch (error) {
       toast.error('Error connecting to the server')
@@ -321,7 +321,7 @@ const AnimalList = () => {
       } else {
         setTotal(0)
         setAnimalList([])
-        toast.error('Something went wrong')
+        toast.error(response?.message)
       }
     } catch (error) {
       toast.error('Error connecting to the server')
