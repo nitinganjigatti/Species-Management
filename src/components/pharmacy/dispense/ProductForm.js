@@ -904,9 +904,9 @@ function ProductForm({
             }}
           >
             {fields.map((field, index) => (
-              <Grid container spacing={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
-                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
-                  <FormControl fullWidth sx={{ width: 'full', minWidth: 230 }}>
+              <Grid container spacing={2} key={field?.id} sx={{ mb: 2, mt: 3 }}>
+                <Grid item size={{ xs: 12, sm: 3.4, md: 3.5 }}>
+                  <FormControl fullWidth sx={{ width: 'full' }}>
                     <Controller
                       fullWidth
                       sx={{ width: '100%' }}
@@ -1036,7 +1036,7 @@ function ProductForm({
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
+                <Grid item size={{ xs: 12, sm: 3.4, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].multiplier`}
@@ -1067,7 +1067,7 @@ function ProductForm({
                     />
                   </FormControl>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
+                <Grid item size={{ xs: 12, sm: 3.4, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].qty`}
@@ -1116,7 +1116,7 @@ function ProductForm({
                 </Grid>
                 <Grid
                   item
-                  size={{ xs: 12, sm: 12, md: 1.5 }}
+                  size={{ xs: 12, sm: 1.5, md: 1.5 }}
                   sx={{
                     display: 'flex',
                     justifyContent: { xs: 'flex-start', md: 'flex-end' },
@@ -1143,14 +1143,16 @@ function ProductForm({
               padding: 2,
               borderRadius: 1,
               display: 'flex',
-              flexDirection: { md: 'row', lg: 'row', sm: 'column', xs: 'column' },
+              flexDirection: { md: 'row', lg: 'row', sm: 'row', xs: 'column' },
 
               justifyContent: 'space-around',
 
-              alignItems: 'center'
+              alignItems: 'center',
+              mb: 2,
+              mt: 3
             }}
           >
-            <Grid item size={{ xs: 12, sm: 12, md: 3.5 }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='batch_no'
@@ -1253,7 +1255,7 @@ function ProductForm({
                 />
               </FormControl>
             </Grid>
-            <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='multiplier'
@@ -1278,7 +1280,7 @@ function ProductForm({
                 </Controller>
               </FormControl>
             </Grid>
-            <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='qty'
