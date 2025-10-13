@@ -91,10 +91,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     return useCallback(debounce(callback, delay), [callback, delay])
   }
 
-  // // Debounced search callbacks
-  // const searchSpecies = useDebouncedCallback(async search => await TaxonomyList({ search }), 1000)
-  // const searchNursery = useDebouncedCallback(async q => await NurseryList(q), 1000)
-
   const searchTableData = useDebouncedCallback(async (status, q, fDate, tDate, ref_id) => {
     setSearchValue(q)
     await getspeciesFunc(status, q, fDate, tDate, ref_id)
@@ -192,70 +188,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       disableColumnMenu: true,
       field: 'species',
       headerName: 'SPECIES',
-      renderCell: params => (
-        <SpeciesCard species={{ ...params?.row, common_name: params.row?.default_common_name }} />
-        // <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        //   <Avatar
-        //     variant='rounded'
-        //     alt='Medicine Image'
-        //     sx={{
-        //       width: 35,
-        //       height: 35,
-        //       mr: 4,
-        //       p: 1,
-        //       objectFit: 'contain',
-        //       borderRadius: '50%',
-        //       background: '#E8F4F2'
-        //     }}
-        //   >
-        //     <img
-        //       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-        //       src={params.row.default_icon || '/branding/antz/Antz_logomark_h_color.svg'}
-        //       alt='Profile'
-        //     />
-        //   </Avatar>
-
-        //   <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        //     <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
-        //       <Typography
-        //         sx={{
-        //           color: theme.palette.primary.light,
-        //           fontSize: '16px',
-        //           fontWeight: '500',
-        //           lineHeight: '19.36px',
-        //           overflow: 'hidden',
-        //           textOverflow: 'ellipsis',
-        //           whiteSpace: 'nowrap',
-        //           width: '200px',
-        //           boxSizing: 'border-box'
-        //         }}
-        //       >
-        //         {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
-        //       </Typography>
-        //     </Tooltip>
-        //     <Tooltip
-        //       title={
-        //         params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
-        //       }
-        //     >
-        //       <Typography
-        //         sx={{
-        //           color: theme.palette.primary.light,
-        //           fontSize: '14px',
-        //           fontWeight: '400',
-        //           lineHeight: '16.94px',
-        //           overflow: 'hidden',
-        //           textOverflow: 'ellipsis',
-        //           whiteSpace: 'nowrap',
-        //           width: '200px'
-        //         }}
-        //       >
-        //         {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
-        //       </Typography>
-        //     </Tooltip>
-        //   </Box>
-        // </Box>
-      )
+      renderCell: params => <SpeciesCard species={{ ...params?.row, common_name: params.row?.default_common_name }} />
     },
     {
       width: 120,
@@ -1714,47 +1647,47 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           </CustomTooltip>
         </Box>
       )
-    },
-
-    {
-      width: 120,
-      field: 'in_transit',
-      sortable: true,
-      disableColumnMenu: true,
-      headerName: 'IN TRANSIT',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#FA61401A'
-            }
-          }}
-        >
-          <CustomTooltip
-            title={[
-              { label: 'Send to nursery :', value: params?.row?.send_to_nursery },
-              { label: 'With in transfer request:', value: params?.row?.within_transfer_request }
-            ]}
-          >
-            <Typography
-              style={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600',
-                lineHeight: '19.36px'
-              }}
-            >
-              {params.row.in_transit ? params.row.in_transit : '-'}
-            </Typography>
-          </CustomTooltip>
-        </Box>
-      )
     }
+
+    // {
+    //   width: 120,
+    //   field: 'in_transit',
+    //   sortable: true,
+    //   disableColumnMenu: true,
+    //   headerName: 'IN TRANSIT',
+    //   renderCell: params => (
+    //     <Box
+    //       sx={{
+    //         width: '100%',
+    //         height: 40,
+    //         borderRadius: '4px',
+    //         paddingLeft: 2,
+    //         alignContent: 'center',
+    //         '&:hover': {
+    //           backgroundColor: '#FA61401A'
+    //         }
+    //       }}
+    //     >
+    //       <CustomTooltip
+    //         title={[
+    //           { label: 'Send to nursery :', value: params?.row?.send_to_nursery },
+    //           { label: 'With in transfer request:', value: params?.row?.within_transfer_request }
+    //         ]}
+    //       >
+    //         <Typography
+    //           style={{
+    //             color: theme.palette.customColors.OnSurfaceVariant,
+    //             fontSize: '16px',
+    //             fontWeight: '600',
+    //             lineHeight: '19.36px'
+    //           }}
+    //         >
+    //           {params.row.in_transit ? params.row.in_transit : '-'}
+    //         </Typography>
+    //       </CustomTooltip>
+    //     </Box>
+    //   )
+    // }
   ]
 
   const getIdBasedOnStatus = () => {

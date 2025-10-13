@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Avatar,
   Button,
@@ -153,7 +153,20 @@ const EggSecondSecion = ({
 
   const formatDay = date => moment(Utility.convertUTCToLocal(date)).format('YYYY-MM-DD')
 
-  const chartData = rows.map(row => ({
+  const sortedRowsForChart = useMemo(() => {
+    return [...rows].sort((a, b) => {
+      const current = a?.created_at
+        ? moment(Utility.convertUTCToLocal(a.created_at)).valueOf()
+        : 0
+      const next = b?.created_at
+        ? moment(Utility.convertUTCToLocal(b.created_at)).valueOf()
+        : 0
+
+      return current - next
+    })
+  }, [rows])
+
+  const chartData = sortedRowsForChart.map(row => ({
     x: formatDay(row.created_at), // day-wise
     y: Number(row.assessment_value)
   }))
