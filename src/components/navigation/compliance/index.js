@@ -129,10 +129,10 @@ const composeComplianceNavigation = () => {
     keeperDiary,
     biologistDiary,
     enclosureCountRegister,
-    dailyReport,
-    medicalJournalReport,
-    animalStockReport,
-    animalHistoryReport
+    dailyReport
+    // medicalJournalReport,
+    // animalStockReport,
+    // animalHistoryReport
   )
 
   const complianceNavigation = [complianceTitle, documentsParent]
