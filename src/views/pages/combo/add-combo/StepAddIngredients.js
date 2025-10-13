@@ -197,30 +197,12 @@ const StepAddIngredients = ({
   }
 
   const removeIngredientButton = index => {
-    console.log(index, 'index')
-
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}
         className='ing_byperc'
         onClick={() => {
           removeIngredients(index)
-        }}
-      >
-        <Icon icon='material-symbols:cancel' />
-      </Box>
-    )
-  }
-
-  const removebyQuantityButton = index => {
-    console.log(index, 'index')
-
-    return (
-      <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '35px' }}
-        className='ing_byquan'
-        onClick={() => {
-          removeByQuantity(index)
         }}
       >
         <Icon icon='material-symbols:cancel' />
