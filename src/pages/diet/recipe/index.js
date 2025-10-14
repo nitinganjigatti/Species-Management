@@ -299,7 +299,8 @@ const RecipeList = () => {
           {RenderUtility.renderUserAvatarDetails({
             profile_image: params?.row?.created_by_user?.profile_pic,
             user_name: params?.row?.created_by_user?.user_name,
-            date: moment(params?.row?.created_at).format('YYYY-MM-DD')
+            date: moment(params?.row?.created_at).format('YYYY-MM-DD'),
+            crby_width: 200
           })}
         </Box>
       )

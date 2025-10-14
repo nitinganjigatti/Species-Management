@@ -309,6 +309,7 @@ const Diet = () => {
               profile_image={params.row.dietitian_profile_pic}
               user_name={params.row.dietitian_name}
               role={params.row.dietitian_role_name}
+              crby_width='200px'
             />
             {/* {UserAvatarDetails({
               profile_image: params.row.profile_pic,
@@ -333,7 +334,8 @@ const Diet = () => {
             {RenderUtility.renderUserAvatarDetails({
               profile_image: params.row.profile_pic,
               user_name: params.row.user_name,
-              date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD')
+              date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+              crby_width: 200
             })}
           </Box>
         </>

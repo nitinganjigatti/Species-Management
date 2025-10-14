@@ -63,6 +63,7 @@ export function renderUserAvatarDetails({
   date,
   text_color,
   description,
+  crby_width,
   size = 'large',
   show_time = false
 }) {
@@ -121,7 +122,7 @@ export function renderUserAvatarDetails({
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      maxWidth: 100,
+                      maxWidth: crby_width ? crby_width : 100,
                       ...(selectedAvatarSize?.user_name || {})
                     }}
 
