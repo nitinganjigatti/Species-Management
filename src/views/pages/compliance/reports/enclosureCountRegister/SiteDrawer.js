@@ -16,10 +16,9 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
-import dayjs from 'dayjs'
 
 import Icon from 'src/@core/components/icon'
-import SelectSectionList from 'src/components/diet/SelectSectionList'
+import SingleSelectSectionList from './SingleSelectSectionList'
 import SelectSites from 'src/components/report/SelectSite'
 
 const reportTypeArray = [
@@ -503,7 +502,7 @@ const SiteDrawer = ({
         tempSelectedItems={tempSelectedItems}
         setTempSelectedItems={setTempSelectedItems}
       />
-      <SelectSectionList
+      <SingleSelectSectionList
         open={openSectionListDrawer}
         onClose={() => setOpenSectionListDrawer(false)}
         siteId={tempSelectedItems?.Site?.[0]} // Pass the single selected site
