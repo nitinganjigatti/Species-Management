@@ -814,7 +814,7 @@ const EnclosureCountRegister = () => {
             <ReportCard
               subtitle='No Site selected'
               description='Select any Site to view its report'
-              buttonText='SELECT SITE'
+              buttonText='SELECT SITE & REPORT TYPE'
               addHandler={reportCardEventHandler}
             />
           </Card>
