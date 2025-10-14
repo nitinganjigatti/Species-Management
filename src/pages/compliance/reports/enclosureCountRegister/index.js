@@ -2,7 +2,7 @@ import { useTheme } from '@emotion/react'
 import { Box, Card, CardHeader, CircularProgress, IconButton, Tooltip, Typography, Skeleton } from '@mui/material'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { AuthContext } from 'src/context/AuthContext'
@@ -31,6 +31,8 @@ const EnclosureCountRegister = () => {
   const [siteLoader, setSiteLoader] = useState(false)
   const [enclosuresData, setEnclosuresData] = useState([])
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
+  const [siteSummaryLabel, setSiteSummaryLabel] = useState('-')
+  const [siteExtraCount, setSiteExtraCount] = useState(null)
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const tabsForfilter = ['Site', 'Report Type']
@@ -532,6 +534,8 @@ const EnclosureCountRegister = () => {
     setEnclosuresData([])
     setSelectedItems({ Site: [], Section: [], Enclosure: [], reportType: '' })
     setTempSelectedItems({ Site: [], Section: [], Enclosure: [], reportType: '' })
+    setSiteSummaryLabel('-')
+    setSiteExtraCount(null)
 
     // Reset search and pagination
     setSearchValue('')
@@ -550,21 +554,19 @@ const EnclosureCountRegister = () => {
     )
   }
 
-  const { siteSummaryLabel, siteExtraCount } = useMemo(() => {
+  useEffect(() => {
     const names = registerStats?.site_name
     const list = Array.isArray(names) ? names.filter(Boolean) : names ? [names] : []
 
     if (!list.length) {
-      return { siteSummaryLabel: '-', siteExtraCount: null }
+      setSiteSummaryLabel('-')
+      setSiteExtraCount(null)
+      return
     }
 
-    const label = list.slice(0, 4).join(', ')
-    console.log('list', list)
-    return {
-      siteSummaryLabel: label,
-      siteExtraCount: list.length > 4 ? list.length - 4 : null
-    }
-  }, [registerStats?.site_name])
+    setSiteSummaryLabel(list.slice(0, 4).join(', '))
+    setSiteExtraCount(list.length > 4 ? list.length - 4 : null)
+  }, [registerStats])
 
   const headerAction = (
     <Box sx={{ display: 'flex', gap: '24px' }}>
