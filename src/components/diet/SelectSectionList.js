@@ -412,6 +412,7 @@ const SelectSectionList = ({
             onClick={() => {
               onSelectSections(selectedSections)
               setSearchTerm('')
+              onClose?.()
             }}
             disabled={selectedSections?.length <= 0}
           >

@@ -42,9 +42,9 @@ const CreateMealGroup = ({
   mealType,
   loader,
   mealId,
-  handleEditSearch
+  handleEditSearch,
+  fetchSiteStats
 }) => {
-
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -52,12 +52,12 @@ const CreateMealGroup = ({
   const [loading, setLoading] = useState(false)
 
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] 
+    const itemToRemove = selectedItems[index]
     const updatedItems = selectedItems.filter((_, i) => i !== index)
     const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
 
     setSelectedItems(updatedItems)
-    setCheckedRows(updatedChecked) 
+    setCheckedRows(updatedChecked)
   }
 
   console.log('Group NMW >', groupName)
@@ -100,7 +100,7 @@ const CreateMealGroup = ({
     }
     setGroupNameError(false)
 
-    if (loading) return 
+    if (loading) return
 
     setLoading(true)
     try {
@@ -131,8 +131,8 @@ const CreateMealGroup = ({
     debounce(async q => {
       setSearchTerm(q)
       if (q.trim() === '') {
-        const data = [...selectedItems] 
-        const filteredData = data.filter(item => checkedRows.includes(item.id)) 
+        const data = [...selectedItems]
+        const filteredData = data.filter(item => checkedRows.includes(item.id))
         setSelectedItems(filteredData)
 
         return
@@ -153,7 +153,7 @@ const CreateMealGroup = ({
         console.log(err)
       }
     }, 1000),
-    [selectedOption] 
+    [selectedOption]
   )
 
   const handleCreateSearch = value => {
@@ -184,6 +184,7 @@ const CreateMealGroup = ({
       if (response) {
         handleCloseSideBar()
         fetchEnclosure()
+        fetchSiteStats()
         toast.success('Meal Group updated Successfully')
       } else {
         toast.error('Something went wrong')
@@ -197,7 +198,7 @@ const CreateMealGroup = ({
   const handleEnclosureRemove = async index => {
     console.log('index >', index)
 
-    const itemToRemove = editeditems[index] 
+    const itemToRemove = editeditems[index]
 
     const updatedEditedEnclosures = editeditems.filter((_, i) => i !== index)
     const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
@@ -206,7 +207,7 @@ const CreateMealGroup = ({
     setRemovedEnclosures([...removedEnclosures, itemToRemove?.enclosure_id])
 
     setEditItems(updatedEditedEnclosures)
-    setCheckedRows(updatedChecked) 
+    setCheckedRows(updatedChecked)
   }
 
   // const selectedObj = editeditems[index]
@@ -585,8 +586,8 @@ const CreateMealGroup = ({
                   gap: 2,
                   overflowY: 'auto',
                   overflowX: 'hidden',
-                  pr: 1, 
-                  height: '80vh' 
+                  pr: 1,
+                  height: '80vh'
                 }}
               >
                 {loader ? (

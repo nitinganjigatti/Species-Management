@@ -63,7 +63,7 @@ function UserAvatarDetails({
                     variant='subtitle2'
                     sx={{
                       color: text_color ?? 'text.primary',
-
+                      width: '100px',
                       // fontSize: fontSize,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',

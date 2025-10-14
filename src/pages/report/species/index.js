@@ -700,7 +700,7 @@ const SpeciesReport = () => {
                   loading={isLoading}
                   onRowClick={handleRowClick}
                   serverSide
-                  rowSelection
+                  // rowSelection
                   modifyColumnPinning
                   headerName='Species General Report'
                   searchMode='server'

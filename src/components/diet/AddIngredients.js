@@ -116,6 +116,7 @@ const AddIngredients = props => {
     setFeed(event.target.value)
 
     try {
+      setLoading(true)
       const params = { page: 1, limit: 20, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
@@ -123,8 +124,10 @@ const AddIngredients = props => {
           setIngredientPage(1)
           setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
+          setLoading(false)
         } else {
           setReachedEnd(false)
+          setLoading(false)
           setIngredientList([])
         }
       })
@@ -994,7 +997,7 @@ const AddIngredients = props => {
                 {/* ) : null} */}
               </Box>
             ))
-          ) : searchValue !== '' && sortedIngredientList.length <= 0 ? (
+          ) : sortedIngredientList?.length <= 0 ? (
             <Box
               sx={{
                 display: 'flex',

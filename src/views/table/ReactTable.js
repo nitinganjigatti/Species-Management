@@ -128,8 +128,10 @@ const MemoBodyRow = React.memo(
       >
         {row.getVisibleCells().map(cell => {
           const column = cell.column
-          const isPinned = column.getIsPinned()
+          const pinnedState = column.getIsPinned?.()
+          const isPinned = pinnedState === 'left' || pinnedState === 'right'
           const originalColumn = column.columnDef.meta?.originalColumn || {}
+          const explicit = !!originalColumn.__explicitWidth
 
           const cellTextAlign =
             originalColumn.textAlign ||
@@ -143,7 +145,14 @@ const MemoBodyRow = React.memo(
             borderBottom: isLastRow ? 'none' : '1px solid #ddd',
             borderRight: isPinned && '1px solid #ddd',
             textAlign: column.id === '_select' ? 'center' : cellTextAlign,
-            padding: column.id === '_select' ? '0 8px' : '8px 16px',
+            // padding: column.id === '_select' ? '0 8px' : '8px 16px',
+            // padding:
+            //   originalColumn.width != null && column.id !== '_select'
+            //     ? 0
+            //     : column.id === '_select'
+            //     ? '0 8px'
+            //     : '8px 16px',
+            padding: explicit && column.id !== '_select' ? 0 : column.id === '_select' ? '0 8px' : '8px 16px',
             backgroundColor: isPinned ? theme.palette.background?.paper || '#fff' : 'transparent',
 
             // ---- column-level customizations (from columns array) ----
@@ -158,7 +167,7 @@ const MemoBodyRow = React.memo(
 
             // keep pinning last so sticky offsets/sizes always win
             ...getCommonPinningStyles(column),
-
+            boxSizing: 'border-box',
             zIndex: isPinned ? 100 : 1
           }
 
@@ -186,7 +195,14 @@ const MemoBodyRow = React.memo(
               }}
               sx={baseSx}
             >
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
+              {explicit && column.id !== '_select' ? (
+                <Box sx={{ px: 2, py: 1, width: '100%', minWidth: 0 }}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </Box>
+              ) : (
+                flexRender(cell.column.columnDef.cell, cell.getContext())
+              )}
             </TableCell>
           )
         })}
@@ -252,6 +268,9 @@ const ReactTable = ({
   // Server-side pagination
   serverSide = false,
 
+  // Behavior toggles
+  hideHeaderWhenEmpty = false,
+
   // External styling hooks
   sx: rootSx,
   style: rootStyle,
@@ -271,7 +290,8 @@ const ReactTable = ({
     const left = []
     const right = []
     ;(cols || []).forEach((c, i) => {
-      const id = c.field || `column_${i}`
+      // const id = c.field || `column_${i}`
+      const id = c.id || c.field || `column_${i}`
       if (c.pinned === 'left') left.push(id)
       else if (c.pinned === 'right') right.push(id)
     })
@@ -300,6 +320,7 @@ const ReactTable = ({
   const [columnPinning, setColumnPinning] = useState(() => withSelectionInPinning(defaultPinning))
   const [anchorEl, setAnchorEl] = useState(null)
   const [menuColumn, setMenuColumn] = useState(null)
+  const [menuHeader, setMenuHeader] = useState(null)
 
   // ✅ Global (cross-page) selection
   const [rowSelectionState, setRowSelectionState] = useState({})
@@ -311,69 +332,242 @@ const ReactTable = ({
     '& .MuiSvgIcon-root': { fontSize: 18 }
   }
 
-  const getCommonPinningStyles = useCallback(column => {
-    const isPinned = column.getIsPinned()
-    const isFirstLeftPinned = isPinned === 'left' && column.getIsFirstColumn('left')
-    const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left')
-    const isFirstRightPinnedColumn = isPinned === 'right' && column.getIsFirstColumn('right')
-    const size = column.getSize()
+  const resolveLeafColumns = useCallback((column, header) => {
+    if (!column) return []
 
-    return {
-      boxShadow: isLastLeftPinnedColumn
-        ? '-4px 0 4px -4px rgba(0,0,0,0.2) inset'
-        : isFirstRightPinnedColumn
-        ? '4px 0 4px -4px rgba(0,0,0,0.2) inset'
-        : undefined,
-      left: isPinned === 'left' ? (isFirstLeftPinned ? 0 : `${column.getStart('left')}px`) : undefined,
-      right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
-      position: isPinned ? 'sticky' : 'relative',
-      width: size,
-      minWidth: size,
-      maxWidth: size,
-      zIndex: isPinned ? 1000 : 1
+    const seen = new Set()
+
+    const collect = items => {
+      const result = []
+
+      ;(items || []).forEach(item => {
+        const col = item?.column ?? item
+        if (!col) return
+
+        const id = col.id
+        if (!id || seen.has(id)) return
+
+        const subLeafs = col.getLeafColumns?.()
+        if (Array.isArray(subLeafs) && subLeafs.length > 0 && subLeafs.some(sub => sub && sub !== col)) {
+          result.push(...collect(subLeafs))
+        } else {
+          seen.add(id)
+          result.push(col)
+        }
+      })
+
+      return result
     }
+
+    if (header) {
+      const headerLeaves = collect(header.getLeafHeaders?.())
+      if (headerLeaves.length) return headerLeaves
+    }
+
+    const columnLeaves = collect(column.getLeafColumns?.())
+    if (columnLeaves.length) return columnLeaves
+
+    return [column]
   }, [])
 
-  // ---- Columns ----
-  const baseColumns = useMemo(() => {
-    if (!Array.isArray(columns)) return []
-    return columns.map((col, index) => ({
-      id: col.field || `column_${index}`,
-      accessorKey: col.field,
-      header: col.headerName || col.field,
-      size: col.width || col.minWidth || 150,
-      minSize: col.minWidth || 100,
-      maxSize: col.maxWidth || 500,
-      enableSorting: col.sortable !== false,
-      enableColumnFilter: true,
-      enablePinning: true,
-      cell: ({ row, getValue }) => {
-        const value = getValue()
-        const cellProps = { row: row.original, value, field: col.field }
-        if (col.renderCell) return col.renderCell(cellProps)
-        if (React.isValidElement(value)) return value
-        return (
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 400,
-              color: theme.palette.customColors?.OnSurfaceVariant || '#666',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {value ?? '-'}
-          </Typography>
-        )
-      },
-      meta: {
-        originalColumn: col,
-        textAlign: col.textAlign || 'left',
-        headerAlign: col.headerAlign || 'left'
+  const getPinSummary = useCallback(
+    (column, header) => {
+      const leafs = resolveLeafColumns(column, header)
+      let hasLeft = false
+      let hasRight = false
+      let hasUnpinned = false
+
+      leafs.forEach(leaf => {
+        const side = leaf?.getIsPinned?.()
+        if (side === 'left') hasLeft = true
+        else if (side === 'right') hasRight = true
+        else hasUnpinned = true
+      })
+
+      if ((hasLeft && hasRight) || (hasLeft && hasUnpinned) || (hasRight && hasUnpinned)) return 'mixed'
+      if (hasLeft) return 'left'
+      if (hasRight) return 'right'
+      return 'none'
+    },
+    [resolveLeafColumns]
+  )
+
+  const getCommonPinningStyles = useCallback(
+    (column, header) => {
+      if (!column) return {}
+
+      const summary = getPinSummary(column, header)
+      if (summary === 'none' || summary === 'mixed') return {}
+
+      const leafs = resolveLeafColumns(column, header)
+      const pinnedLeafs = leafs.filter(leaf => leaf?.getIsPinned?.() === summary)
+
+      if (!pinnedLeafs.length) return {}
+
+      if (pinnedLeafs.length !== leafs.length) return {}
+
+      const firstLeaf = pinnedLeafs[0]
+      const lastLeaf = pinnedLeafs[pinnedLeafs.length - 1]
+
+      const widthFromLeaves = pinnedLeafs.reduce((total, leaf) => total + (leaf?.getSize?.() || 0), 0)
+      const widthCandidate = Number.isFinite(widthFromLeaves) && widthFromLeaves > 0 ? widthFromLeaves : header?.getSize?.()
+      const width = typeof widthCandidate === 'number' && Number.isFinite(widthCandidate) ? widthCandidate : undefined
+
+      const styles = {
+        position: 'sticky',
+        zIndex: 1000
       }
-    }))
-  }, [columns, theme])
+
+      if (width !== undefined) {
+        styles.width = width
+        styles.minWidth = width
+        styles.maxWidth = width
+      }
+
+      if (summary === 'left') {
+        const offset = firstLeaf?.getStart?.('left') ?? header?.getStart?.() ?? column.getStart?.('left')
+        if (typeof offset === 'number') styles.left = `${offset}px`
+        else if (offset != null) styles.left = offset
+
+        if (lastLeaf?.getIsLastColumn?.('left')) {
+          styles.boxShadow = '-4px 0 4px -4px rgba(0,0,0,0.2) inset'
+        }
+      } else if (summary === 'right') {
+        const offset = lastLeaf?.getAfter?.('right') ?? header?.getAfter?.() ?? column.getAfter?.('right')
+        if (typeof offset === 'number') styles.right = `${offset}px`
+        else if (offset != null) styles.right = offset
+
+        if (firstLeaf?.getIsFirstColumn?.('right')) {
+          styles.boxShadow = '4px 0 4px -4px rgba(0,0,0,0.2) inset'
+        }
+      }
+
+      return styles
+    },
+    [getPinSummary, resolveLeafColumns]
+  )
+
+  // ---- Columns ----
+  // const baseColumns = useMemo(() => {
+  //   if (!Array.isArray(columns)) return []
+  //   return columns.map((col, index) => ({
+  //     id: col.field || `column_${index}`,
+  //     accessorKey: col.field,
+  //     header: col.headerName || col.field,
+  //     size: col.width || col.minWidth || 150,
+  //     minSize: col.minWidth || 100,
+  //     maxSize: col.maxWidth || 500,
+  //     enableSorting: col.sortable !== false,
+  //     enableColumnFilter: true,
+  //     enablePinning: true,
+  //     cell: ({ row, getValue }) => {
+  //       const value = getValue()
+  //       const cellProps = { row: row.original, value, field: col.field }
+  //       if (col.renderCell) return col.renderCell(cellProps)
+  //       if (React.isValidElement(value)) return value
+  //       return (
+  //         <Typography
+  //           sx={{
+  //             fontSize: '14px',
+  //             fontWeight: 400,
+  //             color: theme.palette.customColors?.OnSurfaceVariant || '#666',
+  //             overflow: 'hidden',
+  //             textOverflow: 'ellipsis',
+  //             whiteSpace: 'nowrap'
+  //           }}
+  //         >
+  //           {value ?? '-'}
+  //         </Typography>
+  //       )
+  //     },
+  //     meta: {
+  //       originalColumn: col,
+  //       textAlign: col.textAlign || 'left',
+  //       headerAlign: col.headerAlign || 'left'
+  //     }
+  //   }))
+  // }, [columns, theme])
+
+  // util: safe nested path (e.g. "openingStock.m")
+  const getByPath = (obj, path) =>
+    String(path || '')
+      .split('.')
+      .reduce((o, k) => (o == null ? o : o[k]), obj)
+
+  // ---- Columns (with groups) ----
+  const makeColumnDefs = (cols, theme) => {
+    if (!Array.isArray(cols)) return []
+
+    return cols.map((col, index) => {
+      const id = col.id || col.field || `column_${index}`
+
+      // GROUP COLUMN
+      if (Array.isArray(col.columns) && col.columns.length) {
+        return {
+          id,
+          header: col.headerName ?? id,
+          enablePinning: true,
+          meta: { originalColumn: col },
+          columns: makeColumnDefs(col.columns, theme)
+        }
+      }
+
+      // LEAF COLUMN
+      // const accessorKey = col.field
+      // const size = col.width || col.minWidth || 150
+
+      // const accessorKey = col.field
+      // const explicitWidth = typeof col.width === 'number'
+      // const size = explicitWidth ? col.width : col.minWidth || 150
+      // const minSize = explicitWidth ? col.width : col.minWidth || 100
+      // const maxSize = explicitWidth ? col.width : col.maxWidth || 500
+      const accessorKey = col.field
+      const explicitWidth = Number.isFinite(col.width)
+      const size = explicitWidth ? col.width : col.minWidth ?? 150
+      const minSize = explicitWidth ? col.width : col.minWidth ?? 100
+      const maxSize = explicitWidth ? col.width : col.maxWidth ?? 500
+
+      return {
+        id,
+        accessorFn: accessorKey ? row => getByPath(row, accessorKey) : undefined,
+        header: col.headerName || col.field || id,
+        size,
+        minSize,
+        maxSize,
+        enableSorting: col.sortable !== false,
+        enableColumnFilter: true,
+        enablePinning: true,
+        cell: ({ row, getValue }) => {
+          const v = getValue?.()
+          const cellProps = { row: row.original, value: v, field: col.field }
+          if (col.renderCell) return col.renderCell(cellProps)
+          if (React.isValidElement(v)) return v
+          return (
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                color: theme.palette.customColors?.OnSurfaceVariant || '#666',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                textAlign: col.textAlign || 'left'
+              }}
+            >
+              {v ?? '-'}
+            </Typography>
+          )
+        },
+        meta: {
+          originalColumn: { ...col, __explicitWidth: explicitWidth }, // 👈 flag for padding logic
+          textAlign: col.textAlign || 'left',
+          headerAlign: col.headerAlign || 'left'
+        }
+      }
+    })
+  }
+
+  const baseColumns = useMemo(() => makeColumnDefs(columns, theme), [columns, theme])
 
   const hasBaseColumns = baseColumns.length > 0
 
@@ -473,7 +667,8 @@ const ReactTable = ({
     if (hideHeaderInitial && (!loading || hasData)) setHideHeaderInitial(false)
   }, [loading, hasData, hideHeaderInitial])
 
-  const isHeaderVisible = hasBaseColumns && !(hideHeaderInitial && loading && !hasData)
+  const shouldHideForEmptyState = hideHeaderWhenEmpty && !hasData
+  const isHeaderVisible = hasBaseColumns && !(shouldHideForEmptyState || (hideHeaderInitial && loading && !hasData))
 
   // ---------- ✅ UNIQUE ROW IDS ----------
   const getRowUniqueId = useCallback(
@@ -489,7 +684,7 @@ const ReactTable = ({
     [rowIdKey, serverSide, paginationModel.page, paginationModel.pageSize]
   )
 
-  // ---- Table ----
+  // ---- Table -----
   const table = useReactTable({
     data: rows,
     columns: processedColumns,
@@ -523,11 +718,18 @@ const ReactTable = ({
   })
 
   // ---- Dynamic height with REAL measurements ----
-  const hasSubHeader = processedColumns.some(
-    col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
-  )
+  // const hasSubHeader = processedColumns.some(
+  //   col => Array.isArray(col.meta?.originalColumn?.subHeader) && col.meta.originalColumn.subHeader.length > 0
+  // )
+
+  const hasSubHeader = table.getHeaderGroups().length > 1
+
+  // const [dynamicTableHeight, setDynamicTableHeight] = useState(
+  //   currentRowsInView * rowHeight + (isHeaderVisible ? headerHeight : 0) + (hasSubHeader ? subHeaderHeight : 0)
+  // )
   const [dynamicTableHeight, setDynamicTableHeight] = useState(
-    currentRowsInView * rowHeight + (isHeaderVisible ? headerHeight : 0) + (hasSubHeader ? subHeaderHeight : 0)
+    currentRowsInView * rowHeight +
+      (isHeaderVisible ? headerHeight + (table.getHeaderGroups().length - 1) * subHeaderHeight : 0)
   )
 
   useEffect(() => {
@@ -562,17 +764,33 @@ const ReactTable = ({
   }, [table, rows, currentRowsInView, rowHeight, headerHeight, subHeaderHeight, hasSubHeader, isHeaderVisible])
 
   // ---- Column menu ----
-  const handleColumnMenuClick = (event, column) => {
+  const handleColumnMenuClick = (event, column, header) => {
     setAnchorEl(event.currentTarget)
     setMenuColumn(column)
+    setMenuHeader(header || null)
   }
   const handleColumnMenuClose = () => {
     setAnchorEl(null)
     setMenuColumn(null)
+    setMenuHeader(null)
   }
   const handlePinColumn = (columnId, position) => {
-    const col = table.getAllLeafColumns().find(c => c.id === columnId)
-    if (col) col.pin(position || false)
+    const column = table.getColumn(columnId) || table.getAllLeafColumns().find(c => c.id === columnId)
+
+    if (column) {
+      const targetLeafs = resolveLeafColumns(column, menuHeader)
+
+      const applyPin = (targetColumn, nextPosition) => {
+        const normalized = nextPosition === 'left' || nextPosition === 'right' ? nextPosition : false
+        targetColumn.pin(normalized)
+      }
+
+      if (targetLeafs.length) {
+        targetLeafs.forEach(leaf => applyPin(leaf, position))
+      } else {
+        applyPin(column, position)
+      }
+    }
     handleColumnMenuClose()
   }
 
@@ -593,85 +811,195 @@ const ReactTable = ({
   }, [])
 
   // ---- Header ----
-  const renderTableHeader = () =>
-    table.getHeaderGroups().map(headerGroup => (
+  // const renderTableHeader = () =>
+  //   table.getHeaderGroups().map(headerGroup => (
+  //     <TableRow key={headerGroup.id}>
+  //       {headerGroup.headers.map(header => {
+  //         const column = header.column
+  //         const originalColumn = column.columnDef.meta?.originalColumn || {}
+  //         const isPinned = column.getIsPinned()
+
+  //         const headerTextAlign =
+  //           originalColumn.headerAlign ||
+  //           (originalColumn.headerStyle && originalColumn.headerStyle.textAlign) ||
+  //           (originalColumn.style && originalColumn.style.textAlign) ||
+  //           (originalColumn.headerSx && originalColumn.headerSx.textAlign) ||
+  //           (originalColumn.sx && originalColumn.sx.textAlign) ||
+  //           'left'
+
+  //         return (
+  //           <TableCell
+  //             key={header.id}
+  //             sx={{
+  //               backgroundColor: '#C1D3D0',
+  //               borderBottom: '1px solid #ddd',
+  //               borderRight: '1px solid #ddd',
+  //               fontWeight: 'bold',
+  //               fontSize: '24px',
+  //               color: '#444',
+  //               textAlign: headerTextAlign,
+  //               height: headerHeight,
+  //               padding: '8px 16px',
+  //               '&:first-of-type': { borderTopLeftRadius: 6 },
+  //               '&:last-of-type': { borderTopRightRadius: 6 },
+
+  //               // component-level header style
+  //               ...headerStyle,
+
+  //               // pinning + base sticky
+  //               ...getCommonPinningStyles(column),
+  //               position: 'sticky',
+  //               top: 0,
+  //               backgroundClip: 'padding-box',
+  //               zIndex: isPinned ? 800 : 110,
+
+  //               // ---- per-column overrides LAST (let user force zIndex/left/padding etc) ----
+  //               ...(originalColumn.headerStyle || {}),
+  //               ...(originalColumn.headerSx || {}),
+  //               ...(originalColumn.sx || {})
+  //             }}
+  //             onClick={e => e.stopPropagation()}
+  //           >
+  //             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+  //               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+  //                 {column.getCanSort() ? (
+  //                   <TableSortLabel
+  //                     active={column.getIsSorted() !== false}
+  //                     direction={column.getIsSorted() === 'desc' ? 'desc' : 'asc'}
+  //                     onClick={column.getToggleSortingHandler()}
+  //                     sx={{ color: 'inherit' }}
+  //                   >
+  //                     {flexRender(column.columnDef.header, header.getContext())}
+  //                   </TableSortLabel>
+  //                 ) : (
+  //                   flexRender(column.columnDef.header, header.getContext())
+  //                 )}
+  //                 {column.id !== '_select' && column.getIsPinned() && (
+  //                   <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />
+  //                 )}
+  //               </Box>
+
+  //               {modifyColumnPinning && column.id !== '_select' && originalColumn.disablePinMenu !== true && (
+  //                 <IconButton size='small' onClick={e => handleColumnMenuClick(e, column)} sx={{ opacity: 0.7 }}>
+  //                   <MoreVertIcon fontSize='small' />
+  //                 </IconButton>
+  //               )}
+  //             </Box>
+  //           </TableCell>
+  //         )
+  //       })}
+  //     </TableRow>
+  //   ))
+
+  // ---- Header ----
+  // top offset per header row (row 0 = main, others = subheader rows)
+  const getHeaderTop = (depth, headerHeight, subHeaderHeight) =>
+    depth === 0 ? 0 : headerHeight + (depth - 1) * subHeaderHeight
+
+  const renderTableHeader = () => {
+    const headerGroups = table.getHeaderGroups()
+    const maxDepth = headerGroups.length - 1
+
+    return headerGroups.map((headerGroup, depth) => (
       <TableRow key={headerGroup.id}>
         {headerGroup.headers.map(header => {
+          const isPlaceholder = header.isPlaceholder
           const column = header.column
           const originalColumn = column.columnDef.meta?.originalColumn || {}
-          const isPinned = column.getIsPinned()
+          // If this header has no children (leaf in this row), span down to fill remaining rows
+          const rowSpan = header.subHeaders?.length ? 1 : Math.max(1, maxDepth - depth + 1)
 
-          const headerTextAlign =
-            originalColumn.headerAlign ||
-            (originalColumn.headerStyle && originalColumn.headerStyle.textAlign) ||
-            (originalColumn.style && originalColumn.style.textAlign) ||
-            (originalColumn.headerSx && originalColumn.headerSx.textAlign) ||
-            (originalColumn.sx && originalColumn.sx.textAlign) ||
-            'left'
+          const topOffset = getHeaderTop(depth, headerHeight, subHeaderHeight)
+          const cellHeight = depth === 0 ? headerHeight : subHeaderHeight
+          const explicit = !!originalColumn.__explicitWidth
+
+          const headerPinSummary = getPinSummary(column, header)
+          const isPinned = headerPinSummary === 'left' || headerPinSummary === 'right'
+          const showPinIcon = isPinned
 
           return (
             <TableCell
               key={header.id}
+              colSpan={header.colSpan}
+              rowSpan={rowSpan}
               sx={{
                 backgroundColor: '#C1D3D0',
                 borderBottom: '1px solid #ddd',
                 borderRight: '1px solid #ddd',
                 fontWeight: 'bold',
-                fontSize: '24px',
+                fontSize: depth === 0 ? '16px' : '14px',
                 color: '#444',
-                textAlign: headerTextAlign,
-                height: headerHeight,
-                padding: '8px 16px',
-                '&:first-of-type': { borderTopLeftRadius: 6 },
-                '&:last-of-type': { borderTopRightRadius: 6 },
+                textAlign: originalColumn.headerAlign || originalColumn.textAlign || 'left',
+                height: cellHeight,
+                // padding: '8px 16px',
+                // padding: originalColumn.width != null && column.id !== '_select' ? 0 : '8px 16px',
+                padding: explicit && column.id !== '_select' ? 0 : '8px 16px',
 
-                // component-level header style
-                ...headerStyle,
-
-                // pinning + base sticky
-                ...getCommonPinningStyles(column),
+                // pinning + sticky stacking
+                ...getCommonPinningStyles(column, header),
+                boxSizing: 'border-box',
                 position: 'sticky',
-                top: 0,
+                top: topOffset,
                 backgroundClip: 'padding-box',
-                zIndex: isPinned ? 800 : 110,
+                zIndex: isPinned ? 1100 : 110,
 
-                // ---- per-column overrides LAST (let user force zIndex/left/padding etc) ----
+                // per-column overrides last
                 ...(originalColumn.headerStyle || {}),
                 ...(originalColumn.headerSx || {}),
                 ...(originalColumn.sx || {})
               }}
-              onClick={e => e.stopPropagation()}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {column.getCanSort() ? (
-                    <TableSortLabel
-                      active={column.getIsSorted() !== false}
-                      direction={column.getIsSorted() === 'desc' ? 'desc' : 'asc'}
-                      onClick={column.getToggleSortingHandler()}
-                      sx={{ color: 'inherit' }}
+             onClick={e => e.stopPropagation()}
+           >
+              {isPlaceholder ? null : (
+                // <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'space-between',
+                   // px: originalColumn.width != null && column.id !== '_select' ? 2 : 0,
+                   // py: originalColumn.width != null && column.id !== '_select' ? 1 : 0,
+                   px: explicit && column.id !== '_select' ? 2 : 0,
+                   py: explicit && column.id !== '_select' ? 1 : 0,
+                   width: '100%',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {column.getCanSort() ? (
+                      <TableSortLabel
+                        active={column.getIsSorted() !== false}
+                        direction={column.getIsSorted() === 'desc' ? 'desc' : 'asc'}
+                        onClick={column.getToggleSortingHandler()}
+                        sx={{ color: 'inherit' }}
+                      >
+                        {flexRender(column.columnDef.header, header.getContext())}
+                      </TableSortLabel>
+                    ) : (
+                      flexRender(column.columnDef.header, header.getContext())
+                    )}
+                    {column.id !== '_select' && showPinIcon && (
+                      <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />
+                    )}
+                  </Box>
+
+                  {modifyColumnPinning && column.id !== '_select' && originalColumn.disablePinMenu !== true && (
+                    <IconButton
+                      size='small'
+                      onClick={e => handleColumnMenuClick(e, column, header)}
+                      sx={{ opacity: 0.7 }}
                     >
-                      {flexRender(column.columnDef.header, header.getContext())}
-                    </TableSortLabel>
-                  ) : (
-                    flexRender(column.columnDef.header, header.getContext())
-                  )}
-                  {column.id !== '_select' && column.getIsPinned() && (
-                    <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />
+                      <MoreVertIcon fontSize='small' />
+                    </IconButton>
                   )}
                 </Box>
-
-                {modifyColumnPinning && column.id !== '_select' && originalColumn.disablePinMenu !== true && (
-                  <IconButton size='small' onClick={e => handleColumnMenuClick(e, column)} sx={{ opacity: 0.7 }}>
-                    <MoreVertIcon fontSize='small' />
-                  </IconButton>
-                )}
-              </Box>
+              )}
             </TableCell>
           )
         })}
       </TableRow>
     ))
+  }
 
   // ---- Body ----
   const renderTableBody = () => {
@@ -799,15 +1127,16 @@ const ReactTable = ({
   }
 
   // ---- Column pinning menu ----
+  const menuPinSummary = menuColumn ? getPinSummary(menuColumn, menuHeader) : 'none'
   const columnMenu = (
     <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleColumnMenuClose}>
-      {menuColumn?.getIsPinned() !== 'left' && (
+      {menuPinSummary !== 'left' && (
         <MenuItem onClick={() => handlePinColumn(menuColumn?.id, 'left')}>Pin to Left</MenuItem>
       )}
-      {menuColumn?.getIsPinned() !== 'right' && (
+      {menuPinSummary !== 'right' && (
         <MenuItem onClick={() => handlePinColumn(menuColumn?.id, 'right')}>Pin to Right</MenuItem>
       )}
-      {menuColumn?.getIsPinned() && <MenuItem onClick={() => handlePinColumn(menuColumn?.id, false)}>Unpin</MenuItem>}
+      {menuPinSummary !== 'none' && <MenuItem onClick={() => handlePinColumn(menuColumn?.id, false)}>Unpin</MenuItem>}
     </Menu>
   )
 
@@ -819,7 +1148,11 @@ const ReactTable = ({
         sx={{
           borderRadius: '8px !important',
           height: loading && !hasData ? loadingHeight : dynamicTableHeight,
-          minHeight: (isHeaderVisible ? headerHeight : 0) + rowHeight + 8,
+          // minHeight: (isHeaderVisible ? headerHeight : 0) + rowHeight + 8,
+          minHeight:
+            (isHeaderVisible ? headerHeight + (table.getHeaderGroups().length - 1) * subHeaderHeight : 0) +
+            rowHeight +
+            8,
           position: 'relative',
           border: '1px solid #ddd',
           overflowX: 'auto',
@@ -837,6 +1170,25 @@ const ReactTable = ({
             tableLayout: 'fixed'
           }}
         >
+          <colgroup>
+            {(() => {
+              const left = table.getLeftLeafColumns?.() || []
+              const centerSource = table.getCenterLeafColumns?.() || table.getVisibleLeafColumns?.() || []
+              const right = table.getRightLeafColumns?.() || []
+
+              const center = centerSource.filter(col => !left.includes(col) && !right.includes(col))
+
+              const fallback = table.getAllLeafColumns?.() || []
+              const ordered = (left.length || right.length)
+                ? [...left, ...center, ...right]
+                : fallback
+
+              return ordered.map(col => {
+                const w = col.getSize()
+                return <col key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} />
+              })
+            })()}
+          </colgroup>
           {/* ✅ Header hidden only on first load when loading && no data */}
           {isHeaderVisible ? <TableHead>{renderTableHeader()}</TableHead> : null}
           <TableBody>{renderTableBody()}</TableBody>

@@ -105,6 +105,7 @@ const AddIngredientswithChoice = props => {
     setFeed(event.target.value)
 
     try {
+      setLoading(true)
       const params = { page: 1, limit: 20, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
@@ -112,9 +113,11 @@ const AddIngredientswithChoice = props => {
           setIngredientPage(1)
           setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
+          setLoading(false)
         } else {
           setReachedEnd(false)
           setIngredientList([])
+          setLoading(false)
         }
       })
     } catch (error) {
@@ -513,7 +516,7 @@ const AddIngredientswithChoice = props => {
         setListOfIngredient(updatedListOfIngredient)
         onChange(updatedListOfIngredient)
 
-        toast.success('Ingredient updated successfully!')
+        toast.success('Item updated successfully!')
 
         return
       }
@@ -576,7 +579,7 @@ const AddIngredientswithChoice = props => {
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
-      toast.success('Ingredient added successfully!')
+      toast.success('Item added successfully!')
     }
   }
 
@@ -955,7 +958,7 @@ const AddIngredientswithChoice = props => {
                 </>
               </Box>
             ))
-          ) : searchValue !== '' && sortedIngredientList.length <= 0 ? (
+          ) : sortedIngredientList?.length <= 0 ? (
             <Box
               sx={{
                 display: 'flex',

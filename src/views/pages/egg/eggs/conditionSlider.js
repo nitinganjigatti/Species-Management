@@ -196,7 +196,23 @@ const ConditionSlider = ({
           collectionType: yup.string().required('Collection type is required'),
           enclosure_id: yup.string().required('Enclosure is required'),
           sextype: yup.string().required('Sex type is required'),
-          birthDate: yup.string().required('Birth date is required'),
+          birthDate: yup
+            .mixed()
+            .required('Birth date is required')
+            .test('valid-birth-date', 'Invalid birth date', value => (value ? dayjs(value).isValid() : false))
+            .test('birth-not-before-hatch', 'Birth date cannot be earlier than hatched date', function (value) {
+              const { hatched_date } = this.parent
+              if (value && hatched_date) {
+                const birthDate = dayjs(value)
+                const hatchedDate = dayjs(hatched_date)
+
+                if (birthDate.isValid() && hatchedDate.isValid()) {
+                  return !birthDate.startOf('day').isBefore(hatchedDate.startOf('day'))
+                }
+              }
+
+              return true
+            }),
           localIdentifierType: yup.string().required('Local identifier type is required'),
           localIdentifier: yup
             .string()
@@ -1848,7 +1864,7 @@ const ConditionSlider = ({
                   CANCEL
                 </LoadingButton>
                 <LoadingButton
-                  disabled={loader}
+                  disabled={loader || eggMasterLoading}
                   fullWidth
                   variant='contained'
                   loading={loader}
