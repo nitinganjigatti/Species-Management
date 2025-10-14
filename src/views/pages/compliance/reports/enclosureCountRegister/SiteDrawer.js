@@ -1,24 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Checkbox,
-  Divider,
-  Drawer,
-  Grid,
-  IconButton,
-  Typography,
-  FormControlLabel,
-  Radio,
-  RadioGroup
-} from '@mui/material'
+import { Box, Card, CardContent, CardHeader, Drawer, Grid, IconButton, Typography, FormControlLabel, Radio, RadioGroup } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 
 import Icon from 'src/@core/components/icon'
 import SingleSelectSectionList from './SingleSelectSectionList'
+import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
 import SelectSites from 'src/components/report/SelectSite'
 
 const reportTypeArray = [
@@ -47,13 +34,18 @@ const SiteDrawer = ({
   tempSelectedItems,
   setTempSelectedItems,
   sectionsData,
-  setSectionsData
+  setSectionsData,
+  selectedEnclosures,
+  setSelectedEnclosures,
+  enclosuresData,
+  setEnclosuresData
 }) => {
   const theme = useTheme()
 
   const [collapsed, setCollapsed] = useState(true)
 
   const [openSectionListDrawer, setOpenSectionListDrawer] = useState(false)
+  const [openEnclosureListDrawer, setOpenEnclosureListDrawer] = useState(false)
 
   // Site and Report Type are mandatory for generating report
   const canGenerate = (tempSelectedItems?.Site?.length || 0) > 0 && Boolean(tempSelectedItems?.reportType)
@@ -91,23 +83,61 @@ const SiteDrawer = ({
   }
 
   const handleRemove = siteId => {
-    setTempSelectedItems(prev => ({
-      ...prev,
-      Site: prev.Site.filter(id => id !== siteId)
-    }))
+    setTempSelectedItems(prev => {
+      const updatedSites = prev.Site.filter(id => id !== siteId)
+      return {
+        ...prev,
+        Site: updatedSites,
+        Section: [],
+        Enclosure: []
+      }
+    })
+
+    setSectionsData([])
+    if (setSelectedSections) {
+      setSelectedSections([])
+    }
+    if (setSelectedEnclosures) {
+      setSelectedEnclosures([])
+    }
+    if (setEnclosuresData) {
+      setEnclosuresData([])
+    }
   }
 
   const handleRemoveSection = sectionId => {
-    setTempSelectedItems(prev => ({
-      ...prev,
-      Section: prev.Section.filter(id => id !== sectionId)
-    }))
+    setTempSelectedItems(prev => {
+      const filteredSections = prev.Section.filter(id => id !== sectionId)
+      return {
+        ...prev,
+        Section: filteredSections,
+        Enclosure: []
+      }
+    })
 
     setSectionsData(prev => prev.filter(section => section.section_id !== sectionId.toString()))
 
     // Also update selectedSections state
     if (setSelectedSections) {
       setSelectedSections(prev => prev.filter(id => id !== sectionId))
+    }
+
+    if (setSelectedEnclosures) {
+      setSelectedEnclosures([])
+    }
+    if (setEnclosuresData) {
+      setEnclosuresData([])
+    }
+  }
+
+  const handleRemoveEnclosure = enclosureId => {
+    setTempSelectedItems(prev => ({
+      ...prev,
+      Enclosure: (prev.Enclosure || []).filter(id => id !== enclosureId)
+    }))
+
+    if (setSelectedEnclosures) {
+      setSelectedEnclosures(prev => prev.filter(id => id !== enclosureId))
     }
   }
 
@@ -124,21 +154,30 @@ const SiteDrawer = ({
     setTempSelectedItems({
       Site: [],
       Section: [],
+      Enclosure: [],
       reportType: ''
     })
     setSelectedItems({
       Site: [],
       Section: [],
+      Enclosure: [],
       reportType: ''
     })
     setFilterCount(0)
     setOpenFilterDrawer(false)
+    if (setSelectedEnclosures) {
+      setSelectedEnclosures([])
+    }
+    if (setEnclosuresData) {
+      setEnclosuresData([])
+    }
   }
 
   const handleCloseDrawer = () => {
     setTempSelectedItems({
       Site: [],
       Section: [],
+      Enclosure: [],
       reportType: ''
     })
     setOpenFilterDrawer(false)
@@ -148,6 +187,12 @@ const SiteDrawer = ({
     setActiveTab('Site')
     setTempSelectedItems(selectedItems)
   }, [openFilterDrawer, selectedItems, setActiveTab, setTempSelectedItems])
+
+  useEffect(() => {
+    if (openFilterDrawer) {
+      setSelectedEnclosures(tempSelectedItems?.Enclosure || [])
+    }
+  }, [openFilterDrawer, tempSelectedItems?.Enclosure, setSelectedEnclosures])
 
   return (
     <Drawer
@@ -197,7 +242,10 @@ const SiteDrawer = ({
               let count = 0
 
               if (menu === 'Site') {
-                count = (tempSelectedItems?.Site?.length || 0) + (tempSelectedItems?.Section?.length || 0)
+                count =
+                  (tempSelectedItems?.Site?.length || 0) +
+                  (tempSelectedItems?.Section?.length || 0) +
+                  (tempSelectedItems?.Enclosure?.length || 0)
               } else if (menu === 'Report Type') {
                 count = tempSelectedItems?.reportType ? 1 : 0
               } else if (menu === 'Accession Date') {
@@ -406,6 +454,72 @@ const SiteDrawer = ({
                         )}
                     </Card>
                   )}
+
+                  {tempSelectedItems?.Section?.length === 1 && (
+                    <Card
+                      sx={{
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        boxShadow: 'none',
+                        mt: '6%'
+                      }}
+                    >
+                      <CardHeader
+                        title='Select Enclosures'
+                        onClick={() => {
+                          setOpenEnclosureListDrawer(true)
+                        }}
+                        sx={{
+                          background: theme.palette.customColors.tableHeaderBg,
+                          p: 2,
+                          pl: 4,
+                          pr: 2,
+                          '.MuiCardHeader-title': {
+                            fontWeight: '500',
+                            fontSize: '16px',
+                            color: theme.palette.primary.light,
+                            cursor: 'pointer'
+                          }
+                        }}
+                        action={
+                          <IconButton size='small' aria-label='collapse' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                            <Icon fontSize={20} icon={collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'} />
+                          </IconButton>
+                        }
+                      />
+                      {tempSelectedItems?.Enclosure?.length > 0 && (
+                        <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: '4px !important' }}>
+                          {tempSelectedItems.Enclosure.map(enclosureId => {
+                            const enclosure = enclosuresData.find(
+                              item => String(item.enclosure_id) === String(enclosureId)
+                            )
+
+                            return (
+                              <Box
+                                key={enclosureId}
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  mb: 2
+                                }}
+                              >
+                                <Typography variant='body2' sx={{ color: theme.palette.customColors.deepDark }}>
+                                  {enclosure?.user_enclosure_name || 'Enclosure'}
+                                </Typography>
+                                <IconButton
+                                  edge='end'
+                                  onClick={() => handleRemoveEnclosure(enclosureId)}
+                                  sx={{ color: theme.palette.error.dark }}
+                                >
+                                  <Icon icon='carbon:close-outline' fontSize={20} />
+                                </IconButton>
+                              </Box>
+                            )
+                          })}
+                        </CardContent>
+                      )}
+                    </Card>
+                  )}
                 </>
               )}
 
@@ -509,9 +623,16 @@ const SiteDrawer = ({
         onSelectSections={selectedSections => {
           setTempSelectedItems(prev => ({
             ...prev,
-            Section: selectedSections
+            Section: selectedSections,
+            Enclosure: []
           }))
           setOpenSectionListDrawer(false)
+          if (setSelectedEnclosures) {
+            setSelectedEnclosures([])
+          }
+          if (setEnclosuresData) {
+            setEnclosuresData([])
+          }
         }}
         setSectionsData={setSectionsData}
         sectionsData={sectionsData}
@@ -520,6 +641,24 @@ const SiteDrawer = ({
         setSelectedSections={setSelectedSections}
         selectedSections={selectedSections}
         tempSelectedItems={tempSelectedItems}
+        openFilterDrawer={openFilterDrawer}
+      />
+      <SelectEnclosureList
+        tempSelectedItems={tempSelectedItems}
+        enclosuresData={enclosuresData}
+        open={openEnclosureListDrawer}
+        onClose={() => setOpenEnclosureListDrawer(false)}
+        sectionId={tempSelectedItems?.Section?.[0]}
+        onSelectEnclosures={selectedEnclosuresList => {
+          setTempSelectedItems(prev => ({
+            ...prev,
+            Enclosure: selectedEnclosuresList
+          }))
+          setOpenEnclosureListDrawer(false)
+        }}
+        setEnclosuresData={setEnclosuresData}
+        selectedEnclosures={selectedEnclosures}
+        setSelectedEnclosures={setSelectedEnclosures}
         openFilterDrawer={openFilterDrawer}
       />
     </Drawer>

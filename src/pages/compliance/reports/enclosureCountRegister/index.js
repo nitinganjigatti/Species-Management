@@ -1,19 +1,8 @@
 import { useTheme } from '@emotion/react'
-import {
-  Box,
-  Card,
-  CardHeader,
-  CircularProgress,
-  IconButton,
-  Tooltip,
-  Typography,
-  Skeleton,
-  Autocomplete,
-  TextField
-} from '@mui/material'
+import { Box, Card, CardHeader, CircularProgress, IconButton, Tooltip, Typography, Skeleton } from '@mui/material'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { AuthContext } from 'src/context/AuthContext'
@@ -26,7 +15,6 @@ import StickyTable from 'src/views/table/sticky-table'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
-import { getEnclosureList } from 'src/lib/api/diet/dietList'
 
 const EnclosureCountRegister = () => {
   const theme = useTheme()
@@ -41,10 +29,8 @@ const EnclosureCountRegister = () => {
   const [searchInput, setSearchInput] = useState(router.query.q || '')
   const [isDownloading, setIsDownloading] = useState(false)
   const [siteLoader, setSiteLoader] = useState(false)
-  const [enclosuresLoading, setEnclosuresLoading] = useState(false)
   const [enclosuresData, setEnclosuresData] = useState([])
-  const [selectedEnclosure, setSelectedEnclosure] = useState(null)
-  const [enclosureSearch, setEnclosureSearch] = useState('')
+  const [selectedEnclosures, setSelectedEnclosures] = useState([])
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const tabsForfilter = ['Site', 'Report Type']
@@ -58,6 +44,7 @@ const EnclosureCountRegister = () => {
   const [selectedItems, setSelectedItems] = useState({
     Site: [],
     Section: [],
+    Enclosure: [],
     reportType: ''
   })
   const [tempSelectedItems, setTempSelectedItems] = useState(selectedItems)
@@ -78,10 +65,8 @@ const EnclosureCountRegister = () => {
     pageSize: parseInt(router.query.limit) || 50
   })
 
-  const prevStatKeyRef = useRef({ siteKey: '', type: '', sectionKey: '' })
+  const prevStatKeyRef = useRef({ siteKey: '', type: '', sectionKey: '', enclosureKey: '' })
   const lastFetchKeyRef = useRef('')
-  const sectionId = selectedItems?.Section?.[0] || null
-
   // ----- derived keys -----
   const siteIdsArr = (
     selectedItems?.Site?.length
@@ -94,12 +79,13 @@ const EnclosureCountRegister = () => {
   const typeKey =
     selectedItems?.reportType === 'individual' ? 'individual' : selectedItems?.reportType ? 'species-wise' : ''
   const sectionKey = (selectedItems?.Section || []).join(',')
+  const enclosureKey = (selectedItems?.Enclosure || []).join(',')
 
   const fetchKey = [
     siteKey,
     typeKey,
     sectionKey,
-    selectedEnclosure?.enclosure_id || '', // <— NEW
+    enclosureKey,
     searchValue,
     paginationModel?.page,
     paginationModel?.pageSize
@@ -108,44 +94,6 @@ const EnclosureCountRegister = () => {
   const reportCardEventHandler = () => {
     setOpenFilterDrawer(!openFilterDrawer)
   }
-
-  const fetchEnclosures = useCallback(
-    async (q = '', sid = sectionId, sk = siteKey) => {
-      // Need at least some scope: section OR site
-      if (!sid && !sk) return
-
-      setEnclosuresLoading(true)
-      try {
-        const params = { q }
-        if (sid) params.section_id = sid
-        else params.site_id = sk // fallback when no section selected
-
-        const res = await getEnclosureList(params)
-        const list = res?.data?.result || []
-        setEnclosuresData(list) // expects { enclosure_id, user_enclosure_name }
-      } catch (err) {
-        console.error('Error fetching enclosures:', err)
-        setEnclosuresData([])
-      } finally {
-        setEnclosuresLoading(false)
-      }
-    },
-    [sectionId, siteKey]
-  )
-  // Debounced server search
-  const debouncedEnclosureSearch = useMemo(
-    () => debounce(q => fetchEnclosures(q, sectionId, siteKey), 400),
-    [fetchEnclosures, sectionId, siteKey]
-  )
-
-  useEffect(() => () => debouncedEnclosureSearch.cancel(), [debouncedEnclosureSearch])
-
-  // When section OR site changes, preload the list
-  useEffect(() => {
-    setSelectedEnclosure(null)
-    setEnclosuresData([])
-    if (sectionId || siteKey) fetchEnclosures('', sectionId, siteKey)
-  }, [sectionId, siteKey, fetchEnclosures])
 
   const siteList = useCallback(
     async (q = '') => {
@@ -180,6 +128,10 @@ const EnclosureCountRegister = () => {
     }
   }, [selectedItems?.Site, siteData])
 
+  useEffect(() => {
+    setSelectedEnclosures(selectedItems?.Enclosure || [])
+  }, [selectedItems?.Enclosure])
+
   // Fetch list data — ensure single call when generating
   useEffect(() => {
     if (!siteKey || !typeKey) return
@@ -195,13 +147,14 @@ const EnclosureCountRegister = () => {
       response_type: 'json'
     }
     if (sectionKey) params.section_id = sectionKey
-    if (selectedEnclosure?.enclosure_id) params.enclosure_id = selectedEnclosure.enclosure_id
+    if (enclosureKey) params.enclosure_id = enclosureKey
 
     let canceled = false
     const statKeyChanged =
       prevStatKeyRef.current.siteKey !== siteKey ||
       prevStatKeyRef.current.type !== typeKey ||
-      prevStatKeyRef.current.sectionKey !== sectionKey
+      prevStatKeyRef.current.sectionKey !== sectionKey ||
+      prevStatKeyRef.current.enclosureKey !== enclosureKey
 
     if (statKeyChanged) {
       setRegisterStats(null)
@@ -256,14 +209,14 @@ const EnclosureCountRegister = () => {
           setTotal(Number(res?.data?.stats?.total_count))
           if (statKeyChanged) {
             setRegisterStats(res?.data?.stats || null)
-            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey }
+            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey, enclosureKey }
           }
         } else {
           setIndexedRows([])
           setTotal(0)
           if (statKeyChanged) {
             setRegisterStats(null)
-            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey }
+            prevStatKeyRef.current = { siteKey, type: typeKey, sectionKey, enclosureKey }
           }
         }
       } catch (err) {
@@ -547,6 +500,7 @@ const EnclosureCountRegister = () => {
       response_type: 'pdf'
     }
     if (selectedItems?.Section?.length > 0) params.section_id = selectedItems.Section.join(',')
+    if (selectedItems?.Enclosure?.length > 0) params.enclosure_id = selectedItems.Enclosure.join(',')
 
     try {
       setIsDownloading(true)
@@ -574,8 +528,10 @@ const EnclosureCountRegister = () => {
 
     // Clear filters and temporary selections
     setSelectedSections([])
-    setSelectedItems({ Site: [], Section: [], reportType: '' })
-    setTempSelectedItems({ Site: [], Section: [], reportType: '' })
+    setSelectedEnclosures([])
+    setEnclosuresData([])
+    setSelectedItems({ Site: [], Section: [], Enclosure: [], reportType: '' })
+    setTempSelectedItems({ Site: [], Section: [], Enclosure: [], reportType: '' })
 
     // Reset search and pagination
     setSearchValue('')
@@ -583,7 +539,7 @@ const EnclosureCountRegister = () => {
     setPaginationModel({ page: 0, pageSize: 50 })
 
     // Remove site/section params from URL
-    const { site_id, section_id, ...rest } = router.query
+    const { site_id, section_id, enclosure_id, ...rest } = router.query
     router.push(
       {
         pathname: router.pathname,
@@ -684,45 +640,6 @@ const EnclosureCountRegister = () => {
                     }
                   }}
                 />
-
-                <Autocomplete
-                  value={selectedEnclosure}
-                  disablePortal
-                  loading={enclosuresLoading}
-                  options={enclosuresData}
-                  getOptionLabel={opt => opt?.user_enclosure_name || ''}
-                  isOptionEqualToValue={(opt, val) => String(opt?.enclosure_id) === String(val?.enclosure_id)}
-                  onChange={(_, val) => setSelectedEnclosure(val || null)}
-                  openOnFocus
-                  onOpen={() => {
-                    if (!enclosuresData.length) fetchEnclosures('', sectionId, siteKey)
-                  }}
-                  onInputChange={(_, val, reason) => {
-                    if (reason === 'input') debouncedEnclosureSearch(val)
-                  }}
-                  filterOptions={x => x}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label='Enclosure'
-                      placeholder='Search & Select'
-                      sx={{
-                        width: 260,
-                        '& .MuiOutlinedInput-root': {
-                          height: 40,
-                          padding: 0,
-                          borderRadius: '4px',
-                          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#C3CEC7' },
-                          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#C3CEC7' },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.primary.main },
-                          '& .MuiAutocomplete-input': { padding: '8px 12px', fontSize: 14 }
-                        },
-                        '& .MuiInputLabel-root': { top: '50%', transform: 'translate(14px, -50%) scale(1)' },
-                        '& .MuiInputLabel-shrink': { top: 0, transform: 'translate(14px, -9px) scale(0.75)' }
-                      }}
-                    />
-                  )}
-                />
               </Box>
             </Box>
             <Box
@@ -763,7 +680,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    Sections: <span style={{ fontWeight: 500 }}>{registerStats?.total_sections || '-'}</span>
+                    Sections: <span style={{ fontWeight: 500 }}>{registerStats?.section_name || '-'}</span>
                   </Typography>
                   <Typography
                     sx={{
@@ -774,7 +691,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    Total Enclosures: <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
+                    Total Enclosures: <span style={{ fontWeight: 500 }}>{registerStats?.enclosure_name || '-'}</span>
                   </Typography>
                 </>
               )}
@@ -842,6 +759,10 @@ const EnclosureCountRegister = () => {
           setTempSelectedItems={setTempSelectedItems}
           sectionsData={sectionsData}
           setSectionsData={setSectionsData}
+          selectedEnclosures={selectedEnclosures}
+          setSelectedEnclosures={setSelectedEnclosures}
+          enclosuresData={enclosuresData}
+          setEnclosuresData={setEnclosuresData}
         />
       )}
     </>
