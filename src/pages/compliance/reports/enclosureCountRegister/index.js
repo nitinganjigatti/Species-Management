@@ -2,7 +2,7 @@ import { useTheme } from '@emotion/react'
 import { Box, Card, CardHeader, CircularProgress, IconButton, Tooltip, Typography, Skeleton } from '@mui/material'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { AuthContext } from 'src/context/AuthContext'
@@ -550,6 +550,22 @@ const EnclosureCountRegister = () => {
     )
   }
 
+  const { siteSummaryLabel, siteExtraCount } = useMemo(() => {
+    const names = registerStats?.site_name
+    const list = Array.isArray(names) ? names.filter(Boolean) : names ? [names] : []
+
+    if (!list.length) {
+      return { siteSummaryLabel: '-', siteExtraCount: null }
+    }
+
+    const label = list.slice(0, 4).join(', ')
+    console.log('list', list)
+    return {
+      siteSummaryLabel: label,
+      siteExtraCount: list.length > 4 ? list.length - 4 : null
+    }
+  }, [registerStats?.site_name])
+
   const headerAction = (
     <Box sx={{ display: 'flex', gap: '24px' }}>
       <DownloadReport
@@ -669,7 +685,16 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    Site: <span style={{ fontWeight: 500 }}>{registerStats?.site_name || '-'}</span>
+                    Site: <span style={{ fontWeight: 500 }}>{siteSummaryLabel}</span>
+                    {siteExtraCount !== null && (
+                      <Typography
+                        sx={{ fontWeight: 700, fontSize: 16, color: theme.palette.primary.main }}
+                        variant='span'
+                      >
+                        {' '}
+                        +{siteExtraCount}
+                      </Typography>
+                    )}
                   </Typography>
                   <Typography
                     sx={{
@@ -680,7 +705,10 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    Sections: <span style={{ fontWeight: 500 }}>{registerStats?.section_name || '-'}</span>
+                    {registerStats?.section_name ? 'Section' : 'Total Sections'}:{' '}
+                    <span style={{ fontWeight: 500 }}>
+                      {registerStats?.section_name || registerStats?.total_sections || '-'}
+                    </span>
                   </Typography>
                   <Typography
                     sx={{
@@ -691,7 +719,10 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    Total Enclosures: <span style={{ fontWeight: 500 }}>{registerStats?.enclosure_name || '-'}</span>
+                    {registerStats?.enclosure_name ? 'Enclosure' : 'Total Enclosures'}:{' '}
+                    <span style={{ fontWeight: 500 }}>
+                      {registerStats?.enclosure_name || registerStats?.total_enclosures || '-'}
+                    </span>
                   </Typography>
                 </>
               )}

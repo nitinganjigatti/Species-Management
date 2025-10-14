@@ -220,7 +220,10 @@ const SingleSelectSectionList = ({
 
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-            {loading ? '' : `Selected ${selectedSectionId ? 1 : 0}/${sectionsData?.length}`}
+            {/* {loading ? '' : `Selected ${selectedSectionId ? 1 : 0}/${sectionsData?.length}`} */}
+            {loading
+              ? ''
+              : `${sectionsData?.length > 1 ? 'Total Sections' : 'Total Section'} : ${sectionsData?.length}`}
           </Typography>
         </Box>
 
@@ -357,4 +360,3 @@ const SingleSelectSectionList = ({
 }
 
 export default SingleSelectSectionList
-
