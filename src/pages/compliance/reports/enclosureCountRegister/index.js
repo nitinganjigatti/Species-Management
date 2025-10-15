@@ -600,12 +600,20 @@ const EnclosureCountRegister = () => {
     setEnclosureExtraCount(extras.length > 0 ? extras.length : null)
   }, [registerStats?.enclosure_name])
 
+  const siteNamesList = Array.isArray(registerStats?.site_name)
+    ? registerStats.site_name.filter(Boolean)
+    : registerStats?.site_name
+    ? [registerStats.site_name]
+    : []
+  const siteLabelPrefix = siteNamesList.length > 1 ? 'Sites' : 'Site'
+
   const enclosureNamesList = Array.isArray(registerStats?.enclosure_name)
     ? registerStats.enclosure_name.filter(Boolean)
     : registerStats?.enclosure_name
     ? [registerStats.enclosure_name]
     : []
   const hasEnclosureNames = enclosureNamesList.length > 0
+  const enclosureLabelPrefix = enclosureNamesList.length > 1 ? 'Enclosures' : 'Enclosure'
 
   const headerAction = (
     <Box sx={{ display: 'flex', gap: '24px' }}>
@@ -726,7 +734,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    Site: <span style={{ fontWeight: 500 }}>{siteSummaryLabel}</span>
+                    {siteLabelPrefix}: <span style={{ fontWeight: 500 }}>{siteSummaryLabel}</span>
                     {siteExtraCount !== null && siteExtraNames.length > 0 && (
                       <Tooltip title={siteExtraNames.join(', ')} arrow placement='top'>
                         <Typography
@@ -769,7 +777,8 @@ const EnclosureCountRegister = () => {
                         fontFamily: 'Inter'
                       }}
                     >
-                      Enclosures: <span style={{ fontWeight: 500 }}>{enclosureSummaryLabel}</span>
+                      {enclosureLabelPrefix}:{' '}
+                      <span style={{ fontWeight: 500 }}>{enclosureSummaryLabel}</span>
                       {enclosureExtraCount !== null && enclosureExtraNames.length > 0 && (
                         <Tooltip title={enclosureExtraNames.join(', ')} arrow placement='top'>
                           <Typography
