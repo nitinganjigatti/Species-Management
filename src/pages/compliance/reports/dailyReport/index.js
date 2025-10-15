@@ -37,7 +37,8 @@ const DailyReport = () => {
   // -------- UI / State --------
   const [selectedSite, setSelectedSite] = useState(null)
   const [selectedSiteLabel, setSelectedSiteLabel] = useState('')
-  const [selectedSiteExtraCount, setSelectedSiteExtraCount] = useState('')
+  const [selectedSiteExtraCount, setSelectedSiteExtraCount] = useState(null)
+  const [selectedSiteExtraNames, setSelectedSiteExtraNames] = useState([])
   const [selectedSiteIds, setSelectedSiteIds] = useState([])
 
   const [total, setTotal] = useState(0)
@@ -123,22 +124,26 @@ const DailyReport = () => {
 
       // Make display string
       let shown = ''
-      let extraCount = ''
+      let extraCount = null
+      let extraNames = []
       if (siteNames.length <= 4) {
         shown = siteNames.join(', ')
       } else {
         shown = siteNames.slice(0, 4).join(', ')
-        extraCount = siteNames.length - 4
-        // displayLabel = `${shown} +${extraCount}`
+        extraNames = siteNames.slice(4)
+        extraCount = extraNames.length
       }
 
       setSelectedSiteIds(selectedItems.Site)
       setSelectedSiteLabel(shown)
       setSelectedSiteExtraCount(extraCount)
+      setSelectedSiteExtraNames(extraNames)
     } else if (selectedItems?.Site?.length === 0) {
       setSelectedSite(null)
       setSelectedSiteIds([])
       setSelectedSiteLabel('')
+      setSelectedSiteExtraCount(null)
+      setSelectedSiteExtraNames([])
     }
   }, [selectedItems, siteData])
 
@@ -201,6 +206,9 @@ const DailyReport = () => {
     setSelectedItems({ Site: [] })
     setTempSelectedItems({ Site: [] })
     setSelectedSiteIds([])
+    setSelectedSiteLabel('')
+    setSelectedSiteExtraCount(null)
+    setSelectedSiteExtraNames([])
 
     setDefaultObservationType(null)
 
@@ -558,10 +566,17 @@ const DailyReport = () => {
                       selectedSiteIds.length} */}
                   {selectedSiteLabel}
                 </span>
-                <Typography sx={{ fontWeight: 700, fontSize: 16, color: theme.palette.primary.main }} variant='span'>
-                  {' '}
-                  +{selectedSiteExtraCount}
-                </Typography>
+                {selectedSiteExtraCount !== null && selectedSiteExtraNames.length > 0 && (
+                  <Tooltip title={selectedSiteExtraNames.join(', ')} arrow placement='top'>
+                    <Typography
+                      sx={{ fontWeight: 700, fontSize: 16, color: theme.palette.primary.main, display: 'inline' }}
+                      component='span'
+                    >
+                      {' '}
+                      +{selectedSiteExtraCount}
+                    </Typography>
+                  </Tooltip>
+                )}
               </Typography>
               {/* </Tooltip> */}
             </Box>

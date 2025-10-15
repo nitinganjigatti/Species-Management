@@ -33,6 +33,7 @@ const EnclosureCountRegister = () => {
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
   const [siteSummaryLabel, setSiteSummaryLabel] = useState('-')
   const [siteExtraCount, setSiteExtraCount] = useState(null)
+  const [siteExtraNames, setSiteExtraNames] = useState([])
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const tabsForfilter = ['Site', 'Report Type']
@@ -536,6 +537,7 @@ const EnclosureCountRegister = () => {
     setTempSelectedItems({ Site: [], Section: [], Enclosure: [], reportType: '' })
     setSiteSummaryLabel('-')
     setSiteExtraCount(null)
+    setSiteExtraNames([])
 
     // Reset search and pagination
     setSearchValue('')
@@ -561,11 +563,16 @@ const EnclosureCountRegister = () => {
     if (!list.length) {
       setSiteSummaryLabel('-')
       setSiteExtraCount(null)
+      setSiteExtraNames([])
       return
     }
 
-    setSiteSummaryLabel(list.slice(0, 4).join(', '))
-    setSiteExtraCount(list.length > 4 ? list.length - 4 : null)
+    const visibleList = list.slice(0, 4)
+    const extras = list.slice(4)
+
+    setSiteSummaryLabel(visibleList.join(', '))
+    setSiteExtraNames(extras)
+    setSiteExtraCount(extras.length > 0 ? extras.length : null)
   }, [registerStats])
 
   const headerAction = (
@@ -688,14 +695,22 @@ const EnclosureCountRegister = () => {
                     }}
                   >
                     Site: <span style={{ fontWeight: 500 }}>{siteSummaryLabel}</span>
-                    {siteExtraCount !== null && (
-                      <Typography
-                        sx={{ fontWeight: 700, fontSize: 16, color: theme.palette.primary.main }}
-                        variant='span'
-                      >
-                        {' '}
-                        +{siteExtraCount}
-                      </Typography>
+                    {siteExtraCount !== null && siteExtraNames.length > 0 && (
+                      <Tooltip title={siteExtraNames.join(', ')} arrow placement='top'>
+                        <Typography
+                          sx={{
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                            fontSize: 16,
+                            color: theme.palette.primary.main,
+                            display: 'inline'
+                          }}
+                          component='span'
+                        >
+                          {' '}
+                          +{siteExtraCount}
+                        </Typography>
+                      </Tooltip>
                     )}
                   </Typography>
                   <Typography
@@ -707,7 +722,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    {registerStats?.section_name ? 'Section' : 'Total Sections'}:{' '}
+                    {registerStats?.section_name ? 'Section' : 'Total Sections Count'}:{' '}
                     <span style={{ fontWeight: 500 }}>
                       {registerStats?.section_name || registerStats?.total_sections || '-'}
                     </span>
@@ -721,7 +736,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    {registerStats?.enclosure_name ? 'Enclosure' : 'Total Enclosures'}:{' '}
+                    {registerStats?.enclosure_name ? 'Enclosure' : 'Total Enclosures CountS'}:{' '}
                     <span style={{ fontWeight: 500 }}>
                       {registerStats?.enclosure_name || registerStats?.total_enclosures || '-'}
                     </span>
