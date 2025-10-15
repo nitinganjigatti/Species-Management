@@ -736,7 +736,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    {registerStats?.enclosure_name ? 'Enclosure' : 'Total Enclosures CountS'}:{' '}
+                    {registerStats?.enclosure_name ? 'Enclosure' : 'Total Enclosures Count'}:{' '}
                     <span style={{ fontWeight: 500 }}>
                       {registerStats?.enclosure_name || registerStats?.total_enclosures || '-'}
                     </span>

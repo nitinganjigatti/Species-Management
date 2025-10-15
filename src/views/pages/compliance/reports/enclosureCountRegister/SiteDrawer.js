@@ -5,7 +5,7 @@ import { LoadingButton } from '@mui/lab'
 
 import Icon from 'src/@core/components/icon'
 import SingleSelectSectionList from './SingleSelectSectionList'
-import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
+import SingleSelectEnclosureList from './SingleSelectEnclosureList'
 import SelectSites from 'src/components/report/SelectSite'
 
 const reportTypeArray = [
@@ -643,7 +643,7 @@ const SiteDrawer = ({
         tempSelectedItems={tempSelectedItems}
         openFilterDrawer={openFilterDrawer}
       />
-      <SelectEnclosureList
+      <SingleSelectEnclosureList
         tempSelectedItems={tempSelectedItems}
         enclosuresData={enclosuresData}
         open={openEnclosureListDrawer}
@@ -659,7 +659,6 @@ const SiteDrawer = ({
         setEnclosuresData={setEnclosuresData}
         selectedEnclosures={selectedEnclosures}
         setSelectedEnclosures={setSelectedEnclosures}
-        openFilterDrawer={openFilterDrawer}
       />
     </Drawer>
   )
