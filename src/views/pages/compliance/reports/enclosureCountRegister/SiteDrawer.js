@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Card, CardContent, CardHeader, Drawer, Grid, IconButton, Typography, FormControlLabel, Radio, RadioGroup } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Drawer,
+  Grid,
+  IconButton,
+  Typography,
+  FormControlLabel,
+  Radio,
+  RadioGroup
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 
 import Icon from 'src/@core/components/icon'
 import SingleSelectSectionList from './SingleSelectSectionList'
-import SingleSelectEnclosureList from './SingleSelectEnclosureList'
+// import SingleSelectEnclosureList from './SingleSelectEnclosureList'
+import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
 import SelectSites from 'src/components/report/SelectSite'
 
 const reportTypeArray = [
@@ -481,7 +494,11 @@ const SiteDrawer = ({
                           }
                         }}
                         action={
-                          <IconButton size='small' aria-label='collapse' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                          <IconButton
+                            size='small'
+                            aria-label='collapse'
+                            sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                          >
                             <Icon fontSize={20} icon={collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'} />
                           </IconButton>
                         }
@@ -643,7 +660,8 @@ const SiteDrawer = ({
         tempSelectedItems={tempSelectedItems}
         openFilterDrawer={openFilterDrawer}
       />
-      <SingleSelectEnclosureList
+      {/* <SingleSelectEnclosureList */}
+      <SelectEnclosureList
         tempSelectedItems={tempSelectedItems}
         enclosuresData={enclosuresData}
         open={openEnclosureListDrawer}
@@ -659,6 +677,7 @@ const SiteDrawer = ({
         setEnclosuresData={setEnclosuresData}
         selectedEnclosures={selectedEnclosures}
         setSelectedEnclosures={setSelectedEnclosures}
+        openFilterDrawer={openFilterDrawer}
       />
     </Drawer>
   )

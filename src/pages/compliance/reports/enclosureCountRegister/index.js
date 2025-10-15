@@ -34,6 +34,9 @@ const EnclosureCountRegister = () => {
   const [siteSummaryLabel, setSiteSummaryLabel] = useState('-')
   const [siteExtraCount, setSiteExtraCount] = useState(null)
   const [siteExtraNames, setSiteExtraNames] = useState([])
+  const [enclosureSummaryLabel, setEnclosureSummaryLabel] = useState('-')
+  const [enclosureExtraCount, setEnclosureExtraCount] = useState(null)
+  const [enclosureExtraNames, setEnclosureExtraNames] = useState([])
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const tabsForfilter = ['Site', 'Report Type']
@@ -538,6 +541,9 @@ const EnclosureCountRegister = () => {
     setSiteSummaryLabel('-')
     setSiteExtraCount(null)
     setSiteExtraNames([])
+    setEnclosureSummaryLabel('-')
+    setEnclosureExtraCount(null)
+    setEnclosureExtraNames([])
 
     // Reset search and pagination
     setSearchValue('')
@@ -573,7 +579,33 @@ const EnclosureCountRegister = () => {
     setSiteSummaryLabel(visibleList.join(', '))
     setSiteExtraNames(extras)
     setSiteExtraCount(extras.length > 0 ? extras.length : null)
-  }, [registerStats])
+  }, [registerStats?.site_name])
+
+  useEffect(() => {
+    const names = registerStats?.enclosure_name
+    const list = Array.isArray(names) ? names.filter(Boolean) : names ? [names] : []
+
+    if (!list.length) {
+      setEnclosureSummaryLabel('-')
+      setEnclosureExtraCount(null)
+      setEnclosureExtraNames([])
+      return
+    }
+
+    const visibleList = list.slice(0, 4)
+    const extras = list.slice(4)
+
+    setEnclosureSummaryLabel(visibleList.join(', '))
+    setEnclosureExtraNames(extras)
+    setEnclosureExtraCount(extras.length > 0 ? extras.length : null)
+  }, [registerStats?.enclosure_name])
+
+  const enclosureNamesList = Array.isArray(registerStats?.enclosure_name)
+    ? registerStats.enclosure_name.filter(Boolean)
+    : registerStats?.enclosure_name
+    ? [registerStats.enclosure_name]
+    : []
+  const hasEnclosureNames = enclosureNamesList.length > 0
 
   const headerAction = (
     <Box sx={{ display: 'flex', gap: '24px' }}>
@@ -727,20 +759,49 @@ const EnclosureCountRegister = () => {
                       {registerStats?.section_name || registerStats?.total_sections || '-'}
                     </span>
                   </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontWeight: 400,
-                      letterSpacing: 0,
-                      fontFamily: 'Inter'
-                    }}
-                  >
-                    {registerStats?.enclosure_name ? 'Enclosure' : 'Total Enclosures Count'}:{' '}
-                    <span style={{ fontWeight: 500 }}>
-                      {registerStats?.enclosure_name || registerStats?.total_enclosures || '-'}
-                    </span>
-                  </Typography>
+                  {hasEnclosureNames ? (
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontWeight: 400,
+                        letterSpacing: 0,
+                        fontFamily: 'Inter'
+                      }}
+                    >
+                      Enclosures: <span style={{ fontWeight: 500 }}>{enclosureSummaryLabel}</span>
+                      {enclosureExtraCount !== null && enclosureExtraNames.length > 0 && (
+                        <Tooltip title={enclosureExtraNames.join(', ')} arrow placement='top'>
+                          <Typography
+                            component='span'
+                            sx={{
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                              fontSize: 16,
+                              color: theme.palette.primary.main,
+                              display: 'inline'
+                            }}
+                          >
+                            {' '}
+                            +{enclosureExtraCount}
+                          </Typography>
+                        </Tooltip>
+                      )}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontWeight: 400,
+                        letterSpacing: 0,
+                        fontFamily: 'Inter'
+                      }}
+                    >
+                      Total Enclosures Count:{' '}
+                      <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
+                    </Typography>
+                  )}
                 </>
               )}
             </Box>
