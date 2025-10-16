@@ -7,10 +7,17 @@ import { getHospitalBedStats, getHospitalListing } from 'src/lib/api/hospital/ho
 import useDebounce from 'src/hooks/useDebounce'
 import Search from 'src/views/utility/Search'
 
-const HospitalDropdown = () => {
+const HospitalDropdown = ({ disabled = false }) => {
   const theme = useTheme()
 
-  const { selectedHospital, hospitals, updateSelectedHospital, updateHospitals, updateHospitalStats, setHospitalStatsLoading } = useHospital()
+  const {
+    selectedHospital,
+    hospitals,
+    updateSelectedHospital,
+    updateHospitals,
+    updateHospitalStats,
+    setHospitalStatsLoading
+  } = useHospital()
 
   const [anchorEl, setAnchorEl] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -66,6 +73,8 @@ const HospitalDropdown = () => {
   )
 
   const handleHospitalSelect = async hospital => {
+    if (disabled) return
+
     updateSelectedHospital(hospital)
     setAnchorEl(null)
 
@@ -83,6 +92,8 @@ const HospitalDropdown = () => {
   }
 
   const handleSearchChange = value => {
+    if (disabled) return
+
     setSearchQuery(value)
 
     // Reset pagination for new search
@@ -92,6 +103,8 @@ const HospitalDropdown = () => {
 
   const handleScroll = useCallback(
     event => {
+      if (disabled) return
+
       const { scrollTop, scrollHeight, clientHeight } = event.currentTarget
       if (scrollHeight - scrollTop <= clientHeight + 50 && hasMore && !loadingMore) {
         const nextPage = page + 1
@@ -99,11 +112,18 @@ const HospitalDropdown = () => {
         fetchHospitals(nextPage, true, debouncedSearchQuery)
       }
     },
-    [page, hasMore, loadingMore, debouncedSearchQuery, fetchHospitals]
+    [page, hasMore, loadingMore, debouncedSearchQuery, fetchHospitals, disabled]
   )
+
+  const handleDropdownClick = e => {
+    if (disabled) return
+    setAnchorEl(e.currentTarget)
+  }
 
   // Effect to handle debounced search
   useEffect(() => {
+    if (disabled) return
+
     if (initialLoadRef.current) {
       initialLoadRef.current = false
 
@@ -112,29 +132,31 @@ const HospitalDropdown = () => {
 
     // Fetch hospitals when debounced search query changes
     fetchHospitals(1, false, debouncedSearchQuery)
-  }, [debouncedSearchQuery])
+  }, [debouncedSearchQuery, disabled])
 
   // Effect to fetch initial hospitals
   useEffect(() => {
+    if (disabled) return
+
     if (!selectedHospital && hospitals.length === 0) {
       fetchHospitals(1, false, '')
     }
-  }, []) // Empty dependency array - only run once on mount
+  }, [disabled]) // Added disabled to dependency array
 
   return (
     <Box>
       {/* Hospital Selection Button */}
       <Box
-        onClick={e => setAnchorEl(e.currentTarget)}
+        onClick={handleDropdownClick}
         sx={{
           display: 'flex',
           alignItems: 'center',
           gap: 1,
-          cursor: 'pointer',
+          cursor: disabled ? 'default' : 'pointer',
           p: 1,
           borderRadius: 1,
           '&:hover': {
-            backgroundColor: theme.palette.action.hover
+            backgroundColor: disabled ? 'transparent' : theme.palette.action.hover
           }
         }}
       >
@@ -153,133 +175,136 @@ const HospitalDropdown = () => {
             </Typography>
           </Tooltip>
         </Box>
-        <KeyboardArrowDown />
+
+        {/* Conditionally render dropdown arrow */}
+        {!disabled && <KeyboardArrowDown />}
       </Box>
 
-      {/* Dropdown Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={() => setAnchorEl(null)}
-        sx={{ p: 0 }}
-        PaperProps={{
-          sx: {
-            width: 320,
-            maxHeight: 400,
-            p: 0
-          }
-        }}
-      >
-        {/* Search Field */}
-        <Box sx={{ p: 4 }}>
-          <Search
-            value={searchQuery}
-            onChange={e => handleSearchChange(e.target.value)}
-            onClear={() => handleSearchChange('')}
-            placeholder='Search hospitals...'
-          />
-        </Box>
+      {/* Dropdown Menu - Only show if not disabled */}
+      {!disabled && (
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+          sx={{ p: 0 }}
+          PaperProps={{
+            sx: {
+              width: 320,
+              maxHeight: 400,
+              p: 0
+            }
+          }}
+        >
+          {/* Search Field */}
+          <Box sx={{ p: 4 }}>
+            <Search
+              value={searchQuery}
+              onChange={e => handleSearchChange(e.target.value)}
+              onClear={() => handleSearchChange('')}
+              placeholder='Search hospitals...'
+            />
+          </Box>
 
-        {/* Hospital List */}
-        <Box onScroll={handleScroll} sx={{ maxHeight: 300, overflow: 'auto', padding: '16px', paddingTop: 0 }}>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : hospitals.length === 0 ? (
-            <MenuItem disabled>{searchQuery ? 'No hospitals found' : 'No hospitals available'}</MenuItem>
-          ) : (
-            hospitals.map(hospital => (
-              <MenuItem
-                key={hospital.id}
-                fullWidth
-                onClick={() => handleHospitalSelect(hospital)}
-                selected={selectedHospital?.id === hospital.id}
-                sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: theme.palette.customColors.outlineVariant,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.outlineVariant
-                    }
-                  },
-                  p: 2,
-                  borderRadius: '8px',
-
-                }}
-              >
-                <Box
+          {/* Hospital List */}
+          <Box onScroll={handleScroll} sx={{ maxHeight: 300, overflow: 'auto', padding: '16px', paddingTop: 0 }}>
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : hospitals.length === 0 ? (
+              <MenuItem disabled>{searchQuery ? 'No hospitals found' : 'No hospitals available'}</MenuItem>
+            ) : (
+              hospitals.map(hospital => (
+                <MenuItem
+                  key={hospital.id}
+                  fullWidth
+                  onClick={() => handleHospitalSelect(hospital)}
+                  selected={selectedHospital?.id === hospital.id}
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 3
+                    '&.Mui-selected': {
+                      backgroundColor: theme.palette.customColors.outlineVariant,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.outlineVariant
+                      }
+                    },
+                    p: 2,
+                    borderRadius: '8px'
                   }}
                 >
-                  <Avatar
-                    src='/images/hospital/hospital-icon.svg'
-                    alt='Hospital Icon'
+                  <Box
                     sx={{
-                      width: 56,
-                      height: 56,
-                      backgroundColor: theme.palette.customColors.antzNotes80,
-                      borderRadius: '7px',
-                      p: '8px'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3
                     }}
-                    slotProps={{
-                      img: {
-                        style: { objectFit: 'contain' }
-                      }
-                    }}
-                  />
-                  <Box sx={{ textAlign: { md: 'left' }, maxWidth: '180px' }}>
-                    <Tooltip title={hospital.hospital_name}>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: theme.palette.customColors.neutralSecondary,
-                          fontSize: '14px',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                      >
-                        {hospital.hospital_name}
-                      </Typography>
-                    </Tooltip>
-                    <Tooltip title={hospital.location}>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: theme.palette.customColors.neutralSecondary,
-                          fontSize: '14px',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                      >
-                        {hospital.location}
-                      </Typography>
-                    </Tooltip>
+                  >
+                    <Avatar
+                      src='/images/hospital/hospital-icon.svg'
+                      alt='Hospital Icon'
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        backgroundColor: theme.palette.customColors.antzNotes80,
+                        borderRadius: '7px',
+                        p: '8px'
+                      }}
+                      slotProps={{
+                        img: {
+                          style: { objectFit: 'contain' }
+                        }
+                      }}
+                    />
+                    <Box sx={{ textAlign: { md: 'left' }, maxWidth: '180px' }}>
+                      <Tooltip title={hospital.hospital_name}>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: theme.palette.customColors.neutralSecondary,
+                            fontSize: '14px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {hospital.hospital_name}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title={hospital.location}>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: theme.palette.customColors.neutralSecondary,
+                            fontSize: '14px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {hospital.location}
+                        </Typography>
+                      </Tooltip>
+                    </Box>
                   </Box>
-                </Box>
-              </MenuItem>
-            ))
-          )}
+                </MenuItem>
+              ))
+            )}
 
-          {/* Loading More Indicator */}
-          {loadingMore && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-              <CircularProgress size={20} />
-            </Box>
-          )}
+            {/* Loading More Indicator */}
+            {loadingMore && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                <CircularProgress size={20} />
+              </Box>
+            )}
 
-          {/* No More Results */}
-          {!hasMore && hospitals.length > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 1 }}>
-              <Typography color='text.secondary'>No more results</Typography>
-            </Box>
-          )}
-        </Box>
-      </Menu>
+            {/* No More Results */}
+            {!hasMore && hospitals.length > 0 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 1 }}>
+                <Typography color='text.secondary'>No more results</Typography>
+              </Box>
+            )}
+          </Box>
+        </Menu>
+      )}
     </Box>
   )
 }
