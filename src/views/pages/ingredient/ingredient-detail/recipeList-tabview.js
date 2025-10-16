@@ -10,15 +10,11 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import { Avatar, Box, CardContent, Tooltip } from '@mui/material'
-
-// ** MUI Imports
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
-
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
@@ -66,13 +62,12 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
           status
         }
         await getRecipeListonIngredientDtl(id, params).then(res => {
-          console.log('response', res)
           setTotal(parseInt(res?.data?.data?.count))
 
           const result = res?.data?.data?.result
 
           if (Array.isArray(result)) {
-            // If result is an array, update rows directly
+            // result is an array, update rows directly
             const startingIndex = paginationModel.page * paginationModel.pageSize
 
             let listWithId = res.data.data.result.map((el, i) => {
@@ -80,10 +75,8 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
             })
             setRows(loadServerRows(paginationModel.page, listWithId))
           } else if (typeof result === 'object') {
-            // If result is an object, convert it to an array of one object
             setRows([result])
           } else {
-            // Handle other cases
             console.error('Unexpected result type:', result)
           }
         })
@@ -180,7 +173,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
             variant='square'
             alt='Recipe Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_ingredient_fill.png'}
+            src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
@@ -241,20 +234,11 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         ) : (
           <>
             <div>
-              {/* {showSwapBtn.length > 0 ? ( */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                 <div></div>
-                {/* <Button
-                  size='small'
-                  variant='contained'
-                  onClick={() => setActivitySidebarOpen(true)}
-                  sx={{ px: 4, py: 2, cursor: 'pointer', position: 'relative', top: 8 }}
-                >
-                  <Icon icon='mdi:add' fontSize={20} />
-                  &nbsp; SWAP {IngredientName}
-                </Button> */}
+
                 <Box sx={{ px: 4, py: 4, cursor: 'pointer', position: 'relative', top: 8 }}></Box>
-                {/* /////////////// */}
+
                 <Drawer
                   anchor='right'
                   open={activitySidebarOpen}
@@ -270,11 +254,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                 </Drawer>
                 {/* //////////////////// */}
               </div>
-              {/* ) : (
-                <div
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: '38px' }}
-                ></div>
-              )} */}
+
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
