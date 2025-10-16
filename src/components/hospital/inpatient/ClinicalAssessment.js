@@ -138,7 +138,6 @@ const ClinicalAssessment = () => {
   }
 
   const handleEditNoteClick = item => {
-    console.log(item, 'item')
     setNoteRecord(item)
     setNotes(item?.note || '')
   }
@@ -298,9 +297,9 @@ const ClinicalAssessment = () => {
       animal_id: animal_id || '',
       note: notes || '',
       clinical_assessment: clinicalAsmnt?.toLowerCase() || '',
-      prognosis: prognosisVal.toLowerCase() || '',
-      isChronic: chronicVal === 'Yes',
-      status: status?.toLowerCase() || ''
+      prognosis: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? prognosisVal.toLowerCase() : '',
+      isChronic: clinicalAsmnt?.toLowerCase() === 'diagnosis' ? chronicVal === 'Yes' : '',
+      status: status?.toLowerCase() === 'inactive' ? 'closed' : 'active'
     }
 
     setIsSubmitLoading(true)
