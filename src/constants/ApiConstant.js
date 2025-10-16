@@ -699,9 +699,19 @@ export const GET_INCOMING_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
 
 export const GET_MASTERS_HOSPITAL = 'v1/hospital/listing'
 
+export const GET_MASTERS_SURGERY = 'v1/hospital/list-surgery'
+
 export const CREATE_MASTERS_HOSPITAL = 'v1/hospital/create'
 
+export const CREATE_MASTERS_SURGERY = 'v1/hospital/create-surgery'
+
 export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
+
+export const UPDATE_MASTERS_SURGERY = 'v1/hospital/update-surgery'
+
+export const CHANGE_MASTERS_SURGERY_STATUS = 'v1/hospital/change-surgery-status/'
+
+export const DELETE_MASTERS_SURGERY = 'v1/hospital/delete-surgery/'
 
 export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
 
