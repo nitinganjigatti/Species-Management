@@ -431,7 +431,7 @@ const DailyReport = () => {
             lineHeight: 1
           }}
         >
-          {params.row.date}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocalDate(params.row.date))}
         </Typography>
       )
     },
