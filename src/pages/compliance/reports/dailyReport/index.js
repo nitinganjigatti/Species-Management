@@ -45,8 +45,9 @@ const DailyReport = () => {
   const [loading, setLoading] = useState(false)
   const [indexedRows, setIndexedRows] = useState([])
 
-  const [searchInput, setSearchInput] = useState('')
-  const [searchValue, setSearchValue] = useState('') // applied to API
+  const [searchText, setSearchText] = useState('')
+  const [searchQuery, setSearchQuery] = useState('') // applied to API
+  const [siteSearchTerm, setSiteSearchTerm] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
   const [siteLoader, setSiteLoader] = useState(false)
 
@@ -215,8 +216,9 @@ const DailyReport = () => {
     // table/search state reset
     setIndexedRows([])
     setTotal(0)
-    setSearchInput('')
-    setSearchValue('')
+    setSearchText('')
+    setSearchQuery('')
+    setSiteSearchTerm('')
 
     // pagination reset (pageSize preserve)
     setPaginationModel(prev => ({ page: 0, pageSize: prev.pageSize }))
@@ -224,9 +226,9 @@ const DailyReport = () => {
 
   // Debounced search function
   const debouncedSearch = useCallback(
-    debounce(searchValue => {
+    debounce(nextQuery => {
       // setPageNo(1)
-      setSearchValue(searchValue)
+      setSearchQuery(nextQuery)
       setPaginationModel(prev => ({ ...prev, page: 0 }))
     }, 500),
     []
@@ -239,7 +241,7 @@ const DailyReport = () => {
 
   const handleSearchChange = e => {
     const value = e.target.value
-    setSearchInput(value)
+    setSearchText(value)
     debouncedSearch(value)
   }
 
@@ -248,8 +250,8 @@ const DailyReport = () => {
     // cancel any pending debounced apply
     debouncedSearch.cancel?.()
 
-    setSearchInput('') // UI clear
-    setSearchValue('') // q='' -> server will ignore
+    setSearchText('') // UI clear
+    setSearchQuery('') // q='' -> server will ignore
     setPaginationModel(p => ({ ...p, page: 0 }))
 
     // fetchDailyReport()
@@ -338,7 +340,7 @@ const DailyReport = () => {
       fetchDailyReport({
         ids: selectedSiteIds,
         range: dateRange,
-        q: searchValue,
+        q: searchQuery,
         obsTypeId: defaultObservationType?.id
       })
     } else {
@@ -353,7 +355,7 @@ const DailyReport = () => {
     selectedSiteIds.join(','), // array -> string to avoid ref churn
     dateRange.startDate,
     dateRange.endDate,
-    searchValue,
+    searchQuery,
     defaultObservationType?.id
   ])
 
@@ -369,7 +371,7 @@ const DailyReport = () => {
       site_id: ids.join(','), // comma-separated site ids
       start_date: startDateForApi,
       end_date: endDateForApi,
-      ...(searchValue && { q: searchValue }), // include server-side search if any
+      ...(searchQuery && { q: searchQuery }), // include server-side search if any
       ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id })
     }
     try {
@@ -593,8 +595,8 @@ const DailyReport = () => {
               <Search
                 onClear={handleSearchClear}
                 onChange={handleSearchChange}
-                placeholder='Search by date, observation type or text'
-                value={searchInput}
+                placeholder='Search by AID & common name'
+                value={searchText}
                 width={342}
                 borderRadius='4px'
                 textFielsSX={{
@@ -695,7 +697,7 @@ const DailyReport = () => {
               rowHeight={120}
               paginationModel={paginationModel}
               setPaginationModel={setPaginationModel}
-              searchValue={searchValue}
+              searchValue={searchQuery}
               onPaginationModelChange={model => setPaginationModel(model)}
             />
           </Card>
@@ -720,8 +722,8 @@ const DailyReport = () => {
 
       {openFilterDrawer && (
         <SiteDrawer
-          searchTerm={searchValue}
-          setSearchTerm={setSearchValue}
+          searchTerm={siteSearchTerm}
+          setSearchTerm={setSiteSearchTerm}
           openFilterDrawer={openFilterDrawer}
           setOpenFilterDrawer={setOpenFilterDrawer}
           tabsForfilter={tabsForfilter}
