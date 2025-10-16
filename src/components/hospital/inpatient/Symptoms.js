@@ -7,6 +7,7 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
 import { getSymptomsList } from 'src/lib/api/hospital/symptoms'
 import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
+import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 
 const Symptoms = ({ selectedTab, patientData }) => {
   const router = useRouter()
@@ -15,7 +16,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState(false)
   const [records, setRecords] = useState([])
-  const [recordTypeCount, setRecordTypeCount] = useState([])
+  const [recordTypeCount, setRecordTypeCount] = useState({})
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -56,6 +57,9 @@ const Symptoms = ({ selectedTab, patientData }) => {
       const response = await getSymptomsList(animal_id, params)
 
       if (response.success === true) {
+        if (newPage > 1 && response?.data?.result?.length === 0) {
+          return
+        }
         setRecords(prevRecords => (append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []))
         setRecordTypeCount(response?.data)
         setTotalCount(response?.data?.total_count || 0)
@@ -79,6 +83,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
+    setRecords([])
+    setRecordTypeCount({})
   }
 
   useEffect(() => {
@@ -98,7 +104,13 @@ const Symptoms = ({ selectedTab, patientData }) => {
     const observer = new IntersectionObserver(entries => {
       const firstEntry = entries[0]
       const currentTabCount = getCurrentTabCount()
-      if (firstEntry.isIntersecting && !isFetchingMore && !loading && records?.length < currentTabCount) {
+      if (
+        firstEntry.isIntersecting &&
+        !isFetchingMore &&
+        !loading &&
+        records.length > 0 &&
+        records?.length < currentTabCount
+      ) {
         const nextPage = page + 1
         setPage(nextPage)
         fetchSymptoms(searchQuery.trim(), nextPage, true)
@@ -144,6 +156,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
                 {tabs.map(tab => {
                   const countKey = tabTypeMap[tab]
                   const tabCount = recordTypeCount?.[countKey] || 0
+
                   return (
                     <Box
                       key={tab}
@@ -206,8 +219,8 @@ const Symptoms = ({ selectedTab, patientData }) => {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', py: 2 }}>
+            <ClinicalAssessmentShimmer rows={8} />
           </Box>
         ) : records?.length === 0 ? (
           <Box
@@ -227,6 +240,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
             <SymptomsCard
               key={index}
               record={record}
+              setPage={setPage}
               isDifferential={record.type === 'Differential'}
               isResolved={record.status === 'closed'}
               fetchSymptoms={fetchSymptoms}
@@ -245,7 +259,7 @@ const Symptoms = ({ selectedTab, patientData }) => {
           {isFetchingMore && <CircularProgress size={24} />}
         </Box>
 
-        {!loading && !isFetchingMore && records?.length >= getCurrentTabCount() && (
+        {!loading && !isFetchingMore && records?.length >= 1 && (
           <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled }}>
             No more symptoms to load
           </Typography>

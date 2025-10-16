@@ -1108,11 +1108,13 @@ const StepBasicDetails = ({
                       return (
                         <Autocomplete
                           value={uomList?.find(option => option.id === value) || null}
+
                           // disablePortal
                           id='diet_type_id'
                           options={uomList || []}
                           getOptionLabel={option => option.diet_type_name}
                           isOptionEqualToValue={(option, value) => option?.id === value}
+
                           //disabled={id ? true : false}
                           onChange={(e, val) => {
                             if (val === null) {
@@ -1841,6 +1843,7 @@ const StepBasicDetails = ({
                                 </Grid>
 
                                 <Icon
+
                                   //onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
                                   style={{ position: 'absolute', right: '8%', fontSize: '22px', cursor: 'pointer' }}
                                   className='pencil_diet'
@@ -2273,6 +2276,7 @@ const StepBasicDetails = ({
                 <Button
                   color='secondary'
                   variant='outlined'
+
                   //startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                   sx={{ mr: 6 }}
                   onClick={cancelBack}

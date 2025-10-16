@@ -1,48 +1,60 @@
-import React, { useState } from 'react'
-import { Box, TextField, FormControlLabel, Checkbox, InputAdornment, Typography } from '@mui/material'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  Box,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  InputAdornment,
+  Typography,
+  CircularProgress,
+  IconButton
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
+import ClearIcon from '@mui/icons-material/Clear'
 
 export default function PrescriptionMedicineList({
   medicineList,
   temporarilySelectedMedicine,
   selectedMedicine,
   onSelect,
+  searchQuery,
+  handleSearchChange,
+  handleClearSearch,
+  handleScroll,
+  loading,
+  searching,
   error
 }) {
   const theme = useTheme()
-  const [searchTerm, setSearchTerm] = useState('')
-
-  const filteredMedicines = medicineList.filter(medicine =>
-    medicine.label.toLowerCase().includes(searchTerm.toLowerCase())
-  )
 
   return (
-    <Box
-      sx={{
-        pt: 1,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column'
-      }}
-    >
+    <Box sx={{ pt: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
       <TextField
         placeholder='Search'
         fullWidth
         size='small'
         sx={{ mb: 2, borderRadius: '8px' }}
-        value={searchTerm}
-        onChange={e => setSearchTerm(e.target.value)}
+        value={searchQuery}
+        onChange={handleSearchChange}
         slotProps={{
           input: {
             startAdornment: (
               <InputAdornment position='start'>
                 <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
               </InputAdornment>
+            ),
+            endAdornment: searchQuery && (
+              <InputAdornment position='end'>
+                <IconButton onClick={handleClearSearch} size='small' sx={{ color: 'gray' }}>
+                  <ClearIcon fontSize='small' />
+                </IconButton>
+              </InputAdornment>
             )
           }
         }}
       />
+
       {error && (
         <Typography
           sx={{
@@ -56,7 +68,6 @@ export default function PrescriptionMedicineList({
           {error}
         </Typography>
       )}
-
       <Box
         sx={{
           color: theme.palette.customColors.deepDark,
@@ -74,32 +85,16 @@ export default function PrescriptionMedicineList({
         <Typography sx={{ minWidth: '192px', textAlign: 'left' }}>GENERIC NAME</Typography>
       </Box>
 
-      <Box
-        sx={{
-          flex: 1,
-          maxHeight: 650,
-          overflowY: 'auto',
-          mt: 0,
-          '&::-webkit-scrollbar': {
-            width: '6px'
-          },
-          '&::-webkit-scrollbar-track': {
-            background: 'transparent'
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: theme.palette.customColors.OutlineVariant,
-            borderRadius: '3px'
-          },
-          '&::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: theme.palette.customColors.OnSurfaceVariant
-          }
-        }}
-      >
-        {filteredMedicines.length === 0 ? (
+      <Box sx={{ maxHeight: 650, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
+        {searching ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <CircularProgress />
+          </Box>
+        ) : medicineList.length === 0 && !loading ? (
           <Box
             sx={{
               background: theme.palette.common.white,
-              maxHeight: 650,
+              height: 500,
               borderRadius: '8px',
               display: 'flex',
               flexDirection: 'column',
@@ -107,26 +102,22 @@ export default function PrescriptionMedicineList({
               justifyContent: 'center'
             }}
           >
-            <img src='/images/no_data_animal_2.png' alt='No Medicines' style={{ maxWidth: '250px' }} />
+            <img src='/images/no_data_animal_2.png' alt='No Medicine' style={{ maxWidth: '250px' }} />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
               No Medicine to show
             </Typography>
           </Box>
         ) : (
-          filteredMedicines.map((medicine, index) => {
-            // If selectedMedicine is an object, compare by label
-            const actuallySelected =
-              (selectedMedicine && selectedMedicine.label === medicine.label) || selectedMedicine === medicine.label
-
-            const isTemporarilySelected =
-              temporarilySelectedMedicine && temporarilySelectedMedicine.label === medicine.label
+          medicineList.map((medicine, index) => {
+            const isSelected = selectedMedicine?.includes(medicine?.id)
+            const isTemporarilySelected = temporarilySelectedMedicine?.id === medicine?.id
 
             return (
               <Box
-                key={index}
+                key={medicine?.id}
                 sx={{
                   background:
-                    actuallySelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
+                    isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
                   borderRadius: '1px',
                   px: 1,
                   py: 3.7,
@@ -138,7 +129,7 @@ export default function PrescriptionMedicineList({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={actuallySelected || isTemporarilySelected}
+                      checked={isSelected || isTemporarilySelected}
                       onChange={() => onSelect(medicine)}
                       sx={{
                         transform: 'scale(0.8)',
@@ -146,26 +137,14 @@ export default function PrescriptionMedicineList({
                       }}
                     />
                   }
-                  label={medicine.label}
+                  label={medicine?.name}
                   sx={{
                     flex: 1,
                     m: 0,
-                    color:
-                      actuallySelected || isTemporarilySelected
-                        ? theme.palette.primary.OnSurface
-                        : theme.palette.customColors.OnSurfaceVariant,
                     '& .MuiFormControlLabel-label': {
-                      color:
-                        actuallySelected || isTemporarilySelected
-                          ? theme.palette.primary.OnSurface
-                          : theme.palette.customColors.OnSurfaceVariant,
-
-                      fontFamily: 'Inter, sans-serif',
-                      fontWeight: 600,
+                      color: theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '16px',
-                      lineHeight: '100%',
-                      letterSpacing: '0px',
-                      verticalAlign: 'middle'
+                      fontWeight: 600
                     }
                   }}
                 />
@@ -182,11 +161,17 @@ export default function PrescriptionMedicineList({
                     verticalAlign: 'middle'
                   }}
                 >
-                  {medicine.genericName}
+                  {medicine?.generic_name || 'N/A'}
                 </Typography>
               </Box>
             )
           })
+        )}
+
+        {loading && !searching && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
         )}
       </Box>
     </Box>

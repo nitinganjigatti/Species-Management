@@ -11,7 +11,7 @@ import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/sym
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 
-const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
+const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id } = router.query
@@ -73,6 +73,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
     try {
       const response = await getNotesListForSymptom(params)
+
       return response
     } catch (error) {
       console.error('Error fetching notes for symptom:', error)
@@ -94,6 +95,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
     try {
       setDeleteLoading(true)
+
       const payload = {
         main_id: temporarilySelected?.complaint_id,
         med_id: temporarilySelected?.medical_record_id,
@@ -114,7 +116,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
 
         setSelectedSymptoms(pendingDetails)
         setSymptomDrawerNewOpen(false)
-        fetchSymptoms()
+        fetchSymptoms('', 1, false)
+        setPage(1)
         setDeleteLoading(false)
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to update symptom.' })
@@ -262,7 +265,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           {record?.additional_info &&
             (hasData(record?.latest_note?.notes_dump?.new_data) ||
               hasData(record?.latest_note?.notes_dump?.old_data)) && (
-              <Tooltip title={record?.additional_info?.latest_comment} arrow placement='top'>
+              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
@@ -276,7 +279,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
                     lineHeight: '1.4'
                   }}
                 >
-                  Notes : {record?.additional_info?.latest_comment || 'N/A'}
+                  Notes : {record?.latest_note?.note || 'N/A'}
                 </Typography>
               </Tooltip>
             )}
@@ -284,7 +287,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
           {record?.additional_info &&
             !hasData(record?.latest_note?.notes_dump?.new_data) &&
             !hasData(record?.latest_note?.notes_dump?.old_data) && (
-              <Tooltip title={record?.additional_info?.latest_comment} arrow placement='top'>
+              <Tooltip title={record?.latest_note?.note} arrow placement='top'>
                 <Typography
                   sx={{
                     fontSize: '0.875rem',
@@ -298,7 +301,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms }) => {
                     lineHeight: '1.4'
                   }}
                 >
-                  {record?.additional_info?.latest_comment || ''}
+                  {record?.latest_note?.note || ''}
                 </Typography>
               </Tooltip>
             )}

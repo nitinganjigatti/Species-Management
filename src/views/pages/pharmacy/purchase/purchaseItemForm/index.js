@@ -527,6 +527,7 @@ const PurchaseItemForm = props => {
       setValue('product', {
         // label: nestedRowMedicine?.purchase_unit_id ? nestedRowMedicine.medicine_name : '',
         label: nestedRowMedicine.medicine_name,
+
         // value: nestedRowMedicine.purchase_unit_id,
         value: nestedRowMedicine.purchase_unit_id
           ? nestedRowMedicine.purchase_unit_id
@@ -781,6 +782,7 @@ const PurchaseItemForm = props => {
                 render={({ field: { value, onChange } }) => (
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DesktopDatePicker
+
                       // disabled={nestedRowMedicine?.id ? true : false}
                       label='Expiry Date*'
                       inputFormat='MM/DD/YYYY'
@@ -793,6 +795,7 @@ const PurchaseItemForm = props => {
                         }
                       }}
                       error={Boolean(errors.purchase_expiry_date)}
+
                       // helperText={errors.purchase_expiry_date?.message}
                     />
                   </LocalizationProvider>
@@ -930,6 +933,7 @@ const PurchaseItemForm = props => {
               render={({ field: { onChange, value, ...rest } }) => (
                 <Select
                   {...rest}
+
                   // disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
                   value={value}
                   onChange={(e, val) => {
@@ -972,6 +976,7 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='Purchase Quantity*'
                   variant='outlined'
+
                   // disabled={nestedRowMedicine?.id ? true : false}
                   onKeyUp={e => {
                     calculateStuff()

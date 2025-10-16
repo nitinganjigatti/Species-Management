@@ -1,5 +1,6 @@
 import {
   ADD_CLINICAL_ASSESSMENT,
+  DELETE_NOTE_CLINICAL_ASSESSMENT,
   GET_CLINICAL_ASSESSMENTS,
   GET_CLINICAL_DIAGNOSIS_LIST,
   GET_CLINICAL_DIAGNOSIS_TYPE,
@@ -79,6 +80,17 @@ export async function updateNotes(params) {
     const url = UPDATE_NOTES
 
     const response = await axiosPost({ url, body: params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching clinical notes:', error.message)
+  }
+}
+
+export const deleteNote = async (noteId, params) => {
+  try {
+    const url = UPDATE_NOTES
+    const response = await axiosGet({ url: `${DELETE_NOTE_CLINICAL_ASSESSMENT}/${noteId}`, params })
 
     return response?.data
   } catch (error) {

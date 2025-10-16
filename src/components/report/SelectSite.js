@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { useTheme } from '@mui/material/styles'
 import {
@@ -57,15 +57,40 @@ const SelectSites = ({
     }
   }, [openSiteListDrawer])
 
+  const filteredSites = useMemo(
+    () =>
+      siteData.filter(site => site.site_name?.toLowerCase().includes((searchTerm || '').toLowerCase())),
+    [siteData, searchTerm]
+  )
+
+  const filteredSiteIds = useMemo(() => filteredSites.map(site => site.site_id), [filteredSites])
+  const filteredSelectedCount = useMemo(
+    () => filteredSiteIds.filter(id => pendingSelections?.Site?.includes(id)).length,
+    [filteredSiteIds, pendingSelections?.Site]
+  )
+  const areAllFilteredSelected = filteredSiteIds.length > 0 && filteredSelectedCount === filteredSiteIds.length
+  const isSomeFilteredSelected = filteredSelectedCount > 0 && !areAllFilteredSelected
+
   const handleSelectAllSites = () => {
-    const allSiteIds = siteData.map(site => site.site_id)
-    setPendingSelections({
-      ...pendingSelections,
-      Site: pendingSelections?.Site?.length === allSiteIds?.length ? [] : allSiteIds
+    if (!filteredSiteIds.length) return
+
+    setPendingSelections(prev => {
+      const currentSelection = Array.isArray(prev?.Site) ? prev.Site : []
+      const allSelected = filteredSiteIds.every(id => currentSelection.includes(id))
+
+      if (allSelected) {
+        return {
+          ...prev,
+          Site: currentSelection.filter(id => !filteredSiteIds.includes(id))
+        }
+      }
+
+      return {
+        ...prev,
+        Site: Array.from(new Set([...currentSelection, ...filteredSiteIds]))
+      }
     })
   }
-
-  const filteredSites = siteData.filter(site => site.site_name.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
     <Drawer
@@ -166,10 +191,7 @@ const SelectSites = ({
             <Button
               size='small'
               sx={{
-                color:
-                  pendingSelections?.Site?.length === siteData?.length
-                    ? theme.palette.primary.main
-                    : theme.palette.customColors.onSurfaceVariant,
+                color: areAllFilteredSelected ? theme.palette.primary.main : theme.palette.customColors.onSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -181,7 +203,8 @@ const SelectSites = ({
             </Button>
 
             <Checkbox
-              checked={pendingSelections?.Site?.length === siteData?.length}
+              checked={areAllFilteredSelected}
+              indeterminate={isSomeFilteredSelected}
               onChange={handleSelectAllSites}
               slotProps={{
                 'aria-label': 'Select all species'

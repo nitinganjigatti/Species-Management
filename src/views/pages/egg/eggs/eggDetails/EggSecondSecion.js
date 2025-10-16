@@ -534,6 +534,7 @@ const EggSecondSecion = ({
           paginationMode='server'
           pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
+
           // onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
           onPaginationModelChange={setPaginationModel}

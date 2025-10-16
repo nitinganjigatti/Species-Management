@@ -28,6 +28,7 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Cut Size Name is Required'),
+
   // comments: yup
   //   .string()
   //   .transform(value => (value ? value.trim() : value))

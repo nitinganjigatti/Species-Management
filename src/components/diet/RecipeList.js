@@ -252,6 +252,7 @@ const RecipeList = props => {
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4
         }}
+
         //onScroll={handleScroll}
         onScroll={fromrow !== 'rowedit_recipe' ? handleScroll : undefined}
       >

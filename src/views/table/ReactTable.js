@@ -282,12 +282,14 @@ const ReactTable = ({
 
   // --- stable row refs map (by page index) ---
   const rowRefs = useRef({})
+
   const setRowRef = useCallback((idx, el) => {
     rowRefs.current[idx] = el
   }, [])
 
   const getDefaultPinningFromColumns = useCallback(cols => {
     const left = []
+
     const right = []
     ;(cols || []).forEach((c, i) => {
       // const id = c.field || `column_${i}`
@@ -295,6 +297,7 @@ const ReactTable = ({
       if (c.pinned === 'left') left.push(id)
       else if (c.pinned === 'right') right.push(id)
     })
+
     return { left, right }
   }, [])
 
@@ -307,6 +310,7 @@ const ReactTable = ({
       const right = pin.right ? [...pin.right] : []
       if (selectionPinned === 'left' && !left.includes('_select')) left.unshift('_select')
       if (selectionPinned === 'right' && !right.includes('_select')) right.unshift('_select')
+
       return { left, right }
     },
     [rowSelection, selectionPinned]
@@ -410,7 +414,8 @@ const ReactTable = ({
       const lastLeaf = pinnedLeafs[pinnedLeafs.length - 1]
 
       const widthFromLeaves = pinnedLeafs.reduce((total, leaf) => total + (leaf?.getSize?.() || 0), 0)
-      const widthCandidate = Number.isFinite(widthFromLeaves) && widthFromLeaves > 0 ? widthFromLeaves : header?.getSize?.()
+      const widthCandidate =
+        Number.isFinite(widthFromLeaves) && widthFromLeaves > 0 ? widthFromLeaves : header?.getSize?.()
       const width = typeof widthCandidate === 'number' && Number.isFinite(widthCandidate) ? widthCandidate : undefined
 
       const styles = {
@@ -605,6 +610,7 @@ const ReactTable = ({
                     delete next[r.id]
                   })
                 }
+
                 return next
               })
             }}
@@ -646,6 +652,7 @@ const ReactTable = ({
       if (!filtered.length && rowsInViewOptions?.length) {
         filtered.push(Math.min(maxView, rowsInViewOptions[0]))
       }
+
       return Array.from(new Set(filtered)).sort((a, b) => a - b)
     } catch {
       return rowsInViewOptions || []
@@ -677,8 +684,10 @@ const ReactTable = ({
       const base = raw !== null && raw !== undefined && raw !== '' ? String(raw) : `__auto_idx_${index}`
       if (serverSide) {
         const absIndex = paginationModel.page * paginationModel.pageSize + index
+
         return `${base}__pg_${absIndex}`
       }
+
       return base
     },
     [rowIdKey, serverSide, paginationModel.page, paginationModel.pageSize]
@@ -769,11 +778,13 @@ const ReactTable = ({
     setMenuColumn(column)
     setMenuHeader(header || null)
   }
+
   const handleColumnMenuClose = () => {
     setAnchorEl(null)
     setMenuColumn(null)
     setMenuHeader(null)
   }
+
   const handlePinColumn = (columnId, position) => {
     const column = table.getColumn(columnId) || table.getAllLeafColumns().find(c => c.id === columnId)
 
@@ -806,6 +817,7 @@ const ReactTable = ({
       const next = { ...prev }
       if (checked) next[rowId] = true
       else delete next[rowId]
+
       return next
     })
   }, [])
@@ -948,20 +960,20 @@ const ReactTable = ({
                 ...(originalColumn.headerSx || {}),
                 ...(originalColumn.sx || {})
               }}
-             onClick={e => e.stopPropagation()}
-           >
+              onClick={e => e.stopPropagation()}
+            >
               {isPlaceholder ? null : (
                 // <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box
                   sx={{
                     display: 'flex',
-                   alignItems: 'center',
-                   justifyContent: 'space-between',
-                   // px: originalColumn.width != null && column.id !== '_select' ? 2 : 0,
-                   // py: originalColumn.width != null && column.id !== '_select' ? 1 : 0,
-                   px: explicit && column.id !== '_select' ? 2 : 0,
-                   py: explicit && column.id !== '_select' ? 1 : 0,
-                   width: '100%',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    // px: originalColumn.width != null && column.id !== '_select' ? 2 : 0,
+                    // py: originalColumn.width != null && column.id !== '_select' ? 1 : 0,
+                    px: explicit && column.id !== '_select' ? 2 : 0,
+                    py: explicit && column.id !== '_select' ? 1 : 0,
+                    width: '100%',
                     boxSizing: 'border-box'
                   }}
                 >
@@ -978,9 +990,7 @@ const ReactTable = ({
                     ) : (
                       flexRender(column.columnDef.header, header.getContext())
                     )}
-                    {column.id !== '_select' && showPinIcon && (
-                      <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />
-                    )}
+                    {column.id !== '_select' && showPinIcon && <PushPinIcon sx={{ fontSize: 16, opacity: 0.7 }} />}
                   </Box>
 
                   {modifyColumnPinning && column.id !== '_select' && originalColumn.disablePinMenu !== true && (
@@ -1042,6 +1052,7 @@ const ReactTable = ({
   // ---- Footer ----
   const renderFooter = () => {
     if (!pagination) return null
+
     return (
       <Box
         sx={{
@@ -1179,9 +1190,7 @@ const ReactTable = ({
               const center = centerSource.filter(col => !left.includes(col) && !right.includes(col))
 
               const fallback = table.getAllLeafColumns?.() || []
-              const ordered = (left.length || right.length)
-                ? [...left, ...center, ...right]
-                : fallback
+              const ordered = left.length || right.length ? [...left, ...center, ...right] : fallback
 
               return ordered.map(col => {
                 const w = col.getSize()

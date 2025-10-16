@@ -830,6 +830,7 @@ const AddMedicine = () => {
 
   const removeSaltButton = index => {
     return (
+
       // <Button
       //   variant='outlined'
       //   color='error'

@@ -40,7 +40,7 @@ export default function AddClinicalAssessmentPage() {
   const [currentTab, setCurrentTab] = useState('')
   const [currentTabId, setCurrentTabId] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
+  const [hasMore, setHasMore] = useState(false)
   const [page, setPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
@@ -69,7 +69,7 @@ export default function AddClinicalAssessmentPage() {
         medical_record_id: medicalRecordId || ''
       }
       const res = await getDiagnosisList(params) // This gets categories
-      if (res.success) {
+      if (res?.success) {
         const categories = res.data?.result || []
 
         // setTabOptions([{ category: 'All', id: '' }, ...categories])
@@ -85,40 +85,44 @@ export default function AddClinicalAssessmentPage() {
     } finally {
       setIsTabsLoading(false)
     }
-  }, [])
+  }, [medicalRecordId])
 
   // Fetch diagnosis list with infinite scroll
-  const fetchDiagnosisItems = useCallback(async (pageNum = 1, search = '', categoryId = '') => {
-    setIsLoading(true)
-    try {
-      const params = {
-        page: pageNum,
-        q: search,
-        category_id: categoryId,
-        type: 'diagnosis'
+  const fetchDiagnosisItems = useCallback(
+    async (pageNum = 1, search = '', categoryId = '') => {
+      setIsLoading(true)
+      try {
+        const params = {
+          page: pageNum,
+          limit: PAGE_SIZE,
+          q: search,
+          category_id: categoryId,
+          type: 'diagnosis'
+        }
+
+        const res = await getDiagnosysType(params)
+
+        if (res.success) {
+          const newItems = res.data?.result || []
+          const totalCount = res.data?.totalRecords || 0
+
+          setTotalCount(totalCount)
+          setAllAssessments(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
+          setHasMore(allAssessments?.length < totalCount)
+        } else {
+          throw new Error(res.message || 'Failed to fetch diagnosis list')
+        }
+      } catch (error) {
+        console.error('Error fetching diagnosis items:', error)
+        setAllAssessments([])
+        setTotalCount(0)
+        setHasMore(false)
+      } finally {
+        setIsLoading(false)
       }
-
-      const res = await getDiagnosysType(params)
-
-      if (res.success) {
-        const newItems = res.data?.result || []
-        const totalCount = res.data?.totalRecords || 0
-
-        setTotalCount(totalCount)
-        setAllAssessments(prev => (pageNum === 1 ? newItems : [...prev, ...newItems]))
-        setHasMore(newItems.length === PAGE_SIZE)
-      } else {
-        throw new Error(res.message || 'Failed to fetch diagnosis list')
-      }
-    } catch (error) {
-      console.error('Error fetching diagnosis items:', error)
-      setAllAssessments([])
-      setTotalCount(0)
-      setHasMore(false)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+    },
+    [allAssessments]
+  )
 
   // Load more function for infinite scroll
   const loadMore = useCallback(() => {
@@ -142,9 +146,10 @@ export default function AddClinicalAssessmentPage() {
     if (currentTabId) {
       fetchDiagnosisItems(1, searchTerm, currentTabId)
     }
-  }, [currentTabId, searchTerm, fetchDiagnosisItems])
+  }, [currentTabId, searchTerm])
 
   const handleTabChange = (tabValue, tabId) => {
+    setHasMore(false)
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
@@ -184,7 +189,7 @@ export default function AddClinicalAssessmentPage() {
     setSelectedSymptoms(prev => prev.filter(s => s.id !== symptom?.id))
   }
 
-  const availableSymptoms = allAssessments.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
+  const availableSymptoms = allAssessments?.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
 
   const handleAddAssessment = async () => {
     if (selectedSymptoms.length === 0) {
@@ -295,7 +300,7 @@ export default function AddClinicalAssessmentPage() {
         location={patientData?.bed_name || '-'}
         vet={patientData?.attend_by_full_name || '-'}
         ageGender={
-          (patientData?.animal_detail?.age || patientData?.animal_detail?.sex)
+          patientData?.animal_detail?.age || patientData?.animal_detail?.sex
             ? `${patientData?.animal_detail?.age || ''} ${patientData?.animal_detail?.sex || ''}`
             : '-'
         }
@@ -331,7 +336,7 @@ export default function AddClinicalAssessmentPage() {
             loaderRef={loaderRef}
             totalCount={totalCount}
             isTabsLoading={isTabsLoading}
-            isListLoading={isLoading}
+            isListLoading={isLoading && !hasMore}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>

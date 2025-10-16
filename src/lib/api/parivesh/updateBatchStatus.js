@@ -14,6 +14,7 @@ export async function updateBatchStatus(payload) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
-    return error
+    
+return error
   }
 }

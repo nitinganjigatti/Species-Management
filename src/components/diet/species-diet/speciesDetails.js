@@ -82,6 +82,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         })
 
         Toaster({ type: 'success', message: 'Diet Activated Successfully' })
+
         // Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -521,6 +522,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               setUploadDietDrawer(true)
             }}
             disabled={dietModuleAccess === 'VIEW'}
+
             // loading={loader}
           >
             UPLOAD NEW

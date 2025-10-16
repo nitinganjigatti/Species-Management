@@ -509,6 +509,7 @@ const NurseryDetails = () => {
             <Box sx={{ px: '16px', my: '12px' }}>
               {/* {!nurseryDataLoader && ( */}
               <DetailCard
+
                 // loading={nurseryDataLoader}
                 title='Nursery Details'
                 ButtonName={'ADD ROOM'}

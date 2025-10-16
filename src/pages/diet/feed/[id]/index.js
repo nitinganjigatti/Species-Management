@@ -197,6 +197,7 @@ const FeedDetails = () => {
         </Box>
       )
     }
+
     // {
     //   flex: 0.2,
     //   minWidth: 10,

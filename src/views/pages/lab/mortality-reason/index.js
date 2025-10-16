@@ -63,8 +63,10 @@ const AddMortalityReasons = props => {
 
   const onSubmit = async params => {
     const { name, description, active } = { ...params }
+
     const payload = {
       name
+
       // description,
       // active
     }

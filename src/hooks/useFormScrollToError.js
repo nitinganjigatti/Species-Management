@@ -14,7 +14,8 @@ export const useFormScrollToError = (fieldNames = []) => {
     if (!fieldRefs.current[fieldName]) {
       fieldRefs.current[fieldName] = { current: null }
     }
-    return fieldRefs.current[fieldName]
+    
+return fieldRefs.current[fieldName]
   }
 
   // Smart error handler that scrolls to first error field
@@ -50,7 +51,8 @@ export const useFormScrollToError = (fieldNames = []) => {
       for (const [errorKey, ref] of Object.entries(specialCases)) {
         if (errors[errorKey] && ref?.current) {
           ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          return
+          
+return
         }
       }
 

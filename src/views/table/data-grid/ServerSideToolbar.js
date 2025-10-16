@@ -10,6 +10,7 @@ import Icon from 'src/@core/components/icon'
 
 const ServerSideToolbar = props => {
   const inputRef1 = useRef()
+
   // console.log(props, 'props')
 
   const handleFocus = () => {

@@ -45,8 +45,9 @@ const DailyReport = () => {
   const [loading, setLoading] = useState(false)
   const [indexedRows, setIndexedRows] = useState([])
 
-  const [searchInput, setSearchInput] = useState('')
-  const [searchValue, setSearchValue] = useState('') // applied to API
+  const [searchText, setSearchText] = useState('')
+  const [searchQuery, setSearchQuery] = useState('') // applied to API
+  const [siteSearchTerm, setSiteSearchTerm] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
   const [siteLoader, setSiteLoader] = useState(false)
 
@@ -60,6 +61,7 @@ const DailyReport = () => {
   const [tempSelectedItems, setTempSelectedItems] = useState({ Site: [] })
   const [filterCount, setFilterCount] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: ''
@@ -86,6 +88,7 @@ const DailyReport = () => {
   const loadSitesFromAuth = useCallback(() => {
     try {
       const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
+
       const mapped = sites.map(s => ({
         site_id: String(s.id ?? s.site_id ?? ''),
         site_name: s.site_name,
@@ -215,8 +218,9 @@ const DailyReport = () => {
     // table/search state reset
     setIndexedRows([])
     setTotal(0)
-    setSearchInput('')
-    setSearchValue('')
+    setSearchText('')
+    setSearchQuery('')
+    setSiteSearchTerm('')
 
     // pagination reset (pageSize preserve)
     setPaginationModel(prev => ({ page: 0, pageSize: prev.pageSize }))
@@ -224,9 +228,9 @@ const DailyReport = () => {
 
   // Debounced search function
   const debouncedSearch = useCallback(
-    debounce(searchValue => {
+    debounce(nextQuery => {
       // setPageNo(1)
-      setSearchValue(searchValue)
+      setSearchQuery(nextQuery)
       setPaginationModel(prev => ({ ...prev, page: 0 }))
     }, 500),
     []
@@ -239,7 +243,7 @@ const DailyReport = () => {
 
   const handleSearchChange = e => {
     const value = e.target.value
-    setSearchInput(value)
+    setSearchText(value)
     debouncedSearch(value)
   }
 
@@ -248,8 +252,8 @@ const DailyReport = () => {
     // cancel any pending debounced apply
     debouncedSearch.cancel?.()
 
-    setSearchInput('') // UI clear
-    setSearchValue('') // q='' -> server will ignore
+    setSearchText('') // UI clear
+    setSearchQuery('') // q='' -> server will ignore
     setPaginationModel(p => ({ ...p, page: 0 }))
 
     // fetchDailyReport()
@@ -285,6 +289,7 @@ const DailyReport = () => {
       if (!siteIds.length) {
         setIndexedRows([])
         setTotal(0)
+
         return
       }
 
@@ -338,7 +343,7 @@ const DailyReport = () => {
       fetchDailyReport({
         ids: selectedSiteIds,
         range: dateRange,
-        q: searchValue,
+        q: searchQuery,
         obsTypeId: defaultObservationType?.id
       })
     } else {
@@ -349,11 +354,12 @@ const DailyReport = () => {
     fetchObservationMasterType()
   }, [
     fetchDailyReport,
+
     // explicit deps to trigger once per change:
     selectedSiteIds.join(','), // array -> string to avoid ref churn
     dateRange.startDate,
     dateRange.endDate,
-    searchValue,
+    searchQuery,
     defaultObservationType?.id
   ])
 
@@ -369,11 +375,12 @@ const DailyReport = () => {
       site_id: ids.join(','), // comma-separated site ids
       start_date: startDateForApi,
       end_date: endDateForApi,
-      ...(searchValue && { q: searchValue }), // include server-side search if any
+      ...(searchQuery && { q: searchQuery }), // include server-side search if any
       ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id })
     }
     try {
       setIsDownloading(true)
+
       // If you already have a util to download PDF, call it here:
       await downloadPDF({
         apiCall: getComplianceDailyReport,
@@ -429,7 +436,7 @@ const DailyReport = () => {
             lineHeight: 1
           }}
         >
-          {params.row.date}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocalDate(params.row.date))}
         </Typography>
       )
     },
@@ -593,8 +600,8 @@ const DailyReport = () => {
               <Search
                 onClear={handleSearchClear}
                 onChange={handleSearchChange}
-                placeholder='Search by date, observation type or text'
-                value={searchInput}
+                placeholder='Search by AID & common name'
+                value={searchText}
                 width={342}
                 borderRadius='4px'
                 textFielsSX={{
@@ -695,7 +702,7 @@ const DailyReport = () => {
               rowHeight={120}
               paginationModel={paginationModel}
               setPaginationModel={setPaginationModel}
-              searchValue={searchValue}
+              searchValue={searchQuery}
               onPaginationModelChange={model => setPaginationModel(model)}
             />
           </Card>
@@ -720,8 +727,8 @@ const DailyReport = () => {
 
       {openFilterDrawer && (
         <SiteDrawer
-          searchTerm={searchValue}
-          setSearchTerm={setSearchValue}
+          searchTerm={siteSearchTerm}
+          setSearchTerm={setSiteSearchTerm}
           openFilterDrawer={openFilterDrawer}
           setOpenFilterDrawer={setOpenFilterDrawer}
           tabsForfilter={tabsForfilter}

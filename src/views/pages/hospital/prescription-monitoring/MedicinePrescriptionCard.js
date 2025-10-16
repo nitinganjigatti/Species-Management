@@ -37,8 +37,6 @@ const HeaderSection = styled(Box)(({ theme }) => ({
   padding: '24px 0px',
   flexDirection: 'column',
 
-  gap: '20px',
-
   // borderBottom: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
 
   backgroundColor: theme.palette.background.paper
@@ -124,7 +122,9 @@ const MedicinePrescriptionCard = ({
   dateOptions = [],
   onStopMedicine,
   onAddNewDosage,
-  onRefreshEntry
+  onRefreshEntry,
+  handleDateChange,
+  selectedDate
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -201,8 +201,8 @@ const MedicinePrescriptionCard = ({
     { label: 'Wed 04 Jan', value: 4 }
   ]
 
-  const entries = dosageEntries.length > 0 ? dosageEntries : defaultDosageEntries
-  const tabs = dateOptions.length > 0 ? dateOptions : defaultDateOptions
+  const entries = dosageEntries?.length > 0 ? dosageEntries : defaultDosageEntries
+  const tabs = dateOptions?.length > 0 ? dateOptions : []
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue)
@@ -403,10 +403,7 @@ const MedicinePrescriptionCard = ({
             sx={{
               display: 'flex',
               alignItems: 'flex-start',
-              justifyContent: 'space-between',
-
-              gap: '12px',
-              height: '54px'
+              justifyContent: 'space-between'
             }}
           >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 0 0' }}>
@@ -416,69 +413,65 @@ const MedicinePrescriptionCard = ({
               >
                 {medicine.name}
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
-                  <Box
-                    sx={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '30px',
-                      backgroundColor: theme.palette.customColors.OnSurface,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Icon icon='material-symbols:ecg-heart-outline-sharp' fontSize='10px' color='white' />
-                  </Box>
-                  <Typography
-                    variant='body2'
-                    sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurface }}
-                  >
-                    {medicine.medId}
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '10px',
-                      backgroundColor: theme.palette.primary.main
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Icon
-                      icon='material-symbols:line-start-circle'
-                      fontSize='20px'
-                      color={theme.palette.primary.main}
-                    />
-                    <Typography
-                      variant='body2'
-                      sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      {medicine.startDate}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Icon
-                      icon='material-symbols:line-end-square'
-                      fontSize='20px'
-                      color={theme.palette.customColors.Error}
-                    />
-                    <Typography
-                      variant='body2'
-                      sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      {medicine.endDate}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
             </Box>
             <IconButton onClick={onClose}>
               <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
             </IconButton>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
+              <Box
+                sx={{
+                  width: '16px',
+                  height: '16px',
+                  borderRadius: '30px',
+                  backgroundColor: theme.palette.customColors.OnSurface,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Icon icon='material-symbols:ecg-heart-outline-sharp' fontSize='10px' color='white' />
+              </Box>
+              <Typography
+                variant='body2'
+                sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurface }}
+              >
+                {medicine.medId}
+              </Typography>
+              <Box
+                sx={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '10px',
+                  backgroundColor: theme.palette.primary.main
+                }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Icon icon='material-symbols:line-start-circle' fontSize='20px' color={theme.palette.primary.main} />
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  {medicine.startDate}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Icon
+                  icon='material-symbols:line-end-square'
+                  fontSize='20px'
+                  color={theme.palette.customColors.Error}
+                />
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  {medicine.endDate}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </HeaderSection>
 
@@ -602,7 +595,9 @@ const MedicinePrescriptionCard = ({
           }}
         >
           <HorizontalDateNav
-            numberOfDays={7}
+            dates={dateOptions}
+            onDateSelect={handleDateChange}
+            selectedDate={selectedDate}
             showYear={true}
             containerStyle={{
               backgroundColor: theme.palette.background.paper,

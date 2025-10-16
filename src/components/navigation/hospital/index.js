@@ -60,6 +60,11 @@ const composeHospitalNavigation = () => {
     path: '/hospital/masters/anesthesia'
   }
 
+  const surgeryMaster = {
+    title: 'Surgery',
+    path: '/hospital/masters/surgery'
+  }
+
   const hospitalMaster = {
     title: 'Hospital',
     path: '/hospital/masters/hospital'
@@ -72,6 +77,7 @@ const composeHospitalNavigation = () => {
 
   hospitalMastersParent.children.push(monitoringMaster)
   hospitalMastersParent.children.push(anesthesiaMaster)
+  hospitalMastersParent.children.push(surgeryMaster)
   hospitalMastersParent.children.push(hospitalMaster)
 
   const hospitalNavigationArray = []

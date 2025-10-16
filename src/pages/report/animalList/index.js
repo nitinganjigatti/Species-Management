@@ -55,6 +55,7 @@ const AnimalList = () => {
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+
   // const [speciesList, setSpeciesList] = useState([])
   const [isLoader, setIsLoader] = useState(false)
 
@@ -342,7 +343,8 @@ const AnimalList = () => {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
-      return updatedData
+      
+return updatedData
     })
   }
 
@@ -350,13 +352,15 @@ const AnimalList = () => {
     if (text.length > maxLength) {
       return <>{`${text.substring(0, maxLength)}...`}</>
     }
-    return text
+    
+return text
   }
 
   const getSpecificTotalSelectedFilters = selectedOptions => {
     return Object.values(selectedOptions).filter(items => {
       const filtered = items.filter(item => item !== 'All Sites' && item !== 'All Organizations')
-      return filtered.length > 0
+      
+return filtered.length > 0
     }).length
   }
 

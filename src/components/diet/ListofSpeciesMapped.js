@@ -499,6 +499,7 @@ const ListOfSpeciesMapped = ({
                         />
                       }
                       minDate={startDate}
+
                       //maxDate={new Date()}
                     />
                     {errors.endDate && <FormHelperText sx={{ color: 'error.main' }}>{errors.endDate}</FormHelperText>}
@@ -645,6 +646,7 @@ const ListOfSpeciesMapped = ({
                             {/* Toggle for Mark as Primary */}
                             <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                               <Switch
+
                                 //checked={!!primaryStatus[species.species_id]}
                                 checked={
                                   primaryStatus[

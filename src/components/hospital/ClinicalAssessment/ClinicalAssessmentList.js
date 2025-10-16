@@ -24,7 +24,11 @@ export default function ClinicalAssessmentList({
   isListLoading,
   tabOptions,
   searchTerm,
-  setSearchTerm
+  setSearchTerm,
+  hasMore,
+  totalCount,
+  isLoading,
+  loaderRef
 }) {
   const theme = useTheme()
 
@@ -200,6 +204,20 @@ export default function ClinicalAssessmentList({
               </Box>
             )
           })
+        )}
+
+        {((isLoading || hasMore) && !isListLoading) && (
+          <Box ref={loaderRef} sx={{ display: 'flex', justifyContent: 'center', padding: 4 }}>
+            {isLoading && <CircularProgress />}
+          </Box>
+        )}
+
+        {!hasMore && (!isLoading || !isListLoading) && symptoms?.length > 0 && (
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Typography variant='body2' color='textSecondary'>
+              {symptoms?.length >= totalCount ? 'All assessments loaded' : 'No more assessments to load'}
+            </Typography>
+          </Box>
         )}
       </Box>
     </Box>

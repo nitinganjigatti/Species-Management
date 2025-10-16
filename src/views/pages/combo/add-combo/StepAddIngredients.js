@@ -816,6 +816,7 @@ const StepAddIngredients = ({
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
         handleSubmitData={handleSubmitData}
+
         //resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}

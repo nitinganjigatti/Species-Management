@@ -64,6 +64,7 @@ const AddEditShipment = () => {
 
   const rawValue = airwaybillvalue || ''
   const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+
   const formattedValue =
     removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
 
@@ -124,6 +125,7 @@ const AddEditShipment = () => {
   }
 
   const isBasicEditable = showEdit && expanded.includes('permit-details') && id && action === 'details'
+
   const isAnimalsEditable =
     showEditAnimals && expanded.includes('animals-details') && id && action === 'details' && exportCount > 0
 

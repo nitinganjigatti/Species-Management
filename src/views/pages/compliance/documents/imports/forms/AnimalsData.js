@@ -24,14 +24,16 @@ const validationSchema = yup.object({
       // If it's a File object (i.e., new upload)
       if (value.type) {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/x-png', 'application/pdf']
-        return allowedTypes.includes(value.type)
+        
+return allowedTypes.includes(value.type)
       }
 
       // If it's an existing uploaded file (edit mode)
       if (value.file_original_name) {
         const ext = value.file_original_name.split('.').pop().toLowerCase()
         const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf']
-        return allowedExtensions.includes(ext)
+        
+return allowedExtensions.includes(ext)
       }
 
       return false
@@ -61,6 +63,7 @@ const AnimalsData = ({
   const [mastersData, setMastersData] = useState([])
   const scrollContainerRef = useRef(null)
   const [draftData, setDraftData] = useState({ export: [] })
+
   const [selectedExportData, setSelectedExportData] = useState({
     export: []
   })
@@ -102,6 +105,7 @@ const AnimalsData = ({
         try {
           setIsLoading(true)
           const nextPage = paginationModel.page + 1
+
           const params = {
             q: searchValue,
             page_no: nextPage,
@@ -201,11 +205,13 @@ const AnimalsData = ({
           ...prev,
           selectedExportData: 'At least one species must be selected'
         }))
-        return { isValid: false, firstError: 'selectedExportData' }
+        
+return { isValid: false, firstError: 'selectedExportData' }
       }
 
       setErrors({})
-      return { isValid: true }
+      
+return { isValid: true }
     } catch (validationErrors) {
       const formattedErrors = {}
       let firstErrorPath = null
@@ -213,6 +219,7 @@ const AnimalsData = ({
         formattedErrors[error.path] = error.message
         if (!firstErrorPath) firstErrorPath = error.path
       })
+
       // Also check for selectedExportData even when Yup fails
       const hasExports = selectedExportData?.export?.length > 0 || selectedExportData?.others?.length > 0
 
@@ -221,7 +228,8 @@ const AnimalsData = ({
         if (!firstErrorPath) firstErrorPath = 'selectedExportData'
       }
       setErrors(formattedErrors)
-      return { isValid: false, firstError: firstErrorPath }
+      
+return { isValid: false, firstError: firstErrorPath }
     }
   }
 
@@ -236,11 +244,13 @@ const AnimalsData = ({
       })
 
       scrollToFirstError()
-      return
+      
+return
     }
 
     setLoading(true)
     const exportIds = selectedExportData?.export?.map(e => Number(e.id))
+
     let payload = {
       import_number: airwaybillvalue,
       import_date: dayjs(startDate).format('YYYY-MM-DD'),
@@ -256,6 +266,7 @@ const AnimalsData = ({
         setLoading(false)
         router.push(`/compliance/documents/imports/AddEditImport/?id=${response?.data?.id}&action=details`)
         Toaster({ type: 'success', message: response?.message })
+
         //fetchImportspeciesDetails()
       } else {
         setLoading(false)
