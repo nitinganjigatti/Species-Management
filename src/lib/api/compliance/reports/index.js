@@ -59,3 +59,8 @@ export async function getObservationMasterType(params) {
 
   return response?.data
 }
+
+export async function getAnimalHistoryReport(params) {
+  // const response = await axiosGet({ url: `${OBSERVATION_MASTER_TYPE}`, params })
+  // return response?.data
+}
