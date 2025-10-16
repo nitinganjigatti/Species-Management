@@ -21,10 +21,12 @@ import { useRouter } from 'next/router'
 
 import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
+import Toaster from 'src/components/Toaster'
 import { SURGERY_VISIT_TYPE_OPTIONS } from 'src/constants/Constants'
-import { getSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
+import { addSurgeryMaster, getSurgeryMaster, updateSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
+import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 
 const resolveBooleanStatus = value => {
   if (typeof value === 'string') {
@@ -46,6 +48,9 @@ const Surgery = () => {
     limit: 10,
     q: ''
   })
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [selectedSurgery, setSelectedSurgery] = useState(null)
 
   const safeParseToInt = (value, fallback) => {
     const parsed = parseInt(value, 10)
@@ -146,7 +151,26 @@ const Surgery = () => {
     updateUrlParams(updated, newValue)
   }
 
-  const { data: surgeryResponse, isFetching } = useQuery({
+  const handleAddSurgery = useCallback(() => {
+    setSelectedSurgery(null)
+    setDrawerOpen(true)
+  }, [])
+
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerOpen(false)
+    setSelectedSurgery(null)
+  }, [])
+
+  const handleEditSurgery = useCallback(row => {
+    setSelectedSurgery(row)
+    setDrawerOpen(true)
+  }, [])
+
+  const {
+    data: surgeryResponse,
+    isFetching,
+    refetch
+  } = useQuery({
     queryKey: ['hospital-surgery-master', filters, selectedVisitType],
     queryFn: () =>
       getSurgeryMaster({
@@ -210,6 +234,47 @@ const Surgery = () => {
         }
       }),
     [getSlNo, rawRows]
+  )
+
+  const handleSubmitSurgery = useCallback(
+    async values => {
+      setSubmitLoader(true)
+      const payload = new FormData()
+      const surgeryName = values?.surgery_name?.trim() || ''
+      const description = values?.description?.trim() || ''
+      const status = values?.status ? 'Active' : 'Inactive'
+
+      payload.append('surgery_name', surgeryName)
+      payload.append('description', description)
+      payload.append('status', status)
+
+      const surgeryId =
+        selectedSurgery?.id ??
+        selectedSurgery?.surgery_id ??
+        selectedSurgery?.master_surgery_id ??
+        selectedSurgery?.surgeryId
+
+      try {
+        const response = surgeryId ? await updateSurgeryMaster(surgeryId, payload) : await addSurgeryMaster(payload)
+
+        if (response?.success) {
+          Toaster({
+            type: 'success',
+            message: response?.message || (surgeryId ? 'Surgery updated successfully' : 'Surgery created successfully')
+          })
+          refetch()
+          handleCloseDrawer()
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+        }
+      } catch (error) {
+        console.error(error)
+        Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
+      } finally {
+        setSubmitLoader(false)
+      }
+    },
+    [handleCloseDrawer, refetch, selectedSurgery]
   )
 
   const columns = useMemo(
@@ -315,11 +380,10 @@ const Surgery = () => {
               label={isActive ? 'Active' : 'Inactive'}
               color={isActive ? 'success' : 'error'}
               sx={{
-                height: '25px',
-                width: '86px',
-                fontWeight: 500,
-                borderRadius: '4px',
-                fontSize: '14px',
+                height: 20,
+                fontWeight: 600,
+                borderRadius: '16px',
+                fontSize: '0.75rem',
                 textTransform: 'capitalize',
                 '& .MuiChip-label': { mt: -0.25 }
               }}
@@ -335,17 +399,17 @@ const Surgery = () => {
         width: 80,
         align: 'right',
         headerAlign: 'right',
-        renderCell: () => (
-          <IconButton size='small'>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
+        renderCell: params => (
+          <Tooltip title='Edit'>
+            <IconButton size='small' onClick={() => handleEditSurgery(params.row)}>
+              <Icon color={'theme.palette.customColors.OnSurfaceVariant'} icon='mdi:pencil-outline' />
+            </IconButton>
+          </Tooltip>
         )
       }
     ],
-    [theme]
+    [handleEditSurgery, theme]
   )
-
-  const handleAddSurgery = useCallback(() => {}, [])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -484,6 +548,13 @@ const Surgery = () => {
           searchValue=''
         />
       </Card>
+      <AddEditSurgeryDrawer
+        open={drawerOpen}
+        onClose={handleCloseDrawer}
+        onSubmit={handleSubmitSurgery}
+        loading={submitLoader}
+        initialData={selectedSurgery}
+      />
     </Box>
   )
 }
