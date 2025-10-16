@@ -768,3 +768,11 @@ export const MEDICINE_LIST = 'medical/medicine-search'
 export const MEDICAL_MASTER_DATA = 'medical/masterdata'
 
 export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
+
+export const ADD_DIRECT_ADMINISTER_PRESCRIPTION = 'administer/v2/create-direct-adminster-record'
+
+export const GET_PRESCRIPTION_LIST = 'v1/hospital/list-prescription'
+
+export const GET_PRESCRIPTION_DETAILS = 'administer/details'
+
+export const GET_PRESCRIPTION_DETAILS_DATES = 'administer/stats'

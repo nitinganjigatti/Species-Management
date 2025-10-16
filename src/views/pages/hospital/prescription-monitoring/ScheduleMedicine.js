@@ -388,7 +388,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                 </Grid>
                 <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                   <ControlledTextField
-                    name='quantity'
+                    name='wastageQuantity'
                     label='Quantity'
                     control={control}
                     errors={errors}
@@ -400,12 +400,11 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                       }
                     }}
                     size='large'
-                    required
                   />
                 </Grid>
                 <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                   <ControlledSelect
-                    name='uom'
+                    name='wastageUnit'
                     label={'UOM'}
                     sx={{
                       textAlign: 'left',
@@ -415,7 +414,6 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                     control={control}
                     errors={errors}
                     options={prescriptionMeasurementType}
-                    required
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
                   />
@@ -431,7 +429,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                       borderRadius: '4px'
                     }
                   }}
-                  name='wastage_notes'
+                  name='wastageNotes'
                   label='Enter Notes'
                   control={control}
                   errors={errors}
@@ -454,7 +452,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
               </Grid>
               <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
                 <ControlledTextField
-                  name='batch_number'
+                  name='batchNumber'
                   label='Enter batch number if any (optional)'
                   control={control}
                   errors={errors}
@@ -465,10 +463,9 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                     }
                   }}
                   size='large'
-                  required
                 />
               </Grid>
-              <ControlledFileUpload name='controlSubstanceFiles' label='Batch Image' control={control} />
+              <ControlledFileUpload name='batchImage' label='Batch Image' control={control} />
             </>
           )}
         </Box>
