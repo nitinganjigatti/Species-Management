@@ -85,7 +85,8 @@ const FilterSheet = ({
       // ✅ Add only filtered IDs to current selection (merge with previous)
       setSelectedOptions(prev => {
         const current = prev[activeCategory] || []
-        return {
+        
+return {
           ...prev,
           [activeCategory]: Array.from(new Set([...current, ...filteredIds]))
         }
@@ -95,7 +96,8 @@ const FilterSheet = ({
       setSelectedOptions(prev => {
         const current = prev[activeCategory] || []
         const updated = current.filter(id => !filteredIds.includes(id))
-        return {
+        
+return {
           ...prev,
           [activeCategory]: updated
         }

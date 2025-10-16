@@ -209,6 +209,7 @@ const LabSamples = () => {
         </Tooltip>
       )
     },
+
     // {
     //   flex: 0.3,
     //   Width: 30,
@@ -273,6 +274,7 @@ const LabSamples = () => {
               height: 30,
               borderRadius: '50%',
               background: theme.palette.customColors.displaybgPrimary
+
               // overflow: 'hidden'
             }}
             src={params?.row.created_by_user?.profile_pic}

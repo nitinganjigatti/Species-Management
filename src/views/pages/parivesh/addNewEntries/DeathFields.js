@@ -33,6 +33,7 @@ const DeathFields = ({
   const totalCount = Number(male_count) + Number(female_count) + Number(other_count)
 
   return (
+
     // <>
     //   <Grid container spacing={2} sx={{ mb: 6 }}>
     //     <Grid item xs={12} sm={6}>
@@ -501,10 +502,12 @@ const DeathFields = ({
                   date={value}
                   width={'100%'}
                   dateFormat='dd/MM/yyyy'
+
                   // showTimeSelect
                   // timeIntervals={15}
 
                   onChangeHandler={onChange}
+
                   // maxDate={new Date()}
                   maxDate={
                     editParams?.transaction_date
@@ -582,10 +585,12 @@ const DeathFields = ({
                   date={value}
                   width={'100%'}
                   dateFormat='dd/MM/yyyy'
+
                   // showTimeSelect
                   // timeIntervals={15}
                   onChangeHandler={onChange}
                   maxDate={new Date()}
+
                   // minDate={(deathDate && deathDate) || new Date()}
                   customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                 />

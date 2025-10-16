@@ -469,6 +469,7 @@ const StepAddIngredients = ({
                                   width: isSmallDevice ? '216px' : '236px'
                                 }}
                                 value={fullIngredientList.find(option => option.id === value) || null}
+
                                 //disablePortal
                                 id={`by_quantity[${index}].ingredient_id`}
                                 placeholder='Search & Select'
@@ -754,6 +755,7 @@ const StepAddIngredients = ({
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
         handleSubmitData={handleSubmitData}
+
         //resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}

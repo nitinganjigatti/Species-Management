@@ -19,12 +19,14 @@ import { getLabSampleListById } from 'src/lib/api/lab/master'
 
 const schema = yup.object().shape({
   test_name: yup.string().trim().required('Test name is required')
+
   // description: yup.string().trim().required('Description is required')
   // sample_ids: yup.array().min(1, 'At least one sample type is required')
 })
 
 const defaultValues = {
   test_name: ''
+
   // description: ''
   // sample_ids: [],
   // sub_tests: []

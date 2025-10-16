@@ -81,6 +81,7 @@ const RoomsList = () => {
   const fetchTableData = useCallback(
     async (q = '', nurseryId, status) => {
       setLoading(true)
+
       const params = {
         sort,
         search: q ?? '',
@@ -112,6 +113,7 @@ const RoomsList = () => {
         console.error(error)
       }
     }, 1000),
+
     // []  // it can be removeed if there is no issue after long time
     [fetchTableData]
   )

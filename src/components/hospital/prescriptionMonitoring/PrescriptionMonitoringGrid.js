@@ -11,6 +11,7 @@ import ActionButtons from '../FooterActionbuttons'
 import TimeSlotCell from 'src/views/pages/hospital/prescription-monitoring/TimeSlotCell'
 import MetricCard from 'src/views/pages/hospital/prescription-monitoring/MetricCard'
 import Router from 'next/router'
+import { useRouter } from 'next/router'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -234,11 +235,17 @@ const TimeTooltip = styled(Box)(({ theme }) => ({
 
 const PrescriptionMonitoringGrid = ({
   medications = [],
+  dates = [],
+  selectedDate,
+  handleDateChange = () => {},
   onTimeSlotClick = () => {},
   onRemoveMetric = () => {},
   onOpenPrescriptionCard = () => {}
 }) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id, animal_id, medical_record_id } = router.query
+  console.log(router.query, 'router.query')
 
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
@@ -285,248 +292,7 @@ const PrescriptionMonitoringGrid = ({
 
   // Default metrics if no medications are provided
   const defaultMetrics = useMemo(() => {
-    // return [
-    //   {
-    //     id: 'Levothyroxine',
-    //     name: 'Levothyroxine',
-    //     frequency: '1 times',
-    //     progress: '1/1',
-    //     status: 'completed',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '12 AM',
-    //         dosage: '50 mcg',
-    //         status: 'administered',
-    //         administered_time: '12 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       },
-    //       {
-    //         schedule_id: 2,
-    //         time: '1 AM',
-    //         dosage: '310 mg',
-    //         status: 'administered',
-    //         administered_time: '1 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       },
-    //       {
-    //         schedule_id: 3,
-    //         time: '01:22 AM',
-    //         dosage: '310 mg',
-    //         status: 'administered',
-    //         administered_time: '9:00 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       },
-    //       {
-    //         schedule_id: 4,
-    //         time: '1:45 AM',
-    //         dosage: '310 mg',
-    //         status: 'administered',
-    //         administered_time: '10:00 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       }
-    //     ]
-    //   },
-
-    //   {
-    //     id: 'crt',
-    //     name: 'CRT',
-    //     frequency: '1 time',
-    //     progress: '1/1',
-    //     status: 'stopped',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '3 AM',
-    //         dosage: '50 mcg',
-    //         status: 'administered',
-    //         administered_time: '7:00 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       }
-    //     ]
-    //   },
-    //   {
-    //     id: 'urination',
-    //     name: 'Urination',
-    //     frequency: '1 time',
-    //     progress: '1/1',
-    //     status: 'skipped',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '12 AM',
-    //         dosage: '50 mcg',
-    //         status: 'administered',
-    //         administered_time: '12 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       }
-    //     ]
-    //   },
-    //   {
-    //     id: 'defecation',
-    //     name: 'Defecation',
-    //     frequency: '1 time',
-    //     progress: '1/1',
-    //     status: 'stopped',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '7:00 AM',
-    //         dosage: '50 mcg',
-    //         status: 'administered',
-    //         administered_time: '7:00 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       }
-    //     ]
-    //   },
-    //   {
-    //     id: 'appetite',
-    //     name: 'Appetite',
-    //     frequency: '1 time',
-    //     progress: '1/1',
-    //     status: 'skipped',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '7:00 AM',
-    //         dosage: '50 mcg',
-    //         status: 'administered',
-    //         administered_time: '7:00 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       }
-    //     ]
-    //   },
-    //   {
-    //     id: 'defecation',
-    //     name: 'Defecation',
-    //     frequency: '1 time',
-    //     progress: '1/1',
-    //     status: 'completed',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '7:00 AM',
-    //         dosage: '50 mcg',
-    //         status: 'administered',
-    //         administered_time: '7:00 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       }
-    //     ]
-    //   },
-    //   {
-    //     id: 'appetite',
-    //     name: 'Appetite',
-    //     frequency: '1 time',
-    //     progress: '1/1',
-    //     status: 'completed',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '7:00 AM',
-    //         dosage: '50 mcg',
-    //         status: 'administered',
-    //         administered_time: '7:00 AM',
-    //         compliance_note: 'Taken correctly on empty stomach'
-    //       }
-    //     ]
-    //   },
-    //   {
-    //     id: 'paracetamol',
-    //     name: 'Paracetamol',
-    //     frequency: '3 times',
-    //     progress: '2/3',
-    //     status: 'in-progress',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '8:00 AM',
-    //         dosage: '500 mg',
-    //         status: 'administered',
-    //         administered_time: '8:05 AM',
-    //         compliance_note: 'Taken with water'
-    //       },
-    //       {
-    //         schedule_id: 2,
-    //         time: '2:00 PM',
-    //         dosage: '500 mg',
-    //         status: 'pending',
-    //         administered_time: '',
-    //         compliance_note: ''
-    //       },
-    //       {
-    //         schedule_id: 3,
-    //         time: '8:00 PM',
-    //         dosage: '500 mg',
-    //         status: 'pending',
-    //         administered_time: '',
-    //         compliance_note: ''
-    //       }
-    //     ]
-    //   },
-    //   {
-    //     id: 'amoxicillin',
-    //     name: 'Amoxicillin',
-    //     frequency: '2 times',
-    //     progress: '1/2',
-    //     status: 'in-progress',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '9:00 AM',
-    //         dosage: '250 mg',
-    //         status: 'administered',
-    //         administered_time: '9:10 AM',
-    //         compliance_note: 'Taken after food'
-    //       },
-    //       {
-    //         schedule_id: 2,
-    //         time: '9:00 PM',
-    //         dosage: '280 mg',
-    //         status: 'pending',
-    //         administered_time: '',
-    //         compliance_note: ''
-    //       }
-    //     ]
-    //   },
-    //   {
-    //     id: 'vitamind',
-    //     name: 'Vitamin D',
-    //     frequency: '1 time',
-    //     progress: '0/1',
-    //     status: 'pending',
-    //     timeSlots: createTimeSlotStructure(timeSlots),
-    //     canEdit: true,
-    //     schedule: [
-    //       {
-    //         schedule_id: 1,
-    //         time: '6:00 AM',
-    //         dosage: '1000 IU',
-    //         status: 'pending',
-    //         administered_time: '',
-    //         compliance_note: 'Should be taken with milk'
-    //       }
-    //     ]
-    //   }
-    // ]
-    const medicationsMapped = medications.map(med => ({ ...med, timeSlots: createTimeSlotStructure(timeSlots) }))
+    const medicationsMapped = medications?.map(med => ({ ...med, timeSlots: createTimeSlotStructure(timeSlots) }))
 
     return medicationsMapped
   }, [timeSlots])
@@ -557,7 +323,7 @@ const PrescriptionMonitoringGrid = ({
     // console.log('medications:', medications)
     // console.log('defaultMetrics:', defaultMetrics)
 
-    return medicationList.map(medication => {
+    return medicationList?.map(medication => {
       // Changed 'el' to 'medication' for clarity
 
       // Debug: Log the entire medication object and specifically the schedule
@@ -565,7 +331,7 @@ const PrescriptionMonitoringGrid = ({
       // console.log('Schedule property:', medication.schedule)
       // console.log('Schedule type:', typeof medication.schedule)
 
-      const medicationTimeSlots = timeSlots.map(timeLabel => {
+      const medicationTimeSlots = timeSlots?.map(timeLabel => {
         // Handle time format differences - normalize both formats
         // Add safety check for schedule array
 
@@ -628,8 +394,8 @@ const PrescriptionMonitoringGrid = ({
   const displayMetrics = formatMedicationData
 
   // Select all logic
-  const isAllSelected = displayMetrics.length > 0 && selectedMetrics.length === displayMetrics.length
-  const isIndeterminate = selectedMetrics.length > 0 && selectedMetrics.length < displayMetrics.length
+  const isAllSelected = displayMetrics?.length > 0 && selectedMetrics?.length === displayMetrics?.length
+  const isIndeterminate = selectedMetrics?.length > 0 && selectedMetrics?.length < displayMetrics?.length
 
   const handleSelectAll = event => {
     if (event.target.checked) {
@@ -777,12 +543,18 @@ const PrescriptionMonitoringGrid = ({
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid item size={{ xs: 10, sm: 10 }}>
-          <HorizontalDateNav numberOfDays={7} />
+          <HorizontalDateNav onDateClick={handleDateChange} selectedDate={selectedDate} dates={dates} />
         </Grid>
         <Grid item size={{ xs: 2, sm: 2 }}>
           <Button
             onClick={() => {
-              Router.push('/hospital/inpatient/2/schedule-prescription')
+              router.push({
+                pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+                query: {
+                  animal_id,
+                  medical_record_id
+                }
+              })
             }}
             sx={{ height: '48px', width: '100%' }}
             variant='contained'
@@ -900,7 +672,7 @@ const PrescriptionMonitoringGrid = ({
                               console.log('slot time', timeSlot?.value)
                               console.log('status', status)
                               if (status === 'pending') {
-                                onOpenPrescriptionCard()
+                                onOpenPrescriptionCard(timeSlot)
                               }
                             }}
                             config={timeSlotGridConfig(status)}

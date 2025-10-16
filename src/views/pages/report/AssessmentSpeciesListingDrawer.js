@@ -42,7 +42,8 @@ function AssessmentSpeciesListingDrawer({
 
   useEffect(() => {
     window.addEventListener('resize', measureHeights)
-    return () => window.removeEventListener('resize', measureHeights)
+    
+return () => window.removeEventListener('resize', measureHeights)
   }, [])
 
   const fetchSpecies = async (q = '', pageNum = 1, isNewSearch = false) => {
@@ -206,7 +207,8 @@ function AssessmentSpeciesListingDrawer({
           {speciesList.length > 0 &&
             speciesList.map((item, index) => {
               const isSelected = tempSelectedSpecie?.tsn_id === item.tsn_id
-              return (
+              
+return (
                 <Box
                   key={index}
                   onClick={() => setTempSelectedSpecie(item)}
@@ -278,6 +280,7 @@ function AssessmentSpeciesListingDrawer({
           position: 'sticky', // sticky works inside the Drawer column; avoids layout jumps
           bottom: 0,
           minHeight: '106px',
+
           // height: { xs: 88, sm: 96, md: 106 }, // responsive heights
           px: 4,
           bgcolor: 'white',

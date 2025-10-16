@@ -99,7 +99,8 @@ const AddEditSymptomDrawer = ({
   const handleUpdateNotes = async newNotes => {
     if (!notes?.trim()) {
       Toaster({ type: 'error', message: 'Please enter notes before updating.' })
-      return
+      
+return
     }
     setIsUpdating(true)
 
@@ -122,6 +123,7 @@ const AddEditSymptomDrawer = ({
         if (responseNotes?.success === true) {
           setActivityListData(responseNotes?.data || [])
         }
+
         // onClose()
         //fetchNotesForSymptom()
       } else {
@@ -137,7 +139,8 @@ const AddEditSymptomDrawer = ({
   const handleDeleteNotes = async () => {
     if (!notes?.trim()) {
       Toaster({ type: 'error', message: 'Please enter notes to delete.' })
-      return
+      
+return
     }
     setIsDeleting(true)
 
@@ -152,6 +155,7 @@ const AddEditSymptomDrawer = ({
         if (responseNotes?.success === true) {
           setActivityListData(responseNotes?.data || [])
         }
+
         //onClose()
         //fetchNotesForSymptom()
       } else {
@@ -167,6 +171,7 @@ const AddEditSymptomDrawer = ({
   return (
     <Drawer
       open={open}
+
       //onClose={onClose}
       anchor='right'
     >
@@ -336,6 +341,7 @@ const AddEditSymptomDrawer = ({
               fullWidth
               multiline
               rows={3}
+
               //value={notes}
               onChange={e => setNotes(e.target.value)}
               sx={{

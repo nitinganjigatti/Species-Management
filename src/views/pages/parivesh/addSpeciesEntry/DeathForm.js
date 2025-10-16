@@ -41,6 +41,7 @@ const DeathForm = ({ control, errors }) => {
               date={value}
               width={'100%'}
               dateFormat='dd/MM/yyyy'
+
               // showTimeSelect
               // timeIntervals={15}
 
@@ -101,6 +102,7 @@ const DeathForm = ({ control, errors }) => {
               date={value}
               width={'100%'}
               dateFormat='dd/MM/yyyy'
+
               // showTimeSelect
               // timeIntervals={15}
               onChangeHandler={onChange}

@@ -41,6 +41,7 @@ const ControlledTextArea = ({
             rows={rows}
             disabled={disabled}
             error={Boolean(error)}
+
             // helperText={helperText}
             onChange={e => {
               field.onChange(e)

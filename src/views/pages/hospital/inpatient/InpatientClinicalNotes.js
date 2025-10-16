@@ -10,31 +10,43 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useRouter } from 'next/router'
 
-// initial values
+// initial form values
 const defaultValues = {
   note: ''
 }
 
 const InpatientClinicalNotes = props => {
-  const { clinicalNotesData, onSubmitNote, onDeleteNote, isLoading, isSubmitting, patientData } = props
+  const {
+    clinicalNotesData,
+    onSubmitNote,
+    onDeleteNote,
+    isLoading,
+    isSubmitting,
+    lastClinicalNoteRef,
+    hasNextPage,
+    isFetchingNextPage
+  } = props
   const theme = useTheme()
+  const router = useRouter()
+  const { medical_record_id } = router.query
 
   const { control, handleSubmit, reset, watch } = useForm({ defaultValues })
 
-  const clinical_note_name = watch('note')
+  const noteText = watch('note')?.trim()
 
   const onSubmit = async formValues => {
     const payload = {
-      medical_record_id: patientData?.medical_record_id,
-      note: formValues.note
+      medical_record_id,
+      note: formValues?.note
     }
 
     try {
       await onSubmitNote(payload)
       reset(defaultValues)
     } catch (error) {
-      console.error('Error submitting form:', error)
+      console.error('Error submitting form:', error?.message)
     }
   }
 
@@ -53,7 +65,6 @@ const InpatientClinicalNotes = props => {
           Enter clinical notes
         </Typography>
 
-        {/* Clinical Note Form */}
         <form noValidate autoComplete='off' onSubmit={!isSubmitting ? handleSubmit(onSubmit) : undefined}>
           <Grid container>
             <Grid size={{ xs: 12 }}>
@@ -61,12 +72,12 @@ const InpatientClinicalNotes = props => {
             </Grid>
           </Grid>
 
-          {clinical_note_name?.trim() && (
+          {noteText && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
               <Button
-                startIcon={<Icon icon='mdi:close' />}
+                startIcon={<Icon icon='mdi:close' width={24} height={24} />}
                 variant='text'
-                sx={{ color: theme.palette.customColors.OnPrimaryContainer }}
+                sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 600, fontSize: '1rem' }}
                 onClick={() => reset(defaultValues)}
                 size='small'
               >
@@ -88,68 +99,87 @@ const InpatientClinicalNotes = props => {
           )}
         </form>
       </Box>
-
       {/* Clinical Notes List or Skeletons */}
       {isLoading ? (
         <ClinicalNotesSkeleton />
-      ) : (
+      ) : clinicalNotesData?.length > 0 ? (
         <>
-          {clinicalNotesData?.length > 0 ? (
-            clinicalNotesData?.map(data => {
-              return (
-                <Box
-                  key={data?.note_id}
-                  sx={{
-                    p: 6,
-                    mb: 4,
-                    background: alpha(theme.palette.customColors.antzNotes80, 0.2),
-                    borderRadius: '8px'
-                  }}
-                >
-                  <MedicalIdChip
-                    leftImage
-                    medId={data?.medical_record_code}
-                    rightDot
-                    dotColor={theme.palette.primary.main}
-                    textColor={theme.palette.customColors.OnSurface}
-                  />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-                    <Typography
-                      sx={{
-                        fontSize: '1rem',
-                        fontWeight: 400,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        textAlign: 'justify'
-                      }}
-                    >
-                      {data?.note || 'NA'}
-                    </Typography>
+          {clinicalNotesData?.map((data, index) => {
+            const isLast = index === clinicalNotesData.length - 1
 
-                    <Box sx={{ ml: 2, cursor: 'pointer' }}>
-                      <IconButton
-                        size='small'
-                        onClick={() => onDeleteNote(data?.note_id)}
-                        sx={{ color: theme.palette.customColors.Tertiary }}
-                      >
-                        <CancelOutlinedIcon fontSize='small' />
-                      </IconButton>
-                    </Box>
-                  </Box>
+            return (
+              <Box
+                key={data?.note_id || index}
+                ref={isLast ? lastClinicalNoteRef : null}
+                sx={{
+                  p: 6,
+                  mb: 5,
+                  background: alpha(theme.palette.customColors.antzNotes80, 0.2),
+                  borderRadius: '8px'
+                }}
+              >
+                <MedicalIdChip
+                  leftImage
+                  medId={data?.medical_record_code}
+                  rightDot
+                  dotColor={theme.palette.primary.main}
+                  textColor={theme.palette.customColors.OnSurface}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
+                  <Typography
+                    sx={{
+                      fontSize: '1rem',
+                      fontWeight: 400,
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      textAlign: 'justify'
+                    }}
+                  >
+                    {data?.note || 'NA'}
+                  </Typography>
 
-                  <UserAvatarDetails
-                    user_name={data?.created_by_user_name}
-                    date={Utility.convertUtcToLocalReadableDate(data?.created_at)}
-                    show_time
-                    size='medium'
-                    profile_image={data?.user_created_profile_pic}
-                  />
+                  <IconButton
+                    onClick={() => onDeleteNote(data?.note_id)}
+                    sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
+                  >
+                    <CancelOutlinedIcon fontSize='medium' />
+                  </IconButton>
                 </Box>
-              )
-            })
-          ) : (
-            <NoDataFound variant='Seal' height={300} width={300} />
+
+                <UserAvatarDetails
+                  user_name={data?.created_by_user_name}
+                  date={Utility.convertUtcToLocalReadableDate(data?.created_at)}
+                  show_time
+                  size='medium'
+                  profile_image={data?.user_created_profile_pic}
+                />
+              </Box>
+            )
+          })}
+
+          {/* Show skeleton only when fetching more pages and we already have data */}
+          {isFetchingNextPage && (
+            <Box sx={{ mt: 2 }}>
+              <ClinicalNotesSkeleton />
+            </Box>
+          )}
+
+          {/*  Show "No more data" */}
+          {!hasNextPage && (
+            <Typography
+              sx={{
+                mt: 4,
+                textAlign: 'center',
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: theme.palette.text.disabled
+              }}
+            >
+              No more clinical notes to load
+            </Typography>
           )}
         </>
+      ) : (
+        <NoDataFound variant='Seal' height={300} width={300} />
       )}
     </>
   )
@@ -157,6 +187,7 @@ const InpatientClinicalNotes = props => {
 
 export default InpatientClinicalNotes
 
+// Skeleton loader
 function ClinicalNotesSkeleton() {
   const theme = useTheme()
 

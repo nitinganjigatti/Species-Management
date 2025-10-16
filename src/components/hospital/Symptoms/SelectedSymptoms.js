@@ -59,6 +59,7 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
             display: 'flex',
             p: 7,
             overflow: 'auto'
+
             //py: 10
           }}
         >

@@ -118,7 +118,8 @@ const MissReportIncidentForm = ({
         message: 'Only image files are supported. Please upload a PNG/JPG/GIF/WebP/SVG.',
         ignoreCase: true
       })
-      return
+      
+return
     }
 
     setSelectedFile(file)
@@ -129,6 +130,8 @@ const MissReportIncidentForm = ({
       clearErrors('attachment')
     }
   }
+
+
   ////////////////////////////////////////////////////////////
   const onSubmit = async ({ localIdentifierType, LocalIdentifier }) => {
     setUploadingAttachment(true)
@@ -207,6 +210,7 @@ const MissReportIncidentForm = ({
       </IconButton>
     </Box>
   )
+
   const basicStyle = {
     // backgroundColor: theme.palette.primary.contrastText,
     // borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -215,7 +219,8 @@ const MissReportIncidentForm = ({
       borderRadius: '4px'
     }
   }
-  return (
+  
+return (
     <Drawer
       anchor='right'
       open={missReportIncidentForm}
@@ -362,6 +367,7 @@ const MissReportIncidentForm = ({
                           helperText={errors.notes?.message}
                           sx={{
                             ...basicStyle
+
                             // '& .MuiOutlinedInput-root': {
                             //   '& fieldset': {
                             //     borderColor: errors?.localIdentifier?.message && 'red !important',
@@ -413,6 +419,7 @@ const MissReportIncidentForm = ({
             sx={{ height: '58px', width: '514px', mx: 4 }}
             onClick={() => {
               handleSubmit()
+
               // setMissReportIncidentForm(false)
             }}
             disabled={uploadingAttachment}

@@ -140,8 +140,10 @@ const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaest
               errors={errors}
               label='Select'
               options={[]}
+
               // Add your anaesthesia options here
               loading={false}
+
               // Add loading state if needed
               required={false}
               fullWidth={true}
@@ -162,6 +164,7 @@ const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaest
                     borderWidth: '1px',
                     paddingRight: '12px',
                     paddingLeft: '12px',
+
                     // border: '1px solid #C3CEC7',
                     '&.Mui-focused': {
                       border: 'none'
@@ -287,6 +290,7 @@ const AddAnaesthesiaRecordDrawer = ({ openAddAnaesthesiaDrawer, setOpenAddAnaest
           fullWidth
           variant='contained'
           size='large'
+
           // onClick={() => handleConfirmSelection()}
         >
           Add

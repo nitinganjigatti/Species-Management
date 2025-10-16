@@ -39,6 +39,7 @@ const SiteSheet = ({
       }, 100) // shorter delay for better UX
     }
   }, [openSiteDrawer])
+
   const handleSelectAll = event => {
     const filteredSiteIds = filteredSites.map(site => site.site_id)
     if (event.target.checked) {
@@ -155,8 +156,10 @@ const SiteSheet = ({
             <FormControlLabel
               control={
                 <Checkbox
+
                   // checked={tempSelectedSites.length === sites.length}
                   onChange={handleSelectAll}
+
                   // indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
                   checked={filteredSites.every(site => tempSelectedSites.includes(site.site_id))}
                   indeterminate={

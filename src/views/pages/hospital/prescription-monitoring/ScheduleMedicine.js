@@ -12,7 +12,15 @@ import AddIcon from '@mui/icons-material/Add'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 
-export default function ScheduleMedicine({ control, errors, selectedMedicineTo }) {
+export default function ScheduleMedicine({ control, errors, selectedMedicineTo, medicalMasterData }) {
+  const {
+    caseTypes,
+    prescriptionMeasurementType,
+    prescriptionDosageMeasurementType,
+    prescriptionDuration,
+    prescriptionFrequency,
+    prescriptionDeliveryRoute
+  } = medicalMasterData
   const theme = useTheme()
 
   // Options for selects
@@ -145,7 +153,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
               label='Set Frequency'
               control={control}
               errors={errors}
-              options={frequencyOptions}
+              options={prescriptionFrequency}
               getOptionLabel={option => option.label}
               getOptionValue={option => option.value}
               required
@@ -169,7 +177,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
               size='large'
               control={control}
               errors={errors}
-              options={doseTypeOptions}
+              options={prescriptionDosageMeasurementType}
               getOptionLabel={option => option.label}
               getOptionValue={option => option.value}
               required
@@ -209,7 +217,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                   selectFieldName={`schedules.${idx}.unit`}
                   control={control}
                   errors={errors}
-                  options={unitOptions}
+                  options={prescriptionMeasurementType}
                   label='Quantity'
                   placeholder='Enter quantity'
                   type='number'
@@ -279,7 +287,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
               size='large'
               control={control}
               errors={errors}
-              options={deliveryRouteOptions}
+              options={prescriptionDeliveryRoute}
               getOptionLabel={option => option.label}
               getOptionValue={option => option.value}
               required
@@ -327,7 +335,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                 size='large'
                 control={control}
                 errors={errors}
-                options={durationUnitOptions}
+                options={prescriptionDuration}
                 required
                 getOptionLabel={option => option.label}
                 getOptionValue={option => option.value}
@@ -380,7 +388,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                 </Grid>
                 <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                   <ControlledTextField
-                    name='dosageDuration.value'
+                    name='wastageQuantity'
                     label='Quantity'
                     control={control}
                     errors={errors}
@@ -392,12 +400,11 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                       }
                     }}
                     size='large'
-                    required
                   />
                 </Grid>
                 <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                   <ControlledSelect
-                    name='dosageDuration.unit'
+                    name='wastageUnit'
                     label={'UOM'}
                     sx={{
                       textAlign: 'left',
@@ -406,8 +413,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                     size='large'
                     control={control}
                     errors={errors}
-                    options={[]}
-                    required
+                    options={prescriptionMeasurementType}
                     getOptionLabel={option => option.label}
                     getOptionValue={option => option.value}
                   />
@@ -423,7 +429,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                       borderRadius: '4px'
                     }
                   }}
-                  name='notes'
+                  name='wastageNotes'
                   label='Enter Notes'
                   control={control}
                   errors={errors}
@@ -446,7 +452,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
               </Grid>
               <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
                 <ControlledTextField
-                  name='dosageDuration.value'
+                  name='batchNumber'
                   label='Enter batch number if any (optional)'
                   control={control}
                   errors={errors}
@@ -457,10 +463,9 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
                     }
                   }}
                   size='large'
-                  required
                 />
               </Grid>
-              <ControlledFileUpload name='controlSubstanceFiles' label='Batch Image' control={control} />
+              <ControlledFileUpload name='batchImage' label='Batch Image' control={control} />
             </>
           )}
         </Box>

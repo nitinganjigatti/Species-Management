@@ -37,6 +37,7 @@ export default function AddSymptomsPage() {
 
   const debounce = (func, delay) => {
     let timer
+
     return (...args) => {
       clearTimeout(timer)
       timer = setTimeout(() => func(...args), delay)
@@ -165,6 +166,7 @@ export default function AddSymptomsPage() {
     try {
       if (selectedSymptoms.length === 0) {
         Toaster({ type: 'error', message: 'Please select at least one Symptom' })
+
         return
       }
       setAddLoading(true)

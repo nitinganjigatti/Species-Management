@@ -60,6 +60,7 @@ const DailyReport = () => {
   const [tempSelectedItems, setTempSelectedItems] = useState({ Site: [] })
   const [filterCount, setFilterCount] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: ''
@@ -86,6 +87,7 @@ const DailyReport = () => {
   const loadSitesFromAuth = useCallback(() => {
     try {
       const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
+
       const mapped = sites.map(s => ({
         site_id: String(s.id ?? s.site_id ?? ''),
         site_name: s.site_name,
@@ -285,6 +287,7 @@ const DailyReport = () => {
       if (!siteIds.length) {
         setIndexedRows([])
         setTotal(0)
+
         return
       }
 
@@ -349,6 +352,7 @@ const DailyReport = () => {
     fetchObservationMasterType()
   }, [
     fetchDailyReport,
+
     // explicit deps to trigger once per change:
     selectedSiteIds.join(','), // array -> string to avoid ref churn
     dateRange.startDate,
@@ -374,6 +378,7 @@ const DailyReport = () => {
     }
     try {
       setIsDownloading(true)
+
       // If you already have a util to download PDF, call it here:
       await downloadPDF({
         apiCall: getComplianceDailyReport,

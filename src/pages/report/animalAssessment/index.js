@@ -881,6 +881,7 @@ const AnimalAssessment = () => {
                       paginationModel={paginationModel}
                       onPaginationModelChange={setPaginationModel}
                       loading={isLoading}
+
                       // downloadExcel
                       serverSide
                       // rowSelection
