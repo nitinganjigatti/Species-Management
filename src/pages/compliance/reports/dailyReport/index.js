@@ -36,6 +36,9 @@ const DailyReport = () => {
 
   // -------- UI / State --------
   const [selectedSite, setSelectedSite] = useState(null)
+  const [selectedSiteLabel, setSelectedSiteLabel] = useState('')
+  const [selectedSiteExtraCount, setSelectedSiteExtraCount] = useState(null)
+  const [selectedSiteExtraNames, setSelectedSiteExtraNames] = useState([])
   const [selectedSiteIds, setSelectedSiteIds] = useState([])
 
   const [total, setTotal] = useState(0)
@@ -102,6 +105,8 @@ const DailyReport = () => {
   useEffect(() => {
     if (selectedItems?.Site?.length > 0 && siteData?.length > 0) {
       const firstSelected = siteData.find(s => selectedItems.Site.includes(s.site_id))
+      const allSelected = siteData.filter(s => selectedItems.Site.includes(s.site_id))
+
       setSelectedSite(
         firstSelected
           ? {
@@ -113,10 +118,32 @@ const DailyReport = () => {
             }
           : null
       )
+
+      // Extract site names
+      const siteNames = allSelected.map(s => s.site_name)
+
+      // Make display string
+      let shown = ''
+      let extraCount = null
+      let extraNames = []
+      if (siteNames.length <= 4) {
+        shown = siteNames.join(', ')
+      } else {
+        shown = siteNames.slice(0, 4).join(', ')
+        extraNames = siteNames.slice(4)
+        extraCount = extraNames.length
+      }
+
       setSelectedSiteIds(selectedItems.Site)
+      setSelectedSiteLabel(shown)
+      setSelectedSiteExtraCount(extraCount)
+      setSelectedSiteExtraNames(extraNames)
     } else if (selectedItems?.Site?.length === 0) {
       setSelectedSite(null)
       setSelectedSiteIds([])
+      setSelectedSiteLabel('')
+      setSelectedSiteExtraCount(null)
+      setSelectedSiteExtraNames([])
     }
   }, [selectedItems, siteData])
 
@@ -179,6 +206,9 @@ const DailyReport = () => {
     setSelectedItems({ Site: [] })
     setTempSelectedItems({ Site: [] })
     setSelectedSiteIds([])
+    setSelectedSiteLabel('')
+    setSelectedSiteExtraCount(null)
+    setSelectedSiteExtraNames([])
 
     setDefaultObservationType(null)
 
@@ -362,7 +392,7 @@ const DailyReport = () => {
     {
       width: 80,
       field: 'sl_no',
-      headerName: 'S NO.',
+      headerName: 'Sl.NO.',
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -530,11 +560,23 @@ const DailyReport = () => {
               >
                 {selectedSiteIds.length > 1 ? 'Sites' : 'Site'}:{' '}
                 <span style={{ fontWeight: 500 }}>
-                  {selectedSiteIds.length === siteData.length
+                  {/* {selectedSiteIds.length === siteData.length
                     ? 'All'
                     : // : selectedSiteIds.map(id => siteData.find(s => s.site_id === id)?.site_name || id).join(', ')}
-                      selectedSiteIds.length}
+                      selectedSiteIds.length} */}
+                  {selectedSiteLabel}
                 </span>
+                {selectedSiteExtraCount !== null && selectedSiteExtraNames.length > 0 && (
+                  <Tooltip title={selectedSiteExtraNames.join(', ')} arrow placement='top'>
+                    <Typography
+                      sx={{ fontWeight: 700, fontSize: 16, color: theme.palette.primary.main, display: 'inline' }}
+                      component='span'
+                    >
+                      {' '}
+                      +{selectedSiteExtraCount}
+                    </Typography>
+                  </Tooltip>
+                )}
               </Typography>
               {/* </Tooltip> */}
             </Box>
