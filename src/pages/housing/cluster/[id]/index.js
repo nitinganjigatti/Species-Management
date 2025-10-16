@@ -2,7 +2,7 @@ import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ClusterSites from 'src/components/housing/clusters/ClusterSites'
 import ClusterSpecies from 'src/components/housing/clusters/ClusterSpecies'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
@@ -51,7 +51,7 @@ const ClusterDetails = () => {
   }
 
   const handleAmimalsInsightClick = () => {
-    setDrawerType('animals')
+    setDrawerType('animals-insights')
     setDrawerData({
       queryKey: 'insights-animals-cluster-details-drawer',
       id: zooId,
@@ -98,6 +98,25 @@ const ClusterDetails = () => {
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
+  useEffect(() => {
+    // Updating URL with tab parameter when tab changes
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: selectedTab }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }, [selectedTab])
+
+  // To read the tab parameter on component mount
+  useEffect(() => {
+    if (router.query.tab) {
+      setSelectedTab(router.query.tab)
+    }
+  }, [router.query.tab])
+
   return (
     <>
       <Box>
@@ -134,16 +153,23 @@ const ClusterDetails = () => {
           data={data?.data}
           loading={isLoading}
           zooName={data?.data?.cluster_name}
+          image={data?.data?.images?.[0]?.file}
           userName={data?.data?.cluster_incharge}
           error={error}
           haveInsightsViewAccess={insightsViewAccess}
           onCallClick={() => {
             const phoneNumber = data?.data?.incharge_mobile_no || ''
             if (phoneNumber) {
-              // window.location.href = `tel:${phoneNumber}`
+              window.location.href = `tel:${phoneNumber}`
             } else {
               return
             }
+          }}
+          onMessageClick={() => {
+            const phoneNumber = data?.data?.incharge_mobile_no || ''
+            if (phoneNumber) {
+              window.open(`sms:${phoneNumber}`)
+            } else return
           }}
           statsData={statsData}
         />
@@ -169,7 +195,15 @@ const ClusterDetails = () => {
           </Box>
         </Card>
       </Box>
-      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals-insights' && (
+        <AnimalDrawer
+          totalCount={data?.data?.cluster_stats?.animals}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/cluster-icon-colored.svg'}
+        />
+      )}
     </>
   )
 }

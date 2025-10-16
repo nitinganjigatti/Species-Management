@@ -110,7 +110,8 @@ const SelectRacksListDrawer = ({
                 sx={{
                   fontWeight: '500',
                   color: '#1F515B'
-                }}>
+                }}
+              >
                 Choose Rack
               </Typography>
               <Typography variant='body2' sx={{ color: '#44544A' }}>
@@ -183,7 +184,7 @@ const SelectRacksListDrawer = ({
               <Checkbox
                 checked={pendingSelections?.Racks?.length === items?.Racks?.length}
                 onChange={handleSelectAllRacks}
-                inputProps={{ 'aria-label': 'Select all racks' }}
+                slotProps={{ 'aria-label': 'Select all racks' }}
                 sx={{
                   '&.Mui-checked': {
                     color: theme.palette.primary.main
@@ -199,13 +200,10 @@ const SelectRacksListDrawer = ({
             </Box>
           </Box>
           <Box
-            className=''
             sx={{
               flex: 1,
               overflowY: 'auto',
               overflowX: 'hidden',
-
-              // height: '60%',
               p: 2,
               '&::-webkit-scrollbar': {
                 width: '4px'
@@ -236,7 +234,8 @@ const SelectRacksListDrawer = ({
                     slotProps={{
                       primary: { fontWeight: 'bold', color: '#1F515B' },
                       secondary: { color: '#44544A' }
-                    }} />
+                    }}
+                  />
                   <Checkbox
                     checked={pendingSelections?.Racks.includes(rack.id)}
                     onChange={() => handleRackCheckboxChange(rack)}
@@ -249,19 +248,23 @@ const SelectRacksListDrawer = ({
           </Box>
           <Box
             sx={{
-              p: 2,
-              pt: 4,
-              position: 'sticky',
-              bottom: 0,
-              background: '#FFF',
-              zIndex: 1
+              alignSelf: 'center',
+              width: '100%',
+              p: 2
             }}
           >
             <Button
-              variant='contained'
               fullWidth
-              sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+              variant='contained'
+              color='primary'
               onClick={handleCloseDrawer}
+              sx={{
+                alignSelf: 'center',
+                mb: 20,
+                mt: 5,
+                zIndex: 1,
+                p: 2
+              }}
               disabled={pendingSelections.Racks.length === 0}
             >
               CONTINUE
@@ -270,7 +273,7 @@ const SelectRacksListDrawer = ({
         </Box>
       </Drawer>
     </>
-  );
+  )
 }
 
 export default SelectRacksListDrawer

@@ -18,13 +18,16 @@ const TreatmentTypeRadioButtons = ({
   isSelected = false,
   onClick = () => {},
   radioPosition = 'left',
-  backgroundColor = '#f0f9f4',
+  backgroundColor = '#FFF',
+  selectedBackgroundColor = '#f0f9f4',
   selectedBorderColor = '#10b981',
   textColor = '#374151',
+  selectedFontColor = '',
   radioColor = '#10b981',
   disabled = false,
   size = 'medium',
-  borderColor
+  borderColor,
+  sx = {}
 }) => {
   const theme = useTheme()
   const radioDiameter = radioSizes[size]
@@ -46,19 +49,20 @@ const TreatmentTypeRadioButtons = ({
         borderRadius: 0.5,
         border: 1,
         borderColor: isSelected ? selectedBorderColor : borderColor,
-        backgroundColor: backgroundColor,
+        backgroundColor: isSelected ? selectedBackgroundColor : backgroundColor,
         transition: 'border-color 0.2s, box-shadow 0.2s',
         '&:hover': {
           borderColor: disabled ? selectedBorderColor : selectedBorderColor
         },
-        gap: 4
+        gap: 4,
+        ...sx
       }}
     >
       <Typography
         sx={{
           fontSize,
           fontWeight: 500,
-          color: textColor,
+          color: isSelected ? selectedFontColor : textColor,
           textAlign: 'left',
           flex: 1,
           userSelect: 'none',

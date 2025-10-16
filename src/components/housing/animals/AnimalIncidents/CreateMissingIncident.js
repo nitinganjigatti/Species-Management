@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import imageUploader from 'public/images/gallery_add_Icon.png'
 
@@ -21,7 +21,7 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { read, readAsync } from 'src/lib/windows/utils'
+import { AuthContext } from 'src/context/AuthContext'
 import { createAnimalIncident, updateAnimalIncident } from 'src/lib/api/housing'
 
 const defaultValues = {
@@ -59,6 +59,7 @@ const CreateMissingIncident = ({
   fetchAnimalIncidents
 }) => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
   const fileInputRef = useRef(null)
   const timeInputRef = useRef(null)
 
@@ -92,7 +93,9 @@ const CreateMissingIncident = ({
   })
 
   const getUserData = () => {
-    const result = read('userDetails')
+    // Pre-fill current user only in add mode
+    if (isEdit) return
+    const result = authData?.userData
     setValue('reported_by', {
       user_id: result?.user?.user_id,
       user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}`
@@ -104,30 +107,52 @@ const CreateMissingIncident = ({
       getUsers()
       getUserData()
     }
-  }, [animalIncidentForm])
+  }, [animalIncidentForm, isEdit, authData])
 
   useEffect(() => {
+    // Populate form in edit mode, including time and reporter mapping
     if (animalIncidentForm && isEdit && editData) {
-      // console.log('editData', editData)
       setIncidenceId(editData?.id)
-      setValue('incident_date', editData.incident_date ? dayjs(editData.incident_date) : null)
-      setValue('incident_time', editData.incident_time ? dayjs(editData.incident_time, 'hh:mm A') : null)
-      setValue('reported_by', editData.reported_by || '')
-      setValue('notes', editData.notes || '')
-      setValue('attachment', editData.attachment || '') // If present
-      setValue('action_taken', editData.additional_info?.action_taken || '')
-      setValue('animal_behaviour_before_incident', editData.additional_info?.animal_behaviour_before_incident || '')
-      setValue('steps_to_prevent', editData.additional_info?.steps_to_prevent || '')
-      setValue('last_seen', editData.additional_info?.last_seen || '')
+
+      const incidentDateVal = editData?.incident_date ? dayjs(editData.incident_date) : null
+      setValue('incident_date', incidentDateVal)
+
+      // Many APIs return only a combined datetime; if explicit time is absent, derive from incident_date
+      const timeFromEdit = editData?.incident_time
+        ? dayjs(editData.incident_time, ['HH:mm:ss', 'hh:mm A'])
+        : incidentDateVal
+      setValue('incident_time', timeFromEdit || null)
+
+      // Map reporter to the Autocomplete expected shape { user_id, user_name }
+      const rbId = editData?.reported_by?.user_id || editData?.reported_by_id || editData?.reported_by
+      const rbName = editData?.reported_by?.user_name || editData?.reported_by_name
+      let reporterObj = null
+      if (rbId) {
+        const match = reportedByUsers?.find(u => String(u?.user_id) === String(rbId))
+        reporterObj = match || { user_id: rbId, user_name: rbName || '' }
+      } else if (rbName) {
+        const match = reportedByUsers?.find(u => String(u?.user_name)?.toLowerCase() === String(rbName)?.toLowerCase())
+        if (match) reporterObj = match
+      }
+      setValue('reported_by', reporterObj)
+
+      setValue('notes', editData?.notes || '')
+      setValue('attachment', editData?.attachment || '') // If present
+      setValue('action_taken', editData?.additional_info?.action_taken || '')
+      setValue(
+        'animal_behaviour_before_incident',
+        editData?.additional_info?.animal_behaviour_before_incident || ''
+      )
+      setValue('steps_to_prevent', editData?.additional_info?.steps_to_prevent || '')
+      setValue('last_seen', editData?.additional_info?.last_seen || '')
     }
-  }, [animalIncidentForm])
+  }, [animalIncidentForm, isEdit, editData, reportedByUsers, setValue])
 
   const getUsers = async () => {
     try {
-      const userDetails = await readAsync('userDetails')
-      const zoo_id = userDetails?.user?.zoos[0].zoo_id
+      const zoo_id = authData?.userData?.user?.zoos?.[0]?.zoo_id
+      if (!zoo_id) return
       const Users = await getUserList({ zoo_id })
-
       setReportedByUsers(Users?.data)
     } catch (error) {
       Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
@@ -139,7 +164,11 @@ const CreateMissingIncident = ({
 
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml']
     if (!file || !allowedTypes.includes(file.type)) {
-      Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
+      Toaster({
+        type: 'error',
+        message: 'Only image files are supported. Please upload a PNG/JPG/GIF/WebP/SVG.',
+        ignoreCase: true
+      })
 
       return
     }
@@ -220,8 +249,10 @@ const CreateMissingIncident = ({
         const res = await createAnimalIncident(formData)
         if (res.success) {
           Toaster({ type: 'success', message: res.message || 'Incident created successfully' })
+          fetchAnimalIncidents()
           handleCloseFormDrawer()
         } else {
+          fetchAnimalIncidents()
           handleCloseFormDrawer()
           Toaster({ type: 'error', message: res.message || 'Failed to create incident' })
         }

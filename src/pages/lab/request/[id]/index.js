@@ -166,6 +166,7 @@ const RequestDetails = () => {
         value === 'completed_negative' ||
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
+
         // value === 'completed_insufficient_samples'||
         value === 'completed_inconclusive' ||
         value === 'completed') &&
@@ -531,6 +532,7 @@ const RequestDetails = () => {
               {shouldShowDropdown && handleRowPermission({ params }) ? (
                 <FormControl fullWidth variant='outlined'>
                   <Select
+
                     // disabled={isSelected}
                     size='small'
                     labelId='demo-simple-select-label'
@@ -994,6 +996,7 @@ const RequestDetails = () => {
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
         value === 'completed_inconclusive' ||
+
         // value === 'completed_insufficient_samples' ||
         value === 'completed') &&
       !(image || document)
@@ -1337,6 +1340,7 @@ const RequestDetails = () => {
                           size='small'
                           labelId='demo-simple-select-label'
                           id='demo-simple-select'
+
                           // defaultValue={'awaiting_sample'}
                           value={headerStatus}
                           onChange={e => handleHeaderDropdown(e)}

@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, alpha } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, alpha, CircularProgress } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 
 import CustomAccordion from 'src/views/utility/CustomAccordion'
@@ -65,6 +65,7 @@ const AddEditExportPermit = () => {
 
   const fetchExportDetails = async () => {
     setLoading(true)
+
     try {
       let documentTypeIdFromRes
       if (!documentTypeId) {
@@ -77,6 +78,7 @@ const AddEditExportPermit = () => {
       const res = await getExportDetails(id, params)
       if (res.success) {
         setExportData(res.data)
+        if (id && !documentList?.length) fetchDocumentTypeList()
       }
     } catch (error) {
       console.error('Error fetching export details:', error)
@@ -85,9 +87,7 @@ const AddEditExportPermit = () => {
   }
 
   const handleFormSubmit = exportId => {
-    if (!isEdit) {
-      fetchDocumentTypeList(exportId)
-    } else {
+    if (isEdit) {
       fetchExportDetails()
     }
     setExpanded(['supporting-documents'])
@@ -115,10 +115,6 @@ const AddEditExportPermit = () => {
       setIsFetching(false)
     }
   }
-
-  useEffect(() => {
-    if (id) fetchDocumentTypeList()
-  }, [id])
 
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
@@ -152,7 +148,6 @@ const AddEditExportPermit = () => {
       >
         <ExportPermitForm id={id} exportData={exportData} isLoading={loading} onSubmit={handleFormSubmit} />
       </CustomAccordion>
-
       <CustomAccordion
         id='supporting-documents'
         title='Supporting Documents'

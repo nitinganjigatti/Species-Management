@@ -28,6 +28,7 @@ const ExportCard = ({
   const [exportID, setexportID] = useState('')
   const [exportAnimalData, setexportAnimalData] = useState([])
   const [loading, setLoading] = useState(false)
+
   const handleClickAnimals = val => {
     setAddAnimalsDrawerOpen(true)
     setexportID(val)
@@ -133,6 +134,7 @@ const ExportCard = ({
         <Box
           sx={{
             background: theme.palette.customColors.Surface,
+
             //height: '117px',
             width: '45px',
             display: 'flex',

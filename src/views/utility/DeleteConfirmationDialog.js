@@ -12,7 +12,8 @@ const DialogConfirmationDialog = ({
     action = () => { }
 }) => {
     const theme = useTheme()
-    return (
+    
+return (
         <Dialog
             open={open}
             disableEscapeKeyDown

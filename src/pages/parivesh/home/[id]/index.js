@@ -8,7 +8,8 @@ import Error404 from 'src/pages/404'
 const BatchList = ({ params, searchParams }) => {
   const authData = useContext(AuthContext)
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
-  return (
+  
+return (
     <>
       {pariveshAccess ? (
         <>

@@ -39,7 +39,8 @@ export async function getMutationList() {
     url: `${HYBRID_URL}subtaxon?sub_taxon_type=morph`,
     pharmacy: true
   })
-  return response.data
+  
+return response.data
 }
 
 export async function getLocalityList() {
@@ -47,7 +48,8 @@ export async function getLocalityList() {
     url: `${HYBRID_URL}subtaxon?sub_taxon_type=locality`,
     pharmacy: true
   })
-  return response.data
+  
+return response.data
 }
 
 export async function addMutation(params) {
@@ -59,11 +61,13 @@ export async function addMutation(params) {
 
 export async function getMutationById(id) {
   debugger
+
   const response = await axiosGet({
     url: `${HYBRID_URL}subtaxon?taxonomy_id=${id}&sub_taxon_type=morph`,
     pharmacy: true
   })
-  return response.data
+  
+return response.data
 }
 
 export async function getLocalityById(id) {
@@ -71,17 +75,20 @@ export async function getLocalityById(id) {
     url: `${HYBRID_URL}subtaxon?taxonomy_id=${id}&sub_taxon_type=locality`,
     pharmacy: true
   })
-  return response.data
+  
+return response.data
 }
 
 export async function getSearchTaxonomyList(params) {
   const response = await axiosGet({ url: `${TAXONOMY_URL}search`, params, pharmacy: true })
-  return response.data
+  
+return response.data
 }
 
 export async function addLocality(params) {
   const response = await axiosFormPost({ url: `${HYBRID_URL}/locality`, body: params, pharmacy: true })
-  return response.data
+  
+return response.data
 }
 
 export async function getSpeciesVernacularData(params) {
@@ -92,17 +99,20 @@ export async function getSpeciesVernacularData(params) {
 
 export async function getVernacularSpeciesById(id) {
   const response = await axiosGet({ url: `${TAXONOMY_URL}/zoo/vernacular/${id}`, pharmacy: true })
-  return response.data
+  
+return response.data
 }
 
 export async function UploadBannerImages(params) {
   const response = await axiosFormPost({ url: `${TAXONOMY_URL}/bannerUpload`, body: params, pharmacy: true })
-  return response.data
+  
+return response.data
 }
 
 export async function GetBannerImages(id) {
   const response = await axiosGet({ url: `${Banner_URL}?tsn_id=${id}`, pharmacy: true })
-  return response.data
+  
+return response.data
 }
 
 export async function DeleteBannerById(params) {
@@ -114,15 +124,18 @@ export async function DeleteBannerById(params) {
 export async function DeleteType(params) {
   debugger
   const response = await axiosFormPost({ url: `${HYBRID_URL}/delete/mapping`, body: params, pharmacy: true })
-  return response?.data
+  
+return response?.data
 }
 
 export async function UpdateSpecies(payload, id) {
   const response = await axiosFormPost({ url: `${TAXONOMY_URL}edit/${id}`, body: payload, pharmacy: true })
-  return response.data
+  
+return response.data
 }
 
 export async function UpdateHybrid(payload, id) {
   const response = await axiosFormPost({ url: `${TAXONOMY_URL}edit/${id}`, body: payload, pharmacy: true })
-  return response.data
+  
+return response.data
 }

@@ -67,8 +67,6 @@ export default function NewProductList() {
     router.replace({ pathname: router.pathname, query: newQuery }, undefined)
   }, [])
 
-  
-
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [detailsData, setDetailsData] = useState([])
@@ -103,7 +101,6 @@ export default function NewProductList() {
         toast.success(toastMessage)
         setShow(false)
 
-      
         if (status === 'Cancelled' || 'Approved' || 'Rejected') {
           fetchTableData({
             sort,
@@ -120,7 +117,7 @@ export default function NewProductList() {
             filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
             page: paginationModel?.page,
             limit: paginationModel?.pageSize
-          }) 
+          })
         } else {
           fetchTableData({
             sort,
@@ -343,6 +340,7 @@ export default function NewProductList() {
   const [rows, setRows] = useState([])
   const [status, setStatus] = useState(router.query.status || 'Approved')
   const [excelLoader, setExcelLoader] = useState(false)
+  const [dialogBoxLoader, setDialogBoxLoader] = useState(false)
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -352,13 +350,12 @@ export default function NewProductList() {
 
     setStatus(newValue)
 
-   
     fetchTableData({
       sort,
       q: '',
       column: sortColumn,
-      status: newValue, 
-      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId, 
+      status: newValue,
+      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
       page: 1,
       limit: paginationModel.pageSize,
       filterDates
@@ -389,8 +386,8 @@ export default function NewProductList() {
           sort,
           q,
           column,
-          page: page || paginationModel.page + 1, 
-          limit: limit || paginationModel.pageSize, 
+          page: page || paginationModel.page + 1,
+          limit: limit || paginationModel.pageSize,
           type: status,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -400,7 +397,7 @@ export default function NewProductList() {
         await getNonExistingProductList({ params }).then(res => {
           if (res?.data?.length > 0) {
             setTotal(parseInt(res?.count, 10))
-            setRows(loadServerRows(params.page - 1, res?.data)) 
+            setRows(loadServerRows(params.page - 1, res?.data))
           } else {
             setTotal(0)
             setRows([])
@@ -414,7 +411,7 @@ export default function NewProductList() {
         setLoading(false)
       }
     },
-    [paginationModel.page, paginationModel.pageSize, filterDates] 
+    [paginationModel.page, paginationModel.pageSize, filterDates]
   )
 
   const handleSortModel = async newModel => {
@@ -555,6 +552,7 @@ export default function NewProductList() {
 
   const onRowClick = async params => {
     console.log('Status', params)
+    setDialogBoxLoader(true)
     setShow(true)
     setSelectedPharmacyId(params?.row?.to_store)
     setItemId(params.id)
@@ -563,8 +561,12 @@ export default function NewProductList() {
         setProductDetails(res?.data)
         setPrescriptionImages(res?.data?.prescription_images)
         setDetailsData(res?.data?.request_item_details)
+        setDialogBoxLoader(false)
       })
-      .catch(err => console.log(err))
+      .catch(err => {
+        setDialogBoxLoader(false)
+        console.log(err)
+      })
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -670,17 +672,14 @@ export default function NewProductList() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              flexWrap: { xs: 'wrap', sm: 'nowrap' }, 
+              flexWrap: { xs: 'wrap', sm: 'nowrap' },
               mx: { xs: 3, md: 5 },
               gap: { sm: 2 }
             }}
           >
-           
             <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ mb: { xs: 3, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
-
-          
 
             <Box
               sx={{
@@ -702,7 +701,6 @@ export default function NewProductList() {
                   mr: { sm: 2 },
                   borderRadius: '8px',
                   minWidth: 250
-
                 }}
                 slotProps={{
                   input: {
@@ -715,7 +713,6 @@ export default function NewProductList() {
                 }}
               />
 
-
               <FormControl
                 size='small'
                 sx={{
@@ -723,7 +720,7 @@ export default function NewProductList() {
 
                   // mr: { sm: 2 },
                   // ml: { xs: 2 },
-                  minWidth: { xs: '230px', sm: '10px' }, 
+                  minWidth: { xs: '230px', sm: '10px' },
                   flex: { xs: 1, sm: 'auto' }
                 }}
               >
@@ -830,22 +827,19 @@ export default function NewProductList() {
               indexedRows={indexedRows}
               total={total}
               columns={columns}
-              paginationModel={paginationModel} 
+              paginationModel={paginationModel}
               setPaginationModel={model => {
-             
                 setPaginationModel(model)
                 console.log(model, 'model')
 
-             
                 const { page, pageSize } = model
 
-              
                 fetchTableData({
                   sort,
                   q: searchValue,
                   column: sortColumn,
                   status,
-                  page: page + 1, 
+                  page: page + 1,
                   limit: pageSize,
                   filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
                 })
@@ -866,69 +860,73 @@ export default function NewProductList() {
         </Card>
         {show && (
           <>
-            <CardContent>
-              <Grid container>
-                <CommonDialogBox
-                  title={
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <div>Product Details - {productDetails?.request_number}</div>
-                      {selectedPharmacy.type === 'local' &&
-                        selectedPharmacyId == selectedPharmacy.id &&
-                        (selectedPharmacy.permission.key === 'allow_full_access' ||
-                          selectedPharmacy.permission.key === 'ADD') &&
-                        productDetails?.status === 'Pending' && (
-                          <Grid
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'flex-end',
-                              justifyContent: 'flex-end'
-                            }}
-                          >
-                            <IconButton
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                              aria-label='Edit'
-                              onClick={() => handleEdit(itemId)}
+            {dialogBoxLoader ? (
+              <FallbackSpinner />
+            ) : (
+              <CardContent>
+                <Grid container>
+                  <CommonDialogBox
+                    title={
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div>Product Details - {productDetails?.request_number}</div>
+                        {selectedPharmacy.type === 'local' &&
+                          selectedPharmacyId == selectedPharmacy.id &&
+                          (selectedPharmacy.permission.key === 'allow_full_access' ||
+                            selectedPharmacy.permission.key === 'ADD') &&
+                          productDetails?.status === 'Pending' && (
+                            <Grid
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'flex-end',
+                                justifyContent: 'flex-end'
+                              }}
                             >
-                              <Icon icon='mdi:pencil-outline' />
-                            </IconButton>
-                          </Grid>
-                        )}
-                    </div>
-                  }
-                  dialogBoxStatus={show}
-                  formComponent={
-                    <ProductDetail
-                      setShow={setShow}
-                      statusCall={statusCall}
-                      submitLoader={submitLoader}
-                      detailsData={detailsData}
-                      handleRequestStatus={handleRequestStatus}
-                      prescriptionImages={prescriptionImages}
-                      reasonText={reasonText}
-                      setReasonText={setReasonText}
-                      imgUrl={imgUrl}
-                      itemId={itemId}
-                      handleEdit={handleEdit}
-                      productDetails={productDetails}
-                      selectedPharmacyId={selectedPharmacyId}
-                    />
-                  }
-                  close={() => {
-                    setShow(false)
-                    setProductDetails({})
-                    setDetailsData([])
-                  }}
-                  show={() => setShow(true)}
-                />
-              </Grid>
-            </CardContent>
+                              <IconButton
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                                aria-label='Edit'
+                                onClick={() => handleEdit(itemId)}
+                              >
+                                <Icon icon='mdi:pencil-outline' />
+                              </IconButton>
+                            </Grid>
+                          )}
+                      </div>
+                    }
+                    dialogBoxStatus={show}
+                    formComponent={
+                      <ProductDetail
+                        setShow={setShow}
+                        statusCall={statusCall}
+                        submitLoader={submitLoader}
+                        detailsData={detailsData}
+                        handleRequestStatus={handleRequestStatus}
+                        prescriptionImages={prescriptionImages}
+                        reasonText={reasonText}
+                        setReasonText={setReasonText}
+                        imgUrl={imgUrl}
+                        itemId={itemId}
+                        handleEdit={handleEdit}
+                        productDetails={productDetails}
+                        selectedPharmacyId={selectedPharmacyId}
+                      />
+                    }
+                    close={() => {
+                      setShow(false)
+                      setProductDetails({})
+                      setDetailsData([])
+                    }}
+                    show={() => setShow(true)}
+                  />
+                </Grid>
+              </CardContent>
+            )}
           </>
         )}
       </>
@@ -943,7 +941,7 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleChange}>
             <Tab
-              sx={{ ml: { xs: 1, sm: 3 } }} 
+              sx={{ ml: { xs: 1, sm: 3 } }}
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />

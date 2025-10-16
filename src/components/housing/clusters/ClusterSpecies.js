@@ -32,6 +32,8 @@ const ClusterSpecies = () => {
     sortOrder: 'asc'
   })
 
+  const [totalCount, setTotalCount] = useState(0)
+
   const auth = useAuth()
   const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
@@ -149,16 +151,18 @@ const ClusterSpecies = () => {
     setDrawerData({
       queryKey: 'cluster-animals-drawer',
       id: id,
-      complete_name: params.row.complete_name,
-      common_name: params.row.common_name,
-      animal_count: params.row.animal_count,
-      default_icon: params.row.default_icon,
-      sex_data: params.row.sex_data,
+      complete_name: params.row?.complete_name,
+      common_name: params.row?.common_name,
+      animal_count: params.row?.animal_count,
+      default_icon: params.row?.default_icon,
+      sex_data: params.row?.sex_data,
       params: {
         id: id,
-        taxonomy_id: params.row.tsn_id
+        taxonomy_id: params.row.tsn_id,
+        cluster_id: id
       }
     })
+    setTotalCount(params.row?.animal_count || 0)
   }
 
   const handleClose = () => {
@@ -232,6 +236,7 @@ const ClusterSpecies = () => {
             headerAlign: 'left',
             align: 'left',
             sortable: false,
+            cursor: 'pointer',
             renderCell: params => (
               <Box
                 sx={{
@@ -407,7 +412,7 @@ const ClusterSpecies = () => {
           />
         </Grid>
       </Box>
-      {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
+      {openDrawer && <AnimalDrawer totalCount={totalCount} open={!!drawerData} onClose={handleClose} data={drawerData} />}
     </>
   )
 }

@@ -22,7 +22,8 @@ export async function getMasterImports(params) {
     url: `${GET_TRADE_PARTIES_LIST}`,
     params
   })
-  return response.data
+  
+return response.data
 }
 
 export async function createTradeParties(payload) {
@@ -65,7 +66,8 @@ export async function deleteTradeParties(id) {
   try {
     const url = `${GET_TRADE_PARTIES_LIST}/delete/${id}`
     const response = await axiosGet({ url })
-    return response?.data
+    
+return response?.data
   } catch (error) {
     if (error.response) {
       console.info('Request made and server responded')

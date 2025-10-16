@@ -39,6 +39,7 @@ const AnimalsData = ({
   const [animalCountDrawerOpen, setanimalCountDrawerOpen] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
   const [draftData, setDraftData] = useState({ export: [], others: [] })
+
   const [selectedExportData, setSelectedExportData] = useState({
     export: [],
     others: []
@@ -105,6 +106,7 @@ const AnimalsData = ({
         try {
           setIsLoading(true)
           const nextPage = paginationModel.page + 1
+
           const params = {
             q: searchValue,
             page_no: nextPage,
@@ -184,7 +186,8 @@ const AnimalsData = ({
       .map(species => {
         setCurrentSpeciesId(species.tsn_id)
         setSelectedSpeciesData(species)
-        return {
+        
+return {
           id: species.tsn_id,
           species: {
             id: species.tsn_id,
@@ -234,7 +237,8 @@ const AnimalsData = ({
           }
         }
       }
-      return species
+      
+return species
     })
 
     setSpeciesList(updatedSpeciesList)
@@ -273,6 +277,7 @@ const AnimalsData = ({
 
     const payload = {}
     setLoading(true)
+
     // Handle export data
     selectedExportData.export.forEach((exp, index) => {
       // species as JSON string
@@ -282,6 +287,7 @@ const AnimalsData = ({
           taxonomy_id: spec.taxonomy_id || null,
           common_name: spec.common_name || '',
           scientific_name: spec.scientific_name || '',
+
           //default_icon: '', // or use spec.default_icon if available
           shipment_species_id: spec?.shipment_species_id || '',
           appendix: spec.appendix || '',

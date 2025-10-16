@@ -18,6 +18,7 @@ import { useTheme } from '@mui/material/styles'
 import { speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
 import imageUploader from 'public/images/gallery_add_Icon.png'
+
 import UploadDocIcon from 'public/icons/Upload_doc_icon.png'
 
 import { useForm, Controller } from 'react-hook-form'
@@ -306,6 +307,7 @@ function UploadDiet({
                     <Controller
                       name='notes'
                       control={control}
+
                       //   rules={{ required: !editNurseryId }}
                       render={({ field: { value, onChange } }) => (
                         <Grid onClick={() => fileInputRef.current.click()} item size={{ md: 12, sm: 12, xs: 12 }}>
@@ -401,7 +403,7 @@ function UploadDiet({
                                     color: theme.palette.customColors.OnSurfaceVariant60
                                   }}
                                 >
-                                  Drop your image here
+                                  Upload Files
                                 </Typography>
                               </Box>
                             )}
@@ -444,6 +446,7 @@ function UploadDiet({
             variant='contained'
             size='large'
             sx={{ height: '58px', width: '514px', mx: 4 }}
+
             // onClick={() => {
             //   handleSubmit()
             // }}

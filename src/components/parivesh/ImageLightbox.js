@@ -53,6 +53,7 @@ const ImageLightbox = ({ images }) => {
               />
             </SlideshowLightbox>
           ) : (
+
             // <Tooltip title='Image URL is incorrect or unavailable' arrow>
             <Avatar
               variant='square'

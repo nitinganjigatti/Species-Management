@@ -254,17 +254,23 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
             title={
               eggDetails?.assessments_data?.length === 0
                 ? 'Not Added'
-                : (() => {
-                    const value = Number(eggDetails?.assessments_data[0]?.assessment_value)
-                    if (value >= 1e6) {
-                      return `${value.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })} ${eggDetails?.assessments_data[0]?.uom_abbr}`
-                    } else {
-                      return `${value.toFixed(2)} ${eggDetails?.assessments_data[0]?.uom_abbr}`
-                    }
-                  })()
+                : // : (() => {
+                  //     const value = Number(eggDetails?.assessments_data[0]?.assessment_value)
+                  //     if (value >= 1e6) {
+                  //       return `${value.toLocaleString('en-US', {
+                  //         minimumFractionDigits: 2,
+                  //         maximumFractionDigits: 2
+                  //       })} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                  //     } else {
+                  //       return `${value.toFixed(2)} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                  //     }
+                  //   })()
+
+                  `${
+                    Number(eggDetails?.assessments_data[0]?.assessment_value || 0) % 1 === 0
+                      ? Math.floor(Number(eggDetails?.assessments_data[0]?.assessment_value || 0))
+                      : Number(eggDetails?.assessments_data[0]?.assessment_value || 0).toFixed(2)
+                  } ${eggDetails?.assessments_data[0]?.uom_abbr}`
             }
             placement='top'
           >
@@ -283,17 +289,22 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
               {eggDetails?.assessments_data &&
                 (eggDetails?.assessments_data?.length === 0
                   ? 'Not Added'
-                  : (() => {
-                      const value = Number(eggDetails?.assessments_data[0]?.assessment_value)
-                      if (value >= 1e6) {
-                        return `${value.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })} ${eggDetails?.assessments_data[0]?.uom_abbr}`
-                      } else {
-                        return `${value.toFixed(2)} ${eggDetails?.assessments_data[0]?.uom_abbr}`
-                      }
-                    })())}
+                  : // : (() => {
+                    //     const value = Number(eggDetails?.assessments_data[0]?.assessment_value)
+                    //     if (value >= 1e6) {
+                    //       return `${value.toLocaleString('en-US', {
+                    //         minimumFractionDigits: 2,
+                    //         maximumFractionDigits: 2
+                    //       })} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                    //     } else {
+                    //       return `${value.toFixed(2)} ${eggDetails?.assessments_data[0]?.uom_abbr}`
+                    //     }
+                    //   })())
+                    `${
+                      Number(eggDetails?.assessments_data[0]?.assessment_value || 0) % 1 === 0
+                        ? Math.floor(Number(eggDetails?.assessments_data[0]?.assessment_value || 0))
+                        : Number(eggDetails?.assessments_data[0]?.assessment_value || 0).toFixed(2)
+                    } ${eggDetails?.assessments_data[0]?.uom_abbr}`)}
             </Typography>
           </Tooltip>
 
@@ -403,13 +414,22 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
       </Box>
       <Box>
         <IconButton
-          disabled={
-            Number(eggDetails?.action_to_be_taken) === 5 ||
-            (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
-            (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
-              ? false
-              : true
-          }
+
+          // disabled={
+          //   Number(eggDetails?.action_to_be_taken) === 5 ||
+          //   (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
+          //   (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
+          //     ? false
+          //     : true
+          // }
+          sx={{
+            display:
+              Number(eggDetails?.action_to_be_taken) === 5 ||
+              (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
+              (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
+                ? ''
+                : 'none'
+          }}
           onClick={() => setOpenDrawer(true)}
         >
           <Icon

@@ -389,7 +389,10 @@ const AddExistingPurchase = () => {
     //     toast.error(response.message)
     //   }
     // } else {
-    const response = await addPurchase(postData)
+    var payloadData = { ...postData }
+    payloadData.purchase_details = JSON.stringify(payloadData.purchase_details)
+
+    const response = await addPurchase(payloadData)
     if (response?.success) {
       toast.success(response.message)
       setEditParams(editParamsInitialState)

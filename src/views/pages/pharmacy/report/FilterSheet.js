@@ -14,6 +14,7 @@ import {
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const FilterSheet = ({
   open,
@@ -78,15 +79,14 @@ const FilterSheet = ({
   // }
 
   const handleSelectAll = event => {
-    const filteredIds = filteredOptions.map(option =>
-      activeCategory === 'Site' ? option.site_id : option.id
-    )
+    const filteredIds = filteredOptions.map(option => (activeCategory === 'Site' ? option.site_id : option.id))
 
     if (event.target.checked) {
       // ✅ Add only filtered IDs to current selection (merge with previous)
       setSelectedOptions(prev => {
         const current = prev[activeCategory] || []
-        return {
+        
+return {
           ...prev,
           [activeCategory]: Array.from(new Set([...current, ...filteredIds]))
         }
@@ -96,7 +96,8 @@ const FilterSheet = ({
       setSelectedOptions(prev => {
         const current = prev[activeCategory] || []
         const updated = current.filter(id => !filteredIds.includes(id))
-        return {
+        
+return {
           ...prev,
           [activeCategory]: updated
         }
@@ -105,7 +106,6 @@ const FilterSheet = ({
   }
 
   const handleToggleOption = (optionId, category) => {
-
     setSelectedOptions(prevSelectedOptions => {
       const updatedOptions = { ...prevSelectedOptions }
 
@@ -153,9 +153,7 @@ const FilterSheet = ({
     setSearchValue('')
   }
 
-  const filteredIds = filteredOptions.map(option =>
-    activeCategory === 'Site' ? option.site_id : option.id
-  )
+  const filteredIds = filteredOptions.map(option => (activeCategory === 'Site' ? option.site_id : option.id))
 
   const selectedIds = selectedOptions[activeCategory] || []
 
@@ -169,7 +167,6 @@ const FilterSheet = ({
       }, 100) // slight delay to allow render
     }
   }, [open, activeCategory])
-
 
   return (
     <Drawer
@@ -312,8 +309,8 @@ const FilterSheet = ({
                   />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-
-                  <FormControlLabel sx={{}}
+                  <FormControlLabel
+                    sx={{}}
                     label={
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
                         Select All
@@ -332,35 +329,53 @@ const FilterSheet = ({
                 <Divider sx={{ mt: 1.4 }} />
               </Box>
               <Box sx={{ ml: 2, overflowY: 'auto' }}>
-                <Box sx={{ ml: 2 }}>
+                <Box sx={{ ml: 2, pb: 17 }}>
                   {activeCategory === 'Site' ? (
-                    filteredOptions.map((option, index) => (
-                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <FormControlLabel label={<Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                          {option.site_name}
-                        </Typography>}
-                          control={<Checkbox
-                            checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
-                            onChange={() => handleToggleOption(option.site_id, activeCategory)}
-                          />} />
-                      </Box>
-                    ))
+                    filteredOptions.length > 0 ? (
+                      filteredOptions.map((option, index) => (
+                        <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <FormControlLabel
+                            label={
+                              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                                {option.site_name}
+                              </Typography>
+                            }
+                            control={
+                              <Checkbox
+                                checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                                onChange={() => handleToggleOption(option.site_id, activeCategory)}
+                              />
+                            }
+                          />
+                        </Box>
+                      ))
+                    ) : (
+                      <NoDataFound variant='Seal' />
+                    )
                   ) : isLoader ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
                       <CircularProgress />
                     </Box>
-                  ) : (
+                  ) : filteredOptions.length > 0 ? (
                     filteredOptions.map((option, index) => (
                       <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <FormControlLabel label={<Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                          {option.organization_name}
-                        </Typography>}
-                          control={<Checkbox
-                            checked={(selectedOptions[activeCategory] || []).includes(option.id)}
-                            onChange={() => handleToggleOption(option.id, activeCategory)}
-                          />} />
+                        <FormControlLabel
+                          label={
+                            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                              {option.organization_name}
+                            </Typography>
+                          }
+                          control={
+                            <Checkbox
+                              checked={(selectedOptions[activeCategory] || []).includes(option.id)}
+                              onChange={() => handleToggleOption(option.id, activeCategory)}
+                            />
+                          }
+                        />
                       </Box>
                     ))
+                  ) : (
+                    <NoDataFound variant='Seal' />
                   )}
                 </Box>
               </Box>

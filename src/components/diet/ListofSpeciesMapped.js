@@ -71,7 +71,12 @@ const ListOfSpeciesMapped = ({
   const [openModal, setOpenModal] = useState(false)
 
   const handleClickOpen = () => {
-    setOpenModal(true)
+    if (dietDetails?.total_animals !== '0' || dietDetails?.total_species !== '0') {
+      setOpenModal(true)
+    } else {
+      setOpenModal(false)
+      handleAdd()
+    }
   }
   const handleClose = () => setOpenModal(false)
 
@@ -494,6 +499,7 @@ const ListOfSpeciesMapped = ({
                         />
                       }
                       minDate={startDate}
+
                       //maxDate={new Date()}
                     />
                     {errors.endDate && <FormHelperText sx={{ color: 'error.main' }}>{errors.endDate}</FormHelperText>}
@@ -640,6 +646,7 @@ const ListOfSpeciesMapped = ({
                             {/* Toggle for Mark as Primary */}
                             <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                               <Switch
+
                                 //checked={!!primaryStatus[species.species_id]}
                                 checked={
                                   primaryStatus[
@@ -791,8 +798,17 @@ const ListOfSpeciesMapped = ({
             disabled={tempSelectedSpecies?.length === 0 || (startDate && !endDate)}
             onClick={handleClickOpen}
             sx={{ flex: 1, height: '45px' }}
+            loading={!openModal && loader}
+            loadingIndicator={
+              !openModal && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  ASSIGN DIET
+                  <CircularProgress size={20} sx={{ color: '#ccc' }} />
+                </span>
+              )
+            }
           >
-            ASSIGN DIET
+            {!loader && 'ASSIGN DIET'}
           </LoadingButton>
         </Box>
       </Box>

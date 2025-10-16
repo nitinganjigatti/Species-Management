@@ -76,6 +76,7 @@ const IncubatorsList = () => {
 
         const res = await getIncubatorList({ params })
         const rawData = res?.data?.data?.result || []
+
         const listWithId = rawData.map((el, i) => ({
           ...el,
           id: i + 1
@@ -290,6 +291,7 @@ const IncubatorsList = () => {
       // flex: 0.2,
       minWidth: 140,
       sortable: false,
+
       // align: 'center',
       field: 'active',
       headerName: 'Status',
@@ -374,7 +376,8 @@ const IncubatorsList = () => {
 
   if (!nurseryPermission && !collectionPermission) return <ErrorScreen />
   if (loader) return <FallbackSpinner />
-  return (
+  
+return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Egg</Typography>

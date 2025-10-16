@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, CircularProgress, alpha, Tabs, Tab } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import {
@@ -35,7 +35,7 @@ const ExportPermitDetails = () => {
   const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
   const [linkedImports, setLinkedImports] = useState([])
   const [totalLinkedImports, setTotalLinkedImports] = useState(0)
-
+  const [activeTab, setActiveTab] = useState('completed')
   const [loading, setLoading] = useState(true)
 
   const [exportData, setExportData] = useState({
@@ -71,6 +71,7 @@ const ExportPermitDetails = () => {
     try {
       const params = {
         id: id || exportId,
+        status: activeTab,
         type: 'export'
       }
       const res = await getDocumentTypeList(params)
@@ -122,6 +123,9 @@ const ExportPermitDetails = () => {
             ? countryListOptions.find(country => country.value === res?.data?.exporting_country)?.label
             : '-'
         })
+        if (id && !documentList.length) fetchDocumentTypeList()
+        fetchLinkedShipmentsDetails()
+        fetchLinkedImportsDetails()
       } else {
         Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
       }
@@ -175,24 +179,30 @@ const ExportPermitDetails = () => {
 
   const handleAddEditSuccess = () => {
     fetchDocumentTypeList()
+    setActiveTab('completed')
+  }
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
   }
 
   useEffect(() => {
     if (id) {
       fetchExportDetails()
-      fetchDocumentTypeList()
-      fetchLinkedShipmentsDetails()
-      fetchLinkedImportsDetails()
     }
   }, [id])
+
+  useEffect(() => {
+    if (id && documentList?.length) {
+      fetchDocumentTypeList()
+    }
+  }, [id, activeTab])
 
   return (
     <>
       <Box sx={{ mb: 5 }}>
         <Breadcrumbs aria-label='breadcrumb'>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={() => router.push('/compliance')}>
-            Compliance
-          </Typography>
+          <Typography sx={{ color: 'inherit' }}>Compliance</Typography>
           <Typography
             sx={{ cursor: 'pointer', color: 'inherit' }}
             onClick={() => router.push('/compliance/documents/exports')}
@@ -234,21 +244,42 @@ const ExportPermitDetails = () => {
           </>
         )}
       </CustomAccordion>
-      <CustomAccordion
-        id='supporting-documents'
-        title='Supporting Documents'
-        docsCount={`${uploadedFileCount}/${totalCount}`}
-        expanded={expanded.includes('supporting-documents')}
-        onChange={handleAccordionChange}
-      >
-        <SupportingDocuments
-          isFetching={isFetching}
-          documentList={documentList}
-          totalCount={totalCount}
-          onAddEditSuccess={handleAddEditSuccess}
-          type='1'
-        />
-      </CustomAccordion>
+      {documentList?.length ? (
+        <CustomAccordion
+          id='supporting-documents'
+          title='Supporting Documents'
+          docsCount={`${uploadedFileCount}/${totalCount}`}
+          expanded={expanded.includes('supporting-documents')}
+          onChange={handleAccordionChange}
+        >
+          <Box sx={{ width: '100%' }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+              <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
+                <Tab
+                  label={`Completed${
+                    activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                  }`}
+                  value='completed'
+                  sx={{ mr: 4 }}
+                />
+                <Tab
+                  label={`Pending${
+                    activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                  }`}
+                  value='pending'
+                />
+              </Tabs>
+            </Box>
+            <SupportingDocuments
+              isFetching={isFetching}
+              documentList={documentList}
+              totalCount={totalCount}
+              onAddEditSuccess={handleAddEditSuccess}
+              type='1'
+            />
+          </Box>
+        </CustomAccordion>
+      ) : null}
       <CustomAccordion
         id='linked-imports'
         title={`Linked Imports - ${totalLinkedImports}`}

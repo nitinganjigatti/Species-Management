@@ -10,6 +10,7 @@ const LinkedShipmentsDrawer = ({ open, onClose, title, linkedShipmentsData }) =>
   return (
     <Drawer
       open={open}
+
       // onClose={onClose}
       anchor='right'
     >

@@ -1,7 +1,5 @@
 // ** React Imports
 import React, { useEffect, useState } from 'react'
-
-// ** MUI Components
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
@@ -40,6 +38,7 @@ import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoi
 import AddIngredients from 'src/components/diet/AddIngredients'
 import RecipeList from 'src/components/diet/RecipeList'
 import ComboList from 'src/components/diet/ComboList'
+import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
 const defaultValues = {
   diet_name: '',
@@ -140,6 +139,12 @@ const StepBasicDetails = ({
   const [ingredientName, setIngredientName] = useState('')
   const [ingredientwithChoiceId, setIngredientwithChoiceId] = useState([])
   const [ingredientwithChoiceName, setIngredientwithChoiceName] = useState([])
+  const [reachedEnd, setReachedEnd] = useState(false)
+  let [ingredientPage, setIngredientPage] = useState(1)
+  const [ingredientList, setIngredientList] = useState([])
+  const [totalCount, setTotalCount] = useState('')
+  const [searchValue, setSearchValue] = useState('')
+  const [sort, setSort] = useState('desc')
   const router = useRouter()
 
   const recipes = [
@@ -326,7 +331,6 @@ const StepBasicDetails = ({
   }
 
   const handleComboStateChange = value => {
-    console.log('Received value:', value)
     setComboChildStateValue(value)
 
     const uniqueValues = value.filter(
@@ -378,8 +382,6 @@ const StepBasicDetails = ({
         const field = fieldsIngredients[i]
         field.combo = updatedValues.filter(up => String(up?.mealid) === String(field?.mealid))
       }
-
-      console.log(updatedValues, 'updatedValues')
 
       return updatedValues
     })
@@ -514,6 +516,101 @@ const StepBasicDetails = ({
 
     return null
   }
+
+  useEffect(() => {
+    const fetchIngredients = async () => {
+      setReachedEnd(true)
+
+      try {
+        if (openIngredient) {
+          const params = {
+            page: fromrow !== 'rowedit_ingredient' ? ingredientPage : 1,
+            q: fromrow !== 'rowedit_ingredient' ? searchValue : ingredientName,
+            sort,
+            limit: 20,
+            status: 1
+          }
+
+          const res = await getIngredientList({ params })
+
+          if (res?.data?.result?.length > 0) {
+            const newResults = res.data.result.filter(
+              item => !ingredientList.some(existingItem => existingItem.id === item.id)
+            )
+
+            const combinedList = [...ingredientList, ...newResults]
+            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
+            setTotalCount(res?.data?.total_count)
+          }
+
+          setReachedEnd(false)
+        }
+
+        if (OpenIngredientchoice) {
+          if (fromrow === 'rowedit_ingredientwithchoice' && Array.isArray(ingredientwithChoiceName)) {
+            let allResults = []
+
+            for (const name of ingredientwithChoiceName) {
+              const params = {
+                page: 1,
+                q: name,
+                sort,
+                limit: 20,
+                status: 1
+              }
+
+              const res = await getIngredientList({ params })
+
+              if (res?.data?.result?.length > 0) {
+                const newResults = res.data.result.filter(
+                  item => !allResults.some(existingItem => existingItem.id === item.id)
+                )
+                allResults = [...allResults, ...newResults]
+              }
+            }
+
+            const combinedList = [...ingredientList, ...allResults]
+            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
+            setReachedEnd(false)
+          } else {
+            const params = {
+              page: ingredientPage,
+              q: searchValue,
+              sort,
+              limit: 20,
+              status: 1
+            }
+
+            const res = await getIngredientList({ params })
+
+            if (res?.data?.result?.length > 0) {
+              const newResults = res.data.result.filter(
+                item => !ingredientList.some(existingItem => existingItem.id === item.id)
+              )
+
+              const combinedList = [...ingredientList, ...newResults]
+              const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+              setIngredientList(uniqueList)
+              setTotalCount(res?.data?.total_count)
+            }
+            setReachedEnd(false)
+          }
+        }
+      } catch (error) {
+        console.error(error)
+        setReachedEnd(false)
+      }
+    }
+
+    if (openIngredient || OpenIngredientchoice) {
+      fetchIngredients()
+    }
+  }, [ingredientId, ingredientwithChoiceId])
 
   const handleAddIngerdientChoice = (val, index, type) => {
     setOpenIngredientchoice(true)
@@ -1008,8 +1105,6 @@ const StepBasicDetails = ({
                     control={control}
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => {
-                      console.log(value, 'value')
-
                       return (
                         <Autocomplete
                           value={uomList?.find(option => option.id === value) || null}
@@ -1033,7 +1128,6 @@ const StepBasicDetails = ({
                               deleteCookie('dietTypeChildVal')
                             }
                           }}
-                          //sx={{ background: id ? '#80808021' : '' }}
                           renderInput={params => (
                             <TextField
                               {...params}
@@ -1096,51 +1190,6 @@ const StepBasicDetails = ({
                   )}
                 </FormControl>
               </Grid>
-
-              {/* <Grid item size={{ xs: 12, sm: 4 }}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='dietitian_id'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => {
-                      console.log(value)
-
-                      return (
-                        <Autocomplete
-                          id='dietitian_id'
-                          value={dieticianList?.find(option => option.value === String(value)) || null}
-                          options={dieticianList || []}
-                          getOptionLabel={option => option.label}
-                          isOptionEqualToValue={(option, value) => option?.value === String(value)}
-                          onChange={(e, val) => {
-                            if (val === null) {
-                              setFormValue('dietitian_id', '')
-                              setFormValue('dietitian_name', '')
-                            } else {
-                              setFormValue('dietitian_id', val.value)
-                              setFormValue('dietitian_name', val.label)
-                              trigger('dietitian_id')
-                            }
-                          }}
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              label='Prepared by *'
-                              placeholder='Search & Select'
-                              error={Boolean(errors.dietitian_id)}
-                              name='dietitian_id'
-                            />
-                          )}
-                        />
-                      )
-                    }}
-                  />
-                  {errors?.dietitian_id && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid> */}
 
               <Grid size={{ xs: 6 }}>
                 <CardContent sx={{ px: 0, paddingTop: 2, pb: '0.7rem !important' }}>
@@ -1445,7 +1494,6 @@ const StepBasicDetails = ({
                                   </Grid>
                                 </Grid>
                                 <Icon
-                                  //onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
                                   style={{ position: 'absolute', right: '8%', fontSize: '22px', cursor: 'pointer' }}
                                   className='pencil_diet'
                                   onClick={() =>
@@ -1596,11 +1644,6 @@ const StepBasicDetails = ({
 
                                 <Grid size={{ xs: 12, sm: 1.4, md: 1.0 }}>
                                   <Typography>{all?.ingredients_count}</Typography>
-                                  {/* {all?.ingredients ? (
-                                  <Typography>{all?.ingredients?.length}</Typography>
-                                ) : (
-                                  <Typography>{all?.ingredient_name?.length}</Typography>
-                                )} */}
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.7, md: 3.7 }}>
                                   <Grid container spacing={1} sx={{ pl: 2 }}>
@@ -2261,6 +2304,18 @@ const StepBasicDetails = ({
             ingredientwithChoiceId={ingredientwithChoiceId}
             ingredientwithChoiceName={ingredientwithChoiceName}
             fromrow={fromrow}
+            setReachedEnd={setReachedEnd}
+            reachedEnd={reachedEnd}
+            setIngredientList={setIngredientList}
+            ingredientList={ingredientList}
+            setIngredientPage={setIngredientPage}
+            ingredientPage={ingredientPage}
+            setTotalCount={setTotalCount}
+            totalCount={totalCount}
+            setSearchValue={setSearchValue}
+            searchValue={searchValue}
+            setSort={setSort}
+            sort={sort}
           />
           <AddIngredients
             open={openIngredient}
@@ -2280,6 +2335,18 @@ const StepBasicDetails = ({
             fromrow={fromrow}
             setFromRow={setFromRow}
             ingredientName={ingredientName}
+            setReachedEnd={setReachedEnd}
+            reachedEnd={reachedEnd}
+            setIngredientList={setIngredientList}
+            ingredientList={ingredientList}
+            setIngredientPage={setIngredientPage}
+            ingredientPage={ingredientPage}
+            setTotalCount={setTotalCount}
+            totalCount={totalCount}
+            setSearchValue={setSearchValue}
+            searchValue={searchValue}
+            setSort={setSort}
+            sort={sort}
           />
           <RecipeList
             recipeList={recipeList}

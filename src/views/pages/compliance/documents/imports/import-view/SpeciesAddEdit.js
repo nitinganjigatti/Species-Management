@@ -350,6 +350,7 @@ const SpeciesAddEdit = ({
                               key={idx}
                               display='flex'
                               justifyContent='space-between'
+
                               // py={2}
                               sx={{
                                 borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,

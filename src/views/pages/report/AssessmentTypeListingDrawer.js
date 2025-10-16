@@ -1,8 +1,8 @@
-import { LoadingButton } from '@mui/lab'
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { Drawer, IconButton, Typography, CircularProgress, Box, Chip, Tooltip } from '@mui/material'
-import Icon from 'src/@core/components/icon'
-import React, { useState, useEffect, useRef } from 'react'
+import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
+import Icon from 'src/@core/components/icon'
 import { getAssessmentCategoriesList, getAssessmentTypesList } from 'src/lib/api/report'
 
 function AssessmentTypeListingDrawer({
@@ -15,6 +15,28 @@ function AssessmentTypeListingDrawer({
 }) {
   const theme = useTheme()
   const drawerContentRef = useRef(null)
+
+  const headerRef = useRef(null)
+  const footerRef = useRef(null)
+  const scrollRef = useRef(null)
+
+  const [footerH, setFooterH] = useState(0)
+  const [headerH, setHeaderH] = useState(0)
+
+  const measure = () => {
+    setFooterH(footerRef.current?.getBoundingClientRect().height ?? 0)
+    setHeaderH(headerRef.current?.getBoundingClientRect().height ?? 0)
+  }
+
+  useLayoutEffect(() => {
+    measure()
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('resize', measure)
+    
+return () => window.removeEventListener('resize', measure)
+  }, [])
 
   const [tempSelectedCategory, setTempSelectedCategory] = useState(selectedCategory || 0)
   const [tempSelectedAssessmentType, setTempSelectedAssessmentType] = useState(selectedAssessmentType || null)
@@ -54,6 +76,7 @@ function AssessmentTypeListingDrawer({
         ref_type: 'animal',
         cat_id: tempSelectedCategory,
         q
+
         // limit: 10,
         // page_no: pageNum
       })
@@ -83,47 +106,32 @@ function AssessmentTypeListingDrawer({
     setTempSelectedAssessmentType(null)
   }
 
-  // const debouncedSearch = useCallback(
-  //   debounce(value => {
-  //     setPage(1)
-  //     setSpeciesList([])
-  //     setHasMore(true)
-  //     fetchSpecies(value, 1, true)
-  //   }, 500),
-  //   []
-  // )
-
-  //   const handleSearchChange = e => {
-  //     const value = e.target.value
-  //     setSearchValue(value)
-  //     debouncedSearch(value)
-  //   }
-
-  //   const handleScroll = () => {
-  //     if (!drawerContentRef.current || loading || !hasMore) return
-  //     const { scrollTop, scrollHeight, clientHeight } = drawerContentRef.current
-  //     if (scrollHeight - scrollTop <= clientHeight + 100) {
-  //       const nextPage = page + 1
-  //       setPage(nextPage)
-  //       fetchSpecies(searchValue, nextPage)
-  //     }
-  //   }
-
   return (
     <Drawer
       anchor='right'
       open={openassessmentFilter}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-        backgroundColor: 'background.default'
+        '& .MuiDrawer-paper': {
+          width: ['100%', '562px'],
+
+          // 100dvh is better for mobile/tablet chrome/urlbar changes
+          height: '100dvh',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'background.default'
+        }
+
+        // '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+        // position: 'relative',
+        // display: 'flex',
+        // flexDirection: 'column',
+        // gap: '24px',
+        // backgroundColor: 'background.default'
       }}
     >
       {/* Header */}
       <Box
+        ref={headerRef}
         className='sidebar-header'
         sx={{
           backgroundColor: 'background.default',
@@ -193,6 +201,7 @@ function AssessmentTypeListingDrawer({
             height: '100%',
             display: 'flex',
             justifyContent: 'center'
+
             // pt: 2
           }}
         >
@@ -201,18 +210,19 @@ function AssessmentTypeListingDrawer({
       ) : (
         <>
           <Box
-            // ref={drawerContentRef}
+            ref={scrollRef}
+
             // onScroll={handleScroll}
             sx={{
+              flex: '1 1 auto',
+              minHeight: 0,
               overflowY: 'auto',
-              flexGrow: 1,
-              paddingBottom: 4,
-              height: '100%',
+              pb: `calc(${footerH}px + env(safe-area-inset-bottom, 0px) + 16px)`,
               backgroundColor: 'background.default'
             }}
           >
             <Box sx={{ bgcolor: 'background.default', p: theme => theme.spacing(0, 3.255, 3, 5.255) }}>
-              <Box sx={{ pb: 25, mt: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Box sx={{ mt: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* {assessmenttypeLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <CircularProgress size={24} />
@@ -221,7 +231,8 @@ function AssessmentTypeListingDrawer({
                 {assessmentTypeList.length > 0 &&
                   assessmentTypeList.map((item, index) => {
                     const isSelected = tempSelectedAssessmentType?.assessment_type_id === item?.assessment_type_id
-                    return (
+                    
+return (
                       <Box
                         key={index}
                         onClick={() => setTempSelectedAssessmentType(item)}
@@ -306,12 +317,11 @@ function AssessmentTypeListingDrawer({
           {/* Bottom Button */}
           <Box
             sx={{
-              height: '106px',
-              width: '100%',
-              maxWidth: '562px',
-              position: 'fixed',
+              minHeight: '106px',
+              position: 'sticky',
               bottom: 0,
               px: 4,
+              maxWidth: '562px',
               bgcolor: 'white',
               alignItems: 'center',
               justifyContent: 'center',
