@@ -574,7 +574,7 @@ const ComboCard = ({
                           top: '6.8px',
                           left: '6.8px'
                         }}
-                        src={item?.recipe_image ? item?.recipe_image : '/icons/icon_diet_fill.png'}
+                        src={item?.recipe_image ? item?.recipe_image : '/icons/icon_recipe_fill.png'}
                       ></Avatar>
                     )}
                   </Box>
@@ -604,7 +604,6 @@ const ComboCard = ({
                     </Box>
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
-                      {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider> */}
                       <Box sx={{ ml: '10px', ml: 4 }}>
                         <Typography
                           sx={{
@@ -666,7 +665,7 @@ const ComboCard = ({
                           }}
                         >
                           <img
-                            src={ingredient?.ingredient_image || '/icons/Icon_ingredient.svg'}
+                            src={ingredient?.ingredient_image || '/icons/icon_ingredient_fill.png'}
                             alt={ingredient.ingredient_name}
                             style={{
                               width: '100%',

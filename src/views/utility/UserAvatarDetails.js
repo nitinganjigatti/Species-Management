@@ -10,6 +10,7 @@ function UserAvatarDetails({
   text_color,
   description,
   role,
+  crby_width,
   size = 'large',
   show_time = false
 }) {
@@ -63,7 +64,7 @@ function UserAvatarDetails({
                     variant='subtitle2'
                     sx={{
                       color: text_color ?? 'text.primary',
-                      width: '100px',
+                      width: crby_width ? crby_width : '100px',
                       // fontSize: fontSize,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',

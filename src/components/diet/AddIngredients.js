@@ -109,6 +109,7 @@ const AddIngredients = props => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
+    debouncedSearch('')
   }
 
   const handleChangeTopFeed = async event => {
@@ -745,7 +746,7 @@ const AddIngredients = props => {
                           background: theme.palette.customColors.displaybgPrimary,
                           borderRadius: 20
                         }}
-                        src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                        src={item?.image ? item?.image : '/icons/icon_ingredient_fill.png'}
                       >
                         {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
                       </Avatar>
