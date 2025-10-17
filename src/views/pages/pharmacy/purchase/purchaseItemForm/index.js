@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
 import {
   FormControl,
@@ -34,6 +35,7 @@ import dayjs from 'dayjs'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 
 const defaultValues = {
   product: {
@@ -240,7 +242,6 @@ const PurchaseItemForm = props => {
     watch,
     getValues,
     setError
-
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -376,7 +377,6 @@ const PurchaseItemForm = props => {
 
     // calculate total unity qty
     const totalUnitQty = checkNumber(updatedValues?.purchase_variant_ratio * purchase_qty)
-
 
     // calculate total unity qty
 
@@ -776,35 +776,13 @@ const PurchaseItemForm = props => {
                   <CircularProgress size={20} />
                 </span>
               )}
-              <Controller
-                name='purchase_expiry_date'
+              <ControlledDatePicker
                 control={control}
-                render={({ field: { value, onChange } }) => (
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DesktopDatePicker
-
-                      // disabled={nestedRowMedicine?.id ? true : false}
-                      label='Expiry Date*'
-                      inputFormat='MM/DD/YYYY'
-                      value={value}
-                      onChange={onChange}
-                      renderInput={params => <TextField {...params} error={Boolean(errors.purchase_expiry_date)} />}
-                      slotProps={{
-                        textField: {
-                          error: Boolean(errors.purchase_expiry_date)
-                        }
-                      }}
-                      error={Boolean(errors.purchase_expiry_date)}
-
-                      // helperText={errors.purchase_expiry_date?.message}
-                    />
-                  </LocalizationProvider>
-                )}
+                name='purchase_expiry_date'
+                label='Expiry Date*'
+                inputFormat='MMM/DD/YYYY'
+                format='DD/MMM/YYYY'
               />
-              {/* disabled={expiryDateLoader} */}
-              {errors.purchase_expiry_date && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_expiry_date?.message}</FormHelperText>
-              )}
             </FormControl>
           </Grid>
         )}
@@ -933,7 +911,6 @@ const PurchaseItemForm = props => {
               render={({ field: { onChange, value, ...rest } }) => (
                 <Select
                   {...rest}
-
                   // disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
                   value={value}
                   onChange={(e, val) => {
@@ -976,7 +953,7 @@ const PurchaseItemForm = props => {
                   {...field}
                   label='Purchase Quantity*'
                   variant='outlined'
-
+                  // eslint-disable-next-line lines-around-comment
                   // disabled={nestedRowMedicine?.id ? true : false}
                   onKeyUp={e => {
                     calculateStuff()

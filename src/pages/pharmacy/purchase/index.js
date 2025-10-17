@@ -40,7 +40,7 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import toast from 'react-hot-toast'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ListOfPurchase = () => {
@@ -251,15 +251,11 @@ const ListOfPurchase = () => {
   const printInventory = async purchaseId => {
     try {
       setInvoicePrintLoaderId(purchaseId)
-      const printInvoice = await printPurchaseInvoice(purchaseId)
-      if (printInvoice?.success && printInvoice?.data) {
-        Utility?.downloadFileFromURL(printInvoice?.data, 'Invoice.Pdf')
-        toast.success(printInvoice?.message)
-        setInvoicePrintLoaderId(null)
-      } else {
-        toast.error(printInvoice?.message)
-        setInvoicePrintLoaderId(null)
-      }
+      await downloadPDF({
+        apiCall: printPurchaseInvoice,
+        params: purchaseId,
+        fileName: `Purchase_Invoice${Date.now()}.pdf`
+      })
     } catch (error) {
       toast.error(error?.message)
       setInvoicePrintLoaderId(null)

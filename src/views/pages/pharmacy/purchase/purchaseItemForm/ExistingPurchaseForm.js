@@ -25,6 +25,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 
 const defaultValues = {
   product: {
@@ -560,31 +561,13 @@ const ExistingPurchaseForm = props => {
                   <CircularProgress size={20} />
                 </span>
               )}
-              <Controller
-                name='purchase_expiry_date'
+              <ControlledDatePicker
                 control={control}
-                render={({ field: { value, onChange } }) => (
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DesktopDatePicker
-                      label='Expiry Date*'
-                      inputFormat='MM/DD/YYYY'
-                      value={value}
-                      onChange={onChange}
-                      renderInput={params => <TextField {...params} error={Boolean(errors.purchase_expiry_date)} />}
-                      slotProps={{
-                        textField: {
-                          error: Boolean(errors.purchase_expiry_date)
-                        }
-                      }}
-                      error={Boolean(errors.purchase_expiry_date)}
-                    />
-                  </LocalizationProvider>
-                )}
+                name='purchase_expiry_date'
+                label='Expiry Date*'
+                inputFormat='MMM/DD/YYYY'
+                format='DD/MMM/YYYY'
               />
-              {/* disabled={expiryDateLoader} */}
-              {errors.purchase_expiry_date && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_expiry_date?.message}</FormHelperText>
-              )}
             </FormControl>
           </Grid>
         )}
