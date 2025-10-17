@@ -404,7 +404,7 @@ const Surgery = () => {
         renderCell: params => (
           <Tooltip title='Edit'>
             <IconButton size='small' onClick={() => handleEditSurgery(params.row)}>
-              <Icon color={'theme.palette.customColors.OnSurfaceVariant'} icon='mdi:pencil-outline' />
+              <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:pencil-outline' />
             </IconButton>
           </Tooltip>
         )
