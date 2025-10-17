@@ -226,7 +226,7 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
                       {...field}
                       checked={Boolean(field.value)}
                       onChange={event => field.onChange(event.target.checked)}
-                      switchColor={theme.palette.success.main}
+                      switchColor={theme.palette.primary.main}
                       size='medium'
                     />
                   )}
