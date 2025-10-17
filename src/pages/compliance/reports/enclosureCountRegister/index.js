@@ -628,7 +628,7 @@ const EnclosureCountRegister = () => {
       />
       <Box
         sx={{
-          backgroundColor: '#0000000D',
+          backgroundColor: theme.palette.customColors.mdAntzNeutral,
           height: '32px',
           width: '32px',
           display: 'flex',
@@ -698,9 +698,9 @@ const EnclosureCountRegister = () => {
                   inputStyle={{ padding: '10px 12px' }}
                   textFielsSX={{
                     height: '40px',
-                    '& fieldset': { borderColor: '#C3CEC7' },
-                    '&:hover fieldset': { borderColor: '#C3CEC7' },
-                    '&.Mui-focused fieldset': { borderColor: '#C3CEC7' }
+                    '& fieldset': { borderColor: theme.palette.customColors.OutlineVariant },
+                    '&:hover fieldset': { borderColor: theme.palette.customColors.OutlineVariant },
+                    '&.Mui-focused fieldset': { borderColor: theme.palette.customColors.OutlineVariant }
                   }}
                   sx={{
                     gap: '4px',
