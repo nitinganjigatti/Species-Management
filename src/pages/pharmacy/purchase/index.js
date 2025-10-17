@@ -401,27 +401,26 @@ const ListOfPurchase = () => {
           />
         </>
       )
+    },
+    {
+      minWidth: 80,
+      headerName: 'Action',
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      field: 'action',
+      renderCell: params => (
+        <ExportButton
+          bgcolor='transparent'
+          tooltip='Download  Invoice'
+          loading={invoicePrintLoaderId === params.row.id}
+          onClick={event => {
+            event.stopPropagation()
+            printInventory(params.row.id)
+          }}
+        />
+      )
     }
-
-    // {
-    //   minWidth: 80,
-    //   headerName: 'Action',
-    //   align: 'center',
-    //   headerAlign: 'center',
-    //   sortable: false,
-    //   field: 'action',
-    //   renderCell: params => (
-    //     <ExportButton
-    //       bgcolor='transparent'
-    //       tooltip='Download  Invoice'
-    //       loading={invoicePrintLoaderId === params.row.id}
-    //       onClick={event => {
-    //         event.stopPropagation()
-    //         printInventory(params.row.id)
-    //       }}
-    //     />
-    //   )
-    // }
   ]
   useEffect(() => {
     getSuppliersLists()
