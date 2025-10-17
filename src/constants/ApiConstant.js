@@ -468,6 +468,10 @@ export const All_ANIMAL_LIST = 'v1/all/animal/report'
 
 export const REPORT_TYPE = 'v1/report/daily/report/type'
 
+export const COMPLIANCE_DAILY_REPORT = 'v1/get/daily/report'
+
+export const OBSERVATION_MASTER_TYPE = 'observation/master-type'
+
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
@@ -554,7 +558,7 @@ export const ADD_SECTION = `/zoos/createsection`
 
 export const CREATE_SITE = '/zoos/createZooSite'
 
-export const ADD_ENCLOSURE_TO_HOUSING = `/enclosure/create-enclosure`
+export const ADD_ENCLOSURE_TO_HOUSING = `enclosure/create-enclosure`
 
 export const GET_ENCLOSURE_SETTINGS = `/enclosure/settings`
 
@@ -644,6 +648,9 @@ export const GET_OBSERVATION_REPORT = `v1/notes/observation`
 
 export const GET_ANIMAL_FILTERS_LISTS = `/v1/collection/animal/stats`
 
+// Compliance: Enclosure Count Register
+export const GET_ANIMAL_COUNT_REGISTER = `v1/animal/count/register`
+
 export const ANIMAL_DETAILS_OVERVIEW = `animal/get-common-data-by-animal-id-new`
 
 export const ANIMAL_DETAILS_INCIDENT_LIST = `animal/incidentlist/`
@@ -685,3 +692,97 @@ export const ANIMAL_MEDIA = `animal/media-list`
 export const GET_TRADE_SPECIES_LISTING = `/v1/trade/species`
 
 export const GET_TRADE_SPECIES_SHIPMENT_LIST = `v1/trade/species/shipments/`
+
+export const GET_SPECIES_DETAILS_SHIPMENT_EXPORT_LIST = `v1/trade/species/shipments/exports/`
+
+export const GET_INCOMING_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
+
+export const GET_MASTERS_HOSPITAL = 'v1/hospital/listing'
+
+export const GET_MASTERS_SURGERY = 'v1/hospital/list-surgery'
+
+export const CREATE_MASTERS_HOSPITAL = 'v1/hospital/create'
+
+export const CREATE_MASTERS_SURGERY = 'v1/hospital/create-surgery'
+
+export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
+
+export const UPDATE_MASTERS_SURGERY = 'v1/hospital/update-surgery'
+
+export const CHANGE_MASTERS_SURGERY_STATUS = 'v1/hospital/change-surgery-status/'
+
+export const DELETE_MASTERS_SURGERY = 'v1/hospital/delete-surgery/'
+
+export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
+
+export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`
+
+export const GET_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/list'
+
+export const CREATE_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/create'
+
+export const DELETE_ROOMS_AND_ENCLOSURES = 'v1/hospital/bed/delete'
+
+export const ADMIT_HOSPITAL_PATIENT = `v1/hospital/admit`
+
+export const ANIMAL_MEDICAL_ID_LIST = `medical/v2/`
+
+export const ADD_HOSPITAL_PATIENT = `/v1/hospital/create-transfer`
+
+export const GET_ANIMAL_TOTAL_HOSPITAL_VISIT = `v1/hospital/get-animal-hospital-visits`
+
+export const GET_CLINICAL_NOTES = 'get-medical-common-data-v2'
+
+export const DELETE_CLINICAL_NOTES = 'medical/attachment-remove/'
+
+export const CREATE_CLINICAL_NOTES = 'v1/hospital/add-clinical-notes'
+
+export const GET_SYMPTOM_LISTING = 'medical/get-complaint-diagnosis-type'
+
+export const ADD_HOSPITAL_SYMPTOMS = 'medical/update-complaints'
+
+export const UPDATE_HOSPITAL_SYMPTOMS = 'update-diagnosis-prescription'
+
+export const DELETE_NOTE_SYMPTOM = 'medical/v2/delete-note/complaint'
+
+export const GET_ACTIVITY_LIST = 'record-details'
+
+// Clinical Assessment
+
+export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/'
+
+export const GET_CLINICAL_DIAGNOSIS_LIST = 'medical/v2/get-complaint-diagnosis-list'
+
+export const GET_CLINICAL_DIAGNOSIS_TYPE = 'medical/get-complaint-diagnosis-type'
+
+export const ADD_CLINICAL_ASSESSMENT = 'medical/diagnosis-update'
+
+export const UPDATE_CLINICAL_ASSESSMENT = 'medical/v2/update-diagnosis-prescription'
+
+export const GET_NOTES = 'medical/v2/record-details'
+
+export const UPDATE_NOTES = 'medical/v2/update-diagnosis-prescription'
+
+export const DELETE_NOTE_CLINICAL_ASSESSMENT = 'medical/v2/delete-note/diagnosis'
+
+// Hospital Analytics
+
+export const HOSPITAL_LISTING = 'v1/hospital/listing'
+
+export const HOSPITAL_BED_STATS = 'v1/hospital/hospital-bed-stat/'
+
+//Hospital prescription monitoring
+
+export const MEDICINE_LIST = 'medical/medicine-search'
+
+export const MEDICAL_MASTER_DATA = 'medical/masterdata'
+
+export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
+
+export const ADD_DIRECT_ADMINISTER_PRESCRIPTION = 'administer/v2/create-direct-adminster-record'
+
+export const GET_PRESCRIPTION_LIST = 'v1/hospital/list-prescription'
+
+export const GET_PRESCRIPTION_DETAILS = 'administer/details'
+
+export const GET_PRESCRIPTION_DETAILS_DATES = 'administer/stats'

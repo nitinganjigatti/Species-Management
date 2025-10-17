@@ -79,6 +79,25 @@ const EnclsouerDetails = () => {
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
+  useEffect(() => {
+    // Updating URL with tab parameter when tab changes
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: selectedTab }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }, [selectedTab])
+
+  // To read the tab parameter on component mount
+  useEffect(() => {
+    if (router.query.tab) {
+      setSelectedTab(router.query.tab)
+    }
+  }, [router.query.tab])
+
   return (
     <>
       <Box>
@@ -91,6 +110,7 @@ const EnclsouerDetails = () => {
         <InsightsCard
           data={data?.data}
           loading={isLoading}
+          image={data?.data?.images?.[0]?.file}
           statsData={statsData}
           error={error}
           zooName={data?.data?.user_enclosure_name}
@@ -104,6 +124,12 @@ const EnclsouerDetails = () => {
             } else {
               return
             }
+          }}
+          onMessageClick={() => {
+            const phoneNumber = data?.data?.incharge_mobile_no || ''
+            if (phoneNumber) {
+              window.open(`sms:${phoneNumber}`)
+            } else return
           }}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>

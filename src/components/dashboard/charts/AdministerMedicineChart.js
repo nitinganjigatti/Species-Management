@@ -62,13 +62,15 @@ const AdministerMedicineChart = () => {
           },
           total: {
             show: false,
+
             // show: true,
             fontWeight: 400,
             fontSize: '1.125rem',
             color: theme.palette.text.primary,
             formatter: function (w) {
               const totalValue = w.globals.seriesTotals.reduce((a, b) => a + b, 0)
-              return totalValue
+              
+return totalValue
             }
           }
         }

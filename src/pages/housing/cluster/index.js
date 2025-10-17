@@ -51,6 +51,7 @@ const Clusters = () => {
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
   const [showDrawer, setShowDrawer] = useState(false)
+  const [totalAnimalCount, setTotalAnimalCount] = useState(0)
 
   const handleClusterInsightClick = () => {
     setDrawerType('enclosures')
@@ -67,6 +68,19 @@ const Clusters = () => {
         ref_id: zooId
 
         // site_id: params.row?.site_id
+      }
+    })
+  }
+
+  const handleClusterAnimalsInsightClick = () => {
+    setDrawerType('insights-animals')
+    setDrawerData({
+      queryKey: 'insights-animals-sites-drawer',
+      id: zooId,
+      params: {
+        ref_type: 'zoo',
+        data_type: 'animal',
+        ref_id: zooId
       }
     })
   }
@@ -118,7 +132,7 @@ const Clusters = () => {
       label: 'Animals',
       value: statsData?.data?.zoo_stats?.total_animals || 0,
       imagePath: '/images/housing/animals.svg',
-      onClick: () => console.log('Animals')
+      onClick: handleClusterAnimalsInsightClick
     },
     {
       label: 'Sections',
@@ -279,6 +293,7 @@ const Clusters = () => {
             value={params.row.cluster_name}
             subtitle={params.row.cluster_desc}
             imgUrl={params.row.images?.[0]?.file}
+            defaultImage={'/images/housing/site-icon-colored.svg'}
             avatarUrl=''
             inchargeName=''
           />
@@ -354,6 +369,7 @@ const Clusters = () => {
                       cluster_id: params.row.cluster_id
                     }
                   })
+                  setTotalAnimalCount(params.row.animal_count || 0)
                 }}
               >
                 <Typography
@@ -403,10 +419,7 @@ const Clusters = () => {
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
         >
-          <UserAvatarDetails
-            profile_image={params.row?.incharge_image}
-            user_name={params.row?.incharge_name}
-          />
+          <UserAvatarDetails profile_image={params.row?.incharge_image} user_name={params.row?.incharge_name} />
         </Box>
       )
     },
@@ -499,7 +512,7 @@ const Clusters = () => {
         </Breadcrumbs>
         <Box>
           <InsightsCard
-            pageTitle={'All Cluster Insights'}
+            pageTitle={'All Sites Insights'}
             data={statsData}
             loading={statsFetching}
             haveInsightsViewAccess={insightsViewAccess}
@@ -557,7 +570,24 @@ const Clusters = () => {
         </Box>
       </Box>
       {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalsDrawer
+          totalCount={totalAnimalCount}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/cluster-icon-colored.svg'}
+        />
+      )}
+      {drawerType === 'insights-animals' && (
+        <AnimalsDrawer
+          totalCount={statsData?.data?.zoo_stats?.total_animals || 0}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
+        />
+      )}
       {drawerType === 'enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}

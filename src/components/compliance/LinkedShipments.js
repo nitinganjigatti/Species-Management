@@ -76,7 +76,23 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
               <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1, fontSize: '0.875rem' }}>
                 Shipment ID
               </Typography>
-              <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1.25rem' }}>
+              <Typography
+                sx={{
+                  color: theme.palette.primary.OnSurface,
+                  fontWeight: 500,
+                  fontSize: '1.25rem',
+                  cursor: 'pointer',
+                  float: 'left'
+                }}
+                onClick={() => {
+                  window.open(
+                    `/compliance/documents/shipments/AddEditShipment/?id=${
+                      shipment?.id || shipment?.shipment_id
+                    }&action=details&export=1`,
+                    '_blank'
+                  )
+                }}
+              >
                 {shipment?.shipment_number || (shipment?.shipment_number).replace(/\s+/g, '') || ''}
               </Typography>
             </Grid>

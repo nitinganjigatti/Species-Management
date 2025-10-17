@@ -197,30 +197,12 @@ const StepAddIngredients = ({
   }
 
   const removeIngredientButton = index => {
-    console.log(index, 'index')
-
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}
         className='ing_byperc'
         onClick={() => {
           removeIngredients(index)
-        }}
-      >
-        <Icon icon='material-symbols:cancel' />
-      </Box>
-    )
-  }
-
-  const removebyQuantityButton = index => {
-    console.log(index, 'index')
-
-    return (
-      <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '35px' }}
-        className='ing_byquan'
-        onClick={() => {
-          removeByQuantity(index)
         }}
       >
         <Icon icon='material-symbols:cancel' />
@@ -352,7 +334,7 @@ const StepAddIngredients = ({
 
       return Toaster({
         type: 'error',
-        message: 'Please fill in all fields for By Percentage'
+        message: 'Please fill in all mandatory fields'
       })
     }
 
@@ -366,7 +348,7 @@ const StepAddIngredients = ({
 
       return Toaster({
         type: 'error',
-        message: `Please fill in all fields in By Percentage at index ${firstIncompleteIndex + 1}.`
+        message: `Please fill in all mandatory fields at index ${firstIncompleteIndex + 1}.`
       })
     }
 
@@ -834,6 +816,7 @@ const StepAddIngredients = ({
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
         handleSubmitData={handleSubmitData}
+
         //resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}

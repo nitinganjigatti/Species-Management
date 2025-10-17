@@ -408,6 +408,7 @@ const StickyTableChild = ({
               {isGrouped ? (
                 transformText(col?.headerName, col?.textTransform)
               ) : (
+
                 // <TableSortLabel
                 //   onClick={() => {
                 //     setSortStates(prevState => {
@@ -932,6 +933,7 @@ const StickyTableChild = ({
             {/* Dropdown for selecting the number */}
             <Select
               value={defaultRowsInView}
+
               // onChange={e => setDefaultRowsInView(e.target.value)}
               onChange={e => {
                 setUserChangedRowsInView(true)

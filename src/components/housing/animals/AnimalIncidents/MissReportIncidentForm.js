@@ -11,7 +11,7 @@ import {
   Typography
 } from '@mui/material'
 import { Box, Stack } from '@mui/system'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
@@ -20,35 +20,35 @@ import imageUploader from 'public/images/gallery_add_Icon.png'
 import { DatePicker, LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 
-
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-
+import { AuthContext } from 'src/context/AuthContext'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
 const defaultValues = {
   incidentType: '',
   misReportedBy: '',
-  notes: '',
+  notes: ''
 }
 
 const schema = yup.object().shape({
   misReportedBy: yup.string().required('Reporter is required'),
   notes: yup.string().required('Notes are required'),
-  incidentType: yup.string().required('Incident type is required'),
+  incidentType: yup.string().required('Incident type is required')
 })
-
 
 const MissReportIncidentForm = ({
   missReportIncidence,
   missReportIncidentForm,
   setMissReportIncidentForm,
-  animalId,
+  animalId
 }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
+  const authData = useContext(AuthContext)
 
   const [preparedByUsers, setPreparedByUsers] = useState([])
   const [defaultPreparedBy, setDefaultPreparedBy] = useState(null)
@@ -56,7 +56,7 @@ const MissReportIncidentForm = ({
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFileName, setSelectedFileName] = useState(null)
 
-  const [previewUrl, setPreviewUrl] = useState(null)  // ADD THIS
+  const [previewUrl, setPreviewUrl] = useState(null) // ADD THIS
 
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
 
@@ -66,7 +66,29 @@ const MissReportIncidentForm = ({
     }
   }, [missReportIncidence])
 
+  // Fetch user list from context zoo and prefill current user
+  const getUsers = async () => {
+    try {
+      const zoo_id = authData?.userData?.user?.zoos?.[0]?.zoo_id
+      if (!zoo_id) return
+      const Users = await getUserList({ zoo_id })
+      setPreparedByUsers(Users?.data || [])
+    } catch (error) {
+      Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
+    }
+  }
 
+  useEffect(() => {
+    if (missReportIncidentForm) {
+      getUsers()
+      const user = authData?.userData?.user
+      if (user) {
+        const current = { user_id: user?.user_id, user_name: `${user?.user_first_name} ${user?.user_last_name}` }
+        setDefaultPreparedBy(current)
+        setValue('misReportedBy', current.user_id)
+      }
+    }
+  }, [missReportIncidentForm, authData])
 
   const {
     control,
@@ -91,10 +113,14 @@ const MissReportIncidentForm = ({
 
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml']
     if (!file || !allowedTypes.includes(file.type)) {
-      Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
-      return
+      Toaster({
+        type: 'error',
+        message: 'Only image files are supported. Please upload a PNG/JPG/GIF/WebP/SVG.',
+        ignoreCase: true
+      })
+      
+return
     }
-
 
     setSelectedFile(file)
     setPreviewUrl(URL.createObjectURL(file))
@@ -104,6 +130,8 @@ const MissReportIncidentForm = ({
       clearErrors('attachment')
     }
   }
+
+
   ////////////////////////////////////////////////////////////
   const onSubmit = async ({ localIdentifierType, LocalIdentifier }) => {
     setUploadingAttachment(true)
@@ -140,7 +168,6 @@ const MissReportIncidentForm = ({
     }
   }, [previewUrl])
 
-
   const SpeciesDietCard = () => (
     <Box
       sx={{
@@ -165,7 +192,7 @@ const MissReportIncidentForm = ({
             fontWeight: '500',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            whiteSpace: 'nowrap'
           }}
         >
           Report Escaped/missing
@@ -183,15 +210,17 @@ const MissReportIncidentForm = ({
       </IconButton>
     </Box>
   )
+
   const basicStyle = {
     // backgroundColor: theme.palette.primary.contrastText,
     // borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
     // width: '100%',
     '& .MuiOutlinedInput-root': {
       borderRadius: '4px'
-    },
+    }
   }
-  return (
+  
+return (
     <Drawer
       anchor='right'
       open={missReportIncidentForm}
@@ -226,20 +255,18 @@ const MissReportIncidentForm = ({
                 gap: '24px'
               }}
             >
-
-
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: theme.palette.primary.contrastText,
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: theme.palette.primary.contrastText,
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='incidentType'
@@ -248,7 +275,7 @@ const MissReportIncidentForm = ({
                       render={({ field: { value, onChange } }) => (
                         <Autocomplete
                           options={['Found', 'Missing']} // 🔹 Static options
-                          value={value || null}          // 🔹 Bind to form value
+                          value={value || null} // 🔹 Bind to form value
                           onChange={(e, val) => onChange(val || '')} // 🔹 Update on selection
                           renderInput={params => (
                             <TextField
@@ -258,7 +285,7 @@ const MissReportIncidentForm = ({
                               error={Boolean(errors.incidentType)}
                               helperText={errors?.incidentType?.message}
                               sx={{
-                                ...basicStyle,
+                                ...basicStyle
                               }}
                             />
                           )}
@@ -289,7 +316,7 @@ const MissReportIncidentForm = ({
                               error={Boolean(errors.misReportedBy)}
                               helperText={errors?.misReportedBy?.message}
                               sx={{
-                                ...basicStyle,
+                                ...basicStyle
                               }}
                             />
                           )}
@@ -307,21 +334,23 @@ const MissReportIncidentForm = ({
                     fontSize: 20,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: theme.palette.customColors.OnSurfaceVariant,
+                    color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
                   Notes
                 </Typography>
 
-                <Box sx={{
-                  p: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  backgroundColor: theme.palette.primary.contrastText,
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                }}>
+                <Box
+                  sx={{
+                    p: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    backgroundColor: theme.palette.primary.contrastText,
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='notes'
@@ -337,7 +366,8 @@ const MissReportIncidentForm = ({
                           error={Boolean(errors.notes)}
                           helperText={errors.notes?.message}
                           sx={{
-                            ...basicStyle,
+                            ...basicStyle
+
                             // '& .MuiOutlinedInput-root': {
                             //   '& fieldset': {
                             //     borderColor: errors?.localIdentifier?.message && 'red !important',
@@ -359,7 +389,6 @@ const MissReportIncidentForm = ({
                   </FormControl>
                 </Box>
               </Box>
-
             </Box>
           </>
         </Box>
@@ -390,6 +419,7 @@ const MissReportIncidentForm = ({
             sx={{ height: '58px', width: '514px', mx: 4 }}
             onClick={() => {
               handleSubmit()
+
               // setMissReportIncidentForm(false)
             }}
             disabled={uploadingAttachment}
@@ -399,13 +429,8 @@ const MissReportIncidentForm = ({
           </LoadingButton>
         </Box>
       </form>
-
-
     </Drawer>
   )
 }
 
 export default MissReportIncidentForm
-
-
-

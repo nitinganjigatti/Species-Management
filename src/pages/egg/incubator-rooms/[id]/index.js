@@ -128,6 +128,7 @@ const RoomDetails = () => {
         console.error(error)
       }
     }, 1000),
+
     // []
     [fetchTableData]
   )

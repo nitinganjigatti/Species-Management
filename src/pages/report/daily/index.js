@@ -105,11 +105,11 @@ const Animal = () => {
             limit: paginationModel.pageSize
           })
           if (Array.isArray(response)) {
-            // const modifiedResponse = [
-            //   ...response,
-            //   { id: 12, title: 'Food Wastage', key: 'food_wastage', action: 'Download' }
-            // ]
-            setReportData(response)
+            const modifiedResponse = [
+              ...response,
+              { id: 12, title: 'Food Wastage', key: 'food_wastage', action: 'Download' }
+            ]
+            setReportData(modifiedResponse)
           } else {
             console.error('error >')
           }

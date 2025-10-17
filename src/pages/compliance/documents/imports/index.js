@@ -16,6 +16,7 @@ import Utility from 'src/utility'
 import { useTheme } from '@mui/material/styles'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
+import { ExportButton } from 'src/views/utility/render-snippets'
 import { format, subMonths } from 'date-fns'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
@@ -28,6 +29,7 @@ const ImportsPage = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [selectedId, setSelectedId] = useState(null)
   const [sortModel, setSortModel] = useState([])
+  const [exportLoading, setExportLoading] = useState(false)
 
   // const [filterDate, setFilterDate] = useState({
   //   startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
@@ -107,6 +109,51 @@ const ImportsPage = () => {
     setLoading(false)
   }, [searchValue, paginationModel, sortModel, filterDate, selectedOptions])
 
+  const handleExport = async () => {
+    setExportLoading(true)
+    try {
+      const formatDate = dateString => {
+        if (!dateString) return null
+
+        return new Date(dateString).toISOString().split('T')[0]
+      }
+
+      const prepareFilterParams = key => {
+        return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+      }
+
+      const params = {
+        q: searchValue,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        sort: sortModel?.[0]?.sort,
+        sortBy: sortModel?.[0]?.field,
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        species: prepareFilterParams('Species'),
+        exporting_country: prepareFilterParams('Exporting country'),
+        exporter: prepareFilterParams('Exporter'),
+        importer: prepareFilterParams('Importer'),
+        missing_docs: prepareFilterParams('Documents'),
+        response_type: 'csv'
+      }
+      const res = await getImportsList(params)
+
+      const fileUrl = res?.data
+      if (fileUrl) {
+        Utility.downloadFileFromURL(fileUrl, `Imports Report`)
+        Toaster({ type: 'success', message: res?.message || 'Report downloaded successfully!' })
+      } else {
+        Toaster({ type: 'error', message: 'File URL not found in response' })
+      }
+    } catch (error) {
+      console.error('Error exporting report:', error)
+      Toaster({ type: 'error', message: 'Failed to download the report' })
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchExportPermits()
   }, [fetchExportPermits])
@@ -129,6 +176,17 @@ const ImportsPage = () => {
   }
 
   const columns = [
+    {
+      flex: 0.01,
+      minWidth: 100,
+      field: 'uid',
+      headerName: 'SL.NO',
+      renderCell: params => (
+        <Typography sx={{ px: 2, width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {params.value}
+        </Typography>
+      )
+    },
     {
       flex: 0.12,
       minWidth: 300,
@@ -265,6 +323,7 @@ const ImportsPage = () => {
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                 />
               </Box>
+              <ExportButton loading={exportLoading} tooltip='Download Report' onClick={handleExport} />
               <Button
                 variant='outlined'
                 sx={{

@@ -1,6 +1,7 @@
 import { Button, styled, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useState, useEffect, useRef } from 'react'
+import Utility from 'src/utility'
 
 const HorizontalDateNav = ({
   dates = null,
@@ -22,60 +23,66 @@ const HorizontalDateNav = ({
   const generateDates = () => {
     if (dates) return dates
 
-    const generatedDates = []
-    const start = startDate || new Date()
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // const generatedDates = []
+    // const start = startDate || new Date()
+    // const today = new Date()
+    // today.setHours(0, 0, 0, 0)
 
-    for (let i = 1; i < numberOfDays - 1; i++) {
-      const currentDate = new Date(start)
-      currentDate.setDate(start.getDate() + i)
+    // for (let i = 1; i < numberOfDays - 1; i++) {
+    //   const currentDate = new Date(start)
+    //   currentDate.setDate(start.getDate() + i)
 
-      const isDisabled = disabledDates.some(d => d.toDateString() === currentDate.toDateString())
-      const hasIndicator = specialDates.some(d => d.toDateString() === currentDate.toDateString())
+    //   const isDisabled = disabledDates.some(d => d.toDateString() === currentDate.toDateString())
+    //   const hasIndicator = specialDates.some(d => d.toDateString() === currentDate.toDateString())
 
-      generatedDates.push({
-        date: currentDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-        day: currentDate.toLocaleDateString('en-US', { weekday: 'short' }),
-        fullDate: currentDate,
-        isToday: false,
-        hasIndicator,
-        isDisabled,
-        indicatorColor: hasIndicator ? indicatorColor : undefined
-      })
-    }
+    //   generatedDates.push({
+    //     date: currentDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+    //     day: currentDate.toLocaleDateString('en-US', { weekday: 'short' }),
+    //     fullDate: currentDate,
+    //     isToday: false,
+    //     hasIndicator,
+    //     isDisabled,
+    //     indicatorColor: hasIndicator ? indicatorColor : undefined
+    //   })
+    // }
 
-    const prevDate = new Date(today)
-    prevDate.setDate(prevDate.getDate() - 1)
+    // const prevDate = new Date(today)
+    // prevDate.setDate(prevDate.getDate() - 1)
 
-    generatedDates.push({
-      date: prevDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-      day: prevDate.toLocaleDateString('en-US', { weekday: 'short' }),
-      fullDate: prevDate,
-      isToday: false,
-      hasIndicator: false,
-      isDisabled: false
-    })
+    // generatedDates.push({
+    //   date: prevDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+    //   day: prevDate.toLocaleDateString('en-US', { weekday: 'short' }),
+    //   fullDate: prevDate,
+    //   isToday: false,
+    //   hasIndicator: false,
+    //   isDisabled: false
+    // })
 
-    generatedDates.push({
-      date: today.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-      day: today.toLocaleDateString('en-US', { weekday: 'short' }),
-      fullDate: today,
-      isToday: true,
-      hasIndicator: true,
-      indicatorColor: '#ff0000',
-      isDisabled: false
-    })
+    // generatedDates.push({
+    //   date: today.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+    //   day: today.toLocaleDateString('en-US', { weekday: 'short' }),
+    //   fullDate: today,
+    //   isToday: true,
+    //   hasIndicator: true,
+    //   indicatorColor: '#ff0000',
+    //   isDisabled: false
+    // })
 
-    return generatedDates
+    // return generatedDates
   }
+
+  useEffect(() => {
+    console.log('dates', dates)
+  }, [dates])
+  useEffect(() => {
+    console.log('selectedDate', selectedDate)
+  }, [selectedDate])
 
   const dateItems = generateDates()
   const displayYear = year || new Date().getFullYear()
 
   const handleDateClick = dateItem => {
-    if (dateItem.isDisabled) return
-    setInternalSelectedDate(dateItem.date)
+    setInternalSelectedDate(dateItem)
     onDateSelect(dateItem)
   }
 
@@ -88,7 +95,7 @@ const HorizontalDateNav = ({
   // Auto-scroll to current date on component mount
   useEffect(() => {
     const scrollToCurrentDate = () => {
-      const currentDateButton = dateButtonRefs.current[currentSelectedDate]
+      const currentDateButton = dateButtonRefs.current[selectedDate]
       const scrollArea = scrollAreaRef.current
 
       if (currentDateButton && scrollArea) {
@@ -109,25 +116,27 @@ const HorizontalDateNav = ({
     const timeoutId = setTimeout(scrollToCurrentDate, 100)
 
     return () => clearTimeout(timeoutId)
-  }, [currentSelectedDate, dateItems])
+  }, [selectedDate, dateItems])
 
   return (
     <ScrollContainer style={containerStyle}>
       <YearLabel>{displayYear}</YearLabel>
       <DateScrollArea ref={scrollAreaRef}>
-        {dateItems.map((dateItem, index) => (
+        {dateItems?.map((dateItem, index) => (
           <DateButton
-            key={`${dateItem.date}-${index}`}
-            ref={el => (dateButtonRefs.current[dateItem.date] = el)}
-            isSelected={currentSelectedDate === dateItem.date}
-            hasIndicator={dateItem.hasIndicator}
-            indicatorColor={dateItem.indicatorColor || indicatorColor}
-            disabled={dateItem.isDisabled}
+            key={dateItem}
+            ref={el => (dateButtonRefs.current[dateItem] = el)}
+            isSelected={selectedDate === dateItem}
+
+            // hasIndicator={dateItem.hasIndicator}
+            indicatorColor={indicatorColor}
+
+            // disabled={dateItem.isDisabled}
             onClick={() => handleDateClick(dateItem)}
             style={dateButtonStyle}
             sx={{
               '&:hover':
-                currentSelectedDate === dateItem.date
+                selectedDate === dateItem
                   ? {}
                   : {
                       backgroundColor: 'rgba(0, 0, 0, 0.04)',
@@ -136,13 +145,13 @@ const HorizontalDateNav = ({
             }}
           >
             <Box display='flex' alignItems='center' gap={2}>
-              {dateItem.hasIndicator && (
+              {dateItem === selectedDate && (
                 <Box
                   sx={{
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    backgroundColor: dateItem.indicatorColor || indicatorColor
+                    backgroundColor: indicatorColor
                   }}
                 />
               )}
@@ -150,21 +159,21 @@ const HorizontalDateNav = ({
                 variant='body2'
                 fontWeight={400}
                 sx={{
-                  color: currentSelectedDate === dateItem.date ? '#FFF' : '#44544A'
+                  color: selectedDate === dateItem ? '#FFF' : '#44544A'
                 }}
               >
-                {dateItem.date}
+                {Utility.formatDisplayDate(dateItem)}
               </Typography>
             </Box>
-            <Typography
+            {/* <Typography
               variant='body2'
               fontWeight={400}
               sx={{
-                color: currentSelectedDate === dateItem.date ? '#FFF' : '#44544A'
+                color: currentSelectedDate === dateItem ? '#FFF' : '#44544A'
               }}
             >
-              {dateItem.day}
-            </Typography>
+              {dateItem}
+            </Typography> */}
           </DateButton>
         ))}
       </DateScrollArea>
@@ -179,7 +188,7 @@ const ScrollContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   position: 'relative',
   px: theme.spacing(1),
-  height: '40px',
+  height: '48px',
   backgroundColor: '#E8F4F2',
   borderRadius: theme.spacing(1),
   width: '100%'
@@ -192,38 +201,46 @@ const DateScrollArea = styled(Box)(({ theme }) => ({
   whiteSpace: 'nowrap',
   flex: 1,
   height: '100%',
-  paddingLeft: theme.spacing(10), // Space for fixed year
+  paddingLeft: theme.spacing(25), // Space for fixed year
+  // paddingRight: theme.spacing(2), // Space for fixed year
   '&::-webkit-scrollbar': {
     display: 'none'
   },
   '-ms-overflow-style': 'none',
-  'scrollbar-width': 'none',
-  [theme.breakpoints.up('md')]: {
-    paddingLeft: 0,
-    overflowX: 'visible'
-  }
+  'scrollbar-width': 'none'
+
+  // [theme.breakpoints.up('md')]: {
+  //   paddingLeft: 0,
+  //   overflowX: 'visible'
+  // }
 }))
 
 const YearLabel = styled(Typography)(({ theme }) => ({
-  fontSize: '18px',
-  fontWeight: 600,
-  color: theme.palette.text.secondary,
-  padding: theme.spacing(1.25, 2),
+  fontSize: '20px',
+  fontWeight: 500,
+  backgroundColor: theme.palette.customColors.displaybgSecondary,
+  color: theme.palette.customColors.OnPrimaryContainer,
+
+  // padding: '8px 16px',
+  height: '100%',
   borderRadius: theme.spacing(0.75),
-  minWidth: '70px',
-  textAlign: 'center',
+  minWidth: '82px',
+
   flexShrink: 0,
   position: 'absolute',
-  left: theme.spacing(1),
+
   top: '50%',
   transform: 'translateY(-50%)',
-  backgroundColor: '#E8F4F2',
   zIndex: 1,
-  [theme.breakpoints.up('md')]: {
-    position: 'static',
-    transform: 'none',
-    backgroundColor: 'transparent'
-  }
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+
+  // [theme.breakpoints.up('md')]: {
+  //   position: 'static',
+  //   transform: 'none',
+  //   backgroundColor: 'transparent'
+  // }
 }))
 
 const DateButton = styled(Button, {
@@ -233,13 +250,15 @@ const DateButton = styled(Button, {
     position: 'relative',
     width: 120,
     minWidth: 120,
-    height: 'calc(100% - 8px)', // Account for container padding
+
+    // height: 'calc(100% - 8px)', // Account for container padding
+    height: '48px',
     marginLeft: theme.spacing(0.5),
     px: 1,
     py: 0,
     borderRadius: theme.spacing(0.75),
-    backgroundColor: isSelected ? '#37474f' : 'transparent',
-    color: isSelected ? '#FFF' : theme.palette.text.primary,
+    backgroundColor: isSelected ? theme.palette.customColors.OnPrimaryContainer : 'transparent',
+    color: isSelected ? theme.palette.customColors.OnPrimary : theme.palette.customColors.OnSurfaceVariant,
     fontSize: '14px',
     fontWeight: 500,
     textTransform: 'none',
@@ -272,7 +291,7 @@ const DateButton = styled(Button, {
       width: 8,
       height: 8,
       borderRadius: '50%',
-      backgroundColor: indicatorColor || '#ff5722',
+      backgroundColor: indicatorColor || theme.palette.customColors?.error?.main,
       opacity: hasIndicator ? 1 : 0,
       transition: 'opacity 0.2s ease'
     }

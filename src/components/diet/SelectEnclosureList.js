@@ -127,6 +127,7 @@ const SelectEnclosureList = ({
     <Drawer
       anchor='right'
       open={open}
+
       //onClose={onClose}
       sx={{
         '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100%' },
@@ -332,6 +333,7 @@ const SelectEnclosureList = ({
                       </ListItemAvatar>
                       <ListItemText
                         primary={enclosure.user_enclosure_name}
+
                         //secondary={enclosure.location || '-'}
                         slotProps={{
                           primary: {
@@ -394,7 +396,10 @@ const SelectEnclosureList = ({
               borderRadius: '8px',
               '&:hover': { bgcolor: '#218838' }
             }}
-            onClick={() => onSelectEnclosures(selectedEnclosures)}
+            onClick={() => {
+              onSelectEnclosures(selectedEnclosures)
+              onClose?.()
+            }}
             disabled={selectedEnclosures.length <= 0}
           >
             CONTINUE

@@ -5,10 +5,11 @@ import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
 import { useAuth } from 'src/hooks/useAuth'
 
-const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, loader }) => {
+const BasicDetails = ({ airwaybillvalue, fileNumberValue, selectedId, startDate, uploadedFile, loader }) => {
   const theme = useTheme()
   const auth = useAuth()
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
+
   // const rawValue = airwaybillvalue || ''
   // const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
   // const formattedValue =
@@ -42,7 +43,8 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
 
     return imgPath?.default
   }
-  return (
+  
+return (
     <>
       {!loader && airwaybillvalue ? (
         <Box
@@ -64,6 +66,15 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
               </Typography>
               <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
                 {airwaybillvalue}
+              </Typography>
+            </Grid>
+
+            <Grid size={{ xs: 6, md: 4 }}>
+              <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
+                File Number
+              </Typography>
+              <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
+                {fileNumberValue || 'N/A'}
               </Typography>
             </Grid>
 

@@ -68,14 +68,30 @@ const SelectSectionList = ({
     }
   }
 
+  // useEffect(() => {
+  //   if (open && siteId) {
+  //     fetchSections()
+  //   }
+  //   if (!open && siteId && openFilterDrawer) {
+  //     fetchSections()
+  //   }
+  // }, [open, siteId, openFilterDrawer, pageNo])
+
+  // Fetch only when the Section drawer is opened, and when pagination advances while open
   useEffect(() => {
     if (open && siteId) {
+      // Reset pagination and list when opening or site changes
+      setPageNo(1)
+      setSectionsData([])
       fetchSections()
     }
-    if (!open && siteId && openFilterDrawer) {
+  }, [open, siteId])
+
+  useEffect(() => {
+    if (open && siteId && pageNo > 1) {
       fetchSections()
     }
-  }, [open, siteId, openFilterDrawer, pageNo])
+  }, [pageNo])
 
   useEffect(() => {
     if (open && tempSelectedItems?.Section) {
@@ -124,6 +140,7 @@ const SelectSectionList = ({
     <Drawer
       anchor='right'
       open={open}
+
       // onClose={onClose}
       sx={{
         '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100%' },
@@ -165,7 +182,14 @@ const SelectSectionList = ({
               Select a section from the list below
             </Typography>
           </Box>
-          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
+          <IconButton
+            size='small'
+            sx={{ color: 'text.primary' }}
+            onClick={() => {
+              onClose()
+              setSearchTerm('')
+            }}
+          >
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
@@ -325,6 +349,7 @@ const SelectSectionList = ({
                     </ListItemAvatar>
                     <ListItemText
                       primary={section?.section_name}
+
                       // secondary={section.location || '-'}
                       slotProps={{
                         primary: {
@@ -386,7 +411,11 @@ const SelectSectionList = ({
               borderRadius: '8px',
               '&:hover': { bgcolor: '#218838' }
             }}
-            onClick={() => onSelectSections(selectedSections)}
+            onClick={() => {
+              onSelectSections(selectedSections)
+              setSearchTerm('')
+              onClose?.()
+            }}
             disabled={selectedSections?.length <= 0}
           >
             CONTINUE

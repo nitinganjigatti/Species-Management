@@ -13,10 +13,12 @@ import {
 
 const validationSchema = yup.object({
   airwaybillvalue: yup.string().required('Airway bill number is required'),
+
   // .test('valid-awb', 'Enter a valid 11-digit airway bill number', value => {
   //   const strippedValue = value.replace(/\s/g, '')
   //   return /^\d{11}$/.test(strippedValue)
   // }),
+  fileNumberValue: yup.string().required('File Number is required'),
   startDate: yup.date().nullable().required('Shipment date is required'),
   uploadedFile: yup
     .mixed()
@@ -26,13 +28,15 @@ const validationSchema = yup.object({
 
       if (value.type) {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/x-png', 'application/pdf']
-        return allowedTypes.includes(value.type)
+        
+return allowedTypes.includes(value.type)
       }
 
       if (value.file_original_name) {
         const ext = value.file_original_name.split('.').pop().toLowerCase()
         const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf']
-        return allowedExtensions.includes(ext)
+        
+return allowedExtensions.includes(ext)
       }
 
       return false
@@ -61,6 +65,7 @@ const ShipmentBasicDetails = React.forwardRef(
     const [startDate, setStartDate] = useState(null)
     const [uploadedFile, setUploadedFile] = useState(null)
     const [transportType, setTransportType] = useState('airCargo')
+    const [fileNumberValue, setFileNumberValue] = useState('')
     const [errors, setErrors] = useState({})
     const [loader, setLoader] = useState(false)
     const router = useRouter()
@@ -72,16 +77,21 @@ const ShipmentBasicDetails = React.forwardRef(
 
     const validateFields = async () => {
       try {
-        await validationSchema.validate({ airwaybillvalue, startDate, uploadedFile }, { abortEarly: false })
+        await validationSchema.validate(
+          { airwaybillvalue, fileNumberValue, startDate, uploadedFile },
+          { abortEarly: false }
+        )
         setErrors({})
-        return true
+        
+return true
       } catch (validationErrors) {
         const formattedErrors = {}
         validationErrors.inner.forEach(error => {
           formattedErrors[error.path] = error.message
         })
         setErrors(formattedErrors)
-        return false
+        
+return false
       }
     }
 
@@ -123,6 +133,7 @@ const ShipmentBasicDetails = React.forwardRef(
           setAirwaybillvalue(response?.data?.shipment_number)
           setStartDate(response?.data?.shipment_date ? response?.data?.shipment_date : null)
           setTransportType(response?.data?.transport_type)
+          setFileNumberValue(response?.data?.file_number)
           setUploadedFile(response?.data?.documents[0])
           setStatus(response?.data?.shipment_state)
         } else {
@@ -152,11 +163,13 @@ const ShipmentBasicDetails = React.forwardRef(
       const isValid = await validateFields()
       if (isValid) {
         const isFileObject = uploadedFile instanceof File
+
         const transformedData = {
           //shipment_number: airwaybillvalue.replace(/\s+/g, '') || '',
           shipment_number: airwaybillvalue || '',
           shipment_date: dayjs(startDate).format('YYYY-MM-DD') || '',
           transport_type: transportType || '',
+          file_number: fileNumberValue || '',
           shipment_state: saveStatus || '',
           notes: 'test' || '',
           document_type_id: mastersData?.document_type_id || 5,
@@ -173,6 +186,7 @@ const ShipmentBasicDetails = React.forwardRef(
 
         try {
           setLoader(true)
+
           const response = id
             ? await updateShipmentBasicDetails(id, transformedData)
             : await addShipmentBasicDetails(transformedData)
@@ -184,17 +198,21 @@ const ShipmentBasicDetails = React.forwardRef(
             if (!isCalledViaRef) {
               setExpanded(['animals-details'])
             }
-            return true
+            
+return true
+
             //saveStatus === 'completed' ? router.push(`/compliance/documents/shipments`) : ''
           } else {
             setLoader(false)
             Toaster({ type: 'error', message: response?.message })
-            return false
+            
+return false
           }
         } catch (e) {
           setLoader(false)
           Toaster({ type: 'error', message: JSON.stringify(e) })
-          return false
+          
+return false
         }
       }
     }
@@ -213,6 +231,8 @@ const ShipmentBasicDetails = React.forwardRef(
             setUploadedFile={setUploadedFile}
             setTransportType={setTransportType}
             transportType={transportType}
+            fileNumberValue={fileNumberValue}
+            setFileNumberValue={setFileNumberValue}
             errors={errors}
             setErrors={setErrors}
             loader={loader}
@@ -220,6 +240,7 @@ const ShipmentBasicDetails = React.forwardRef(
         ) : id && action === 'details' ? (
           <BasicDetails
             airwaybillvalue={airwaybillvalue}
+            fileNumberValue={fileNumberValue}
             setShowEdit={setShowEdit}
             showEdit={showEdit}
             startDate={startDate}
@@ -238,6 +259,8 @@ const ShipmentBasicDetails = React.forwardRef(
             setUploadedFile={setUploadedFile}
             setTransportType={setTransportType}
             transportType={transportType}
+            fileNumberValue={fileNumberValue}
+            setFileNumberValue={setFileNumberValue}
             errors={errors}
             setErrors={setErrors}
             loader={loader}

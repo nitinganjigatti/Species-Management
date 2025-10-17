@@ -81,7 +81,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           attachment_id: `${attachmentId}`
         })
 
-        Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+        Toaster({ type: 'success', message: 'Diet Activated Successfully' })
 
         // Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
@@ -163,7 +163,10 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   pt: '6px',
                   width: 48,
                   height: 48,
-                  background: theme.palette.customColors.avatarBackground,
+                  background:
+                    type === 'attach'
+                      ? theme.palette.customColors.avatarBackground
+                      : theme.palette.customColors.mdAntzNeutral,
                   overflow: 'hidden'
                 }}
               >
@@ -519,6 +522,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               setUploadDietDrawer(true)
             }}
             disabled={dietModuleAccess === 'VIEW'}
+
             // loading={loader}
           >
             UPLOAD NEW

@@ -28,12 +28,15 @@ const BasicDetailsAddEdit = ({
   setUploadedFile,
   transportType,
   setTransportType,
+  fileNumberValue,
+  setFileNumberValue,
   loader,
   onSave,
   errors,
   setErrors
 }) => {
   const theme = useTheme()
+
   const handleAirwaybillChange = event => {
     // let inputValue = event.target.value.replace(/\D/g, '')
     // if (inputValue.length > 11) inputValue = inputValue.slice(0, 11)
@@ -47,6 +50,10 @@ const BasicDetailsAddEdit = ({
     setErrors(prev => ({ ...prev, airwaybillvalue: null }))
   }
 
+  const handleFileNmbChange = e => {
+    setFileNumberValue(e.target.value)
+  }
+
   const handleDateChange = date => {
     setStartDate(date)
     setErrors(prev => ({ ...prev, startDate: null }))
@@ -56,6 +63,7 @@ const BasicDetailsAddEdit = ({
     setUploadedFile(file)
     setErrors(prev => ({ ...prev, uploadedFile: null }))
   }
+
   const handleChange = e => {
     setTransportType(e.target.value)
   }
@@ -142,6 +150,26 @@ const BasicDetailsAddEdit = ({
       </Grid>
 
       <Grid container spacing={2} sx={{ mt: 4 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Grid container spacing={3}>
+            <TextField
+              fullWidth
+              label='Enter File Number*'
+              variant='outlined'
+              value={fileNumberValue}
+              onChange={handleFileNmbChange}
+              error={Boolean(errors.fileNumberValue)}
+              helperText={errors.fileNumberValue}
+              sx={{ marginTop: '4px', mr: 2 }}
+              slotProps={{
+                input: {
+                  //maxLength: 31,
+                  style: { height: '52px' }
+                }
+              }}
+            />
+          </Grid>
+        </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload
             name='(AWB) Airway Bill'

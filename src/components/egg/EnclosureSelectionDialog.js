@@ -49,7 +49,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
   }
 
   const schema = yup.object().shape({
-    // site_id: yup.string().required('Site is required'),
+    site_id: yup.string().required('Site is required'),
     section: yup
       .object()
       .shape({
@@ -189,10 +189,12 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
   })
 
   const onSubmit = params => {
-    // console.log(params)
     getEnclosureDetails(params?.enclosure)
     handleClose(true)
   }
+
+  const isSectionDisabled = !watch('site_id')
+  const isEnclosureDisabled = !watch('section.section_id')
 
   return (
     <>
@@ -210,8 +212,8 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
             <form>
               <Grid container spacing={2}>
                 <Grid item size={{ xs: 6 }}>
-                  <FormControl fullWidth sx={{ mb: 4, mt: 4 }}>
-                    <InputLabel id='site_id'>Select Site</InputLabel>
+                  <FormControl fullWidth sx={{ mb: 4, mt: 4 }} error={Boolean(errors?.site_id)}>
+                    <InputLabel id='site_id'>Select Site*</InputLabel>
                     <Controller
                       name='site_id'
                       control={control}
@@ -237,7 +239,8 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                             setSectionList([])
                             setEnclosureList([])
                             await searchSections('', e.target.value)
-                            return onChange(e)
+                            
+return onChange(e)
                           }}
                           labelId='site_id'
                           error={Boolean(errors?.site_id)}
@@ -266,6 +269,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                           loading={loadingSections}
                           name='section'
                           value={value}
+                          disabled={isSectionDisabled}
                           placeholder='Section'
                           id='section'
                           options={sectionList?.length > 0 ? sectionList : []}
@@ -295,7 +299,8 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                               setEnclosureList([])
                               setSelectedSectionId(val?.section_id)
                               await searchEnclosures({ searchText: '', section_id: val?.section_id })
-                              return onChange(val)
+                              
+return onChange(val)
                             }
                           }}
                           onClose={() => searchSections('', selected_site_id)}
@@ -330,6 +335,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                         <Autocomplete
                           loading={loadingEnclosure}
                           name='enclosure'
+                          disabled={isEnclosureDisabled}
                           value={value}
                           placeholder='Select Enclosure'
                           id='enclosure'

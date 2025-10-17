@@ -170,6 +170,7 @@ const SpeciesAddEdit = ({
             s + Number(sp.male_count || 0) + Number(sp.female_count || 0) + Number(sp.undeterminate_count || 0),
           0
         )
+
         return sum + (total || 0)
       }, 0) || 0
 
@@ -360,6 +361,7 @@ const SpeciesAddEdit = ({
                               key={idx}
                               display='flex'
                               justifyContent='space-between'
+
                               // py={2}
                               sx={{
                                 borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
@@ -474,6 +476,7 @@ const SpeciesAddEdit = ({
                         Other Animals (
                         {selectedExportData.others.reduce((sum, item) => {
                           const s = item.species || {}
+
                           return (
                             sum +
                             (parseInt(s.total_count) ||
@@ -496,6 +499,7 @@ const SpeciesAddEdit = ({
                   >
                     {selectedExportData.others.map((item, index) => {
                       const species = item.species
+
                       const totalAnimals =
                         Number(species?.male_count || 0) +
                         Number(species?.female_count || 0) +
@@ -506,6 +510,7 @@ const SpeciesAddEdit = ({
                           sx={{
                             background: theme.palette.common.white,
                             pl: 4,
+
                             // pt: 3,
                             // pb: 4,
                             borderRadius: '8px',
@@ -688,6 +693,7 @@ const SpeciesAddEdit = ({
             setexportPermitDrawerOpen(false)
             setSearchValue('')
           }}
+
           //onSelect={handleSpeciesSelect}
           handleSearch={handleSearch}
           exportsList={exportsList}

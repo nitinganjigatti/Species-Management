@@ -285,6 +285,7 @@ const AcquisitionFields = ({
                   date={value}
                   width={'100%'}
                   dateFormat='dd/MM/yyyy'
+
                   // showTimeSelect
                   // timeIntervals={15}
                   onChangeHandler={onChange}
@@ -372,6 +373,7 @@ const AcquisitionFields = ({
                   label='Male Count'
                   value={value}
                   variant='outlined'
+
                   // onChange={onChange}
                   onChange={e => {
                     onChange(e) // Update the value in the form
@@ -406,6 +408,7 @@ const AcquisitionFields = ({
                   placeholder='Enter the Female Count'
                   value={value}
                   variant='outlined'
+
                   // onChange={onChange}
                   onChange={e => {
                     onChange(e) // Update the value in the form
@@ -439,6 +442,7 @@ const AcquisitionFields = ({
                   placeholder='Enter the Others Count'
                   value={value}
                   variant='outlined'
+
                   // onChange={onChange}
                   onChange={e => {
                     onChange(e) // Update the value in the form

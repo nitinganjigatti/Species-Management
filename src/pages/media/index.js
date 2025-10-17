@@ -448,6 +448,7 @@ const Media = () => {
                 dataLength={filePreviews.length}
                 next={handleScroll}
                 hasMore={hasMore}
+
                 // loader={loading ? <CircularProgress /> : null}
                 style={{ overflow: 'hidden' }}
                 endMessage={
@@ -509,6 +510,7 @@ const Media = () => {
                                         component='video'
                                         controls
                                         height='160'
+
                                         // image={media?.user_media}
                                         src={media?.user_media}
                                         alt={media?.file_original_name}

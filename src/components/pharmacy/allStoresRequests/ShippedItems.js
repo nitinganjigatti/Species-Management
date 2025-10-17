@@ -47,7 +47,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
       )
     },
     {
-      width: 200,
+      width: 160,
       field: 'shipment_id',
       headerName: 'Shipment Id',
       renderCell: (params, rowId) => (
@@ -56,6 +56,19 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
             {params.row.shipment_id}
           </Typography>
         </div>
+      )
+    },
+    {
+      width: 120,
+      field: 'ro_no',
+      headerName: 'Belongs To',
+      align: 'left',
+      headerAlign: 'left',
+
+      renderCell: params => (
+        <Typography sx={{ color: 'primary.OnSurface', fontWeight: 500, fontSize: '14px' }}>
+          {Number(params?.row?.request_count) > 1 ? '-' : params?.row?.ro_no}
+        </Typography>
       )
     },
 

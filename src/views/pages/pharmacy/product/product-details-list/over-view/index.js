@@ -949,7 +949,7 @@ const Overview = props => {
             key={card.name}
             item
             size={{
-              xs: 6,
+              xs: 12,
               md: productDetails?.stock_type !== 'non_medical' ? 6 : 4,
               sm: 6,
               lg: productDetails?.stock_type !== 'non_medical' ? 3 : 4
@@ -1011,8 +1011,8 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
-          <Card sx={{ height: '100%' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
+          <Card sx={{ height: '100%', width: '100%' }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box
@@ -1132,7 +1132,7 @@ const Overview = props => {
         </Grid>
 
         <Grid item size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: '100%', width: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <InfoIcon sx={{ mr: 2, color: theme.palette.customColors.addPrimary, fontWeight: 'bold' }} />

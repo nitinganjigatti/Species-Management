@@ -327,6 +327,7 @@ const RecipeDetail = () => {
                             <Tab
                               style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                               value='2'
+
                               //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
                               label={`USED IN DIET ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                             />

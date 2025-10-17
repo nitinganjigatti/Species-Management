@@ -107,6 +107,7 @@ const SpeciesDietList = () => {
           limit: paginationModel.pageSize,
           with_diet: filterByDiet,
           sort_order: newModel?.sort?.toUpperCase(),
+
           // sort_by: newModel?.field,
           class_ids: classIds?.length > 0 ? classIds.toString() : ''
         }
@@ -201,6 +202,7 @@ const SpeciesDietList = () => {
     },
     {
       width: colWidths[2],
+
       // flex: 1,
       sortable: false,
       field: 'attachment_count',
@@ -248,6 +250,7 @@ const SpeciesDietList = () => {
         </Tooltip>
       )
     },
+
     // {
     //   width: colWidths[2],
     //   // flex: 1,
@@ -552,6 +555,7 @@ const SpeciesDietList = () => {
                   //   fileInputRef.current.click()
                   // }
                   setUploadDietDrawer(true)
+
                   // fileInputRef.current.click()
                 }}
                 sx={{
@@ -596,6 +600,7 @@ const SpeciesDietList = () => {
       const params = {
         // sort: sort,
         q: searchValue,
+
         // column: sortColumn,
         response_type: 'csv',
         with_diet: filterByDiet,
@@ -718,6 +723,7 @@ const SpeciesDietList = () => {
                         <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                         <TextField
                           value={searchValue}
+
                           // clearSearch={() => handleSearch('')}
                           onChange={event => handleSearch(event.target.value)}
                           variant='outlined'
@@ -869,6 +875,7 @@ const SpeciesDietList = () => {
               sortModel={sortModel}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
+
               // onRowClick={() => setSpeciesDetailsDrawer(true)}
               onCellClick={onCellClick}
             />
