@@ -506,7 +506,7 @@ const DailyReport = () => {
       />
       <Box
         sx={{
-          backgroundColor: '#0000000D',
+          backgroundColor: theme.palette.customColors.mdAntzNeutral,
           height: '32px',
           width: '32px',
           display: 'flex',
@@ -601,9 +601,9 @@ const DailyReport = () => {
                 borderRadius='4px'
                 textFielsSX={{
                   height: '40px',
-                  '& fieldset': { borderColor: '#C3CEC7' },
-                  '&:hover fieldset': { borderColor: '#C3CEC7' },
-                  '&.Mui-focused fieldset': { borderColor: '#C3CEC7' }
+                  '& fieldset': { borderColor: theme.palette.customColors.OutlineVariant },
+                  '&:hover fieldset': { borderColor: theme.palette.customColors.OutlineVariant },
+                  '&.Mui-focused fieldset': { borderColor: theme.palette.customColors.OutlineVariant }
                 }}
                 sx={{
                   gap: '4px',
@@ -612,7 +612,7 @@ const DailyReport = () => {
                     fontWeight: 400,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    color: '#C3CEC7'
+                    color: theme.palette.customColors.OutlineVariant
                   }
                 }}
               />
@@ -650,10 +650,10 @@ const DailyReport = () => {
 
                           /* real border is the notchedOutline fieldset */
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#C3CEC7'
+                            borderColor: theme.palette.customColors.OutlineVariant
                           },
                           '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#C3CEC7'
+                            borderColor: theme.palette.customColors.OutlineVariant
                           },
                           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                             borderColor: theme.palette.primary.main
