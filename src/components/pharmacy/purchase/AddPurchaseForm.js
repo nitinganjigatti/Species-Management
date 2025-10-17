@@ -53,7 +53,7 @@ import {
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
-import Utility from 'src/utility'
+import Utility, { downloadPDF } from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
@@ -1499,17 +1499,11 @@ const AddPurchaseForm = () => {
   const printInventory = async purchaseId => {
     try {
       setInvoicePrintLoader(true)
-      const printInvoice = await printPurchaseInvoice(purchaseId)
-      if (printInvoice?.success && printInvoice?.data) {
-        // window.open(printInvoice?.data, '_blank')
-        Utility?.downloadFileFromURL(printInvoice?.data, 'Invoice.Pdf')
-
-        toast.success(printInvoice?.message)
-        setInvoicePrintLoader(false)
-      } else {
-        toast.error(printInvoice?.message)
-        setInvoicePrintLoader(false)
-      }
+      await downloadPDF({
+        apiCall: printPurchaseInvoice,
+        params: purchaseId,
+        fileName: `Purchase_Invoice${Date.now()}.pdf`
+      })
     } catch (error) {
       toast.error(error?.message)
       setInvoicePrintLoader(false)
