@@ -19,14 +19,16 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 
+import { SURGERY_VISIT_TYPE_OPTIONS } from 'src/constants/Constants'
 import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
 import Toaster from 'src/components/Toaster'
-import { SURGERY_VISIT_TYPE_OPTIONS } from 'src/constants/Constants'
-import { addSurgeryMaster, getSurgeryMaster, updateSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
+
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
+
+import { addSurgeryMaster, getSurgeryMaster, updateSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
 
 const resolveBooleanStatus = value => {
   if (typeof value === 'string') {
@@ -334,14 +336,14 @@ const Surgery = () => {
             slotProps={{
               tooltip: {
                 sx: {
-                  backgroundColor: '#1F515B',
-                  color: '#fff',
+                  backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                  color: theme.palette.primary.contrastText,
                   boxShadow: '8px -1px 24px 0px #00000014'
                 }
               },
               arrow: {
                 sx: {
-                  color: '#1F515B'
+                  color: theme.palette.customColors.OnPrimaryContainer
                 }
               }
             }}
