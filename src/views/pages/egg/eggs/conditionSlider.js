@@ -1457,7 +1457,7 @@ const ConditionSlider = ({
                       )}
 
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='enclosure'>Sex Type *</InputLabel>
+                        <InputLabel id='sextype'>Sex Type *</InputLabel>
                         <Controller
                           name='sextype'
                           control={control}
@@ -1470,7 +1470,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='sextype'
                               error={Boolean(errors?.sextype)}
-                              ref={getFieldRef('sexingType')}
+                              ref={getFieldRef('sextype')}
                             >
                               {[
                                 { id: 'male', name: 'Male' },
