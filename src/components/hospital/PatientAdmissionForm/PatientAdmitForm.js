@@ -25,13 +25,17 @@ import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from './DoctorsDrawer'
 import { admitHospitalPatient, getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import { getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
+import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import dayjs from 'dayjs'
+import moment from 'moment'
+import { useHospital } from 'src/context/HospitalContext'
+import { debounce } from 'lodash'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -42,19 +46,24 @@ const defaultValues = {
   treatmentType: 'inpatient',
   holdingEnclosure: null,
   room: null,
-  admissionDate: new Date(),
-  admissionTime: ''
+  admission_date: dayjs(),
+  admission_time: dayjs()
 }
 
 const schema = yup.object().shape({
   treatmentType: yup.string().required('Treatment Type is Required'),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  holdingEnclosure: yup.object().required('Holding Enclosure is required')
+  holdingEnclosure: yup.object().required('Holding Enclosure is required'),
+  room: yup.object().required('Room is required'),
+  admission_date: yup.date().required('Admission date is required'),
+  admission_time: yup.string().required('Admission time is required')
 })
 
 const PatientAdmitForm = () => {
   const theme = useTheme()
   const router = useRouter()
+
+  const { selectedHospital } = useHospital()
 
   const { id } = router.query
 
@@ -63,7 +72,8 @@ const PatientAdmitForm = () => {
     handleSubmit,
     formState: { errors },
     setValue,
-    clearErrors
+    clearErrors,
+    watch
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -82,6 +92,8 @@ const PatientAdmitForm = () => {
   const [isRejectLoading, setIsSubmitLoading] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
   const [rooms, setRooms] = useState([])
+  const [searchRoom, setSearchRoom] = useState('')
+  const [searchEnclosure, setSearchEnclosure] = useState('')
 
   useEffect(() => {
     const getPatientInfo = async () => {
@@ -106,39 +118,75 @@ const PatientAdmitForm = () => {
   }, [id])
 
   useEffect(() => {
-    const getHospitalBeds = async () => {
+    const getHospitalRooms = async () => {
       try {
-        await getRoomsAndEnclosures({
-          hospital_id: 1,
+        await getHospitalRoomsList({
+          hospital_id: selectedHospital?.id,
           page: 1,
-          is_occupied: 'available'
+          per_page: 20,
+          q: searchRoom,
+          availability: 'available'
         }).then(res => {
           if (res?.success === true) {
-            setHoldingEnclosures(
+            setRooms(
               res?.data?.records?.map(item => ({
-                label: item?.bed_name,
+                label: item?.room_name,
                 value: item?.id
               }))
             )
           }
         })
       } catch (error) {
-        console.error(error, 'cannot Fetch hospital beds listing')
+        console.error(error, 'cannot Fetch hospital rooms listing')
+      }
+    }
+
+    getHospitalRooms()
+  }, [selectedHospital, searchRoom])
+
+  const selectedRoom = watch('room')
+
+  useEffect(() => {
+    const getHospitalBeds = async () => {
+      if (!selectedRoom?.value) return
+      try {
+        const res = await getRoomsAndEnclosures({
+          hospital_id: selectedHospital?.id,
+          room_id: selectedRoom.value,
+          page: 1,
+          is_occupied: 'available',
+          q: searchEnclosure
+        })
+        if (res?.success === true) {
+          setHoldingEnclosures(
+            res?.data?.records?.map(item => ({
+              label: item?.bed_name,
+              value: item?.id
+            }))
+          )
+        }
+      } catch (error) {
+        console.error('Cannot fetch hospital beds listing', error)
       }
     }
 
     getHospitalBeds()
-  }, [])
+  }, [selectedRoom, selectedHospital, searchEnclosure])
 
   const onSubmit = async data => {
     setSubmitLoader(true)
     try {
       const params = {
+        action: 'admit',
         treatment_type: data?.treatmentType,
         attend_by: selectedDoctor?.id,
         holding_enclosure: data?.holdingEnclosure?.value,
-        hospital_case_id: patientData?.hospital_case_id
+        hospital_case_id: patientData?.hospital_case_id,
+        admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
+        admit_time: moment(data?.admission_time).format('HH:mm'),
+        room_id: data?.room?.value
       }
+
       await admitHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
@@ -172,9 +220,35 @@ const PatientAdmitForm = () => {
     clearErrors('selectedDoctor')
   }
 
-  const handlePatientRejection = data => {
-    setIsRejecting(true)
+  const handlePatientRejection = async () => {
+    setIsSubmitLoading(true)
+    try {
+      const params = {
+        action: 'reject',
+        hospital_case_id: patientData?.hospital_case_id,
+        reject_reason: rejectionReason
+      }
+      await admitHospitalPatient(params).then(res => {
+        if (res?.success === true) {
+          Toaster({ type: 'success', message: res?.message })
+          setIsSubmitLoading(false)
+          setIsRejecting(false)
+          router.push({
+            pathname: `/hospital/incoming`
+          })
+        } else {
+          Toaster({ type: 'error', message: res?.message })
+          setIsSubmitLoading(false)
+        }
+      })
+    } catch (error) {
+      console.error('Cannot Reject Patient', error)
+    }
   }
+
+  const debouncedSearch = React.useMemo(() => debounce(val => setSearchRoom(val), 1000), [])
+
+  const debouncedEnclosureSearch = React.useMemo(() => debounce(val => setSearchEnclosure(val), 1000), [])
 
   return (
     <>
@@ -325,10 +399,15 @@ const PatientAdmitForm = () => {
                     </Typography>
                     <Grid container spacing={6}>
                       <Grid size={{ sm: 6, xs: 6 }}>
-                        <ControlledTimePicker control={control} name={'admissionTime'} label='Time' />
+                        <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
                       </Grid>
                       <Grid size={{ sm: 6, xs: 6 }}>
-                        <ControlledDatePicker control={control} name={'admissionDate'} label='Date' />
+                        <ControlledDatePicker
+                          control={control}
+                          name={'admission_date'}
+                          label='Date'
+                          defaultValue={dayjs()}
+                        />
                       </Grid>
                     </Grid>
                   </Grid>
@@ -428,9 +507,11 @@ const PatientAdmitForm = () => {
                       control={control}
                       errors={errors}
                       options={rooms}
+                      getOptionValue={option => option.value || ''}
                       getOptionLabel={option => option.label || ''}
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
                       required
+                      onInputChange={val => debouncedSearch(val)}
                       sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                       fullWidth
                     />
@@ -447,9 +528,11 @@ const PatientAdmitForm = () => {
                       control={control}
                       errors={errors}
                       options={holdingEnclosures}
+                      getOptionValue={option => option.value || ''}
                       getOptionLabel={option => option.label || ''}
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
                       required
+                      onInputChange={val => debouncedEnclosureSearch(val)}
                       sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
                       fullWidth
                     />
@@ -486,7 +569,7 @@ const PatientAdmitForm = () => {
               minHeight: '56px',
               minWidth: '160px'
             }}
-            onClick={handlePatientRejection}
+            onClick={() => setIsRejecting(true)}
           >
             REJECT
           </Button>
