@@ -2,7 +2,7 @@ export const assessment_type_string_id = 'weight'
 
 export const DOCUMENT_TYPE_ID = 5
 
-export const SURGERY_VISIT_TYPE_OPTIONS = [
+export const visitTypeOptions = [
   { value: '', label: 'All visit' },
   { value: 'checkup', label: 'Checkup' },
   { value: 'emergency', label: 'Emergency' },

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Skeleton } from '@mui/material'
+import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Skeleton, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
@@ -19,7 +19,8 @@ const AnimalDrawer = ({
   onClose,
   handleAnimalClick,
   btnText = 'GENERATE OBSERVATION REPORT',
-  showAnimalFilter = true
+  showAnimalFilter = true,
+  showFilterAndSort = false
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -209,27 +210,46 @@ const AnimalDrawer = ({
             pb: 4
           }}
         >
-          <Grid item size={{ xs: 12, sm: 12 }}>
+          <Grid size={{ xs: 12, sm: showFilterAndSort ? 10 : 12 }}>
             <Search
               width='100%'
               placeholder='Search by Animal name, AID or Identifier'
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
-              inputStyle={{ py: '18px', px: '12px' }}
+              inputStyle={{ py: '12px', px: '12px' }}
             />
           </Grid>
-          {/* <Grid
-            item
-            size={{ xs: 12, sm: 1.5 }}
-            sx={{
-              display: 'none',
-              justifyContent: { xs: 'flex-end', sm: 'center' },
-              mt: { xs: 2, sm: 0 }
-            }}
-          >
-            <FilterButton />
-          </Grid> */}
+          {showFilterAndSort && (
+            <>
+              <Grid item size={{ xs: 1, sm: 1 }}>
+                <FilterButton
+                  bgColor={theme?.palette?.customColors?.OnPrimary}
+                  border={`1px solid ${theme?.palette?.customColors?.OutlineVariant}`}
+                />
+              </Grid>
+              <Grid size={{ xs: 1, sm: 1 }}>
+                <Tooltip title='Sort' placement='bottom'>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '4px',
+                      bgcolor: theme?.palette.customColors?.OnPrimary,
+                      border: `1px solid ${theme?.palette?.customColors?.OutlineVariant}`,
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                    onClick={''}
+                  >
+                    <Icon icon={'lets-icons:sort-arrow'} fontSize={24} />
+                  </Box>
+                </Tooltip>
+              </Grid>
+            </>
+          )}
         </Grid>
 
         {showAnimalFilter && (

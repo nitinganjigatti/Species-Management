@@ -75,20 +75,23 @@ export const FilterButton = ({
   appliedFiltersCount,
   iconSize = 24,
   icon = 'mage:filter',
-  placement = 'bottom'
+  placement = 'bottom',
+  bgColor,
+  border
 }) => {
   const theme = useTheme()
 
   return (
-    <Tooltip placement={placement}>
+    <Tooltip title={tooltip} placement={placement}>
       <Box
         sx={{
+          border: border ? border : 'none',
           display: 'flex',
           justifyContent: 'center',
           width: '40px',
           height: '40px',
           borderRadius: '4px',
-          bgcolor: theme?.palette.customColors?.lightBg,
+          bgcolor: bgColor ? bgColor : theme?.palette.customColors?.lightBg,
           alignItems: 'center',
           cursor: 'pointer'
         }}
