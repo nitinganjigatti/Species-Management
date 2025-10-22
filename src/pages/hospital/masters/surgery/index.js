@@ -19,7 +19,7 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 
-import { SURGERY_VISIT_TYPE_OPTIONS } from 'src/constants/Constants'
+import { visitTypeOptions } from 'src/constants/Constants'
 import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
 import Toaster from 'src/components/Toaster'
@@ -454,11 +454,11 @@ const Surgery = () => {
                 <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:pencil-outline' />
               </IconButton>
             </Tooltip>
-            <Tooltip title='Delete'>
+            {/* <Tooltip title='Delete'>
               <IconButton size='small' onClick={() => handleDeletePrompt(params.row)}>
                 <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:delete-outline' />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
           </Box>
         )
       }
@@ -559,7 +559,7 @@ const Surgery = () => {
             }}
           />
 
-          <FormControl size='small' sx={{ minWidth: 180 }}>
+          {/* <FormControl size='small' sx={{ minWidth: 180 }}>
             <Select
               displayEmpty
               value={selectedVisitType}
@@ -569,7 +569,7 @@ const Surgery = () => {
                   return 'All visit'
                 }
 
-                const selectedOption = SURGERY_VISIT_TYPE_OPTIONS.find(option => option.value === value)
+                const selectedOption = visitTypeOptions.find(option => option.value === value)
 
                 return selectedOption?.label ?? 'All visit'
               }}
@@ -581,13 +581,13 @@ const Surgery = () => {
                 borderRadius: '4px'
               }}
             >
-              {SURGERY_VISIT_TYPE_OPTIONS.map(option => (
+              {visitTypeOptions.map(option => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
+          </FormControl> */}
         </Box>
 
         <CommonTable
