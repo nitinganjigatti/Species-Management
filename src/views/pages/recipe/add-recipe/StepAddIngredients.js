@@ -622,7 +622,7 @@ const StepAddIngredients = ({
                                   renderInput={params => (
                                     <TextField
                                       {...params}
-                                      label='Select Preparation Type*'
+                                      label='Select Type*'
                                       error={
                                         errors.by_quantity &&
                                         errors.by_quantity[index] &&
