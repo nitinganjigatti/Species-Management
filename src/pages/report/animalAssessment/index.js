@@ -884,7 +884,7 @@ const AnimalAssessment = () => {
                       // downloadExcel
                       serverSide
                       // rowSelection
-                      // modifyColumnPinning
+                      modifyColumnPinning
                       hideHeaderWhenEmpty
                       searchMode='server'
 
