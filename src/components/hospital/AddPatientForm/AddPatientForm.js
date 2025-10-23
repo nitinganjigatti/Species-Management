@@ -34,6 +34,8 @@ import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
 import { useHospital } from 'src/context/HospitalContext'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -43,13 +45,14 @@ const defaultValues = {
   holdingEnclosure: null,
   medicalRecordChoice: 'new',
   selectedAnimal: null,
-  selectedDoctor: null
+  selectedDoctor: null,
+  admissionTime: null,
+  admissionDate: null
 }
 
 const treatmentType = [
   { label: 'OPD(outpatient)', value: 'opt' },
-  { label: 'Hospital Admission(inpatient)', value: 'inpatient' },
-  { label: 'In site treatment', value: 'inSite' }
+  { label: 'Hospital Admission(inpatient)', value: 'inpatient' }
 ]
 
 const medicalRecordType = [
@@ -260,14 +263,70 @@ const AddPatientForm = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 6,
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: 1,
-                  p: 6
+                  gap: 4,
+                  mb: 7
                 }}
               >
                 <Typography
-                  sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Select Patient
+                </Typography>
+                {selectedAnimal !== null ? (
+                  <>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        p: 6,
+                        background: theme.palette.customColors.displaybgPrimary,
+                        borderRadius: 1
+                      }}
+                    >
+                      <AnimalCard data={selectedAnimal} />
+                      <IconButton onClick={handleRemoveAnimal}>
+                        <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
+                      </IconButton>
+                    </Box>
+                  </>
+                ) : (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: 1,
+                      p: 4,
+                      background: theme.palette.customColors.Surface
+                    }}
+                    onClick={() => setAnimalDrawer(true)}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        color: errors.selectedAnimal
+                          ? theme.palette.error.main
+                          : theme.palette.customColors.OnPrimaryContainer
+                      }}
+                    >
+                      Select Animal
+                    </Typography>
+                    <Icon icon={'simple-line-icons:plus'} color={theme.palette.customColors.addPrimary} />
+                  </Box>
+                )}
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
                   Select treatment type
                 </Typography>
@@ -277,14 +336,15 @@ const AddPatientForm = () => {
                   render={({ field }) => (
                     <Grid container spacing={4}>
                       {treatmentType?.map((item, index) => (
-                        <Grid key={index} size={{ xs: 12, sm: 12, md: 4 }}>
+                        <Grid key={index} size={{ xs: 12, sm: 6, md: 6 }}>
                           <TreatmentTypeRadioButtons
                             label={item?.label}
                             isSelected={field.value === item?.value}
                             onClick={() => field.onChange(item?.value)}
-                            backgroundColor={theme.palette.customColors.Surface}
+                            backgroundColor={theme.palette.customColors.OnPrimary}
                             borderColor={theme.palette.customColors.OutlineVariant}
-                            selectedBackgroundColor={theme.palette.customColors.Surface}
+                            selectedBorderColor={theme.palette.primary.main}
+                            selectedBackgroundColor={theme.palette.customColors.OnPrimary}
                             sx={{ fontSize: '1rem', width: '100%' }}
                           />
                         </Grid>
@@ -298,86 +358,26 @@ const AddPatientForm = () => {
                   mt: 7,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 6,
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: 1,
-                  p: 6
+                  gap: 6
                 }}
               >
-                <Typography
-                  sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  Enter basic details
-                </Typography>
-                <Grid container spacing={7} alignItems={'baseline'}>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, cursor: 'pointer' }}>
-                      <Typography
-                        sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                      >
-                        Selected Animal
-                      </Typography>
-                      {selectedAnimal !== null ? (
-                        <>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              p: 6,
-                              background: theme.palette.customColors.displaybgPrimary,
-                              borderRadius: 1
-                            }}
-                          >
-                            <AnimalCard data={selectedAnimal} />
-                            <IconButton onClick={handleRemoveAnimal}>
-                              <Icon icon='charm:cross' fontSize={24} color={theme.palette.customColors.Error} />
-                            </IconButton>
-                          </Box>
-                        </>
-                      ) : (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                            borderRadius: 1,
-                            p: 4,
-                            background: theme.palette.customColors.Surface
-                          }}
-                          onClick={() => setAnimalDrawer(true)}
-                        >
-                          <Typography
-                            sx={{
-                              fontSize: '16px',
-                              fontWeight: 400,
-                              color: errors.selectedAnimal
-                                ? theme.palette.error.main
-                                : theme.palette.customColors.OnPrimaryContainer
-                            }}
-                          >
-                            Select Animal
-                          </Typography>
-                          <Icon icon={'mdi-chevron-down'} />
-                        </Box>
-                      )}
-                    </Box>
-                    {errors.selectedAnimal && (
-                      <Typography
-                        sx={{
-                          color: theme.palette.error.main,
-                          mt: '3px',
-                          mx: '14px',
-                          fontSize: '0.75rem',
-                          fontWeight: 400
-                        }}
-                      >
-                        {errors.selectedAnimal.message}
-                      </Typography>
-                    )}
+                <Grid container spacing={6} alignItems={'baseline'}>
+                  <Grid size={{ xs: 12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Date and Time
+                    </Typography>
+                    <Grid container spacing={6}>
+                      <Grid size={{ xs: 6, sm: 6 }}>
+                        <ControlledTimePicker control={control} name={'admissionTime'} label='Time' />
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 6 }}>
+                        <ControlledDatePicker control={control} name={'admissionDate'} label='Date' />
+                      </Grid>
+                    </Grid>
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Typography
                       sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
@@ -405,7 +405,7 @@ const AddPatientForm = () => {
                       name={'purposeOfVisit'}
                       errors={errors}
                       sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
-                      label={'Enter Purpose of Visit'}
+                      label={'Enter Enter'}
                     />
                   </Grid>
                 </Grid>
@@ -483,20 +483,10 @@ const AddPatientForm = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  p: 6,
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: 1,
                   mt: 7
                 }}
               >
-                <Grid container spacing={7}>
-                  <Grid size={{ xs: 12 }}>
-                    <Typography
-                      sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                    >
-                      Admission details
-                    </Typography>
-                  </Grid>
+                <Grid container spacing={6}>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <Typography
@@ -654,13 +644,6 @@ const AddPatientForm = () => {
           >
             ADMIT
           </LoadingButton>
-          {/* <Button
-            variant='contained'
-            sx={{ backgroundColor: theme.palette.primary.main, px: 4, py: '9px', borderRadius: 0.5 }}
-            onClick={handleSubmit(onSubmit)}
-          >
-            {submitLoader ? <CircularProgress /> : 'ADMIT'}
-          </Button> */}
         </Box>
       </Box>
       {openAnimalDrawer && (
@@ -672,6 +655,7 @@ const AddPatientForm = () => {
           btnText='ADD'
           showAnimalFilter={false}
           handleAnimalClick={handleAnimalSelection}
+          showFilterAndSort
         />
       )}
       {doctorDrawerOpen && (

@@ -12,15 +12,6 @@ import Utility from 'src/utility'
 import { VisitType } from '../utility/hospitalSnippets'
 import { useHospital } from 'src/context/HospitalContext'
 
-const getVisitTypeLabel = title => {
-  if (title === 'checkup') return 'Check up'
-  if (title === 'emergency') return 'Emergency'
-  if (title === 'follow_up') return 'Follow-up'
-  if (title === 'outpatient') return 'OUTPATIENT'
-  if (title === 'opd') return 'OUTPATIENT'
-  if (title === 'planned') return 'Planned'
-}
-
 const InpatientOverview = ({ overviewData }) => {
   const router = useRouter()
   const theme = useTheme()
@@ -239,7 +230,7 @@ const InpatientOverview = ({ overviewData }) => {
       sortable: false,
       renderCell: params => (
         <>
-          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
+          <VisitType title={params.row.visit_type} />
         </>
       )
     },

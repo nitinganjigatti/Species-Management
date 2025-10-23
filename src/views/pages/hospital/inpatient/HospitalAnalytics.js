@@ -3,7 +3,7 @@ import { Box, Card, CardContent, Typography, Avatar, Grid, useTheme, CircularPro
 import { useHospital } from 'src/context/HospitalContext'
 import HospitalDropdown from 'src/components/hospital/inpatient/HospitalDropdown'
 
-const HospitalAnalytics = () => {
+const HospitalAnalytics = ({ disabled = false }) => {
   const theme = useTheme()
   const { selectedHospital, hospitalStats, isHospitalStatsLoading } = useHospital()
 
@@ -44,7 +44,7 @@ const HospitalAnalytics = () => {
                 />
                 <Box sx={{ textAlign: { md: 'left' } }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <HospitalDropdown />
+                    <HospitalDropdown disabled={disabled} />
                   </Box>
                   <Typography
                     variant='body2'

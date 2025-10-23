@@ -32,8 +32,12 @@ const CommonTable = ({
   return (
     <DataGrid
       sx={{
+        '--DataGrid-cellFocusOutline': 'none',
         mt: 5,
         '.MuiDataGrid-cell:focus': {
+          outline: 'none'
+        },
+        '.MuiDataGrid-cell:focus-within': {
           outline: 'none'
         },
 

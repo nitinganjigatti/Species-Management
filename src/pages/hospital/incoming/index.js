@@ -1,8 +1,24 @@
-import { Box, Breadcrumbs, Button, Card, CardHeader, Grid, MenuItem, Select, Typography, useTheme } from '@mui/material'
+import {
+  Box,
+  Breadcrumbs,
+  Card,
+  CardHeader,
+  Grid,
+  MenuItem,
+  Select,
+  Tab,
+  Tabs,
+  Tooltip,
+  Typography,
+  useTheme
+} from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { debounce } from 'lodash'
+import { debounce, set } from 'lodash'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import IncomingFilterDrawer from 'src/components/hospital/drawer/IncomingFilterDrawer'
+import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import RenderUtility from 'src/utility/render'
@@ -10,26 +26,9 @@ import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalyt
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-
-const visitTypeOptions = [
-  { value: '', label: 'All visit' },
-  { value: 'checkup', label: 'Checkup' },
-  { value: 'emergency', label: 'Emergency' },
-  { value: 'opd', label: 'Outpatients' },
-  { value: 'follow_up', label: 'Follow-up' },
-  { value: 'planned', label: 'Planned' }
-]
-
-const getVisitTypeLabel = title => {
-  if (title === 'checkup') return 'Check up'
-  if (title === 'emergency') return 'Emergency'
-  if (title === 'follow_up') return 'Follow-up'
-  if (title === 'outpatient') return 'OUTPATIENT'
-  if (title === 'opd') return 'OUTPATIENT'
-  if (title === 'planned') return 'Planned'
-}
 
 const HospitalIncoming = () => {
   const theme = useTheme()
@@ -37,16 +36,28 @@ const HospitalIncoming = () => {
 
   const { selectedHospital } = useHospital()
 
-  console.log(selectedHospital)
-
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
+  const [activeTab, setActiveTab] = useState('pending')
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [filterCount, setFilterCount] = useState(0)
+  const [filterDate, setFilterDate] = useState({})
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    User: [],
+    'Origin Site': []
+  })
 
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
     q: ''
   })
+
+  const applyFilters = selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setOpenFilterDrawer(false)
+  }
 
   useEffect(() => {
     const { page = '1', limit = '50', q = '' } = router.query
@@ -60,8 +71,26 @@ const HospitalIncoming = () => {
     setSearchValue(q)
   }, [router.query])
 
+  const prepareFilterParams = key => {
+    return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+  }
+
+  const formatDate = dateString => {
+    if (!dateString) return null
+
+    return new Date(dateString).toISOString().split('T')[0]
+  }
+
   const { data, isFetching, refetch } = useQuery({
-    queryKey: ['incoming-patients', filters, selectedVisitType, selectedHospital?.id],
+    queryKey: [
+      'incoming-patients',
+      filters,
+      selectedVisitType,
+      selectedHospital?.id,
+      activeTab,
+      filterDate,
+      selectedOptions
+    ],
     queryFn: () =>
       getIncomingPatients({
         page_no: filters?.page,
@@ -69,9 +98,13 @@ const HospitalIncoming = () => {
         search: filters?.q,
 
         hospital_id: selectedHospital?.id,
-        status: 'pending',
+        status: activeTab,
         visit_type: selectedVisitType,
-        patient_category: 'incoming'
+        patient_category: 'incoming',
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        users: prepareFilterParams('User'),
+        origin_site: prepareFilterParams('Origin Site')
       }),
     refetchOnMount: true,
     refetchOnWindowFocus: true
@@ -139,7 +172,7 @@ const HospitalIncoming = () => {
     sl_no: getSlNo(index)
   }))
 
-  const columns = [
+  const commonColumns = [
     {
       minWidth: 20,
       width: 80,
@@ -152,49 +185,51 @@ const HospitalIncoming = () => {
         </Typography>
       )
     },
-
     {
-      width: 300,
+      width: 350,
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
       headerName: 'Animal Name & ID',
       renderCell: params => (
-        <>
-          <AnimalCard
-            data={{
-              default_icon: params.row?.default_icon,
-              sex: params.row?.sex,
-              type: params.row?.type,
-              local_identifier_name: params.row?.local_identifier_name,
-              local_identifier_value: params.row?.local_identifier_value,
-              animal_id: params.row?.animal_id,
-              common_name: params.row?.common_name,
-              scientific_name: params.row?.scientific_name,
-              age: params.row?.age,
-              site_name: params.row?.site_name
-            }}
-          />
-        </>
+        <AnimalCard
+          data={{
+            default_icon: params.row?.default_icon,
+            sex: params.row?.sex,
+            type: params.row?.type,
+            local_identifier_name: params.row?.local_identifier_name,
+            local_identifier_value: params.row?.local_identifier_value,
+            animal_id: params.row?.animal_id,
+            common_name: params.row?.common_name,
+            scientific_name: params.row?.scientific_name,
+            age: params.row?.age,
+            site_name: params.row?.site_name
+          }}
+        />
       )
-    },
+    }
+  ]
 
+  const pendingColumns = [
     {
-      width: 300,
+      width: 400,
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
       headerName: 'Purpose of Visit',
       renderCell: params => (
-        <>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+            <VisitType title={params.row.visit_type} />
             {params?.row?.medical_record_code && (
               <MedicalIdChip
                 medId={params?.row?.medical_record_code}
                 backgroundColor={theme.palette.customColors.mdAntzNeutral}
               />
             )}
-            {params.row.purpose_of_visit && (
+          </Box>
+          {params.row.purpose_of_visit && (
+            <Tooltip title={params.row.purpose_of_visit} arrow>
               <Typography
                 variant='body2'
                 sx={{
@@ -210,23 +245,11 @@ const HospitalIncoming = () => {
                   whiteSpace: 'normal'
                 }}
               >
-                <>{params.row.purpose_of_visit || ''}</>
+                {params.row.purpose_of_visit || ''}
               </Typography>
-            )}
-          </Box>
-        </>
-      )
-    },
-    {
-      width: 200,
-      minWidth: 20,
-      field: 'visit_type',
-      sortable: false,
-      headerName: 'Visit Type',
-      renderCell: params => (
-        <>
-          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
-        </>
+            </Tooltip>
+          )}
+        </Box>
       )
     },
     {
@@ -235,42 +258,79 @@ const HospitalIncoming = () => {
       field: 'requested_user_full_name',
       headerName: 'Requested By',
       renderCell: params => (
-        <>
-          <UserAvatarDetails
-            date={params?.row?.created_at}
-            user_name={params?.row?.requested_user_full_name}
-            profile_image={params?.row?.user_profile_pic}
-          />
-        </>
-      )
-    },
-
-    {
-      width: 150,
-      minWidth: 20,
-      field: 'actions',
-      sortable: false,
-      headerName: 'Actions',
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: params => (
-        <>
-          <Button
-            sx={{ borderRadius: 6, px: 4, py: 2, textTransform: 'none' }}
-            variant='contained'
-            onClick={() => handleAdmitClick(params.row)}
-          >
-            Admit
-          </Button>
-        </>
+        <UserAvatarDetails
+          date={params?.row?.created_at}
+          user_name={params?.row?.requested_user_full_name}
+          profile_image={params?.row?.user_profile_pic}
+        />
       )
     }
   ]
 
-  const handleAdmitClick = data => {
+  const rejectedColumns = [
+    {
+      width: 400,
+      minWidth: 20,
+      field: 'rejection_reason',
+      sortable: false,
+      headerName: 'Reason for Rejection',
+      renderCell: params => (
+        <Tooltip title={params.row.rejection_reason || ''} arrow>
+          <Typography
+            variant='body2'
+            sx={{
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              display: '-webkit-box',
+              WebkitLineClamp: 5,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'normal'
+            }}
+          >
+            {params.row.reject_reason || '-'}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      width: 200,
+      minWidth: 20,
+      field: 'rejected_by',
+      headerName: 'Rejected By',
+      renderCell: params => (
+        <UserAvatarDetails
+          date={params?.row?.rejected_at}
+          user_name={params?.row?.rejected_user_name}
+          profile_image={params?.row?.rejected_user_profile_pic}
+        />
+      )
+    }
+  ]
+
+  const columns =
+    activeTab === 'pending' ? [...commonColumns, ...pendingColumns] : [...commonColumns, ...rejectedColumns]
+
+  const handleRowClick = data => {
     router.push({
-      pathname: `/hospital/incoming/${data?.hospital_case_id}/patient-admit-form`
+      pathname: `/hospital/incoming/${data?.row?.hospital_case_id}/patient-admit-form`
     })
+  }
+
+  const handleTabChange = (_, newValue) => {
+    setActiveTab(newValue)
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
+  const getTabLabel = (key, label) => {
+    if (activeTab !== key) return label
+    if (isFetching && !data) return label
+
+    return total ? `${label} - ${total}` : label
   }
 
   return (
@@ -285,7 +345,15 @@ const HospitalIncoming = () => {
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Incoming Patient')} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                flexDirection: { md: 'column', lg: 'row' },
+                justifyContent: 'space-between',
+                gap: 4
+              }}
+            >
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
@@ -301,7 +369,11 @@ const HospitalIncoming = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+                <CommonDateRangePickers
+                  filterDates={filterDate}
+                  onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
+                />
                 <Select
                   size='small'
                   value={selectedVisitType}
@@ -314,9 +386,43 @@ const HospitalIncoming = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Box></Box>
+                <FilterButtonWithNotification
+                  onClick={() => setOpenFilterDrawer(true)}
+                  appliedFiltersCount={filterCount}
+                />
               </Box>
             </Box>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                ml: 6,
+                borderBottom: `1px solid ${theme.palette.divider}`
+              }}
+            >
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                TabIndicatorProps={{
+                  style: {
+                    backgroundColor: theme.palette.primary.main,
+                    height: '3px',
+                    borderRadius: '3px 3px 0 0'
+                  }
+                }}
+                sx={{
+                  minHeight: 40,
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    minHeight: 40
+                  }
+                }}
+              >
+                <Tab value='pending' label={getTabLabel('pending', 'Pending')} />
+                <Tab value='rejected' label={getTabLabel('rejected', 'Rejected')} />
+              </Tabs>
+            </Box>
+
             <Grid
               sx={{
                 mx: { xs: 3, md: 5 }
@@ -325,6 +431,7 @@ const HospitalIncoming = () => {
               <CommonTable
                 columns={columns}
                 indexedRows={indexedRows}
+                onRowClick={handleRowClick}
                 total={total}
                 loading={isFetching}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
@@ -347,6 +454,15 @@ const HospitalIncoming = () => {
           </Card>
         </Box>
       </Box>
+      {openFilterDrawer && (
+        <IncomingFilterDrawer
+          open={openFilterDrawer}
+          onClose={() => setOpenFilterDrawer(false)}
+          onApplyFilters={applyFilters}
+          setFilterCount={setFilterCount}
+          initialSelectedOptions={selectedOptions}
+        />
+      )}
     </>
   )
 }

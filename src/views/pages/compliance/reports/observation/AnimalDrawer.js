@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Drawer, Avatar, Typography, IconButton, CircularProgress, Button, Skeleton } from '@mui/material'
+import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Skeleton, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
@@ -67,7 +67,8 @@ const AnimalDrawer = ({
   onClose,
   handleAnimalClick,
   btnText = 'GENERATE OBSERVATION REPORT',
-  showAnimalFilter = true
+  showAnimalFilter = true,
+  showFilterAndSort = false
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -262,55 +263,58 @@ const AnimalDrawer = ({
             </IconButton>
           </Box>
 
-          <Box
+          <Grid
+            container
+            spacing={2}
+            alignItems='center'
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
               px: 4,
               background: '#FFF',
+              pt: 0,
               pb: 4
             }}
           >
-            <Search
-              width='100%'
-              placeholder='Search by Animal name, AID or Identifier'
-              value={localSearch}
-              onChange={handleSearchChange}
-              onClear={handleSearchClear}
-              inputStyle={{ py: '18px', px: '12px' }}
-              sx={{
-                width: '100%',
-                '& .MuiTextField-root': {
-                  width: '100%'
-                }
-              }}
-            />
-
-            {/* {showAnimalFilter && (
-              <Box
-                onClick={() => setFilterDrawerOpen(true)}
-                sx={{
-                  cursor: 'pointer',
-                  height: '56px',
-                  minWidth: '56px',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <Avatar
-                  sx={{ height: '36px', width: '36px' }}
-                  src={'/icons/filtericon.svg'}
-                  // appliedFiltersCount={filterCount}
-                  // icon='ic:round-tune'
-                  // placement='bottom'
-                />
-              </Box>
-            )} */}
-          </Box>
+            <Grid size={{ xs: 12, sm: showFilterAndSort ? 10 : 12 }}>
+              <Search
+                width='100%'
+                placeholder='Search by Animal name, AID or Identifier'
+                value={localSearch}
+                onChange={handleSearchChange}
+                onClear={handleSearchClear}
+                inputStyle={{ py: '12px', px: '12px' }}
+              />
+            </Grid>
+            {showFilterAndSort && (
+              <>
+                <Grid item size={{ xs: 1, sm: 1 }}>
+                  <FilterButton
+                    bgColor={theme?.palette?.customColors?.OnPrimary}
+                    border={`1px solid ${theme?.palette?.customColors?.OutlineVariant}`}
+                  />
+                </Grid>
+                <Grid size={{ xs: 1, sm: 1 }}>
+                  <Tooltip title='Sort' placement='bottom'>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '4px',
+                        bgcolor: theme?.palette.customColors?.OnPrimary,
+                        border: `1px solid ${theme?.palette?.customColors?.OutlineVariant}`,
+                        alignItems: 'center',
+                        cursor: 'pointer'
+                      }}
+                      onClick={''}
+                    >
+                      <Icon icon={'lets-icons:sort-arrow'} fontSize={24} />
+                    </Box>
+                  </Tooltip>
+                </Grid>
+              </>
+            )}
+          </Grid>
 
           {showAnimalFilter && (
             <Box

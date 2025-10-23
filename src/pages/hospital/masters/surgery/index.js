@@ -19,14 +19,22 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 
+import { visitTypeOptions } from 'src/constants/Constants'
 import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
 import Toaster from 'src/components/Toaster'
-import { SURGERY_VISIT_TYPE_OPTIONS } from 'src/constants/Constants'
-import { addSurgeryMaster, getSurgeryMaster, updateSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
+
+import {
+  addSurgeryMaster,
+  deleteSurgeryMaster,
+  getSurgeryMaster,
+  updateSurgeryMaster
+} from 'src/lib/api/hospital/surgeryMaster'
 
 const resolveBooleanStatus = value => {
   if (typeof value === 'string') {
@@ -51,6 +59,9 @@ const Surgery = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [selectedSurgery, setSelectedSurgery] = useState(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [surgeryToDelete, setSurgeryToDelete] = useState(null)
 
   const safeParseToInt = (value, fallback) => {
     const parsed = parseInt(value, 10)
@@ -161,9 +172,25 @@ const Surgery = () => {
     setSelectedSurgery(null)
   }, [])
 
+  const resolveSurgeryId = useCallback(row => {
+    if (!row) return null
+    return row?.id ?? row?.surgery_id ?? row?.master_surgery_id ?? row?.surgeryId ?? null
+  }, [])
+
   const handleEditSurgery = useCallback(row => {
     setSelectedSurgery(row)
     setDrawerOpen(true)
+  }, [])
+
+  const handleDeletePrompt = useCallback(row => {
+    setSurgeryToDelete(row)
+    setDeleteDialogOpen(true)
+  }, [])
+
+  const handleCloseDeleteDialog = useCallback(() => {
+    setDeleteDialogOpen(false)
+    setDeleteLoading(false)
+    setSurgeryToDelete(null)
   }, [])
 
   const {
@@ -248,11 +275,7 @@ const Surgery = () => {
       payload.append('description', description)
       payload.append('status', status)
 
-      const surgeryId =
-        selectedSurgery?.id ??
-        selectedSurgery?.surgery_id ??
-        selectedSurgery?.master_surgery_id ??
-        selectedSurgery?.surgeryId
+      const surgeryId = resolveSurgeryId(selectedSurgery)
 
       try {
         const response = surgeryId ? await updateSurgeryMaster(surgeryId, payload) : await addSurgeryMaster(payload)
@@ -274,8 +297,33 @@ const Surgery = () => {
         setSubmitLoader(false)
       }
     },
-    [handleCloseDrawer, refetch, selectedSurgery]
+    [handleCloseDrawer, refetch, resolveSurgeryId, selectedSurgery]
   )
+
+  const handleConfirmDelete = useCallback(async () => {
+    const surgeryId = resolveSurgeryId(surgeryToDelete)
+    if (!surgeryId) {
+      handleCloseDeleteDialog()
+      return
+    }
+
+    setDeleteLoading(true)
+    try {
+      const response = await deleteSurgeryMaster(surgeryId)
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Surgery deleted successfully' })
+        refetch()
+        handleCloseDeleteDialog()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete surgery' })
+        setDeleteLoading(false)
+      }
+    } catch (error) {
+      console.error(error)
+      Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
+      setDeleteLoading(false)
+    }
+  }, [handleCloseDeleteDialog, refetch, resolveSurgeryId, surgeryToDelete])
 
   const columns = useMemo(
     () => [
@@ -334,14 +382,14 @@ const Surgery = () => {
             slotProps={{
               tooltip: {
                 sx: {
-                  backgroundColor: '#1F515B',
-                  color: '#fff',
+                  backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                  color: theme.palette.primary.contrastText,
                   boxShadow: '8px -1px 24px 0px #00000014'
                 }
               },
               arrow: {
                 sx: {
-                  color: '#1F515B'
+                  color: theme.palette.customColors.OnPrimaryContainer
                 }
               }
             }}
@@ -400,15 +448,22 @@ const Surgery = () => {
         align: 'right',
         headerAlign: 'right',
         renderCell: params => (
-          <Tooltip title='Edit'>
-            <IconButton size='small' onClick={() => handleEditSurgery(params.row)}>
-              <Icon color={'theme.palette.customColors.OnSurfaceVariant'} icon='mdi:pencil-outline' />
-            </IconButton>
-          </Tooltip>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0 }}>
+            <Tooltip title='Edit'>
+              <IconButton size='small' onClick={() => handleEditSurgery(params.row)}>
+                <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:pencil-outline' />
+              </IconButton>
+            </Tooltip>
+            {/* <Tooltip title='Delete'>
+              <IconButton size='small' onClick={() => handleDeletePrompt(params.row)}>
+                <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:delete-outline' />
+              </IconButton>
+            </Tooltip> */}
+          </Box>
         )
       }
     ],
-    [handleEditSurgery, theme]
+    [handleDeletePrompt, handleEditSurgery, theme]
   )
 
   return (
@@ -504,7 +559,7 @@ const Surgery = () => {
             }}
           />
 
-          <FormControl size='small' sx={{ minWidth: 180 }}>
+          {/* <FormControl size='small' sx={{ minWidth: 180 }}>
             <Select
               displayEmpty
               value={selectedVisitType}
@@ -514,7 +569,7 @@ const Surgery = () => {
                   return 'All visit'
                 }
 
-                const selectedOption = SURGERY_VISIT_TYPE_OPTIONS.find(option => option.value === value)
+                const selectedOption = visitTypeOptions.find(option => option.value === value)
 
                 return selectedOption?.label ?? 'All visit'
               }}
@@ -526,13 +581,13 @@ const Surgery = () => {
                 borderRadius: '4px'
               }}
             >
-              {SURGERY_VISIT_TYPE_OPTIONS.map(option => (
+              {visitTypeOptions.map(option => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
+          </FormControl> */}
         </Box>
 
         <CommonTable
@@ -555,6 +610,25 @@ const Surgery = () => {
         loading={submitLoader}
         initialData={selectedSurgery}
       />
+      {deleteDialogOpen && (
+        <ConfirmationDialog
+          dialogBoxStatus={deleteDialogOpen}
+          onClose={handleCloseDeleteDialog}
+          title='Delete Surgery?'
+          description='Are you sure you want to permanently delete this surgery?'
+          cancelText='Cancel'
+          ConfirmationText='Delete'
+          confirmAction={handleConfirmDelete}
+          loading={deleteLoading}
+          image='/images/warning-icon.svg'
+          imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
+          confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
+          cancelBtnStyle={{
+            color: theme.palette.customColors.neutralSecondary,
+            borderColor: theme.palette.customColors.neutralSecondary
+          }}
+        />
+      )}
     </Box>
   )
 }
