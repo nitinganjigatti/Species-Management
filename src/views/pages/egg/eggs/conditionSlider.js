@@ -1073,7 +1073,7 @@ const ConditionSlider = ({
                                 position: 'relative',
                                 backgroundColor: theme.palette.customColors.tableHeaderBg,
                                 borderRadius: '10px',
-                                height: 121,
+                                height: 152,
                                 padding: '10.5px',
                                 boxSizing: 'border-box'
                               }}
