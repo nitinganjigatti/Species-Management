@@ -2,6 +2,8 @@ import { useTheme } from '@emotion/react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Button, CircularProgress, Drawer, IconButton, TextField, Typography } from '@mui/material'
 import { Box, fontSize } from '@mui/system'
+import dayjs from 'dayjs'
+import moment from 'moment'
 import React, { useContext, useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
@@ -15,6 +17,7 @@ import {
   getSectionsListingForEnclosure
 } from 'src/lib/api/housing'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import * as yup from 'yup'
@@ -89,7 +92,7 @@ const AddEnclosureDrawer = ({
       parentEnclosure: '',
       movableOrWalkable: '',
       sunlight: '',
-      commissionedDate: new Date().toISOString().split('T')[0],
+      commissioned_date: dayjs(),
       images: [],
       batchEnclosureCount: '',
       batchSequenceStart: '',
@@ -114,7 +117,7 @@ const AddEnclosureDrawer = ({
       movable: false,
       walkable: false,
       sunlight: '',
-      commissionedDate: '',
+      commissioned_date: '',
       images: [],
       batchEnclosureCount: '',
       batchSequenceStart: '',
@@ -315,7 +318,6 @@ const AddEnclosureDrawer = ({
   }, [selectedEnvironmentType, allEnclosureData])
 
   const onSubmit = async data => {
-    console.log('Form Data:', data)
     setLoading(true)
 
     const payload = {
@@ -332,7 +334,7 @@ const AddEnclosureDrawer = ({
       zoo_id: zooId,
       batch_seq: data?.batchSequenceStart,
       batch_count: data?.batchEnclosureCount,
-      commistioned_date: data?.commissionedDate,
+      commistioned_date: moment(data?.data?.commissioned_date).format('YYYY-MM-DD'),
       user_enclosure_id: user_id,
       enclosure_parent_id: data?.parentEnclosure?.value
     }
@@ -907,17 +909,11 @@ const AddEnclosureDrawer = ({
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                     />
-                    <ControlledTextField
-                      name={'commissionedDate'}
+                    <ControlledDatePicker
                       control={control}
-                      label={'Commissioned Date'}
-                      required={false}
-                      inputProps={{
-                        placeholder: 'dd-mm-yyyy'
-                      }}
-                      errors={errors}
-                      type='date'
-                      slotProps={{ inputLabel: { shrink: true } }}
+                      label='Commissioned Date'
+                      name={'commissioned_date'}
+                      required
                     />
                     <Box
                       sx={{
