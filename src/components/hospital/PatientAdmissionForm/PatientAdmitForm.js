@@ -399,15 +399,15 @@ const PatientAdmitForm = () => {
                     </Typography>
                     <Grid container spacing={6}>
                       <Grid size={{ sm: 6, xs: 6 }}>
-                        <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
-                      </Grid>
-                      <Grid size={{ sm: 6, xs: 6 }}>
                         <ControlledDatePicker
                           control={control}
                           name={'admission_date'}
                           label='Date'
                           defaultValue={dayjs()}
                         />
+                      </Grid>
+                      <Grid size={{ sm: 6, xs: 6 }}>
+                        <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
                       </Grid>
                     </Grid>
                   </Grid>

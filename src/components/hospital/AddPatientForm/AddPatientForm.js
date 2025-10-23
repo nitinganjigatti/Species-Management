@@ -36,6 +36,8 @@ import { LoadingButton } from '@mui/lab'
 import { useHospital } from 'src/context/HospitalContext'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import dayjs from 'dayjs'
+import moment from 'moment'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -46,8 +48,8 @@ const defaultValues = {
   medicalRecordChoice: 'new',
   selectedAnimal: null,
   selectedDoctor: null,
-  admissionTime: null,
-  admissionDate: null
+  admission_date: dayjs(),
+  admission_time: dayjs()
 }
 
 const treatmentType = [
@@ -117,6 +119,7 @@ const AddPatientForm = () => {
   })
 
   const watchMedicalChoice = watch('medicalRecordChoice')
+  const watchTreatmentType = watch('treatmentType')
 
   useEffect(() => {
     const getHospitalBeds = async () => {
@@ -183,7 +186,7 @@ const AddPatientForm = () => {
         entity_items: JSON.stringify([selectedAnimal?.animal_id]),
         source_id: selectedAnimal?.enclosure_id,
         source_type: 'enclosure',
-        destination_id: selectedHospital?.id, //Later change to hospital id
+        destination_id: selectedHospital?.id,
         destination_type: 'hospital',
         transfer_type: 'inter',
         visit_type: data?.visitType,
@@ -196,14 +199,20 @@ const AddPatientForm = () => {
         ref_type: 'medical_record',
         ref_id: data?.medicalRecordId,
         source_site_id: selectedAnimal?.site_id,
-        destination_site_id: '405', //Later change it to the hospital site id
-        comments: data?.purposeOfVisit
+        destination_site_id: selectedAnimal?.site_id,
+        comments: data?.purposeOfVisit,
+        admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
+        admit_time: moment(data?.admission_time).format('HH:mm')
       }
 
       await addHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
-          router.back()
+          if (watchTreatmentType === 'inpatient') {
+            router.back()
+          } else if (watchTreatmentType === 'opt') {
+            router.push('/hospital/outpatient')
+          }
         } else {
           Toaster({ type: 'error', message: res?.message })
         }
@@ -370,10 +379,15 @@ const AddPatientForm = () => {
                     </Typography>
                     <Grid container spacing={6}>
                       <Grid size={{ xs: 6, sm: 6 }}>
-                        <ControlledTimePicker control={control} name={'admissionTime'} label='Time' />
+                        <ControlledDatePicker
+                          control={control}
+                          name={'admission_date'}
+                          label='Date'
+                          defaultValue={dayjs()}
+                        />
                       </Grid>
                       <Grid size={{ xs: 6, sm: 6 }}>
-                        <ControlledDatePicker control={control} name={'admissionDate'} label='Date' />
+                        <ControlledTimePicker control={control} name={'admission_time'} label='Time' />
                       </Grid>
                     </Grid>
                   </Grid>
@@ -389,7 +403,6 @@ const AddPatientForm = () => {
                       errors={errors}
                       label={'Select Visit Type'}
                       options={visitTypes}
-                      sx={{ background: theme.palette.customColors.Surface }}
                       getOptionLabel={option => option.label}
                       getOptionValue={option => option.value}
                     />
@@ -404,7 +417,7 @@ const AddPatientForm = () => {
                       control={control}
                       name={'purposeOfVisit'}
                       errors={errors}
-                      sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
+                      sx={{ borderRadius: 1 }}
                       label={'Enter Enter'}
                     />
                   </Grid>
@@ -470,8 +483,6 @@ const AddPatientForm = () => {
                             getOptionLabel={option => option.label}
                             getOptionValue={option => option.value}
                             sx={{ background: theme.palette.customColors.Surface }}
-
-                            // disabled={!selectedAnimal}
                           />
                         </Grid>
                       )}
@@ -497,7 +508,7 @@ const AddPatientForm = () => {
                       {selectedDoctor === null ? (
                         <Box
                           sx={{
-                            background: theme.palette.customColors.Surface,
+                            // background: theme.palette.customColors.Surface,
                             borderRadius: 1,
                             border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                             p: 3,
@@ -584,7 +595,7 @@ const AddPatientForm = () => {
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
                       required
                       onInputChange={val => debouncedSearch(val)}
-                      sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
+                      sx={{ borderRadius: 1 }}
                       fullWidth
                     />
                   </Grid>
