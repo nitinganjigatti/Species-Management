@@ -3,6 +3,7 @@ import { Typography, Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
+import { useRouter } from 'next/router'
 
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
 import { CellInfo } from 'src/utility/render'
@@ -14,6 +15,7 @@ import SectionCard from 'src/views/pages/housing/section/SectionCard'
 const SectionsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const [localSearch, setLocalSearch] = useState('')
   const [search, setSearch] = useState('')
@@ -109,6 +111,21 @@ const SectionsDrawer = ({ open, onClose, data }) => {
     debouncedSearch('')
   }
 
+  const handleSectionClick = useCallback(
+    sectionId => {
+      if (!sectionId) return
+
+      router.push({
+        pathname: `/housing/sections/${sectionId}`
+      })
+
+      if (onClose) {
+        onClose()
+      }
+    },
+    [router, onClose]
+  )
+
   return (
     <CustomDrawer
       open={open}
@@ -158,7 +175,11 @@ const SectionsDrawer = ({ open, onClose, data }) => {
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(section => (
-          <Box key={section?.section_id}>
+          <Box
+            key={section?.section_id}
+            sx={{ cursor: section?.section_id ? 'pointer' : 'default' }}
+            onClick={() => handleSectionClick(section?.section_id)}
+          >
             <SectionCard section={section} />
           </Box>
         ))}
