@@ -82,6 +82,17 @@ export const MedicalIdChip = ({
 export const VisitType = ({ title }) => {
   const theme = useTheme()
 
+  const visitTypeMap = {
+    checkup: 'Check up',
+    emergency: 'Emergency',
+    follow_up: 'Follow-up',
+    outpatient: 'OUTPATIENT',
+    opd: 'OUTPATIENT',
+    planned: 'Planned'
+  }
+
+  const normalizedTitle = visitTypeMap[title?.toLowerCase?.()] || title
+
   const typeStyles = {
     'Check up': { background: theme.palette.customColors.antzInfoLight, color: theme.palette.customColors.addPrimary },
     INPATIENT: { background: theme.palette.customColors.OnBackground, color: theme.palette.primary.main },
@@ -94,39 +105,37 @@ export const VisitType = ({ title }) => {
     OUTPATIENT: { background: hexToRGBA(theme.palette.customColors.antzNotes, 0.3), color: '#E4B819' }
   }
 
-  const allowedTitles = Object.keys(typeStyles)
-  if (!allowedTitles.includes(title)) return null
-  const { background, color } = typeStyles[title]
-  const isAllUpperCase = title === title.toUpperCase()
+  const style = typeStyles[normalizedTitle]
+  if (!style) return null
+
+  const { background, color } = style
+  const isAllUpperCase = normalizedTitle === normalizedTitle.toUpperCase()
   const textTransform = isAllUpperCase ? 'uppercase' : 'none'
 
   return (
-    <>
-      <Box
+    <Box
+      sx={{
+        px: 2,
+        py: 1,
+        borderRadius: 0.5,
+        background,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 24
+      }}
+    >
+      <Typography
         sx={{
-          px: 2,
-          py: 1,
-          borderRadius: 0.5,
-          background,
-          display: 'inline-block',
-          height: 24,
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center'
+          color,
+          fontWeight: 500,
+          fontSize: '0.88rem',
+          letterSpacing: 1,
+          textTransform
         }}
       >
-        <Typography
-          sx={{
-            color,
-            fontWeight: 500,
-            fontSize: '0.88rem',
-            letterSpacing: 1,
-            textTransform
-          }}
-        >
-          {title}
-        </Typography>
-      </Box>
-    </>
+        {normalizedTitle}
+      </Typography>
+    </Box>
   )
 }

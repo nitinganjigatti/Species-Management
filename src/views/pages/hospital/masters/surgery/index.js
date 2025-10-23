@@ -116,7 +116,7 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
             {title}
           </Typography>
           <IconButton onClick={handleClose}>
-            <Icon color={'#1F515B'} icon='mdi:close' />
+            <Icon color={theme.palette.customColors.OnPrimaryContainer} icon='mdi:close' />
           </IconButton>
         </Box>
 
@@ -189,7 +189,7 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
                   position: 'relative',
                   top: -20,
                   backgroundColor: theme.palette.primary.contrastText,
-                  color: '#839D8D'
+                  color: theme.palette.customColors.Outline
                 }}
               >
                 Status
@@ -226,7 +226,7 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
                       {...field}
                       checked={Boolean(field.value)}
                       onChange={event => field.onChange(event.target.checked)}
-                      switchColor={theme.palette.success.main}
+                      switchColor={theme.palette.primary.main}
                       size='medium'
                     />
                   )}
@@ -242,7 +242,7 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
               gap: 4,
               p: 6,
               pt: 4,
-              boxShadow: '0px -1px 30px 0px #0000001A'
+              boxShadow: `0px -1px 30px 0px ${theme.palette.customColors.shadowColor}`
             }}
           >
             <Button
@@ -252,8 +252,8 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
                 flex: 1,
                 py: 2,
                 borderRadius: '8px',
-                borderColor: '#839D8D',
-                color: '#839D8D'
+                borderColor: theme.palette.customColors.Outline,
+                color: theme.palette.customColors.Outline
               }}
             >
               Cancel

@@ -7,16 +7,6 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import { VisitType } from './hospitalSnippets'
 import AdmissionStatusCard from '../inpatient/AdmissionStatusCard'
 
-const getVisitTypeLabel = title => {
-  if (title === 'checkup') return 'Check up'
-  if (title === 'emergency') return 'Emergency'
-  if (title === 'follow_up') return 'Follow-up'
-  if (title === 'outpatient') return 'OUTPATIENT'
-  if (title === 'opd') return 'OUTPATIENT'
-  if (title === 'planned') return 'Planned'
-  if (title === 'inpatient') return 'INPATIENT'
-}
-
 const PatientCard = ({ patientData, animalData, loading }) => {
   const theme = useTheme()
 
@@ -67,8 +57,8 @@ const PatientCard = ({ patientData, animalData, loading }) => {
                     </>
                   ) : (
                     <>
-                      <VisitType title={getVisitTypeLabel(patientData?.treatment_type)} />
-                      <VisitType title={getVisitTypeLabel(patientData?.visit_type)} />
+                      <VisitType title={patientData?.treatment_type} />
+                      <VisitType title={patientData?.visit_type} />
                     </>
                   )}
                 </Box>

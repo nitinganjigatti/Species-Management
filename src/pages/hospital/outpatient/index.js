@@ -6,6 +6,7 @@ import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { visitTypeOptions } from 'src/constants/Constants'
 import { AuthContext } from 'src/context/AuthContext'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
@@ -16,21 +17,6 @@ import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
-
-const visitTypeOptions = [
-  { value: '', label: 'All visit' },
-  { value: 'checkup', label: 'Checkup' },
-  { value: 'emergency', label: 'Emergency' },
-  { value: 'opd', label: 'OPD' }
-]
-
-const getVisitTypeLabel = title => {
-  if (title === 'checkup') return 'Check up'
-  if (title === 'emergency') return 'Emergency'
-  if (title === 'follow_up') return 'Follow-up'
-  if (title === 'outpatient') return 'OUTPATIENT'
-  if (title === 'opd') return 'OUTPATIENT'
-}
 
 const HospitalOutPatient = () => {
   const theme = useTheme()
@@ -279,7 +265,7 @@ const HospitalOutPatient = () => {
       headerName: 'Visit Type',
       renderCell: params => (
         <>
-          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
+          <VisitType title={params.row.visit_type} />
         </>
       )
     },

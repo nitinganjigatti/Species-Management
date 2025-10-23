@@ -786,3 +786,7 @@ export const GET_PRESCRIPTION_LIST = 'v1/hospital/list-prescription'
 export const GET_PRESCRIPTION_DETAILS = 'administer/details'
 
 export const GET_PRESCRIPTION_DETAILS_DATES = 'administer/stats'
+
+//Hospital masters
+
+export const GET_HOSPITAL_ROOMS = `v1/hospital/room/list`
