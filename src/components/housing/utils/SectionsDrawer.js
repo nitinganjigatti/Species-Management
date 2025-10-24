@@ -78,6 +78,9 @@ const SectionsDrawer = ({ open, onClose, data }) => {
   const list = useMemo(() => queryData?.pages?.flatMap(page => page?.result) || [], [queryData])
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
+  const sectionsLabel = Number(total) > (0 || 1) ? 'Sections' : 'Section'
+  const sectionsHeading = total ? `${sectionsLabel} (${total})` : sectionsLabel
+
   // cooldownRef to prevent multiple rapid calls
   const cooldownRef = useRef(false)
 
@@ -155,7 +158,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
         />
       </Box>
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Sections {total ? `(${total})` : ''}
+        {sectionsHeading}
       </Typography>
       <Box sx={{ my: 2 }}>
         <Search

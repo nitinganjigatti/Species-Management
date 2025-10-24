@@ -77,6 +77,9 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
   const list = useMemo(() => queryData?.pages?.flatMap(page => page?.result) || [], [queryData])
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
+  const enclosureLabel = Number(total) === (0 || 1) ? 'Enclosure' : 'Enclosures'
+  const enclosureHeading = total ? `${enclosureLabel} (${total})` : enclosureLabel
+
   // cooldownRef to prevent multiple rapid calls
   const cooldownRef = useRef(false)
 
@@ -143,7 +146,7 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
         </Box>
       )}
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Enclosures {total ? `(${total})` : ''}
+        {enclosureHeading}
       </Typography>
       <Box sx={{ my: 2 }}>
         <Search

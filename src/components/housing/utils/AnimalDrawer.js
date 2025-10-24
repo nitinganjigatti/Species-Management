@@ -78,6 +78,10 @@ const AnimalsDrawer = ({ open, onClose, data, totalCount, defaultImage, objectFi
   const list = useMemo(() => queryData?.pages?.flatMap(page => page?.result) || [], [queryData])
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
+  const resolvedCount = totalCount || total
+  const animalsLabel = Number(resolvedCount) === (0 || 1) ? 'Animal' : 'Animals'
+  const animalHeading = resolvedCount ? `${animalsLabel} (${resolvedCount})` : animalsLabel
+
   // cooldownRef to prevent multiple rapid calls
   const cooldownRef = useRef(false)
 
@@ -160,7 +164,7 @@ const AnimalsDrawer = ({ open, onClose, data, totalCount, defaultImage, objectFi
         </Box>
       )}
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Animals {totalCount || total ? `(${totalCount || total})` : ''}
+        {animalHeading}
       </Typography>
       <Box sx={{ my: 2 }}>
         <Search
