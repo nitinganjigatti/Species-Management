@@ -83,6 +83,7 @@ export const VisitType = ({ title }) => {
   const theme = useTheme()
 
   const visitTypeMap = {
+    inpatient: 'INPATIENT',
     checkup: 'Check up',
     emergency: 'Emergency',
     follow_up: 'Follow-up',
