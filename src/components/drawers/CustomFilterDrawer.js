@@ -91,7 +91,10 @@ const CustomFilterDrawer = ({
                   borderBottomLeftRadius: '8px',
                   backgroundColor: selectedItem === item ? theme.palette.customColors.OnPrimary : 'transparent',
                   '&:hover': {
-                    backgroundColor: selectedItem === item ? theme.palette.customColors.OnPrimary : alpha(theme.palette.customColors.OnPrimary, 0.8)
+                    backgroundColor:
+                      selectedItem === item
+                        ? theme.palette.customColors.OnPrimary
+                        : alpha(theme.palette.customColors.OnPrimary, 0.8)
                   }
                 }}
               >
@@ -120,7 +123,8 @@ const CustomFilterDrawer = ({
             backgroundColor: theme.palette.customColors.OnPrimary,
             borderTopRightRadius: '8px',
             p: '24px',
-            pb: 0
+            pb: 0,
+            flex: 1
           }}
         >
           {children}

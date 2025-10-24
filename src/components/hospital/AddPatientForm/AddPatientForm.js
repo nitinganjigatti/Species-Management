@@ -38,6 +38,8 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import dayjs from 'dayjs'
 import moment from 'moment'
+import AddPatientFiltersDrawer from '../inpatient/AddPatientFiltersDrawer'
+import SortBottomSheet from '../inpatient/SortBottomSheet'
 
 const defaultValues = {
   treatmentType: 'inpatient',
@@ -99,6 +101,33 @@ const AddPatientForm = () => {
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [search, setSearch] = useState('')
+  const [currentSort, setCurrentSort] = useState('recent')
+
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [filterCount, setFilterCount] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [isSortBottomSheetOpen, setIsSortBottomSheetOpen] = useState(false)
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    Gender: [],
+    Species: [],
+    Site: [],
+    Section: [],
+    Enclosure: []
+  })
+
+  const applyFilters = selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setOpenFilterDrawer(false)
+  }
+
+  const handleFilterClick = async () => {
+    setOpenFilterDrawer(true)
+  }
+
+  const handleSortClick = async () => {
+    setIsSortBottomSheetOpen(true)
+  }
 
   const {
     control,
@@ -251,6 +280,10 @@ const AddPatientForm = () => {
   const handleRemoveDoctor = () => {
     setSelectedDoctor(null)
     setValue('selectedDoctor', null)
+  }
+
+  const handleCloseFilterDrawer = () => {
+    setOpenFilterDrawer(false)
   }
 
   return (
@@ -667,11 +700,29 @@ const AddPatientForm = () => {
           showAnimalFilter={false}
           handleAnimalClick={handleAnimalSelection}
           showFilterAndSort
+          handleFilterClick={handleFilterClick}
+          handleSortClick={handleSortClick}
         />
       )}
       {doctorDrawerOpen && (
         <DoctorsDrawer open={doctorDrawerOpen} setOpen={setDoctorDrawerOpen} onSelectDoctor={handleDoctorSelection} />
       )}
+      {isSortBottomSheetOpen && (
+        <SortBottomSheet
+          open={isSortBottomSheetOpen}
+          onClose={() => setIsSortBottomSheetOpen(false)}
+          currentSort={currentSort}
+          onSortChange={setCurrentSort}
+        />
+      )}
+      <AddPatientFiltersDrawer
+        openFilterDrawer={openFilterDrawer}
+        onCloseFilterDrawer={handleCloseFilterDrawer}
+        onSubmitLoading={loading}
+        onApplyFilters={applyFilters}
+        setFilterCount={setFilterCount}
+        initialSelectedOptions={selectedOptions}
+      />
     </>
   )
 }

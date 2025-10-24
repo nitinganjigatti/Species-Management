@@ -20,7 +20,9 @@ const AnimalDrawer = ({
   handleAnimalClick,
   btnText = 'GENERATE OBSERVATION REPORT',
   showAnimalFilter = true,
-  showFilterAndSort = false
+  showFilterAndSort = false,
+  handleFilterClick = () => {},
+  handleSortClick = () => {}
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -226,6 +228,7 @@ const AnimalDrawer = ({
                 <FilterButton
                   bgColor={theme?.palette?.customColors?.OnPrimary}
                   border={`1px solid ${theme?.palette?.customColors?.OutlineVariant}`}
+                  onClick={handleFilterClick}
                 />
               </Grid>
               <Grid size={{ xs: 1, sm: 1 }}>
@@ -242,7 +245,7 @@ const AnimalDrawer = ({
                       alignItems: 'center',
                       cursor: 'pointer'
                     }}
-                    onClick={''}
+                    onClick={handleSortClick}
                   >
                     <Icon icon={'lets-icons:sort-arrow'} fontSize={24} />
                   </Box>
