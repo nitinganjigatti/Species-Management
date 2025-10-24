@@ -336,7 +336,7 @@ const AnimalDiet = ({ animalDetails }) => {
                 </Box>
 
                 {/* Right: User Info, Switch, Delete */}
-                <Box sx={{ maxWidth: '340px', display: 'flex', alignItems: 'end', gap: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ width: '240px', display: 'flex', alignItems: 'start', gap: 2, flexWrap: 'wrap' }}>
                   <UserInfoCard
                     avatarUrl={diet.attached_by_profile}
                     name={diet.attached_by}
