@@ -23,7 +23,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 3
+                  gap: 1
                 }}
               >
                 <Avatar
@@ -33,7 +33,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
                     width: 56,
                     height: 56,
                     backgroundColor: theme.palette.customColors.antzNotes80,
-                    borderRadius: '7px',
+                    borderRadius: '8px',
                     p: '8px'
                   }}
                   slotProps={{
@@ -42,20 +42,12 @@ const HospitalAnalytics = ({ disabled = false }) => {
                     }
                   }}
                 />
-                <Box sx={{ textAlign: { md: 'left' } }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <HospitalDropdown disabled={disabled} />
-                  </Box>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      color: theme.palette.customColors.neutralSecondary,
-                      fontSize: '14px',
-                      pl: 1
-                    }}
-                  >
-                    {selectedHospital ? selectedHospital.location : '-'}
-                  </Typography>
+                <Box
+                  sx={{
+                    textAlign: { md: 'left' }
+                  }}
+                >
+                  <HospitalDropdown disabled={disabled} />
                 </Box>
               </Box>
             </Grid>

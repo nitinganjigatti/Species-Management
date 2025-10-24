@@ -151,29 +151,55 @@ const HospitalDropdown = ({ disabled = false }) => {
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: 1,
+          gap: '16px',
           cursor: disabled ? 'default' : 'pointer',
-          p: 1,
-          borderRadius: 1,
+          border: Boolean(anchorEl) ? `1px solid ${theme.palette.customColors.OnSurface}` : 'none',
+          borderRadius: '4px',
+          backgroundColor: Boolean(anchorEl) ? theme.palette.customColors.Surface : 'transparent',
+          px: '16px',
+          py: '6px',
           '&:hover': {
             backgroundColor: disabled ? 'transparent' : theme.palette.action.hover
           }
         }}
       >
         <Box sx={{ maxWidth: 200, display: 'flex', alignItems: 'center' }}>
-          <Tooltip title={selectedHospital ? selectedHospital.hospital_name : 'Loading Hospital...'}>
-            <Typography
-              variant='h6'
+          {selectedHospital?.hospital_name ? (
+            <Box
               sx={{
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                display: 'flex',
+                flexDirection: 'column',
+                maxWidth: 200
               }}
             >
-              {selectedHospital ? selectedHospital.hospital_name : 'Loading Hospital...'}
-            </Typography>
-          </Tooltip>
+              <Tooltip title={selectedHospital.hospital_name}>
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: '20px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {selectedHospital.hospital_name}
+                </Typography>
+              </Tooltip>
+              <Tooltip title={selectedHospital?.location || '-'}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '14px'
+                  }}
+                >
+                  {selectedHospital?.location || '-'}
+                </Typography>
+              </Tooltip>
+            </Box>
+          ) : (
+            <CircularProgress size={24} />
+          )}
         </Box>
 
         {/* Conditionally render dropdown arrow */}
@@ -186,7 +212,6 @@ const HospitalDropdown = ({ disabled = false }) => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={() => setAnchorEl(null)}
-          sx={{ p: 0 }}
           PaperProps={{
             sx: {
               width: 320,
@@ -206,7 +231,18 @@ const HospitalDropdown = ({ disabled = false }) => {
           </Box>
 
           {/* Hospital List */}
-          <Box onScroll={handleScroll} sx={{ maxHeight: 300, overflow: 'auto', padding: '16px', paddingTop: 0 }}>
+          <Box
+            onScroll={handleScroll}
+            sx={{
+              maxHeight: 300,
+              overflow: 'auto',
+              padding: '16px',
+              paddingTop: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px'
+            }}
+          >
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
                 <CircularProgress size={24} />
@@ -222,13 +258,14 @@ const HospitalDropdown = ({ disabled = false }) => {
                   selected={selectedHospital?.id === hospital.id}
                   sx={{
                     '&.Mui-selected': {
-                      backgroundColor: theme.palette.customColors.outlineVariant,
+                      backgroundColor: theme.palette.customColors.OnBackground,
                       '&:hover': {
-                        backgroundColor: theme.palette.primary.outlineVariant
+                        backgroundColor: theme.palette.primary.OnBackground
                       }
                     },
-                    p: 2,
-                    borderRadius: '8px'
+                    px: '16px',
+                    py: '8px',
+                    borderRadius: '4px'
                   }}
                 >
                   <Box
@@ -238,29 +275,16 @@ const HospitalDropdown = ({ disabled = false }) => {
                       gap: 3
                     }}
                   >
-                    <Avatar
-                      src='/images/hospital/hospital-icon.svg'
-                      alt='Hospital Icon'
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        backgroundColor: theme.palette.customColors.antzNotes80,
-                        borderRadius: '7px',
-                        p: '8px'
-                      }}
-                      slotProps={{
-                        img: {
-                          style: { objectFit: 'contain' }
-                        }
-                      }}
-                    />
-                    <Box sx={{ textAlign: { md: 'left' }, maxWidth: '180px' }}>
+                    <Box sx={{ textAlign: { md: 'left' }, maxWidth: '250px' }}>
                       <Tooltip title={hospital.hospital_name}>
                         <Typography
-                          variant='body2'
                           sx={{
-                            color: theme.palette.customColors.neutralSecondary,
-                            fontSize: '14px',
+                            color:
+                              selectedHospital?.id === hospital.id
+                                ? theme.palette.customColors.OnSurface
+                                : theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '16px',
+                            fontWeight: 500,
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis'
@@ -273,7 +297,10 @@ const HospitalDropdown = ({ disabled = false }) => {
                         <Typography
                           variant='body2'
                           sx={{
-                            color: theme.palette.customColors.neutralSecondary,
+                            color:
+                              selectedHospital?.id === hospital.id
+                                ? theme.palette.customColors.OnSurfaceVariant
+                                : theme.palette.customColors.neutralSecondary,
                             fontSize: '14px',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
