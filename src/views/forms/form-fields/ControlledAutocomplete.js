@@ -1,7 +1,9 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import { Autocomplete, TextField, FormControl } from '@mui/material'
+import { Autocomplete, TextField, FormControl, Checkbox } from '@mui/material'
 import get from 'lodash/get'
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank'
+import CheckBoxIcon from '@mui/icons-material/CheckBox'
 
 const ControlledAutocomplete = ({
   name,
@@ -12,6 +14,7 @@ const ControlledAutocomplete = ({
   loading = false,
   required = false,
   fullWidth = true,
+  multiple = false,
   onChangeOverride = () => {},
   onKeyUp = () => {},
   onItemClear = () => {},
@@ -29,6 +32,9 @@ const ControlledAutocomplete = ({
 
   const fieldError = get(errors, name)
 
+  const icon = <CheckBoxOutlineBlankIcon fontSize='small' />
+  const checkedIcon = <CheckBoxIcon fontSize='small' />
+
   return (
     <FormControl fullWidth={fullWidth} error={Boolean(fieldError)}>
       <Controller
@@ -40,7 +46,7 @@ const ControlledAutocomplete = ({
             {...field}
             options={options}
             getOptionLabel={getOptionLabel}
-            value={field.value ?? null} // ensures Autocomplete is always controlled
+            value={multiple ? (field.value ? field.value : []) : field.value ?? null}
             isOptionEqualToValue={isOptionEqualToValue}
             onChange={(e, value, reason) => {
               field.onChange(value)
@@ -53,10 +59,23 @@ const ControlledAutocomplete = ({
             onBlur={onBlur}
             loading={loading}
             noOptionsText='Type to search'
-            renderOption={renderOption}
+            renderOption={
+              renderOption
+                ? renderOption
+                : (props, option, { selected }) => (
+                    <li {...props}>
+                      {multiple && (
+                        <Checkbox icon={icon} checkedIcon={checkedIcon} checked={selected} style={{ marginRight: 8 }} />
+                      )}
+                      {getOptionLabel(option)}
+                    </li>
+                  )
+            }
+            multiple={multiple} // ✅ enable multi select
+            disableCloseOnSelect={multiple} // ✅ keep list open
             sx={{
               '& .MuiInputBase-root': {
-                backgroundColor: inputBackgroundColor,
+                backgroundColor: inputBackgroundColor
               },
               ...sx
             }}
