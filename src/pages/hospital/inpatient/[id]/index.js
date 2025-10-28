@@ -12,6 +12,7 @@ import MenuItem from '@mui/material/MenuItem'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import CloseIcon from '@mui/icons-material/Close'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
+import { useQuery } from '@tanstack/react-query'
 
 const useDrawerState = () => {
   const router = useRouter()
@@ -56,45 +57,36 @@ const InpatientDetails = () => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [anchorEl, setAnchorEl] = useState(null)
-  const [patientLoading, setPatientLoading] = useState(false)
-  const [patientData, setPatientData] = useState(null)
-  const [animalData, setAnimalData] = useState({})
-  const [overviewData, setOverViewData] = useState({})
 
   const openMenu = Boolean(anchorEl)
 
-  useEffect(() => {
-    const getPatientInfo = async () => {
-      setPatientLoading(true)
-      try {
-        await getPatientDetails(id).then(res => {
-          if (res?.success === true) {
-            setPatientData(res?.data)
-            setAnimalData(res?.data?.animal_detail)
-            setOverViewData({
-              active_complaints_count: res?.data?.active_complaints_count,
-              active_diagnosis_count: res?.data?.active_diagnosis_count,
-              active_prescriptions_count: res?.data?.active_prescriptions_count,
-              treatment_monitoring: res?.data?.treatment_monitoring,
-              purpose_of_visit: res?.data?.purpose_of_visit,
-              created_by_full_name: res?.data?.created_by_full_name,
-              created_at: res?.data?.created_at,
-              created_by_profile_pic: res?.data?.created_by_profile_pic
-            })
-            setPatientLoading(false)
-          } else {
-            setPatientData(null)
-            setPatientLoading(false)
-          }
-        })
-      } catch (error) {
-        console.error('Cannot Fetch Patient Details', error)
-        setPatientLoading(false)
-      }
-    }
+  const {
+    data: patientResponse,
+    isLoading: patientLoading,
+    refetch: refetchPatient,
+    isError,
+    error
+  } = useQuery({
+    queryKey: ['patientDetails', id],
+    queryFn: () => getPatientDetails(id),
+    enabled: !!id // only run when id exists
+  })
 
-    getPatientInfo()
-  }, [id])
+  const patientData = patientResponse?.data
+  const animalData = patientResponse?.data?.animal_detail || {}
+
+  const overviewData = patientResponse
+    ? {
+        active_complaints_count: patientResponse.data?.active_complaints_count,
+        active_diagnosis_count: patientResponse.data?.active_diagnosis_count,
+        active_prescriptions_count: patientResponse.data?.active_prescriptions_count,
+        treatment_monitoring: patientResponse.data?.treatment_monitoring,
+        purpose_of_visit: patientResponse.data?.purpose_of_visit,
+        created_by_full_name: patientResponse.data?.created_by_full_name,
+        created_at: patientResponse.data?.created_at,
+        created_by_profile_pic: patientResponse.data?.created_by_profile_pic
+      }
+    : {}
 
   const handleMenuOpen = event => {
     setAnchorEl(event.currentTarget)
@@ -189,7 +181,12 @@ const InpatientDetails = () => {
     <>
       <Box>
         {breadcrumbs}
-        <PatientCard animalData={animalData} patientData={patientData} loading={patientLoading} />
+        <PatientCard
+          animalData={animalData}
+          patientData={patientData}
+          loading={patientLoading}
+          refetch={refetchPatient}
+        />
         <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

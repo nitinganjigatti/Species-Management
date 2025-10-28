@@ -16,7 +16,7 @@ const defaultValues = {
   selectedDoctor: null
 }
 
-const EditPatientDrawer = ({ open, onClose, patientData }) => {
+const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   const theme = useTheme()
   const { selectedHospital } = useHospital()
 
@@ -98,8 +98,6 @@ const EditPatientDrawer = ({ open, onClose, patientData }) => {
   }
 
   const onSubmit = async data => {
-    console.log('Form Data:', data)
-
     setSubmitLoader(true)
     try {
       const payload = {
@@ -108,11 +106,11 @@ const EditPatientDrawer = ({ open, onClose, patientData }) => {
         attend_by: data?.selectedDoctor?.id || ''
       }
       await editAnimalAdmissionDetails(payload).then(res => {
-        console.log(res)
         if (res?.success === true) {
           setSubmitLoader(false)
           Toaster({ type: 'success', message: res?.message })
           onClose()
+          refetch()
         } else {
           Toaster({ type: 'error', message: res?.message })
           setSubmitLoader(false)

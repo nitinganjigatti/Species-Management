@@ -1,4 +1,4 @@
-import { Card, Typography, Box, styled, CardContent, alpha, Skeleton } from '@mui/material'
+import { Card, Typography, Box, styled, CardContent, alpha, Skeleton, Button } from '@mui/material'
 import { Grid } from '@mui/material'
 import React, { useState } from 'react'
 import { useTheme } from '@emotion/react'
@@ -9,11 +9,13 @@ import AdmissionStatusCard from '../inpatient/AdmissionStatusCard'
 import MenuWithDots from 'src/components/MenuWithDots'
 import EditPatientDrawer from 'src/components/hospital/drawer/EditPatientDrawer'
 import { useHospital } from 'src/context/HospitalContext'
+import AddPatientDrawer from 'src/components/hospital/drawer/AddPatientDrawer'
 
-const PatientCard = ({ patientData, animalData, loading }) => {
+const PatientCard = ({ patientData, animalData, loading, refetch }) => {
   const theme = useTheme()
 
   const [openEditPatientDrawer, setOpenEditPatientDrawer] = useState(null)
+  const [openAddAnimalDrawer, setOpenAddAnimalDrawer] = useState(false)
 
   const admissionData = [
     { type: 'admitted_on', value: patientData?.admitted_at },
@@ -123,6 +125,23 @@ const PatientCard = ({ patientData, animalData, loading }) => {
               >
                 {loading ? (
                   <Skeleton variant='rounded' width={100} height={40} />
+                ) : patientData?.visit_type === 'opd' && patientData?.status === 'pending' ? (
+                  <Button
+                    variant='outlined'
+                    sx={{
+                      border: `1px solid ${theme.palette.primary.main}`,
+                      height: 45,
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      color: theme.palette.primary.main
+                    }}
+                    onClick={() => setOpenAddAnimalDrawer(true)}
+                  >
+                    Admit Animal
+                  </Button>
+                ) : null}
+                {loading ? (
+                  <Skeleton variant='rounded' width={100} height={40} />
                 ) : (
                   <Box
                     sx={{
@@ -212,6 +231,15 @@ const PatientCard = ({ patientData, animalData, loading }) => {
           open={openEditPatientDrawer}
           onClose={() => setOpenEditPatientDrawer(false)}
           patientData={patientData}
+          refetch={refetch}
+        />
+      )}
+      {openAddAnimalDrawer && (
+        <AddPatientDrawer
+          open={openAddAnimalDrawer}
+          onClose={() => setOpenAddAnimalDrawer(false)}
+          patientData={patientData}
+          animalData={animalData}
         />
       )}
     </>

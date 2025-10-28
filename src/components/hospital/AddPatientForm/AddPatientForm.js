@@ -237,11 +237,7 @@ const AddPatientForm = () => {
       await addHospitalPatient(params).then(res => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
-          if (watchTreatmentType === 'inpatient') {
-            router.back()
-          } else if (watchTreatmentType === 'opt') {
-            router.push('/hospital/outpatient')
-          }
+          router.back()
         } else {
           Toaster({ type: 'error', message: res?.message })
         }
