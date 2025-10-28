@@ -7,7 +7,8 @@ import {
   InputAdornment,
   Typography,
   CircularProgress,
-  IconButton
+  IconButton,
+  Radio
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
@@ -128,7 +129,7 @@ export default function PrescriptionMedicineList({
               >
                 <FormControlLabel
                   control={
-                    <Checkbox
+                    <Radio
                       checked={isSelected || isTemporarilySelected}
                       onChange={() => onSelect(medicine)}
                       sx={{

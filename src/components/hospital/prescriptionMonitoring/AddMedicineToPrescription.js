@@ -684,7 +684,7 @@ return istDate.toISOString().replace('Z', '+05:30');
           <PrescriptionMedicineList
             medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
             temporarilySelectedMedicine={temporarilySelectedMedicine}
-
+            
             // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
             selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
             onSelect={handleMedicineSelect}
@@ -702,6 +702,7 @@ return istDate.toISOString().replace('Z', '+05:30');
             medicalMasterData={medicalMasterData}
             control={control}
             errors={errors}
+            isMedicineSelected={temporarilySelectedMedicine?.id}
             selectedMedicineTo={watch('selectMedicineType')}
           />
         </Grid>

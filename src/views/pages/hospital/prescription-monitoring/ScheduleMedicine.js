@@ -11,8 +11,9 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import AddIcon from '@mui/icons-material/Add'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
+import dayjs from 'dayjs'
 
-export default function ScheduleMedicine({ control, errors, selectedMedicineTo, medicalMasterData }) {
+export default function ScheduleMedicine({ control, errors, selectedMedicineTo, medicalMasterData, isMedicineSelected }) {
   const {
     caseTypes,
     prescriptionMeasurementType,
@@ -22,6 +23,8 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
     prescriptionDeliveryRoute
   } = medicalMasterData
   const theme = useTheme()
+
+  const now = new Date()
 
   // Options for selects
   const frequencyOptions = [
@@ -108,7 +111,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
       }}
     >
       <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Box
+        {isMedicineSelected ? <Box
           container
           sx={{
             background: theme.palette.common.white,
@@ -211,7 +214,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                 />
               </Grid>
 
-              <Grid item size={6.5}>
+              <Grid item size={fields?.length > 1 ? 6.5 : 7.5}>
                 <ControlledSelectWithTextField
                   textFieldName={`schedules.${idx}.quantity`}
                   selectFieldName={`schedules.${idx}.unit`}
@@ -298,6 +301,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
             <ControlledDatePicker
               fullWidth={true}
               sx={commonFieldStyles}
+              minDate={dayjs(now)}
               size='large'
               name='prescriptionStartDate'
               label='Prescription Start Date'
@@ -328,6 +332,7 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
             <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
               <ControlledSelect
                 name='dosageDuration.unit'
+                label='Dosage Unit'
                 sx={{
                   textAlign: 'left',
                   borderRadius: '4px'
@@ -468,7 +473,38 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
               <ControlledFileUpload name='batchImage' label='Batch Image' control={control} />
             </>
           )}
-        </Box>
+        </Box> : <Box container
+          sx={{
+            background: theme.palette.common.white,
+
+            // minHeight: 'fit-content',
+            borderRadius: '4px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            justifyContent: 'flex-start',
+            gap: 2,
+            padding: '24px',
+            width: '100%',
+            flex: 1,
+            overflowY: 'auto',
+
+            '& .MuiGrid-item': {
+              paddingLeft: '8px !important',
+              paddingTop: '8px !important'
+            }
+          }}>
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: '500',
+              textAlign: 'center',
+              color: theme.palette.customColors.neutralSecondary
+            }}
+          >
+            Please select a medicine to schedule.
+          </Typography>
+        </Box>}
       </Box>
     </Box>
   )

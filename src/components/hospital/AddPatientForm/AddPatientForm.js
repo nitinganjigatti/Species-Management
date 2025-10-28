@@ -118,6 +118,7 @@ const AddPatientForm = () => {
 
   const applyFilters = selectedOptions => {
     setSelectedOptions(selectedOptions)
+    console.log('Applied Filters:', selectedOptions)
     setOpenFilterDrawer(false)
   }
 
