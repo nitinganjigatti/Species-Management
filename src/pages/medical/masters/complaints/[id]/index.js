@@ -251,10 +251,9 @@ const ComplaintsDetails = () => {
             <CardHeader title='Symptoms List' action={headerAction} />
 
             <DataGrid
-
               //   hideFooterPagination={true}
               sx={{
-                '.MuiDataGrid-cell:focus-within': {
+                '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
 

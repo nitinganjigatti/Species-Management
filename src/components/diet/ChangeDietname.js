@@ -24,7 +24,6 @@ const defaultValues = {
 const ChangeDietName = ({ isOpen, setIsOpen, dietid, dietname }) => {
   const theme = useTheme()
   const router = useRouter()
-
   const handelClose = () => {
     setIsOpen(false)
   }

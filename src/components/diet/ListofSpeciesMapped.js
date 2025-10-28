@@ -31,8 +31,6 @@ import { useMediaQuery } from '@mui/material'
 import { addAssigntoDiet } from 'src/lib/api/diet/dietList'
 import SingleDatePicker from '../SingleDatePicker'
 import { format } from 'date-fns'
-import AnimalCard from 'src/views/utility/AnimalCard'
-import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const ListOfSpeciesMapped = ({
   isOpennew,
@@ -71,12 +69,7 @@ const ListOfSpeciesMapped = ({
   const [openModal, setOpenModal] = useState(false)
 
   const handleClickOpen = () => {
-    if (dietDetails?.total_animals !== '0' || dietDetails?.total_species !== '0') {
-      setOpenModal(true)
-    } else {
-      setOpenModal(false)
-      handleAdd()
-    }
+    setOpenModal(true)
   }
   const handleClose = () => setOpenModal(false)
 
@@ -499,7 +492,6 @@ const ListOfSpeciesMapped = ({
                         />
                       }
                       minDate={startDate}
-
                       //maxDate={new Date()}
                     />
                     {errors.endDate && <FormHelperText sx={{ color: 'error.main' }}>{errors.endDate}</FormHelperText>}
@@ -609,7 +601,7 @@ const ListOfSpeciesMapped = ({
                       </Box>
 
                       {/* Species List */}
-                      {mappedSpecies.map((species, index) =>
+                      {mappedSpecies.map(species =>
                         selectionType === 'species' ? (
                           <ListItem
                             key={species.id}
@@ -619,18 +611,19 @@ const ListOfSpeciesMapped = ({
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               borderBottom:
-                                index !== tempSelectedSpecies.length - 1
+                                mappedSpecies.length > 1
                                   ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                  : 'none',
-                              px: 3,
-                              py: 3.5,
+                                  : '',
+                              px: 2,
+                              py: 1.5,
 
+                              // height: '70px',
                               borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                               borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
                               borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                             }}
                           >
-                            {/* Species card layout */}
+                            {/* Species Image and Name */}
                             <Box
                               sx={{
                                 display: 'flex',
@@ -640,13 +633,55 @@ const ListOfSpeciesMapped = ({
                                 minHeight: '100%'
                               }}
                             >
-                              <SpeciesCard species={species} />
+                              <Avatar
+                                src={species.default_icon ? species.default_icon : '/icons/species.svg'}
+                                alt={species.scientific_name}
+                                sx={{
+                                  '& img': { objectFit: 'inherit' },
+                                  borderRadius:
+                                    species?.default_icon && species.default_icon.includes('.svg')
+                                      ? 'unset'
+                                      : species?.default_icon
+                                      ? '50%'
+                                      : 'unset',
+                                  height: '44px',
+                                  width: '44px',
+                                  mr: 2,
+                                  mt: 2.5
+                                }}
+                              />
+                              <ListItemText
+                                primary={
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      fontStyle: 'italic',
+                                      lineHeight: 1.6
+                                    }}
+                                  >
+                                    {species.common_name ? species.common_name : '-'}
+                                  </Typography>
+                                }
+                                secondary={species.scientific_name ? species.scientific_name : '-'}
+                                slotProps={{
+                                  secondary: {
+                                    sx: {
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: 600,
+                                      lineHeight: 1.2
+                                    }
+                                  }
+                                }}
+                              />
                             </Box>
 
                             {/* Toggle for Mark as Primary */}
                             <Box sx={{ width: '20%', textAlign: 'center', mr: '10%' }}>
                               <Switch
-
                                 //checked={!!primaryStatus[species.species_id]}
                                 checked={
                                   primaryStatus[
@@ -681,15 +716,12 @@ const ListOfSpeciesMapped = ({
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              borderBottom:
-                                index !== tempSelectedSpecies.length - 1
-                                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
-                                  : 'none',
-                              px: 3,
-                              py: 3.5
+                              borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              px: 2,
+                              py: 1.5
                             }}
                           >
-                            {/* Animal card layout */}
+                            {/* Species Image and Name */}
                             <Box
                               sx={{
                                 display: 'flex',
@@ -699,7 +731,107 @@ const ListOfSpeciesMapped = ({
                                 minHeight: '100%'
                               }}
                             >
-                              <AnimalCard data={species} size='16px' />
+                              <Avatar
+                                src={species.default_icon ? species.default_icon : '/icons/species.svg'}
+                                alt={species.scientific_name}
+                                sx={{
+                                  '& img': { objectFit: 'inherit' },
+                                  borderRadius:
+                                    species?.default_icon && species.default_icon.includes('.svg')
+                                      ? 'unset'
+                                      : species?.default_icon
+                                      ? '50%'
+                                      : 'unset',
+                                  height: '44px',
+                                  width: '44px',
+                                  mr: 2,
+                                  mt: 2.5
+                                }}
+                              />
+                              <ListItemText
+                                primary={
+                                  <>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '14px',
+                                        fontWeight: 600
+                                      }}
+                                    >
+                                      {species.primary_identifier_type && species.identifier
+                                        ? `${species.primary_identifier_type}: ${species.identifier}`
+                                        : species.animal_id
+                                        ? `AID: ${species.animal_id}`
+                                        : 'AID: -'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '14px',
+                                        fontWeight: 400,
+                                        fontStyle: 'italic'
+                                      }}
+                                    >
+                                      {species.default_common_name ? species.default_common_name : '-'}
+                                    </Typography>
+                                  </>
+                                }
+                                slotProps={{
+                                  primary: {
+                                    sx: {
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: 600
+                                    }
+                                  }
+                                }}
+                                secondary={
+                                  <>
+                                    <Typography
+                                      variant='body1'
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '16px',
+                                        fontWeight: 600
+                                      }}
+                                    >
+                                      {species.scientific_name ? species.scientific_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
+                                      Encl: {species.user_enclosure_name ? species.user_enclosure_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
+                                      Sec: {species.section_name ? species.section_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      sx={{
+                                        color: theme.palette.customColors.secondaryBg,
+                                        fontSize: '14px',
+                                        fontWeight: 500
+                                      }}
+                                    >
+                                      Site: {species.site_name ? species.site_name : '-'}
+                                    </Typography>
+                                  </>
+                                }
+                              />
                             </Box>
 
                             {/* Toggle for Mark as Primary */}
@@ -753,7 +885,7 @@ const ListOfSpeciesMapped = ({
           </>
         )}
       </Box>
-
+      {/* bottom buttons */}
       <Box
         sx={{
           width: '100%',
@@ -798,17 +930,8 @@ const ListOfSpeciesMapped = ({
             disabled={tempSelectedSpecies?.length === 0 || (startDate && !endDate)}
             onClick={handleClickOpen}
             sx={{ flex: 1, height: '45px' }}
-            loading={!openModal && loader}
-            loadingIndicator={
-              !openModal && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  ASSIGN DIET
-                  <CircularProgress size={20} sx={{ color: '#ccc' }} />
-                </span>
-              )
-            }
           >
-            {!loader && 'ASSIGN DIET'}
+            ASSIGN DIET
           </LoadingButton>
         </Box>
       </Box>

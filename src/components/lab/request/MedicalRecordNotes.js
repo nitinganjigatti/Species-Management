@@ -1,12 +1,10 @@
-import { Typography, Box } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { Typography, Box, Avatar } from '@mui/material'
 import { format } from 'date-fns'
+import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
-import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const MedicalRecordNotes = ({ notes }) => {
   const theme = useTheme()
-
   if (!notes?.length) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
@@ -26,11 +24,12 @@ const MedicalRecordNotes = ({ notes }) => {
             gap: 2
           }}
         >
-          <FallbackAvatar
+          <Avatar
             src={note.user_profile.user_profile_pic}
             alt={note.user_profile.name}
             sx={{ width: 40, height: 40 }}
           />
+
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
               <Typography sx={{ fontSize: '15px', fontWeight: 500, color: theme.palette.primary.light }}>

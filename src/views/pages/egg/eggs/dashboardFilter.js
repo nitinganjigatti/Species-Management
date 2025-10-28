@@ -1,21 +1,8 @@
-import React, { useState, useEffect, useContext, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useContext, useCallback } from 'react'
 
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
-import {
-  Box,
-  Checkbox,
-  CircularProgress,
-  debounce,
-  Divider,
-  Drawer,
-  FormControlLabel,
-  Grid,
-  IconButton,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
 
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
@@ -30,7 +17,6 @@ const leftMenu = [
   { id: 2, name: 'Batch' },
   { id: 3, name: 'Nursery' },
   { id: 4, name: 'Security status' },
-
   // { id: 5, name: 'Condition' },
   { id: 6, name: 'Reason' },
   { id: 7, name: 'Site' }
@@ -58,12 +44,8 @@ const DashboardFilter = ({
   const [eggMaster, setEggMaster] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
   const [taxonomyList, setTaxonomyList] = useState([])
-  const [loading, setLoading] = useState(false)
 
   const [tempSelectedOptions, setTempSelectedOptions] = useState(selectedOptions)
-
-  // Ref for search input to enable auto-focus
-  const searchInputRef = useRef(null)
 
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
@@ -120,12 +102,9 @@ const DashboardFilter = ({
 
   const NurseryList = async q => {
     try {
-      setLoading(true)
-
       const params = {
         // type: ['length', 'weight'],
         search: q ? q : ''
-
         // page: 1,
         // limit: 50
       }
@@ -134,8 +113,6 @@ const DashboardFilter = ({
       })
     } catch (e) {
       console.error(e)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -155,8 +132,6 @@ const DashboardFilter = ({
 
   const getTaxonomyListFunc = async q => {
     try {
-      setLoading(true)
-
       const params = {
         q: q ? q : ''
       }
@@ -167,15 +142,11 @@ const DashboardFilter = ({
       })
     } catch (error) {
       console.error('error', error)
-    } finally {
-      setLoading(false)
     }
   }
 
   const getBatchList = async q => {
     try {
-      setLoading(true)
-
       const params = {
         q
       }
@@ -186,8 +157,6 @@ const DashboardFilter = ({
       })
     } catch (e) {
       console.error(e)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -362,17 +331,6 @@ const DashboardFilter = ({
     setIsFilterOpen(false)
   }
 
-  // Auto-focus search input when loading completes
-  useEffect(() => {
-    if (!loading && searchInputRef.current && isFilterOpen) {
-      const timer = setTimeout(() => {
-        searchInputRef.current.focus()
-      }, 100) // Small delay to ensure DOM is ready
-
-      return () => clearTimeout(timer)
-    }
-  }, [loading, isFilterOpen])
-
   const searchData = useCallback(
     debounce(async search => {
       setSearchQuery(search)
@@ -430,7 +388,7 @@ const DashboardFilter = ({
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
           <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
-            Filter - {filterList?.length > 0 && filterList?.length}{' '}
+            Filter {filterList?.length > 0 && -filterList?.length}{' '}
           </Typography>
         </Box>
 
@@ -453,7 +411,7 @@ const DashboardFilter = ({
               <Box
                 key={menu.id}
                 sx={{
-                  maxWidth: '190px',
+                  width: '190px',
                   bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
                   cursor: 'pointer',
                   p: 4,
@@ -462,21 +420,9 @@ const DashboardFilter = ({
                 }}
                 onClick={() => handleMenuClick(menu)}
               >
-                <Tooltip title={menu.name}>
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.dark,
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      lineHeight: '19.36px',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {menu.name}
-                  </Typography>
-                </Tooltip>
+                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                  {menu.name}
+                </Typography>
               </Box>
             ))}
           </Grid>
@@ -486,7 +432,7 @@ const DashboardFilter = ({
                 bgcolor: theme.palette.primary.contrastText,
                 p: '16px',
                 borderRadius: '8px',
-                maxWidth: '345px',
+                width: '345px',
                 height: 'calc(100vh - 185px)',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
@@ -519,8 +465,6 @@ const DashboardFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      inputRef={searchInputRef}
-                      disabled={loading}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -555,40 +499,26 @@ const DashboardFilter = ({
 
               {selectedMenu && (
                 <Box sx={{ mt: 2 }}>
-                  {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-                      <CircularProgress size={40} />
+                  {getOptionsForMenu(selectedMenu)?.map((option, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                      <Checkbox
+                        // checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
+                        checked={tempSelectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
+                        onChange={() => handleCheckboxChange(option.id, option.name)}
+                        inputProps={{ 'aria-label': 'controlled' }}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: theme.palette.customColors.Outline,
+                          textTransform: 'capitalize'
+                        }}
+                      >
+                        {option.name}
+                      </Typography>
                     </Box>
-                  ) : (
-                    getOptionsForMenu(selectedMenu)?.map((option, index) => (
-                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                        <Checkbox
-
-                          // checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
-                          checked={tempSelectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
-                          onChange={() => handleCheckboxChange(option.id, option.name)}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-                        <Tooltip title={option.name}>
-                          <Typography
-                            onClick={() => handleCheckboxChange(option.id, option.name)}
-                            sx={{
-                              fontSize: '16px',
-                              fontWeight: 400,
-                              cursor: 'pointer',
-                              color: theme.palette.customColors.Outline,
-                              textTransform: 'capitalize',
-                              textOverflow: 'ellipsis',
-                              overflow: 'hidden',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {option.name}
-                          </Typography>
-                        </Tooltip>
-                      </Box>
-                    ))
-                  )}
+                  ))}
                 </Box>
               )}
             </Box>

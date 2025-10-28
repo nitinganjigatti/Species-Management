@@ -11,6 +11,8 @@ import ErrorScreen from 'src/pages/Error'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import Icon from 'src/@core/components/icon'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import CommonDialogBox from 'src/components/CommonDialogBox'
+import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import { getLabList } from 'src/lib/api/lab/addLab'
 
 const ListOfLab = () => {
@@ -27,6 +29,14 @@ const ListOfLab = () => {
     const Data = window.localStorage.getItem('userDetails')
     setStoredData(JSON.parse(Data))
   }, [])
+
+  const closeDialog = () => {
+    setShow(false)
+  }
+
+  const showDialog = () => {
+    setShow(true)
+  }
 
   const handleEdit = async (e, params) => {
     e.stopPropagation()
@@ -57,75 +67,53 @@ const ListOfLab = () => {
     // },
     {
       flex: 0.3,
-      minWidth: 250,
+      minWidth: 20,
       field: 'lab_name',
       headerName: 'LAB NAME',
       renderCell: params => (
-        <Box sx={{ width: '100%', display: 'flex' }}>
-          <Tooltip title={params.row.lab_name || ''}>
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'text.primary',
-                textTransform: 'capitalize',
-                cursor: 'pointer',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                mr: 14
-              }}
-            >
-              {params.row.lab_name || ''}
-            </Typography>
-          </Tooltip>
-          {params.row.is_default === '1' ? (
-            <Badge
-              sx={{ position: 'relative', right: 20, top: 10 }}
-              color='success'
-              badgeContent='Default'
-              style={{}}
-            ></Badge>
-          ) : null}
+        <Box>
+          <Box>
+            {params.row.is_default === '1' ? (
+              <Badge color='success' badgeContent='Default' style={{ left: '28px', position: 'relative' }}></Badge>
+            ) : null}
+          </Box>
+
+          <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}>
+            {params.row.lab_name}{' '}
+          </Typography>
         </Box>
       )
     },
     {
       flex: 0.2,
-      minWidth: 120,
+      minWidth: 20,
       field: 'type',
       headerName: 'Type',
       renderCell: params => (
-        <Tooltip title={params.row?.type ? params.row?.type : '-'}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              textTransform: 'capitalize',
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <span alt={params.row.type}>{params.row.type}</span>
-          </Typography>
-        </Tooltip>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            textTransform: 'capitalize',
+
+            fontFamily: 'Inter'
+          }}
+        >
+          <span alt={params.row.type}>{params.row.type}</span>
+        </Typography>
       )
     },
 
     {
       flex: 0.4,
-      minWidth: 160,
+      minWidth: 20,
       field: 'address',
       headerName: 'Address',
       renderCell: params => (
         <Tooltip title={params.row?.address ? params.row?.address : '-'}>
-          <Typography
-            variant='body2'
-            sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-          >
+          <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {params?.row?.address ? params?.row?.address : '-'}
           </Typography>
         </Tooltip>
@@ -146,7 +134,7 @@ const ListOfLab = () => {
     authData?.userData?.roles?.settings?.add_lab
       ? {
           flex: 0.2,
-          minWidth: 70,
+          minWidth: 20,
           field: 'Action',
           sortable: false,
           headerName: 'Action',
@@ -169,7 +157,7 @@ const ListOfLab = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: router?.query?.page ? parseInt(router?.query?.page) : 0,
-    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 50
+    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
   })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
@@ -261,6 +249,8 @@ const ListOfLab = () => {
           onClick={() => {
             Router.push({
               pathname: '/lab/lab-list/add-Lab',
+
+              // query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
               query: { page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
             })
           }}
@@ -317,8 +307,8 @@ const ListOfLab = () => {
                   Lab list
                 </Typography>
               </Breadcrumbs>
-              <Card sx={{ paddingX: 5 }}>
-                <CardHeader sx={{ paddingX: 0 }} title='Lab List' action={headerAction} />
+              <Card>
+                <CardHeader title='Lab List' sx={{ paddingX: 5 }} action={headerAction} />
                 <DataGrid
                   autoHeight
                   pagination
@@ -334,19 +324,6 @@ const ListOfLab = () => {
                   onPaginationModelChange={handlePaginationModelChange}
                   loading={loading}
                   onCellClick={onCellClick}
-                  sx={{
-                    borderTopLeftRadius: '8px',
-                    '& .MuiBox-root': {
-                      paddingX: 0
-                    },
-                    '.MuiDataGrid-main': {
-                      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                      borderRadius: '8px'
-                    },
-                    '& .MuiDataGrid-footerContainer': {
-                      border: 'none !important'
-                    }
-                  }}
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

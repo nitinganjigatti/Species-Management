@@ -161,7 +161,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='importer_name'
-            label='Importer name*'
+            label='Importer*'
             control={control}
             errors={errors}
             options={importersOptions}

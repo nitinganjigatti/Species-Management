@@ -355,7 +355,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
               <Button
                 color='secondary'
                 variant='outlined'
-
                 // startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
                 onClick={cancelBack}

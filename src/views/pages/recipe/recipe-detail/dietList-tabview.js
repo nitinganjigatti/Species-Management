@@ -237,7 +237,6 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                 }}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
-
                 //checkboxSelection={true}
                 disableColumnMenu={true}
                 onRowSelectionModelChange={handleSelectionChange}

@@ -28,7 +28,6 @@ const ExportCard = ({
   const [exportID, setexportID] = useState('')
   const [exportAnimalData, setexportAnimalData] = useState([])
   const [loading, setLoading] = useState(false)
-
   const handleClickAnimals = val => {
     setAddAnimalsDrawerOpen(true)
     setexportID(val)
@@ -62,17 +61,17 @@ const ExportCard = ({
       <Card
         sx={{
           display: 'flex',
-          alignItems: 'stretch',
+          alignItems: 'center',
           justifyContent: 'space-between',
           mb: 4,
           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
           borderRadius: '8px',
           backgroundColor: theme.palette.common.white,
-          boxShadow: 'none',
-          minHeight: '120px'
+          boxShadow: 'none'
         }}
         onClick={() => handleClickAnimals(exportId)}
       >
+      
         <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
           <Typography
             variant='subtitle2'
@@ -134,13 +133,11 @@ const ExportCard = ({
         <Box
           sx={{
             background: theme.palette.customColors.Surface,
-
-            //height: '117px',
+            height: '117px',
             width: '45px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
+            justifyContent: 'center'
           }}
         >
           <ChevronRight sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px' }} />

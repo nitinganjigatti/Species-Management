@@ -378,7 +378,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   const removeSaltButton = index => {
     return (
-
       // <Button
       //   variant='outlined'
       //   color='error'

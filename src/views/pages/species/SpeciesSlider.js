@@ -55,7 +55,6 @@ const AddSpeciesSlideBar = ({
   handleSidebarClose,
   openDrawer,
   setOpenDrawer,
-
   // fetchTaxonomy,
   // taxonomy,
   editVernacularNames,
@@ -361,7 +360,6 @@ const AddSpeciesSlideBar = ({
 
   const handleRemoveBreed = async (event, id) => {
     event.stopPropagation()
-
     const params = {
       selected_id: id,
       sub_taxon_type: 'breed',
@@ -376,7 +374,6 @@ const AddSpeciesSlideBar = ({
 
   const handleRemoveItem = async (event, item) => {
     event.stopPropagation()
-
     const params = {
       selected_id: item.sub_taxon_id,
       sub_taxon_type: 'morph',
@@ -392,7 +389,6 @@ const AddSpeciesSlideBar = ({
 
   const handleLocalityRemoveItem = async (event, item) => {
     event.stopPropagation()
-
     const params = {
       selected_id: item?.sub_taxon_id,
       sub_taxon_type: 'locality',
@@ -403,7 +399,6 @@ const AddSpeciesSlideBar = ({
       const updatedBreed = selectedLocality.filter(item1 => item1.sub_taxon_id !== item?.sub_taxon_id)
       setSelectedLocality(updatedBreed)
     }
-
     // setSelectedLocality(selectedLocality.filter(item => item.sub_taxon_name !== itemToRemove.sub_taxon_name))
   }
 
@@ -447,8 +442,7 @@ const AddSpeciesSlideBar = ({
           const bannerUploadResponse = await UploadBannerImages(Bannerparams)
           if (!bannerUploadResponse.success) {
             toast.error('Unable to upload banner images')
-            
-return
+            return
           }
         }
         const response = await UpdateHybrid(payload, tsnId)
@@ -513,8 +507,7 @@ return
         const bannerUploadResponse = await UploadBannerImages(Bannerparams)
         if (!bannerUploadResponse.success) {
           toast.error('Unable to upload banner images')
-          
-return
+          return
         }
       }
 
@@ -643,8 +636,7 @@ return
 
     const itemCounts = combinedItems.reduce((acc, item) => {
       acc[item] = (acc[item] || 0) + 1
-      
-return acc
+      return acc
     }, {})
 
     const uniqueItems = Object.keys(itemCounts).filter(item => itemCounts[item] === 1)
@@ -657,7 +649,6 @@ return acc
       taxonomy_id: formValues.tsn_id,
       sub_taxon_type: 'morph',
       selected_id: uniqueItems ? uniqueItems : selectedIds
-
       // new_items: filterName
     }
 
@@ -682,8 +673,7 @@ return acc
 
     const itemCounts = combinedItems.reduce((acc, item) => {
       acc[item] = (acc[item] || 0) + 1
-      
-return acc
+      return acc
     }, {})
 
     const uniqueItems = Object.keys(itemCounts).filter(item => itemCounts[item] === 1)
@@ -986,14 +976,11 @@ return acc
                                       if (!selected) {
                                         return <em>Select Vernacular</em>
                                       }
-
-
                                       // Find the selected vernacular name based on selected value
                                       const selectedVernacular = editVernacularNames.find(item =>
                                         item.id ? item.id === selected : item.id === selected
                                       )
-                                      
-return selectedVernacular ? selectedVernacular.vernacular_name : ''
+                                      return selectedVernacular ? selectedVernacular.vernacular_name : ''
                                     }}
                                   >
                                     {editVernacularNames?.map((item, index) => (
@@ -1039,8 +1026,7 @@ return selectedVernacular ? selectedVernacular.vernacular_name : ''
                                         return <em>Select Vernacular</em>
                                       }
                                       const selectedVernacular = vernacularData.find(item => item.vern_id === selected)
-                                      
-return selectedVernacular ? selectedVernacular.vernacular_name : ''
+                                      return selectedVernacular ? selectedVernacular.vernacular_name : ''
                                     }}
                                   >
                                     {vernacularData.map((item, index) => (
@@ -1440,8 +1426,7 @@ return selectedVernacular ? selectedVernacular.vernacular_name : ''
                           <CardContent>
                             {selectedItems?.map((item, index) => {
                               console.log('Item >>', item)
-                              
-return (
+                              return (
                                 <React.Fragment key={index}>
                                   {/* Use index as key, or better use unique identifiers if available */}
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
@@ -1500,8 +1485,7 @@ return (
                           <CardContent>
                             {selectedLocality?.map((item, index) => {
                               console.log('Item >>', item)
-                              
-return (
+                              return (
                                 <React.Fragment key={item.id || index}>
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <Box sx={{ mt: 2 }}>
@@ -1655,7 +1639,6 @@ return (
                   sx={{
                     width: '100%',
                     maxWidth: '350px',
-
                     // height:"20vh",
                     position: 'fixed',
                     bottom: 0,
@@ -1827,7 +1810,6 @@ return (
                   // display: 'flex',
                   // justifyContent: 'space-between',
                   alignItems: 'center'
-
                   // width: '100%',
                   // p: 2
                 }}
@@ -1949,7 +1931,6 @@ return (
                   // display: 'flex',
                   // justifyContent: 'space-between',
                   alignItems: 'center'
-
                   // width: '100%',
                   // p: 2
                 }}
@@ -1967,5 +1948,4 @@ return (
     </>
   )
 }
-
 export default AddSpeciesSlideBar

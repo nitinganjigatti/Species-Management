@@ -190,14 +190,14 @@ const RecipeDetail = () => {
                 Recipe
               </Link> */}
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
-                Mix
+                Combo
               </Typography>
               <Typography
                 sx={{
                   color: 'text.primary'
                 }}
               >
-                Mix Details
+                Combo Details
               </Typography>
             </Breadcrumbs>
             {Object.keys(IngredientsDetailsval).length !== 0 ? (
@@ -327,7 +327,6 @@ const RecipeDetail = () => {
                             <Tab
                               style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                               value='2'
-
                               //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
                               label={`USED IN DIET ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                             />
@@ -386,7 +385,7 @@ const RecipeDetail = () => {
           <ConfirmationDialog
             icon={'mdi:delete'}
             iconColor={'#ff3838'}
-            title={'Are you sure you want to delete this Mix?'}
+            title={'Are you sure you want to delete this Combo?'}
             dialogBoxStatus={deleteDialogBox}
             onClose={handleClosenew}
             ConfirmationText={'Delete'}

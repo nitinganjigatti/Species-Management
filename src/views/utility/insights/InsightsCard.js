@@ -26,7 +26,6 @@ const InsightsCard = ({
   description,
   userImage,
   image,
-  haveInsightsViewAccess,
   statsData = []
 }) => {
   const theme = useTheme()
@@ -82,6 +81,46 @@ const InsightsCard = ({
 
       {/* Foreground content */}
       <Box sx={{ position: 'relative', zIndex: 2, p: 6 }}>
+        {isListingPage && (
+          <Box sx={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            {/* <Box
+              sx={{
+                p: 2,
+                borderRadius: '50%',
+                backgroundColor: alpha(theme.palette.common.white, 0.16),
+                color: theme.palette.customColors.PrimaryContainer,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'fit-content',
+                height: 'fit-content'
+              }}
+            >
+              <InsightsOutlinedIcon />
+            </Box>
+            <Typography sx={{ color: theme => theme.palette.common.white, fontSize: '1.5rem' }} fontWeight={600}>
+              {pageTitle || ''}
+            </Typography>
+            {/* {onAddNewClick && ( */}
+            {/* <Box>
+              <Button
+                variant='text'
+                onClick={onAddNewClick}
+                endIcon={
+                  <Icon icon='mdi-plus' width={25} height={25} color={theme.palette.customColors.PrimaryContainer} />
+                }
+                sx={{
+                  color: theme.palette.customColors.PrimaryContainer,
+                  fontWeight: 400,
+                  fontSize: '1.1rem',
+                  textTransform: 'none'
+                }}
+              >
+                {addNewLabel}
+              </Button>
+            </Box> */}
+          </Box>
+        )}
         <HeaderCard
           title={isListingPage ? pageTitle : zooName}
           isListingPage={isListingPage}
@@ -121,7 +160,7 @@ const InsightsCard = ({
             </Box>
           </Box>
         )}
-        {haveInsightsViewAccess && Array.isArray(statsData) && statsData.length > 0 && (
+        {Array.isArray(statsData) && statsData.length > 0 && (
           <Box
             sx={{
               mt: 10,

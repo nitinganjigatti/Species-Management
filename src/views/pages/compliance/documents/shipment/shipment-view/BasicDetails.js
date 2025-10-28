@@ -5,21 +5,20 @@ import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
 import { useAuth } from 'src/hooks/useAuth'
 
-const BasicDetails = ({ airwaybillvalue, fileNumberValue, selectedId, startDate, uploadedFile, loader }) => {
+const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, loader }) => {
+  const rawValue = airwaybillvalue || ''
   const theme = useTheme()
+  const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+  const formattedValue =
+    removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
   const auth = useAuth()
-  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
-
-  // const rawValue = airwaybillvalue || ''
-  // const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
-  // const formattedValue =
-  //   removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
+  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER // Get image paths from user data
 
   const getFileIcon = () => {
     const fileName = (uploadedFile?.name || uploadedFile?.file_original_name || '').toLowerCase()
     const ext = fileName?.split('.')?.pop()?.toLowerCase()
 
-    if (!ext) return imgPath?.default
+    if (!ext) return imgPath?.default // Fallback if no extension found
 
     if (['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'].includes(ext)) {
       return imgPath?.image
@@ -43,10 +42,9 @@ const BasicDetails = ({ airwaybillvalue, fileNumberValue, selectedId, startDate,
 
     return imgPath?.default
   }
-  
-return (
+  return (
     <>
-      {!loader && airwaybillvalue ? (
+      {!loader ? (
         <Box
           sx={{
             display: 'flex',
@@ -65,16 +63,7 @@ return (
                 Shipment ID
               </Typography>
               <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
-                {airwaybillvalue}
-              </Typography>
-            </Grid>
-
-            <Grid size={{ xs: 6, md: 4 }}>
-              <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
-                File Number
-              </Typography>
-              <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
-                {fileNumberValue || 'N/A'}
+                {formattedValue}
               </Typography>
             </Grid>
 
@@ -82,9 +71,8 @@ return (
               <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
                 Date Of Issue
               </Typography>
-
               <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
-                {startDate ? moment(startDate).format('DD MMM YYYY') : '-'}
+                {moment(startDate).format('DD/MM/yyyy')}
               </Typography>
             </Grid>
           </Grid>
@@ -132,7 +120,7 @@ return (
                 >
                   {uploadedFile?.file_original_name}
                 </Typography>
-                <IconButton size='small'></IconButton>
+                <IconButton size='small'>{/* Optional: Add an icon here if needed */}</IconButton>
               </Box>
             </a>
           )}

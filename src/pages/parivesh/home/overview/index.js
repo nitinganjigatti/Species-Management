@@ -411,7 +411,6 @@ const Overview = () => {
                         data={orgData.approvedAccordionData.data}
                         cards={orgData.approvedAccordionData.cards}
                         backgroundImage={orgData?.cover_image !== '' && orgData?.cover_image}
-
                         // backgroundImage={
                         //   orgData?.species_image !== ''
                         //     ? orgData?.species_image

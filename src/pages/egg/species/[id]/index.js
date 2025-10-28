@@ -412,7 +412,6 @@ const SpeciesDetail = () => {
       const eggnumberByColumn = columns.find(column => column.field === 'egg_code')
       if (eggnumberByColumn) {
         eggnumberByColumn.renderCell = params => (
-
           // <Box sx={{ display: 'flex', alignItems: 'center' }}>
           //   <Avatar
           //     variant='square'
@@ -500,7 +499,6 @@ const SpeciesDetail = () => {
           </Typography>
         )
       }
-
       // console.log(customData, 'customData')
 
       const rows = customData.map(data => ({

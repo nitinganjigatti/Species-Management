@@ -30,7 +30,6 @@ const ExportPermitDrawer = ({
   return (
     <Drawer
       open={open}
-
       //onClose={onClose}
       anchor='right'
     >

@@ -223,7 +223,6 @@ const EggActivityLogs = ({
                     sx={{
                       ml: 4,
                       borderRadius: '8px',
-
                       // mb: '20px',
                       position: 'relative',
                       top: -28,
@@ -243,7 +242,6 @@ const EggActivityLogs = ({
                             : showCommentIndex === index
                             ? theme.palette.primary.light
                             : theme.palette.customColors.OnBackground,
-
                         // backgroundColor:
                         //   showCommentIndex === index
                         //     ? theme.palette.primary.light

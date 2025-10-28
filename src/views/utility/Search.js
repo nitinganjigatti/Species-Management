@@ -14,8 +14,7 @@ const Search = ({
   textFielsSX = {},
   backgroundColor,
   borderRadius,
-  inputStyle,
-  disabled = false
+  inputStyle
 }) => {
   const theme = useTheme()
   const iconColor = theme.palette.customColors.neutralSecondary
@@ -38,7 +37,6 @@ const Search = ({
         onChange={onChange}
         placeholder={placeholder}
         fullWidth
-        disabled={disabled}
         sx={{
           width: width,
           '& .MuiBox-root': {
@@ -68,7 +66,7 @@ const Search = ({
             ),
             endAdornment: value ? (
               <InputAdornment position='end'>
-                <IconButton size='small' onClick={onClear} aria-label='clear search' disabled={disabled}>
+                <IconButton size='small' onClick={onClear} aria-label='clear search'>
                   <ClearIcon fontSize='small' color={iconColor} />
                 </IconButton>
               </InputAdornment>

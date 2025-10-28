@@ -1,5 +1,3 @@
-import React, { useState, useEffect, useCallback } from 'react'
-
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -11,6 +9,7 @@ import {
   ListItemText,
   ListItemAvatar,
   Checkbox,
+  Avatar,
   InputAdornment,
   IconButton,
   debounce,
@@ -18,8 +17,8 @@ import {
   CircularProgress
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import React, { useState, useEffect, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
-import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getSectionsList } from 'src/lib/api/diet/dietList'
 
 const SelectSectionList = ({
@@ -68,30 +67,14 @@ const SelectSectionList = ({
     }
   }
 
-  // useEffect(() => {
-  //   if (open && siteId) {
-  //     fetchSections()
-  //   }
-  //   if (!open && siteId && openFilterDrawer) {
-  //     fetchSections()
-  //   }
-  // }, [open, siteId, openFilterDrawer, pageNo])
-
-  // Fetch only when the Section drawer is opened, and when pagination advances while open
   useEffect(() => {
     if (open && siteId) {
-      // Reset pagination and list when opening or site changes
-      setPageNo(1)
-      setSectionsData([])
       fetchSections()
     }
-  }, [open, siteId])
-
-  useEffect(() => {
-    if (open && siteId && pageNo > 1) {
+    if (!open && siteId && openFilterDrawer) {
       fetchSections()
     }
-  }, [pageNo])
+  }, [open, siteId, openFilterDrawer, pageNo])
 
   useEffect(() => {
     if (open && tempSelectedItems?.Section) {
@@ -140,7 +123,6 @@ const SelectSectionList = ({
     <Drawer
       anchor='right'
       open={open}
-
       // onClose={onClose}
       sx={{
         '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100%' },
@@ -182,14 +164,7 @@ const SelectSectionList = ({
               Select a section from the list below
             </Typography>
           </Box>
-          <IconButton
-            size='small'
-            sx={{ color: 'text.primary' }}
-            onClick={() => {
-              onClose()
-              setSearchTerm('')
-            }}
-          >
+          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
@@ -299,6 +274,8 @@ const SelectSectionList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
+
+            //height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
               width: '4px'
@@ -312,71 +289,50 @@ const SelectSectionList = ({
         >
           {!loading ? (
             sectionsData.length > 0 ? (
-              [...sectionsData]
-                .sort((a, b) => a.section_name.localeCompare(b.section_name))
-                .map(section => (
-                  <ListItem
-                    key={section.section_id}
-                    sx={{
-                      pr: 1.5,
-                      pl: 3,
-                      mb: 4,
-                      height: '70px',
-                      border: '1px solid',
-                      borderColor: selectedSections?.includes(section.section_id)
-                        ? '#80E0A3'
-                        : theme.palette.customColors.OutlineVariant,
-                      borderRadius: '8px',
-                      bgcolor: selectedSections?.includes(section.section_id)
-                        ? theme.palette.customColors.OnBackground
-                        : 'transparent'
-                    }}
-                  >
-                    <ListItemAvatar>
-                      {/* <Avatar sx={{ backgroundColor: theme.palette.customColors.displaybgPrimary, p: section?.default_icon ? 0 : 2 }} src={section.default_icon || '/images/housing/site-icon-colored.svg'} variant='rounded' /> */}
-                      <FallbackAvatar
-                        src={section.default_icon}
-                        fallback='/images/housing/site-icon-colored.svg'
-                        variant='rounded'
-                        sx={{
-                          backgroundColor: theme.palette.customColors.displaybgPrimary,
-                          p: section?.default_icon ? 0 : 2,
-                          height: '40px',
-                          width: '40px',
-                          borderRadius: '8px'
-                        }}
-                      />
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={section?.section_name}
-
-                      // secondary={section.location || '-'}
-                      slotProps={{
-                        primary: {
-                          sx: {
-                            fontWeight: 'bold',
-                            color: theme.palette.customColors.OnPrimaryContainer
-                          }
-                        },
-                        secondary: {
-                          sx: {
-                            color: theme.palette.customColors.OnSurfaceVariant
-                          }
+              sectionsData?.map(section => (
+                <ListItem
+                  key={section.section_id}
+                  sx={{
+                    pr: 1.5,
+                    pl: 3,
+                    mb: 4,
+                    height: '70px',
+                    border: '1px solid',
+                    borderColor: selectedSections?.includes(section.section_id)
+                      ? '#80E0A3'
+                      : theme.palette.customColors.OutlineVariant,
+                    borderRadius: '8px',
+                    bgcolor: selectedSections?.includes(section.section_id)
+                      ? theme.palette.customColors.OnBackground
+                      : 'transparent'
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar src={section?.default_icon || '/icons/antz.svg'} variant='rounded' />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={section?.section_name}
+                    // secondary={section.location || '-'}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 'bold',
+                          color: theme.palette.customColors.OnPrimaryContainer
                         }
-                      }}
-
-                      // primaryTypographyProps={{
-                      //   fontWeight: 'bold',
-                      //   color: theme.palette.customColors.OnPrimaryContainer
-                      // }}
-                      // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
-                    />
-                    <Checkbox
-                      checked={selectedSections?.includes(section.section_id)}
-                      onChange={() => handleSiteCheckboxChange(section.section_id)}
-                    />
-                  </ListItem>
-                ))
+                      },
+                      secondary: {
+                        sx: {
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }
+                      }
+                    }}
+                  />
+                  <Checkbox
+                    checked={selectedSections?.includes(section.section_id)}
+                    onChange={() => handleSiteCheckboxChange(section.section_id)}
+                  />
+                </ListItem>
+              ))
             ) : (
               <Typography sx={{ textAlign: 'center', mt: 15 }}>No Section's found</Typography>
             )
@@ -411,11 +367,7 @@ const SelectSectionList = ({
               borderRadius: '8px',
               '&:hover': { bgcolor: '#218838' }
             }}
-            onClick={() => {
-              onSelectSections(selectedSections)
-              setSearchTerm('')
-              onClose?.()
-            }}
+            onClick={() => onSelectSections(selectedSections)}
             disabled={selectedSections?.length <= 0}
           >
             CONTINUE

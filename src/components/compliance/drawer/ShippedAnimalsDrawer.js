@@ -59,7 +59,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }) => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Shipment ID:</Typography>
                 <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1rem' }}>
-                  {shipment?.shipment_number || (shipment?.shipment_id || '').replace(/\s+/g, '') || ''}
+                  {shipment?.shipment_id || (shipment?.shipment_number).replace(/\s+/g, '') || ''}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>

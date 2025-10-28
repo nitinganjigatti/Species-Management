@@ -338,7 +338,7 @@ const AddIngredient = () => {
         await updateIngredients(payload, id).then(res => {
           setSubmitLoader(false)
           if (res?.success) {
-            Toaster({ type: 'success', message: 'Item updated successfully' || 'Items' + ' ' + res?.message })
+            Toaster({ type: 'success', message: 'Items' + ' ' + res?.message })
 
             // Router.push({ pathname: `/diet/ingredient` })
 
@@ -360,7 +360,7 @@ const AddIngredient = () => {
         await addIngredients(payload).then(res => {
           if (res?.success) {
             setSubmitLoader(false)
-            Toaster({ type: 'success', message: 'Item' + ' ' + res?.message })
+            Toaster({ type: 'success', message: 'Items' + ' ' + res?.message })
 
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
 
@@ -549,7 +549,7 @@ const AddIngredient = () => {
                                 label='Item Alias'
                                 value={value}
                                 onChange={onChange}
-                                placeholder='Item Alias'
+                                placeholder='Ingredient Alias'
                                 name='ingredientAlias'
                               />
                             )}

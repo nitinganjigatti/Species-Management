@@ -29,7 +29,6 @@ const AnimalCardLayout = ({
   const [selectedCounts, setSelectedCounts] = useState({})
   const [currentSpeciesIndex, setCurrentSpeciesIndex] = useState(null)
   const [commonNameValue, setCommonNameValue] = useState('')
-
   // Initialize selectedExportData
   useEffect(() => {
     if (exportAnimalData?.species && !draftData) {
@@ -96,7 +95,7 @@ const AnimalCardLayout = ({
           updated.export[exportIndex].species.push(newSpecies)
           speciesIndex = updated.export[exportIndex].species.length - 1
         } else {
-          const matchingSpecies = exportAnimalData.species.find(s => s.master_species_id === String(speciesId))
+          const matchingSpecies = exportAnimalData.species.find(s => s.id === String(speciesId))
           if (matchingSpecies) {
             updated.export[exportIndex].species[speciesIndex] = {
               ...updated.export[exportIndex].species[speciesIndex],
@@ -122,7 +121,6 @@ const AnimalCardLayout = ({
 
       const updated = JSON.parse(JSON.stringify(prev))
       updated.export[exportIndex].species[speciesIndex].animals = selectedAnimals
-
       return updated
     })
   }
@@ -180,7 +178,6 @@ const AnimalCardLayout = ({
         type: 'error',
         message: 'Please complete at least one export entry'
       })
-
       return
     }
 
@@ -227,7 +224,6 @@ const AnimalCardLayout = ({
                 undeterminate_count: '',
                 animals: []
               }
-
               return (
                 <Box
                   key={card.id}
@@ -246,7 +242,6 @@ const AnimalCardLayout = ({
                     {card.common_name}
                   </Typography>
                   <Typography
-
                     //variant='subtitle2'
                     sx={{
                       color: theme.palette.customColors.OnSurfaceVariant,
@@ -320,7 +315,6 @@ const AnimalCardLayout = ({
                           size='small'
                           type='number'
                           value={speciesData.male_count ?? ''}
-                          onWheel={e => e.target.blur()}
                           onChange={e =>
                             handleCountChange(
                               card.master_species_id,
@@ -369,7 +363,6 @@ const AnimalCardLayout = ({
                           size='small'
                           type='number'
                           value={speciesData.female_count ?? ''}
-                          onWheel={e => e.target.blur()}
                           onChange={e =>
                             handleCountChange(
                               card.master_species_id,
@@ -417,7 +410,6 @@ const AnimalCardLayout = ({
                           size='small'
                           type='number'
                           value={speciesData.undeterminate_count ?? ''}
-                          onWheel={e => e.target.blur()}
                           onChange={e =>
                             handleCountChange(
                               card.master_species_id,

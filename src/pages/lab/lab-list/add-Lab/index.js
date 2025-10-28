@@ -295,9 +295,9 @@ const AddLab = () => {
     lab_contact_number: yup
       .string()
       .trim()
-      .required('Lab incharge No is required')
       .max(10, 'Maximum of 10 digits')
-      .min(10, 'Minimum of 10 digits'),
+      .min(10, 'Maximum of 10 digits')
+      .required('Lab incharge No is required'),
     is_default: yup.boolean()
 
     // latitude: yup.string(),
@@ -1479,25 +1479,25 @@ const AddLab = () => {
                               </CardContent>
                             </Card>
                           </Grid>
-                          {/* <Grid item xs={12} md={12}> */}
-                          <Box sx={{ width: '100%', display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                            <LoadingButton
-                              onClick={() => router.push('/lab/lab-list/')}
-                              loading={submitLoader}
-                              variant='outlined'
-                            >
-                              Cancel
-                            </LoadingButton>
-                            <LoadingButton
-                              loading={submitLoader}
-                              onClick={handleSubmitData}
-                              type='submit'
-                              variant='outlined'
-                            >
-                              Submit
-                            </LoadingButton>
-                          </Box>
-                          {/* </Grid> */}
+                          <Grid item xs={12} md={12}>
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                              <LoadingButton
+                                onClick={() => router.push('/lab/lab-list/')}
+                                loading={submitLoader}
+                                variant='outlined'
+                              >
+                                Cancel
+                              </LoadingButton>
+                              <LoadingButton
+                                loading={submitLoader}
+                                onClick={handleSubmitData}
+                                type='submit'
+                                variant='outlined'
+                              >
+                                Submit
+                              </LoadingButton>
+                            </Box>
+                          </Grid>
                         </Grid>
                       </form>
                     </CardContent>

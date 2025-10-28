@@ -286,8 +286,7 @@ const AddCluster = ({ open, setShowDrawer, refetchCluster }) => {
               alignItems: 'center',
               justifyContent: 'space-between',
               backgroundColor: 'background.default',
-              px: '1.2rem',
-              py: '1rem',
+              p: theme => theme.spacing(3, 3.255, 3, 5.255),
               borderBottom: `1px solid ${theme.palette.divider}`
             }}
           >

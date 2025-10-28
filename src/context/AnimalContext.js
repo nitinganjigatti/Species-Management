@@ -4,7 +4,6 @@ const AnimalContext = createContext()
 
 export const AnimalProvider = ({ children }) => {
   const [selectedAnimal, setSelectedAnimal] = useState(null)
-
   const [apiFilterParams, setApiFilterParams] = useState({
     include_housing: 0,
     include_enclosure: 0,

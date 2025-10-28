@@ -37,5 +37,4 @@ const useParentWidth = () => {
 
   return { parentRef, width }
 }
-
 export default useParentWidth;

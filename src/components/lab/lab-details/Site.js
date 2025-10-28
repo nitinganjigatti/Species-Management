@@ -8,7 +8,6 @@ import { useTheme } from '@mui/material/styles'
 
 const Site = ({ labId }) => {
   const theme = useTheme()
-
   // console.log('labId', labId)
 
   const columns = [
@@ -121,7 +120,6 @@ const Site = ({ labId }) => {
           columns={columns}
           disableColumnFilter
           disableColumnMenu={true}
-
           // onSortModelChange={false}
           // slots={{ toolbar: ServerSideToolbar }}
           loading={loading}

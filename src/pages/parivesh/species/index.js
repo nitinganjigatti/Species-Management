@@ -562,14 +562,12 @@ const SpeciesList = () => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ mt: 4 }}>
-            <CardHeader title={`Species Overview by Organizations`} action={headerAction} />
+            <CardHeader title={`Species Overview by Organization's`} action={headerAction} />
             <ConfirmationDialog
-
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
               iconColor={'#ff3838'}
               title={'Are you sure you want to delete this ingredient?'}
-
               // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
               formComponent={
                 <ConfirmationCheckBox
@@ -591,7 +589,6 @@ const SpeciesList = () => {
             <DataGrid
               disableColumnMenu
               disableColumnFilter
-
               // disableColumnSorting
               disableRowSelectionOnClick
               sx={{

@@ -131,7 +131,6 @@ const ForgotPassword = () => {
     <>
       {isOtpSent && <VerifyOtp />}
       <CommonCard
-
         // bgImage='/images/frog_img.png'
         // logoVantara='/images/login/Vantara_Logo_registered.svg'
         // logoAntz

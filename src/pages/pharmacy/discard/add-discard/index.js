@@ -26,7 +26,6 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -408,7 +407,6 @@ const AddDiscardProducts = () => {
         const lineItems = result?.data?.item_details?.map(el => {
           return {
             stock_id: el?.product_id,
-
             // medicine_name: el?.stock_name,
             medicine_name: el?.stock_name,
             quantity: el?.quantity,
@@ -457,7 +455,6 @@ const AddDiscardProducts = () => {
       stock_id: getItems[0].stock_id,
       batch_no: getItems[0].batch_no,
       expiry_date: getItems[0].expiry_date,
-
       // id: getItems[0].id,
       quantity: getItems[0].quantity,
       control_substance_file: getItems[0].control_substance_file ? getItems[0].control_substance_file : '',
@@ -488,7 +485,6 @@ const AddDiscardProducts = () => {
   const postItemsData = async () => {
     setSubmitLoader(true)
     const postData = editParams
-
     // postData.total_qty = totalQty
 
     // if (id) {
@@ -522,7 +518,6 @@ const AddDiscardProducts = () => {
     } catch (error) {
       console.log('error', error)
     }
-
     // }
   }
 
@@ -1084,7 +1079,6 @@ const AddDiscardProducts = () => {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-
             // backgroundColor: '#EFF5F2'
             backgroundColor: 'customColors.Background'
           }}

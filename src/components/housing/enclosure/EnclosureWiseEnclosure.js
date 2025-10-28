@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -27,9 +26,6 @@ const EnclosureWiseEnclosure = () => {
     sortBy: '',
     sortOrder: 'asc'
   })
-
-  const auth = useAuth()
-  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
   const { data, isLoading } = useQuery({
     queryKey: ['enclosure-wise-enclosure', id, filters],
@@ -191,68 +187,84 @@ const EnclosureWiseEnclosure = () => {
         />
       )
     },
-    ...(insightsViewAccess
-      ? [
-          // {
-          //   width: 160,
-          //   field: 'species_count',
-          //   headerName: 'SPECIES',
-          //   headerAlign: 'left',
-          //   align: 'left',
-          //   sortable: false,
-          //   renderCell: params => (
-          //     <Typography
-          //       sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-          //     >
-          //       {params.row.species_count || '-'}
-          //     </Typography>
-          //   )
-          // },
-          {
-            width: 160,
-            field: 'enclosure_wise_animal_count',
-            headerName: 'ANIMALS',
-            headerAlign: 'left',
-            align: 'left',
-            sortable: false,
-            renderCell: params => (
-              <Typography
-                sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-              >
-                {params.row.enclosure_wise_animal_count || 0}
-              </Typography>
-            )
-          },
-          {
-            width: 160,
-            field: 'sub_enclosure_count',
-            headerName: 'SUB ENCLOSURES',
-            headerAlign: 'left',
-            align: 'left',
-            sortable: false,
-            renderCell: params => (
-              <Typography
-                sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-              >
-                {params.row.sub_enclosure_count || 0}
-              </Typography>
-            )
-          },
-          {
-            width: 250,
-            field: 'site_name',
-            headerName: 'SITE',
-            sortable: false,
-            renderCell: params => (
-              <Typography
-                sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-              >
-                {params.row.site_name || ''}
-              </Typography>
-            )
-          }
-        ]
-      : [])
+    {
+      width: 160,
+      field: 'species_count',
+      headerName: 'SPECIES',
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
+          {params.row.species_count || '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 160,
+      field: 'enclosure_wise_animal_count',
+      headerName: 'ANIMALS',
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
+          {params.row.enclosure_wise_animal_count || 0}
+        </Typography>
+      )
+    },
+    {
+      width: 160,
+      field: 'sub_enclosure_count',
+      headerName: 'SUB ENCLOSURES',
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
+          {params.row.sub_enclosure_count || 0}
+        </Typography>
+      )
+    },
+    {
+      width: 250,
+      field: 'site_name',
+      headerName: 'SITE',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
+          {params.row.site_name || ''}
+        </Typography>
+      )
+    }
+
+    // {
+    //   width: 160,
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   sortable: false,
+    //   renderCell: () => (
+    //     <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+    //       <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
+    //       <Box
+    //         component='img'
+    //         src='/images/message.png'
+    //         alt='Message'
+    //         sx={{ width: 20, height: 20, cursor: 'pointer' }}
+    //       />
+    //     </Box>
+    //   )
+    // }
   ]
 
   const onRowClick = params => {

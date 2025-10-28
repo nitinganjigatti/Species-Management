@@ -43,7 +43,6 @@ const EditEggInfo = ({ eggDetails, openEditDrawer, closeEditDrawer, getDetails }
 
   const onSubmit = async values => {
     setLoader(true)
-
     const payload = {
       egg_id: eggDetails?.egg_id,
       egg_no: values?.egg_number?.trim()

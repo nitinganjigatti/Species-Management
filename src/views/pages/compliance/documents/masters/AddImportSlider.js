@@ -39,7 +39,6 @@ const AddImportSlider = ({
   const onSubmit = async data => {
     const payload = {
       ...data
-
       //   contexts: data.contexts.map(Number)
     }
     await handleSubmitData(payload, editId)

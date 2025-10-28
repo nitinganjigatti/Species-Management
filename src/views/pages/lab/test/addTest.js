@@ -45,7 +45,6 @@ const AddTest = props => {
   const [searchValue, setSearchValue] = useState('')
 
   const [existingSubTests, setExistingSubTests] = useState([])
-
   // console.log('existingSubTests', existingSubTests)
 
   // console.log('existingSubTests', existingSubTests)
@@ -53,10 +52,8 @@ const AddTest = props => {
 
   // console.log('newSubTests', newSubTests)
   const [deletedSubTests, setDeletedSubTests] = useState([])
-
   // console.log('deletedSubTests', deletedSubTests)
   const [deletedIds, setDeletedIds] = useState([])
-
   // console.log('deletedIds', deletedIds)
 
   // console.log('deletedSubTests', deletedSubTests)
@@ -162,7 +159,6 @@ const AddTest = props => {
         sample_ids: sampleIdsOnly,
         sub_tests: newSubTests
       }
-
       // console.log(payload, 'Submission Data')
 
       await handleSubmitData(payload)

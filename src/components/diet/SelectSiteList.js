@@ -32,12 +32,10 @@ const SelectSiteList = ({
   const handleCloseDrawer = () => {
     setSiteListDrawer(false)
     setTempSelectedItems(pendingSelections)
-    setSearchTerm('')
   }
 
   const handleCloseDrawericon = () => {
     setSiteListDrawer(false)
-    setSearchTerm('')
   }
 
   const handleSiteCheckboxChange = site => {
@@ -60,23 +58,10 @@ const SelectSiteList = ({
   }, [openSiteListDrawer])
 
   const handleSelectAllSites = () => {
-    const sitesToSelect = searchTerm ? filteredSites.map(site => site.site_id) : items.Site.map(site => site.site_id)
-
-    const isAllSelected = searchTerm
-      ? filteredSites.every(site => pendingSelections.Site.includes(site.site_id))
-      : pendingSelections.Site.length === sitesToSelect.length
-
-    let updatedSelection
-
-    if (isAllSelected) {
-      updatedSelection = pendingSelections.Site.filter(id => !sitesToSelect.includes(id))
-    } else {
-      updatedSelection = [...new Set([...pendingSelections.Site, ...sitesToSelect])]
-    }
-
+    const allSiteIds = items.Site.map(site => site.site_id)
     setPendingSelections({
       ...pendingSelections,
-      Site: updatedSelection
+      Site: pendingSelections?.Site?.length === allSiteIds?.length ? [] : allSiteIds
     })
   }
 
@@ -202,12 +187,7 @@ const SelectSiteList = ({
             </Button>
 
             <Checkbox
-              checked={
-                searchTerm
-                  ? filteredSites.length > 0 &&
-                    filteredSites.every(site => pendingSelections.Site.includes(site.site_id))
-                  : pendingSelections.Site.length === items.Site.length
-              }
+              checked={pendingSelections?.Site?.length === items?.Site?.length}
               onChange={handleSelectAllSites}
               slotProps={{
                 root: { 'aria-label': 'Select all species' }
@@ -234,6 +214,8 @@ const SelectSiteList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
+
+            // height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
               width: '4px'
@@ -268,7 +250,6 @@ const SelectSiteList = ({
                 </ListItemAvatar>
                 <ListItemText
                   primary={site?.site_name}
-
                   //secondary={site.location || '-'}
                   slotProps={{
                     secondary: {

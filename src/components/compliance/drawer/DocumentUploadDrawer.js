@@ -92,55 +92,56 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
   return (
     <Drawer open={open} anchor='right'>
       <Box
-        sx={{ px: 5, pt: 4, pb: 2, position: 'sticky', top: 0, backgroundColor: theme.palette.customColors.Background }}
-      >
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{documentData?.name}</Typography>
-          <IconButton onClick={handleClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </Box>
-      <Box
         sx={{
           width: 570,
           maxWidth: '100vw',
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: theme.palette.customColors.Background,
-          px: 5,
-          pb: 3,
-          pt: 5
+          backgroundColor: theme.palette.customColors.Background
         }}
       >
-        <Box
-          component='form'
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
-          sx={{
-            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-            borderRadius: 2,
-            p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-            backgroundColor: theme.palette.common.white
-          }}
-        >
-          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '1.25rem' }}>
-            Document Details
-          </Typography>
+        {/* Header */}
+        <Box sx={{ px: 5, pt: 4, pb: 2 }}>
+          <Box display='flex' justifyContent='space-between' alignItems='center'>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{documentData?.name}</Typography>
+            <IconButton onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </Box>
 
-          <ControlledDatePicker
-            name='issued_date'
-            label='Issued Date*'
-            maxDate={dayjs(new Date())}
-            control={control}
-            errors={errors}
-            required
-          />
-          <Box>
+        {/* Scrollable Content */}
+        <Box sx={{ flex: 1, overflowY: 'auto', px: 5, pb: 3 }}>
+          <Box
+            component='form'
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+            sx={{
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: 2,
+              p: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              backgroundColor: theme.palette.common.white
+            }}
+          >
+            <Typography
+              sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '1.25rem' }}
+            >
+              Document Details
+            </Typography>
+
+            <ControlledDatePicker
+              name='issued_date'
+              label='Issued Date*'
+              maxDate={dayjs(new Date())}
+              control={control}
+              errors={errors}
+              required
+            />
+
             <ControlledTextField
               name='reference_number'
               label='Reference Number*'
@@ -148,36 +149,38 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
               errors={errors}
               fullWidth
             />
-          </Box>
 
-          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '1.25rem' }}>
-            Upload Document
-          </Typography>
-          <ControlledFileUpload
-            name='document_file'
-            label={fileValue?.name || 'Select File*'}
-            control={control}
-            errors={errors}
-            color={theme.palette.primary.OnSurface}
-          />
+            <Typography
+              sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '1.25rem' }}
+            >
+              Upload Document
+            </Typography>
+            <ControlledFileUpload
+              name='document_file'
+              label={fileValue?.name || 'Select File*'}
+              control={control}
+              errors={errors}
+              color={theme.palette.primary.OnSurface}
+            />
+          </Box>
         </Box>
-      </Box>
-      <Box
-        sx={{
-          px: 5,
-          py: 4,
-          backgroundColor: theme.palette.common.white,
-          borderTop: `1px solid ${theme.palette.divider}`,
-          boxShadow: `0px -4px 21px 0px ${
-            theme.palette.mode === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'
-          }`,
-          position: 'sticky',
-          bottom: 0
-        }}
-      >
-        <Button type='submit' variant='contained' disabled={isLoading} fullWidth onClick={handleSubmit(onSubmit)}>
-          {isLoading ? <CircularProgress size={24} /> : documentData?.file_path ? 'Update Document' : 'Add Document'}
-        </Button>
+
+        {/* Sticky Footer */}
+        <Box
+          sx={{
+            px: 5,
+            py: 4,
+            backgroundColor: theme.palette.common.white,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            boxShadow: `0px -4px 21px 0px ${
+              theme.palette.mode === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'
+            }`
+          }}
+        >
+          <Button type='submit' variant='contained' disabled={isLoading} fullWidth onClick={handleSubmit(onSubmit)}>
+            {isLoading ? <CircularProgress size={24} /> : documentData?.file_path ? 'Update Document' : 'Add Document'}
+          </Button>
+        </Box>
       </Box>
     </Drawer>
   )

@@ -9,7 +9,6 @@ import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
-import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const ClusterIncharges = () => {
   const router = useRouter()
@@ -201,12 +200,16 @@ const ClusterIncharges = () => {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
-      renderCell: params => (
-        <UserAvatarDetails
-          profile_image={params.row?.incharge_image}
-          user_name={params.row?.incharge_name}
-        />
-      )
+      renderCell: params =>
+        RenderUtility.renderUserAvatarDetails(
+          params.row.incharge_image,
+          params.row.incharge_name,
+          '',
+          theme.palette.customColors.OnSurfaceVariant,
+          '14px'
+
+          //  theme.palette.customColors.OnSurfaceVariant,
+        )
     },
     {
       width: 150,

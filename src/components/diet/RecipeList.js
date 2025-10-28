@@ -81,7 +81,7 @@ const RecipeList = props => {
         container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
 
       if (isNearBottom) {
-        setReachedEnd(true)
+        setReachedEnd(true) // Prevent multiple API calls
 
         try {
           const params = { page: ingredientPage + 1, q: searchValue, sortBy, status: 1, limit: 10, meal_type: 'recipe' }
@@ -184,7 +184,6 @@ const RecipeList = props => {
               onClick={() => {
                 handleSidebarClose()
                 setSearchValue('')
-                debouncedSearch('')
               }}
               sx={{ color: theme.palette.primary.light }}
             >
@@ -252,7 +251,6 @@ const RecipeList = props => {
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4
         }}
-
         //onScroll={handleScroll}
         onScroll={fromrow !== 'rowedit_recipe' ? handleScroll : undefined}
       >
@@ -276,6 +274,7 @@ const RecipeList = props => {
           recipeName={recipeName}
         />
 
+        {/* End Card Section */}
         {reachedEnd ? (
           <Box
             sx={{
@@ -285,6 +284,8 @@ const RecipeList = props => {
               width: '100%',
               maxWidth: '500px',
               mt: 2
+
+              // m: 2
             }}
           >
             <CircularProgress sx={{ mb: 10 }} />
