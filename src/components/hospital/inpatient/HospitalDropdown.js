@@ -1,11 +1,13 @@
 // components/HospitalDropdown.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Box, Typography, Menu, MenuItem, CircularProgress, useTheme, Tooltip, Avatar } from '@mui/material'
 import { KeyboardArrowDown } from '@mui/icons-material'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats, getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
-import useDebounce from 'src/hooks/useDebounce'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 import Search from 'src/views/utility/Search'
+import debounce from 'lodash/debounce'
 
 const HospitalDropdown = ({ disabled = false }) => {
   const theme = useTheme()
@@ -21,56 +23,73 @@ const HospitalDropdown = ({ disabled = false }) => {
 
   const [anchorEl, setAnchorEl] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
-  const [totalPages, setTotalPages] = useState(1)
+  const [localSearch, setLocalSearch] = useState('')
 
-  // Use debounced search query (500ms delay)
-  const debouncedSearchQuery = useDebounce(searchQuery, 500)
+  const PAGE_SIZE = 10
 
-  // Ref to track if it's the initial load
-  const initialLoadRef = useRef(true)
+  // Use intersection observer for infinite scroll
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
-  const fetchHospitals = useCallback(
-    async (pageNum = 1, append = false, search = '') => {
-      if (loading || loadingMore) return
+  // Cooldown ref to prevent multiple rapid calls
+  const cooldownRef = useRef(false)
 
-      if (pageNum === 1) {
-        setLoading(true)
-      } else {
-        setLoadingMore(true)
+  // Track if we need to fetch initial data
+  const shouldFetchInitial = useMemo(() => !disabled && !selectedHospital, [disabled, selectedHospital])
+
+  // Create debounced search function with useRef to persist across renders
+  const debouncedSearch = useRef(
+    debounce((searchValue) => {
+      setSearchQuery(searchValue)
+    }, 500)
+  ).current
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [debouncedSearch])
+
+  // Infinite query for hospitals - always enabled for initial fetch
+  const {
+    data: queryData,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    isLoading
+  } = useInfiniteQuery({
+    queryKey: ['hospitals-inpatient', searchQuery],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params = {
+        page: pageParam,
+        limit: PAGE_SIZE,
+        q: searchQuery?.trim()
       }
 
-      try {
-        const params = {
-          page: pageNum,
-          limit: 10,
-          q: search?.trim()
-        }
-        const response = await getHospitalListing(params)
+      const response = await getHospitalListing(params)
 
-        if (response?.success) {
-          const newHospitals = response.data.hospitals
-          updateHospitals(append ? [...hospitals, ...newHospitals] : newHospitals, false)
-          setTotalPages(response.data.total_pages)
-          setHasMore(pageNum < response.data.total_pages)
+      if (response?.success) {
+        const newHospitals = response.data.hospitals || []
+        const totalPages = response.data.total_pages || 1
 
-          // Auto-select first hospital if it's the first page and no hospital is selected
-          if (pageNum === 1 && newHospitals.length > 0 && !selectedHospital) {
-            await handleHospitalSelect(newHospitals[0])
-          }
+        return {
+          result: newHospitals,
+          nextPage: pageParam < totalPages ? pageParam + 1 : undefined,
+          total: response.data.total_count || newHospitals.length
         }
-      } catch (error) {
-        console.error('Error fetching hospitals:', error)
-      } finally {
-        setLoading(false)
-        setLoadingMore(false)
+      } else {
+        throw new Error(response?.message || 'Failed to fetch hospitals')
       }
     },
-    [hospitals, selectedHospital, loading, loadingMore, updateHospitals]
-  )
+    getNextPageParam: lastPage => lastPage.nextPage,
+    enabled: !disabled && (Boolean(anchorEl) || (shouldFetchInitial && !hospitals?.length)), // Fetch when dropdown is open OR when we need initial data
+  })
+
+  // Flatten all pages into a single list
+  const hospitalList = useMemo(() => queryData?.pages?.flatMap(page => page?.result) || [], [queryData])
+
+  const totalHospitals = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
   const handleHospitalSelect = async hospital => {
     if (disabled) return
@@ -91,57 +110,63 @@ const HospitalDropdown = ({ disabled = false }) => {
     }
   }
 
-  const handleSearchChange = value => {
-    if (disabled) return
-
-    setSearchQuery(value)
-
-    // Reset pagination for new search
-    setPage(1)
-    setHasMore(true)
-  }
-
-  const handleScroll = useCallback(
-    event => {
+  // Search handler with proper debouncing
+  const handleSearchChange = useCallback(
+    value => {
       if (disabled) return
 
-      const { scrollTop, scrollHeight, clientHeight } = event.currentTarget
-      if (scrollHeight - scrollTop <= clientHeight + 50 && hasMore && !loadingMore) {
-        const nextPage = page + 1
-        setPage(nextPage)
-        fetchHospitals(nextPage, true, debouncedSearchQuery)
-      }
+      setLocalSearch(value)
+      debouncedSearch(value)
     },
-    [page, hasMore, loadingMore, debouncedSearchQuery, fetchHospitals, disabled]
+    [disabled, debouncedSearch]
   )
+
+  const handleSearchClear = useCallback(() => {
+    setLocalSearch('')
+    debouncedSearch('')
+  }, [debouncedSearch])
+
+  // Load more hospitals when scrolled to bottom
+  const loadMore = useCallback(() => {
+    if (cooldownRef.current) return
+    if (!isFetchingNextPage && hasNextPage) {
+      cooldownRef.current = true
+      fetchNextPage().finally(() => {
+        // Add 300ms cooldown before allowing next fetch
+        setTimeout(() => {
+          cooldownRef.current = false
+        }, 300)
+      })
+    }
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
+
+  // Trigger load more when intersection observer detects the loader
+  useEffect(() => {
+    if (inView) {
+      loadMore()
+    }
+  }, [inView, loadMore])
+
+  // Reset search when dropdown closes
+  useEffect(() => {
+    if (!anchorEl) {
+      setLocalSearch('')
+      setSearchQuery('')
+      cooldownRef.current = false
+    }
+  }, [anchorEl])
+
+  // Auto-select first hospital when data loads and no hospital is selected
+  useEffect(() => {
+    if (hospitalList.length > 0 && !selectedHospital && !isFetching) {
+      handleHospitalSelect(hospitalList[0])
+    }
+  }, [hospitalList, selectedHospital, isFetching])
 
   const handleDropdownClick = e => {
     if (disabled) return
     setAnchorEl(e.currentTarget)
   }
-
-  // Effect to handle debounced search
-  useEffect(() => {
-    if (disabled) return
-
-    if (initialLoadRef.current) {
-      initialLoadRef.current = false
-
-      return
-    }
-
-    // Fetch hospitals when debounced search query changes
-    fetchHospitals(1, false, debouncedSearchQuery)
-  }, [debouncedSearchQuery, disabled])
-
-  // Effect to fetch initial hospitals
-  useEffect(() => {
-    if (disabled) return
-
-    if (!selectedHospital && hospitals.length === 0) {
-      fetchHospitals(1, false, '')
-    }
-  }, [disabled]) // Added disabled to dependency array
 
   return (
     <Box>
@@ -223,16 +248,15 @@ const HospitalDropdown = ({ disabled = false }) => {
           {/* Search Field */}
           <Box sx={{ p: 4 }}>
             <Search
-              value={searchQuery}
+              value={localSearch}
               onChange={e => handleSearchChange(e.target.value)}
-              onClear={() => handleSearchChange('')}
+              onClear={handleSearchClear}
               placeholder='Search hospitals...'
             />
           </Box>
 
           {/* Hospital List */}
           <Box
-            onScroll={handleScroll}
             sx={{
               maxHeight: 300,
               overflow: 'auto',
@@ -243,14 +267,14 @@ const HospitalDropdown = ({ disabled = false }) => {
               gap: '4px'
             }}
           >
-            {loading ? (
+            {isLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
                 <CircularProgress size={24} />
               </Box>
-            ) : hospitals.length === 0 ? (
+            ) : hospitalList.length === 0 ? (
               <MenuItem disabled>{searchQuery ? 'No hospitals found' : 'No hospitals available'}</MenuItem>
             ) : (
-              hospitals.map(hospital => (
+              hospitalList.map(hospital => (
                 <MenuItem
                   key={hospital.id}
                   fullWidth
@@ -317,14 +341,14 @@ const HospitalDropdown = ({ disabled = false }) => {
             )}
 
             {/* Loading More Indicator */}
-            {loadingMore && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+            {(isFetchingNextPage || hasNextPage) && hospitalList.length > 0 && (
+              <Box ref={loaderRef} sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
                 <CircularProgress size={20} />
               </Box>
             )}
 
             {/* No More Results */}
-            {!hasMore && hospitals.length > 0 && (
+            {!hasNextPage && hospitalList.length > 0 && (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 1 }}>
                 <Typography color='text.secondary'>No more results</Typography>
               </Box>
