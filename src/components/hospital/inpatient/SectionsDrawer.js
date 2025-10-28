@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel } from '@mui/material'
+import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Avatar } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
@@ -63,15 +63,14 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
     if (open) {
       setLocalSearch('')
       setSearch('')
-
-    //   setIsAllSelected(false)
+      setIsAllSelected(false)
     }
   }, [open, data?.id])
 
   useEffect(() => {
     if (!open) {
       queryClient.cancelQueries({ queryKey: [data?.queryKey, data?.id, search, open] })
-      cooldownRef.current = false // reset cooldown on close
+      cooldownRef.current = false
     }
   }, [open, data?.id, search, queryClient])
 
@@ -110,13 +109,15 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
     debouncedSearch('')
   }
 
-  // Handle individual section selection
-  const handleSectionSelect = sectionId => {
+  // Handle individual section selection - works with full section object
+  const handleSectionSelect = section => {
     setSelectedSections(prev => {
-      if (prev.includes(sectionId)) {
-        return prev.filter(id => id !== sectionId)
+      const isAlreadySelected = prev.some(selectedSection => selectedSection.section_id === section.section_id)
+
+      if (isAlreadySelected) {
+        return prev.filter(selectedSection => selectedSection.section_id !== section.section_id)
       } else {
-        return [...prev, sectionId]
+        return [...prev, section]
       }
     })
   }
@@ -126,8 +127,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
     if (isAllSelected) {
       setSelectedSections([])
     } else {
-      const allSectionIds = list.map(section => section.section_id)
-      setSelectedSections(allSectionIds)
+      setSelectedSections([...list])
     }
     setIsAllSelected(!isAllSelected)
   }
@@ -135,7 +135,9 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
   // Update select all state when selection changes
   useEffect(() => {
     if (list.length > 0) {
-      const allSelected = list.every(section => selectedSections.includes(section.section_id))
+      const allSelected = list.every(section =>
+        selectedSections.some(selectedSection => selectedSection.section_id === section.section_id)
+      )
       setIsAllSelected(allSelected)
     } else {
       setIsAllSelected(false)
@@ -144,13 +146,11 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
 
   // Handle continue button click
   const handleContinue = () => {
-    const selectedSectionData = list.filter(section => selectedSections.includes(section.section_id))
-
     // Call parent callback with selected data
     if (onContinue) {
       onContinue({
-        selectedSections: selectedSections,
-        selectedSectionData,
+        selectedSections: selectedSections.map(section => section.section_id),
+        selectedSectionData: selectedSections,
         totalSelected: selectedSections.length
       })
     }
@@ -187,7 +187,6 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-
         {list.length > 0 && (
           <FormControlLabel
             control={
@@ -203,43 +202,33 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
         )}
       </Box>
 
-      {/* Selected count and continue button */}
-      {/* {selectedCount > 0 && (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-            p: 2,
-            backgroundColor: theme.palette.action.hover,
-            borderRadius: '8px'
-          }}
-        >
-          <Typography>
-            {selectedCount} section{selectedCount !== 1 ? 's' : ''} selected
-          </Typography>
-          <Button variant='contained' onClick={handleContinue} sx={{ minWidth: 120 }}>
-            Continue
-          </Button>
-        </Box>
-      )} */}
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(section => {
-          const isSelected = selectedSections.includes(section.section_id)
-          
+          // Check if section is selected by comparing section_id
+          const isSelected = selectedSections.some(selectedSection => selectedSection.section_id === section.section_id)
+
           return (
-            <Box key={section?.section_id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <Box
+              key={section?.section_id}
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2,
+                p: 3,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 0.8,
+                bgcolor: theme.palette.common.white,
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
               <Box sx={{ flex: 1 }}>
                 <Box
                   sx={{
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    backgroundColor: theme.palette.common.white,
-                    padding: 4,
                     width: '100%',
                     display: 'flex',
-                    borderRadius: '8px',
                     gap: 4,
                     alignItems: 'center',
                     justifyContent: 'space-between'
@@ -252,19 +241,19 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
                     defaultImageAlt={'section image'}
                     inchagename={section?.incharge_name || ''}
                   />
-                  <Checkbox
-                    checked={isSelected}
-                    onChange={() => handleSectionSelect(section.section_id)}
-                    sx={{ 
-                      mt: 0.5,
-                      color: '#37BD69',
-                      '&.Mui-checked': {
-                        color: '#37BD69'
-                      }
-                    }}
-                  />
                 </Box>
               </Box>
+              <Checkbox
+                checked={isSelected}
+                onChange={() => handleSectionSelect(section)}
+                sx={{
+                  mt: 0.5,
+                  color: '#37BD69',
+                  '&.Mui-checked': {
+                    color: '#37BD69'
+                  }
+                }}
+              />
             </Box>
           )
         })}
@@ -312,16 +301,16 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
       {/* Sticky continue button at bottom */}
       {selectedCount > 0 && (
         <Box
-                  sx={{
-                    position: 'sticky',
-                    bottom: 0,
-                    backgroundColor: theme.palette.background.paper,
-                    borderTop: `1px solid ${theme.palette.divider}`,
-                    p: 2,
-                    mx: -4,
-                    mb: -4
-                  }}
-                >
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            backgroundColor: theme.palette.background.paper,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            p: 2,
+            mx: -4,
+            mb: -4
+          }}
+        >
           <Button variant='contained' onClick={handleContinue} fullWidth size='large'>
             Continue ({selectedCount})
           </Button>
