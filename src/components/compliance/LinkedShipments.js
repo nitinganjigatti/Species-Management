@@ -76,8 +76,24 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
               <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1, fontSize: '0.875rem' }}>
                 Shipment ID
               </Typography>
-              <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '1.25rem' }}>
-                {shipment?.shipment_id || (shipment?.shipment_number).replace(/\s+/g, '') || ''}
+              <Typography
+                sx={{
+                  color: theme.palette.primary.OnSurface,
+                  fontWeight: 500,
+                  fontSize: '1.25rem',
+                  cursor: 'pointer',
+                  float: 'left'
+                }}
+                onClick={() => {
+                  window.open(
+                    `/compliance/documents/shipments/AddEditShipment/?id=${
+                      shipment?.id || shipment?.shipment_id
+                    }&action=details&export=1`,
+                    '_blank'
+                  )
+                }}
+              >
+                {shipment?.shipment_number || (shipment?.shipment_number).replace(/\s+/g, '') || ''}
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -103,7 +119,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
             }}
           >
             <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.Antz_Minor_Medium }}>
-              Shipped Animals: {totalShipped} / {totalAllowed}
+              Shipped Animals: {shipment?.total_shipped_animals || shipment?.total_animals} / {totalAllowed}
             </Typography>
             {shipment?.file_original_name && shipment?.file_path && (
               <a

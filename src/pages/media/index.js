@@ -448,6 +448,7 @@ const Media = () => {
                 dataLength={filePreviews.length}
                 next={handleScroll}
                 hasMore={hasMore}
+
                 // loader={loading ? <CircularProgress /> : null}
                 style={{ overflow: 'hidden' }}
                 endMessage={
@@ -494,9 +495,9 @@ const Media = () => {
                                   </Tooltip>
                                 </CardContent>
 
-                                {media?.user_media && (
+                                {media?.file_type && (
                                   <>
-                                    {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
+                                    {media?.file_type.match(/^image\/(jpeg|jpg|gif|png|svg)$/) != null ? (
                                       <CardMedia
                                         component='img'
                                         height='160'
@@ -504,11 +505,12 @@ const Media = () => {
                                         alt={media?.file_original_name}
                                         sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
                                       />
-                                    ) : media?.user_media.match(/\.(mp4|mov)$/) != null ? (
+                                    ) : media?.file_type.match(/^video\/(mp4|mov)$/) != null ? (
                                       <CardMedia
                                         component='video'
                                         controls
                                         height='160'
+
                                         // image={media?.user_media}
                                         src={media?.user_media}
                                         alt={media?.file_original_name}

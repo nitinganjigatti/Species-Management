@@ -65,7 +65,6 @@ const DocumentTypes = () => {
   const hasEditAccess = complianceModuleAccess === 'EDIT' || complianceModuleAccess === 'DELETE'
   const hasFullAccess = complianceModuleAccess === 'allow_full_access'
 
-  console.log('complianceModuleAccess', complianceModuleAccess)
 
   const handleClose = (_, reason) => {
     if (reason !== 'clickaway') setOpenSnackbar(false)
@@ -272,7 +271,7 @@ const DocumentTypes = () => {
       const response = editId ? await updateDocumentType(editId, cleanedPayload) : await addDocumentType(cleanedPayload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Document type ' + response?.message })
+        Toaster({ type: 'success', message: response?.message })
         setSubmitLoader(false)
         setOpenDrawer(false)
         await fetchTableData(sort, searchValue, sortColumn)

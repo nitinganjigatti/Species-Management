@@ -144,6 +144,7 @@ const TransferIncubator = ({
   const onSubmit = async values => {
     try {
       setLoader(true)
+
       let params = {
         incubator_id: incubatorId,
         to_room_id: values.room
@@ -217,6 +218,7 @@ const TransferIncubator = ({
               fontSize={24}
               onClick={() => {
                 setTransferIncubatorSideBar(false)
+
                 // reset()
                 // setDefaultRoom(null)
               }}
@@ -400,6 +402,7 @@ const TransferIncubator = ({
                             setDefaultNursery(val)
 
                             setValue('nursery_name', '')
+
                             // RoomList(val.nursery_id)
 
                             return onChange(val.nursery_id)
@@ -435,6 +438,7 @@ const TransferIncubator = ({
                         value={defaultRoom}
                         disablePortal
                         id='room'
+
                         // disabled={incubatorDetail?.room_id}
                         options={roomList?.length > 0 ? roomList : []}
                         getOptionLabel={option => option.room_name}

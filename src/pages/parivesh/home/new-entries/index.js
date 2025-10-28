@@ -575,10 +575,12 @@ const NewEntry = ({}) => {
           <Card sx={{ mt: 4 }}>
             <CardHeader title={'New Entries'} action={headerAction} />
             <ConfirmationDialog
+
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
               iconColor={'#ff3838'}
               title={'Are you sure you want to delete this species?'}
+
               // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
               formComponent={
                 <ConfirmationCheckBox
@@ -600,6 +602,7 @@ const NewEntry = ({}) => {
             <DataGrid
               disableColumnMenu
               disableColumnFilter
+
               // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -626,6 +629,7 @@ const NewEntry = ({}) => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
+
               // onPaginationModelChange={setPaginationModel}
               onPaginationModelChange={newModel => {
                 setPaginationModel(newModel)

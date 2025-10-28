@@ -45,7 +45,9 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }) =
       const items =
         res?.data?.data?.map(item => ({
           ...item,
-          tsn_id: item.taxonomy_id
+          tsn_id: item.taxonomy_id,
+          id: item.taxonomy_id,
+          isFromAntzDatabase: true
         })) || []
 
       return {

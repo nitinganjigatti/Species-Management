@@ -21,14 +21,18 @@ import * as yup from 'yup'
 
 const schema = yup.object().shape({
   enclosureName: yup.string().required('Enclosure name is required'),
-  environmentType: yup.string().required('Environment type is required'),
+  environmentType: yup
+    .object({
+      value: yup.string().required('Environment type is required'),
+      label: yup.string().required()
+    })
+    .required('Environment type is required'),
   enclosureType: yup
     .object({
       value: yup.string().required('Enclosure type is required'),
       label: yup.string().required()
     })
-    .required('Enclosure type is required')
-    .nullable(),
+    .required('Enclosure type is required'),
   section: yup
     .object({
       value: yup.string().required('Section is required'),
@@ -36,13 +40,11 @@ const schema = yup.object().shape({
     })
     .required('Section is required')
     .nullable()
-
-  // movableOrWalkable: yup.string().required('Movable or Walkable is required')
 })
 
 const sunlightOptions = [
   { value: 'Moderate', label: 'Moderate' },
-  { value: 'God', label: 'God' },
+  { value: 'Good', label: 'Good' },
   { value: 'Bad', label: 'Bad' }
 ]
 
@@ -61,7 +63,8 @@ const AddEnclosureDrawer = ({
 
   const [loading, setLoading] = useState(false)
   const [selectedType, setSelectedType] = useState('Single')
-  const [movableOrWalkable, setMovableOrWalkable] = useState('')
+  const [movable, setMovable] = useState(false)
+  const [walkable, setWalkable] = useState(false)
   const [environmentTypes, setEnvironmentTypes] = useState([])
   const [allEnclosureData, setAllEnclosureData] = useState(null)
   const [filteredEnclosureTypes, setFilteredEnclosureTypes] = useState([])
@@ -81,7 +84,7 @@ const AddEnclosureDrawer = ({
   } = useForm({
     defaultValues: {
       enclosureName: '',
-      environmentType: '',
+      environmentType: null,
       enclosureType: null,
       parentEnclosure: '',
       movableOrWalkable: '',
@@ -91,7 +94,9 @@ const AddEnclosureDrawer = ({
       batchEnclosureCount: '',
       batchSequenceStart: '',
       section: sectionId || null,
-      notes: ''
+      notes: '',
+      movable: false,
+      walkable: false
     },
     resolver: yupResolver(schema),
     shouldUnregister: false,
@@ -106,7 +111,8 @@ const AddEnclosureDrawer = ({
       environmentType: '',
       enclosureType: null,
       parentEnclosure: '',
-      movableOrWalkable: '',
+      movable: false,
+      walkable: false,
       sunlight: '',
       commissionedDate: '',
       images: [],
@@ -117,7 +123,6 @@ const AddEnclosureDrawer = ({
     })
 
     setSelectedType('Single')
-    setMovableOrWalkable('')
     setFilteredEnclosureTypes([])
     setSectionList([])
     setCurrentSectionId(sectionId)
@@ -191,11 +196,6 @@ const AddEnclosureDrawer = ({
     setTimeout(() => {
       trigger(['batchEnclosureCount', 'batchSequenceStart'])
     }, 0)
-  }
-
-  const handleMovableWalkableChange = type => {
-    setMovableOrWalkable(type)
-    setValue('movableOrWalkable', type, { shouldValidate: true })
   }
 
   const fetchEnclosureSettings = async () => {
@@ -308,7 +308,7 @@ const AddEnclosureDrawer = ({
 
   useEffect(() => {
     if (selectedEnvironmentType && allEnclosureData) {
-      handleEnvironmentTypeChange(selectedEnvironmentType)
+      handleEnvironmentTypeChange(selectedEnvironmentType?.value)
     } else {
       setFilteredEnclosureTypes([])
     }
@@ -323,9 +323,9 @@ const AddEnclosureDrawer = ({
       section_id: currentSectionId,
       enclosure_desc: data?.notes,
       enclosure_code: '',
-      enclosure_environment: data?.environmentType,
-      enclosure_is_movable: data?.movableOrWalkable === 'Movable' ? 1 : 0,
-      enclosure_is_walkable: data?.movableOrWalkable === 'Walkable' ? 1 : 0,
+      enclosure_environment: data?.environmentType?.value,
+      enclosure_is_movable: data?.movable ? 1 : 0,
+      enclosure_is_walkable: data?.walkable ? 1 : 0,
       enclosure_type: data?.enclosureType?.value,
       enclosure_sunlight: data?.sunlight,
       enclosure_image: data?.images,
@@ -386,7 +386,8 @@ const AddEnclosureDrawer = ({
               alignItems: 'center',
               justifyContent: 'space-between',
               backgroundColor: 'background.default',
-              p: theme => theme.spacing(3, 3.255, 3, 5.255),
+              px: '1.2rem',
+              py: '1rem',
               borderBottom: `1px solid ${theme.palette.divider}`
             }}
           >
@@ -596,7 +597,7 @@ const AddEnclosureDrawer = ({
                       errors={errors}
                       sx={{ mt: 2 }}
                     />
-                    <ControlledSelect
+                    <ControlledAutocomplete
                       name={'environmentType'}
                       control={control}
                       label={'Environment Type*'}
@@ -604,8 +605,7 @@ const AddEnclosureDrawer = ({
                       errors={errors}
                       options={environmentTypes}
                       getOptionLabel={option => option.label}
-                      getOptionValue={option => option.value}
-                      sx={{ mt: 4, mb: 6 }}
+                      isOptionEqualToValue={(option, value) => option?.value === value?.value}
                     />
                     <ControlledAutocomplete
                       name={'enclosureType'}
@@ -614,7 +614,7 @@ const AddEnclosureDrawer = ({
                       label={'Enclosure Type*'}
                       required={true}
                       options={filteredEnclosureTypes}
-                      getOptionLabel={option => option?.label || ''}
+                      getOptionLabel={option => option?.label}
                       isOptionEqualToValue={(option, value) => option?.value === value?.value}
                     />
                     <ControlledAutocomplete
@@ -784,19 +784,18 @@ const AddEnclosureDrawer = ({
                   >
                     <Box>
                       <Typography variant='subtitle1' sx={{ mb: 2, color: 'text.secondary', fontWeight: 600 }}>
-                        Enclosure is Movable/Wakable?
+                        Enclosure is Movable / Walkable?
                       </Typography>
+
                       <Box
                         sx={{
                           bgcolor: theme.palette.common.white,
-
-                          // mb: 6,
                           display: 'flex',
                           flexDirection: 'row',
                           gap: 4
                         }}
                       >
-                        {/* Movable Option */}
+                        {/* Movable Checkbox */}
                         <Box
                           sx={{
                             flex: 1,
@@ -805,51 +804,40 @@ const AddEnclosureDrawer = ({
                             px: 4,
                             py: 4,
                             borderRadius: 0.5,
-                            border:
-                              movableOrWalkable === 'Movable'
-                                ? `2px solid ${theme.palette.primary.main}`
-                                : `1px solid ${theme.palette.divider}`,
-                            bgcolor:
-                              movableOrWalkable === 'Movable'
-                                ? theme.palette.action.selected
-                                : theme.palette.common.white,
+                            border: movable
+                              ? `2px solid ${theme.palette.primary.main}`
+                              : `1px solid ${theme.palette.divider}`,
+                            bgcolor: movable ? theme.palette.action.selected : theme.palette.common.white,
                             cursor: 'pointer',
                             transition: 'border-color 0.2s, background-color 0.2s'
                           }}
-                          onClick={() => handleMovableWalkableChange('Movable')}
+                          onClick={() => {
+                            setMovable(prev => !prev)
+                            setValue('movable', !movable, { shouldValidate: true })
+                          }}
                         >
-                          <Typography
-                            sx={{ flex: 1, color: movableOrWalkable === 'Movable' ? 'text.primary' : 'text.secondary' }}
-                          >
+                          <Typography sx={{ flex: 1, color: movable ? 'text.primary' : 'text.secondary' }}>
                             Movable
                           </Typography>
-                          <input
-                            type='radio'
-                            name='movableWalkable'
-                            checked={movableOrWalkable === 'Movable'}
-                            onChange={() => handleMovableWalkableChange('Movable')}
-                            style={{ display: 'none' }}
-                          />
+                          <input type='checkbox' checked={movable} onChange={() => {}} style={{ display: 'none' }} />
                           <Box
                             sx={{
                               width: 20,
                               height: 20,
-                              borderRadius: '50%',
-                              border: `2px solid ${
-                                movableOrWalkable === 'Movable' ? theme.palette.primary.main : theme.palette.divider
-                              }`,
+                              borderRadius: '4px',
+                              border: `2px solid ${movable ? theme.palette.primary.main : theme.palette.divider}`,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               ml: 2
                             }}
                           >
-                            {movableOrWalkable === 'Movable' && (
+                            {movable && (
                               <Box
                                 sx={{
                                   width: 12,
                                   height: 12,
-                                  borderRadius: '50%',
+                                  borderRadius: '2px',
                                   bgcolor: theme.palette.primary.main
                                 }}
                               />
@@ -857,63 +845,49 @@ const AddEnclosureDrawer = ({
                           </Box>
                         </Box>
 
-                        {/* Walkable Option */}
+                        {/* Walkable Checkbox */}
                         <Box
                           sx={{
                             flex: 1,
                             display: 'flex',
                             alignItems: 'center',
                             px: 4,
-                            py: 2,
+                            py: 4,
                             borderRadius: 0.5,
-                            border:
-                              movableOrWalkable === 'Walkable'
-                                ? `2px solid ${theme.palette.primary.main}`
-                                : `1px solid ${theme.palette.divider}`,
-                            bgcolor:
-                              movableOrWalkable === 'Walkable'
-                                ? theme.palette.action.selected
-                                : theme.palette.common.white,
+                            border: walkable
+                              ? `2px solid ${theme.palette.primary.main}`
+                              : `1px solid ${theme.palette.divider}`,
+                            bgcolor: walkable ? theme.palette.action.selected : theme.palette.common.white,
                             cursor: 'pointer',
                             transition: 'border-color 0.2s, background-color 0.2s'
                           }}
-                          onClick={() => handleMovableWalkableChange('Walkable')}
+                          onClick={() => {
+                            setWalkable(prev => !prev)
+                            setValue('walkable', !walkable, { shouldValidate: true })
+                          }}
                         >
-                          <Typography
-                            sx={{
-                              flex: 1,
-                              color: movableOrWalkable === 'Walkable' ? 'text.primary' : 'text.secondary'
-                            }}
-                          >
+                          <Typography sx={{ flex: 1, color: walkable ? 'text.primary' : 'text.secondary' }}>
                             Walkable
                           </Typography>
-                          <input
-                            type='radio'
-                            name='movableWalkable'
-                            checked={movableOrWalkable === 'Walkable'}
-                            onChange={() => handleMovableWalkableChange('Walkable')}
-                            style={{ display: 'none' }}
-                          />
+                          <input type='checkbox' checked={walkable} onChange={() => {}} style={{ display: 'none' }} />
                           <Box
                             sx={{
                               width: 20,
                               height: 20,
-                              borderRadius: '50%',
-                              border: `2px solid ${
-                                movableOrWalkable === 'Walkable' ? theme.palette.primary.main : theme.palette.divider
-                              }`,
+                              borderRadius: '4px',
+                              border: `2px solid ${walkable ? theme.palette.primary.main : theme.palette.divider}`,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               ml: 2
                             }}
                           >
-                            {movableOrWalkable === 'Walkable' && (
+                            {walkable && (
                               <Box
                                 sx={{
                                   width: 12,
                                   height: 12,
-                                  borderRadius: '50%',
+                                  borderRadius: '2px',
                                   bgcolor: theme.palette.primary.main
                                 }}
                               />
@@ -922,6 +896,7 @@ const AddEnclosureDrawer = ({
                         </Box>
                       </Box>
                     </Box>
+
                     <ControlledSelect
                       name={'sunlight'}
                       control={control}

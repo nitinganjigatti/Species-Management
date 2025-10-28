@@ -25,12 +25,14 @@ import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDate
 
 import Error404 from 'src/pages/401'
 import StickyTable from 'src/views/table/sticky-table'
-import AssessmentReportFilterDrawer from 'src/views/pages/report/AssessmentReportFilterDrawer'
-import AssessmentSpeciesFilter from 'src/views/pages/report/AssessmentSpeciesFilter'
-import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
+import AssessmentReportFilterDrawer from 'src/views/pages/report/AssessmentReportFilterDrawer'
+import AssessmentSpeciesListingDrawer from 'src/views/pages/report/AssessmentSpeciesListingDrawer'
+import AssessmentTypeListingDrawer from 'src/views/pages/report/AssessmentTypeListingDrawer'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
+import AnimalCard from 'src/views/utility/AnimalCard'
+import ReactTable from 'src/views/table/ReactTable'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
@@ -54,11 +56,12 @@ const AnimalAssessment = () => {
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   const [assessmentData, setAssessmentData] = useState([])
   const [maxAssessmentCount, setMaxAssessmentCount] = useState(0)
   const [headerList, setHeaderList] = useState([])
   const [dataList, setDataList] = useState([])
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -96,7 +99,7 @@ const AnimalAssessment = () => {
     if (searchRef.current && document.activeElement !== searchRef.current) {
       searchRef.current.focus()
     }
-  }, [assessmentData]) 
+  }, [assessmentData])
 
   const animalAssessmentReport = async (searchValue = search || '') => {
     setIsLoading(true)
@@ -133,12 +136,6 @@ const AnimalAssessment = () => {
     }
   }
 
-  // const debouncedSearch = useCallback(
-  //   debounce(searchValue => {
-  //     animalAssessmentReport(searchValue)
-  //   }, 500),
-  //   []
-  // )
   const debouncedSearch = useCallback(
     debounce(value => {
       animalAssessmentReport(value)
@@ -158,13 +155,9 @@ const AnimalAssessment = () => {
     }
   }, [paginationModel, filterDates, selectedItems])
 
-  useEffect(() => {
-    // if (assessmentData?.length) {
-    transformAnimalData()
+  useEffect(() => transformAnimalData(), [assessmentData])
 
-    // }
-  }, [assessmentData])
-
+  // Transform raw animal data
   const transformAnimalData = () => {
     const animals = assessmentData || []
 
@@ -188,14 +181,10 @@ const AnimalAssessment = () => {
         return parts.join(' ')
       })()
 
-      
       const recordMap = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
-          value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${
-            // Number(assessment?.assessment_value) > 1 && assessment?.uom_abbr ? 's' : ''
-            ''
-          }`,
+          value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${''}`,
           date: moment(
             Utility.convertUTCToLocalDate(
               assessment.assessment_recorded_date + ' ' + assessment.assessment_recorded_time
@@ -229,7 +218,6 @@ const AnimalAssessment = () => {
 
     setDataList(transformed)
 
-    // setTotal(transformed.length)
     const headers = [
       { key: 'default_icon', label: 'ANIMAL DETAILS' },
       ...Array.from({ length: maxAssessmentCount }, (_, i) => ({
@@ -240,7 +228,7 @@ const AnimalAssessment = () => {
               {selectedAssessmentType?.assessments_type_label}
             </span>
           ) : (
-            ''
+            ' '
           )
       }))
     ]
@@ -257,19 +245,17 @@ const AnimalAssessment = () => {
         height: 131,
         sortable: false,
         headerStyle: {
-          zIndex: 1000 + 1
+          zIndex: 1099
         },
         columnStyle: {
           border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
           borderRight: 'none',
-          boxSizing: 'border-box',
-          p: 0,
-          pr: 2,
-          m: 0
+          boxSizing: 'border-box'
         },
-        disableColumnMenu: true,
+
+        // disableColumnMenu: true,
         renderCell: params => {
-          return <AnimalParentCard data={params?.row} />
+          return <AnimalCard sx={{ border: 'none' }} data={params?.row} />
         }
       }
     }
@@ -280,13 +266,12 @@ const AnimalAssessment = () => {
       width: 240,
       sortable: false,
       disableColumnMenu: true,
-      headerStyle: i === 1 && { position: 'sticky', left: 300, zIndex: 1000, p: 0, m: 0 },
+
+      // headerStyle: i === 1 && { position: 'sticky', left: 300, zIndex: 1000, p: 0, m: 0 },
       columnStyle: {
         height: '100px',
         border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
-        borderLeft: i === 1 && 'none',
-        p: 0,
-        m: 0
+        borderLeft: i === 1 && 'none'
       },
       renderCell: params => {
         const record = params?.row[header.key]
@@ -408,7 +393,7 @@ const AnimalAssessment = () => {
 
   const getDataToExport = async type => {
     if (selectedSpecie && selectedAssessmentType) {
-      setIsLoading(true)
+      setIsDownloading(true)
 
       const params = {
         page: paginationModel.page + 1,
@@ -436,7 +421,7 @@ const AnimalAssessment = () => {
       } catch (error) {
         console.error('error', error)
       } finally {
-        setIsLoading(false)
+        setIsDownloading(false)
       }
     }
   }
@@ -489,15 +474,10 @@ const AnimalAssessment = () => {
           >
             <Box
               sx={{
-                // minHeight: '121px',
                 bgcolor: theme.palette.customColors.lightBg,
                 borderRadius: '8px'
-
-                // padding: '10px',
-                // paddingLeft: '20px'
               }}
             >
-              {/* <AnimalCard animalData={animalDetailsData} /> */}
               <AnimalParentCard backgroundColor={theme.palette.customColors.lightBg} data={animalDetailsData} />
             </Box>
 
@@ -760,7 +740,16 @@ const AnimalAssessment = () => {
 
               {!initialLoad && (
                 <>
-                  <Box sx={{ display: 'flex', gap: 4, justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 4,
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mt: 1
+                    }}
+                  >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                       <TextField
                         inputRef={searchRef}
@@ -799,7 +788,7 @@ const AnimalAssessment = () => {
                           // borderRadius: '40px', // Applies to the container
                           '& .MuiOutlinedInput-root': {
                             width: '240px',
-                            borderRadius: '4px' 
+                            borderRadius: '4px'
                           }
                         }}
                       />
@@ -865,11 +854,12 @@ const AnimalAssessment = () => {
                           borderRadius: '4px',
                           bgcolor: theme?.palette.customColors?.lightBg,
                           alignItems: 'center',
-                          cursor: 'pointer'
+                          cursor: isDownloading ? 'not-allowed' : 'pointer'
                         }}
-                        onClick={() => getDataToExport()}
+                        onClick={isDownloading ? undefined : () => getDataToExport()}
+                        aria-disabled={isDownloading}
                       >
-                        {isLoading ? (
+                        {isDownloading ? (
                           <CircularProgress color='success' size={30} />
                         ) : (
                           <Icon icon='ic:round-download' fontSize={20} />
@@ -878,7 +868,7 @@ const AnimalAssessment = () => {
                     </Box>
                   </Box>
                   {columns?.length > 0 ? (
-                    <StickyTable
+                    <ReactTable
                       rows={dataList}
                       rowCount={total}
                       rowHeight={127.5}
@@ -891,9 +881,15 @@ const AnimalAssessment = () => {
                       paginationModel={paginationModel}
                       onPaginationModelChange={setPaginationModel}
                       loading={isLoading}
-                      downloadExcel
+
+                      // downloadExcel
+                      serverSide
+                      // rowSelection
+                      // modifyColumnPinning
+                      hideHeaderWhenEmpty
                       searchMode='server'
-                      disableColumnSorting={true}
+
+                      // disableColumnSorting={true}
                     />
                   ) : (
                     <Box sx={{ py: 4, textAlign: 'center' }}>
@@ -905,7 +901,7 @@ const AnimalAssessment = () => {
             </Box>
           </Card>
 
-          {!dataList?.length > 0 && (
+          {!dataList?.length > 0 && !isLoading && (
             <Box
               sx={{
                 mt: 4,
@@ -967,7 +963,7 @@ const AnimalAssessment = () => {
             />
           )}
           {openspeciesFilter && (
-            <AssessmentSpeciesFilter
+            <AssessmentSpeciesListingDrawer
               selectedSpecie={selectedSpecie}
               setSelectedSpecie={setSelectedSpecie}
               openspeciesFilter={openspeciesFilter}
@@ -975,7 +971,7 @@ const AnimalAssessment = () => {
             />
           )}
           {openassessmentFilter && (
-            <AssessmentTypeFilter
+            <AssessmentTypeListingDrawer
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
               selectedAssessmentType={selectedAssessmentType}
@@ -992,68 +988,3 @@ const AnimalAssessment = () => {
 }
 
 export default AnimalAssessment
-
-{
-  /* {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      alignItems: 'center',
-                      borderRadius: '8px',
-                      mr: 1
-                    }}
-                  >
-                    <Button
-                      onClick={() => setOpenFilterDrawer(true)}
-                      variant='outlined'
-                      sx={{
-                        width: '129px',
-                        height: '40px',
-                        display: 'flex',
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        borderRadius: '4px',
-                        fontWeight: 400,
-                        fontSize: '16px',
-                        fontFamily: 'Inter',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 2,
-                        minWidth: '100px'
-                      }}
-                    >
-                      <img
-                        src='/images/filterIcon.png'
-                        style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
-                        alt='Filter Icon'
-                      />
-
-                      <Typography
-                        sx={{ color: theme.palette.primary.light, textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
-                      >
-                        Filter
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '6px',
-                          width: '29px',
-                          height: '27px',
-                          borderRadius: '69%',
-                          backgroundColor: theme.palette.primary.light,
-                          color: theme.palette.primary.contrastText,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {filterCount}
-                      </Box>
-                    </Button>
-                  </Box>
-                )} */
-}

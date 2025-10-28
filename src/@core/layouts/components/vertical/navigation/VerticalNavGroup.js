@@ -64,13 +64,17 @@ const VerticalNavGroup = props => {
   const currentURL = router.asPath
   const { direction, navCollapsed, verticalNavToggleType } = settings
 
+  // ** Use unique key instead of title for tracking
+  const itemKey = item.key || item.title
+
   // ** Accordion menu group open toggle
   const toggleActiveGroup = (item, parent) => {
     let openGroup = groupActive
+    const currentItemKey = item.key || item.title
 
     // ** If Group is already open and clicked, close the group
-    if (openGroup.includes(item.title)) {
-      openGroup.splice(openGroup.indexOf(item.title), 1)
+    if (openGroup.includes(currentItemKey)) {
+      openGroup.splice(openGroup.indexOf(currentItemKey), 1)
 
       // If clicked Group has open group children, Also remove those children to close those groups
       if (item.children) {
@@ -83,8 +87,8 @@ const VerticalNavGroup = props => {
       }
 
       // ** After removing all the open groups under that parent, add the clicked group to open group array
-      if (!openGroup.includes(item.title)) {
-        openGroup.push(item.title)
+      if (!openGroup.includes(currentItemKey)) {
+        openGroup.push(currentItemKey)
       }
     } else {
       // ** If clicked on another group that is not active or open, create openGroup array from scratch
@@ -97,8 +101,8 @@ const VerticalNavGroup = props => {
       }
 
       // ** Push current clicked group item to Open Group array
-      if (!openGroup.includes(item.title)) {
-        openGroup.push(item.title)
+      if (!openGroup.includes(currentItemKey)) {
+        openGroup.push(currentItemKey)
       }
     }
     setGroupActive([...openGroup])
@@ -108,21 +112,22 @@ const VerticalNavGroup = props => {
   const handleGroupClick = () => {
     const openGroup = groupActive
     if (verticalNavToggleType === 'collapse') {
-      if (openGroup.includes(item.title)) {
-        openGroup.splice(openGroup.indexOf(item.title), 1)
+      if (openGroup.includes(itemKey)) {
+        openGroup.splice(openGroup.indexOf(itemKey), 1)
       } else {
-        openGroup.push(item.title)
+        openGroup.push(itemKey)
       }
       setGroupActive([...openGroup])
     } else {
       toggleActiveGroup(item, parent)
     }
   }
+
   useEffect(() => {
     if (hasActiveChild(item, currentURL)) {
-      if (!groupActive.includes(item.title)) groupActive.push(item.title)
+      if (!groupActive.includes(itemKey)) groupActive.push(itemKey)
     } else {
-      const index = groupActive.indexOf(item.title)
+      const index = groupActive.indexOf(itemKey)
       if (index > -1) groupActive.splice(index, 1)
     }
     setGroupActive([...groupActive])
@@ -134,6 +139,7 @@ const VerticalNavGroup = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.asPath])
+
   useEffect(() => {
     if (navCollapsed && !navHover) {
       setGroupActive([])
@@ -143,12 +149,14 @@ const VerticalNavGroup = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navCollapsed, navHover])
+
   useEffect(() => {
     if (groupActive.length === 0 && !navCollapsed) {
       setGroupActive([])
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navHover])
+
   const icon = parent && !item.icon ? themeConfig.navSubItemIcon : item.icon
   const menuGroupCollapsedStyles = navCollapsed && !navHover ? { opacity: 0 } : { opacity: 1 }
 
@@ -171,7 +179,7 @@ const VerticalNavGroup = props => {
         >
           <ListItemButton
             className={clsx({
-              'Mui-selected': groupActive.includes(item.title) || currentActiveGroup.includes(item.title)
+              'Mui-selected': groupActive.includes(itemKey) || currentActiveGroup.includes(itemKey)
             })}
             sx={{
               py: 2.25,
@@ -222,7 +230,7 @@ const VerticalNavGroup = props => {
                   alignItems: 'center',
                   '& svg': {
                     transition: 'transform .25s ease-in-out',
-                    ...(groupActive.includes(item.title) && {
+                    ...(groupActive.includes(itemKey) && {
                       transform: direction === 'ltr' ? 'rotate(90deg)' : 'rotate(-90deg)'
                     })
                   }
@@ -243,7 +251,7 @@ const VerticalNavGroup = props => {
           <Collapse
             component='ul'
             onClick={e => e.stopPropagation()}
-            in={groupActive.includes(item.title)}
+            in={groupActive.includes(itemKey)}
             sx={{
               pl: 0,
               width: '100%',

@@ -24,6 +24,7 @@ import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import ChangeDietName from 'src/components/diet/ChangeDietname'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const DietDetailCard = ({
   dietDetails,
@@ -480,7 +481,36 @@ const DietDetailCard = ({
                   </Typography>
                 </Box>
               </Box>
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  mb: '6px',
+                  maxWidth: '400px'
+                }}
+              >
+                <UserAvatarDetails
+                  profile_image={dietDetails?.dietitian?.profile_pic}
+                  user_name={dietDetails?.dietitian?.user_name}
+                  size='small'
+                />
 
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.Outline,
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    lineHeight: '100%',
+                    letterSpacing: '0.1px',
+                    display: 'flex'
+                  }}
+                >
+                  <span style={{ margin: '0px 8px 0px 0px' }}>&#8226;</span>
+                  <span>Super Admin</span>
+                </Typography>
+              </Box>
               <Box>
                 {dietDetails?.desc ? (
                   <div>
@@ -532,8 +562,20 @@ const DietDetailCard = ({
                   gap: isSmallDevice ? '16px' : '0'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Avatar
+                <Box sx={{ display: 'flex', gap: '12px' }}>
+                  <Box>
+                    <Typography sx={{ mb: 2, mt: '8px', fontSize: '16px', fontWeight: '600' }}>
+                      Diet Added by
+                    </Typography>
+                    <UserAvatarDetails
+                      date={dietDetails?.created_at}
+                      profile_image={dietDetails?.created_by_user?.profile_pic}
+                      user_name={dietDetails?.created_by_user?.user_name}
+
+                      // date={dietDetails?.created_at}
+                    />
+                  </Box>
+                  {/* <Avatar
                     src={dietDetails?.created_by_user?.profile_pic || '/icons/recipedummy.svg'}
                     sx={{ width: '2rem', height: '2rem' }}
                   />
@@ -560,7 +602,7 @@ const DietDetailCard = ({
                     >
                       Created on {moment(dietDetails?.created_at).format('DD/MM/YYYY')}
                     </Typography>
-                  </Box>
+                  </Box> */}
                 </Box>
                 {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                   <Box

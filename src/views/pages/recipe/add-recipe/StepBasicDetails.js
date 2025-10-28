@@ -11,6 +11,7 @@ import FormControl from '@mui/material/FormControl'
 import Autocomplete from '@mui/material/Autocomplete'
 import { Divider, CardContent, FormHelperText, CircularProgress } from '@mui/material'
 import { useRouter } from 'next/router'
+import { useTheme } from '@mui/material/styles'
 import Router from 'next/router'
 import { useForm } from 'react-hook-form'
 import * as yup from 'yup'
@@ -45,6 +46,7 @@ const schema = yup.object().shape({
 const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
   // ** States
   const [uploadedImage, setUploadedImage] = useState(null)
+  const theme = useTheme()
   const router = useRouter()
 
   const {
@@ -135,7 +137,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
   return (
     <>
       {loader ? (
-        <CardContent sx={{ background: '#fff', height: '100vh' }}>
+        <CardContent sx={{ background: theme.palette.common.white, height: '100vh' }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
             <CircularProgress />
           </Box>
@@ -160,6 +162,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                       name='recipe_name'
                       error={Boolean(errors.recipe_name)}
                       onChange={onChange}
+                      sx={{
+                        '& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.customColors.errorText
+                        }
+                      }}
                     />
                   )}
                 />
@@ -191,6 +198,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                             e.target.value = ''
                           }
                         }}
+                        sx={{
+                          '& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
+                            borderColor: theme.palette.customColors.errorText
+                          }
+                        }}
                       />
                     )}
                   />
@@ -199,7 +211,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid size={{ xs: 12, sm: 6.17, md: 3.17 }}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControl fullWidth>
                   {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
                   {console.log(uomList, 'uomList')}
@@ -227,9 +239,14 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                         renderInput={params => (
                           <TextField
                             {...params}
-                            label='Select unit of measurement (UOM) *'
+                            label='Select UOM *'
                             placeholder='Search & Select'
                             error={Boolean(errors.portion_uom_id)}
+                            sx={{
+                              '& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline': {
+                                borderColor: theme.palette.customColors.errorText
+                              }
+                            }}
                           />
                         )}
                       />
@@ -279,7 +296,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
             </Grid>
             <Grid item xs={12} sm={3.2}>
               <FormControl fullWidth>
-                
+
                 {console.log(uomList, 'uomList')}
                 <Controller
                   name='nutrional_uom_id'
@@ -362,6 +379,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                 <Button
                   color='secondary'
                   variant='outlined'
+
                   // startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                   sx={{ mr: 6 }}
                   onClick={cancelBack}

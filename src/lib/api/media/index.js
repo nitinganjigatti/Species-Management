@@ -21,7 +21,8 @@ export async function uploadMediaFile(payload) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
-    return error
+    
+return error
   }
 }
 

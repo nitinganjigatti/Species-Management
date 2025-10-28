@@ -695,10 +695,12 @@ const SpeciesDetails = () => {
           <Card sx={{ mt: 4 }}>
             <CardHeader title={`Entries`} action={headerAction} />
             <ConfirmationDialog
+
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
               iconColor={'#ff3838'}
               title={'Are you sure you want to delete this species?'}
+
               // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
               formComponent={
                 <ConfirmationCheckBox
@@ -720,6 +722,7 @@ const SpeciesDetails = () => {
             <DataGrid
               disableColumnMenu
               disableColumnFilter
+
               // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
