@@ -71,6 +71,7 @@ import GenericNamesList from '../../masters/generic'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckbox'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -1863,14 +1864,21 @@ const AddMedicine = () => {
                                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.url?.message}</FormHelperText>
                               )}
                             </FormControl>
-                            {/* <ControlledCheckbox
+                            <ControlledCheckBox
                               name='priority'
                               label='Critical'
                               control={control}
-                              checkedValue='critical'
-                              uncheckedValue=''
                               errors={errors}
-                            /> */}
+                              sx={{ my: 4 }}
+                              labelStyle={{ fontWeight: 400 }}
+                              onChangeOverride={checked => {
+                                if (checked) {
+                                  setValue('priority', 'critical')
+                                } else {
+                                  setValue('priority', '')
+                                }
+                              }}
+                            />
                           </Grid>
 
                           {/* <Grid item size={{xs: 12, sm: 6}}>
