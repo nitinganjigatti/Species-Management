@@ -205,7 +205,7 @@ const MealGroupReport = () => {
                   <SingleDatePicker
                     date={selectedDate}
                     onChangeHandler={handleDateChange}
-                    maxDate={addDays(new Date(), 6)}
+                    maxDate={addDays(new Date(), 7)}
                     name='Select Date'
                     minDate={new Date()}
                     dateFormat='dd-MM-yyyy'

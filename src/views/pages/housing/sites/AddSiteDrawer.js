@@ -32,13 +32,14 @@ import Toaster from 'src/components/Toaster'
 // Schema
 const schema = yup.object().shape({
   siteName: yup.string().required('Site name is required'),
-  latitude: yup.string().required('Latitude is required'),
-  longitude: yup.string().required('Longitude is required')
+  latitude: yup.string(),
+  longitude: yup.string()
 
   // image: yup.mixed().required('Image is required')
 })
 
 const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
+  const [loading, setLoading] = useState(false)
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const authData = useContext(AuthContext)
@@ -137,6 +138,8 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
   }
 
   const onSubmit = async data => {
+    setLoading(true)
+
     const params = {
       zoo_id: zooId,
       site_name: data?.siteName,
@@ -149,7 +152,7 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
       const response = await AddNewSite(params)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message })
+        Toaster({ type: 'success', message: 'New Site Is Created Successfully' })
         setSiteDrawer(false)
         refetch()
       } else {
@@ -161,6 +164,8 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
       console.error('Submission Error:', error)
       toast.error('An error occurred while creating the site')
       setSiteDrawer(false)
+    } finally {
+      setLoading(false)
     }
 
     // Send `data` to backend
@@ -185,7 +190,9 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
           alignItems: 'center',
           justifyContent: 'space-between',
           bgcolor: theme.palette.customColors.lightBg,
-          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          px: '1.2rem',
+          py: '1rem',
+          borderBottom: `1px solid ${theme.palette.divider}`
         }}
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
@@ -203,7 +210,7 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
           sx={{ px: 4, flexGrow: 1, height: '700px', bgcolor: theme.palette.customColors.lightBg }}
         >
           {/* Site Name & Image */}
-          <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, ml: 1 }}>
+          <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, pt: '1rem' }}>
             Site Name & Image
           </Typography>
 
@@ -378,7 +385,6 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
                     <input
                       type='file'
                       accept='image/*'
-                      multiple
                       ref={fileInputRef}
                       style={{ display: 'none' }}
                       onChange={e => handleFilesChange(e.target.files)}
@@ -484,7 +490,7 @@ const AddSiteDrawer = ({ open, setSiteDrawer, refetch }) => {
               display: 'flex'
             }}
           >
-            <LoadingButton fullWidth variant='contained' type='submit' sx={{ height: '50px' }}>
+            <LoadingButton loading={loading} fullWidth variant='contained' type='submit' sx={{ height: '50px' }}>
               Add
             </LoadingButton>
           </Box>

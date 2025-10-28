@@ -43,7 +43,7 @@ const RoomsList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -81,6 +81,7 @@ const RoomsList = () => {
   const fetchTableData = useCallback(
     async (q = '', nurseryId, status) => {
       setLoading(true)
+
       const params = {
         sort,
         search: q ?? '',
@@ -112,6 +113,7 @@ const RoomsList = () => {
         console.error(error)
       }
     }, 1000),
+
     // []  // it can be removeed if there is no issue after long time
     [fetchTableData]
   )
@@ -179,7 +181,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 10,
+      minWidth: 120,
       field: 'room',
       headerName: 'room',
       sortable: false,
@@ -202,7 +204,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.5,
-      minWidth: 30,
+      minWidth: 120,
       field: 'nursery_name',
       headerName: 'nursery name',
       sortable: false,
@@ -225,7 +227,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 10,
+      minWidth: 120,
       field: 'site',
       headerName: 'site',
       sortable: false,
@@ -248,7 +250,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.3,
-      minWidth: 10,
+      minWidth: 120,
       field: 'Incubator',
       sortable: false,
       align: 'center',
@@ -272,7 +274,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       sortable: false,
       align: 'center',
       field: 'active',
@@ -296,7 +298,7 @@ const RoomsList = () => {
     },
     {
       flex: 0.4,
-      minWidth: 60,
+      minWidth: 220,
       field: 'user_name',
       sortable: false,
       headerName: 'CREATED BY',
@@ -446,7 +448,7 @@ const RoomsList = () => {
                     <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
                     <TextField
                       variant='outlined'
-                      placeholder='Search...'
+                      placeholder='Search'
                       InputProps={
                         {
                           // disableUnderline: true
@@ -607,6 +609,18 @@ const RoomsList = () => {
 
                 <DataGrid
                   sx={{
+                    paddingX: 4,
+                    borderTopLeftRadius: '8px',
+                    '& .MuiBox-root': {
+                      paddingX: 0
+                    },
+                    '.MuiDataGrid-main': {
+                      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                      borderRadius: '8px'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      border: 'none !important'
+                    },
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
                     },

@@ -10,7 +10,8 @@ import Icon from 'src/@core/components/icon'
 
 const ServerSideToolbar = props => {
   const inputRef1 = useRef()
-  console.log(props, 'props')
+
+  // console.log(props, 'props')
 
   const handleFocus = () => {
     inputRef1.current.focus()
@@ -76,7 +77,7 @@ const ServerSideToolbar = props => {
         }}
       />
     </Box>
-  );
+  )
 }
 
 export default ServerSideToolbar

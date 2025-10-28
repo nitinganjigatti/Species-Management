@@ -1,15 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, alpha } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, alpha, CircularProgress } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
 
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import ExportPermitForm from 'src/components/compliance/forms/ExportPermitForm'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
-import { getDocumentTypeList, getExportDetails } from 'src/lib/api/compliance/exports'
+import { getDocumentTypeList, getExportDetails, getMastersData } from 'src/lib/api/compliance/exports'
 import Toaster from 'src/components/Toaster'
 import { useTheme } from '@mui/material/styles'
-import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const AddEditExportPermit = () => {
@@ -24,6 +23,7 @@ const AddEditExportPermit = () => {
   const [documentList, setDocumentList] = useState([])
   const [totalCount, setTotalCount] = useState(0)
   const theme = useTheme()
+  const [documentTypeId, setDocumentTypeId] = useState(null)
 
   useEffect(() => {
     if (isEdit) {
@@ -47,15 +47,38 @@ const AddEditExportPermit = () => {
     )
   }
 
+  const fetchMastersData = async () => {
+    try {
+      const res = await getMastersData()
+      if (res?.success) {
+        setDocumentTypeId(res?.data?.document_type_id)
+
+        return res.data.document_type_id || null
+      }
+    } catch (error) {
+      console.error('Error fetching masters data:', error)
+      Toaster({ type: 'error', message: 'Error fetching masters data' })
+    }
+
+    return null
+  }
+
   const fetchExportDetails = async () => {
     setLoading(true)
+
     try {
+      let documentTypeIdFromRes
+      if (!documentTypeId) {
+        documentTypeIdFromRes = await fetchMastersData()
+      }
+
       const params = {
-        document_type_id: DOCUMENT_TYPE_ID
+        document_type_id: documentTypeIdFromRes || documentTypeId
       }
       const res = await getExportDetails(id, params)
       if (res.success) {
         setExportData(res.data)
+        if (id && !documentList?.length) fetchDocumentTypeList()
       }
     } catch (error) {
       console.error('Error fetching export details:', error)
@@ -64,11 +87,10 @@ const AddEditExportPermit = () => {
   }
 
   const handleFormSubmit = exportId => {
-    console.log('id', exportId)
-    if (!isEdit) {
-      setExpanded('supporting-documents')
-      fetchDocumentTypeList(exportId)
+    if (isEdit) {
+      fetchExportDetails()
     }
+    setExpanded(['supporting-documents'])
   }
 
   const fetchDocumentTypeList = async exportId => {
@@ -94,15 +116,10 @@ const AddEditExportPermit = () => {
     }
   }
 
-  useEffect(() => {
-    if (id) fetchDocumentTypeList()
-  }, [id])
-
   const uploadedFileCount = documentList?.filter(doc => doc.file_path).length || 0
 
-  const handleAddEditSuccess = data => {
-    const updatedList = documentList.map(item => (item.id === data?.id ? { ...item, ...data } : item))
-    setDocumentList(updatedList)
+  const handleAddEditSuccess = () => {
+    fetchDocumentTypeList()
   }
 
   return (
@@ -131,13 +148,13 @@ const AddEditExportPermit = () => {
       >
         <ExportPermitForm id={id} exportData={exportData} isLoading={loading} onSubmit={handleFormSubmit} />
       </CustomAccordion>
-
       <CustomAccordion
         id='supporting-documents'
         title='Supporting Documents'
         docsCount={totalCount ? `${uploadedFileCount}/${totalCount}` : null}
         expanded={expanded.includes('supporting-documents')}
         onChange={handleAccordionChange}
+        shouldScrollToTop={id && true}
       >
         {!isEdit && !documentList?.length ? (
           <Box

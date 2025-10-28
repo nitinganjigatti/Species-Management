@@ -12,6 +12,7 @@ import pariveshNavigation from 'src/components/navigation/parivesh/index'
 import reportNavigation from 'src/components/navigation/report'
 import medicalNavigation from 'src/components/navigation/medical'
 import housingNavigation from 'src/components/navigation/housing'
+import hospitalNavigation from 'src/components/navigation/hospital'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -35,6 +36,9 @@ const ComposeNavigation = () => {
   const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
+
+  const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
 
   const userRole = authData?.userData?.roles?.role_name
 
@@ -83,8 +87,13 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
-  const housingnav = housingNavigation()
-  navigationArray.push(...housingnav)
+  if (housingModule) {
+    const housingNav = housingNavigation(housingModuleCluster)
+    navigationArray.push(...housingNav)
+  }
+
+  const hospitalNav = hospitalNavigation()
+  navigationArray.push(...hospitalNav)
 
   const medicalNav = medicalNavigation({
     userSettings

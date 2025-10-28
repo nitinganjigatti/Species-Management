@@ -1,7 +1,5 @@
 // ** React Imports
 import React, { useEffect, useState } from 'react'
-
-// ** MUI Components
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
@@ -40,6 +38,7 @@ import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoi
 import AddIngredients from 'src/components/diet/AddIngredients'
 import RecipeList from 'src/components/diet/RecipeList'
 import ComboList from 'src/components/diet/ComboList'
+import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
 const defaultValues = {
   diet_name: '',
@@ -140,6 +139,12 @@ const StepBasicDetails = ({
   const [ingredientName, setIngredientName] = useState('')
   const [ingredientwithChoiceId, setIngredientwithChoiceId] = useState([])
   const [ingredientwithChoiceName, setIngredientwithChoiceName] = useState([])
+  const [reachedEnd, setReachedEnd] = useState(false)
+  let [ingredientPage, setIngredientPage] = useState(1)
+  const [ingredientList, setIngredientList] = useState([])
+  const [totalCount, setTotalCount] = useState('')
+  const [searchValue, setSearchValue] = useState('')
+  const [sort, setSort] = useState('desc')
   const router = useRouter()
 
   const recipes = [
@@ -152,7 +157,7 @@ const StepBasicDetails = ({
 
   const combos = [
     // { label: 'No' },
-    { label: 'Combo' },
+    { label: 'Mix' },
     { label: 'Items' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
@@ -229,7 +234,6 @@ const StepBasicDetails = ({
       )
 
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
-       
         const matchedMealData = formData.meal_data.find(
           mealData =>
             Array.isArray(mealData.ingredient) &&
@@ -241,7 +245,6 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-          
           const matchedIngredient = matchedMealData.ingredient.find(
             ingredient =>
               String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
@@ -280,7 +283,6 @@ const StepBasicDetails = ({
     )
 
     setAllRecipeSelectedValues(prevState => {
-     
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
@@ -291,8 +293,6 @@ const StepBasicDetails = ({
       )
 
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
-       
-
         const matchedMealData = formData.meal_data.find(
           mealData =>
             Array.isArray(mealData.recipe) &&
@@ -304,7 +304,6 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-        
           const matchedRecipe = matchedMealData.recipe.find(
             recipe =>
               String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
@@ -332,7 +331,6 @@ const StepBasicDetails = ({
   }
 
   const handleComboStateChange = value => {
-    console.log('Received value:', value)
     setComboChildStateValue(value)
 
     const uniqueValues = value.filter(
@@ -344,7 +342,6 @@ const StepBasicDetails = ({
     )
 
     setAllComboSelectedValues(prevState => {
-     
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
@@ -366,7 +363,6 @@ const StepBasicDetails = ({
         )
 
         if (matchedMealData) {
-         
           const matchedCombo = matchedMealData.combo?.find(
             combo =>
               String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
@@ -386,8 +382,6 @@ const StepBasicDetails = ({
         const field = fieldsIngredients[i]
         field.combo = updatedValues.filter(up => String(up?.mealid) === String(field?.mealid))
       }
-
-      console.log(updatedValues, 'updatedValues')
 
       return updatedValues
     })
@@ -418,7 +412,7 @@ const StepBasicDetails = ({
       const flattenedIngredients = formData.meal_data?.flatMap(all =>
         all.ingredient?.map(ing => ({
           ...ing,
-          ingredient_id: String(ing.ingredient_id) 
+          ingredient_id: String(ing.ingredient_id)
         }))
       )
       setAllSelectedValues(flattenedIngredients)
@@ -426,7 +420,7 @@ const StepBasicDetails = ({
       const flattenedRecipes = formData.meal_data?.flatMap(all =>
         all.recipe?.map(ing => ({
           ...ing,
-          recipe_id: String(ing.recipe_id), 
+          recipe_id: String(ing.recipe_id),
           ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
         }))
       )
@@ -436,7 +430,7 @@ const StepBasicDetails = ({
       const flattenedCombos = formData.meal_data?.flatMap(all =>
         all.combo?.map(ing => ({
           ...ing,
-          recipe_id: String(ing.recipe_id), 
+          recipe_id: String(ing.recipe_id),
           ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
         }))
       )
@@ -474,7 +468,6 @@ const StepBasicDetails = ({
   }, [formData, reset])
 
   useEffect(() => {
-   
     if (checkid) {
       const filteredValues = allSelectedValues.filter(value => value?.mealid === checkid)
 
@@ -523,6 +516,101 @@ const StepBasicDetails = ({
 
     return null
   }
+
+  useEffect(() => {
+    const fetchIngredients = async () => {
+      setReachedEnd(true)
+
+      try {
+        if (openIngredient) {
+          const params = {
+            page: fromrow !== 'rowedit_ingredient' ? ingredientPage : 1,
+            q: fromrow !== 'rowedit_ingredient' ? searchValue : ingredientName,
+            sort,
+            limit: 20,
+            status: 1
+          }
+
+          const res = await getIngredientList({ params })
+
+          if (res?.data?.result?.length > 0) {
+            const newResults = res.data.result.filter(
+              item => !ingredientList.some(existingItem => existingItem.id === item.id)
+            )
+
+            const combinedList = [...ingredientList, ...newResults]
+            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
+            setTotalCount(res?.data?.total_count)
+          }
+
+          setReachedEnd(false)
+        }
+
+        if (OpenIngredientchoice) {
+          if (fromrow === 'rowedit_ingredientwithchoice' && Array.isArray(ingredientwithChoiceName)) {
+            let allResults = []
+
+            for (const name of ingredientwithChoiceName) {
+              const params = {
+                page: 1,
+                q: name,
+                sort,
+                limit: 20,
+                status: 1
+              }
+
+              const res = await getIngredientList({ params })
+
+              if (res?.data?.result?.length > 0) {
+                const newResults = res.data.result.filter(
+                  item => !allResults.some(existingItem => existingItem.id === item.id)
+                )
+                allResults = [...allResults, ...newResults]
+              }
+            }
+
+            const combinedList = [...ingredientList, ...allResults]
+            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
+            setReachedEnd(false)
+          } else {
+            const params = {
+              page: ingredientPage,
+              q: searchValue,
+              sort,
+              limit: 20,
+              status: 1
+            }
+
+            const res = await getIngredientList({ params })
+
+            if (res?.data?.result?.length > 0) {
+              const newResults = res.data.result.filter(
+                item => !ingredientList.some(existingItem => existingItem.id === item.id)
+              )
+
+              const combinedList = [...ingredientList, ...newResults]
+              const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+              setIngredientList(uniqueList)
+              setTotalCount(res?.data?.total_count)
+            }
+            setReachedEnd(false)
+          }
+        }
+      } catch (error) {
+        console.error(error)
+        setReachedEnd(false)
+      }
+    }
+
+    if (openIngredient || OpenIngredientchoice) {
+      fetchIngredients()
+    }
+  }, [ingredientId, ingredientwithChoiceId])
 
   const handleAddIngerdientChoice = (val, index, type) => {
     setOpenIngredientchoice(true)
@@ -673,7 +761,6 @@ const StepBasicDetails = ({
         return
       }
 
-     
       const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
 
       if (lastOverlapIndex !== -1) {
@@ -952,7 +1039,7 @@ const StepBasicDetails = ({
                 ingredientList: updatedIngredientList?.length > 0 ? updatedIngredientList : undefined
               }
             })
-            .filter(ingWithChoice => ingWithChoice.ingredientList) 
+            .filter(ingWithChoice => ingWithChoice.ingredientList)
 
           return {
             ...field,
@@ -1018,16 +1105,16 @@ const StepBasicDetails = ({
                     control={control}
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => {
-                      console.log(value, 'value')
-
                       return (
                         <Autocomplete
                           value={uomList?.find(option => option.id === value) || null}
+
                           // disablePortal
                           id='diet_type_id'
                           options={uomList || []}
                           getOptionLabel={option => option.diet_type_name}
                           isOptionEqualToValue={(option, value) => option?.id === value}
+
                           //disabled={id ? true : false}
                           onChange={(e, val) => {
                             if (val === null) {
@@ -1043,7 +1130,6 @@ const StepBasicDetails = ({
                               deleteCookie('dietTypeChildVal')
                             }
                           }}
-                          //sx={{ background: id ? '#80808021' : '' }}
                           renderInput={params => (
                             <TextField
                               {...params}
@@ -1091,7 +1177,7 @@ const StepBasicDetails = ({
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Prepared by *'
+                              label='Nutritionist *'
                               placeholder='Search & Select'
                               error={Boolean(errors.dietitian_id)}
                               name='dietitian_id'
@@ -1106,51 +1192,6 @@ const StepBasicDetails = ({
                   )}
                 </FormControl>
               </Grid>
-
-              {/* <Grid item size={{ xs: 12, sm: 4 }}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='dietitian_id'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => {
-                      console.log(value)
-
-                      return (
-                        <Autocomplete
-                          id='dietitian_id'
-                          value={dieticianList?.find(option => option.value === value) || null}
-                          options={dieticianList || []}
-                          getOptionLabel={option => option.label}
-                          isOptionEqualToValue={(option, value) => option?.value === value}
-                          onChange={(e, val) => {
-                            if (val === null) {
-                              setFormValue('dietitian_id', '')
-                              setFormValue('dietitian_name', '')
-                            } else {
-                              setFormValue('dietitian_id', val.value)
-                              setFormValue('dietitian_name', val.label)
-                              trigger('dietitian_id')
-                            }
-                          }}
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              label='Dietician *'
-                              placeholder='Search & Select'
-                              error={Boolean(errors.dietitian_id)}
-                              name='dietitian_id'
-                            />
-                          )}
-                        />
-                      )
-                    }}
-                  />
-                  {errors?.dietitian_id && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid> */}
 
               <Grid size={{ xs: 6 }}>
                 <CardContent sx={{ px: 0, paddingTop: 2, pb: '0.7rem !important' }}>
@@ -1248,7 +1289,7 @@ const StepBasicDetails = ({
                                     errors.meal_data[index] &&
                                     errors.meal_data[index]?.meal_from_time
                                       ? 'red'
-                                      : undefined 
+                                      : undefined
                                 }
                               }}
                               renderInput={params => (
@@ -1455,7 +1496,6 @@ const StepBasicDetails = ({
                                   </Grid>
                                 </Grid>
                                 <Icon
-                                  //onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
                                   style={{ position: 'absolute', right: '8%', fontSize: '22px', cursor: 'pointer' }}
                                   className='pencil_diet'
                                   onClick={() =>
@@ -1495,7 +1535,7 @@ const StepBasicDetails = ({
                 allComboSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Combo</Typography>
+                      <Typography variant='h6'>Mix</Typography>
                     </Box>
 
                     <Grid
@@ -1527,7 +1567,7 @@ const StepBasicDetails = ({
                               sm:
                                 recipe.label === 'No'
                                   ? 0.5
-                                  : recipe.label === 'Combo'
+                                  : recipe.label === 'Mix'
                                   ? 2.2
                                   : recipe.label === 'Items'
                                   ? 1.9
@@ -1535,7 +1575,7 @@ const StepBasicDetails = ({
                               md:
                                 recipe.label === 'No'
                                   ? 0.5
-                                  : recipe.label === 'Combo'
+                                  : recipe.label === 'Mix'
                                   ? 2.3
                                   : recipe.label === 'Items'
                                   ? 1.5
@@ -1606,11 +1646,6 @@ const StepBasicDetails = ({
 
                                 <Grid size={{ xs: 12, sm: 1.4, md: 1.0 }}>
                                   <Typography>{all?.ingredients_count}</Typography>
-                                  {/* {all?.ingredients ? (
-                                  <Typography>{all?.ingredients?.length}</Typography>
-                                ) : (
-                                  <Typography>{all?.ingredient_name?.length}</Typography>
-                                )} */}
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.7, md: 3.7 }}>
                                   <Grid container spacing={1} sx={{ pl: 2 }}>
@@ -1808,6 +1843,7 @@ const StepBasicDetails = ({
                                 </Grid>
 
                                 <Icon
+
                                   //onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
                                   style={{ position: 'absolute', right: '8%', fontSize: '22px', cursor: 'pointer' }}
                                   className='pencil_diet'
@@ -2163,7 +2199,7 @@ const StepBasicDetails = ({
                     onClick={() => addEventSidebarOpen(field, index, 'combo')}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD COMBO
+                    ADD MIX
                   </Typography>
                   <Typography
                     className='item_cls'
@@ -2240,6 +2276,7 @@ const StepBasicDetails = ({
                 <Button
                   color='secondary'
                   variant='outlined'
+
                   //startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                   sx={{ mr: 6 }}
                   onClick={cancelBack}
@@ -2271,6 +2308,18 @@ const StepBasicDetails = ({
             ingredientwithChoiceId={ingredientwithChoiceId}
             ingredientwithChoiceName={ingredientwithChoiceName}
             fromrow={fromrow}
+            setReachedEnd={setReachedEnd}
+            reachedEnd={reachedEnd}
+            setIngredientList={setIngredientList}
+            ingredientList={ingredientList}
+            setIngredientPage={setIngredientPage}
+            ingredientPage={ingredientPage}
+            setTotalCount={setTotalCount}
+            totalCount={totalCount}
+            setSearchValue={setSearchValue}
+            searchValue={searchValue}
+            setSort={setSort}
+            sort={sort}
           />
           <AddIngredients
             open={openIngredient}
@@ -2290,6 +2339,18 @@ const StepBasicDetails = ({
             fromrow={fromrow}
             setFromRow={setFromRow}
             ingredientName={ingredientName}
+            setReachedEnd={setReachedEnd}
+            reachedEnd={reachedEnd}
+            setIngredientList={setIngredientList}
+            ingredientList={ingredientList}
+            setIngredientPage={setIngredientPage}
+            ingredientPage={ingredientPage}
+            setTotalCount={setTotalCount}
+            totalCount={totalCount}
+            setSearchValue={setSearchValue}
+            searchValue={searchValue}
+            setSort={setSort}
+            sort={sort}
           />
           <RecipeList
             recipeList={recipeList}

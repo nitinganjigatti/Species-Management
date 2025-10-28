@@ -18,6 +18,9 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import AddCluster from 'src/views/pages/housing/AddCluster/AddCluster'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
+import Error404 from 'src/pages/404'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const Clusters = () => {
   const theme = useTheme()
@@ -27,6 +30,12 @@ const Clusters = () => {
 
   const auth = useAuth()
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
+  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
+
+  const hasClusterAddAccess =
+    auth?.userData?.roles?.settings?.manage_cluster_permission === 'ADD' ||
+    auth?.userData?.roles?.settings?.manage_cluster_permission === 'EDIT' ||
+    auth?.userData?.roles?.settings?.manage_cluster_permission === 'DELETE'
 
   const [serachValue, setSearchValue] = useState('')
   const [downloading, setDownloading] = useState(false)
@@ -42,6 +51,7 @@ const Clusters = () => {
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
   const [showDrawer, setShowDrawer] = useState(false)
+  const [totalAnimalCount, setTotalAnimalCount] = useState(0)
 
   const handleClusterInsightClick = () => {
     setDrawerType('enclosures')
@@ -58,6 +68,19 @@ const Clusters = () => {
         ref_id: zooId
 
         // site_id: params.row?.site_id
+      }
+    })
+  }
+
+  const handleClusterAnimalsInsightClick = () => {
+    setDrawerType('insights-animals')
+    setDrawerData({
+      queryKey: 'insights-animals-sites-drawer',
+      id: zooId,
+      params: {
+        ref_type: 'zoo',
+        data_type: 'animal',
+        ref_id: zooId
       }
     })
   }
@@ -109,7 +132,7 @@ const Clusters = () => {
       label: 'Animals',
       value: statsData?.data?.zoo_stats?.total_animals || 0,
       imagePath: '/images/housing/animals.svg',
-      onClick: () => console.log('Animals')
+      onClick: handleClusterAnimalsInsightClick
     },
     {
       label: 'Sections',
@@ -270,95 +293,121 @@ const Clusters = () => {
             value={params.row.cluster_name}
             subtitle={params.row.cluster_desc}
             imgUrl={params.row.images?.[0]?.file}
+            defaultImage={'/images/housing/site-icon-colored.svg'}
             avatarUrl=''
             inchargeName=''
           />
         </Box>
       )
     },
-    {
-      width: 160,
-      field: 'species_count',
-      headerName: 'Species',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default', pl: 2 }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('species')
-            setDrawerData({
-              queryKey: 'cluster-species-drawer',
-              id: params.row.cluster_id,
-              name: params.row.cluster_name,
-              image: params.row.images?.[0]?.file,
-              params: {
-                cluster_id: params.row.cluster_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-          >
-            {params.row.species_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 150,
-      field: 'animal_count',
-      headerName: 'Animals',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('animals')
-            setDrawerData({
-              queryKey: 'cluster-animal-drawer',
-              id: params.row.cluster_id,
-              name: params.row.cluster_name,
-              image: params.row.images?.[0]?.file,
-              params: {
-                cluster_id: params.row.cluster_id
-              }
-            })
-          }}
-        >
-          <Typography
-            sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-          >
-            {params.row.animal_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 150,
-      field: 'site_count',
-      headerName: 'Sites',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Box
-          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
-        >
-          <Typography
-            sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-          >
-            {params.row.site_count || 0}
-          </Typography>
-        </Box>
-      )
-    },
+    ...(insightsViewAccess
+      ? [
+          {
+            width: 160,
+            field: 'species_count',
+            headerName: 'Species',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  color: theme.palette.primary.OnSurface,
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'default',
+                  pl: 2
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('species')
+                  setDrawerData({
+                    queryKey: 'cluster-species-drawer',
+                    id: params.row.cluster_id,
+                    name: params.row.cluster_name,
+                    image: params.row.images?.[0]?.file,
+                    params: {
+                      cluster_id: params.row.cluster_id
+                    }
+                  })
+                }}
+              >
+                <Typography
+                  sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+                >
+                  {params.row.species_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'animal_count',
+            headerName: 'Animals',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'left',
+                  pl: 2
+                }}
+                onClick={e => {
+                  e.stopPropagation()
+                  setDrawerType('animals')
+                  setDrawerData({
+                    queryKey: 'cluster-animal-drawer',
+                    id: params.row.cluster_id,
+                    name: params.row.cluster_name,
+                    image: params.row.images?.[0]?.file,
+                    params: {
+                      cluster_id: params.row.cluster_id
+                    }
+                  })
+                  setTotalAnimalCount(params.row.animal_count || 0)
+                }}
+              >
+                <Typography
+                  sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+                >
+                  {params.row.animal_count || 0}
+                </Typography>
+              </Box>
+            )
+          },
+          {
+            width: 150,
+            field: 'site_count',
+            headerName: 'Sites',
+            headerAlign: 'left',
+            align: 'left',
+            sortable: false,
+            renderCell: params => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'left',
+                  pl: 2
+                }}
+              >
+                <Typography
+                  sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+                >
+                  {params.row.site_count || 0}
+                </Typography>
+              </Box>
+            )
+          }
+        ]
+      : []),
     {
       width: 180,
       field: 'incharge',
@@ -370,13 +419,7 @@ const Clusters = () => {
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
         >
-          {RenderUtility.renderUserAvatarDetails(
-            params.row.incharge_image,
-            params.row.incharge_name,
-            '',
-            theme.palette.customColors.OnSurfaceVariant,
-            '14px'
-          )}
+          <UserAvatarDetails profile_image={params.row?.incharge_image} user_name={params.row?.incharge_name} />
         </Box>
       )
     },
@@ -451,6 +494,10 @@ const Clusters = () => {
     }
   ]
 
+  if (auth?.userData?.roles?.settings?.manage_cluster_permission === '') {
+    return <Error404 />
+  }
+
   return (
     <>
       <Box>
@@ -465,14 +512,15 @@ const Clusters = () => {
         </Breadcrumbs>
         <Box>
           <InsightsCard
-            pageTitle={'All Cluster Insights'}
+            pageTitle={'All Sites Insights'}
             data={statsData}
             loading={statsFetching}
+            haveInsightsViewAccess={insightsViewAccess}
             error={statsError}
             isListingPage
             statsData={clusterStats}
             actions={{
-              onAddNew: () => setShowDrawer(true)
+              onAddNew: hasClusterAddAccess ? () => setShowDrawer(true) : null
             }}
           />
           <Box sx={{ mt: 6 }}>
@@ -522,7 +570,24 @@ const Clusters = () => {
         </Box>
       </Box>
       {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && (
+        <AnimalsDrawer
+          totalCount={totalAnimalCount}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/cluster-icon-colored.svg'}
+        />
+      )}
+      {drawerType === 'insights-animals' && (
+        <AnimalsDrawer
+          totalCount={statsData?.data?.zoo_stats?.total_animals || 0}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
+        />
+      )}
       {drawerType === 'enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
@@ -531,4 +596,4 @@ const Clusters = () => {
   )
 }
 
-export default Clusters
+export default enforceModuleAccess(Clusters, 'enable_housing_in_web')
