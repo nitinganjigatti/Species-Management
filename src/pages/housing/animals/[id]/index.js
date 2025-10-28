@@ -86,7 +86,8 @@ const AnimalDetais = () => {
             identifierName: ad?.local_identifier_name,
             isGrouped: Number(ad?.total_animal) > 1 ? true : false,
             in_transit: ad?.in_transit,
-            animal_transfered: ad?.animal_transfered
+            animal_transfered: ad?.animal_transfered,
+            institutes_label: ad?.institutes_label
           })
           setEnclosureDetails({
             enclusreId: ed?.user_enclosure_name,
