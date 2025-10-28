@@ -52,7 +52,7 @@ const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMoni
 const InpatientDetails = () => {
   const router = useRouter()
   const theme = useTheme()
-  const { id, animal_id } = router.query
+  const { id, animal_id, tab: urlTab } = router.query
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -109,7 +109,7 @@ const InpatientDetails = () => {
       { label: 'Overview', value: 'overview', component: InpatientOverview },
       { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
       { label: 'Treatment Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
-      { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
+      { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment }, // Updated to match URL param
       { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
       { label: 'Symptoms', value: 'symptoms', component: Symptoms },
       { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
@@ -122,12 +122,39 @@ const InpatientDetails = () => {
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
 
+  // Effect to handle URL tab parameter
+  useEffect(() => {
+    if (urlTab) {
+      // Find if the URL tab exists in our tabConfig
+      const matchingTab = tabConfig.find(tab => tab.value === urlTab)
+      if (matchingTab) {
+        setSelectedTab(matchingTab.value)
+      } else {
+        console.warn(`Tab "${urlTab}" not found in available tabs. Using default tab.`)
+      }
+    }
+  }, [urlTab, tabConfig])
+
   const drawerState = useDrawerState()
 
   // Memoize handlers to prevent child re-renders
-  const handleTabChange = useCallback((event, newValue) => {
-    setSelectedTab(newValue)
-  }, [])
+  const handleTabChange = useCallback(
+    (event, newValue) => {
+      setSelectedTab(newValue)
+
+      // Update URL without page reload, but remove the tab parameter when changing tabs
+      const { tab, ...queryWithoutTab } = router.query
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: { ...queryWithoutTab, id: router.query.id }
+        },
+        undefined,
+        { shallow: true }
+      )
+    },
+    [router]
+  )
 
   const handleBack = useCallback(() => {
     router.back()
@@ -174,7 +201,7 @@ const InpatientDetails = () => {
       patientData: patientData,
       loading: patientLoading
     }),
-    [selectedTab, drawerState, id, overviewData]
+    [selectedTab, drawerState, id, overviewData, patientData, patientLoading]
   )
 
   return (
