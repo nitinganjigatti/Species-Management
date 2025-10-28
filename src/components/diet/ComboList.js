@@ -72,10 +72,6 @@ const ComboList = props => {
     getRecipeListData()
   }, [ingredientPage, sortBy, comboid])
 
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
   const handleScroll = async e => {
     const container = e.target
     const threshold = 20
@@ -85,7 +81,7 @@ const ComboList = props => {
       const isNearBottom =
         container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
       if (isNearBottom) {
-        setReachedEnd(true) // Prevent multiple API calls
+        setReachedEnd(true)
 
         try {
           const params = { page: ingredientPage + 1, q: searchValue, sortBy, status: 1, limit: 10, meal_type: 'combo' }
@@ -180,7 +176,7 @@ const ComboList = props => {
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
             <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Add Combo
+              Add Mix
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -188,6 +184,7 @@ const ComboList = props => {
               size='small'
               onClick={() => {
                 handleSidebarClose()
+                debouncedSearch('')
                 setSearchValue('')
               }}
               sx={{ color: theme.palette.primary.light }}
@@ -208,7 +205,7 @@ const ComboList = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                placeholder='Search combo'
+                placeholder='Search mix'
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -277,7 +274,6 @@ const ComboList = props => {
           comboName={comboName}
         />
 
-        {/* End Card Section */}
         {reachedEnd && !loading ? (
           <Box
             sx={{
@@ -287,8 +283,6 @@ const ComboList = props => {
               width: '100%',
               maxWidth: '500px',
               mt: 2
-
-              // m: 2
             }}
           >
             <CircularProgress sx={{ mb: 10 }} />

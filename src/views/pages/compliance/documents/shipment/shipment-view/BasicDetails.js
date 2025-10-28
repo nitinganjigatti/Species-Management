@@ -5,20 +5,21 @@ import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
 import { useAuth } from 'src/hooks/useAuth'
 
-const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, loader }) => {
-  const rawValue = airwaybillvalue || ''
+const BasicDetails = ({ airwaybillvalue, fileNumberValue, selectedId, startDate, uploadedFile, loader }) => {
   const theme = useTheme()
-  const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
-  const formattedValue =
-    removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
   const auth = useAuth()
-  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER // Get image paths from user data
+  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
+
+  // const rawValue = airwaybillvalue || ''
+  // const removeSpaceValue = rawValue.replace(/\s+/g, '') // remove all spaces
+  // const formattedValue =
+  //   removeSpaceValue.length > 3 ? `${removeSpaceValue.slice(0, 3)} - ${removeSpaceValue.slice(3)}` : removeSpaceValue
 
   const getFileIcon = () => {
     const fileName = (uploadedFile?.name || uploadedFile?.file_original_name || '').toLowerCase()
     const ext = fileName?.split('.')?.pop()?.toLowerCase()
 
-    if (!ext) return imgPath?.default // Fallback if no extension found
+    if (!ext) return imgPath?.default
 
     if (['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'].includes(ext)) {
       return imgPath?.image
@@ -42,9 +43,10 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
 
     return imgPath?.default
   }
-  return (
+  
+return (
     <>
-      {!loader ? (
+      {!loader && airwaybillvalue ? (
         <Box
           sx={{
             display: 'flex',
@@ -63,7 +65,16 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
                 Shipment ID
               </Typography>
               <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
-                {formattedValue}
+                {airwaybillvalue}
+              </Typography>
+            </Grid>
+
+            <Grid size={{ xs: 6, md: 4 }}>
+              <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
+                File Number
+              </Typography>
+              <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
+                {fileNumberValue || 'N/A'}
               </Typography>
             </Grid>
 
@@ -71,8 +82,9 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
               <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
                 Date Of Issue
               </Typography>
+
               <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
-                {moment(startDate).format('DD/MM/yyyy')}
+                {startDate ? moment(startDate).format('DD MMM YYYY') : '-'}
               </Typography>
             </Grid>
           </Grid>
@@ -120,7 +132,7 @@ const BasicDetails = ({ airwaybillvalue, selectedId, startDate, uploadedFile, lo
                 >
                   {uploadedFile?.file_original_name}
                 </Typography>
-                <IconButton size='small'>{/* Optional: Add an icon here if needed */}</IconButton>
+                <IconButton size='small'></IconButton>
               </Box>
             </a>
           )}

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
+import FallbackImage from './FallbackImage'
 
 function SpeciesIllustrationCard({ eggDetails, theme }) {
   return (
@@ -21,14 +22,15 @@ function SpeciesIllustrationCard({ eggDetails, theme }) {
           objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover'
         }}
       >
-        <img
+        <FallbackImage
           style={{
             width: '100%',
             height: '100%',
             borderRadius: '8px',
             objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover'
           }}
-          srcSet={eggDetails?.default_icon}
+
+          // srcSet={eggDetails?.default_icon}
           src={eggDetails?.default_icon}
           alt='default_icon'
           loading='lazy'

@@ -61,7 +61,7 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  recipe_name: yup.string().required('Combo name is required')
+  recipe_name: yup.string().required('Mix name is required')
 })
 
 const StepAddIngredients = ({
@@ -197,30 +197,12 @@ const StepAddIngredients = ({
   }
 
   const removeIngredientButton = index => {
-    console.log(index, 'index')
-
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}
         className='ing_byperc'
         onClick={() => {
           removeIngredients(index)
-        }}
-      >
-        <Icon icon='material-symbols:cancel' />
-      </Box>
-    )
-  }
-
-  const removebyQuantityButton = index => {
-    console.log(index, 'index')
-
-    return (
-      <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '35px' }}
-        className='ing_byquan'
-        onClick={() => {
-          removeByQuantity(index)
         }}
       >
         <Icon icon='material-symbols:cancel' />
@@ -352,7 +334,7 @@ const StepAddIngredients = ({
 
       return Toaster({
         type: 'error',
-        message: 'Please fill in all fields for By Percentage'
+        message: 'Please fill in all mandatory fields'
       })
     }
 
@@ -366,7 +348,7 @@ const StepAddIngredients = ({
 
       return Toaster({
         type: 'error',
-        message: `Please fill in all fields in By Percentage at index ${firstIncompleteIndex + 1}.`
+        message: `Please fill in all mandatory fields at index ${firstIncompleteIndex + 1}.`
       })
     }
 
@@ -512,7 +494,7 @@ const StepAddIngredients = ({
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ mb: 5, px: 5, mt: 5, float: 'left' }}>
-            <Typography variant='h6'>Combo details</Typography>
+            <Typography variant='h6'>Mix details</Typography>
           </Box>
           <ScrollToFieldError errors={errors} />
           <Grid container spacing={5} sx={{ px: 5 }}>
@@ -525,7 +507,7 @@ const StepAddIngredients = ({
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       value={value}
-                      label='Combo name *'
+                      label='Mix name *'
                       name='recipe_name'
                       error={Boolean(errors.recipe_name)}
                       onChange={onChange}
@@ -834,6 +816,7 @@ const StepAddIngredients = ({
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
         handleSubmitData={handleSubmitData}
+
         //resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}

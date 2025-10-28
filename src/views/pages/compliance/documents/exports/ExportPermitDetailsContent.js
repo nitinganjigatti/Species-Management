@@ -69,7 +69,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
           <Typography
             sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient, mb: 4 }}
           >
-            {Utility.formatDate(exportData.issued_date)}
+            {Utility.formatDisplayDate(exportData.issued_date)}
           </Typography>
 
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
@@ -92,7 +92,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }) => {
           <Typography
             sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient, mb: 4 }}
           >
-            {Utility.formatDate(exportData.valid_until)}
+            {Utility.formatDisplayDate(exportData?.valid_until)}
           </Typography>
 
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>

@@ -12,6 +12,7 @@ const CommonTable = ({
   setPaginationModel,
   pageSizeOptions,
   loading,
+  hideFooterPagination = false,
   searchValue,
   onCellClick,
   columnVisibilityModel,
@@ -22,15 +23,21 @@ const CommonTable = ({
   maxHeight,
   rowHeight = 52,
   externalTableStyle,
-  getRowHeight
+  getRowHeight,
+  handleSearch,
+  getRowClassName // New prop for conditional row styling
 }) => {
   const theme = useTheme()
 
   return (
     <DataGrid
       sx={{
+        '--DataGrid-cellFocusOutline': 'none',
         mt: 5,
         '.MuiDataGrid-cell:focus': {
+          outline: 'none'
+        },
+        '.MuiDataGrid-cell:focus-within': {
           outline: 'none'
         },
 
@@ -78,6 +85,7 @@ const CommonTable = ({
       columns={columns}
       sortingMode='server'
       rowHeight={rowHeight}
+      hideFooterPagination={hideFooterPagination}
       // paginationMode='server'
       // pageSizeOptions={[7, 10, 25, 50]}
       paginationMode={disablePagination ? undefined : 'server'}
@@ -88,6 +96,10 @@ const CommonTable = ({
           ? [total]
           : [7, 10, 25, 50, 100]
       }
+      localeText={{
+        noRowsLabel: 'No rows',
+        noResultsOverlayLabel: 'No rows' // 👈 override the "No results found" case
+      }}
       onCellClick={onCellClick ? onCellClick : null}
       // paginationModel={paginationModel}
       paginationModel={disablePagination ? undefined : paginationModel}
@@ -111,6 +123,7 @@ const CommonTable = ({
       onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
       rowSelectionModel={selectedRows ? selectedRows : []}
       getRowHeight={getRowHeight ? getRowHeight : null}
+      getRowClassName={getRowClassName ? getRowClassName : undefined}
     />
   )
 }

@@ -231,6 +231,7 @@ const AddCombo = () => {
             id: item.ingredient_id,
             ingredient_name: item.ingredient_name
           }))
+
           // ...data.by_quantity.map(item => ({
           //   id: item.ingredient_id,
           //   ingredient_name: item.ingredient_name
@@ -362,7 +363,7 @@ const AddCombo = () => {
       if (apival.success === true) {
         Router.push(`/diet/combo`)
         setLoader(false)
-        Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
+        Toaster({ type: 'success', message: 'Mix' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
@@ -427,7 +428,7 @@ const AddCombo = () => {
       if (apival.success === true) {
         Router.push(`/diet/combo`)
         setLoader(false)
-        Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
+        Toaster({ type: 'success', message: 'Mix' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
@@ -492,7 +493,7 @@ const AddCombo = () => {
       if (apival.success === true) {
         Router.push(`/diet/combo`)
         setLoader(false)
-        Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
+        Toaster({ type: 'success', message: 'Mix' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
@@ -554,7 +555,7 @@ const AddCombo = () => {
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Link underline='hover' color='inherit' href='/diet/combo/'>
-          Combo
+          Mix
         </Link>
 
         <Typography
@@ -562,7 +563,7 @@ const AddCombo = () => {
             color: 'text.primary'
           }}
         >
-          {id ? 'Edit combo' : 'Add new combo'}
+          {id ? 'Edit mix' : 'Add new mix'}
         </Typography>
       </Breadcrumbs>
       <Card>
@@ -570,7 +571,7 @@ const AddCombo = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
               <Typography sx={{ mb: 1 }} variant='h6'>
-                {id ? 'Edit Combo' : 'Add New Combo'}
+                {id ? 'Edit Mix' : 'Add New Mix'}
               </Typography>
               {/* <Typography sx={{ mb: 1, fontSize: 14 }}>
                 Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient

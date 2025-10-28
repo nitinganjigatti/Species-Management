@@ -436,7 +436,7 @@ const StepAddIngredients = ({
                           textTransform: 'uppercase',
                           fontSize: 14,
                           fontWeight: 600,
-                          pl: ingredient.label === 'Preparation Type' || ingredient.label === 'Cut Size' ? 10 : 4
+                          pl: ingredient.label === 'Preparation Type' || ingredient.label === 'Cut Size' ? 7 : 4
                         }}
                       >
                         {ingredient.label}
@@ -466,9 +466,10 @@ const StepAddIngredients = ({
                                   //   isSmallDevice ? { paddingRight: '10px' } : {},
                                   // '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
                                   // '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {},
-                                  width: isSmallDevice ? '216px' : '216px'
+                                  width: isSmallDevice ? '216px' : '236px'
                                 }}
                                 value={fullIngredientList.find(option => option.id === value) || null}
+
                                 //disablePortal
                                 id={`by_quantity[${index}].ingredient_id`}
                                 placeholder='Search & Select'
@@ -532,7 +533,7 @@ const StepAddIngredients = ({
                                 name={`by_quantity[${index}].quantity`}
                                 onChange={onChange}
                                 placeholder=''
-                                sx={{ width: isSmallDevice ? '216px' : '216px' }}
+                                sx={{ width: isSmallDevice ? '216px' : '236px' }}
                                 onInput={e => {
                                   if (e.target.value < 0) {
                                     e.target.value = ''
@@ -555,7 +556,7 @@ const StepAddIngredients = ({
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid size={{ xs: 12, sm: 2.5 }}>
+                      <Grid size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].uom_id`}
@@ -565,7 +566,7 @@ const StepAddIngredients = ({
                               return (
                                 <Autocomplete
                                   sx={{
-                                    width: isSmallDevice ? '236px' : '236px'
+                                    width: isSmallDevice ? '216px' : '236px'
                                   }}
                                   id={`by_quantity[${index}].uom_id`}
                                   getOptionLabel={option => option.name}
@@ -615,14 +616,14 @@ const StepAddIngredients = ({
                               return (
                                 <Autocomplete
                                   sx={{
-                                    width: isSmallDevice ? '216px' : '216px'
+                                    width: isSmallDevice ? '216px' : '236px'
                                   }}
                                   id={`by_quantity[${index}].preparation_type_id`}
                                   getOptionLabel={option => option.label || ''}
                                   renderInput={params => (
                                     <TextField
                                       {...params}
-                                      label='Select Preparation Type*'
+                                      label='Select Type*'
                                       error={
                                         errors.by_quantity &&
                                         errors.by_quantity[index] &&
@@ -666,7 +667,7 @@ const StepAddIngredients = ({
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                   <Autocomplete
                                     sx={{
-                                      width: isSmallDevice ? '216px' : '216px'
+                                      width: isSmallDevice ? '216px' : '236px'
                                     }}
                                     id={`by_quantity[${index}].cut_size`}
                                     getOptionLabel={option => option.cut_size}
@@ -754,6 +755,7 @@ const StepAddIngredients = ({
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
         handleSubmitData={handleSubmitData}
+
         //resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}
