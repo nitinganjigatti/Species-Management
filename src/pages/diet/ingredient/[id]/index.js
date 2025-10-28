@@ -286,14 +286,12 @@ const IngredientDetail = () => {
                               <Tab
                                 style={{ borderRadius: 0 }}
                                 value='2'
-
                                 // label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
                                 label={`USED IN RECIPE${recipeListTotal > 0 ? ` - ${recipeListTotal}` : ''}`}
                               />
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='3'
-
                                 //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
                                 label={`USED IN DIET ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                               />

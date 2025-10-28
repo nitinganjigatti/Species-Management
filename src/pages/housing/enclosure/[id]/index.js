@@ -7,8 +7,6 @@ import React, { useEffect, useState } from 'react'
 import EnclosureWiseEnclosure from 'src/components/housing/enclosure/EnclosureWiseEnclosure'
 import EnclosureWiseSpecies from 'src/components/housing/enclosure/EnclosureWiseSpecies'
 import MediaListing from 'src/components/housing/enclosure/MediaListing'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
-import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureWiseStat } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
@@ -19,9 +17,6 @@ const EnclsouerDetails = () => {
 
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
-
-  const auth = useAuth()
-  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['site-detail', id],
@@ -79,25 +74,6 @@ const EnclsouerDetails = () => {
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
-  useEffect(() => {
-    // Updating URL with tab parameter when tab changes
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: selectedTab }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }, [selectedTab])
-
-  // To read the tab parameter on component mount
-  useEffect(() => {
-    if (router.query.tab) {
-      setSelectedTab(router.query.tab)
-    }
-  }, [router.query.tab])
-
   return (
     <>
       <Box>
@@ -110,13 +86,11 @@ const EnclsouerDetails = () => {
         <InsightsCard
           data={data?.data}
           loading={isLoading}
-          image={data?.data?.images?.[0]?.file}
           statsData={statsData}
           error={error}
           zooName={data?.data?.user_enclosure_name}
           subtitle={data?.data?.enclosure_desc}
           userName={data?.data?.incharge_name}
-          haveInsightsViewAccess={insightsViewAccess}
           onCallClick={() => {
             const phoneNumber = data?.data?.incharge_phone_no || '' // Adjust path as needed
             if (phoneNumber) {
@@ -124,12 +98,6 @@ const EnclsouerDetails = () => {
             } else {
               return
             }
-          }}
-          onMessageClick={() => {
-            const phoneNumber = data?.data?.incharge_mobile_no || ''
-            if (phoneNumber) {
-              window.open(`sms:${phoneNumber}`)
-            } else return
           }}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
@@ -158,4 +126,4 @@ const EnclsouerDetails = () => {
   )
 }
 
-export default enforceModuleAccess(EnclsouerDetails, 'enable_housing_in_web')
+export default EnclsouerDetails

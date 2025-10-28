@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { Box, Typography, Paper, Chip, Collapse, Divider, Icon, alpha } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ShippedAnimalsDrawer from '../drawer/ShippedAnimals'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
-import countryList from 'react-select-country-list'
 import { useTheme } from '@mui/material/styles'
 import { useAuth } from 'src/hooks/useAuth'
 
@@ -21,7 +20,6 @@ const SpeciesDetailsContainer = ({
 }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [shippedAnimalsDrawerOpen, setshippedAnimalsDrawerOpen] = useState(false)
-  const countryListOptions = useMemo(() => countryList().getData(), [])
   const auth = useAuth()
   const theme = useTheme()
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
@@ -53,11 +51,9 @@ const SpeciesDetailsContainer = ({
 
   const SpeciesRow = ({ species, type }) => (
     <Box
-
       //key={idx}
       display='flex'
       justifyContent='space-between'
-
       // py={2}
       sx={{
         borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
@@ -138,7 +134,6 @@ const SpeciesDetailsContainer = ({
   const OthersSection = ({ data, isCollapsed }) => {
     const totalAnimals = data?.reduce((sum, item) => {
       const species = item.species
-
       return (
         sum +
         (parseInt(species?.total_count) ||
@@ -151,6 +146,7 @@ const SpeciesDetailsContainer = ({
     return (
       <>
         <Box>
+         
           <Box
             display='flex'
             justifyContent='space-between'
@@ -192,7 +188,6 @@ const SpeciesDetailsContainer = ({
             >
               {data?.map((item, index) => {
                 const species = item.species
-
                 return (
                   <SpeciesRow
                     key={index}
@@ -230,7 +225,6 @@ const SpeciesDetailsContainer = ({
 
       return sum + (isNaN(totalCount) ? male + female + undetermined : totalCount)
     }, 0)
-
     const getFileIcon = () => {
       const fileName = (data?.attachment?.name || data?.attachment?.file_original_name || '').toLowerCase()
       const ext = fileName?.split('.')?.pop()?.toLowerCase()
@@ -259,7 +253,6 @@ const SpeciesDetailsContainer = ({
 
       return imgPath?.default
     }
-
     return (
       <>
         <Box>
@@ -279,23 +272,11 @@ const SpeciesDetailsContainer = ({
               <Box
                 component='span'
                 fontWeight={600}
-                sx={{ color: theme.palette.primary.dark, fontWeight: 500, fontSize: '14px', cursor: 'pointer' }}
-                onClick={() => {
-                  window.open(`/compliance/documents/exports/${data?.export_id}/?id=${data?.export_id}`, '_blank')
-                }}
+                sx={{ color: theme.palette.primary.dark, fontWeight: 500, fontSize: '14px' }}
               >
-                Export ID :{' '}
-                <strong>
-                  {' '}
-                  <span>{data.export_number}</span>
-                </strong>
+                Export ID : <span>{data.export_number}</span>
               </Box>{' '}
-              {console.log(data, 'data')}({data.total_species} Species) ({totalAnimals}{' '}
-              {totalAnimals === 1 ? 'Animal' : 'Animals'}) • Importer name :{' '}
-              <strong>{data?.importer_name || 'N/A'} </strong> • Country Of origin :{' '}
-              <strong>
-                {countryListOptions.find(country => country.value === data?.origin_country)?.label || 'N/A'}
-              </strong>
+              ({data.total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
             </Typography>
             {data?.attachment?.file_original_name ? (
               <Box display='flex' alignItems='center' gap={1}>

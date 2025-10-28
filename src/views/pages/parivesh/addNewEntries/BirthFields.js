@@ -99,7 +99,6 @@ const BirthFields = ({
                     date={value}
                     width={'100%'}
                     dateFormat='dd/MM/yyyy'
-
                     // showTimeSelect
                     // timeIntervals={15}
                     onChangeHandler={onChange}
@@ -156,7 +155,6 @@ const BirthFields = ({
                       date={value}
                       width={'100%'}
                       dateFormat='dd/MM/yyyy'
-
                       // showTimeSelect
                       // timeIntervals={15}
                       onChangeHandler={onChange}
@@ -202,7 +200,6 @@ const BirthFields = ({
                   label='Male Count'
                   value={value}
                   variant='outlined'
-
                   // onChange={onChange}
                   onChange={e => {
                     onChange(e) // Update the value in the form
@@ -237,7 +234,6 @@ const BirthFields = ({
                   placeholder='Enter the Female Count'
                   value={value}
                   variant='outlined'
-
                   // onChange={onChange}
                   onChange={e => {
                     onChange(e) // Update the value in the form
@@ -281,7 +277,6 @@ const BirthFields = ({
                   placeholder='Enter the Others Count'
                   value={value}
                   variant='outlined'
-
                   // onChange={onChange}
                   onChange={e => {
                     onChange(e) // Update the value in the form

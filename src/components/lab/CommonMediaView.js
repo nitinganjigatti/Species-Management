@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import {
+  Avatar,
   Box,
   Button,
   Card,
@@ -12,12 +13,10 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import Utility from 'src/utility'
-import FallbackAvatar from 'src/views/utility/FallbackAvatar'
-import FallbackImage from 'src/views/utility/FallbackImage'
+import moment from 'moment'
+import { LoadingButton } from '@mui/lab'
 
 const CommonMediaView = ({
   type,
@@ -32,6 +31,20 @@ const CommonMediaView = ({
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [error, setError] = useState(false)
+  const [uploadAnotherDialog, setUploadAnotherDialog] = useState(false)
+
+  function extractHoursAndMinutes(date) {
+    return moment(date).format('hh:mm A')
+  }
+
+  function convertUTCToLocal(date) {
+    var stillUtc = moment.utc(date).toDate()
+
+    // var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+    var local = moment(stillUtc).local(true).format('DD-MMM-YYY')
+
+    return local
+  }
 
   const handleConfirmDialog = (e, item) => {
     e.preventDefault()
@@ -127,22 +140,23 @@ const CommonMediaView = ({
                   }}
                 >
                   {item.file ? (
-                    <FallbackImage
+                    <img
                       src={item.file ? item.file : null}
                       alt={item.file_original_name}
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                   ) : (
-                    <FallbackImage
+                    <img
                       src={fileViews?.image?.image_path}
                       alt={item.file_original_name}
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                   )}
+                  {/* <img src='/icons/document_icon.png' alt='Icon' style={{ width: '56px', height: '60px' }} /> */}
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, alignItems: 'center' }}>
-                    <FallbackAvatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
+                    <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
 
                     <Tooltip title={item?.user_profile?.name || ''}>
                       <Typography
@@ -171,7 +185,7 @@ const CommonMediaView = ({
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {Utility.convertUTCToLocalDate(item?.user_profile?.created_at)}
+                    {convertUTCToLocal(item?.user_profile?.created_at)}
                   </Typography>
                   <Typography
                     sx={{
@@ -182,7 +196,7 @@ const CommonMediaView = ({
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item?.user_profile?.created_at))}
+                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
                   </Typography>
                 </Box>
               </Card>
@@ -251,12 +265,12 @@ const CommonMediaView = ({
                       item?.file_type === 'application/pdf'
                         ? fileViews?.pdf?.bg_color
                         : item?.file_type == 'text/csv'
-                          ? fileViews?.xls?.bg_color
-                          : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-                            ? fileViews?.document?.bg_color
-                            : item?.file_type == 'audio/mpeg'
-                              ? fileViews?.audio?.bg_color
-                              : theme.palette.customColors.antzSecondaryBg,
+                        ? fileViews?.xls?.bg_color
+                        : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                        ? fileViews?.document?.bg_color
+                        : item?.file_type == 'audio/mpeg'
+                        ? fileViews?.audio?.bg_color
+                        : theme.palette.customColors.antzSecondaryBg,
                     mt: -2
                   }}
                 >
@@ -265,12 +279,12 @@ const CommonMediaView = ({
                       item?.file_type === 'application/pdf'
                         ? fileViews?.pdf?.image_path
                         : item?.file_type == 'text/csv'
-                          ? fileViews?.xls?.image_path
-                          : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-                            ? fileViews?.document?.image_path
-                            : item?.file_type == 'audio/mpeg'
-                              ? fileViews?.audio?.image_path
-                              : '/icons/document_icon.png'
+                        ? fileViews?.xls?.image_path
+                        : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                        ? fileViews?.document?.image_path
+                        : item?.file_type == 'audio/mpeg'
+                        ? fileViews?.audio?.image_path
+                        : '/icons/document_icon.png'
                     }
                     alt='Icon'
                     style={{ width: '56px', height: '60px', objectFit: 'contain' }}
@@ -278,8 +292,7 @@ const CommonMediaView = ({
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {/* <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} /> */}
-                    <FallbackAvatar src={item?.user_profile?.user_profile_pic} sx={{ borderRadius: '50%', width: '24px', height: '24px' }} />
+                    <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
                     <Typography
                       sx={{
                         width: '212px',
@@ -304,7 +317,7 @@ const CommonMediaView = ({
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {Utility.convertUTCToLocalDate(item?.user_profile?.created_at)}
+                    {convertUTCToLocal(item?.user_profile?.created_at)}
                   </Typography>
                   <Typography
                     sx={{
@@ -315,7 +328,7 @@ const CommonMediaView = ({
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item?.user_profile?.created_at))}
+                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
                   </Typography>
                 </Box>
               </Card>
@@ -388,6 +401,34 @@ const CommonMediaView = ({
           </>
         )}
       </Dialog>
+      {/* <Dialog open={uploadAnotherDialog} onClose={() => setUploadAnotherDialog(false)} fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Icon icon='fluent:warning-20-filled' width='24' height='24' color={theme.palette.customColors.Error} />
+          <Typography variant='h6' fontWeight='bold'>
+            Delete File!
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            One or more tests have been marked as completed. Please upload the new report to delete the existing report{' '}
+            <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
+              {selectedItem?.file_original_name}
+            </Typography>
+            .
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+
+
+          <Button
+            sx={{ backgroundColor: theme.palette.primary.main }}
+            onClick={() => setUploadAnotherDialog(false)}
+            variant='contained'
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog> */}
     </>
   )
 }

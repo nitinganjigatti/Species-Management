@@ -14,8 +14,7 @@ const ConfirmationDeleteDialog = ({
   cancelText = 'Cancel'
 }) => {
   const theme = useTheme()
-  
-return (
+  return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>
         <IconButton

@@ -57,12 +57,10 @@ const EditDeathFields = ({
                   date={value}
                   width={'100%'}
                   dateFormat='dd/MM/yyyy'
-
                   // showTimeSelect
                   // timeIntervals={15}
 
                   onChangeHandler={onChange}
-
                   // maxDate={new Date()}
                   maxDate={
                     editParams?.transaction_date
@@ -140,12 +138,10 @@ const EditDeathFields = ({
                   date={value}
                   width={'100%'}
                   dateFormat='dd/MM/yyyy'
-
                   // showTimeSelect
                   // timeIntervals={15}
                   onChangeHandler={onChange}
                   maxDate={new Date()}
-
                   // minDate={(deathDate && deathDate) || new Date()}
                   customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                 />

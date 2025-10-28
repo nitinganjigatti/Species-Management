@@ -71,13 +71,14 @@ const HeaderCard = ({ title, subtitle, isListingPage, onEdit, onDelete, onAddNew
         )}
 
         {onAddNew && (
-          <Stack direction='row' spacing={2} alignItems='center' sx={{ cursor: 'pointer' }} onClick={onAddNew}>
+          <Stack direction='row' spacing={2} alignItems='center'>
             <Typography
               sx={{ color: theme.palette.customColors.PrimaryContainer, fontSize: '0.875rem', whiteSpace: 'nowrap' }}
             >
               Add new
             </Typography>
             <IconButton
+              onClick={onAddNew}
               sx={{
                 border: '1px solid',
                 borderColor: theme.palette.customColors.PrimaryContainer,

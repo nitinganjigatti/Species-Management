@@ -264,7 +264,7 @@ const ExportPermitAnimals = ({
                   <Grid size={{ xs: 12, md: 2.5 }}>
                     <ControlledTextField
                       name={`speciesList.${speciesIndex}.undeterminate_count`}
-                      label='# Unknown'
+                      label='# Undetermined'
                       type='number'
                       control={control}
                       errors={errors}
@@ -278,8 +278,8 @@ const ExportPermitAnimals = ({
                 {/* Count Mismatch Warning */}
                 {!isValidCount && (
                   <Alert severity='error' sx={{ mb: 2, mt: 4 }}>
-                    Animal count should be greater than or equal to 0, and gender counts must not exceed their specified
-                    limits
+                    Animal details count ({speciesItem.animalDetails.length}) must be less than or equal to total count
+                    ({speciesItem.total_count}), and individual gender counts must not exceed their specified limits.
                   </Alert>
                 )}
 
@@ -347,7 +347,7 @@ const ExportPermitAnimals = ({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <ControlledAutocomplete
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].identifier_type`}
-                            label='Identifier Type'
+                            label='Identifier Type*'
                             control={control}
                             errors={errors}
                             options={identifierOptions}

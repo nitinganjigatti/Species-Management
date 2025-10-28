@@ -16,11 +16,10 @@ import { useAuth } from 'src/hooks/useAuth'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
-  { label: 'Enclosures', value: 'enclosures', component: EnclosureListing },
   { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
+  { label: 'Enclosures', value: 'enclosures', component: EnclosureListing },
   { label: 'Media', value: 'media', component: MediaListing }, // TODO: Update component as it is copied from site detail
   { label: 'Mortality', value: 'mortality', component: MortalityListing }, // TODO: Update component as it is copied from site detail
   {
@@ -40,9 +39,6 @@ const SectionDetails = () => {
   const [addEnclosureDrawerOpen, setAddEnclosureDrawerOpen] = useState(false)
   const [refetchEnclosure, setRefechEnclosure] = useState(false)
   const auth = useAuth()
-
-  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
-  const addEnclosureAccess = auth?.userData?.roles?.settings?.housing_add_enclosure
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
@@ -78,14 +74,14 @@ const SectionDetails = () => {
   }
 
   const handleAmimalsInsightClick = () => {
-    setDrawerType('animals-insights')
+    setDrawerType('animals')
     setDrawerData({
       queryKey: 'insights-animals-section-drawer',
       id: zooId,
 
       name: data?.data?.section_name,
 
-      // image: '/images/housing/section-animal.svg',
+      // image: params.row?.images?.[0]?.file,
       params: {
         section_id: id
       }
@@ -133,25 +129,6 @@ const SectionDetails = () => {
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
-  useEffect(() => {
-    // Updating URL with tab parameter when tab changes
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: selectedTab }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }, [selectedTab])
-
-  // To read the tab parameter on component mount
-  useEffect(() => {
-    if (router.query.tab) {
-      setSelectedTab(router.query.tab)
-    }
-  }, [router.query.tab])
-
   // useEffect(() => {
   //   const tabFromQuery = router.query?.enclosureTab
   //   const isValidTab = tabConfig.some(tab => tab.value === tabFromQuery)
@@ -176,7 +153,6 @@ const SectionDetails = () => {
           data={data?.data}
           loading={isLoading}
           zooName={data?.data?.section_name}
-          image={data?.data?.images?.[0]?.file}
           // subtitle={data?.data?.site_description}
           userName={data?.data?.incharge_name}
           // description={data?.data?.incharges?.[0]?.full_name}
@@ -184,7 +160,7 @@ const SectionDetails = () => {
           actions={{
             // onEdit: () => console.log('Edit'),
             // onDelete: () => console.log('Delete'),
-            onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null
+            onAddNew: () => setAddEnclosureDrawerOpen(true)
 
             // onTimeClick: () => console.log('Time clicked')
           }}
@@ -196,13 +172,6 @@ const SectionDetails = () => {
               return
             }
           }}
-          onMessageClick={() => {
-            const phoneNumber = data?.data?.incharge_phone_number || ''
-            if (phoneNumber) {
-              window.open(`sms:${phoneNumber}`)
-            } else return
-          }}
-          haveInsightsViewAccess={insightsViewAccess}
           // onMessageClick={() => console.log('Message clicked')}
           error={error}
           statsData={statsData}
@@ -231,15 +200,7 @@ const SectionDetails = () => {
             />
           </Box>
         </Card>
-        {drawerType === 'animals-insights' && (
-          <AnimalDrawer
-            totalCount={data?.data?.total_animals}
-            open={!!drawerData}
-            onClose={handleDrawerClose}
-            data={drawerData}
-            defaultImage={'/images/housing/section-colored-icon.svg'}
-          />
-        )}
+        {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
         {drawerType === 'enclosures' && (
           <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
         )}
@@ -258,4 +219,4 @@ const SectionDetails = () => {
   )
 }
 
-export default enforceModuleAccess(SectionDetails, 'enable_housing_in_web')
+export default SectionDetails

@@ -14,7 +14,6 @@ import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { GenderInfoCard } from 'src/utility/render'
 import { getAllSpeciesList } from 'src/lib/api/housing'
 import AnimalDrawer from '../utils/AnimalDrawer'
-import { useAuth } from 'src/hooks/useAuth'
 
 const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
   const theme = useTheme()
@@ -23,9 +22,6 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [openDrawer, setOpenDrawer] = useState(false)
   const [specieName, setSpecieName] = useState('')
-
-  const auth = useAuth()
-  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -37,7 +33,6 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
 
   const [inputValue, setInputValue] = useState('')
   const [downloading, setDownloading] = useState(false)
-  const [totalCount, setTotalCount] = useState(0)
 
   const { data, isLoading } = useQuery({
     queryKey: ['species', id, filters],
@@ -136,6 +131,29 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
   }
 
   const columns = [
+    // {
+    //   width: 100,
+    //   field: 'id',
+    //   headerName: 'SL.NO',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Box
+    //       sx={{
+    //         width: '100%',
+    //         height: '100%',
+    //         display: 'flex',
+    //         alignItems: 'center',
+    //         pl: 2,
+    //         justifyContent: 'left',
+    //         cursor: 'default'
+    //       }}
+    //     >
+    //       <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+    //         {params.row.sl_no}.
+    //       </Typography>
+    //     </Box>
+    //   )
+    // },
     {
       width: 90,
       field: 'id',
@@ -188,163 +206,161 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             species={{
               common_name: params.row.common_name,
               scientific_name: params.row.complete_name,
-              default_icon: params.row.default_icon || '/images/housing/species-icon-colored.svg'
+              default_icon: params.row.default_icon
             }}
           />
         </Box>
       )
     },
-    ...(insightsViewAccess
-      ? [
-          {
-            width: 180,
-            field: 'animals',
-            headerName: 'Population',
-            headerAlign: 'left',
-            align: 'left',
-            sortable: false,
-            renderCell: params => (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  pl: 2,
-                  justifyContent: 'left'
-                }}
-                onClick={e => {
-                  e.stopPropagation()
-                  setDrawerType('animals')
-                  setDrawerData({
-                    queryKey: 'species-animals-drawer',
-                    id: params.row.id,
-                    name: params.row.common_name,
-                    image: params.row.images?.[0]?.file,
-                    params: {
-                      taxonomy_id: params.row.id,
-                      site_id: id
-                    }
-                  })
-                  setTotalCount(params.row.animal_count || 0)
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.OnSurface,
-                    fontSize: '16px',
-                    fontWeight: 600
-                  }}
-                >
-                  {params.row.animal_count || 0}
-                </Typography>
-              </Box>
-            )
-          },
-          {
-            width: 160,
-            field: 'male',
-            headerName: 'MALE',
-            headerAlign: 'center',
-            align: 'left',
-            sortable: false,
-            renderCell: params => (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <GenderInfoCard
-                  value={params.row.sex_data?.male || 0}
-                  bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
-                  color={theme.palette.customColors.addPrimary}
-                />
-              </Box>
-            )
-          },
-          {
-            width: 160,
-            field: 'female',
-            headerName: 'FEMALE',
-            headerAlign: 'center',
-            align: 'center',
-            sortable: false,
-            renderCell: params => (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <GenderInfoCard
-                  value={params.row.sex_data?.female || 0}
-                  bgcolor={`${theme.palette.customColors.customDropdownColor}4D`}
-                  color={theme.palette.customColors.customDropdownColor}
-                />
-              </Box>
-            )
-          },
-          {
-            width: 160,
-            field: 'undetermined',
-            headerName: 'UNDETERMINED',
-            headerAlign: 'center',
-            align: 'center',
-            sortable: false,
-            renderCell: params => (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <GenderInfoCard
-                  value={params.row.sex_data?.undetermined || 0}
-                  bgcolor={theme.palette.customColors.SurfaceVariant}
-                  color={theme.palette.customColors.Error}
-                />
-              </Box>
-            )
-          },
-          {
-            width: 160,
-            field: 'indeterminate',
-            headerName: 'INDETERMINATE',
-            headerAlign: 'left',
-            align: 'left',
-            sortable: false,
-            renderCell: params => (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  pl: 2,
-                  justifyContent: 'left'
-                }}
-              >
-                <GenderInfoCard
-                  value={params.row.sex_data?.indeterminate || 0}
-                  bgcolor={theme.palette.customColors.displaybgSecondary}
-                  color={theme.palette.customColors.OnPrimaryContainer}
-                />
-              </Box>
-            )
-          }
-        ]
-      : [])
+
+    {
+      width: 180,
+      field: 'animals',
+      headerName: 'Population',
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer',
+            pl: 2,
+            justifyContent: 'left'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+            console.log('params', params.row)
+            setDrawerType('animals')
+            setDrawerData({
+              queryKey: 'species-animals-drawer',
+              id: params.row.id,
+              name: params.row.common_name,
+              image: params.row.images?.[0]?.file,
+              params: {
+                taxonomy_id: params.row.id,
+                site_id: id
+              }
+            })
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.animal_count || 0}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 160,
+      field: 'male',
+      headerName: 'MALE',
+      headerAlign: 'center',
+      align: 'left',
+      sortable: false,
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.male || 0}
+            bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
+            color={theme.palette.customColors.addPrimary}
+          />
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'female',
+      headerName: 'FEMALE',
+      headerAlign: 'center',
+      align: 'center',
+      sortable: false,
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.female || 0}
+            bgcolor={`${theme.palette.customColors.customDropdownColor}4D`}
+            color={theme.palette.customColors.customDropdownColor}
+          />
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'undetermined',
+      headerName: 'UNDETERMINED',
+      headerAlign: 'center',
+      align: 'center',
+      sortable: false,
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.undetermined || 0}
+            bgcolor={theme.palette.customColors.SurfaceVariant}
+            color={theme.palette.customColors.Error}
+          />
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'indeterminate',
+      headerName: 'INDETERMINATE',
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            pl: 2,
+            justifyContent: 'left'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.indeterminate || 0}
+            bgcolor={theme.palette.customColors.displaybgSecondary}
+            color={theme.palette.customColors.OnPrimaryContainer}
+          />
+        </Box>
+      )
+    }
   ]
 
   return (
@@ -396,16 +412,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
         </Grid>
       </Box>
 
-      {drawerType === 'animals' && (
-        <AnimalDrawer
-          totalCount={totalCount}
-          defaultImage={'/images/housing/species-icon-colored.svg'}
-          open={!!drawerData}
-          onClose={handleDrawerClose}
-          data={drawerData}
-          objectFit={'contain'}
-        />
-      )}
+      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
     </>
   )
 }

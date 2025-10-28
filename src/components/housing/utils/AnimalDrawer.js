@@ -11,12 +11,10 @@ import { getAllAnimalList } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
-import { useRouter } from 'next/router'
 
-const AnimalsDrawer = ({ open, onClose, data, totalCount, defaultImage, objectFit }) => {
+const AnimalsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
-  const router = useRouter()
 
   const [localSearch, setLocalSearch] = useState('')
   const [search, setSearch] = useState('')
@@ -26,6 +24,7 @@ const AnimalsDrawer = ({ open, onClose, data, totalCount, defaultImage, objectFi
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
   const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
+
   useEffect(() => {
     return () => {
       debouncedSearch.cancel()
@@ -111,10 +110,6 @@ const AnimalsDrawer = ({ open, onClose, data, totalCount, defaultImage, objectFi
     debouncedSearch('')
   }
 
-  const handleAnimalClick = animalId => {
-    router.push(`/housing/animals/${animalId}`)
-  }
-
   return (
     <CustomDrawer
       open={open}
@@ -141,7 +136,7 @@ const AnimalsDrawer = ({ open, onClose, data, totalCount, defaultImage, objectFi
             <>
               <SpeciesInnerCard
                 completeName={data?.complete_name}
-                imgUrl={data?.default_icon || defaultImage}
+                imgUrl={data?.default_icon}
                 commonName={data?.common_name}
                 sex={data?.sex_data}
                 animalCount={data?.animal_count}
@@ -151,16 +146,14 @@ const AnimalsDrawer = ({ open, onClose, data, totalCount, defaultImage, objectFi
             <CellInfo
               value={data?.name}
               imgUrl={data?.image}
-              defaultImage={defaultImage}
               color={theme.palette.customColors.OnSurfaceVariant}
               subtitleColor={theme.palette.customColors.secondaryBg}
-              objectFit={objectFit}
             />
           )}
         </Box>
       )}
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Animals {totalCount || total ? `(${totalCount || total})` : ''}
+        Animals {total ? `(${total})` : ''}
       </Typography>
       <Box sx={{ my: 2 }}>
         <Search
@@ -180,20 +173,7 @@ const AnimalsDrawer = ({ open, onClose, data, totalCount, defaultImage, objectFi
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(animal => (
-          <Box key={animal?.animal_id} onClick={() => handleAnimalClick(animal?.animal_id)}>
-            <AnimalCard
-              data={animal}
-              textColor={theme.palette.customColors.OnSurfaceVariant}
-              animalParentCardStyle={{
-                border: `1px solid transparent`,
-                cursor: 'pointer',
-                '&:hover': {
-                  borderColor: '#37BD69',
-                  background: '#F2FFF8'
-                }
-              }}
-            />
-          </Box>
+          <AnimalCard key={animal?.animal_id} data={animal} textColor={theme.palette.customColors.OnSurfaceVariant} />
         ))}
 
         {isFetching && list.length === 0 && (

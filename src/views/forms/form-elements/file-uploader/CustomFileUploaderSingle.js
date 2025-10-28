@@ -1,14 +1,19 @@
+// ** React Imports
 import { useEffect, useState } from 'react'
+
+// ** Next Import
 import Link from 'next/link'
 
+// ** MUI Imports
 import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
+import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 
+// ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
 import Icon from 'src/@core/components/icon'
-import imageUploader from 'public/images/imageUploader/imageUploader.png'
-import Image from 'next/image'
+import { position } from 'stylis'
 
 const Img = styled('img')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
@@ -86,14 +91,12 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
               }}
               className='ppp'
             >
-              <div className='' style={{ alignContent: 'left', display: 'flex', alignItems: 'center', gap: 16 }}>
-                {/* <div
+              <div className='' style={{ alignContent: 'left', display: 'flex', alignItems: 'center' }}>
+                <div
                   style={{ border: '2px dotted #D8D8DD', padding: '20px', borderRadius: '4px', marginRight: '14px' }}
                 >
                   <Icon icon='fluent:image-add-20-regular' style={{ fontSize: '40px' }} />
-                </div> */}
-                <Image alt={'filename'} src={imageUploader} width={80} height={80} />
-
+                </div>
                 <Typography color='textSecondary' sx={{ '& a': { color: 'primary.main', textDecoration: 'none' } }}>
                   <span>Drop your image here</span>
                   <Link href='/' onClick={e => e.preventDefault()}></Link>{' '}

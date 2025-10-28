@@ -3,11 +3,9 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 
-const AnimalCard = ({ data, size, edit }) => {
+const AnimalCard = ({ data, size }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
-
-  const fallBackImage = '/images/branding/Antz_logomark_h_color.svg'
 
   useEffect(() => {
     const img = new Image()
@@ -58,17 +56,16 @@ const AnimalCard = ({ data, size, edit }) => {
         {avatarContent}
         <Avatar
           sx={{
-            width:
-              data?.sex?.toLowerCase() === 'undetermined' || data?.sex?.toLowerCase() === 'indeterminate' ? 32 : 24,
+            width: data?.sex === 'undetermined' || data?.sex === 'indeterminate' ? 32 : 24,
             height: 24,
             bgcolor:
               data?.type === 'group'
                 ? theme.palette.customColors.addPrimary
-                : data?.sex?.toLowerCase() === 'male'
+                : data?.sex === 'male'
                 ? theme.palette.customColors.SecondaryContainer
-                : data?.sex?.toLowerCase() === 'female'
+                : data?.sex === 'female'
                 ? theme.palette.customColors.AntzTertiary
-                : data?.sex?.toLowerCase() === 'undetermined' || data?.sex?.toLowerCase() === 'indeterminate'
+                : data?.sex === 'undetermined' || data?.sex === 'indeterminate'
                 ? theme.palette.customColors.displaybgSecondary
                 : theme.palette.customColors.SecondaryContainer,
             objectFit: 'contain',
@@ -82,15 +79,15 @@ const AnimalCard = ({ data, size, edit }) => {
           {/* Gender / Group initials */}
           {data?.type === 'group' ? (
             <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>G</Typography>
-          ) : data?.sex?.toLowerCase() === 'male' ? (
+          ) : data?.sex === 'male' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}>
               M
             </Typography>
-          ) : data?.sex?.toLowerCase() === 'female' ? (
+          ) : data?.sex === 'female' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
-          ) : data?.sex?.toLowerCase() === 'undetermined' ? (
+          ) : data?.sex === 'undetermined' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>UD</Typography>
-          ) : data?.sex?.toLowerCase() === 'indeterminate' ? (
+          ) : data?.sex === 'indeterminate' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
               ID
             </Typography>
@@ -120,10 +117,7 @@ const AnimalCard = ({ data, size, edit }) => {
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
                 fontWeight: '600',
-                lineHeight: '19.36px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: edit ? '118px' : '200px'
+                lineHeight: '19.36px'
               }}
             >
               <span> {data?.local_identifier_name}: </span>
@@ -161,10 +155,7 @@ const AnimalCard = ({ data, size, edit }) => {
                 fontSize: size ?? '16px',
                 fontWeight: 600,
                 lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: edit ? '118px' : '200px'
+                color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
               AID : {data?.animal_id}
@@ -202,7 +193,7 @@ const AnimalCard = ({ data, size, edit }) => {
           </Typography>
         )}
 
-        {(data?.scientific_name || data?.complete_name) && (
+        {data?.scientific_name && (
           <Typography
             sx={{
               fontSize: '13px',
@@ -211,21 +202,7 @@ const AnimalCard = ({ data, size, edit }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            {data?.scientific_name || data?.complete_name}
-          </Typography>
-        )}
-
-        {data?.age && (
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 600,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span>Age : </span>
-            {data?.age}
+            {data?.scientific_name}
           </Typography>
         )}
 

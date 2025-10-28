@@ -12,8 +12,7 @@ const ControlledDatePicker = ({
   maxDate,
   views,
   disabled = false,
-  sx = {},
-  size = 'large'
+  sx = {}
 }) => {
   return (
     <Controller
@@ -32,7 +31,6 @@ const ControlledDatePicker = ({
           error={!!error}
           helperText={error?.message}
           sx={sx}
-          size={size}
         />
       )}
     />

@@ -717,47 +717,67 @@ const RequestList = () => {
               action={headerAction}
             />
 
-            <Grid
-              container
-              spacing={4}
+            <Box
               sx={{
-                padding: '18px 22px 0 22px' ,
                 display: 'flex',
-                justifyContent: 'space-around'
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: { xs: 'center', md: 'space-between' },
+                alignItems: 'center',
+
+                // padding: '2px',
+                margin:
+                  selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
+                gap: { xs: 2, md: 3 }
               }}
             >
-              <Grid size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
-                <TextField
-                  variant='outlined'
-                  size='small'
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }
-                  }}
-                />
-              </Grid>
+              <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                sx={{
+                  borderRadius: '8px',
+                  width: { xs: '100%', md: '290px' }
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
+                }}
+              />
+              {/* </Box> */}
+
               {/* Filters */}
               <Grid
-                size={{ xs: 12, sm: 12, md: 9, lg: 9 }}
+                container
+                spacing={2}
                 sx={{
                   display: 'flex',
-                  flexWrap: { xs: 'wrap', sm: 'wrap', md: 'nowrap' },
-                  justifyContent: 'flex-end',
-                  gap: { xs: '16px', sm: '16px' }
+                  flexWrap: { xs: 'wrap', md: 'nowrap' },
+                  justifyContent: { xs: 'center', md: 'flex-end' },
+                  alignItems: 'center'
+
+                  // width: '100%'
                 }}
               >
                 {/* Filter by Stores */}
                 {selectedPharmacy.type === 'central' && (
-                  <Grid size={{ xs: 12, sm: 12, md: 3.5 }}>
+                  <Grid
+                    item
+                    size={{ xs: 12 }}
+                    sx={{
+                      maxWidth: { xs: '100%', md: '250px' },
+                      width: '100%',
+                      height: '48px',
+                      mt: { xs: 2, md: 0 }
+                    }}
+                  >
                     <FormControl fullWidth size='small'>
                       <InputLabel>Filter by Stores</InputLabel>
                       <Select
@@ -782,7 +802,16 @@ const RequestList = () => {
                 )}
 
                 {/* Filter by Days */}
-                <Grid size={{ xs: 12, sm: 12, md: 2.5 }}>
+                <Grid
+                  item
+                  size={{ xs: 12, md: 'auto' }}
+                  sx={{
+                    maxWidth: { xs: '100%', md: '250px' },
+                    mt: { xs: 2, md: 0 },
+                    height: '48px',
+                    width: '100%'
+                  }}
+                >
                   <FormControl fullWidth size='small'>
                     <InputLabel>Filter by days</InputLabel>
                     <Select
@@ -804,17 +833,28 @@ const RequestList = () => {
 
                 {/* Completed Switch */}
                 {(status === 'all' || status === 'completed') && (
-                  <Grid size={{ xs: 12, sm: 12, md: 'auto' }}>
+                  <Grid
+                    item
+                    size={{ xs: 12, md: 'auto' }}
+                    sx={{
+                      height: '48px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                      width: { xs: '100%', md: 'auto' },
+                      ml: { xs: 2, sm: 3 }
+                    }}
+                  >
                     <FormControlLabel
                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
-                      sx={{ margin: 0 }}
+                      sx={{ mr: '0px' }}
                     />
                   </Grid>
                 )}
               </Grid>
-            </Grid>
+            </Box>
 
             <Grid
               sx={{

@@ -43,7 +43,7 @@ const composeDietNavigation = () => {
   }
 
   const comboList = {
-    title: 'Mix',
+    title: 'Combo',
     path: '/diet/combo',
     icon: <img src='/icons/icon_recipe_black.png' alt='Grocery Icon' />,
     activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />,

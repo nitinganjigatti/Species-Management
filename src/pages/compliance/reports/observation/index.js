@@ -1,17 +1,7 @@
 import { useTheme } from '@emotion/react'
-import {
-  Box,
-  Card,
-  CardHeader,
-  CircularProgress,
-  Grid,
-  IconButton,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
-import { format, setSeconds, subMonths } from 'date-fns'
+import { Box, Card, CardHeader, Grid, IconButton, InputAdornment, TextField, Tooltip, Typography } from '@mui/material'
+import { fontSize, fontWeight } from '@mui/system'
+import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -19,13 +9,13 @@ import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { getObservationReport } from 'src/lib/api/compliance/reports'
-import { getAnimalDetailsOverview } from 'src/lib/api/housing'
 import Utility, { downloadPDF } from 'src/utility'
 import AnimalDrawer from 'src/views/pages/compliance/reports/observation/AnimalDrawer'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import AnimalParentCard from 'src/views/utility/animalParentCard'
 import ObservationCard from 'src/views/utility/ObservationCard'
 import Search from 'src/views/utility/Search'
 
@@ -33,29 +23,9 @@ const ObservationReport = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const handleAnimalSelect = animal => {
-    setSelectedAnimal({
-      animal_id: animal?.animal_id,
-      default_common_name: animal?.default_common_name,
-      scientific_name: animal?.scientific_name ?? animal?.complete_name,
-      user_enclosure_name: animal?.user_enclosure_name,
-      section_name: animal?.section_name,
-      site_name: animal?.site_name,
-      type: animal?.type,
-      sex: animal?.sex,
-      default_icon: animal?.default_icon,
-      total_animal: animal?.total_animal,
-      local_identifier_name: animal?.local_identifier_name,
-      local_identifier_value: animal?.local_identifier_value
-    })
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, animal_id: animal?.animal_id }
-      },
-      undefined,
-      { shallow: true }
-    )
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [animalDrawer, setAnimalDrawer] = useState(false)
@@ -65,7 +35,6 @@ const ObservationReport = () => {
   const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [isDownloading, setIsDownloading] = useState(false)
-  const [animalLoader, setAnimalLoader] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
@@ -76,41 +45,6 @@ const ObservationReport = () => {
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 50
   })
-
-  useEffect(() => {
-    if (router.query.animal_id && !selectedAnimal) {
-      const fetchAnimal = async () => {
-        setAnimalLoader(true)
-        try {
-          const res = await getAnimalDetailsOverview({
-            animal_id: router.query.animal_id
-          })
-
-          if (res?.success) {
-            setSelectedAnimal({
-              animal_id: res?.data?.animal_details?.animal_id,
-              default_common_name: res?.data?.animal_details?.common_name,
-              scientific_name: res?.data?.animal_details?.scientific_name ?? res?.data?.animal_details?.complete_name,
-              user_enclosure_name: res?.data?.animal_details?.user_enclosure_name,
-              section_name: res?.data?.animal_details?.section_name,
-              site_name: res?.data?.animal_details?.site_name,
-              type: res?.data?.animal_details?.type,
-              sex: res?.data?.animal_details?.sex,
-              default_icon: res?.data?.animal_details?.default_icon,
-              total_animal: res?.data?.animal_details?.total_animal,
-              local_identifier_name: res?.data?.animal_details?.local_identifier_name,
-              local_identifier_value: res?.data?.animal_details?.local_identifier_value
-            })
-            setAnimalLoader(false)
-          }
-        } catch (err) {
-          console.error('Error fetching user by id:', err)
-        }
-      }
-
-      fetchAnimal()
-    }
-  }, [router.query.animal_id])
 
   const reportCardEventHandler = () => {
     setAnimalDrawer(!animalDrawer)
@@ -135,7 +69,7 @@ const ObservationReport = () => {
         setLoading(true)
 
         const params = {
-          animal_id: selectedAnimal?.animal_id || router.query.animal_id,
+          animal_id: selectedAnimal?.animal_id,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
@@ -145,7 +79,9 @@ const ObservationReport = () => {
         }
 
         await getObservationReport(params).then(res => {
+          console.log(res)
           if (res?.success === true) {
+            console.log(res, 'res')
             setTotal(parseInt(res?.data?.total))
             setRows(res?.data?.observationData)
           } else {
@@ -316,8 +252,10 @@ const ObservationReport = () => {
   }
 
   const downloadObservationReport = async () => {
+    console.log(selectedAnimal, 'selectedAnimal')
+
     const params = {
-      animal_id: selectedAnimal?.animal_id || router.query.animal_id,
+      animal_id: selectedAnimal?.animal_id,
       q: searchValue,
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -337,39 +275,10 @@ const ObservationReport = () => {
     }
   }
 
-  const clearAnimalSelection = () => {
-    setSelectedAnimal(null)
-
-    const { animal_id, ...rest } = router.query
-    router.push(
-      {
-        pathname: router.pathname,
-        query: rest
-      },
-      undefined,
-      { shallow: false }
-    )
-  }
-
   const headerAction = (
-    <Box sx={{ display: 'flex', gap: '24px' }}>
+    <>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadObservationReport} />
-      <Box
-        sx={{
-          backgroundColor: '#0000000D',
-          height: '32px',
-          width: '32px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '50px'
-        }}
-      >
-        <IconButton onClick={clearAnimalSelection}>
-          <Icon icon='mdi:close' color='red' fontSize={24} />
-        </IconButton>
-      </Box>
-    </Box>
+    </>
   )
 
   const handleSearchChange = e => {
@@ -397,11 +306,11 @@ const ObservationReport = () => {
                   alignItems: 'center',
                   borderRadius: '8px',
                   background: '#E8F4F2',
-                  p: '16px'
+                  pl: 4
                 }}
               >
                 <AnimalCard data={selectedAnimal} sx={{ border: 'none', background: 'none' }} animal={true} />
-                {/* <Box
+                <Box
                   sx={{
                     backgroundColor: '#0000000D',
                     height: { sm: '175px', xs: '190px' },
@@ -413,10 +322,10 @@ const ObservationReport = () => {
                     borderBottomRightRadius: '8px'
                   }}
                 >
-                  <IconButton onClick={clearAnimalSelection}>
+                  <IconButton onClick={() => setSelectedAnimal(null)}>
                     <Icon icon='mdi:close' color='red' fontSize={30} />
                   </IconButton>
-                </Box> */}
+                </Box>
               </Box>
             </Box>
 
@@ -484,10 +393,6 @@ const ObservationReport = () => {
             </Grid>
           </Card>
         </>
-      ) : animalLoader ? (
-        <Box display='flex' justifyContent='center' alignItems='center'>
-          <CircularProgress />
-        </Box>
       ) : (
         <>
           <Card sx={{ p: 6 }}>
@@ -508,7 +413,22 @@ const ObservationReport = () => {
           onClose={() => setAnimalDrawer(false)}
           selectedAnimal={selectedAnimal}
           setSelectedAnimal={setSelectedAnimal}
-          handleAnimalClick={handleAnimalSelect}
+          handleAnimalClick={animal =>
+            setSelectedAnimal({
+              animal_id: animal?.animal_id,
+              default_common_name: animal?.default_common_name,
+              scientific_name: animal?.scientific_name ?? animal?.complete_name,
+              user_enclosure_name: animal?.user_enclosure_name,
+              section_name: animal?.section_name,
+              site_name: animal?.site_name,
+              type: animal?.type,
+              sex: animal?.sex,
+              default_icon: animal?.default_icon,
+              total_animal: animal?.total_animal,
+              local_identifier_name: animal?.local_identifier_name,
+              local_identifier_value: animal?.local_identifier_value
+            })
+          }
         />
       )}
     </>

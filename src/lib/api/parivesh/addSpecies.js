@@ -85,7 +85,6 @@ export async function updateSpeciesToOrganization(payload, id) {
     return error
   }
 }
-
 export async function deleteSpeciesToOrganization(id, payload) {
   try {
     const url = `${DELETE_SPECIES_TO_ORG}/${id}`

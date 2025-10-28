@@ -488,7 +488,6 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         value={defaultRoom}
                         disablePortal
                         id='room'
-
                         // disabled={eggDetails?.room_id}
                         options={roomList?.length > 0 ? roomList : []}
                         getOptionLabel={option => option.room_name}

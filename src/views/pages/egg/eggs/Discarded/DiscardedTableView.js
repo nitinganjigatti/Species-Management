@@ -46,6 +46,7 @@ const DiscardedTableView = ({
 
   const fetchTableData = useCallback(
     async (sort, q, selectedFiltersOptions = {}, filterByNurseryId) => {
+
       try {
         setLoading(true)
 
@@ -100,6 +101,7 @@ const DiscardedTableView = ({
   )
 
   useEffect(() => {
+
     fetchTableData(sort, searchValue, selectedFiltersOptions, filterByNurseryId)
   }, [fetchTableData, selectedFiltersOptions, filterByNurseryId])
 
@@ -489,7 +491,6 @@ const DiscardedTableView = ({
       />
       <CommonTable
         rowHeight={72}
-        externalTableStyle={{ paddingX: 4 }}
         onCellClick={onCellClick}
         indexedRows={indexedRows || []}
         total={totalpage}

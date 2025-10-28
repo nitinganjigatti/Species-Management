@@ -1,16 +1,7 @@
-import {
-  Avatar,
-  CardContent,
-  Drawer,
-  Grid,
-  Typography,
-  debounce,
-  CircularProgress,
-  InputAdornment
-} from '@mui/material'
+import { Avatar, CardContent, Drawer, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 
 // import TimelineDot from '@mui/lab/TimelineDot'
@@ -38,7 +29,6 @@ const ActivityLogs = ({
   activity_type
 }) => {
   const [activitydata, setActivityData] = useState([])
-  const [loader, setLoader] = useState(false)
   const [page_no, setPage_no] = useState(1)
   const [limit, setLimit] = useState(20)
 
@@ -63,8 +53,6 @@ const ActivityLogs = ({
 
   const getActivityLogs = async searchVal => {
     try {
-      setLoader(true)
-
       const params = {
         activity_type_id: detailsValue?.id,
         activity_type,
@@ -74,16 +62,13 @@ const ActivityLogs = ({
       }
       await getDietActivityLogs(params).then(res => {
         if (res?.data?.success) {
-          setLoader(false)
           setActivityData(res?.data?.data)
         } else {
-          setLoader(false)
           Toaster({ type: 'error', message: JSON.stringify(res?.data?.message) })
         }
       })
     } catch (error) {
       console.log('error', error)
-      setLoader(false)
       Toaster({ type: 'error', message: JSON.stringify(error) })
 
       // Toaster({ type: 'error', message: JSON.stringify(error) })
@@ -97,21 +82,16 @@ const ActivityLogs = ({
     }
   }
 
-  const activityLogSearch = useCallback(
-    debounce(async value => {
-      try {
-        await getActivityLogs(value)
-      } catch (e) {
-        console.log(e)
-      }
-    }, 500),
-    []
-  )
-
-  const handleClearSearch = () => {
-    setSearchValue('')
-    activityLogSearch('')
-  }
+  // const activityLogSearch = useCallback(
+  //   debounce(async value => {
+  //     try {
+  //       await getActivityLogs(value)
+  //     } catch (e) {
+  //       console.log(e)
+  //     }
+  //   }, 500),
+  //   []
+  // )
 
   useEffect(() => {
     if (detailsValue?.id) {
@@ -169,7 +149,7 @@ const ActivityLogs = ({
                   <IconButton
                     size='small'
                     onClick={() => {
-                      handleSidebarClose(), setSearchValue('')
+                      handleSidebarClose()
                     }}
                     sx={{ color: 'text.primary' }}
                   >
@@ -183,39 +163,18 @@ const ActivityLogs = ({
                   fullWidth
                   label='Search activity'
                   onChange={e => {
-                    const value = e.target.value
-                    setSearchValue(value)
-
-                    if (value.trim() === '') {
-                      activityLogSearch('')
-                    } else {
-                      activityLogSearch(value)
-                    }
+                    setSearchValue(e.target.value)
+                    activityLogSearch(e.target.value)
                   }}
                   slotProps={{
                     input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon={'ion:search-outline'} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: searchValue && (
-                        <InputAdornment position='end'>
-                          <IconButton size='small' onClick={handleClearSearch} edge='end'>
-                            <Icon icon={'mdi:close'} />
-                          </IconButton>
-                        </InputAdornment>
-                      )
+                      startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
                     }
                   }}
                 />
               </Box>
             </Box>
-            {loader ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-                <CircularProgress />
-              </Box>
-            ) : activitydata?.length > 0 ? (
+            {activitydata?.length > 0 ? (
               <Box>
                 {activitydata?.map((item, index) => (
                   <Box key={index}>
@@ -371,10 +330,8 @@ const ActivityLogs = ({
                                         }`} */}
                                     {item.action === 'diet_assign'
                                       ? 'Diet Assigned'
-                                      : `${item.action.charAt(0).toUpperCase() + item.action.slice(1)} ${
-                                          activity_type === 'combo'
-                                            ? 'Mix'
-                                            : activity_type.charAt(0).toUpperCase() + activity_type.slice(1)
+                                      : `${item.action.charAt(0).toUpperCase() + item.action.slice(1) + ' '} ${
+                                          activity_type.charAt(0).toUpperCase() + activity_type.slice(1)
                                         }`}
                                   </Typography>
                                 </Box>
@@ -408,20 +365,7 @@ const ActivityLogs = ({
                   />
                 ) : null} */}
               </Box>
-            ) : (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: '70%',
-                  textAlign: 'center'
-                }}
-              >
-                <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-              </Box>
-            )}
+            ) : null}
           </Box>
         </CardContent>
       </Drawer>

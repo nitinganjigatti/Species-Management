@@ -23,8 +23,7 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
   const getValidGender = gender => {
     if (typeof gender === 'string') return gender.toLowerCase()
     if (Array.isArray(gender) && gender.length > 0) return gender[0].toLowerCase()
-    
-return 'unknown'
+    return 'unknown'
   }
 
   const normalizedGenders = rawGenders.map(getValidGender)
@@ -32,26 +31,21 @@ return 'unknown'
   const genderUsage = animals.reduce((acc, animal, i) => {
     const g = getValidGender(animal.gender)
     if (i !== index && g) acc[g] = (acc[g] || 0) + 1
-    
-return acc
+    return acc
   }, {})
 
   // const availableGenders = normalizedGenders.filter(g => {
   //   const limit = Number(counts[g]) || 0
   //   const used = genderUsage[g] || 0
-
-  //   // Always allow already selected gender
-  //   return used < limit || animals.some(animal => animal.gender === g)
+  //   return used < limit
   // })
 
-  // Filter available genders based on counts
-  const availableGenders = normalizedGenders.filter(gender => {
-    const limit = Number(counts[gender]) || 0
-    const used = genderUsage[gender] || 0
+  const availableGenders = normalizedGenders.filter(g => {
+    const limit = Number(counts[g]) || 0
+    const used = genderUsage[g] || 0
 
-    const isCurrentAnimalGender = getValidGender(data.gender) === gender
-
-    return isCurrentAnimalGender || used < limit
+    // Always allow already selected gender
+    return used < limit || animals.some(animal => animal.gender === g)
   })
 
   const currentIdType = mastersData?.identifier_type?.find(type => type.key === data.identifierType)
@@ -66,19 +60,10 @@ return acc
       </IconButton>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid size={{ xs: 12 }} sx={{ mb: 1 }}>
-          <Select
-            fullWidth
-            value={data.gender}
-            onChange={e => onChange(index, 'gender', e.target.value)}
-            displayEmpty
-            renderValue={selected => {
-              if (!selected) {
-                return <span style={{ color: '#9e9e9e' }}>Gender*</span>
-              }
-              
-return selected.charAt(0).toUpperCase() + selected.slice(1)
-            }}
-          >
+          <Select fullWidth value={data.gender} onChange={e => onChange(index, 'gender', e.target.value)} displayEmpty>
+            <MenuItem value='' disabled>
+              Gender*
+            </MenuItem>
             {availableGenders.map(gender => (
               <MenuItem key={gender} value={gender}>
                 {gender.charAt(0).toUpperCase() + gender.slice(1)}
@@ -95,14 +80,10 @@ return selected.charAt(0).toUpperCase() + selected.slice(1)
               onChange(index, 'identifierType', e.target.value)
             }}
             displayEmpty
-            renderValue={selected => {
-              if (!selected) {
-                return <span style={{ color: '#9e9e9e' }}>Select Identifier Type*</span>
-              }
-              
-return selected.charAt(0).toUpperCase() + selected.slice(1)
-            }}
           >
+            <MenuItem value='' disabled>
+              Select Identifier Type*
+            </MenuItem>
             {mastersData.identifier_type.map(idType => (
               <MenuItem key={idType.id} value={idType.key}>
                 {idType.label}
@@ -137,8 +118,6 @@ const AddanimalCountDrawer = ({
   setanimalDetailsDrawerOpen
 }) => {
   const theme = useTheme()
-
-
   // Find the current species data
   const currentSpecies =
     selectedExportData.others.find(item => item.species?.tsn_id === currentSpeciesId)?.species ||
@@ -223,8 +202,7 @@ const AddanimalCountDrawer = ({
   const getValidGender = gender => {
     if (typeof gender === 'string') return gender.toLowerCase()
     if (Array.isArray(gender) && gender.length > 0) return gender[0].toLowerCase()
-    
-return 'unknown'
+    return 'unknown'
   }
 
   // const handleChange = (index, field, value) => {
@@ -240,8 +218,7 @@ return 'unknown'
         ...updated[index],
         [field]: value
       }
-      
-return updated
+      return updated
     })
   }
 
@@ -250,7 +227,6 @@ return updated
   }
 
   const canAddAnimal = animals.length < Number(counts.male) + Number(counts.female) + Number(counts.unknown)
-
   const handleSelectAnimals = () => {
     const genderCounts = {
       male_count: counts.male,
@@ -267,27 +243,21 @@ return updated
     if (genderTotals.male > genderCounts.male_count) {
       return Toaster({
         type: 'error',
-
-        //message: `Animal details count for male gender (${genderTotals.male}) must be ≤ male count entered (${genderCounts.male_count})`
-        message: `The entered count does not match the selected animals. Please update to proceed`
+        message: `Animal details count for male gender (${genderTotals.male}) must be ≤ male count entered (${genderCounts.male_count})`
       })
     }
 
     if (genderTotals.female > genderCounts.female_count) {
       return Toaster({
         type: 'error',
-
-        // message: `Animal details count for female gender (${genderTotals.female}) must be ≤ female count entered (${genderCounts.female_count})`
-        message: `The entered count does not match the selected animals. Please update to proceed`
+        message: `Animal details count for female gender (${genderTotals.female}) must be ≤ female count entered (${genderCounts.female_count})`
       })
     }
 
     if (genderTotals.unknown > genderCounts.undeterminate_count) {
       return Toaster({
         type: 'error',
-
-        // message: `Animal details count for unknown gender (${genderTotals.unknown}) must be ≤ unknown count entered (${genderCounts.undeterminate_count})`
-        message: `The entered count does not match the selected animals. Please update to proceed`
+        message: `Animal details count for unknown gender (${genderTotals.unknown}) must be ≤ unknown count entered (${genderCounts.undeterminate_count})`
       })
     }
 
@@ -315,7 +285,6 @@ return updated
   return (
     <Drawer
       open={open}
-
       //onClose={onClose}
       anchor='right'
     >
@@ -385,7 +354,6 @@ return updated
                   type='number'
                   label='# Male'
                   value={counts.male}
-                  onWheel={e => e.target.blur()}
                   onChange={e => {
                     const value = e.target.value
                     if (value === '') {
@@ -410,7 +378,6 @@ return updated
                   type='number'
                   label='# Female'
                   value={counts.female}
-                  onWheel={e => e.target.blur()}
                   onChange={e => {
                     const value = e.target.value
                     if (value === '') {
@@ -435,7 +402,6 @@ return updated
                   type='number'
                   label='# Unknown'
                   value={counts.unknown}
-                  onWheel={e => e.target.blur()}
                   onChange={e => {
                     const value = e.target.value
                     if (value === '') {

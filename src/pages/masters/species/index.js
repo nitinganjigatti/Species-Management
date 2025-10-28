@@ -23,7 +23,6 @@ import Chip from '@mui/material/Chip'
 const AddSpecies = () => {
   const authData = useContext(AuthContext)
   const [loader, setLoader] = useState(false)
-
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
@@ -250,15 +249,12 @@ const AddSpecies = () => {
 
         // Use a Set to filter out duplicate image URLs
         const seenUrls = new Set()
-
         const uniqueBannerImages = addBannerResponse.data.filter(item => {
           if (!seenUrls.has(item.image_url)) {
             seenUrls.add(item.image_url)
-            
-return true
+            return true
           }
-          
-return false
+          return false
         })
 
         console.log('Unique Banner images:', uniqueBannerImages)
@@ -293,15 +289,12 @@ return false
 
         // Use a Set to filter out duplicate image URLs
         const seenUrls = new Set()
-
         const uniqueBannerImages = addBannerResponse.data.filter(item => {
           if (!seenUrls.has(item.image_url)) {
             seenUrls.add(item.image_url)
-            
-return true
+            return true
           }
-          
-return false
+          return false
         })
 
         console.log('Unique Banner images:', uniqueBannerImages)
@@ -407,18 +400,15 @@ return false
           {openDrawer && (
             <AddSpeciesSlideBar
               drawerWidth={400}
-
               // addEventSidebarOpen={openDrawer}
               openDrawer={openDrawer}
               status={status}
-
               // setStatus={setStatus}
               // open={open}
               setOpenDrawer={setOpenDrawer}
               handleSidebarClose={handleSidebarClose}
               editVernacularNames={editVernacularNames}
               fetchTableData={fetchTableData}
-
               // fetchTaxonomy={fetchTaxonomy}
               // taxonomy={taxonomy}
               editName={editName}

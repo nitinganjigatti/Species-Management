@@ -36,9 +36,7 @@ const AddIncubators = ({
 
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [defaultRoom, setDefaultRoom] = useState(null)
-  const [nurseryLoader, setNurseryLoader] = useState(false)
   const [nurseryList, setNurseryList] = useState([])
-  const [roomLoader, setRoomLoader] = useState(false)
   const [roomList, setRoomList] = useState([])
   const [btnDisabled, setBtnDisabled] = useState(false)
 
@@ -74,8 +72,6 @@ const AddIncubators = ({
   // Fetch nursery list with debouncing
   const fetchNurseryList = async (q = '', nurseryId) => {
     try {
-      setNurseryLoader(true)
-
       const params = {
         page: 1,
         limit: 50,
@@ -87,8 +83,6 @@ const AddIncubators = ({
       setNurseryList(res?.data?.result || [])
     } catch (e) {
       console.error(e)
-    } finally {
-      setNurseryLoader(false)
     }
   }
   const searchNursery = useCallback(debounce(fetchNurseryList, 1000), [])
@@ -96,8 +90,6 @@ const AddIncubators = ({
   // Fetch room list with debouncing
   const fetchRoomList = async (nurseryId, q = '') => {
     try {
-      setRoomLoader(true)
-
       const params = {
         page: 1,
         limit: 50,
@@ -109,8 +101,6 @@ const AddIncubators = ({
       setRoomList(res?.data?.result || [])
     } catch (e) {
       console.error(e)
-    } finally {
-      setRoomLoader(false)
     }
   }
   const searchRoom = useCallback(debounce(fetchRoomList, 1000), [])
@@ -272,7 +262,6 @@ const AddIncubators = ({
                       disablePortal
                       disabled={isEdit || incubatorDetail}
                       id='nursery'
-                      loading={nurseryLoader}
                       options={nurseryList?.length > 0 ? nurseryList : []}
                       getOptionLabel={option => option.nursery_name}
                       isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
@@ -322,7 +311,6 @@ const AddIncubators = ({
                       disablePortal
                       disabled={isEdit || incubatorDetail}
                       id='room'
-                      loading={roomLoader}
                       options={roomList?.length > 0 ? roomList : []}
                       getOptionLabel={option => option.room_name}
                       isOptionEqualToValue={(option, value) => option?.room_id === value?.room_id}

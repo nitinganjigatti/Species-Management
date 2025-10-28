@@ -19,7 +19,7 @@ const MUIDatePicker = ({
   label = 'Select Date',
   minDate,
   maxDate,
-  format = 'Do MMM YYYY',
+  format = 'Do MMM YY',
   views,
   disabled = false,
   error = false,
@@ -47,7 +47,6 @@ const MUIDatePicker = ({
             size: size,
             error,
             helperText,
-            size,
             sx: {
               '& .MuiInputAdornment-root .MuiIconButton-root': {
                 alignSelf: 'center'

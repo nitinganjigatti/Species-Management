@@ -7,9 +7,15 @@ import {
   Typography,
   Button,
   CardContent,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
+  Avatar
 } from '@mui/material'
 
 import Icon from 'src/@core/components/icon'
+import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
@@ -26,6 +32,8 @@ const SampleDetails = props => {
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
 
+  // console.log('sampleDetails', sampleDetails)
+
   const getLabTestById = useCallback(async id => {
     const params = {
       id
@@ -33,6 +41,7 @@ const SampleDetails = props => {
     setLoading(true)
     const response = await getLabSampleListById(params)
     if (response?.success) {
+      // console.log('add state comp', response?.data?.result)
       setSampleDetails(response.data?.result)
       setLoading(false)
     } else {
@@ -70,8 +79,11 @@ const SampleDetails = props => {
   }
 
   const handleDelete = sample => {
+    // console.log('Delete:', sample)
     setIsModalOpenDelete(true)
     setSelectedId(sampleDetails?.id)
+
+    // Add your logic to handle the delete action
   }
 
   return (
@@ -96,6 +108,7 @@ const SampleDetails = props => {
               justifyContent: 'space-between',
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px',
+
               backgroundColor: 'background.default'
             }}
           >
@@ -111,6 +124,7 @@ const SampleDetails = props => {
           </Box>
 
           {/* drower */}
+
           <Box
             sx={{
               flex: 1, // Allow this content to expand and take remaining space

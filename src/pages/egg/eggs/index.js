@@ -732,6 +732,7 @@ const EggList = () => {
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
+
                 fontSize: '12px',
                 fontWeight: 400,
                 lineHeight: '19.36px',
@@ -745,25 +746,6 @@ const EggList = () => {
       )
     },
     {
-      width: 140,
-      sortable: false,
-      field: 'animal_sex',
-      headerName: 'GENDER',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px',
-            textTransform: 'capitalize'
-          }}
-        >
-          {params.row?.animal_sex}
-        </Typography>
-      )
-    },
-    {
       width: 200,
       sortable: false,
       field: 'identifier',
@@ -773,6 +755,7 @@ const EggList = () => {
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
+
               fontSize: '16px',
               fontWeight: 500,
               lineHeight: '19.36px'
@@ -1099,50 +1082,31 @@ const EggList = () => {
       ),
 
       renderCell: params => (
-        <Tooltip
-          title={
-            <>
-              <span>{params.row.current_weight ? params.row.current_weight : '-'}</span>
-              <span> | </span>
-              <span style={{ color: theme.palette.success.main }}>
-                {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
-                calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0'
-                  ? `${calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%`
-                  : ''}
-              </span>
-            </>
-          }
-          placement='top'
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
         >
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {params.row.current_weight ? params.row.current_weight : '-'}{' '}
-            {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
-              calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0' && (
-                <span
-                  style={{
-                    borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    paddingLeft: 4,
-                    color:
-                      calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
-                        ? theme.palette.primary.main
-                        : theme.palette.formContent.tertiary
-                  }}
-                >
-                  {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
-                </span>
-              )}
-          </Typography>
-        </Tooltip>
+          {params.row.current_weight ? params.row.current_weight : '-'}{' '}
+          {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
+            calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0' && (
+              <span
+                style={{
+                  borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  paddingLeft: 4,
+                  color:
+                    calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
+                      ? theme.palette.primary.main
+                      : theme.palette.formContent.tertiary
+                }}
+              >
+                {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+              </span>
+            )}
+        </Typography>
       )
     },
     {
@@ -1447,86 +1411,31 @@ const EggList = () => {
       headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
-          {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
-          )}
           {params.row.egg_number && (
             <Typography
               sx={{
-                color: theme.palette.customColors.neutralSecondary,
-                fontSize: '12px',
-                fontWeight: 400,
+                fontSize: '16px',
+                fontWeight: 500,
                 lineHeight: '19.36px'
               }}
             >
               UEID : {params.row.egg_number ? params.row.egg_number : '-'}
             </Typography>
           )}
-        </Box>
-      )
-    },
-    {
-      width: 180,
-      field: 'discard_request_id',
-      sortable: false,
-      headerName: 'BATCH DETAILS',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <Tooltip title={params.row?.discard_request_id ? params.row?.discard_request_id : '-'}>
+
+          {params.row.egg_code && (
             <Typography
               sx={{
-                fontSize: '16px',
-                fontWeight: '400',
-                lineHeight: '19.36px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 2, // Limit to 2 lines
-                WebkitBoxOrient: 'vertical',
-                whiteSpace: 'normal', // Ensure wrapping happens
-                wordBreak: 'break-word' // Handle long words breaking into the next line
-              }}
-            >
-              {params.row.discard_request_id || '-'}
-            </Typography>
-          </Tooltip>
-          <Tooltip
-            title={
-              params.row?.discarded_at
-                ? `${params.row.discarded_at ? Utility.convertUtcToLocalReadableDate(params.row.discarded_at) : '-'} |
-              ${params.row.discarded_at ? Utility.convertUTCToLocaltime(params.row.discarded_at) : '-'}`
-                : '-'
-            }
-          >
-            <Typography
-              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+
                 fontSize: '12px',
-                fontWeight: '400',
-                lineHeight: '19.36px',
-                color: theme.palette.customColors.neutralSecondary,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 2, // Limit to 2 lines
-                WebkitBoxOrient: 'vertical',
-                whiteSpace: 'normal', // Ensure wrapping happens
-                wordBreak: 'break-word' // Handle long words breaking into the next line
+                fontWeight: 400,
+                lineHeight: '19.36px'
               }}
             >
-              {params.row.discarded_at ? Utility.convertUtcToLocalReadableDate(params.row.discarded_at) : '-'} |{' '}
-              {params.row.discarded_at ? Utility.convertUTCToLocaltime(params.row.discarded_at) : '-'}
+              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
-          </Tooltip>
+          )}
         </Box>
       )
     },
@@ -1536,50 +1445,35 @@ const EggList = () => {
       sortable: false,
       headerName: 'Reason',
       renderCell: params => (
-        <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
-          <Typography
-            sx={{
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2, // Limit to 2 lines
-              WebkitBoxOrient: 'vertical',
-              whiteSpace: 'normal', // Ensure wrapping happens
-              wordBreak: 'break-word' // Handle long words breaking into the next line
-            }}
-          >
-            {params.row.egg_state}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      width: 160,
-      field: 'nursery_name',
-      sortable: false,
-      headerName: 'NURSERY',
-      renderCell: params => (
-        <Tooltip title={params.row?.nursery_name ? params.row?.nursery_name : '-'}>
-          <Typography
-            sx={{
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2, // Limit to 2 lines
-              WebkitBoxOrient: 'vertical',
-              whiteSpace: 'normal', // Ensure wrapping happens
-              wordBreak: 'break-word' // Handle long words breaking into the next line
-            }}
-          >
-            {params.row.nursery_name || '-'}
-          </Typography>
-        </Tooltip>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%', // Ensures it uses the full width of the cell
+            overflow: 'hidden' // Ensures text overflow is handled
+          }}
+        >
+          {params.row.egg_state && (
+            <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: '400',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2, // Limit to 2 lines
+                  WebkitBoxOrient: 'vertical',
+                  whiteSpace: 'normal', // Ensure wrapping happens
+                  wordBreak: 'break-word' // Handle long words breaking into the next line
+                }}
+              >
+                {params.row.egg_state}
+              </Typography>
+            </Tooltip>
+          )}
+        </Box>
       )
     },
     {
@@ -2054,7 +1948,6 @@ const EggList = () => {
       }
     )
   }
-
   // console.log('tab_Value', tab_Value)
   // console.log('subTab_value', subTab_value)
 
@@ -2369,7 +2262,6 @@ const EggList = () => {
 
                 <CommonTable
                   externalTableStyle={{
-                    paddingX: 4,
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
                     },
@@ -2423,7 +2315,6 @@ const EggList = () => {
                   />
 
                   <CommonTable
-                    externalTableStyle={{ paddingX: 4 }}
                     indexedRows={indexedRows || []}
                     total={total}
                     columns={ready_to_discard || []}
@@ -2524,7 +2415,7 @@ const EggList = () => {
                     loading={loading}
                     searchValue={searchValue}
                     maxHeight='70vh'
-                    externalTableStyle={{ mx: 0, paddingX: 4 }}
+                    externalTableStyle={{ mx: 0 }}
                   />
                 </Box>
               </TabPanel>
@@ -2605,7 +2496,6 @@ const EggList = () => {
                       />
 
                       <CommonTable
-                        externalTableStyle={{ paddingX: 4 }}
                         indexedRows={indexedRows || []}
                         total={total}
                         columns={discarded_Egg_Columns || []}

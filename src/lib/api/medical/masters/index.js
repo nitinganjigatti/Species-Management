@@ -3,23 +3,20 @@ import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
 export async function getCategoriesList({ params }) {
   const url = `v1/master/medical/category`
   const response = await axiosGet({ url: url, params })
-  
-return response.data
+  return response.data
 }
 
 export async function getMedicalCategoryListById(id, params) {
   const url = `v1/master/category/details/list/${id}`
   const response = await axiosGet({ url: url, params })
-  
-return response.data
+  return response.data
 }
 
 export async function addMedicalCategory(payload) {
   try {
     const url = `v1/master/medical/category`
     const response = await axiosFormPost({ url, body: payload })
-    
-return response?.data
+    return response?.data
   } catch (error) {
     if (error.response) {
       console.info('Request made and server responded')
@@ -54,8 +51,7 @@ export async function addMedicalComplaintOrDiagnosis(type, payload) {
   try {
     const url = `v1/master/add/medical/${type}`
     const response = await axiosFormPost({ url, body: payload })
-    
-return response?.data
+    return response?.data
   } catch (error) {
     if (error.response) {
       console.info('Request made and server responded')

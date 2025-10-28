@@ -31,8 +31,7 @@ const CustomInput = ({
     if (type === 'email' || name === 'email' || name === 'username')
       return <Icon icon={'ic:outline-mail-outline'} fontSize={20} />
     if (type === 'password' || isOtp) return <Icon icon={'ic:outline-lock'} fontSize={20} />
-    
-return <Icon icon={'ic:outline-mail-outline'} fontSize={20} />
+    return <Icon icon={'ic:outline-mail-outline'} fontSize={20} />
   }
 
   const handleFocus = () => setFocused(true)

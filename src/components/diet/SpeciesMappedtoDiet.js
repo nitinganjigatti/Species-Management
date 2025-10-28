@@ -434,7 +434,6 @@ const SpeciesMappedtoDiet = ({
               </Button>
 
               <Checkbox
-
                 //disabled={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
                 checked={
                   !loading &&

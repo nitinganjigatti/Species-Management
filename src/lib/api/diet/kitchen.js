@@ -1,8 +1,4 @@
-import {
-  GET_MEAL_GROUP_SUMMARY_REPORT,
-  GET_MEAL_GROUP_WISE_REPORT,
-  GET_GENERAL_SPECIES_WISE_COMBO_REPORT
-} from 'src/constants/ApiConstant'
+import { GET_MEAL_GROUP_SUMMARY_REPORT, GET_MEAL_GROUP_WISE_REPORT } from 'src/constants/ApiConstant'
 import { axiosGet } from '../utility'
 
 export async function getGeneralSpeciesWiseReport({ params }) {
@@ -31,12 +27,6 @@ export async function getMealGroupWiseReport({ params }) {
 
 export async function getMealGroupSummaryReport({ params }) {
   const response = await axiosGet({ url: `${GET_MEAL_GROUP_SUMMARY_REPORT}`, params })
-
-  return response?.data
-}
-
-export async function getGeneralSpeciesWiseComboReport({ params }) {
-  const response = await axiosGet({ url: `${GET_GENERAL_SPECIES_WISE_COMBO_REPORT}`, params })
 
   return response?.data
 }

@@ -1,7 +1,6 @@
 import React from 'react'
 import { Card, CardContent, Typography, Grid, Box, Button, Checkbox } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-
 const ExportCard = ({
   exportId,
   exportNumber,
@@ -39,14 +38,13 @@ const ExportCard = ({
       <Card
         sx={{
           display: 'flex',
-          alignItems: 'stretch',
+          alignItems: 'center',
           justifyContent: 'space-between',
           mb: 4,
           border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
           borderRadius: '8px',
           backgroundColor: theme.palette.common.white,
-          boxShadow: 'none',
-          minHeight: '121px'
+          boxShadow: 'none'
         }}
       >
         {/* Left Section */}
@@ -112,15 +110,13 @@ const ExportCard = ({
         <Box
           sx={{
             background: theme.palette.customColors.Surface,
-
-            // height: '121px',
+            height: '121px',
             width: '45px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: '4px', // Optional: better visual
-            cursor: species !== '0' ? 'pointer' : 'not-allowed',
-            flexShrink: 0
+            cursor: species !== '0' ? 'pointer' : 'not-allowed'
           }}
           onClick={species !== '0' ? handleSelect : undefined}
         >

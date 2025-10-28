@@ -1,36 +1,24 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react'
-
-import {
-  Avatar,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardHeader,
-  IconButton,
-  Tooltip,
-  Typography,
-  debounce
-} from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import { DataGrid } from '@mui/x-data-grid'
-import toast from 'react-hot-toast'
-import moment from 'moment'
-
+import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import Toaster from 'src/components/Toaster'
-import { AuthContext } from 'src/context/AuthContext'
-import Error404 from 'src/pages/404'
-import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { useRouter } from 'next/router'
+import { useTheme } from '@mui/material/styles'
+import Router from 'next/router'
+import toast from 'react-hot-toast'
+import Toaster from 'src/components/Toaster'
 import AddLabTest from 'src/views/pages/lab/test/addTest'
-import TestDetails from 'src/views/pages/lab/test/testDetails'
-
 import { addLabTest, deleteLabTest, getLabTestList, updateLabTest } from 'src/lib/api/lab/master'
-import FallbackAvatar from 'src/views/utility/FallbackAvatar'
+import moment from 'moment'
+import TestDetails from 'src/views/pages/lab/test/testDetails'
+import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
+import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const LabTest = () => {
   const theme = useTheme()
+  const router = useRouter()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
@@ -38,7 +26,7 @@ const LabTest = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const editParamsInitialState = { id: null, label: null, sample_type_count: null, sub_test_count: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [resetForm, setResetForm] = useState(false)
@@ -151,6 +139,8 @@ const LabTest = () => {
     setResetForm(true)
     setEditParams(params)
     setOpenDrawer(true)
+
+    // console.log('params >>', params)
   }
 
   const confirmDeleteAction = async () => {
@@ -180,66 +170,62 @@ const LabTest = () => {
     console.log('Delete:', testId)
     setIsModalOpenDelete(true)
     setSelectedId(testId?.id)
+
+    // Add your logic to handle the delete action
   }
 
   const columns = [
     {
       flex: 0.3,
-      minWidth: 200,
+      minWidth: 30,
       sortable: false,
       field: 'LAB TEST NAME',
       headerName: 'LAB TEST NAME',
       renderCell: params => (
-        <Tooltip title={params.row.label ? params.row.label : '-'}>
-          <Typography
-            noWrap
-            variant='body2'
-            sx={{
-              color: 'text.primary',
-              pl: 2,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
             {params.row.label ? params.row.label : '-'}
           </Typography>
-        </Tooltip>
+        </Box>
       )
     },
     {
       flex: 0.3,
-      minWidth: 180,
+      Width: 30,
       field: 'NO OF SAMPLES TYPES',
       headerName: 'NO OF SAMPLES TYPES',
       sortable: false,
       renderCell: params => (
-        <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.sample_type_count ? params.row.sample_type_count : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+            {params.row.sample_type_count ? params.row.sample_type_count : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
       flex: 0.3,
-      minWidth: 170,
+      Width: 30,
       field: 'NO OF SUB TESTS ',
       headerName: 'NO OF SUB TESTS ',
       sortable: false,
       renderCell: params => (
-        <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.sub_test_count ? params.row.sub_test_count : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+            {params.row.sub_test_count ? params.row.sub_test_count : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
       flex: 0.4,
-      minWidth: 200,
+      minWidth: 40,
       field: 'user_name',
       headerName: 'CREATED BY',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* <Avatar
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
@@ -260,60 +246,30 @@ const LabTest = () => {
             ) : (
               <Icon icon='mdi:user' />
             )}
-          </Avatar> */}
-          <FallbackAvatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              background: theme.palette.customColors.displaybgPrimary,
-              overflow: 'hidden'
-            }}
-            src={params?.row.created_by_user?.profile_pic}
-          />
+          </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Tooltip title={params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}>
-              <Typography
-                noWrap
-                variant='body2'
-                sx={{
-                  color: 'text.primary',
-                  fontSize: 14,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
-              </Typography>
-            </Tooltip>
-            <Tooltip title={params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}>
-              <Typography
-                noWrap
-                variant='body2'
-                sx={{
-                  color: theme.palette.customColors.neutralSecondary,
-                  fontSize: 12,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
-              </Typography>
-            </Tooltip>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+            </Typography>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}
+            >
+              {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
+            </Typography>
           </Box>
         </Box>
       )
     },
     {
       flex: 0.2,
-      minWidth: 100,
+      minWidth: 30,
       field: 'Action',
       headerName: 'Action',
       sortable: false,
+
+      // headerAlign: 'center',
       renderCell: params => (
         <>
           {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -380,18 +336,6 @@ const LabTest = () => {
 
             <DataGrid
               sx={{
-                paddingX: 5,
-                borderTopLeftRadius: '8px',
-                '& .MuiBox-root': {
-                  paddingX: 0
-                },
-                '.MuiDataGrid-main': {
-                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                  borderRadius: '8px'
-                },
-                '& .MuiDataGrid-footerContainer': {
-                  border: 'none !important'
-                },
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },

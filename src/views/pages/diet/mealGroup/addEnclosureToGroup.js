@@ -74,7 +74,6 @@ const AddEnclosureToGroup = ({
     const updatedChecked = updatedItems
 
     setSelectedItems(updatedItems)
-
     // setSelectedEnclosureIds(updatedIds) // update just the IDs for checking checkboxes
     setCheckedRows(updatedIds) 
   }
@@ -89,7 +88,6 @@ const AddEnclosureToGroup = ({
 
     if (loading) return 
     setLoading(true)
-
     const params = {
       site_id: selectedOption,
       enclosure_ids: JSON.stringify(selectedEnclosureIds),
@@ -142,7 +140,6 @@ const AddEnclosureToGroup = ({
           onClick={handleAdd}
           fullWidth
           disabled={loading}
-
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'
@@ -272,7 +269,6 @@ const AddEnclosureToGroup = ({
               fontWeight: 500,
               color: theme.palette.customColors.OnSurfaceVariant,
               ml: 2
-
               //   mb: mealType.type === 'view' && 4
             }}
           >
@@ -389,7 +385,6 @@ const AddEnclosureToGroup = ({
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       p: 4,
-
                       //   mb: 2,
                       boxShadow: 'none',
                       bgcolor: 'white',

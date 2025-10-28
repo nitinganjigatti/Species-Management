@@ -2,11 +2,10 @@ import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import ClusterSites from 'src/components/housing/clusters/ClusterSites'
 import ClusterSpecies from 'src/components/housing/clusters/ClusterSpecies'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
 import { getSpecificClusterAnalytics } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -25,7 +24,6 @@ const ClusterDetails = () => {
   const auth = useAuth()
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
-  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
   const [drawerType, setDrawerType] = useState(null)
@@ -51,7 +49,7 @@ const ClusterDetails = () => {
   }
 
   const handleAmimalsInsightClick = () => {
-    setDrawerType('animals-insights')
+    setDrawerType('animals')
     setDrawerData({
       queryKey: 'insights-animals-cluster-details-drawer',
       id: zooId,
@@ -98,25 +96,6 @@ const ClusterDetails = () => {
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
-  useEffect(() => {
-    // Updating URL with tab parameter when tab changes
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: selectedTab }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }, [selectedTab])
-
-  // To read the tab parameter on component mount
-  useEffect(() => {
-    if (router.query.tab) {
-      setSelectedTab(router.query.tab)
-    }
-  }, [router.query.tab])
-
   return (
     <>
       <Box>
@@ -153,23 +132,15 @@ const ClusterDetails = () => {
           data={data?.data}
           loading={isLoading}
           zooName={data?.data?.cluster_name}
-          image={data?.data?.images?.[0]?.file}
           userName={data?.data?.cluster_incharge}
           error={error}
-          haveInsightsViewAccess={insightsViewAccess}
           onCallClick={() => {
             const phoneNumber = data?.data?.incharge_mobile_no || ''
             if (phoneNumber) {
-              window.location.href = `tel:${phoneNumber}`
+              // window.location.href = `tel:${phoneNumber}`
             } else {
               return
             }
-          }}
-          onMessageClick={() => {
-            const phoneNumber = data?.data?.incharge_mobile_no || ''
-            if (phoneNumber) {
-              window.open(`sms:${phoneNumber}`)
-            } else return
           }}
           statsData={statsData}
         />
@@ -195,17 +166,9 @@ const ClusterDetails = () => {
           </Box>
         </Card>
       </Box>
-      {drawerType === 'animals-insights' && (
-        <AnimalDrawer
-          totalCount={data?.data?.cluster_stats?.animals}
-          open={!!drawerData}
-          onClose={handleDrawerClose}
-          data={drawerData}
-          defaultImage={'/images/housing/cluster-icon-colored.svg'}
-        />
-      )}
+      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
     </>
   )
 }
 
-export default enforceModuleAccess(ClusterDetails, 'enable_housing_in_web')
+export default ClusterDetails
