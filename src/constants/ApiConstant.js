@@ -272,6 +272,8 @@ export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
 export const ALL_REQUESTED_ITEMS_REPORT = 'all-requested-items'
 
+export const RECONCILIATION_REPORT = 'stock/reconciliation-report'
+
 export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bulkInsert'
 
 export const STOCK_LIST = 'stock-item'
