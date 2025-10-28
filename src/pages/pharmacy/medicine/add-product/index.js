@@ -34,7 +34,6 @@ import Alert from '@mui/material/Alert'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { debounce } from 'lodash'
 import toast from 'react-hot-toast'
-
 import { LoadingButton } from '@mui/lab'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -72,7 +71,6 @@ import GenericNamesList from '../../masters/generic'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
-import ControlledCheckbox from 'src/views/forms/form-fields/ControlledCheckbox'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -1865,14 +1863,14 @@ const AddMedicine = () => {
                                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.url?.message}</FormHelperText>
                               )}
                             </FormControl>
-                            <ControlledCheckbox
+                            {/* <ControlledCheckbox
                               name='priority'
                               label='Critical'
                               control={control}
                               checkedValue='critical'
                               uncheckedValue=''
                               errors={errors}
-                            />
+                            /> */}
                           </Grid>
 
                           {/* <Grid item size={{xs: 12, sm: 6}}>
