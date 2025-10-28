@@ -9,26 +9,17 @@ import { getEnclosureWiseSpecies } from 'src/lib/api/housing'
 import { GenderInfoCard } from 'src/utility/render'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import AnimalDrawer from '../utils/AnimalDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 
-const EnclosureWiseSpecies = ({
-  selectedTab,
-  setSelectedTab,
-  drawerType,
-  setDrawerType,
-  drawerData,
-  setDrawerData
-}) => {
+const EnclosureWiseSpecies = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
 
   const [inputValue, setInputValue] = useState('')
-  const [downloading, setDownloading] = useState(false)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -70,7 +61,7 @@ const EnclosureWiseSpecies = ({
     () =>
       listing.map((row, index) => ({
         ...row,
-        id: +row?.taxonomy_id,
+        id: +row?.taxonomy_id || +row?.tsn_id,
         sl_no: getSlNo(index)
       })),
     [listing, filters.page, filters.pageSize]
