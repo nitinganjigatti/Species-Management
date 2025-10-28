@@ -248,7 +248,7 @@ const FilterSheet = ({
                 bgcolor: '#fff',
                 borderRadius: '8px',
                 width: '345px',
-                height: 'calc(100vh - 190px)',
+                height: 'calc(100dvh - 125px)',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: 0,
