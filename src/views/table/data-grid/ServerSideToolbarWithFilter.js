@@ -33,7 +33,7 @@ const ServerSideToolbarWithFilter = props => {
         inputRef={inputRef1}
         onFocus={handleFocus}
         onChange={props.onChange}
-        placeholder='Search'
+        placeholder='Search…'
         sx={{
           width: {
             xs: 1,
@@ -68,7 +68,7 @@ const ServerSideToolbarWithFilter = props => {
         }}
       />
     </Box>
-  )
+  );
 }
 
 export default ServerSideToolbarWithFilter

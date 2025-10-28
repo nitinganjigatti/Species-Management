@@ -18,7 +18,6 @@ const AnimalDetailsDrawer = ({
   const theme = useTheme()
   const router = useRouter()
   const { action } = router.query
-
   const handleClick = () => {
     setanimalCountDrawerOpen(true)
     setCurrentSpeciesId(animalDetails.tsn_id)
@@ -28,7 +27,6 @@ const AnimalDetailsDrawer = ({
   return (
     <Drawer
       open={open}
-
       //onClose={onClose}
       anchor='right'
     >
@@ -106,7 +104,7 @@ const AnimalDetailsDrawer = ({
             <Grid container spacing={2}>
               <Grid size={{ xs: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
-                  Common Name
+                  Species Name
                 </Typography>
                 <Typography
                   fontWeight={500}
@@ -134,7 +132,7 @@ const AnimalDetailsDrawer = ({
                   fontWeight={500}
                   sx={{ mt: 0.5, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
                 >
-                  {animalDetails?.appendix || 'N/A'}
+                  {animalDetails?.cites || 'N/A'}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6 }} sx={{ mt: 3 }}>
@@ -259,7 +257,6 @@ const AnimalDetailsDrawer = ({
                       width: 40,
                       height: 40,
                       borderRadius: '4px'
-
                       //ml: 4
                     }}
                   >

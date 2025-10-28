@@ -9,8 +9,6 @@ function UserAvatarDetails({
   date,
   text_color,
   description,
-  role,
-  crby_width,
   size = 'large',
   show_time = false
 }) {
@@ -18,7 +16,7 @@ function UserAvatarDetails({
     small: {
       profile_picture: { width: '24px', height: '24px' },
       gap: '8px',
-      user_name: { fontSize: '14px', fontWeight: 500 },
+      user_name: { fontSize: '12px', fontWeight: 500 },
       date: { fontSize: '10px', fontWeight: 500 }
     },
     medium: {
@@ -64,13 +62,12 @@ function UserAvatarDetails({
                     variant='subtitle2'
                     sx={{
                       color: text_color ?? 'text.primary',
-                      width: crby_width ? crby_width : '100px',
+
                       // fontSize: fontSize,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-
-                      // maxWidth: 100,
+                      maxWidth: 100,
                       ...(selectedAvatarSize?.user_name || {})
                     }}
 
@@ -90,12 +87,6 @@ function UserAvatarDetails({
                   </>
                 )}
               </>
-            )}
-
-            {role && (
-              <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
-                <span>{role}</span>
-              </Typography>
             )}
 
             {date && (

@@ -31,7 +31,6 @@ const TestDetails = props => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
-
   // console.log('editParams', editParams)
 
   const getLabTestById = useCallback(async id => {
@@ -40,7 +39,6 @@ const TestDetails = props => {
     }
     setLoading(true)
     const response = await getLabTestDetailsById(params)
-
     // console.log('add state comp', response)
     if (response?.success) {
       setTestDetails(response.data)

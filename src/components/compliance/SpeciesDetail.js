@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Typography, Divider, useTheme, Grid, Chip, alpha, Tooltip } from '@mui/material'
+import { Box, Typography, Divider, useTheme, Grid, Chip, alpha } from '@mui/material'
 import { ChevronRight as ChevronRightIcon } from '@mui/icons-material'
 import AnimalDetailDrawer from 'src/components/compliance/drawer/AnimalDetailDrawer'
 
@@ -102,28 +102,10 @@ const SpeciesDetail = ({ species = [], speciesCount, animalsCount }) => {
               }}
               onClick={() => handleOpenDrawer(specie)}
             >
-              <Box sx={{ flex: 1.8, minWidth: 0 }}>
-                {specie?.common_name && <Tooltip title={specie?.common_name} arrow>
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: 'block'
-                    }}
-                  >
-                    {specie?.common_name || '-'}
-                  </Typography>
-                </Tooltip>}
-                <Typography
-                  sx={{ fontStyle: 'italic', fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                >
-                  {specie.scientific_name}
-                </Typography>
-                <Typography sx={{ fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {specie.appendix}
-                </Typography>
+              <Box sx={{ flex: 1.8 }}>
+                <Typography sx={{ fontWeight: 500 }}>{specie.common_name}</Typography>
+                <Typography sx={{ fontStyle: 'italic', fontSize: '0.875rem' }}>{specie.scientific_name}</Typography>
+                <Typography sx={{ fontSize: '0.875rem' }}>{specie.appendix}</Typography>
               </Box>
               <Box
                 sx={{

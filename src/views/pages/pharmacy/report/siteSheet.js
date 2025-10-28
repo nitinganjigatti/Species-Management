@@ -1,8 +1,8 @@
-import { Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextField, Typography } from '@mui/material'
+import { Button, Checkbox, Divider, Drawer, FormControlLabel, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { LoadingButton } from '@mui/lab'
 
 const SiteSheet = ({
@@ -15,46 +15,26 @@ const SiteSheet = ({
   apiFilterParams,
   handleSelectedSite
 }) => {
-  const searchInputRef = useRef(null)
-
   const [searchValue, setSearchValue] = useState('')
   const [tempSelectedSites, setTempSelectedSites] = useState([])
 
-  // console.log('selected Sites >', selectedSites)
+  console.log('selected Sites >', selectedSites)
 
   useEffect(() => {
     if (openSiteDrawer) {
-      const storedSiteIds = selectedSites.includes('All Sites') ? ['All Sites'] : selectedSites
-      setTempSelectedSites(storedSiteIds)
-    } else {
-      // Clear search when drawer closes
-      setSearchValue('')
-    }
-  }, [openSiteDrawer, selectedSites])
+      const storedSiteIds = selectedSites.includes('All Sites')
+        ? ['All Sites'] 
+        : selectedSites 
 
-  useEffect(() => {
-    if (openSiteDrawer) {
-      setTimeout(() => {
-        searchInputRef.current?.focus()
-      }, 100) // shorter delay for better UX
+      setTempSelectedSites(storedSiteIds) 
     }
-  }, [openSiteDrawer])
-
+  }, [openSiteDrawer, selectedSites]) 
   const handleSelectAll = event => {
-    const filteredSiteIds = filteredSites.map(site => site.site_id)
     if (event.target.checked) {
-      // Add only filteredSiteIds (merge with previous)
-      setTempSelectedSites(prev => [...new Set([...prev, ...filteredSiteIds])])
+      setTempSelectedSites(sites.map(site => site.site_id))
     } else {
-      // Remove only filteredSiteIds from current selection
-      setTempSelectedSites(prev => prev.filter(site_id => !filteredSiteIds.includes(site_id)))
+      setTempSelectedSites([])
     }
-  }
-
-  const handleClearFilter = () => {
-    setTempSelectedSites([]) // Clear temporary selection
-    setSearchValue('') // Clear search input
-    // setSelectedSites([]) // Clear selected sites in context
   }
 
   const handleToggleSite = siteId => {
@@ -68,8 +48,9 @@ const SiteSheet = ({
   const filteredSites = sites.filter(site => site.site_name.toLowerCase().includes(searchValue.toLowerCase()))
 
   const handleConfirmSelection = () => {
-    const totalSites = [...sites]
-    const selectedArr = [...tempSelectedSites]
+   
+    const totalSites = [...sites] 
+    const selectedArr = [...tempSelectedSites] 
 
     const sortedSelectedSites = selectedArr.sort((a, b) => a - b)
 
@@ -84,11 +65,11 @@ const SiteSheet = ({
       ...sortedUnSelectedSites
     ]
 
-    setSites(mergedSites)
+    setSites(mergedSites) 
 
     console.log('Merged and Sorted Sites:', mergedSites)
 
-    handleSelectedSite(sortedSelectedSites)
+    handleSelectedSite(sortedSelectedSites) 
     setOpenSiteDrawer(false)
   }
 
@@ -108,6 +89,7 @@ const SiteSheet = ({
         backgroundColor: 'background.default'
       }}
     >
+      
       <Box
         className='sidebar-header'
         sx={{
@@ -129,13 +111,13 @@ const SiteSheet = ({
         </IconButton>
       </Box>
 
-      <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto', height: 'calc(100dvh - 120px)' }}>
+     
+      <Box sx={{ p: 5, backgroundColor: 'background.default', overflowY: 'auto' }}>
         <Box
           sx={{
             p: 3,
             flex: 1,
             width: '100%',
-            height: 'calc(100% - 60px)',
             display: 'flex',
             backgroundColor: '#FFFF !important',
             flexDirection: 'column',
@@ -143,29 +125,23 @@ const SiteSheet = ({
             borderRadius: '8px'
           }}
         >
+        
           <TextField
             fullWidth
-            inputRef={searchInputRef}
             placeholder='Search'
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
             sx={{ mb: 2 }}
           />
 
+        
           {filteredSites.length > 0 && (
             <FormControlLabel
               control={
                 <Checkbox
-
-                  // checked={tempSelectedSites.length === sites.length}
+                  checked={tempSelectedSites.length === sites.length}
                   onChange={handleSelectAll}
-
-                  // indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
-                  checked={filteredSites.every(site => tempSelectedSites.includes(site.site_id))}
-                  indeterminate={
-                    filteredSites.some(site => tempSelectedSites.includes(site.site_id)) &&
-                    !filteredSites.every(site => tempSelectedSites.includes(site.site_id))
-                  }
+                  indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
                 />
               }
               label={
@@ -185,6 +161,7 @@ const SiteSheet = ({
           )}
           <Divider sx={{ mb: 4 }} />
 
+         
           <Box
             sx={{
               display: 'flex',
@@ -221,7 +198,7 @@ const SiteSheet = ({
                     fontFamily: 'Inter',
                     color: theme.palette.customColors.Outline,
                     fontSize: '16px',
-                    flex: 1
+                    flex: 1 
                   }}
                 >
                   {site.site_name}
@@ -232,6 +209,7 @@ const SiteSheet = ({
         </Box>
       </Box>
 
+    
       <Box
         sx={{
           height: '122px',
@@ -249,9 +227,6 @@ const SiteSheet = ({
           zIndex: 123
         }}
       >
-        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearFilter}>
-          CLEAR ALL
-        </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={() => handleConfirmSelection()}>
           Confirm
         </LoadingButton>

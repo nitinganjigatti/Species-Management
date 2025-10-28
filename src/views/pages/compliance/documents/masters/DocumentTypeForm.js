@@ -63,7 +63,7 @@ const DocumentTypeForm = ({
         position: 'relative'
       }}
     >
-
+    
       <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{
@@ -133,7 +133,7 @@ const DocumentTypeForm = ({
                 control={control}
                 render={({ field }) => (
                   <>
-                    {tradeContextTypes?.map(opt => (
+                    {tradeContextTypes.map(opt => (
                       <FormControlLabel
                         key={opt.id}
                         labelPlacement='start'
@@ -193,45 +193,6 @@ const DocumentTypeForm = ({
             </Box>
           )}
           {errors.contexts && <FormHelperText>{errors.contexts.message}</FormHelperText>}
-        </FormControl>
-        <FormControl fullWidth>
-          <FormLabel
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontWeight: 500,
-              fontSize: '20px',
-              mb: 2,
-              '&.Mui-focused': {
-                color: theme.palette.customColors.OnSurfaceVariant
-              },
-              '&.Mui-error': {
-                color: theme.palette.customColors.OnSurfaceVariant
-              }
-            }}
-          >
-            Status
-          </FormLabel>
-          <Box
-            sx={{
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              p: 4,
-              borderRadius: '8px',
-              bgcolor: theme.palette.common.white,
-              mt: 2
-            }}
-          >
-            <Controller
-              name='active'
-              control={control}
-              render={({ field }) => (
-                <RadioGroup row {...field}>
-                  <FormControlLabel value='1' control={<Radio />} label='Active' />
-                  <FormControlLabel value='0' control={<Radio />} label='Inactive' />
-                </RadioGroup>
-              )}
-            />
-            {errors.active && <FormHelperText error>{errors.active.message}</FormHelperText>}
-          </Box>
         </FormControl>
 
         {/* <FormControl fullWidth>

@@ -60,7 +60,7 @@ const RoomDetails = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [detailsData, setDetailsData] = useState({})
 
@@ -128,7 +128,6 @@ const RoomDetails = () => {
         console.error(error)
       }
     }, 1000),
-
     // []
     [fetchTableData]
   )
@@ -221,7 +220,7 @@ const RoomDetails = () => {
 
     {
       flex: 0.27,
-      minWidth: 120,
+      minWidth: 30,
       sortable: false,
       field: 'incubator_code',
       headerName: 'INCUBATOR ID',
@@ -245,7 +244,7 @@ const RoomDetails = () => {
     },
     {
       flex: 0.35,
-      minWidth: 140,
+      minWidth: 30,
       sortable: false,
       field: 'incubator_name',
       headerName: 'INCUBATOR NAME',
@@ -269,7 +268,7 @@ const RoomDetails = () => {
     },
     {
       flex: 0.3,
-      minWidth: 120,
+      minWidth: 10,
       sortable: false,
       field: 'availability',
       headerName: 'AVAILABILITY',
@@ -282,8 +281,7 @@ const RoomDetails = () => {
               fontWeight: '500',
               lineHeight: '16.94px',
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              textOverflow: 'ellipsis'
             }}
           >
             {params.row.availability ? params.row.availability : '-'}
@@ -293,7 +291,7 @@ const RoomDetails = () => {
     },
     {
       flex: 0.3,
-      minWidth: 120,
+      minWidth: 20,
       sortable: false,
       field: 'site_name',
       headerName: 'SITE',
@@ -316,7 +314,7 @@ const RoomDetails = () => {
     },
     {
       flex: 0.3,
-      minWidth: 120,
+      minWidth: 20,
       sortable: false,
       field: 'room_name',
       headerName: 'ROOM',
@@ -339,7 +337,7 @@ const RoomDetails = () => {
     },
     {
       flex: 0.2,
-      minWidth: 80,
+      minWidth: 20,
       sortable: false,
       align: 'center',
       field: 'max_no_eggs',
@@ -363,7 +361,7 @@ const RoomDetails = () => {
     },
     {
       flex: 0.14,
-      minWidth: 80,
+      minWidth: 20,
       sortable: false,
       align: 'center',
       field: 'no_of_eggs',
@@ -387,7 +385,7 @@ const RoomDetails = () => {
     },
     {
       flex: 0.2,
-      minWidth: 100,
+      minWidth: 20,
       sortable: false,
       align: 'center',
       field: 'active',
@@ -411,7 +409,7 @@ const RoomDetails = () => {
     },
     {
       flex: 0.5,
-      minWidth: 220,
+      minWidth: 60,
       sortable: false,
       field: 'added_by',
       headerName: 'ADDED BY',
@@ -642,7 +640,7 @@ const RoomDetails = () => {
                   <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
                   <TextField
                     variant='outlined'
-                    placeholder='Search'
+                    placeholder='Search...'
                     InputProps={{
                       disableUnderline: true
                     }}
@@ -713,16 +711,13 @@ const RoomDetails = () => {
               <Box>
                 <DataGrid
                   sx={{
-                    paddingX: 4,
-                    borderTopLeftRadius: '8px',
-                    '& .MuiBox-root': { paddingX: 0 },
-                    '.MuiDataGrid-main': {
-                      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                      borderRadius: '8px'
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
                     },
-                    '& .MuiDataGrid-footerContainer': { border: 'none !important' },
-                    '.MuiDataGrid-cell:focus': { outline: 'none' },
-                    '& .MuiDataGrid-row:hover': { cursor: 'pointer' }
+
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    }
                   }}
                   columnVisibilityModel={{
                     sl_no: false

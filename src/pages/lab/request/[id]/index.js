@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useContext } from 'react'
 import Router from 'next/router'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+// ** MUI Imports
 import {
   Button,
   Box,
@@ -42,7 +43,9 @@ import { useForm, Controller } from 'react-hook-form'
 import moment from 'moment'
 import { debounce } from 'lodash'
 
+import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
+
 import Icon from 'src/@core/components/icon'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import ScrollToTop from 'src/@core/components/scroll-to-top'
@@ -57,12 +60,12 @@ import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
 import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
 
+// APIs
 import {
   GetRequestDetails,
   GetRequestPopUp,
   DeleteLAbRequestAttachment,
-
-  // GetLabListByTestId,
+  GetLabListByTestId,
   postBulkStatus,
   postBulkTransfer,
   getLabListByMultipleIds
@@ -92,7 +95,10 @@ const RequestDetails = () => {
   const [testImage, setTestImage] = useState([])
   const [testDoc, setTestDoc] = useState([])
 
+  const [transferStatus, setTransferStatus] = useState('')
+
   const [medicineId, setMedicineId] = useState()
+
   const [LabRequestId, setLabRequestId] = useState()
   const [animanlId, setAnimalId] = useState()
 
@@ -107,6 +113,8 @@ const RequestDetails = () => {
 
   const [status, setStatus] = React.useState('awaiting_sample')
 
+  const PrvLabId = request[0]?.lab_id
+
   const [lab, setLab] = React.useState([])
 
   /***** Serverside pagination */
@@ -117,14 +125,14 @@ const RequestDetails = () => {
   const [rowId, setRowId] = useState(null)
 
   const [searchValue, setSearchValue] = useState('')
-
-  // const [sortColumn, setSortColumn] = useState('name')
+  const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [testId, setTestId] = useState([])
   const [requestId, setRequestId] = useState()
+  const [labId, setLab_id] = useState('')
 
-  // const [labId, setLab_id] = useState('')
+  const [fileId, setFileId] = useState()
 
   const [testName, setTestName] = useState()
   const [testSampleName, setTestSampleName] = useState('')
@@ -144,6 +152,7 @@ const RequestDetails = () => {
   const [openAttachmentSheet, setOpenAttachmentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
 
+  // const [attachmentData, setAttachmentCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
   const [statusList, setStatusList] = useState([])
@@ -153,6 +162,8 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
+
+    // console.log('labObject', labObject)
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
@@ -166,7 +177,6 @@ const RequestDetails = () => {
         value === 'completed_negative' ||
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
-
         // value === 'completed_insufficient_samples'||
         value === 'completed_inconclusive' ||
         value === 'completed') &&
@@ -299,8 +309,7 @@ const RequestDetails = () => {
       const testReports = requestData[0]?.test_reports || []
 
       setStatusList(response?.data?.lab_test_status_master)
-
-      // setLab_id(requestData[0]?.lab_id)
+      setLab_id(requestData[0]?.lab_id)
       setAnimalId(requestData[0]?.animal_details?.animal_id)
       setLabRequestId(requestData[0]?.request_id)
       setMedicineId(requestData[0]?.medical_record_id)
@@ -333,6 +342,14 @@ const RequestDetails = () => {
     }
   }, [])
 
+  const getLabList = async params => {
+    await GetLabListByTestId({ params }).then(res => {
+      setLab(res?.data?.result)
+
+      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+    })
+  }
+
   const getAccessLabs = async (id, labId) => {
     const params = {
       test_ids: labId
@@ -347,6 +364,9 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = async params => {
+    // console.log('params', params?.row)
+    // const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
+
     const hasCompleted = selectedRowData?.filter(item =>
       [
         'completed',
@@ -372,16 +392,21 @@ const RequestDetails = () => {
       setTestSampleName(params?.row?.sample_name)
       setTestId([params?.row?.id])
       await getAccessLabs(LabRequestId, labTestId)
+
+      // console.log('first', params?.row?.id)
     } else {
       setFromParam(false)
-
-      // setTransferStatus(params?.row?.status)
+      setTransferStatus(params?.row?.status)
       if (selectedRow?.length === 1) {
         setTestName(selectedRowData[0]?.test_name)
         setTestSampleName(selectedRowData[0]?.sample_name)
       }
       await getAccessLabs(LabRequestId, selectedRow)
     }
+
+    // if (selectedRow.length >= 1) {
+    // } else {
+    // }
   }
 
   useEffect(() => {
@@ -404,6 +429,19 @@ const RequestDetails = () => {
     []
   )
 
+  const [anchorEl, setAnchorEl] = useState(null)
+
+  const handleOpenPopOver = (event, params) => {
+    setAnchorEl(event.currentTarget)
+    setTestId(params?.row?.id)
+    setTransferStatus(params?.row?.status)
+    setTestName(params?.row?.test_name)
+  }
+
+  const handleClosePopover = () => {
+    setAnchorEl(null)
+  }
+
   const handleOpenUploader = (e, params) => {
     setOpenUploader(true)
     setTestId(params?.row?.id)
@@ -422,6 +460,7 @@ const RequestDetails = () => {
     (permissions?.perform_tests && !permissions?.allow_upload_reports)
 
   const handleOpenCommentSheet = (e, params) => {
+    // console.log('params', params)
     setOpenCommentSheet(true)
     setCommentData(params)
   }
@@ -431,6 +470,8 @@ const RequestDetails = () => {
     const st = statusList.filter(status => status.key === params.row.status)
     const st1 = filteredStatusData.filter(status => status.key === params.row.status)
 
+    // console.log('statusList', statusList)
+    // console.log('st', st)
     if (st1?.length === 0) {
       return false
     } else if (
@@ -525,15 +566,13 @@ const RequestDetails = () => {
       align: 'center',
       renderCell: params => {
         const isSelected = selectedRowData?.some(item => item?.id === params?.id)
-
         return (
           <>
             <Box sx={{ minWidth: 260 }}>
               {shouldShowDropdown && handleRowPermission({ params }) ? (
                 <FormControl fullWidth variant='outlined'>
                   <Select
-
-                    // disabled={isSelected}
+                    disabled={isSelected}
                     size='small'
                     labelId='demo-simple-select-label'
                     id='demo-simple-select'
@@ -551,11 +590,11 @@ const RequestDetails = () => {
                         params.row.status === 'completed_insufficient_samples' ||
                         params.row.status === 'sample_haemolysed' ||
                         params.row.status === 'sample_rejected'
-                          ? 'rgba(255, 0, 0, 0.1)'
+                          ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                           : params.row.status === 'completed'
-                          ? 'rgba(0, 128, 0, 0.1)'
+                          ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
                           : params.row.status === 'inprogress'
-                          ? 'rgba(228, 184, 25, 0.1)'
+                          ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
                           : params.row.status === 'sample_received'
                           ? 'rgba(0, 128, 0, 0.1)'
                           : 'rgba(0, 128, 0, 0.1)',
@@ -805,16 +844,15 @@ const RequestDetails = () => {
     }
   }
 
-  // const handleSearch = async value => {
-  //   setSearchValue(value)
-  //   await searchTableData({ sort, q: value, column: sortColumn })
-  // }
+  const handleSearch = async value => {
+    setSearchValue(value)
+    await searchTableData({ sort, q: value, column: sortColumn })
+  }
 
   const handleCloseTransfer = () => {
     reset()
     setOpenTransfer(false)
-
-    // handleClosePopover()
+    handleClosePopover()
     setTestId([])
     setLab([])
   }
@@ -873,6 +911,8 @@ const RequestDetails = () => {
       ...params
     }
 
+    // console.log('selectedRowData', selectedRowData)
+    // console.log('selectedRow', selectedRow)
     if (selectedRowData.some(item => item?.status === 'completed')) {
       Toaster({ type: 'error', message: "A test with status 'completed' was found!" })
       setOpenTransfer(false)
@@ -915,8 +955,7 @@ const RequestDetails = () => {
     e.stopPropagation()
 
     const testId = item?.id
-
-    // setFileId(item?.id)
+    setFileId(item?.id)
     try {
       setDeleteAttachmentLoader(true)
       const params = { lab_test_id: id }
@@ -979,10 +1018,12 @@ const RequestDetails = () => {
 
       const res = await postBulkStatus({ params })
       if (res?.success) {
+        // console.log('res', res)
         Toaster({ type: 'success', message: res.message })
         fetchRequestDetails()
       }
     } catch (error) {
+      // console.error('Error fetching data:', error)
       Toaster({ type: 'error', message: res.message })
     }
   }
@@ -996,7 +1037,6 @@ const RequestDetails = () => {
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
         value === 'completed_inconclusive' ||
-
         // value === 'completed_insufficient_samples' ||
         value === 'completed') &&
       !(image || document)
@@ -1018,6 +1058,14 @@ const RequestDetails = () => {
       <Box>
         {/* Top row with optional back button */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/*
+          <IconButton
+            sx={{ mr: 1 }}
+            onClick={() => router.push({ pathname: '/lab/request' })}
+          >
+            <Icon icon='ep:back' fontSize={25} />
+          </IconButton>
+          */}
           <Typography variant='h6'>
             Request ID -{' '}
             <span
@@ -1134,6 +1182,29 @@ const RequestDetails = () => {
           {testList?.map((item, index) => (
             <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
               <HeaderCard item={item} handleClickOpen={null} />
+
+              {/* <Box ml={3}>
+              <Typography variant='h6'>
+                Request -{' '}
+                <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
+              </Typography>
+              <Typography>{Utility.formatDate(item.created_at)}</Typography>
+              <Typography>
+                Site - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
+              </Typography>
+            </Box> */}
+              {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
+              <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography>
+                  No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
+                </Typography>
+
+              </Box>
+              <Typography>
+                Request By - <span style={{ fontWeight: 'bold' }}>{item?.user_first_name}</span>
+              </Typography>
+            </Box> */}
+
               <Box
                 sx={{
                   mt: 2
@@ -1219,7 +1290,9 @@ const RequestDetails = () => {
       ) : (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography color='inherit'>Labs</Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Labs
+            </Typography>
             <Typography
               sx={{ cursor: 'pointer' }}
               color='inherit'
@@ -1234,7 +1307,8 @@ const RequestDetails = () => {
             </Typography>
             <Typography
               sx={{
-                color: 'text.primary'
+                color: 'text.primary',
+                cursor: 'pointer'
               }}
             >
               Lab request details
@@ -1244,13 +1318,12 @@ const RequestDetails = () => {
           <Card sx={{ p: 5 }}>
             <CardHeader sx={{ py: 0, ml: -4 }} title='Request Details Page' />
             {request?.map((item, index) => (
-              <Box key={index} sx={{ display: 'flex', gap: 3, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                 <HeaderCard key={index} item={item} handleClickOpen={handleClickOpen} />
+
                 <Box
                   sx={{
-                    width: '400px',
-
-                    // maxWidth: '400px',
+                    minWidth: '400px',
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'center',
@@ -1293,6 +1366,7 @@ const RequestDetails = () => {
           </Card>
 
           <Card sx={{ mt: 5 }}>
+            {/* <CardHeader title='Lab Tests' /> */}
             <Box
               sx={{
                 px: 5,
@@ -1340,7 +1414,6 @@ const RequestDetails = () => {
                           size='small'
                           labelId='demo-simple-select-label'
                           id='demo-simple-select'
-
                           // defaultValue={'awaiting_sample'}
                           value={headerStatus}
                           onChange={e => handleHeaderDropdown(e)}
@@ -1438,6 +1511,7 @@ const RequestDetails = () => {
               )}
             </Box>
 
+            {/* {JSON.stringify(statusList)} */}
             <DataGrid
               checkboxSelection={
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
@@ -1465,6 +1539,7 @@ const RequestDetails = () => {
                         'inprogress'
                       ].includes(item.key)
                     )) ||
+                  // params.row.status.includes('completed'))
                   (permissions?.perform_tests === false &&
                     permissions?.transfer_tests === true &&
                     permissions?.allow_upload_reports === false &&
@@ -1482,15 +1557,6 @@ const RequestDetails = () => {
                 },
                 '& .MuiDataGrid-row .customButton': {
                   display: 'none'
-                },
-                '& .MuiDataGrid-row.Mui-selected': {
-                  backgroundColor: 'white !important'
-                },
-                '& .MuiDataGrid-row.Mui-selected:hover': {
-                  backgroundColor: 'white !important'
-                },
-                '& .MuiDataGrid-row.Mui-selected.MuiDataGrid-row--focused': {
-                  backgroundColor: 'white !important'
                 }
               }}
               autoHeight
@@ -1505,6 +1571,14 @@ const RequestDetails = () => {
                 baseButton: {
                   variant: 'outlined'
                 }
+                // toolbar: {
+                //   value: searchValue,
+                //   clearSearch: () => handleSearch(''),
+                //   onChange: event => {
+                //     setSearchValue(event.target.value)
+                //     return handleSearch(event.target.value)
+                //   }
+                // }
               }}
             />
           </Card>
@@ -1538,6 +1612,7 @@ const RequestDetails = () => {
                   />
                 ) : null}
               </Box>
+
               {/* image or Doc View */}
               {image?.length > 0 || document?.length > 0 ? (
                 <Box sx={{ px: 5, mb: 8 }}>
@@ -1553,9 +1628,19 @@ const RequestDetails = () => {
                         permissions={permissions}
                       />
                     )}
+                    {/* {document && (
+                      <CommonMediaView
+                        allCompleted={allCompleted}
+
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        permissions={permissions}
+                      />
+                    )} */}
                   </Box>
                 </Box>
               ) : null}
+
               {/* allow user Only if user hand upload permissions */}
             </Card>
           ) : null}
@@ -1783,6 +1868,7 @@ const RequestDetails = () => {
                 ) : (
                   <>
                     <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
+
                     <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
                       {testSampleName ? testSampleName : '-'}
                     </Typography>
@@ -1818,7 +1904,14 @@ const RequestDetails = () => {
                           />
                         )}
                       />
-                      {errors.lab_name && <FormHelperText>{errors?.lab_name?.message}</FormHelperText>}
+                      {errors.lab_name && (
+                        <FormHelperText
+
+                        //  sx={{ color: 'error.main' }}
+                        >
+                          {errors?.lab_name?.message}
+                        </FormHelperText>
+                      )}
                     </FormControl>
                   </Grid>
                   <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
@@ -1837,6 +1930,8 @@ const RequestDetails = () => {
                             label='Transfer To*'
                             onChange={e => {
                               onChange(e.target.value)
+
+                              // setLabType(e.target.value)
                             }}
                             error={Boolean(errors?.replaced_lab_id)}
                             labelId='replaced_lab_id'
@@ -1954,6 +2049,7 @@ const RequestDetails = () => {
               type='lab_test'
               id={testId}
               handleCloseUploader={() => setOpenUploader(false)}
+              handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
               buttonText='Upload'
             />
@@ -1983,6 +2079,7 @@ const RequestDetails = () => {
             {testImage || testDoc ? (
               <>
                 <Box sx={{ px: 5 }}>
+                  {/* <CommonMediaView /> */}
                   {testImage ? (
                     <Box>
                       <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>

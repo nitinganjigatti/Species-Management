@@ -7,12 +7,10 @@ const truncateText = (text, limit) => {
   return text.length > limit ? text.slice(0, limit) + '...' : text
 }
 
-const TextEllipsisWithModal = ({ enableDialog = true, placement = 'bottom', arrow = false, ...props }) => {
+const TextEllipsisWithModal = ({ ...props }) => {
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleOpen = () => {
-    if (enableDialog) setIsOpen(true)
-  }
+  const handleOpen = () => setIsOpen(true)
 
   const handleClose = () => setIsOpen(false)
 
@@ -33,7 +31,7 @@ const TextEllipsisWithModal = ({ enableDialog = true, placement = 'bottom', arro
             style={{ fontSize: '20px', color: props?.iconColor ? props?.iconColor : '#00000066', flexShrink: 0 }}
           />
         )}
-        <Tooltip sx={{ cursor: 'pointer' }} title={props?.text} placement={placement} arrow={arrow}>
+        <Tooltip sx={{ cursor: 'pointer' }} title={props?.text}>
           <Typography
             variant='body2'
             sx={{

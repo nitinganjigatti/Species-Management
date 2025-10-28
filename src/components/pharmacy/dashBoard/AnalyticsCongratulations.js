@@ -7,7 +7,6 @@ import CardContent from '@mui/material/CardContent'
 import Grid from '@mui/material/Grid'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { styled, useTheme } from '@mui/material/styles'
-import { flex } from '@mui/system'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)(({ theme }) => ({
@@ -38,87 +37,36 @@ const AnalyticsCongratulations = () => {
   return (
     <Card
       sx={{
-        backgroundColor: theme.palette.customColors.Outline,
-
-        display: 'flex',
-        alignItems: 'center'
+        background: '#839D8D'
       }}
     >
       <CardContent>
-        {/* <Grid container direction='row' alignItems='center' justifyContent='flex-start' wrap='nowrap' spacing={3}>
-          <Grid
+        <Grid sx={{ display: 'flex', alignItems: 'center' }}>
+          <StyledGrid
             item
-            sx={{
-              flexShrink: 0,
-
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
+            size={{
+              xs: 12,
+              md: selectedPharmacy.type === 'central' ? 3 : 2,
+              sm: selectedPharmacy.type === 'central' ? 4 : 4
             }}
           >
-            <Img src='/images/Graphic_pharmacy.png' alt='Pharmacy' />
-          </Grid>
+            <Img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
+          </StyledGrid>
+          {/* <Grid item xs={12} sm={3}>
+            <img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
+          </Grid> */}
 
-          <Grid
-            item
-            sx={{
-              color: 'white',
-              flexGrow: 1,
-              textAlign: 'left'
-            }}
-          >
-            <Typography
-              variant='h5'
-              sx={{
-                mb: 2,
-                color: 'white'
-              }}
-            >
+          <Grid item size={{ xs: 12, sm: 7, md: 9 }}>
+            <Typography variant='h5' sx={{ mb: 4.5, color: 'white' }}>
               Simplify operations and enhance productivity
             </Typography>
 
-            <Typography variant='body2' sx={{ color: 'white' }}>
-              Experience efficiency at your fingertips with the dashboard. Explore stock, inventory, and orders
+            <Typography sx={{ mb: 4.5, color: 'white' }} variant='body2'>
+              Experience efficiency at your fingertips with dashboard. Explore stock, inventory, and orders
               effortlessly. Let's elevate your pharmacy management!
             </Typography>
           </Grid>
-        </Grid> */}
-
-        <Box display='flex' flexDirection='row' alignItems='center' justifyContent='flex-start' gap={3}>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              flexShrink: 0
-            }}
-          >
-            <Img src='/images/Graphic_pharmacy.png' alt='Pharmacy' />
-          </Box>
-
-          <Box
-            sx={{
-              color: 'white',
-              flexGrow: 1,
-              textAlign: 'left'
-            }}
-          >
-            <Typography
-              variant='h5'
-              sx={{
-                mb: 2,
-                color: 'white'
-              }}
-            >
-              Simplify operations and enhance productivity
-            </Typography>
-
-            <Typography variant='body2' sx={{ color: 'white' }}>
-              Experience efficiency at your fingertips with the dashboard. Explore stock, inventory, and orders
-              effortlessly. Let's elevate your pharmacy management!
-            </Typography>
-          </Box>
-        </Box>
+        </Grid>
       </CardContent>
     </Card>
   )

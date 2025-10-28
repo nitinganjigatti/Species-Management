@@ -7,8 +7,6 @@ import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import { getSiteAnalytics } from 'src/lib/api/housing'
 import { useQuery } from '@tanstack/react-query'
 import { on } from 'geolocation'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
-import { AuthContext } from 'src/context/AuthContext'
 
 const Sites = () => {
   const router = useRouter()
@@ -16,10 +14,6 @@ const Sites = () => {
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
   const [siteDrawer, setSiteDrawer] = useState(false)
-
-  const authData = useAuth()
-  const insightsViewAccess = authData?.userData?.roles?.settings?.housing_view_insights
-  const addSiteAccess = authData?.userData?.permission?.user_settings?.add_sites
 
   const handleEnclosureInsightClick = () => {
     setDrawerType('enclosures')
@@ -36,19 +30,6 @@ const Sites = () => {
         ref_id: zooId
 
         // site_id: params.row?.site_id
-      }
-    })
-  }
-
-  const handleAnimalInsightClick = () => {
-    setDrawerType('insights-animals')
-    setDrawerData({
-      queryKey: 'insights-animals-sites-drawer',
-      id: zooId,
-      params: {
-        ref_type: 'zoo',
-        data_type: 'animal',
-        ref_id: zooId
       }
     })
   }
@@ -79,8 +60,7 @@ const Sites = () => {
     {
       label: 'Animals',
       value: data?.data?.zoo_stats?.total_animals || 0,
-      imagePath: '/images/housing/animals.svg',
-      onClick: handleAnimalInsightClick
+      imagePath: '/images/housing/animals.svg'
     },
     {
       label: 'Sections',
@@ -134,16 +114,14 @@ const Sites = () => {
         /> */}
         <InsightsCard
           data={data?.data}
-          image={data?.data?.images?.[0]?.file}
           loading={isLoading}
           pageTitle={'All Site Insights'}
           isListingPage
           error={error}
           isAllSites
-          haveInsightsViewAccess={insightsViewAccess}
           statsData={statsData}
           actions={{
-            onAddNew: addSiteAccess ? handleButtonClick : null
+            onAddNew: handleButtonClick
           }}
 
           // onAddNewClick={handleButtonClick}
@@ -157,7 +135,6 @@ const Sites = () => {
               setDrawerData={setDrawerData}
               siteDrawer={siteDrawer}
               setSiteDrawer={setSiteDrawer}
-              totalAnimalsCount={data?.data?.zoo_stats?.total_animals || 0}
             />
           </Card>
         </Box>
@@ -166,4 +143,4 @@ const Sites = () => {
   )
 }
 
-export default enforceModuleAccess(Sites, 'enable_housing_in_web')
+export default React.memo(Sites)

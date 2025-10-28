@@ -16,7 +16,6 @@ import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing },
@@ -34,9 +33,6 @@ const SiteDetails = () => {
   const router = useRouter()
   const { id } = router.query
   const auth = useAuth()
-
-  const insightsViewAccess = auth?.userData?.roles?.settings?.housing_view_insights
-  const addSectionAccess = auth?.userData?.roles?.settings?.housing_add_section
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
@@ -83,7 +79,7 @@ const SiteDetails = () => {
   }
 
   const handleAmimalsInsightClick = () => {
-    setDrawerType('animals-insights')
+    setDrawerType('animals')
     setDrawerData({
       queryKey: 'insights-animals-section-drawer',
       id: zooId,
@@ -137,25 +133,6 @@ const SiteDetails = () => {
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
-  useEffect(() => {
-    // Updating URL with tab parameter when tab changes
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: selectedTab }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }, [selectedTab])
-
-  // To read the tab parameter on component mount
-  useEffect(() => {
-    if (router.query.tab) {
-      setSelectedTab(router.query.tab)
-    }
-  }, [router.query.tab])
-
   return (
     <>
       <Box>
@@ -171,15 +148,13 @@ const SiteDetails = () => {
         <InsightsCard
           data={data?.data}
           loading={isLoading}
-          image={data?.data?.images?.[0]?.file}
           zooName={data?.data?.site_name}
           subtitle={data?.data?.site_description}
           userName={data?.data?.incharges?.[0]?.full_name}
           description={data?.data?.incharges?.[0]?.role_name}
-          haveInsightsViewAccess={insightsViewAccess}
           userImage={data?.data?.incharges?.[0]?.user_profile_pic}
           actions={{
-            onAddNew: addSectionAccess ? () => setShowAddSectionDrawer(true) : null
+            onAddNew: () => setShowAddSectionDrawer(true)
           }}
           onCallClick={() => {
             const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
@@ -189,12 +164,7 @@ const SiteDetails = () => {
               return
             }
           }}
-          onMessageClick={() => {
-            const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || ''
-            if (phoneNumber) {
-              window.open(`sms:${phoneNumber}`)
-            } else return
-          }}
+          // onMessageClick={() => console.log('Message clicked')}
           error={error}
           statsData={statsData}
         />
@@ -222,15 +192,7 @@ const SiteDetails = () => {
             />
           </Box>
         </Card>
-        {drawerType === 'animals-insights' && (
-          <AnimalDrawer
-            totalCount={data?.data?.animal_count}
-            open={!!drawerData}
-            onClose={handleDrawerClose}
-            data={drawerData}
-            defaultImage={'/images/housing/site-icon-colored.svg'}
-          />
-        )}
+        {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
         {drawerType === 'enclosures' && (
           <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
         )}
@@ -248,4 +210,4 @@ const SiteDetails = () => {
   )
 }
 
-export default enforceModuleAccess(SiteDetails, 'enable_housing_in_web')
+export default SiteDetails

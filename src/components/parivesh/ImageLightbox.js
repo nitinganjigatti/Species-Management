@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Avatar, Box, Tooltip } from '@mui/material'
 import { SlideshowLightbox } from 'lightbox.js-react'
-import 'lightbox.js-react/dist/index.css'
 
 // import 'lightbox.js-react/dist/index.css'
 
@@ -53,7 +52,6 @@ const ImageLightbox = ({ images }) => {
               />
             </SlideshowLightbox>
           ) : (
-
             // <Tooltip title='Image URL is incorrect or unavailable' arrow>
             <Avatar
               variant='square'

@@ -2,7 +2,6 @@
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 

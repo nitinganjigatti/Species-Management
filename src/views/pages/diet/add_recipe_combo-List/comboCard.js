@@ -574,7 +574,7 @@ const ComboCard = ({
                           top: '6.8px',
                           left: '6.8px'
                         }}
-                        src={item?.recipe_image ? item?.recipe_image : '/icons/icon_recipe_fill.png'}
+                        src={item?.recipe_image ? item?.recipe_image : '/icons/icon_diet_fill.png'}
                       ></Avatar>
                     )}
                   </Box>
@@ -599,11 +599,12 @@ const ComboCard = ({
                         variant='body'
                         sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
                       >
-                        {item?.recipe_no ? item?.recipe_no : 'MIX- 000'}
+                        {item?.recipe_no ? item?.recipe_no : 'CMB- 000'}
                       </Typography>
                     </Box>
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
+                      {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider> */}
                       <Box sx={{ ml: '10px', ml: 4 }}>
                         <Typography
                           sx={{
@@ -665,14 +666,13 @@ const ComboCard = ({
                           }}
                         >
                           <img
-                            src={ingredient?.ingredient_image || '/icons/icon_ingredient_fill.png'}
+                            src={ingredient?.ingredient_image || '/icons/Icon_ingredient.svg'}
                             alt={ingredient.ingredient_name}
                             style={{
                               width: '100%',
                               height: '100%',
                               objectFit: 'cover'
                             }}
-
                             // onError={e => {
                             //   e.target.src = '/icons/icon_ingredient.svg' // Fallback to default icon
                             // }}
@@ -858,11 +858,11 @@ const ComboCard = ({
       >
         {fromrow === 'rowedit_combo' ? (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD MIX
+            ADD COMBO
           </Button>
         ) : (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD MIX - {selectedCardCombo?.length} SELECTED
+            ADD COMBO - {selectedCardCombo?.length} SELECTED
           </Button>
         )}
       </Box>

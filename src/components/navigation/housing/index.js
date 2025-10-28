@@ -1,4 +1,4 @@
-const composeHousingNavigation = includeClusters => {
+const composeHousingNavigation = () => {
   const Title = {
     sectionTitle: 'Housing'
   }
@@ -20,15 +20,13 @@ const composeHousingNavigation = includeClusters => {
 
   const sites = {
     title: 'Sites',
-    path: '/housing/sites',
-    icon: <img style={{ width: '20px', height: '20px' }} src='/icons/site.svg' alt='Site Icon' />,
-    activeIcon: <img style={{ width: '16px', height: '16px' }} src='/icons/site_active.svg' alt='Site Icon' />
+    path: '/housing/sites'
+
+    // icon: 'mdi:rabbit-variant-outline'
   }
 
   const clusters = {
     title: 'Clusters',
-    icon: <img style={{ width: '20px', height: '20px' }} src='/icons/cluster.svg' alt='Cluster Icon' />,
-    activeIcon: <img style={{ width: '20px', height: '20px' }} src='/icons/cluster_active.svg' alt='Cluster Icon' />,
     path: '/housing/cluster'
   }
 
@@ -41,8 +39,7 @@ const composeHousingNavigation = includeClusters => {
 
   // housingParent.children.push(dashboard)
   housingParent.children.push(sites)
-
-  if (includeClusters) housingParent.children.push(clusters)
+  housingParent.children.push(clusters)
 
   // housingParent.children.push(sections)
 
@@ -54,6 +51,6 @@ const composeHousingNavigation = includeClusters => {
   return housingNavigationArray
 }
 
-const housingNavigation = includeClusters => composeHousingNavigation(includeClusters)
+const housingNavigation = () => composeHousingNavigation()
 
 export default housingNavigation

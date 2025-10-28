@@ -195,7 +195,6 @@ const CreateEnclosure = ({
             onClick={event => {
               event.stopPropagation()
               setSelectedEnclosureIds([]) 
-
               // setCheckedRows([]) // ✅ clear checkboxes
               setSelectedItems([]) 
               setEnclosureDrawer(false)

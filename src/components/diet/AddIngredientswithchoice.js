@@ -45,23 +45,13 @@ const AddIngredientswithChoice = props => {
     feedType,
     fromrow,
     ingredientwithChoiceId,
-    ingredientwithChoiceName,
-    setIngredientList,
-    ingredientList,
-    totalCount,
-    setTotalCount,
-    ingredientPage,
-    setIngredientPage,
-    reachedEnd,
-    setReachedEnd,
-    searchValue,
-    setSearchValue,
-    setSort,
-    sort
+    ingredientwithChoiceName
   } = props
   const theme = useTheme()
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
+
+  const [searchValue, setSearchValue] = useState('')
 
   const [remarks, setRemarks] = useState('')
 
@@ -69,6 +59,14 @@ const AddIngredientswithChoice = props => {
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
 
+  const [ingredientList, setIngredientList] = useState([])
+
+  const [totalCount, setTotalCount] = useState('')
+  let [ingredientPage, setIngredientPage] = useState(1)
+  const [reachedEnd, setReachedEnd] = useState(false)
+  const [sort, setSort] = useState('desc')
+  // const [uom, setUom] = useState([])
+  // const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
 
   const [count, setCount] = useState(1)
@@ -94,11 +92,12 @@ const AddIngredientswithChoice = props => {
     })
   }
 
+  // Wrapper to extend the parent close function
   const handleSidebarClose = () => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
-    debouncedSearch('')
+    //debouncedSearch('')
   }
 
   const handleChangeTopFeed = async event => {
@@ -106,7 +105,6 @@ const AddIngredientswithChoice = props => {
     setFeed(event.target.value)
 
     try {
-      setLoading(true)
       const params = { page: 1, limit: 20, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
@@ -114,11 +112,9 @@ const AddIngredientswithChoice = props => {
           setIngredientPage(1)
           setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
-          setLoading(false)
         } else {
           setReachedEnd(false)
           setIngredientList([])
-          setLoading(false)
         }
       })
     } catch (error) {
@@ -248,7 +244,7 @@ const AddIngredientswithChoice = props => {
 
   const handleContinueClick = event => {
     if (Object.keys(selectFeed).length === 0) {
-      toast.error('Items are required', {
+      toast.error('Ingredients are required', {
         duration: 1000
       })
     } else if (
@@ -273,6 +269,76 @@ const AddIngredientswithChoice = props => {
       }
     }
   }
+
+  useEffect(() => {
+    setReachedEnd(true)
+
+    const fetchIngredients = async () => {
+      try {
+        // If ingredientwithChoiceName is an array, process each item
+        if (fromrow === 'rowedit_ingredientwithchoice' && Array.isArray(ingredientwithChoiceName)) {
+          let allResults = []
+
+          for (const name of ingredientwithChoiceName) {
+            const params = {
+              page: ingredientPage,
+              q: name,
+              sort,
+              limit: 20,
+              status: 1
+            }
+
+            const res = await getIngredientList({ params })
+
+            if (res?.data?.result?.length > 0) {
+              // Filter out duplicates from previous fetches
+              const newResults = res.data.result.filter(
+                item => !allResults.some(existingItem => existingItem.id === item.id)
+              )
+
+              allResults = [...allResults, ...newResults]
+            }
+          }
+
+          // Combine with existing ingredientList and remove duplicates
+          const combinedList = [...ingredientList, ...allResults]
+          const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+          setIngredientList(uniqueList)
+          setReachedEnd(false)
+        } else {
+          // Original logic for non-array case
+          const params = {
+            page: ingredientPage,
+            q: searchValue,
+            sort,
+            limit: 20,
+            status: 1
+          }
+
+          const res = await getIngredientList({ params })
+
+          if (res?.data?.result?.length > 0) {
+            const newResults = res.data.result.filter(
+              item => !ingredientList.some(existingItem => existingItem.id === item.id)
+            )
+
+            const combinedList = [...ingredientList, ...newResults]
+            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
+            setTotalCount(res?.data?.total_count)
+          }
+          setReachedEnd(false)
+        }
+      } catch (error) {
+        console.error(error)
+        setReachedEnd(false)
+      }
+    }
+
+    fetchIngredients()
+  }, [ingredientwithChoiceId])
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -316,10 +382,10 @@ const AddIngredientswithChoice = props => {
       const isNearBottom =
         container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
       if (isNearBottom) {
-        setIngredientPage(prevPage => prevPage + 1)
+        setIngredientPage(++ingredientPage)
         setReachedEnd(true)
         try {
-          const params = { page: ingredientPage + 1, q: searchValue, sort, feed_type: feed, limit: 20, status: 1 }
+          const params = { page: ingredientPage, q: searchValue, sort, feed_type: feed, limit: 20, status: 1 }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result?.length > 0) {
               setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
@@ -467,10 +533,13 @@ const AddIngredientswithChoice = props => {
     setOpenIngredientchoice(false)
 
     if (ingType === 'addingIndex') {
+      // Find the index of the ingredient being updated
       const existingIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
         if (index === ingredientChoiceIndex && item.mealid === checkid) {
+          // If ingredientList is empty, return true (match)
           if (item.ingredientList.length === 0) return true
 
+          // Otherwise, check for matching ingredient_id
           return item.ingredientList.some(ingredient =>
             selectedCardIngchoice.some(
               selectedIngredient => selectedIngredient.ingredient_id === ingredient.ingredient_id
@@ -493,6 +562,7 @@ const AddIngredientswithChoice = props => {
           remarks: remarks
         }
 
+        // Check if the same ingredient_id is present in any other index of listOfIngredient with the same preparation_type
         const duplicateIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
           return (
             index !== existingIngredientIndex &&
@@ -507,6 +577,7 @@ const AddIngredientswithChoice = props => {
           )
         })
 
+        // If the same ingredient_id is found in another index with the same preparation_type, show an error toast
         if (duplicateIngredientIndex !== -1) {
           toast.error('Cannot update ingredient with the same preparation type in multiple places.')
           setingType('')
@@ -514,10 +585,11 @@ const AddIngredientswithChoice = props => {
           return
         }
 
+        // Set the updated listOfIngredient
         setListOfIngredient(updatedListOfIngredient)
         onChange(updatedListOfIngredient)
 
-        toast.success('Item updated successfully!')
+        toast.success('Ingredient updated successfully!')
 
         return
       }
@@ -530,6 +602,7 @@ const AddIngredientswithChoice = props => {
         mealid: checkid
       }
 
+      // Find all duplicate ingredients (matching ingredient_id and preparation_type)
       const duplicateIngredients = listOfIngredient
         .filter(item => item.mealid === checkid)
         .flatMap(item =>
@@ -542,6 +615,7 @@ const AddIngredientswithChoice = props => {
           )
         )
 
+      // Check if any duplicates exist
       if (duplicateIngredients.length > 0) {
         // Check for overlapping days
         const hasDayOverlap = listOfIngredient.some(
@@ -580,7 +654,7 @@ const AddIngredientswithChoice = props => {
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
-      toast.success('Item added successfully!')
+      toast.success('Ingredient added successfully!')
     }
   }
 
@@ -804,7 +878,7 @@ const AddIngredientswithChoice = props => {
                           background: theme.palette.customColors.displaybgPrimary,
                           borderRadius: 20
                         }}
-                        src={item?.image ? item?.image : '/icons/icon_ingredient_fill.png'}
+                        src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
                       ></Avatar>
                     </Box>
                   )}
@@ -959,7 +1033,7 @@ const AddIngredientswithChoice = props => {
                 </>
               </Box>
             ))
-          ) : sortedIngredientList?.length <= 0 ? (
+          ) : searchValue !== '' && sortedIngredientList.length <= 0 ? (
             <Box
               sx={{
                 display: 'flex',
@@ -1082,7 +1156,6 @@ const AddIngredientswithChoice = props => {
                       id='demo-simple-select-label'
                       placeholder='Add Remarks (optional)'
                       variant='standard'
-                      autoComplete='off'
                       slotProps={{
                         input: {
                           disableUnderline: true

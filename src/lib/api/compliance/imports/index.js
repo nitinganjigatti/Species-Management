@@ -43,9 +43,9 @@ export async function createImportSpecies(payload) {
   }
 }
 
-export const getImportSpeciesData = async (id, documentid, params) => {
+export const getImportSpeciesData = async (id, params) => {
   const response = await axiosGet({
-    url: `${CREATE_IMPORTS_SPECIES}/${id}?document_type_id=${documentid}`,
+    url: `${CREATE_IMPORTS_SPECIES}/${id}?document_type_id=5`,
     params
   })
 

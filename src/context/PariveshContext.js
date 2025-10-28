@@ -8,18 +8,15 @@ export const PariveshProvider = ({ children }) => {
     // Initialize from localStorage if available, otherwise default to null
     if (typeof window !== 'undefined') {
       const storedParivesh = localStorage.getItem('selectedParivesh')
-      
-return storedParivesh ? JSON.parse(storedParivesh) : null
+      return storedParivesh ? JSON.parse(storedParivesh) : null
     }
-    
-return null // Fallback for non-browser environments
+    return null // Fallback for non-browser environments
   })
   const [organizationList, setOrganizationList] = useState([])
 
   const fetchOrgData = useCallback(async () => {
     try {
       const accessToken = localStorage.getItem('accessToken')
-
       // Handle case where accessToken is not available
       if (!accessToken) {
         // console.error('Access token not found.')
@@ -35,23 +32,19 @@ return null // Fallback for non-browser environments
           if (!prevState) {
             const newState = res[0]
             localStorage.setItem('selectedParivesh', JSON.stringify(newState))
-            
-return newState
+            return newState
           }
-          
-return prevState // Assuming res[0] is defined and not null
+          return prevState // Assuming res[0] is defined and not null
         })
       }
     } catch (e) {
       console.error('Error fetching organization list:', e)
-
       // Consider adding user-facing error handling here
     }
   }, []) // Removed selectedParivesh from dependency array
 
   const setSelectedParivesh = useCallback(newSelectedParivesh => {
     setSelectedPariveshState(newSelectedParivesh)
-
     // Update localStorage when selectedParivesh changes
     localStorage.setItem('selectedParivesh', JSON.stringify(newSelectedParivesh))
   }, [])
@@ -84,8 +77,7 @@ export const usePariveshContext = () => {
   if (!context) {
     throw new Error('usePariveshContext must be used within a PariveshProvider')
   }
-  
-return context
+  return context
 }
 
 // import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'

@@ -69,8 +69,8 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 30,
+      flex: 0.4,
+      minWidth: 20,
       field: 'preparation_type',
       headerName: 'Preparation Type',
       renderCell: params => (

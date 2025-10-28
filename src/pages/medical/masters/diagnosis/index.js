@@ -301,7 +301,7 @@ const Diagnosis = () => {
         <DataGrid
           hideFooterPagination={true}
           sx={{
-            '.MuiDataGrid-cell:focus-within': {
+            '.MuiDataGrid-cell:focus': {
               outline: 'none'
             },
 
@@ -316,19 +316,16 @@ const Diagnosis = () => {
           disableColumnSelector={true}
           disableColumnMenu
           autoHeight
-
           // pagination
           rows={indexedRows === undefined ? [] : indexedRows}
           rowCount={total}
           columns={columns}
           sortingMode='server'
           paginationMode='server'
-
           // pageSizeOptions={[7, 10, 25, 50]}
           // paginationModel={paginationModel}
           onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
-
           // onPaginationModelChange={setPaginationModel}
           loading={loading}
           slotProps={{

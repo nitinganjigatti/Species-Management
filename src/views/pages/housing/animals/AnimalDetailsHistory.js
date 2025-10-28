@@ -6,10 +6,6 @@ import React from 'react'
 const AnimalDetailsHistory = ({ historyData }) => {
   const theme = useTheme()
 
-  if (!historyData) {
-    return null
-  }
-
   return (
     <>
       <Box
@@ -22,28 +18,26 @@ const AnimalDetailsHistory = ({ historyData }) => {
           p: 4,
           borderRadius: 1,
           background: theme.palette.customColors.displaybgPrimary,
-          width: { xs: '100%', md: '100%' },
+          width: '80%',
           mt: 1
         }}
       >
         <Typography variant='subtitle1'>
-          Section : <strong>{historyData.section || 'N/A'}</strong>
+          Section : <strong>Quail Section</strong>
         </Typography>
         <Typography variant='subtitle1'>
-          Site : <strong>{historyData.site || 'N/A'}</strong>
+          Site : <strong>Gagva</strong>
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 2 }}>
           <img src='/images/line_start_circle.svg' alt='line-start-circle' />
-          <strong> {historyData.inDate}</strong>
+          <strong>21 Jan 2024</strong>
         </Box>
-        {historyData.outDate && (
-          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 2 }}>
-            <img src='/images/line_end_square.svg' alt='line-end-square' />
-            <strong> {historyData.outDate}</strong>
-          </Box>
-        )}
-        <Typography variant='subtitle1' sx={{ display: 'none' }}>
-          Reported By : <strong>{historyData.reporter}</strong>
+        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 2 }}>
+          <img src='/images/line_end_square.svg' alt='line-end-square' />
+          <strong>21 Jan 2024</strong>
+        </Box>
+        <Typography variant='subtitle1'>
+          Reported By : <strong>Naveen Kumar</strong>
         </Typography>
       </Box>
     </>

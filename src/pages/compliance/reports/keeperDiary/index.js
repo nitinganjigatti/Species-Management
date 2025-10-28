@@ -1,48 +1,40 @@
-import { useCallback, useEffect, useState } from 'react'
-
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Card, CardHeader, CircularProgress, Grid, IconButton, Tooltip, Typography } from '@mui/material'
-import { debounce } from 'lodash'
-import { format, subMonths } from 'date-fns'
-
-import Utility, { downloadPDF } from 'src/utility'
-import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import {
+  Avatar,
+  Box,
+  Card,
+  CardHeader,
+  Grid,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
+import { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
-import Search from 'src/views/utility/Search'
-import ObservationCard from 'src/views/utility/ObservationCard'
-import { DownloadReport } from 'src/views/pages/compliance/utility'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import Utility, { downloadPDF } from 'src/utility'
 import UserDrawer from 'src/views/pages/compliance/reports/keepers/UserDrawer'
 import ReportCard from 'src/views/pages/report/ReportCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { format, subDays, subMonths } from 'date-fns'
+import { getDiaryReportList } from 'src/lib/api/compliance/reports'
+import ObservationCard from 'src/views/utility/ObservationCard'
+import { debounce } from 'lodash'
+import { DownloadReport } from 'src/views/pages/compliance/utility'
 import AnimalView from 'src/views/pages/compliance/reports/biologists/ReportAnimalView'
-
-import { getDiaryReportList, getUserListing } from 'src/lib/api/compliance/reports'
-import { useRouter } from 'next/router'
+import Search from 'src/views/utility/Search'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 const KeeperDiaryReport = () => {
   const theme = useTheme()
-  const router = useRouter()
-
-  const handleUserSelect = user => {
-    setUserDetail(user)
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, user_id: user.user_id }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }
-
   const [userDrawer, setUserDrawer] = useState(false)
   const [userDetail, setUserDetail] = useState(null)
   const [keeperList, setKeeperList] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [userLoader, setUserLoader] = useState(false)
 
   const [filterDates, setFilterDates] = useState({
     startDate: Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
@@ -55,33 +47,6 @@ const KeeperDiaryReport = () => {
     pageSize: 50
   })
 
-  useEffect(() => {
-    if (router.query.user_id && !userDetail) {
-      const fetchUser = async () => {
-        setUserLoader(true)
-        try {
-          const res = await getUserListing({
-            page_no: 1,
-            ref_type: 'total_user',
-            role_key: 'all_users',
-            user_id: router.query.user_id
-          })
-
-          console.log('User fetch res:', res)
-
-          if (res?.data?.result?.length) {
-            setUserDetail(res?.data?.result[0])
-            setUserLoader(false)
-          }
-        } catch (err) {
-          console.error('Error fetching user by id:', err)
-        }
-      }
-
-      fetchUser()
-    }
-  }, [router.query.user_id])
-
   const eventHandler = () => {
     setUserDrawer(true)
   }
@@ -93,7 +58,7 @@ const KeeperDiaryReport = () => {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
       ...(q?.trim() !== '' && { q: q.trim() }),
-      user_id: userDetail?.user_id || router.query.user_id,
+      user_id: userDetail?.user_id,
       page_no: paginationModel.page + 1,
       limit: paginationModel.pageSize,
       report_type: 'json'
@@ -105,62 +70,33 @@ const KeeperDiaryReport = () => {
       setTotal(response?.data?.total)
       setLoading(false)
     } else {
-      console.error('error >>')
+      console.log('error >>')
       setLoading(true)
     }
   }
 
-  const handleDateRangeChange = (startDate, endDate) => {
-    if (paginationModel.page !== 0) {
-      setPaginationModel(prev => ({ ...prev, page: 0 }))
-    }
-    if (startDate && endDate) {
-      const formattedStartDate = Utility.formatDate(startDate)
-      const formattedEndDate = Utility.formatDate(endDate)
-      setFilterDates({
-        startDate: formattedStartDate,
-        endDate: formattedEndDate
-      })
-    } else {
-      setFilterDates({
-        startDate: '',
-        endDate: ''
-      })
-    }
-  }
-
   useEffect(() => {
-    if (userDetail?.user_id) {
+    if (userDetail) {
       getUserKeeperReport(searchValue)
     }
-  }, [userDetail, paginationModel, filterDates])
-
-  const clearUserSelection = () => {
-    setUserDetail(null)
-    setKeeperList(null)
-    setTotal(null)
-
-    const { user_id, ...rest } = router.query
-    router.push(
-      {
-        pathname: router.pathname,
-        query: rest
-      },
-      undefined,
-      { shallow: false }
-    )
-  }
+  }, [userDetail, filterDates, paginationModel.page, paginationModel.pageSize])
 
   const debouncedSearch = useCallback(
     debounce(q => {
       setPaginationModel({ page: 0, pageSize: 10 }) // reset page on search
-    }, 800),
-    []
+      getUserKeeperReport(q)
+    }, 500),
+    [] // dependency array should be stable
   )
 
   const handleSearchChange = e => {
     const value = e.target.value
     setSearchValue(value) // Update input immediately for UI responsiveness
+
+    // Reset to first page when searching
+    if (paginationModel.page !== 0) {
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+    }
 
     // Call debounced API function
     debouncedSearch(value)
@@ -199,7 +135,7 @@ const KeeperDiaryReport = () => {
         </Box>
 
         {/* Right box with light background and red close icon */}
-        {/* <Box
+        <Box
           sx={{
             backgroundColor: '#0000000D',
             height: { sm: '98px', xs: '120px' },
@@ -211,10 +147,10 @@ const KeeperDiaryReport = () => {
             borderBottomRightRadius: '8px'
           }}
         >
-          <IconButton onClick={clearUserSelection}>
+          <IconButton onClick={() => setUserDetail(null)}>
             <Icon icon='mdi:close' color='red' fontSize={30} />
           </IconButton>
-        </Box> */}
+        </Box>
       </Box>
     )
   }
@@ -224,8 +160,10 @@ const KeeperDiaryReport = () => {
   }
 
   const downloadKeeperDiaryReport = async () => {
+    console.log('Selected >>', userDetail)
+
     const params = {
-      user_id: userDetail?.user_id || router.query.user_id,
+      user_id: userDetail?.user_id,
       q: searchValue,
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
@@ -246,24 +184,9 @@ const KeeperDiaryReport = () => {
   }
 
   const headerAction = (
-    <Box sx={{ display: 'flex', gap: '24px' }}>
+    <>
       <DownloadReport isDownloading={isDownloading} handleDownloadReport={downloadKeeperDiaryReport} />
-      <Box
-        sx={{
-          backgroundColor: '#0000000D',
-          height: '32px',
-          width: '32px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '50px'
-        }}
-      >
-        <IconButton onClick={clearUserSelection}>
-          <Icon icon='mdi:close' color='red' fontSize={24} />
-        </IconButton>
-      </Box>
-    </Box>
+    </>
   )
 
   const columns = [
@@ -351,6 +274,7 @@ const KeeperDiaryReport = () => {
       sortable: false,
       flex: 0.5,
       minWidth: 160,
+
       renderCell: params => {
         const sex = params.row.sex
         const capitalizedSex = sex ? sex.charAt(0).toUpperCase() + sex.slice(1).toLowerCase() : '-'
@@ -393,6 +317,8 @@ const KeeperDiaryReport = () => {
     </Typography>
   )
 
+  console.log('Keeper >>', userDetail)
+
   const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
   const indexedRows = keeperList?.map((row, index) => ({
@@ -400,6 +326,22 @@ const KeeperDiaryReport = () => {
     id: row.id || index, // ensure there's always a fallback ID
     sl_no: getSlNo(index)
   }))
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+    }
+  }
 
   return (
     <>
@@ -409,6 +351,41 @@ const KeeperDiaryReport = () => {
           <Box sx={{ py: '16px', px: '22px' }}>
             <UserSelectionCard user={userDetail} />
           </Box>
+
+          {/* Search field */}
+
+          {/* <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 2, sm: 0 },
+              px: 4
+
+              // ml: 3
+            }}
+          >
+
+            <Box sx={{ width: '100%', px: 2 }}>
+              <Search
+                onChange={handleSearchChange}
+                placeholder='Search by Entity or observation type'
+                value={searchValue}
+                inputStyle={{ py: '10px', px: '12px' }}
+                width={{ xs: '100%', sm: '50%' }}
+              />
+            </Box>
+
+            <Box sx={{ mr: 1.5 }}>
+              <CommonDateRangePickers
+                filterDates={filterDates}
+                onChange={handleDateRangeChange}
+                useCustomText={true}
+                customText='Select a Date Range'
+              />
+            </Box>
+          </Box> */}
 
           <Box
             sx={{
@@ -421,10 +398,6 @@ const KeeperDiaryReport = () => {
           >
             <Box sx={{ width: '100%', px: 6 }}>
               <Search
-                onClear={() => {
-                  setSearchValue('')
-                  debouncedSearch('')
-                }}
                 onChange={handleSearchChange}
                 placeholder='Search by Entity or observation type'
                 value={searchValue}
@@ -462,10 +435,6 @@ const KeeperDiaryReport = () => {
             />
           </Grid>
         </Card>
-      ) : userLoader ? (
-        <Box display='flex' justifyContent='center' alignItems='center'>
-          <CircularProgress />
-        </Box>
       ) : (
         <Card sx={{ p: 6 }}>
           <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
@@ -482,8 +451,8 @@ const KeeperDiaryReport = () => {
         <UserDrawer
           open={userDrawer}
           onClose={handleClose}
-          setUserDetail={handleUserSelect}
-          placeholder='Search by Keeper name'
+          setUserDetail={setUserDetail}
+          placeholder='Search by Keeper name or ID'
           title='Keepers'
         />
       )}

@@ -1,8 +1,8 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Box, Button, Card, CardHeader, Checkbox, Popover, Typography, Tooltip, CircularProgress } from '@mui/material'
-import { TabContext } from '@mui/lab'
+import { Box, Button, Card, CardHeader, Checkbox, CircularProgress, Popover, Typography, Tooltip } from '@mui/material'
+import { TabContext, TabList } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 import toast from 'react-hot-toast'
 import moment from 'moment'
@@ -10,13 +10,10 @@ import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
 import { useAnimalContext } from 'src/context/AnimalContext'
 import { usePariveshContext } from 'src/context/PariveshContext'
-
-import Error404 from 'src/pages/404'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
+import Error404 from 'src/pages/404'
 import StickyTable from 'src/views/table/sticky-table'
-
-import { getAllAnimalReport, getAnimalReportById } from 'src/lib/api/report'
-import AnimalCard from 'src/views/utility/AnimalCard'
+import { getAllAnimalReport, getAnimalReportById, getSpeciesListing } from 'src/lib/api/report'
 
 const AnimalList = () => {
   const router = useRouter()
@@ -34,6 +31,7 @@ const AnimalList = () => {
 
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
+  const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const {
@@ -55,8 +53,7 @@ const AnimalList = () => {
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-
-  // const [speciesList, setSpeciesList] = useState([])
+  const [speciesList, setSpeciesList] = useState([])
   const [isLoader, setIsLoader] = useState(false)
 
   const [popoverData, setPopoverData] = useState({
@@ -89,6 +86,20 @@ const AnimalList = () => {
     include_genus: 0
   })
 
+  // const [apiFilterParams, setApiFilterParams] = useState({
+  //   include_housing: 0,
+  //   include_enclosure: 0,
+  //   include_section: 0,
+  //   include_cluster: 0,
+  //   include_class: 0,
+  //   include_organization: 0,
+  //   include_order: 0,
+  //   include_family: 0,
+  //   include_genus: 0,
+  //   include_site: 0,
+  //   include_genus: 0
+  // })
+
   const handleClick = event => {
     if (animalId) {
       setAnchorEl(event.currentTarget)
@@ -99,7 +110,7 @@ const AnimalList = () => {
         Object.keys(updatedData).forEach(category => {
           updatedData[category] = updatedData[category].map(item => ({
             ...item,
-            checked: item.checked || apiFilterParams?.[item.key] === 1
+            checked: item.checked || apiFilterParams?.[item.key] === 1 
           }))
         })
 
@@ -134,25 +145,67 @@ const AnimalList = () => {
     }
   }, [router.pathname])
 
-  // useEffect(() => {
-  //   const fetchSpeciesList = async () => {
-  //     setIsLoader(true)
-  //     try {
-  //       const response = await getSpeciesListing()
-  //       if (response.success) {
-  //         setIsLoader(false)
-  //         setSpeciesList(response.data.result)
-  //       } else {
-  //         console.error('Error: Something went wrong')
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching species:', error)
-  //     } finally {
-  //       setIsLoader(false)
+  useEffect(() => {
+    const fetchSpeciesList = async () => {
+      setIsLoader(true) 
+      try {
+        const response = await getSpeciesListing()
+        if (response.success) {
+          setIsLoader(false)
+
+          setSpeciesList(response.data.result)
+        } else {
+          console.error('Error: Something went wrong')
+        }
+      } catch (error) {
+        console.error('Error fetching species:', error)
+      } finally {
+        setIsLoader(false)
+      }
+    }
+    fetchSpeciesList()
+  }, [])
+
+  // const handleSelection = async (selectedIDs, category) => {
+  //   let params = {}
+  //   const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
+  //   const key = category === 'Site' ? 'sids' : 'oids'
+  //   const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
+
+  //   if (selectedIDs.includes(isAllSelected)) {
+  //     // "All Sites/All Organizations" selected
+  //     if (category === 'Site' && !selectedSites.includes(isAllSelected)) {
+  //       stateSetter(['All Sites'])
+  //       params[key] = '' // Reset to empty for all sites
+  //     } else if (category === 'Organization' && !selectedOptions.Organization.includes(isAllSelected)) {
+  //       stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
+  //       params[key] = '' // Reset to empty for all organizations
+  //     } else {
+  //       // If "All Sites/All Organizations" is re-selected, use filtered IDs
+  //       const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
+  //       params[key] = filteredIDs.toString()
+  //       stateSetter(filteredIDs)
+  //     }
+  //   } else if (selectedIDs.length === 0) {
+  //     // No items selected, reset the parameter
+  //     params[key] = ''
+  //   } else {
+  //     // Specific IDs selected
+  //     params[key] = selectedIDs.toString()
+  //     if (category === 'Site') {
+  //       stateSetter(selectedIDs)
+  //     } else {
+  //       stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
   //     }
   //   }
-  //   fetchSpeciesList()
-  // }, [])
+
+  //   // Reset pagination and update filter parameters
+  //   setPaginationModel(prev => ({ ...prev, page: 0 }))
+  //   setApiFilterParams(prev => ({
+  //     ...prev,
+  //     [key]: params[key] // Update only the relevant key
+  //   }))
+  // }
 
   const handleSelection = async (selectedIDs, category) => {
     let params = {}
@@ -185,6 +238,10 @@ const AnimalList = () => {
     }))
   }
 
+  const getTotalSelectedFilters = selectedOptions => {
+    return Object.values(selectedOptions).filter(selected => selected.length > 0).length
+  }
+
   const fetchAndSetDataList = async (params, options = {}) => {
     const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
     try {
@@ -205,7 +262,7 @@ const AnimalList = () => {
       } else {
         setDataList([])
         setTotal(0)
-        toast.error(response?.message)
+        toast.error('Something went wrong')
       }
     } catch (error) {
       toast.error('Error connecting to the server')
@@ -281,7 +338,7 @@ const AnimalList = () => {
         let updatedParams = { ...parsedParams }
         delete updatedParams.site_ids
 
-        setApiFilterParams(updatedParams)
+        setApiFilterParams(updatedParams) 
         setSelectedSites([])
       }
 
@@ -292,8 +349,8 @@ const AnimalList = () => {
         tids: id,
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
-        sids: siteParam,
-        ...filteredParams
+        sids: siteParam, 
+        ...filteredParams 
       }
 
       if (options.response_type === 'csv') {
@@ -322,7 +379,7 @@ const AnimalList = () => {
       } else {
         setTotal(0)
         setAnimalList([])
-        toast.error(response?.message)
+        toast.error('Something went wrong')
       }
     } catch (error) {
       toast.error('Error connecting to the server')
@@ -343,8 +400,7 @@ const AnimalList = () => {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
-      
-return updatedData
+      return updatedData
     })
   }
 
@@ -352,28 +408,14 @@ return updatedData
     if (text.length > maxLength) {
       return <>{`${text.substring(0, maxLength)}...`}</>
     }
-    
-return text
+    return text
   }
-
   const getSpecificTotalSelectedFilters = selectedOptions => {
     return Object.values(selectedOptions).filter(items => {
       const filtered = items.filter(item => item !== 'All Sites' && item !== 'All Organizations')
-      
-return filtered.length > 0
+      return filtered.length > 0
     }).length
   }
-
-  // const getTotalSelectedFilters = selectedOptions => {
-  //   return Object.values(selectedOptions).filter(selected => selected.length > 0).length
-  // }
-
-  const getTotalSelectedFilters = selectedOptions => {
-    return Object.values(selectedOptions)
-      .filter(selected => selected.length > 0)
-      .flat().length
-  }
-
   const columns = headerList.map(header => {
     const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
 
@@ -386,11 +428,79 @@ return filtered.length > 0
         sortable: false,
         disableColumnMenu: true,
         width: 300,
-        headerStyle: { zIndex: 1099 },
         renderCell: params => (
-          <Box sx={{ paddingY: '20px' }}>
-            <AnimalCard data={params.row} />
-          </Box>
+          <CardHeader
+            avatar={
+              <img
+                src={params.row.default_icon}
+                alt={params.row.common_name}
+                style={{ width: 40, height: 40, borderRadius: '50%' }}
+              />
+            }
+            title={
+              params.row.primary_identifier_value ? (
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    fontFamily: 'Inter',
+                    color: theme.palette.primary.OnSurface
+                  }}
+                >
+                  {params.row.primary_identifier_type}: {params.row.primary_identifier_value}
+                </Typography>
+              ) : null
+            }
+            subheader={
+              <>
+                <Tooltip
+                  title={params.row.scientific_name.length > 25 ? params.row.scientific_name : null}
+                  placement='bottom'
+                >
+                  <Typography
+                    sx={{
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      fontFamily: 'Inter',
+                      color: theme.palette.customColors.customHeadingTextColor,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      textAlign: 'left',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis'
+                    }}
+                    variant='body2'
+                  >
+                    {truncateText(params.row.scientific_name, 25)}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={params.row.common_name.length > 25 ? params.row.common_name : null} placement='bottom'>
+                  <Typography
+                    sx={{
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      fontFamily: 'Inter',
+                      color: theme.palette.customColors.customHeadingTextColor,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      textAlign: 'left',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis'
+                    }}
+                    variant='body2'
+                  >
+                    {truncateText(params.row.common_name, 25)}
+                  </Typography>
+                </Tooltip>
+              </>
+            }
+          />
         )
       }
     }
@@ -398,7 +508,7 @@ return filtered.length > 0
     return {
       field: fieldKey,
       headerName: header.label,
-      width: 170,
+      width: 210,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
@@ -406,10 +516,9 @@ return filtered.length > 0
         let truncatedValue
         truncatedValue = params?.row[header?.key]
           ? String(header?.key) === 'accession_date'
-            ? // ? moment(params?.row[header?.key]).format('DD-MMM-YYYY').toLocaleLowerCase()
-              moment(params?.row[header?.key]).format('DD-MMM-YYYY')
+            ? moment(params?.row[header?.key]).format('DD-MMM-YYYY').toLocaleLowerCase()
             : truncateText(params?.row[header?.key], 20)
-          : '-'
+          : ''
 
         const showTooltip = params?.value?.length > 20
 
@@ -438,7 +547,6 @@ return filtered.length > 0
 
   const reportRows = (animalId ? animalList : dataList)?.map((item, index) => ({
     id: index + 1,
-    sex: item.gender || item.sex,
     ...item,
     sl_no: getSlNo(index)
   }))
@@ -460,6 +568,7 @@ return filtered.length > 0
     return data
   }
 
+
   const options = {
     Site:
       authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [],
@@ -476,7 +585,7 @@ return filtered.length > 0
     Object.keys(popoverData).forEach(category => {
       popoverData[category].forEach(option => {
         if (option.checked) {
-          updatedApiParams[option.key] = 1
+          updatedApiParams[option.key] = 1 
         }
       })
     })
@@ -487,7 +596,8 @@ return filtered.length > 0
 
     setSelectedSites(selectedSiteIds.includes('All Sites') ? sites : selectedSiteIds)
 
-    setApiFilterParams(updatedApiParams)
+   
+    setApiFilterParams(updatedApiParams) 
     setAnchorEl(null)
     setPaginationModel(prev => ({ ...prev, page: 0 }))
   }
@@ -499,7 +609,6 @@ return filtered.length > 0
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
               <CardHeader
-                sx={{ px: animalId && 0 }}
                 title={
                   animalId ? (
                     <CardHeader
@@ -514,6 +623,20 @@ return filtered.length > 0
                         <>
                           <Typography
                             sx={{
+                              fontSize: '24px',
+                              fontWeight: 600,
+                              fontFamily: 'Inter',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                            variant='body2'
+                          >
+                            {selectedAnimal?.scientific_name}
+                          </Typography>
+
+                          <Typography
+                            sx={{
                               fontSize: '16px',
                               fontWeight: 400,
                               ml: 1,
@@ -525,19 +648,6 @@ return filtered.length > 0
                             variant='body2'
                           >
                             {selectedAnimal?.common_name}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontSize: '24px',
-                              fontWeight: 600,
-                              fontFamily: 'Inter',
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden'
-                            }}
-                            variant='body2'
-                          >
-                            {selectedAnimal?.scientific_name}
                           </Typography>
                         </>
                       }
@@ -558,11 +668,7 @@ return filtered.length > 0
               />
 
               <Typography
-                onClick={
-                  isDownloading
-                    ? undefined
-                    : () => (animalId ? getSpecificAnimalDataToExport() : getAnimalDataToExport())
-                }
+                onClick={() => (animalId ? getSpecificAnimalDataToExport() : getAnimalDataToExport())}
                 sx={{
                   fontSize: '20px',
                   fontWeight: '400',
@@ -570,26 +676,23 @@ return filtered.length > 0
                   color: theme.palette.primary.OnSurface,
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: isDownloading ? 'not-allowed' : 'pointer',
+                  cursor: 'pointer',
                   mr: 4
                 }}
-                aria-disabled={isDownloading}
               >
                 Download report
-                {isDownloading ? (
-                  <CircularProgress size={22} sx={{ ml: 2 }} />
-                ) : (
-                  <img
-                    src='/images/download1.png'
-                    alt='download icon'
-                    style={{ marginLeft: 8, width: 30, height: 30 }}
-                  />
-                )}
+                <img src='/images/download1.png' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
               </Typography>
             </Box>
 
             <TabContext value={status}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', px: 2, mt: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, mt: 3 }}>
+               
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                
+                  <TabList onChange={''}></TabList> 
+                </Box>
+
                 {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                   <Box
                     sx={{
@@ -597,9 +700,68 @@ return filtered.length > 0
                       flexDirection: { xs: 'column', sm: 'row' },
                       alignItems: 'center',
                       borderRadius: '8px',
+
                       mr: 2
                     }}
                   >
+                    {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
+                  <Button
+                    variant='outlined'
+                    onClick={() => setOpenSiteDrawer(true)}
+                    sx={{
+                      height: '40px',
+                      width: '200px',
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '0 12px' // Ensure space for text and icon
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        textOverflow: 'ellipsis',
+                        flex: 1, // Ensures it uses remaining space
+                        textAlign: 'left', // Align text to the left
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      {selectedSites.length > 0 && selectedSites[0] !== 'All Sites' ? (
+                        <>
+                          {
+                            authData?.userData?.user?.zoos[0].sites?.find(site => site.site_id === selectedSites[0])
+                              ?.site_name
+                          }
+                          {selectedSites.length > 1 && ` ...+${selectedSites.length - 1}`}
+                        </>
+                      ) : (
+                        `Select Site (${sites.length})`
+                      )}
+                    </Box>
+                    <Box component='span' sx={{ ml: 1, color: 'black' }}>
+                      <img
+                        src='/images/All.png'
+                        style={{ width: '20px', height: '20px', marginTop: 7 }}
+                        alt='Filter Icon'
+                      />
+                    </Box>
+                  </Button>
+                </FormControl>
+
+                <SiteSheet
+                  openSiteDrawer={openSiteDrawer}
+                  setOpenSiteDrawer={setOpenSiteDrawer}
+                  sites={sites}
+                  setSites={setSites}
+                  selectedSites={selectedSites}
+                  setSelectedSites={setSelectedSites}
+                  handleSelectedSite={handleSelectedSite}
+                /> */}
+
                     <Button
                       onClick={() => handleFilterSection()}
                       variant='outlined'
@@ -638,49 +800,27 @@ return filtered.length > 0
                         Filter
                       </Typography>
 
-                      {animalId && getSpecificTotalSelectedFilters(selectedOptions) > 0 ? (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: '5px',
-                            right: '6px',
-                            width: '29px',
-                            height: '27px',
-                            borderRadius: '69%',
-                            backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-                            color: theme.palette.customColors.OnPrimary,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '12px',
-                            fontWeight: 500
-                          }}
-                        >
-                          {getSpecificTotalSelectedFilters(selectedOptions)}
-                        </Box>
-                      ) : (
-                        getTotalSelectedFilters(selectedOptions) > 0 && (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: '5px',
-                              right: '6px',
-                              width: '29px',
-                              height: '27px',
-                              borderRadius: '69%',
-                              backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-                              color: theme.palette.customColors.OnPrimary,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '12px',
-                              fontWeight: 500
-                            }}
-                          >
-                            {getTotalSelectedFilters(selectedOptions)}
-                          </Box>
-                        )
-                      )}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '5px',
+                          right: '6px',
+                          width: '29px',
+                          height: '27px',
+                          borderRadius: '69%',
+                          backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                          color: theme.palette.customColors.OnPrimary,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '12px',
+                          fontWeight: 500
+                        }}
+                      >
+                        {animalId
+                          ? getSpecificTotalSelectedFilters(selectedOptions)
+                          : getTotalSelectedFilters(selectedOptions)}
+                      </Box>
                     </Button>
                     {
                       <FilterSheet
@@ -810,25 +950,31 @@ return filtered.length > 0
                   </Box>
                 )}
               </Box>
-              <Box sx={{ width: '100%', p: 5 }}>
-                <StickyTable
-                  rows={reportRows?.length > 0 ? reportRows : []}
-                  rowCount={total}
-                  rowHeight={86}
-                  headerHeight={47}
-                  pagination={true}
-                  columns={columns.length && columns}
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  rowsInView={10}
-                  rowsInViewOptions={[5, 7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={isLoading}
-                  downloadExcel
-                  headerName='Animal Report List'
-                  searchMode='server'
-                  disableColumnSorting={true}
-                />
+              <Box sx={{ width: '100%', px: 5, mt: 4 }}>
+                {columns.length > 0 ? (
+                  <StickyTable
+                    rows={reportRows.length && reportRows}
+                    rowCount={total}
+                    rowHeight={86}
+                    headerHeight={47}
+                    pagination={true}
+                    columns={columns.length && columns}
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    rowsInView={10}
+                    rowsInViewOptions={[5, 7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={isLoading}
+                    downloadExcel
+                    headerName='Species'
+                    searchMode='server'
+                    disableColumnSorting={true}
+                  />
+                ) : (
+                  <Box sx={{ py: 4, textAlign: 'center' }}>
+                    <CircularProgress />
+                  </Box>
+                )}
               </Box>
             </TabContext>
           </Card>

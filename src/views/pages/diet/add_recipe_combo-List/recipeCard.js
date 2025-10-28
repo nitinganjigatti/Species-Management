@@ -364,9 +364,8 @@ const RecipeCard = ({
       const existingCard = selectedCardRecipe.find(card => card.id === item.id)
 
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
-      console.log(item, 'item')
-      
-return {
+
+      return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
         days_of_week: preservedDaysOfWeek,
@@ -378,9 +377,7 @@ return {
         quantity: quantity,
         quantity_type: quantityper,
         ingredients: item.ingredients,
-        desc: item.desc,
-        portion_uom_id: item?.portion_uom_id,
-        portion_uom_name: item?.portion_uom_name
+        desc: item.desc
       }
     })
 
@@ -500,7 +497,7 @@ return {
                           top: '6.8px',
                           left: '6.8px'
                         }}
-                        src={item?.recipe_image ? item?.recipe_image : '/icons/icon_recipe_fill.png'}
+                        src={item?.recipe_image ? item?.recipe_image : '/icons/icon_diet_fill.png'}
                       ></Avatar>
                     )}
                   </Box>
@@ -590,14 +587,13 @@ return {
                           }}
                         >
                           <img
-                            src={ingredient?.ingredient_image || '/icons/icon_ingredient_fill.png'}
+                            src={ingredient?.ingredient_image || '/icons/Icon_ingredient.svg'}
                             alt={ingredient.ingredient_name}
                             style={{
                               width: '100%',
                               height: '100%',
                               objectFit: 'cover'
                             }}
-
                             // onError={e => {
                             //   e.target.src = '/icons/icon_ingredient.svg' // Fallback to default icon
                             // }}

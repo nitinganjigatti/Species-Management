@@ -93,7 +93,7 @@ const ConfirmationDialog = ({
             {description ? description : null}
           </Typography>
         </Box>
-        {formComponent ? <Box sx={{ width: '100%' }}>{formComponent} </Box> : null}
+        {formComponent ? <Box>{formComponent} </Box> : null}
         <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
           <Button
             disabled={loading}

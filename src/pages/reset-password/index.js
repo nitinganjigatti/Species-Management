@@ -100,7 +100,6 @@ const ResetPassword = () => {
 
   return (
     <CommonCard
-
       // bgImage='/images/frog_img.png'
       // logoVantara='/images/login/Vantara_Logo_registered.svg'
       // logoAntz
@@ -238,7 +237,6 @@ const ResetPassword = () => {
           type='submit'
           fullWidth
           size='large'
-
           // disabled={!newPassword || hasErrors()}
           sx={{ mb: 3 }}
           loading={loading}

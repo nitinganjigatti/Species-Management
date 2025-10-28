@@ -28,30 +28,23 @@ const BasicDetailsAddEdit = ({
   setUploadedFile,
   transportType,
   setTransportType,
-  fileNumberValue,
-  setFileNumberValue,
   loader,
   onSave,
   errors,
   setErrors
 }) => {
   const theme = useTheme()
-
   const handleAirwaybillChange = event => {
-    // let inputValue = event.target.value.replace(/\D/g, '')
-    // if (inputValue.length > 11) inputValue = inputValue.slice(0, 11)
+    let inputValue = event.target.value.replace(/\D/g, '')
+    if (inputValue.length > 11) inputValue = inputValue.slice(0, 11)
 
-    // const formattedValue = inputValue
-    //   .split('')
-    //   .map((digit, index) => (index === 2 ? digit + '    ' : digit + '  '))
-    //   .join('')
+    const formattedValue = inputValue
+      .split('')
+      .map((digit, index) => (index === 2 ? digit + '    ' : digit + '  '))
+      .join('')
 
-    setAirwaybillvalue(event.target.value)
+    setAirwaybillvalue(formattedValue.trim())
     setErrors(prev => ({ ...prev, airwaybillvalue: null }))
-  }
-
-  const handleFileNmbChange = e => {
-    setFileNumberValue(e.target.value)
   }
 
   const handleDateChange = date => {
@@ -63,7 +56,6 @@ const BasicDetailsAddEdit = ({
     setUploadedFile(file)
     setErrors(prev => ({ ...prev, uploadedFile: null }))
   }
-
   const handleChange = e => {
     setTransportType(e.target.value)
   }
@@ -115,7 +107,7 @@ const BasicDetailsAddEdit = ({
               helperText={errors.airwaybillvalue}
               slotProps={{
                 input: {
-                  //maxLength: 31,
+                  maxLength: 31,
                   style: { borderRadius: 6, borderBottomLeftRadius: '0px', borderTopLeftRadius: '0px' }
                 }
               }}
@@ -131,7 +123,7 @@ const BasicDetailsAddEdit = ({
               onChange={handleDateChange}
               maxDate={dayjs(new Date())}
               views={['year', 'month', 'day']}
-              format='Do MMM YYYY'
+              format='Do MMM YY'
               slotProps={{
                 textField: {
                   error: Boolean(errors.startDate),
@@ -150,32 +142,8 @@ const BasicDetailsAddEdit = ({
       </Grid>
 
       <Grid container spacing={2} sx={{ mt: 4 }}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Grid container spacing={3}>
-            <TextField
-              fullWidth
-              label='Enter File Number*'
-              variant='outlined'
-              value={fileNumberValue}
-              onChange={handleFileNmbChange}
-              error={Boolean(errors.fileNumberValue)}
-              helperText={errors.fileNumberValue}
-              sx={{ marginTop: '4px', mr: 2 }}
-              slotProps={{
-                input: {
-                  //maxLength: 31,
-                  style: { height: '52px' }
-                }
-              }}
-            />
-          </Grid>
-        </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <FileUpload
-            name='(AWB) Airway Bill'
-            onFileUpload={handleFileUpload}
-            file={uploadedFile ? uploadedFile : null}
-          />
+          <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
           {errors.uploadedFile && (
             <Typography
               sx={{ color: theme.palette.customColors.errorText, fontSize: '12px', fontWeight: '400', mt: 1 }}
@@ -186,6 +154,7 @@ const BasicDetailsAddEdit = ({
         </Grid>
       </Grid>
 
+  
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
         <Button
           variant='outlined'

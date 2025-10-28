@@ -6,16 +6,9 @@ import AnimalIdentifiers from '../shipment-view/AnimalsIdentifier'
 
 const SpeciesDetails = ({ selectedExportData }) => {
   const theme = useTheme()
-
-
   // Flatten all species from all exports
-  //const allSpecies = selectedExportData?.export?.flatMap(exportItem => exportItem.species || []) || []
-  const allSpecies = [
-    ...(selectedExportData?.export?.flatMap(exportItem => exportItem.species || []) || []),
-    ...(selectedExportData?.others?.flatMap(otherItem => otherItem.species || []) || [])
-  ]
-  
-return (
+  const allSpecies = selectedExportData?.export?.flatMap(exportItem => exportItem.species || []) || []
+  return (
     <Box>
       <Typography
         fontWeight={500}
@@ -129,8 +122,7 @@ return (
 const ShippedAnimalsDrawer = ({ open, onClose, title, identifiers, selectedExportData }) => {
   const theme = useTheme()
   const [tab, setTab] = useState(0)
-  
-return (
+  return (
     <Drawer open={open} anchor='right'>
       <Box
         sx={{

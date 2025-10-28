@@ -317,7 +317,6 @@ const AddFeedType = () => {
                 </FormControl>
                 <input
                   type='file'
-
                   // accept='image/*'
                   // accept='image/png, image/jpeg'
                   onChange={e => handleInputImageChange(e)}
