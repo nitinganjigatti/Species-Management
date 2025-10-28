@@ -294,6 +294,21 @@ function hexToHex8(hex, opacity) {
   return `#${hex}${alpha}`
 }
 
+const getUpcomingHours = (count = 6) => {
+  const now = new Date()
+  const hours = []
+  const currentHour = now.getHours()
+
+  for (let i = 0; i < count; i++) {
+    const hour = (currentHour + i) % 24
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const formattedHour = ((hour + 11) % 12) + 1 // Convert to 12-hour format
+    hours.push(`${formattedHour} ${ampm}`)
+  }
+
+  return hours
+}
+
 export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) => {
   try {
     // Call the API to get the download URL
@@ -333,6 +348,12 @@ export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) =
   }
 }
 
+const capitalizeFirstLetter = string => {
+  if (!string) return ''
+  
+return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -360,7 +381,9 @@ const Utility = {
   decryptData,
   formatIdentifierType,
   hexToHex8,
-  downloadPDF
+  getUpcomingHours,
+  downloadPDF,
+  capitalizeFirstLetter
 }
 
 export default Utility

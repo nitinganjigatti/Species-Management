@@ -131,6 +131,7 @@ const UserThemeOptions = () => {
 
         TertiaryLight: '#FFD3D399',
         Tertiary30: '#FFBDA84D',
+        Tertiary20: '#FFBDA833',
         OnBackground: '#E1F9ED',
         BgTeritary: '#ffebe5',
         Primary10: '#37BD691A',
@@ -164,7 +165,10 @@ const UserThemeOptions = () => {
         statusText: '#7A7A7A',
         Antz_Body_Medium: '#FFC300',
         grey700: 'grey.700',
-        grey800: 'grey.800'
+        grey800: 'grey.800',
+        OnSurface: '#006D35',
+        rusticRed: '#4A0415', // Custom color name as not found color name in figma
+        amber: '#FFC107' // Custom color name as not found color name in figma
       },
       primary: {
         // light: '#20DE67',

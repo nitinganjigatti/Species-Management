@@ -5,13 +5,14 @@ import moment from 'moment'
 
 const ShipmentCard = ({ shipment }) => {
   const theme = useTheme()
-  return (
+  
+return (
     <Box mb={6}>
       {/* Shipment ID */}
       <Typography sx={{ fontSize: '18px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, mb: 3 }}>
         Shipment ID :{' '}
         <Box component='span' sx={{ fontSize: '18px', fontWeight: 500, color: theme.palette.primary.dark }}>
-          {shipment.id}
+          {shipment?.shipment_number}
         </Box>
       </Typography>
 

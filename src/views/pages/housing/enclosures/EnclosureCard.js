@@ -38,11 +38,15 @@ const EnclosureCard = ({ enclosure }) => {
         inchagename={enclosure?.incharge_name || ''}
       />
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {enclosure.species_count && <Stat label='Species' value={enclosure.species_count} />}
-        {enclosure.animals_count && <Stat label='Animals' value={enclosure.animals_count} />}
-        {enclosure.sub_enclosure_count && <Stat label='Sub Enclosures' value={enclosure.sub_enclosure_count} />}
-      </Box>
+      {enclosure.species_count ||
+        enclosure.animals_count ||
+        (enclosure.sub_enclosure_count && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {enclosure.species_count && <Stat label='Species' value={enclosure.species_count} />}
+            {enclosure.animals_count && <Stat label='Animals' value={enclosure.animals_count} />}
+            {enclosure.sub_enclosure_count && <Stat label='Sub Enclosures' value={enclosure.sub_enclosure_count} />}
+          </Box>
+        ))}
     </Box>
   )
 }

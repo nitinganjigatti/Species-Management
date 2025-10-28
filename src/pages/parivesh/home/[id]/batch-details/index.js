@@ -439,6 +439,7 @@ const BatchDetails = ({ params, searchParams }) => {
             <DataGrid
               disableColumnMenu
               disableColumnFilter
+
               // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -463,6 +464,7 @@ const BatchDetails = ({ params, searchParams }) => {
               paginationMode='server'
               pageSizeOptions={[total]}
               paginationModel={paginationModel}
+
               // slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
@@ -976,6 +978,7 @@ const BatchDetails = ({ params, searchParams }) => {
                       {attachmentLoader ? (
                         <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
                       ) : (
+
                         // <Icon icon='mdi:attachment-plus' size={1} />
 
                         <Icon
@@ -1005,6 +1008,7 @@ const BatchDetails = ({ params, searchParams }) => {
                           }}
                         >
                           {isImage(filePreview.attachment) ? (
+
                             // <img
                             //   style={{
                             //     height: '100%',

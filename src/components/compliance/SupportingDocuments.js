@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Typography, List, IconButton, Collapse, alpha, useMediaQuery, CircularProgress } from '@mui/material'
 import { Edit as EditIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { useTheme } from '@mui/material/styles'
 import DocumentUploadDrawer from './drawer/DocumentUploadDrawer'
@@ -29,7 +30,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
     // Ensure dates are properly formatted when setting current document data
     setCurrentDocumentData({
       ...document,
-      issued_date: document.issued_date ? dayjs(document.issued_date) : null
+      issued_date: document?.issued_date ? dayjs(document?.issued_date) : null
     })
     setDrawerOpen(true)
   }
@@ -90,11 +91,21 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
     )
   }
 
+  const handleOpenLink = document => {
+    if (document?.file_path) {
+      window.open(document.file_path, '_blank', 'noopener,noreferrer')
+    } else {
+      Toaster({ type: 'error', message: 'No file available to view' })
+    }
+  }
+
   return (
     <Box sx={{ mt: 2 }}>
-      <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-        {completedCount}/{totalCount} Documents added
-      </Typography>
+      {documentList?.length ? (
+        <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
+          {completedCount}/{totalCount} Documents added
+        </Typography>
+      ) : null}
 
       <List
         sx={{
@@ -127,7 +138,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                       flexDirection: isMobile ? 'column' : 'row',
                       alignItems: isMobile ? 'flex-start' : 'center',
                       justifyContent: 'space-between',
-                      py: 1,
+                      py: 2,
                       gap: isMobile ? 2 : 0
                     }}
                   >
@@ -167,9 +178,28 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                         </Collapse>
                       </Box>
                     </Box>
-                    <IconButton onClick={() => handleOpenDrawer(document)} disabled={isLoading} size='small'>
-                      <EditIcon fontSize='small' />
-                    </IconButton>
+                    {type === '1' || type === '2' || type === '3' ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton
+                          onClick={() => handleOpenLink(document)}
+                          disabled={isLoading}
+                          size='small'
+                          sx={{ padding: 0, marginRight: 3, cursor: 'pointer' }}
+                        >
+                          <VisibilityIcon fontSize='small' />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => handleOpenDrawer(document)}
+                          disabled={isLoading}
+                          size='small'
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <EditIcon fontSize='small' />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      ''
+                    )}
                   </Box>
                 </Box>
               ) : (
@@ -179,15 +209,15 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                     flexDirection: isMobile ? 'column' : 'row',
                     alignItems: isMobile ? 'flex-start' : 'center',
                     justifyContent: 'space-between',
-                    py: 1,
+                    py: 0,
                     gap: isMobile ? 2 : 0
                   }}
                 >
-                  <Typography sx={{ fontWeight: 500 }}>{document.name}</Typography>
+                  <Typography sx={{ fontWeight: 500 }}>{document?.name || ''}</Typography>
                   <Box
                     sx={{
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      p: 3,
+                      p: 0,
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
@@ -204,8 +234,8 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                       src='/images/compliance/attach_file_add_colored.svg'
                       alt='Grocery Icon'
                       width='20px'
-                      height={'20px'}
-                      style={{ marginRight: '15px', marginLeft: '10px' }}
+                      height={'40px'}
+                      style={{ marginRight: '15px', marginLeft: '15px' }}
                     />
                     <Typography sx={{ color: theme.palette.primary.OnSurface, fontWeight: 400 }}>
                       Upload Document

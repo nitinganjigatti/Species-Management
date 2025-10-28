@@ -86,20 +86,6 @@ const AssessmentReportFilterDrawer = ({
 
   // const calculateFilterCount = () => {
   //   let count = 0
-  //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
-  //     if (Array.isArray(value)) {
-  //       count += value.length // For Site, Section, Enclosure, gender
-  //     } else if (typeof value === 'string' && value.trim() !== '') {
-  //       count += 1 // For accession_start and accession_end (non-empty strings)
-  //       // it will increase count by 2 in selection of 1 because on onchange is handling 2 keys
-  //     }
-  //   })
-
-  //   setFilterCount(count)
-  // }
-
-  // const calculateFilterCount = () => {
-  //   let count = 0
 
   //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
   //     if (Array.isArray(value)) {
@@ -291,10 +277,11 @@ const AssessmentReportFilterDrawer = ({
                   (tempSelectedItems?.accession_start && tempSelectedItems?.accession_start.trim() !== '') ||
                   (tempSelectedItems?.accession_end && tempSelectedItems?.accession_end.trim() !== '')
                 ) {
-                  count = 1 
+                  count = 1
                 }
               }
-              return (
+              
+return (
                 <Box
                   key={menu}
                   sx={{
@@ -629,6 +616,7 @@ const AssessmentReportFilterDrawer = ({
                       <Box
                         key={option.label}
                         sx={{ display: 'flex', alignItems: 'center', mb: 3, cursor: 'pointer' }}
+
                         // onClick={() => {
                         //   const { start, end } = option.getRange()
                         //   setTempSelectedItems(prev => ({
@@ -657,6 +645,7 @@ const AssessmentReportFilterDrawer = ({
                       >
                         <Checkbox
                           checked={isSelected}
+
                           // onChange={() => {
                           //   const { start, end } = option.getRange()
                           //   setTempSelectedItems(prev => ({

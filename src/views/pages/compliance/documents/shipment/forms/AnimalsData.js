@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect, useRef } from 'react'
 import SpeciesDetailsContainer from '../shipment-view/SpeciesDetails'
 import SpeciesAddEdit from '../shipment-view/SpeciesAddEdit'
 import { getExportList } from 'src/lib/api/compliance/exports'
-import { getMastersData } from 'src/lib/api/compliance/exports'
 import { createShipmentSpecies, getShipmentSpeciesData, updateShipmentSpecies } from 'src/lib/api/compliance/shipment'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -16,7 +15,10 @@ const AnimalsData = ({
   totalSpecies,
   totalAnimals,
   setTotalAnimals,
-  setTotalSpecies
+  setTotalSpecies,
+  setExpanded,
+  fetchLinkedDocuments,
+  mastersData
 }) => {
   const router = useRouter()
   const { id, action, export: exportCount } = router.query
@@ -32,12 +34,12 @@ const AnimalsData = ({
   const [loader, setLoader] = useState(false)
 
   const scrollContainerRef = useRef(null)
-  const [mastersData, setMastersData] = useState([])
   const [currentSpeciesId, setCurrentSpeciesId] = useState(null)
   const [selectedSpeciesData, setSelectedSpeciesData] = useState({})
   const [animalCountDrawerOpen, setanimalCountDrawerOpen] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
   const [draftData, setDraftData] = useState({ export: [], others: [] })
+
   const [selectedExportData, setSelectedExportData] = useState({
     export: [],
     others: []
@@ -104,10 +106,12 @@ const AnimalsData = ({
         try {
           setIsLoading(true)
           const nextPage = paginationModel.page + 1
+
           const params = {
             q: searchValue,
             page_no: nextPage,
-            limit: paginationModel.pageSize
+            limit: paginationModel.pageSize,
+            excludeShipped: 1
           }
 
           const response = await getExportList(params)
@@ -136,7 +140,8 @@ const AnimalsData = ({
         const params = {
           q: searchValue,
           page_no: reset ? 1 : paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          excludeShipped: 1
         }
 
         const response = await getExportList(params)
@@ -160,24 +165,6 @@ const AnimalsData = ({
     [searchValue, paginationModel.pageSize]
   )
 
-  const fetchMastersData = async () => {
-    try {
-      const res = await getMastersData()
-      if (res?.success) {
-        const data = res.data
-        setMastersData(data)
-      }
-    } catch (e) {
-      console.error(e)
-    } finally {
-    }
-  }
-
-  useEffect(() => {
-    fetchExportList()
-    fetchMastersData()
-  }, [fetchExportList])
-
   useEffect(() => {
     fetchExportList(true)
   }, [searchValue])
@@ -199,7 +186,8 @@ const AnimalsData = ({
       .map(species => {
         setCurrentSpeciesId(species.tsn_id)
         setSelectedSpeciesData(species)
-        return {
+        
+return {
           id: species.tsn_id,
           species: {
             id: species.tsn_id,
@@ -249,7 +237,8 @@ const AnimalsData = ({
           }
         }
       }
-      return species
+      
+return species
     })
 
     setSpeciesList(updatedSpeciesList)
@@ -288,6 +277,7 @@ const AnimalsData = ({
 
     const payload = {}
     setLoading(true)
+
     // Handle export data
     selectedExportData.export.forEach((exp, index) => {
       // species as JSON string
@@ -297,7 +287,9 @@ const AnimalsData = ({
           taxonomy_id: spec.taxonomy_id || null,
           common_name: spec.common_name || '',
           scientific_name: spec.scientific_name || '',
+
           //default_icon: '', // or use spec.default_icon if available
+          shipment_species_id: spec?.shipment_species_id || '',
           appendix: spec.appendix || '',
           male_count: parseInt(spec.male_count) || 0,
           female_count: parseInt(spec.female_count) || 0,
@@ -322,8 +314,8 @@ const AnimalsData = ({
           taxonomy_id: item.species.taxonomy_id || '',
           common_name: item.species.common_name || '',
           scientific_name: item.species.scientific_name || '',
-          //default_icon: item.species.default_icon || '',
-          //appendix: '', // others might not have this
+          shipment_species_id: item.species.shipment_species_id || '',
+          default_icon: item.species.default_icon ? item.species.default_icon.split('path=')[1] : '',
           male_count: parseInt(item.species.male_count) || 0,
           female_count: parseInt(item.species.female_count) || 0,
           undeterminate_count: parseInt(item.species.undeterminate_count) || 0,
@@ -350,6 +342,8 @@ const AnimalsData = ({
         router.push(`/compliance/documents/shipments/AddEditShipment/?id=${id}&action=details&export=1`)
         Toaster({ type: 'success', message: response?.message })
         fetchShipmentspeciesDetails()
+        setExpanded(['permit-details'])
+        fetchLinkedDocuments()
       } else {
         setLoading(false)
         Toaster({ type: 'error', message: response?.message })
@@ -393,8 +387,10 @@ const AnimalsData = ({
             species: {
               id: spec.taxonomy_id || '',
               tsn_id: spec.taxonomy_id || '',
+              taxonomy_id: spec.taxonomy_id || '',
               common_name: spec.common_name || '',
               scientific_name: spec.scientific_name || '',
+              shipment_species_id: spec?.shipment_species_id || '',
               male_count: parseInt(spec.male_count) || 0,
               female_count: parseInt(spec.female_count) || 0,
               undeterminate_count: parseInt(spec.undeterminate_count) || 0,
