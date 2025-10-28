@@ -72,6 +72,7 @@ import GenericNamesList from '../../masters/generic'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import ControlledCheckbox from 'src/views/forms/form-fields/ControlledCheckbox'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -100,7 +101,8 @@ const defaultValues = {
   safety_advice: '',
   image: '',
   active: '1',
-  url: ''
+  url: '',
+  priority: null
 }
 
 const schema = yup.object().shape({
@@ -471,7 +473,8 @@ const AddMedicine = () => {
                     salt_id: ''
                   }
                 ],
-          status: response?.data?.active
+          status: response?.data?.active,
+          priority: response?.data?.priority
         })
       }
       setLoader(false)
@@ -652,7 +655,8 @@ const AddMedicine = () => {
       uses,
       safety_advice,
       active,
-      url
+      url,
+      priority
     } = {
       ...params
     }
@@ -681,7 +685,8 @@ const AddMedicine = () => {
       uses,
       safety_advice,
       status: active,
-      url
+      url,
+      priority
     }
     if (files.length > 0) {
       payload.image = files[0]
@@ -769,8 +774,6 @@ const AddMedicine = () => {
           setDefaultSalts([])
           setShouldClearFields(false)
         } else {
-          debugger
-
           Router.replace(`/pharmacy/medicine/${response?.data?.stock_item_id}`)
         }
         setSubmitLoader(false)
@@ -1862,7 +1865,16 @@ const AddMedicine = () => {
                                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.url?.message}</FormHelperText>
                               )}
                             </FormControl>
+                            <ControlledCheckbox
+                              name='priority'
+                              label='Critical'
+                              control={control}
+                              checkedValue='critical'
+                              uncheckedValue=''
+                              errors={errors}
+                            />
                           </Grid>
+
                           {/* <Grid item size={{xs: 12, sm: 6}}>
                             {id !== undefined ? (
                               <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
