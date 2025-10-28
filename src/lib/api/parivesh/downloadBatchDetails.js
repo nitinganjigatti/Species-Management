@@ -15,6 +15,7 @@ export async function downloadCsvForBatchData(payload) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
-    return error
+    
+return error
   }
 }

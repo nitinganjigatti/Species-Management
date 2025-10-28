@@ -1,31 +1,30 @@
 import React from 'react'
-import { Grid, Box, Typography, Divider, IconButton } from '@mui/material'
+import { Grid, Box, Typography, IconButton, Tooltip } from '@mui/material'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
-import { useMediaQuery } from '@mui/system'
 import { useTheme } from '@emotion/react'
+import Image from 'next/image'
 
 const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const info = [
     {
-      icon: <img src='/images/housing/enclosure-icon-colored.svg' alt='Cluster Icon' width='40px' />,
-      label: 'Enclosure ID',
+      icon: '/images/housing/enclosure-icon-colored.svg',
+      label: 'Enclosure Name',
       value: `${enclosureData?.enclusreId}`
     },
     {
-      icon: <img src='/images/housing/enclosre-type-colored-icon.svg' alt='Cluster Icon' width='40px' />,
+      icon: '/images/housing/enclosre-type-colored-icon.svg',
       label: 'Enclosure Type',
       value: `${enclosureData?.enclusreType}`
     },
     {
-      icon: <img src='/images/housing/section-colored-icon.svg' alt='Cluster Icon' width='30px' />,
+      icon: '/images/housing/section-colored-icon.svg',
       label: 'Section Name',
       value: `${enclosureData?.sectionName}`
     },
     {
-      icon: <img src='/images/housing/site-icon-colored.svg' alt='Cluster Icon' width='35px' />,
+      icon: '/images/housing/site-icon-colored.svg',
       label: 'Site Name',
       value: `${enclosureData?.siteName}`
     }
@@ -36,64 +35,83 @@ const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
       sx={{
         background: theme.palette.customColors.displaybgPrimary,
         borderRadius: 1,
-        px: { xs: 2, sm: 6 },
-        py: { xs: 2, sm: 5 },
+        p: { xs: 2, sm: '24px' },
         width: '100%',
         boxSizing: 'border-box',
-        mt: 6
+        mt: 6,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px'
       }}
     >
       {/* Header */}
-      <Grid container alignItems='center' justifyContent='space-between' sx={{ mb: 3 }}>
-        <Grid item>
-          <Typography variant='h6' sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 500 }}>
-            Enclosure Details
-          </Typography>
-        </Grid>
-        <Grid item>
-          <IconButton size='small' onClick={onEditClick}>
-            <EditOutlinedIcon sx={{ color: '#6b7a7a' }} />
-          </IconButton>
-        </Grid>
-      </Grid>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography
+          sx={{
+            color: 'customColors.OnSurfaceVariant',
+            lineHeight: 1,
+            fontWeight: 500,
+            fontSize: '20px',
+            letterSpacing: 0
+          }}
+        >
+          Enclosure Details
+        </Typography>
+        {/* <IconButton sx={{ p: 1 }} onClick={onEditClick}>
+          <EditOutlinedIcon sx={{ fontSize: '24px', color: '#6b7a7a' }} />
+        </IconButton> */}
+      </Box>
 
       {/* Info Blocks */}
-      <Grid
-        container
-        alignItems='center'
-        justifyContent='flex-start'
-        spacing={0}
-        sx={{
-          flexWrap: { xs: 'wrap', sm: 'nowrap' }
-        }}
-      >
+      <Grid container alignItems='center' justifyContent='flex-start' spacing={'24px'}>
         {info.map((item, idx) => (
-          <React.Fragment key={item.label}>
-            <Grid
-              item
-              size={{ xs: 12, sm: 3 }}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                py: { xs: 2, sm: 0 },
-                minWidth: 0
-              }}
-            >
-              {item.icon}
-              <Box sx={{ minWidth: 0 }}>
+          <Grid
+            key={item.label}
+            item
+            size={{ xs: 12, sm: 6, md: 3 }}
+            sx={{
+              display: 'flex',
+              gap: '8px',
+              pr: 2,
+              alignItems: 'center',
+              borderRight: {
+                xs: 'none',
+                sm: idx % 2 === 1 ? 'none' : '0.5px solid #006D354D',
+                md: info.length === idx + 1 ? 'none' : '0.5px solid #006D354D'
+              },
+              minWidth: 0
+            }}
+          >
+            <Image
+              height={32}
+              width={32}
+              src={item.icon}
+              alt='Cluster Icon'
+              style={{ height: '32px', width: '32px' }}
+            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+              <Tooltip title={item.label}>
                 <Typography
-                  variant='body2'
-                  sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, lineHeight: 1.2 }}
+                  sx={{
+                    color: theme.palette.customColors.secondaryBg,
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    letterSpacing: 0,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
                 >
                   {item.label}
                 </Typography>
+              </Tooltip>
+              <Tooltip title={item.value}>
                 <Typography
-                  variant='subtitle1'
                   sx={{
                     color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 500,
-                    lineHeight: 1.2,
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    letterSpacing: 0,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -101,24 +119,9 @@ const EnclosureDetailsCard = ({ enclosureData, onEditClick }) => {
                 >
                   {item.value ? item.value : 'NA'}
                 </Typography>
-              </Box>
-            </Grid>
-            {!isMobile && idx < info.length - 1 && (
-              <Grid
-                item
-                xs={1}
-                sx={{
-                  display: { xs: 'none', sm: 'block' },
-                  height: 48,
-                  px: 6,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <Divider orientation='vertical' flexItem />
-              </Grid>
-            )}
-          </React.Fragment>
+              </Tooltip>
+            </Box>
+          </Grid>
         ))}
       </Grid>
     </Box>

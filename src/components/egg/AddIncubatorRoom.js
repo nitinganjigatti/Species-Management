@@ -32,6 +32,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   const id = editParams?.room_id
 
   const [loader, setLoader] = useState(false)
+  const [nurseryLoader, setNurseryLoader] = useState(false)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
 
@@ -43,7 +44,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
   const schema = yup.object().shape({
     room_name: yup.string().trim().required('Room name is required'),
-    site_id: yup.string().required('Select site'),
+    site_id: yup.string().required('Site is required'),
     nursery: defaultNursery?.nursery_id ? yup.string().notRequired() : yup.string().required('Nursery is required')
   })
 
@@ -67,6 +68,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
   const fetchNurseryList = async (q = '') => {
     try {
+      setNurseryLoader(true)
+
       const params = {
         type: 'only_active',
         search: q,
@@ -77,6 +80,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
       setNurseryList(data?.result || [])
     } catch (e) {
       console.error('Failed to fetch nursery list', e)
+    } finally {
+      setNurseryLoader(false)
     }
   }
 
@@ -93,6 +98,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
   const onSubmit = async values => {
     setLoader(true)
+
     const payload = {
       room_name: values.room_name,
       site_id: values.site_id,
@@ -133,6 +139,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
       setValue('site_id', selectedNursery?.site_id || '')
       clearErrors('site_id')
     }
+
     // }, [nurseryId])
   }, [nurseryId, nurseryList])
 
@@ -216,17 +223,20 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                       disablePortal
                       disabled={isPreFilled?.nursery_id}
                       id='nursery'
+                      loading={nurseryLoader}
                       options={nurseryList?.length > 0 ? nurseryList : []}
                       getOptionLabel={option => option.nursery_name}
                       isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultNursery(null)
-                          return onChange('')
+                          
+return onChange('')
                         } else {
                           setDefaultNursery(val)
                           setValue('room', '')
-                          return onChange(val.nursery_id)
+                          
+return onChange(val.nursery_id)
                         }
                       }}
                       renderInput={params => (

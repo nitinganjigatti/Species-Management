@@ -63,6 +63,7 @@ export function renderUserAvatarDetails({
   date,
   text_color,
   description,
+  crby_width,
   size = 'large',
   show_time = false
 }) {
@@ -121,7 +122,7 @@ export function renderUserAvatarDetails({
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      maxWidth: 100,
+                      maxWidth: crby_width ? crby_width : 100,
                       ...(selectedAvatarSize?.user_name || {})
                     }}
 
@@ -334,7 +335,8 @@ export const CellInfo = ({
   avatarUrl,
   inchagename,
   defaultImage,
-  defaultImageAlt
+  defaultImageAlt,
+  objectFit = 'cover'
 }) => {
   const theme = useTheme()
 
@@ -356,6 +358,7 @@ export const CellInfo = ({
       {imgUrl && !imgError ? (
         <>
           {showSkeleton && <Skeleton variant='rectangular' width={40} height={40} sx={{ borderRadius: '4px' }} />}
+          {/* <Box sx={{ padding: 2, backgroundColor: theme.palette.customColors.displaybgSecondary, borderRadius: '4px' }}> */}
           <Box
             component='img'
             src={imgUrl}
@@ -366,10 +369,10 @@ export const CellInfo = ({
               width: 40,
               height: 40,
               borderRadius: '4px',
-              objectFit: 'cover',
               display: imgLoaded ? 'block' : 'none'
             }}
           />
+          {/* </Box> */}
         </>
       ) : (
         <Avatar
@@ -385,6 +388,13 @@ export const CellInfo = ({
             p: '6px'
 
             // color: theme.palette.customColors.OnPrimaryContainer
+          }}
+          slotProps={{
+            img: {
+              style: {
+                objectFit: objectFit // e.g. 'cover', 'contain', etc.
+              }
+            }
           }}
         />
       )}

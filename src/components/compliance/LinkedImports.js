@@ -47,7 +47,18 @@ const LinkedImports = ({ imports = [] }) => {
               <Typography
                 variant='body1'
                 fontWeight='medium'
-                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  float: 'left'
+                }}
+                onClick={() => {
+                  window.open(
+                    `/compliance/documents/imports/AddEditImport/?id=${item?.import_id}&action=details`,
+                    '_blank'
+                  )
+                }}
               >
                 {item?.import_number || '-'}
               </Typography>

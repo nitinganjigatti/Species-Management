@@ -1,6 +1,6 @@
+import React, { useEffect, useState } from 'react'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { Breadcrumbs, Grid, Tab, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react'
 import ShowLabCard from 'src/components/lab/lab-details/ShowLabCard'
 import Site from 'src/components/lab/lab-details/Site'
 import Tests from 'src/components/lab/lab-details/Tests'
@@ -32,7 +32,7 @@ const LabDetails = () => {
         setLabTests(res?.data[0]?.lab_details)
         setLoader(false)
       }
-    } catch (error) {}
+    } catch (error) { }
   }
 
   useEffect(() => {

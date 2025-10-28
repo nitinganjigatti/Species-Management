@@ -153,6 +153,7 @@ const TransferDetails = () => {
       disableColumnMenu: true,
       headerName: 'EGG NUMBER',
       renderCell: params => (
+
         // <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         //   <Typography
         //     style={{
@@ -199,6 +200,7 @@ const TransferDetails = () => {
           eggCondition={params.row.egg_condition}
           eggCode={params.row.egg_code}
           egg_status={params.row.egg_status}
+
           // defaultName={params.row.default_common_name}
           // completeName={params.row.complete_name}
           eggIcon={'/icons/Egg_icon.png'}
@@ -881,6 +883,7 @@ const TransferDetails = () => {
         pageSizeOptions={[7, 10, 25, 50]}
         paginationModel={paginationModel}
         onSortModelChange={handleSortModel}
+
         // slots={{ toolbar: ServerSideToolbarWithFilter }}
         onPaginationModelChange={setPaginationModel}
         loading={loading}

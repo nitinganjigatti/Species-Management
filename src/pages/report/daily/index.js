@@ -1,4 +1,5 @@
-import { useContext, useEffect } from 'react'
+import { forwardRef, useState, useRef, useContext, useEffect } from 'react'
+
 import {
   Box,
   Button,
@@ -12,26 +13,29 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { forwardRef, useState, useRef } from 'react'
+import { useTheme } from '@emotion/react'
+
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SingleDatePicker from 'src/components/SingleDatePicker'
+import Toaster from 'src/components/Toaster'
+
 import {
   getAnimalReport,
   getReportTitle,
   getUserReport,
   getMedicalReport,
   getAnimalAssessment,
-  getEnclosureAssessment
+  getEnclosureAssessment,
+  getDailyFoodWastageReport
 } from 'src/lib/api/report'
-import { AuthContext } from 'src/context/AuthContext'
-import Error404 from 'src/pages/404'
-import { useTheme } from '@emotion/react'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-import Toaster from 'src/components/Toaster'
 
 const Animal = () => {
   const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [loading, setLoading] = useState(false)
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
   const [errors, setErrors] = useState({})
@@ -48,11 +52,9 @@ const Animal = () => {
   useEffect(() => {
     const yesterday = new Date()
 
-
     const year = yesterday.getFullYear()
     const month = String(yesterday.getMonth() + 1).padStart(2, '0') // Months are zero-based
     const day = String(yesterday.getDate()).padStart(2, '0')
-
     const formattedDate = `${year}-${month}-${day}`
 
     setStartDate(formattedDate)
@@ -94,15 +96,27 @@ const Animal = () => {
 
   useEffect(() => {
     if (enable_daily_report && reports_module && enable_daily_report) {
+      setLoading(true)
+
       const fetchReportType = async () => {
-        const response = await getReportTitle({
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        })
-        if (response) {
-          setReportData(response)
-        } else {
-          console.error('error >')
+        try {
+          const response = await getReportTitle({
+            page_no: paginationModel.page + 1,
+            limit: paginationModel.pageSize
+          })
+          if (Array.isArray(response)) {
+            const modifiedResponse = [
+              ...response,
+              { id: 12, title: 'Food Wastage', key: 'food_wastage', action: 'Download' }
+            ]
+            setReportData(modifiedResponse)
+          } else {
+            console.error('error >')
+          }
+        } catch (error) {
+          console.error('Error fetching report titles:', error)
+        } finally {
+          setLoading(false)
         }
       }
       fetchReportType()
@@ -142,6 +156,8 @@ const Animal = () => {
         response = await getAnimalAssessment(params)
       } else if (type === 'enclosure_assessment') {
         response = await getEnclosureAssessment(params)
+      } else if (type === 'food_wastage') {
+        response = await getDailyFoodWastageReport(params)
       } else {
         response = await getAnimalReport(params)
       }
@@ -202,7 +218,7 @@ const Animal = () => {
 
     Object.keys(popoverData).forEach(category => {
       popoverData[category].forEach(option => {
-        updatedApiParams[option.key] = option.checked ? 1 : 0 
+        updatedApiParams[option.key] = option.checked ? 1 : 0
       })
     })
 
@@ -233,11 +249,13 @@ const Animal = () => {
       flex: 0.7,
       headerAlign: 'left',
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.customColors.customHeadingTextColor, fontWeight: 500, fontSize: '14px', ml: 3 }}
-        >
-          {params.row.title}
-        </Typography>
+        <>
+          <Typography
+            sx={{ color: theme.palette.customColors.customHeadingTextColor, fontWeight: 500, fontSize: '14px', ml: 3 }}
+          >
+            {params.row.title}
+          </Typography>
+        </>
       )
     },
     {
@@ -278,31 +296,29 @@ const Animal = () => {
   ]
 
   const title = (
-    <>
-      <Typography
-        sx={{
-          fontSize: '24px',
-          fontWeight: 500,
-          fontFamily: 'Inter',
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        Daily Report
-      </Typography>
-    </>
+    <Typography
+      sx={{
+        fontSize: '24px',
+        fontWeight: 500,
+        fontFamily: 'Inter',
+        color: theme.palette.customColors.OnSurfaceVariant
+      }}
+    >
+      Daily Report
+    </Typography>
   )
 
   return (
     <>
       {reports_module && enable_daily_report ? (
         <Card>
-          <CardHeader title={title} sx={{ mb: '16px' }} />
+          <CardHeader title={title} sx={{ paddingX: 5, mb: '16px' }} />
           <Box
             sx={{
               display: 'flex',
               flexWrap: 'wrap',
               justifyContent: 'flex-end',
-              px: '16px',
+              px: 5,
               mb: '16px'
             }}
           >
@@ -368,7 +384,7 @@ const Animal = () => {
                   aria-describedby={'popoverButton'}
                   sx={{
                     width: '140px',
-                    height: '45px', 
+                    height: '45px',
                     display: 'flex',
                     borderRadius: '8px',
                     color: theme.palette.customColors.OnSurfaceVariant,
@@ -457,72 +473,20 @@ const Animal = () => {
               </Box>
             </Box>
           </Box>
-          <Box sx={{ width: '98%', margin: 4 }}>
-            <Box sx={{ borderRadius: '8px' }}>
-              {/* <DataGrid
-                sx={{
-                  mt: 3,
-                  mx: 2,
-                  borderRadius: '8px',
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-                  '& .MuiDataGrid-columnHeader': {
-                    backgroundColor: '#DDEBE9',
-                    color: '#1F415B',
-                    fontWeight: 600,
-                    fontSize: '12px',
-                    fontFamily: 'Inter',
-                    textTransform: 'capitalize',
-                    borderBottom: '2px solid #C3CEC7'
-                  },
-                  '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #C3CEC7',
-                    borderRight: '1px solid #C3CEC7',
-                    borderTop: '1px solid #C3CEC7',
-                    borderBottom: '1px solid #C3CEC7',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: 'none'
-                  },
-
-                  '& .MuiDataGrid-cell': {
-                    fontFamily: 'Inter',
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    lineHeight: '16.94px',
-                    textAlign: 'left',
-                    color: '#44544A'
-                  }
-                }}
-                rows={reportRows}
-                disableColumnSorting={true}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onPaginationModelChange={setPaginationModel}
-                autoHeight
-                disableColumnFilter={false}
-                hideFooterSelectedRowCount
-                rowHeight={70}
-                scrollbarSize={10}
-              /> */}
-              <CommonTable
-                setPaginationModel={setPaginationModel}
-                indexedRows={reportRows}
-                total={''}
-                disableColumnSorting={true}
-                columns={columns}
-                paginationModel={paginationModel}
-                disableColumnFilter={false}
-                rowHeight={70}
-                scrollbarSize={10}
-              />
-            </Box>
+          <Box sx={{ paddingX: 5, borderRadius: '8px' }}>
+            <CommonTable
+              setPaginationModel={setPaginationModel}
+              indexedRows={reportRows}
+              total={''}
+              loading={loading}
+              disableColumnSorting={true}
+              columns={columns}
+              hideFooterPagination
+              paginationModel={paginationModel}
+              disableColumnFilter={false}
+              rowHeight={70}
+              scrollbarSize={10}
+            />
           </Box>
         </Card>
       ) : (

@@ -152,16 +152,16 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  p: 0,
+                  mb: 2
                 }}
               >
                 <div
                   style={{
-                    background: '#fff',
                     borderRadius: '8px',
-                    padding: '18px',
-                    width: '120px',
-                    height: '120px',
+                    width: '100%',
+                    height: '250px',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center'
@@ -208,9 +208,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
                   justifyContent: 'space-between',
                   mb: 2
                 }}
-              >
-               
-              </Box>
+              ></Box>
               <Box
                 sx={{
                   width: '100%',

@@ -220,6 +220,7 @@ const DietDetail = () => {
             } else {
               setspeciesDataforFilter(prevData => {
                 const combinedData = [...prevData, ...resultData]
+
                 const uniqueData = combinedData.filter(
                   (item, index, self) =>
                     index ===
@@ -227,6 +228,7 @@ const DietDetail = () => {
                       selectionType === 'species' ? t.species_id === item.species_id : t.species_id === item.species_id
                     )
                 )
+
                 return uniqueData
               })
             }
@@ -1524,7 +1526,8 @@ const DietDetail = () => {
                                                                       color: theme.palette.customColors.neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 400,
-                                                                      fontSize: '14px'
+                                                                      fontSize: '14px',
+                                                                      textAlign: 'center'
                                                                     }}
                                                                   >
                                                                     {item.meal_type
@@ -1618,7 +1621,8 @@ const DietDetail = () => {
                                                                                   .neutralPrimary,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
-                                                                              fontSize: '14px'
+                                                                              fontSize: '14px',
+                                                                              textAlign: 'center'
                                                                             }}
                                                                           >
                                                                             {dietDetails.diet_type_name ===
@@ -1848,7 +1852,7 @@ const DietDetail = () => {
                                                                               display: 'block'
                                                                             }}
                                                                           >
-                                                                            Combo
+                                                                            Mix
                                                                           </Typography>
                                                                           <Typography
                                                                             sx={{
@@ -2205,7 +2209,8 @@ const DietDetail = () => {
                                                                       color: theme.palette.customColors.neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 400,
-                                                                      fontSize: '14px'
+                                                                      fontSize: '14px',
+                                                                      textAlign: 'center'
                                                                     }}
                                                                   >
                                                                     {item.meal_type
@@ -2808,7 +2813,8 @@ const DietDetail = () => {
                                                                       color: theme.palette.customColors.neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 400,
-                                                                      fontSize: '14px'
+                                                                      fontSize: '14px',
+                                                                      textAlign: 'center'
                                                                     }}
                                                                   >
                                                                     {item.meal_type
@@ -2904,7 +2910,8 @@ const DietDetail = () => {
                                                                                   .neutralPrimary,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
-                                                                              fontSize: '14px'
+                                                                              fontSize: '14px',
+                                                                              textAlign: 'center'
                                                                             }}
                                                                           >
                                                                             {dietDetails.diet_type_name ===
@@ -3354,7 +3361,8 @@ const DietDetail = () => {
                                                                     color: theme.palette.customColors.neutralPrimary,
                                                                     lineHeight: '16.94px',
                                                                     fontWeight: 400,
-                                                                    fontSize: '14px'
+                                                                    fontSize: '14px',
+                                                                    textAlign: 'center'
                                                                   }}
                                                                 >
                                                                   {item.meal_type
@@ -3447,7 +3455,8 @@ const DietDetail = () => {
                                                                               theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 400,
-                                                                            fontSize: '14px'
+                                                                            fontSize: '14px',
+                                                                            textAlign: 'center'
                                                                           }}
                                                                         >
                                                                           {dietDetails.diet_type_name === 'By Weight' &&

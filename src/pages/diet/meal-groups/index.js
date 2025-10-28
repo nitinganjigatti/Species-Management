@@ -574,6 +574,7 @@ const MealGroup = () => {
       setEnclosureDrawer(true)
       setLoader(true)
       setGroupId(id)
+
       // setCheckedRows([])
       console.log('Checked rows >>', checkedRows)
 
@@ -1462,6 +1463,7 @@ const MealGroup = () => {
                 value={defaultSite}
                 disablePortal
                 id='site_id'
+
                 // clearIcon={firstSite?.site_id ? true: false}
                 disableClearable={defaultSite?.site_id === firstSite?.site_id}
                 options={authData?.userData?.user?.zoos?.[0]?.sites || []}
@@ -1736,7 +1738,7 @@ const MealGroup = () => {
                           fontSize: '16px'
                         }}
                       >
-                        No record found
+                        No rows
                       </Typography>
                     </Box>
                   )
@@ -1898,6 +1900,7 @@ const MealGroup = () => {
           groupId={groupId}
           mealId={mealId}
           handleEditSearch={handleEditSearch}
+          fetchSiteStats={fetchSiteStats}
         />
       )}
       {enclosureDrawer && (

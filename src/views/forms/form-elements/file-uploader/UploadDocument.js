@@ -35,6 +35,7 @@ const UploadDocument = ({ name, file, onFileUpload }) => {
 
     return imgPath?.default
   }
+
   const handleFileChange = event => {
     const selectedFile = event.target.files[0]
     onFileUpload(selectedFile || null)

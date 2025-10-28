@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Avatar,
   Button,
@@ -43,6 +43,7 @@ import { AddAssesment, EditAssesment, getWeightList } from 'src/lib/api/egg/egg'
 import EggActivityLogs from './EggActivityLogs'
 import ProbableParent from './ProbableParent'
 import TransferEgg from './TransferEgg'
+import Toaster from 'src/components/Toaster'
 
 const EggSecondSecion = ({
   activtyLogData,
@@ -79,7 +80,7 @@ const EggSecondSecion = ({
   const [probableParentSideBar, setProbableParentSideBar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
 
-  const [addWeightSidebar, setaddWeightSidebar] = useState(false)
+  const [addWeightSidebar, setAddWeightSidebar] = useState(false)
   const [editWeight, setEditWeight] = useState(false)
   const [allWeightSidebarOpen, setAllWeightSidebarOpen] = useState(false)
 
@@ -140,7 +141,7 @@ const EggSecondSecion = ({
     <>
       {!(eggDetails?.egg_status === 'Discard') && (
         <Button
-          onClick={() => setaddWeightSidebar(true)}
+          onClick={() => setAddWeightSidebar(true)}
           sx={{ fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
           startIcon={<Icon icon='mdi:add' fontSize={20} />}
         >
@@ -150,10 +151,30 @@ const EggSecondSecion = ({
     </>
   )
 
+  const formatDay = date => moment(Utility.convertUTCToLocal(date)).format('YYYY-MM-DD')
+
+  const sortedRowsForChart = useMemo(() => {
+    return [...rows].sort((a, b) => {
+      const current = a?.created_at
+        ? moment(Utility.convertUTCToLocal(a.created_at)).valueOf()
+        : 0
+      const next = b?.created_at
+        ? moment(Utility.convertUTCToLocal(b.created_at)).valueOf()
+        : 0
+
+      return current - next
+    })
+  }, [rows])
+
+  const chartData = sortedRowsForChart.map(row => ({
+    x: formatDay(row.created_at), // day-wise
+    y: Number(row.assessment_value)
+  }))
+
   const series = [
     {
       name: 'Actual Value',
-      data: rowsWeight
+      data: chartData
     }
   ]
 
@@ -161,43 +182,27 @@ const EggSecondSecion = ({
     chart: {
       type: 'line',
       height: 350,
-      toolbar: {
-        show: false
-      }
+      toolbar: { show: false }
     },
-    stroke: {
-      curve: 'smooth',
-      width: 2
-    },
-    markers: {
-      size: 4,
-      hover: {
-        sizeOffset: 2
-      }
-    },
+    stroke: { curve: 'smooth', width: 2 },
+    markers: { size: 4 },
     tooltip: {
       shared: true,
       intersect: false,
-      y: {
-        formatter: val => `${val}g`
-      }
+      y: { formatter: val => `${val}g` }
     },
     xaxis: {
-      categories: Array.from({ length: 21 }, (_, i) => i + 1),
-      title: {
-        text: 'Days'
+      type: 'category', // <-- important
+      title: { text: 'Days' },
+      labels: {
+        rotate: -45,
+        formatter: val => moment(val).format('DD MMM') // pretty format
       }
     },
     yaxis: {
-      title: {
-        text: 'Weight (g)'
-      }
+      title: { text: 'Weight (g)' }
     },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'center'
-    },
-    colors: [theme.palette.primary.main] 
+    colors: [theme.palette.primary.main]
   }
 
   const columns = [
@@ -267,16 +272,60 @@ const EggSecondSecion = ({
       field: 'assessment_value',
       headerName: 'ACTUAL',
       renderCell: params => (
+        <Tooltip
+          title={`${
+            Number(params?.row?.assessment_value || 0) % 1 === 0
+              ? Math.floor(Number(params?.row?.assessment_value || 0))
+              : Number(params?.row?.assessment_value || 0).toFixed(2)
+          } ${params?.row?.uom_abbr}`}
+          placement='top'
+        >
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {`${
+              Number(params?.row?.assessment_value || 0) % 1 === 0
+                ? Math.floor(Number(params?.row?.assessment_value || 0))
+                : Number(params?.row?.assessment_value || 0).toFixed(2)
+            } ${params?.row?.uom_abbr}`}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 30,
+      sortable: false,
+      field: 'action',
+      headerName: 'ACTION',
+      renderCell: params => (
         <Typography
-          noWrap
           sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
+            display: 'flex',
+            alignItems: 'center',
+            pl: '8px'
           }}
         >
-          {`${params?.row?.assessment_value} ${params?.row?.uom_abbr}`}
+          <Icon
+            onClick={() => {
+              setEditWeight(true)
+              setValue('assessment_value', params?.row?.assessment_value)
+              setValue('assessment_id', params?.row?.id)
+              setAddWeightSidebar(true)
+            }}
+            style={{ cursor: 'pointer' }}
+            icon='ic:outline-edit'
+            fontSize={20}
+          />
         </Typography>
       )
     }
@@ -312,9 +361,7 @@ const EggSecondSecion = ({
     reValidateMode: 'onChange'
   })
 
-  const onError = errors => {
-  
-  }
+  const onError = errors => {}
 
   const onSubmit = val => {
     const params = {
@@ -336,35 +383,42 @@ const EggSecondSecion = ({
       try {
         EditAssesment(paramsEdit).then(res => {
           if (res.success) {
+            // Success toaster
+            Toaster({ type: 'success', message: res.message || 'Weight updated successfully!' })
             reset()
-            setaddWeightSidebar(false)
+            setAddWeightSidebar(false)
             setEditWeight(false)
             setValue('assessment_id', '')
             setSubmitAssementloader(false)
             getDetails(egg_id)
             fetchTableData()
           } else {
+            Toaster({ type: 'error', message: res.message || 'Failed to update weight' })
             setSubmitAssementloader(false)
           }
         })
       } catch (error) {
-        console.error(error)
+        Toaster({ type: 'error', message: 'Something went wrong while updating weight' })
+        setSubmitAssementloader(false)
       }
     } else {
       try {
         AddAssesment(params).then(res => {
           if (res.success) {
+            Toaster({ type: 'success', message: res.message || 'Weight added successfully!' })
             reset()
-            setaddWeightSidebar(false)
+            setAddWeightSidebar(false)
             setSubmitAssementloader(false)
             getDetails(egg_id)
             fetchTableData()
           } else {
+            Toaster({ type: 'error', message: res.message || 'Failed to add weight' })
             setSubmitAssementloader(false)
           }
         })
       } catch (error) {
-        console.error(error)
+        Toaster({ type: 'error', message: 'Something went wrong while adding weight' })
+        setSubmitAssementloader(false)
       }
     }
   }
@@ -480,6 +534,7 @@ const EggSecondSecion = ({
           paginationMode='server'
           pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
+
           // onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
           onPaginationModelChange={setPaginationModel}
@@ -524,7 +579,8 @@ const EggSecondSecion = ({
               size='small'
               sx={{ color: 'text.primary' }}
               onClick={() => {
-                setaddWeightSidebar(false)
+                setAddWeightSidebar(false)
+                setEditWeight(false)
                 reset()
               }}
             >
@@ -552,7 +608,7 @@ const EggSecondSecion = ({
                             onChange={event => {
                               const newValue = event.target.value
 
-                              if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
+                              if (/^[1-9]\d*(\.\d{0,2})?$/.test(newValue) || newValue === '') {
                                 onChange(event)
                               }
                             }}
@@ -603,7 +659,7 @@ const EggSecondSecion = ({
   )
 
   return (
-    <>
+    <Box>
       <Grid
         container
         spacing={6}
@@ -1064,7 +1120,7 @@ const EggSecondSecion = ({
                   <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                     <Box
                       sx={{
-                        backgroundColor: theme.palette.customColors.addPrimary,
+                        backgroundColor: theme.palette.primary.main,
                         height: '10px',
                         width: '10px',
                         borderRadius: '10px'
@@ -1117,7 +1173,7 @@ const EggSecondSecion = ({
               <CustomTableContainer
                 style={{ border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`, borderRadius: '8px' }}
                 component={Paper}
-                sx={{ height: 175 }}
+                sx={{ height: 174 }}
               >
                 <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
                   <TableHead>
@@ -1133,36 +1189,77 @@ const EggSecondSecion = ({
                   <TableBody>
                     {eggDetails?.assessments_data?.map((row, key) => {
                       return (
-                        <TableRow key={key} sx={{ py: 1 }} hover>
+                        <TableRow
+                          bor
+                          key={key}
+                          sx={{
+                            py: 1,
+                            '& td': {
+                              border: key === 2 && 'none !important'
+                            }
+                          }}
+                          hover
+                        >
+                          <Tooltip title={Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}>
+                            <TableCell
+                              style={{
+                                padding: '11px 12px 11px 12px',
+                                fontSize: '12px',
+                                fontWeight: '400',
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                overflow: 'hidden',
+                                maxWidth: '80px',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
+                            </TableCell>
+                          </Tooltip>
+                          <Tooltip title={Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}>
+                            <TableCell
+                              style={{
+                                padding: '11px 12px 11px 12px',
+                                fontSize: '12px',
+                                fontWeight: '400',
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                maxWidth: '80px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
+                            </TableCell>
+                          </Tooltip>
                           <TableCell
                             style={{
                               padding: '11px 12px 11px 12px',
                               fontSize: '12px',
                               fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              maxWidth: '150px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
                             }}
                           >
-                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
-                          </TableCell>
-                          <TableCell
-                            style={{
-                              padding: '11px 12px 11px 12px',
-                              fontSize: '12px',
-                              fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
-                          </TableCell>
-                          <TableCell
-                            style={{
-                              padding: '11px 12px 11px 12px',
-                              fontSize: '12px',
-                              fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            {`${row?.assessment_value} ${row?.uom_abbr}`}
+                            <Tooltip
+                              title={`${
+                                Number(row?.assessment_value || 0) % 1 === 0
+                                  ? Math.floor(Number(row?.assessment_value || 0))
+                                  : Number(row?.assessment_value || 0).toFixed(2)
+                              } ${row?.uom_abbr}`}
+                              placement='top'
+                            >
+                              <span>
+                                {`${
+                                  Number(row?.assessment_value || 0) % 1 === 0
+                                    ? Math.floor(Number(row?.assessment_value || 0))
+                                    : Number(row?.assessment_value || 0).toFixed(2)
+                                } ${row?.uom_abbr}`}
+                              </span>
+                            </Tooltip>
                           </TableCell>
                           <TableCell
                             style={{
@@ -1184,7 +1281,7 @@ const EggSecondSecion = ({
                                   setEditWeight(true)
                                   setValue('assessment_value', row?.assessment_value)
                                   setValue('assessment_id', row?.id)
-                                  setaddWeightSidebar(true)
+                                  setAddWeightSidebar(true)
                                 }}
                                 style={{ cursor: 'pointer' }}
                                 icon='ic:outline-edit'
@@ -1230,7 +1327,7 @@ const EggSecondSecion = ({
         getDetails={getDetails}
         egg_id={egg_id}
       />
-    </>
+    </Box>
   )
 }
 
