@@ -21,7 +21,6 @@ function Escrow({ value }) {
 
   const theme = useTheme()
 
-
   const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
@@ -270,7 +269,6 @@ function Escrow({ value }) {
         </Typography>
       )
     }
-
   ]
 
   const fetchScrewTableData = useCallback(async ({ sort, searchValue, column, type, page, pageSize }) => {
@@ -279,9 +277,9 @@ function Escrow({ value }) {
 
       const params = {
         sort,
-        q: searchValue, 
+        q: searchValue,
         column,
-        page: page + 1, 
+        page: page + 1,
         limit: pageSize,
         type
       }
@@ -322,7 +320,7 @@ function Escrow({ value }) {
         ...router.query,
         stockType,
         value,
-        page: paginationModel.page + 1, 
+        page: paginationModel.page + 1,
         pageSize: paginationModel.pageSize,
         searchValue,
         sort,
@@ -417,10 +415,10 @@ function Escrow({ value }) {
         query: {
           ...router.query,
           searchValue: value,
-          page: 1 
+          page: 1
         }
       })
-    }, 40), 
+    }, 40),
     [router]
   )
 
@@ -428,7 +426,7 @@ function Escrow({ value }) {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      setPaginationModel(prevModel => ({ ...prevModel, page: 0 })) 
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
     }
   }, [])
 
@@ -442,85 +440,84 @@ function Escrow({ value }) {
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
+
                 justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 2, sm: 0 }
+                alignItems: 'center',
+                px: { xs: 2, sm: 3, md: 5.5 },
+                m: '0px'
               }}
               title={RenderUtility.pageTitle('Escrow List')}
             />
 
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
-                justifyContent: { xs: 'center', md: 'space-between' },
-                width: '100%',
-                padding: '8px',
-                gap: { xs: 2, md: 3 }
-              }}
+            <Grid
+              container
+              spacing={3}
+              sx={{ px: { xs: 2, sm: 3, md: 5.5 }, display: 'flex', justifyContent: 'space-between' }}
             >
-             
-              <Grid item size={{ xs: 8 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    height: '40px',
-                    width: { xs: '98%', md: '292px', sm: '96%' },
-                    marginBottom: { xs: 2, md: 0 },
-                    marginLeft: { xs: 1.6, md: 4, sm: 3 }
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                  <TextField
-                    variant='outlined'
-                    value={searchValue}
-                    placeholder='Search...'
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              </Grid>
-
-            
-              <FormControl
-                size='small'
+              <Grid
+                item
+                size={{ xs: 12, sm: 5, md: 3.5 }}
                 sx={{
-                  width: { xs: '98%', md: '240px', sm: '96%' },
-                  mr: { sm: 3.5, xs: 0 },
-                  ml: { xs: 1, sm: 3 },
-                  height: '50px'
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '40px'
                 }}
               >
-                <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
-                <Select
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                <TextField
+                  variant='outlined'
+                  value={searchValue}
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
                   size='small'
-                  value={stockType}
-                  label='Filter by stock type'
-                  onChange={e => {
-                    filterByStockType(e.target.value)
-                    setStockType(e.target.value)
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid
+                item
+                size={{ xs: 12, sm: 6 }}
+                sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
+              >
+                <FormControl
+                  sx={{
+                    width: {
+                      xs: '100%',
+                      md: '240px',
+                      sm: '240px'
+                    }
                   }}
                 >
-                  <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='transit'>Transit</MenuItem>
-                  <MenuItem value='dispute'>Dispute</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+                  <InputLabel id='demo-simple-select-label' size='small'>
+                    Filter by stock type
+                  </InputLabel>
+                  <Select
+                    size='small'
+                    value={stockType}
+                    label='Filter by stock type'
+                    onChange={e => {
+                      filterByStockType(e.target.value)
+                      setStockType(e.target.value)
+                    }}
+                  >
+                    <MenuItem value='all'>All</MenuItem>
+                    <MenuItem value='transit'>Transit</MenuItem>
+                    <MenuItem value='dispute'>Dispute</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
 
             {/* <FormControl size='small' sx={{ ml: 4, my: 2 }}>
               <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
@@ -539,11 +536,7 @@ function Escrow({ value }) {
               </Select>
             </FormControl> */}
 
-            <Grid
-              sx={{
-                mx: { xs: 2, sm: 4.5 }
-              }}
-            >
+            <Grid sx={{ px: { xs: 2, sm: 3, md: 5.5 } }}>
               <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}

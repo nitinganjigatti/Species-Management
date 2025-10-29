@@ -35,7 +35,6 @@ const ExpiringMedicine = () => {
 
   const [loader, setLoader] = useState(false)
 
-
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -134,7 +133,7 @@ const ExpiringMedicine = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, startDate, endDate, id) => {
-      if (!searchTriggered && q) return 
+      if (!searchTriggered && q) return
       try {
         setLoading(true)
         let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy?.id : id
@@ -219,7 +218,7 @@ const ExpiringMedicine = () => {
 
   const debouncedSearch = useCallback(
     debounce(value => {
-      setSearchTriggered(true) 
+      setSearchTriggered(true)
       fetchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, storeId)
     }, 1000),
     [fetchTableData, sort, sortColumn, filterDates, selectedPharmacy]
@@ -228,7 +227,7 @@ const ExpiringMedicine = () => {
   const handleSearch = value => {
     setSearchValue(value)
     setSearchTriggered(false)
-    setPaginationModel(prev => ({ ...prev, page: 0 })) 
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
     if (value.trim()) {
       debouncedSearch(value)
     }
@@ -471,29 +470,22 @@ const ExpiringMedicine = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 2, sm: 0 },
-                '& .MuiCardHeader-action': {
-                  mt: 3,
-                  width: { xs: '100% ', sm: 'auto' }
-                },
-                mx: { xs: -1, sm: 0 }
+                justifyContent: 'space-between',
+                alignItems: 'center',
+
+                px: { xs: 1.5, sm: 2.5, md: 5 },
+                m: 0
               }}
               title={RenderUtility.pageTitle('About To Expire')}
-
             />
             <Grid
+              container
+              spacing={3}
               sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
-                justifyContent: 'space-between',
-
-                mx: { xs: 2, sm: 6, md: 6, lg: 6 }
+                px: { xs: 1.5, sm: 2.5, md: 5 }
               }}
             >
-              <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
+              <Grid item size={{ xs: 12, sm: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <TextField
                   variant='outlined'
                   size='small'
@@ -516,14 +508,22 @@ const ExpiringMedicine = () => {
                 />
               </Grid>
 
-              <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+              <Grid
+                item
+                size={{ xs: 12, sm: 9, md: 9 }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row', md: 'row' },
+                  justifyContent: { xs: 'space-between', sm: 'flex-end' },
+                  gap: '10px'
+                }}
+              >
                 {selectedPharmacy.type === 'central' && (
-                  <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
+                  <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
                     <FormControl
                       sx={{
-                        width: { xs: '100%', md: 200, lg: 200 },
-                        mx: { xs: 0, md: 2, lg: 2 },
-                        my: { xs: 2, md: 0, lg: 0 }
+                        width: { xs: 'stretch' },
+                        mt: '3px'
                       }}
                     >
                       <InputLabel id='controlled-select-label'>Stores</InputLabel>
@@ -536,7 +536,6 @@ const ExpiringMedicine = () => {
                         value={storeId}
                         id='controlled-select'
                         labelId='controlled-select-label'
-                        sx={{ width: '100%' }}
                         size='small'
                       >
                         <MenuItem value='all'>All</MenuItem>
@@ -554,19 +553,18 @@ const ExpiringMedicine = () => {
                     </FormControl>
                   </Grid>
                 )}
-
                 <Grid
                   item
+                  size={{
+                    xs: 12,
+                    sm: selectedPharmacy.type === 'central' ? 8 : 12,
+                    md: selectedPharmacy.type === 'central' ? 10 : 8
+                  }}
                   sx={{
                     display: 'flex',
-                    justifyContent: 'center',
-                    gap: 2,
+                    gap: { xs: '6px', sm: '6px', md: '16px' },
                     alignItems: 'center',
-                    width: { xs: '100%', md: 'auto' },
-
-                    mx: { xs: 0, md: 2, lg: 2 },
-
-                    my: { xs: 2, md: 0, lg: 0 }
+                    justifyContent: 'space-between'
                   }}
                 >
                   <CommonDateRangePickers
@@ -596,7 +594,7 @@ const ExpiringMedicine = () => {
 
             <Grid
               sx={{
-                mx: { xs: 3, sm: 5 }
+                px: { xs: 2, sm: 3, md: 5.5 }
               }}
             >
               <CommonTable

@@ -323,8 +323,6 @@ const ExpiredMedicine = () => {
     return <FallbackSpinner />
   }
 
- 
-
   return (
     <>
       {loader ? (
@@ -335,34 +333,30 @@ const ExpiredMedicine = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                justifyContent: { xs: 'flex-start', sm: 'space-between' },
-                alignItems: { xs: 'flex-start', sm: 'flex-start' },
-                flexDirection: { xs: 'column', sm: 'row' },
-                '& .MuiCardHeader-title': {
-                  fontSize: { xs: '18px', sm: '20px', md: '24px' },
-                  flexGrow: 1
-                },
-                '& .MuiCardHeader-action': {
-                  mt: 3,
-                  width: { xs: '100% ', sm: 'auto' }
-                },
-                mx: { xs: -2, sm: 1 }
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                px: { xs: 2, sm: 3, md: 5.5 },
+                margin: 0
               }}
               title={RenderUtility.pageTitle('Expired Products')}
-
-              
             />
 
             <Grid
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
-                justifyContent: 'space-between',
-
-                mx: { xs: 2, sm: 6, md: 6, lg: 6 }
-              }}
+              container
+              spacing={3}
+              alignItems={{ xs: 'start', sm: 'center', md: 'center' }}
+              justifyContent={{ xs: 'start', sm: 'space-between', md: 'space-between' }}
+              px={{ xs: 2, sm: 3, md: 5.5 }}
             >
-              <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
+              <Grid
+                item
+                size={{ xs: 12, sm: 5, md: 3.5 }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  borderRadius: '8px'
+                }}
+              >
                 <TextField
                   variant='outlined'
                   size='small'
@@ -370,9 +364,6 @@ const ExpiredMedicine = () => {
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  sx={{
-                    borderRadius: '8px'
-                  }}
                   slotProps={{
                     input: {
                       startAdornment: (
@@ -385,16 +376,18 @@ const ExpiredMedicine = () => {
                 />
               </Grid>
 
-              <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+              <Grid
+                item
+                size={{ xs: 12, sm: 6, md: 8 }}
+                sx={{
+                  display: 'flex',
+                  justifyContent: { xs: 'space-between', sm: 'end ' },
+                  gap: '16px'
+                }}
+              >
                 {selectedPharmacy.type === 'central' && (
-                  <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
-                    <FormControl
-                      sx={{
-                        width: { xs: '100%', md: 200, lg: 200 },
-                        mx: { xs: 0, md: 2, lg: 2 },
-                        my: { xs: 2, md: 0, lg: 0 }
-                      }}
-                    >
+                  <Grid item>
+                    <FormControl>
                       <InputLabel id='controlled-select-label'>Stores</InputLabel>
                       <Select
                         onChange={e => {
@@ -413,7 +406,6 @@ const ExpiredMedicine = () => {
                         value={storeId}
                         id='controlled-select'
                         labelId='controlled-select-label'
-                        sx={{ width: '100%' }}
                         size='small'
                       >
                         <MenuItem value='all'>All</MenuItem>
@@ -434,7 +426,6 @@ const ExpiredMedicine = () => {
 
                 <Grid
                   item
-                  size={{ xs: 12, md: 4, lg: 4 }}
                   sx={{
                     my: selectedPharmacy.type === 'central' ? 0 : 2
                   }}
@@ -446,7 +437,7 @@ const ExpiredMedicine = () => {
 
             <Grid
               sx={{
-                mx: { xs: 2, sm: 5 }
+                px: { xs: 2, sm: 3, md: 5.5 }
               }}
             >
               <CommonTable

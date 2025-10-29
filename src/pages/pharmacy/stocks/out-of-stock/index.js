@@ -49,7 +49,7 @@ const StockOut = () => {
         setLoading(true)
 
         const params = {
-          sort: sort || 'asc', 
+          sort: sort || 'asc',
           q,
           column,
           page: paginationModel.page + 1,
@@ -87,16 +87,14 @@ const StockOut = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const sortOrder = newModel[0]?.sort || 'asc' 
+      const sortOrder = newModel[0]?.sort || 'asc'
       const sortField = newModel[0]?.field || ''
 
       setSort(sortOrder)
       setSortColumn(sortField)
 
-     
       setPaginationModel(prev => ({ ...prev, page: 0 }))
 
-     
       fetchTableData(sortOrder, searchValue, sortField, status)
     } else {
       console.log('No sort model applied')
@@ -270,7 +268,6 @@ const StockOut = () => {
     // },
 
     {
-      // flex: 0.4,
       width: 200,
       minWidth: 100,
       field: 'stock_qty',
@@ -351,77 +348,71 @@ const StockOut = () => {
           <CardHeader
             sx={{
               display: 'flex',
-              justifyContent: 'space-between', 
+              justifyContent: 'space-between',
               alignItems: 'center',
-              px: { xs: 2, md: 5 }, 
-              py: 2
+              px: { xs: 2, sm: 3, md: 5.5 },
+              margin: 0
             }}
             title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
           />
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              width: '96%',
-              m: { xs: 1, sm: 1.5, md: 3.5 },
-              gap: 2
-            }}
+          <Grid
+            container
+            spacing={3}
+            alignItems={{ xs: 'start', sm: 'center', md: 'center' }}
+            justifyContent={{ xs: 'start', sm: 'space-between', md: 'space-between' }}
+            px={{ xs: 2, sm: 3, md: 5.5 }}
           >
-        
-            <Grid item size={{ xs: 12, sm: 6 }}>
-              <Box
+            <Grid
+              item
+              size={{ xs: 12, sm: 5, md: 3.5 }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                borderRadius: '8px',
+                padding: '0 8px',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+              }}
+            >
+              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+              <TextField
+                variant='outlined'
+                value={searchValue}
+                placeholder='Search...'
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                size='small'
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px',
-                  marginLeft: { xs: 1.5, sm: 2.5, md: 3 },
-                  width: { xs: '98%', sm: '30%', md: '20%' }
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  value={searchValue}
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
+                  '& .MuiOutlinedInput-root': {
+                    border: 'none',
+                    padding: '0',
+                    '& fieldset': {
+                      border: 'none'
                     }
-                  }}
-                />
-              </Box>
+                  }
+                }}
+              />
             </Grid>
 
             <Grid
               item
               size={{ xs: 12, sm: 6 }}
               sx={{
-                textAlign: { xs: 'left', sm: 'right' },
-                ml: { xs: 3, sm: 6 },
-
-                mt: { sm: '-40px', md: '-40px' }
+                display: 'flex',
+                justifyContent: { xs: 'start', sm: 'end ' }
               }}
             >
               <FormControlLabel
+                sx={{ m: 0 }}
                 control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
                 label='Out Of Stock'
                 labelPlacement='end'
               />
             </Grid>
-          </Box>
+          </Grid>
 
           <Grid
             sx={{
-              mx: { xs: 2, sm: 3, md: 5.5 }
+              px: { xs: 2, sm: 3, md: 5.5 }
             }}
           >
             <CommonTable

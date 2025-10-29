@@ -31,7 +31,6 @@ import {
   Typography
 } from '@mui/material'
 
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 
@@ -55,6 +54,7 @@ import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import MenuWithDots from 'src/components/MenuWithDots'
 import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
 import StockConfigDetails from 'src/views/pages/pharmacy/stock/StockConfigDetails'
+import { flex } from '@mui/system'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -576,7 +576,7 @@ const ListOfStocks = () => {
       ? [
           {
             width: 150,
-            field: 'action', 
+            field: 'action',
             headerName: 'Actions',
             renderCell: params => (
               <Tooltip title='More Options' placement='top'>
@@ -812,30 +812,27 @@ const ListOfStocks = () => {
       const sortOrder = newModel[0].sort
       const sortField = newModel[0].field
 
-    
       setSort(sortOrder)
       setSortColumn(sortField)
 
       if (changeSwitch) {
-
         setBatchPaginationModel(prev => ({ ...prev, page: 0 }))
         getStocksReportBatchWise({
           batchSort: sortOrder,
-          batchQ: searchValue, 
+          batchQ: searchValue,
           batchColumn: sortField,
-          id: stockId, 
-          batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize } 
+          id: stockId,
+          batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
         })
       } else {
-       
         setPaginationModel(prev => ({ ...prev, page: 0 }))
         getStocksReport({
           sort: sortOrder,
-          q: searchValue, 
+          q: searchValue,
           column: sortField,
-          id: stockId, 
-          type: stockType, 
-          paginationModel: { page: 0, pageSize: paginationModel.pageSize } 
+          id: stockId,
+          type: stockType,
+          paginationModel: { page: 0, pageSize: paginationModel.pageSize }
         })
       }
     }
@@ -846,8 +843,6 @@ const ListOfStocks = () => {
       setSearchValue(value)
 
       try {
-     
-
         setPaginationModel(prev => ({ ...prev, page: 0 }))
 
         await getStocksReport({
@@ -857,7 +852,6 @@ const ListOfStocks = () => {
           id: stockId,
           type: stockType,
           paginationModel: { page: 0, paginationModel: paginationModel.pageSize }
-
         })
       } catch (error) {
         console.error(error)
@@ -1057,23 +1051,26 @@ const ListOfStocks = () => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      px: { xs: 2, md: 5 },
-                      py: 2
+                      px: { xs: 2, sm: 3, md: 5.5 },
+                      margin: 0
                     }}
                     title={RenderUtility.pageTitle('Stock Report')}
-
                   />
 
                   <Grid
-                    sx={{
-                      display: 'flex',
-                      flexDirection: { xs: 'column', md: 'row' },
-                      justifyContent: 'space-between',
-
-                      mx: { xs: 2, sm: 6, md: 6, lg: 6 }
-                    }}
+                    container
+                    spacing={3}
+                    alignItems={{ xs: 'start', sm: 'center' }}
+                    justifyContent={{ xs: 'start', sm: 'space-between' }}
+                    sx={{ px: { xs: 2, sm: 3, md: 5.5 } }}
                   >
-                    <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
+                    <Grid
+                      item
+                      size={{ xs: 12, sm: 3, md: 3 }}
+                      sx={{
+                        display: 'flex'
+                      }}
+                    >
                       <TextField
                         variant='outlined'
                         size='small'
@@ -1085,9 +1082,6 @@ const ListOfStocks = () => {
                             : handleSearch(e.target.value, stockId, stockType, paginationModel)
                         }}
                         fullWidth
-                        sx={{
-                          borderRadius: '8px'
-                        }}
                         slotProps={{
                           input: {
                             startAdornment: (
@@ -1103,103 +1097,135 @@ const ListOfStocks = () => {
                         }}
                       />
                     </Grid>
-                    <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
-                      {selectedPharmacy.type === 'central' && (
-                        <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
-                          <FormControl
-                            sx={{
-                              width: { xs: '100%', md: 200, lg: 200 },
-                              mx: { xs: 0, md: 2, lg: 2 },
-                              my: { xs: 2, md: 0, lg: 0 }
-                            }}
-                          >
-                            <InputLabel id='controlled-select-label'>Stores</InputLabel>
-                            <Select
-                              onChange={e => {
-                                let id = e.target.value
-
-                                const type = stores.find(el => el.id === id)?.type || ''
-
-                                setStockType(type)
-                                setStockId(id)
-
-                                setStockReport([])
-                                setConfigureMedId('')
-                                setErrors('')
-                                setBatchSearchValue('')
-                                setBatchSort('asc')
-                                setBatchSortColumn('stock_items_name')
-                                setSort('asc')
-                                setSortColumn('stock_items_name')
-
-                                textFieldRef.current.value = ''
-                                let storeId = id === 'all' ? 'all' : id
-
-                                // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
-
-                                changeSwitch
-                                  ? getStocksReportBatchWise({
-                                      batchSort: 'asc',
-                                      q: '',
-                                      batchColumn: 'stock_items_name',
-                                      id: storeId,
-                                      batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
-                                    })
-                                  : getStocksReport({
-                                      sort: 'asc',
-                                      q: '',
-                                      column: 'stock_items_name',
-                                      id: storeId,
-                                      type: type,
-                                      paginationModel: { page: 0, pageSize: paginationModel.pageSize }
-                                    })
-                              }}
-                              label='Stores'
-                              value={stockId}
-                              id='controlled-select'
-                              labelId='controlled-select-label'
-                              sx={{ width: '100%' }}
-                              size='small'
-                            >
-                              <MenuItem value='all'>All</MenuItem>
-                              {stores.length > 0 &&
-                                stores.map(el => {
-                                  return (
-                                    <MenuItem key={el.id} value={el.id}>
-                                      {el.name}
-                                    </MenuItem>
-                                  )
-                                })}
-                            </Select>
-                            <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                          </FormControl>
-                        </Grid>
-                      )}
+                    <Grid
+                      item
+                      size={{ xs: 12, sm: 9, md: 9 }}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: { xs: 'start', sm: 'end ' },
+                        gap: '16px',
+                        alignItems: { xs: 'center', sm: 'center' }
+                      }}
+                    >
                       <Grid
-                        item
-                        size={{ xs: 12, md: 8, lg: 8 }}
+                        container
+                        spacing={2}
+                        alignItems={'center'}
+                        mt={{ xs: '0px', sm: '4px' }}
                         sx={{
                           display: 'flex',
-                          justifyContent: 'space-between',
-                          my: { xs: 1, md: 0, lg: 0 }
+                          justifyContent: { xs: 'start', sm: 'end ' }
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              sx={{ mr: { sm: 5 }, mt: { xs: 1, sm: 1 } }}
-                              checked={changeSwitch}
-                              onChange={handleSwitchChange}
-                            />
+                        {selectedPharmacy.type === 'central' && (
+                          <Grid item size={{ xs: 6, sm: 6, md: 'auto' }}>
+                            <FormControl
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <InputLabel id='controlled-select-label'>Stores</InputLabel>
+                              <Select
+                                onChange={e => {
+                                  let id = e.target.value
+
+                                  const type = stores.find(el => el.id === id)?.type || ''
+
+                                  setStockType(type)
+                                  setStockId(id)
+
+                                  setStockReport([])
+                                  setConfigureMedId('')
+                                  setErrors('')
+                                  setBatchSearchValue('')
+                                  setBatchSort('asc')
+                                  setBatchSortColumn('stock_items_name')
+                                  setSort('asc')
+                                  setSortColumn('stock_items_name')
+
+                                  textFieldRef.current.value = ''
+                                  let storeId = id === 'all' ? 'all' : id
+
+                                  // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
+
+                                  changeSwitch
+                                    ? getStocksReportBatchWise({
+                                        batchSort: 'asc',
+                                        q: '',
+                                        batchColumn: 'stock_items_name',
+                                        id: storeId,
+                                        batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
+                                      })
+                                    : getStocksReport({
+                                        sort: 'asc',
+                                        q: '',
+                                        column: 'stock_items_name',
+                                        id: storeId,
+                                        type: type,
+                                        paginationModel: { page: 0, pageSize: paginationModel.pageSize }
+                                      })
+                                }}
+                                label='Stores'
+                                value={stockId}
+                                id='controlled-select'
+                                labelId='controlled-select-label'
+                                sx={{
+                                  width: '100%'
+                                }}
+                                size='small'
+                              >
+                                <MenuItem value='all'>All</MenuItem>
+                                {stores.length > 0 &&
+                                  stores.map(el => {
+                                    return (
+                                      <MenuItem key={el.id} value={el.id}>
+                                        {el.name}
+                                      </MenuItem>
+                                    )
+                                  })}
+                              </Select>
+                              <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
+                            </FormControl>
+                          </Grid>
+                        )}
+
+                        <Grid
+                          item
+                          size={
+                            selectedPharmacy.type === 'central'
+                              ? { xs: 6, sm: 4, md: 3, lg: 3 }
+                              : { xs: 12, sm: 4, md: 3, lg: 3 }
                           }
-                          labelPlacement='start'
-                          label='Batch Wise '
-                        />
-                        <ExportButton
-                          loading={excelLoader}
-                          onClick={getBatchWiseDataToExport}
-                          disabled={changeSwitch ? (batchTotal === 0 ? true : false) : total === 0 ? true : false}
-                        />
+                          sx={{
+                            display: 'flex',
+
+                            justifyContent: {
+                              xs: selectedPharmacy.type === 'central' ? 'flex-end' : 'space-between',
+                              sm: 'flex-end'
+                            },
+                            alignItems: 'center',
+                            gap: { xs: '4px', md: '10px', lg: '14px' }
+                          }}
+                        >
+                          <FormControlLabel
+                            sx={{ m: 0 }}
+                            control={
+                              <Switch
+                                sx={{ mt: { xs: 1, sm: 1 } }}
+                                checked={changeSwitch}
+                                onChange={handleSwitchChange}
+                              />
+                            }
+                            labelPlacement='start'
+                            label='Batch Wise '
+                          />
+                          <ExportButton
+                            loading={excelLoader}
+                            onClick={getBatchWiseDataToExport}
+                            disabled={changeSwitch ? (batchTotal === 0 ? true : false) : total === 0 ? true : false}
+                          />
+                        </Grid>
                       </Grid>
                     </Grid>
                   </Grid>
@@ -1207,7 +1233,7 @@ const ListOfStocks = () => {
                   {changeSwitch ? (
                     <Grid
                       sx={{
-                        mx: { xs: 2, sm: 3.5, md: 5.8 }
+                        px: { xs: 2, sm: 3, md: 5.5 }
                       }}
                     >
                       <CommonTable
