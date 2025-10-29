@@ -365,9 +365,7 @@ const AnimalList = () => {
   // }
 
   const getTotalSelectedFilters = selectedOptions => {
-    return Object.values(selectedOptions)
-      .filter(selected => selected.length > 0)
-      .flat().length
+    return Object.values(selectedOptions || {}).filter(selected => Array.isArray(selected) && selected.length > 0).length
   }
 
   const columns = headerList.map(header => {
