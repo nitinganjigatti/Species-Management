@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, Select, alpha } from '@mui/material'
+import { CardHeader, Box, Breadcrumbs, Typography, Select, alpha, Tabs, Tab } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/views/utility/CustomAccordion'
 import { getDocumentTypeList } from 'src/lib/api/compliance/exports'
@@ -28,7 +28,12 @@ const AddEditImport = () => {
   const [linkedShipments, setLinkedShipments] = useState([])
   const [linkedShipmentsData, setLinkedShipmentsData] = useState()
   const [totalLinkedShipments, setTotalLinkedShipments] = useState(0)
+  const [activeTab, setActiveTab] = useState('completed')
   const animalsEditRef = useRef()
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
 
   useEffect(() => {
     if (isEdit && action === 'edit') {
@@ -41,6 +46,7 @@ const AddEditImport = () => {
     try {
       const params = {
         id: id || exportId,
+        status: activeTab,
         type: 'import'
       }
       const res = await getDocumentTypeList(params)
@@ -63,14 +69,20 @@ const AddEditImport = () => {
     const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
     setDocumentList(updatedList)
     fetchDocumentTypeList()
+    setActiveTab('completed')
   }
 
   useEffect(() => {
     if (id) {
-      fetchDocumentTypeList()
       fetchLinkedDocuments()
     }
   }, [id])
+
+  useEffect(() => {
+    if (id) {
+      fetchDocumentTypeList()
+    }
+  }, [id, activeTab])
 
   const fetchLinkedDocuments = async () => {
     try {
@@ -158,6 +170,7 @@ const AddEditImport = () => {
         onChange={handleAccordionChange}
         editable={showEditAnimals && expanded.includes('animals-details') && id && action === 'details'}
         handleEditClick={() => {
+          setExpanded(['animals - details'])
           animalsEditRef.current?.()
           router.push(`/compliance/documents/imports/AddEditImport/?id=${id}&action=edit`)
         }}
@@ -212,13 +225,32 @@ const AddEditImport = () => {
               </Typography>
             </Box>
           ) : (
-            <SupportingDocuments
-              isFetching={isFetching}
-              documentList={documentList}
-              totalCount={totalCount}
-              onAddEditSuccess={handleAddEditSuccess}
-              type='2'
-            />
+            <Box sx={{ width: '100%' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
+                <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
+                  <Tab
+                    label={`Completed${
+                      activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                    }`}
+                    value='completed'
+                    sx={{ mr: 4 }}
+                  />
+                  <Tab
+                    label={`Pending${
+                      activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
+                    }`}
+                    value='pending'
+                  />
+                </Tabs>
+              </Box>
+              <SupportingDocuments
+                isFetching={isFetching}
+                documentList={documentList}
+                totalCount={totalCount}
+                onAddEditSuccess={handleAddEditSuccess}
+                type='2'
+              />
+            </Box>
           )}
         </CustomAccordion>
       )}

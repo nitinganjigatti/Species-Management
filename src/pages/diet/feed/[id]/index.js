@@ -167,10 +167,10 @@ const FeedDetails = () => {
       flex: 0.9,
       minWidth: 40,
       field: 'ingredient_name',
-      headerName: 'INGREDIENTS',
+      headerName: 'ITEMS',
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <Avatar variant='square' src={params?.row?.image ? params?.row?.image : ''} />
+          <Avatar variant='square' src={params?.row?.image || '/icons/icon_ingredient_fill.png'} />
           {params?.row?.ingredient_name ? params?.row?.ingredient_name : ''}
         </Box>
       )
@@ -197,6 +197,7 @@ const FeedDetails = () => {
         </Box>
       )
     }
+
     // {
     //   flex: 0.2,
     //   minWidth: 10,
@@ -430,7 +431,7 @@ const FeedDetails = () => {
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='2'
-                                label='USED INGREDIENTS'
+                                label='USED ITEMS'
                               />
                             </TabList>
                             <TabPanel sx={{ paddingLeft: 0 }} value='1'>
@@ -554,7 +555,7 @@ const FeedDetails = () => {
                             </TabPanel>
                             <TabPanel sx={{ p: 0, pt: 2 }} value='2'>
                               <Box sx={{ display: 'flex', mb: 4, height: '32px', justifyContent: 'space-between' }}>
-                                <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>Ingredients</Typography>
+                                <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>Items</Typography>
                                 <Button
                                   onClick={() =>
                                     Router.push({
@@ -565,12 +566,12 @@ const FeedDetails = () => {
                                       }
                                     })
                                   }
-                                  sx={{ px: 7, py: 5, ml: 34 }}
+                                  sx={{ px: 7, py: 5, ml: 94 }}
                                   size='small'
                                   variant='contained'
                                 >
                                   <Icon icon='mdi:add' fontSize={20} />
-                                  &nbsp; Add ingredient
+                                  &nbsp; Add item
                                 </Button>
                               </Box>
                               <DataGrid

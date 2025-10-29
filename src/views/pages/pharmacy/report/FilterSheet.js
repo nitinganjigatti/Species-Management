@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Box,
   Drawer,
@@ -8,11 +8,13 @@ import {
   IconButton,
   Grid,
   Divider,
-  CircularProgress
+  CircularProgress,
+  FormControlLabel
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const FilterSheet = ({
   open,
@@ -29,6 +31,7 @@ const FilterSheet = ({
   getTotalSelectedFilters
 }) => {
   const theme = useTheme()
+  const searchInputRef = useRef(null)
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
 
@@ -58,25 +61,51 @@ const FilterSheet = ({
   //   }
   // }
 
+  // const handleSelectAll = event => {
+  //   if (event.target.checked) {
+  //     const currentOptions = filteredOptions.map(option =>
+  //       activeCategory === 'Site' ? option.site_id : option.id
+  //     )
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       [activeCategory]: currentOptions
+  //     }))
+  //   } else {
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       [activeCategory]: []
+  //     }))
+  //   }
+  // }
+
   const handleSelectAll = event => {
+    const filteredIds = filteredOptions.map(option => (activeCategory === 'Site' ? option.site_id : option.id))
+
     if (event.target.checked) {
-      const currentOptions = filteredOptions.map(option =>
-        activeCategory === 'Site' ? option.site_id : option.id
-      )
-      setSelectedOptions(prev => ({
-        ...prev,
-        [activeCategory]: currentOptions
-      }))
+      // ✅ Add only filtered IDs to current selection (merge with previous)
+      setSelectedOptions(prev => {
+        const current = prev[activeCategory] || []
+        
+return {
+          ...prev,
+          [activeCategory]: Array.from(new Set([...current, ...filteredIds]))
+        }
+      })
     } else {
-      setSelectedOptions(prev => ({
-        ...prev,
-        [activeCategory]: []
-      }))
+      // ❌ Remove only filtered IDs from selection
+      setSelectedOptions(prev => {
+        const current = prev[activeCategory] || []
+        const updated = current.filter(id => !filteredIds.includes(id))
+        
+return {
+          ...prev,
+          [activeCategory]: updated
+        }
+      })
     }
   }
 
   const handleToggleOption = (optionId, category) => {
-    
     setSelectedOptions(prevSelectedOptions => {
       const updatedOptions = { ...prevSelectedOptions }
 
@@ -123,6 +152,21 @@ const FilterSheet = ({
     setActiveCategory(category)
     setSearchValue('')
   }
+
+  const filteredIds = filteredOptions.map(option => (activeCategory === 'Site' ? option.site_id : option.id))
+
+  const selectedIds = selectedOptions[activeCategory] || []
+
+  const isAllFilteredSelected = filteredIds.every(id => selectedIds.includes(id))
+  const isSomeFilteredSelected = filteredIds.some(id => selectedIds.includes(id))
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        searchInputRef.current?.focus()
+      }, 100) // slight delay to allow render
+    }
+  }, [open, activeCategory])
 
   return (
     <Drawer
@@ -238,9 +282,11 @@ const FilterSheet = ({
                   }}
                 >
                   <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+
                   <TextField
                     variant='outlined'
                     placeholder='Search'
+                    inputRef={searchInputRef}
                     value={searchValue}
                     onChange={e => setSearchValue(e.target.value)}
                     sx={{
@@ -263,54 +309,73 @@ const FilterSheet = ({
                   />
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                  <Checkbox
-                    // checked={selectedOptions[activeCategory]?.length === options[activeCategory]?.length}
-                    checked={
-                      filteredOptions.length > 0 && selectedOptions[activeCategory]?.length === filteredOptions.length
+                  <FormControlLabel
+                    sx={{}}
+                    label={
+                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
+                        Select All
+                      </Typography>
                     }
-                    onChange={handleSelectAll}
-                    slotProps={{
-                      input: {
-                        'aria-label': 'controlled'
-                      }
-                    }}
+                    control={
+                      <Checkbox
+                        disabled={filteredOptions.length === 0}
+                        checked={isAllFilteredSelected}
+                        indeterminate={isSomeFilteredSelected && !isAllFilteredSelected}
+                        onChange={handleSelectAll}
+                      />
+                    }
                   />
-                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
-                    Select All
-                  </Typography>
                 </Box>
                 <Divider sx={{ mt: 1.4 }} />
               </Box>
               <Box sx={{ ml: 2, overflowY: 'auto' }}>
-                <Box sx={{ ml: 2 }}>
+                <Box sx={{ ml: 2, pb: 17 }}>
                   {activeCategory === 'Site' ? (
-                    filteredOptions.map((option, index) => (
-                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Checkbox
-                          checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
-                          onChange={() => handleToggleOption(option.site_id, activeCategory)}
-                        />
-                        <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                          {option.site_name}
-                        </Typography>
-                      </Box>
-                    ))
+                    filteredOptions.length > 0 ? (
+                      filteredOptions.map((option, index) => (
+                        <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <FormControlLabel
+                            label={
+                              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                                {option.site_name}
+                              </Typography>
+                            }
+                            control={
+                              <Checkbox
+                                checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                                onChange={() => handleToggleOption(option.site_id, activeCategory)}
+                              />
+                            }
+                          />
+                        </Box>
+                      ))
+                    ) : (
+                      <NoDataFound variant='Seal' />
+                    )
                   ) : isLoader ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
                       <CircularProgress />
                     </Box>
-                  ) : (
+                  ) : filteredOptions.length > 0 ? (
                     filteredOptions.map((option, index) => (
                       <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Checkbox
-                          checked={(selectedOptions[activeCategory] || []).includes(option.id)}
-                          onChange={() => handleToggleOption(option.id, activeCategory)}
+                        <FormControlLabel
+                          label={
+                            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                              {option.organization_name}
+                            </Typography>
+                          }
+                          control={
+                            <Checkbox
+                              checked={(selectedOptions[activeCategory] || []).includes(option.id)}
+                              onChange={() => handleToggleOption(option.id, activeCategory)}
+                            />
+                          }
                         />
-                        <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                          {option.organization_name}
-                        </Typography>
                       </Box>
                     ))
+                  ) : (
+                    <NoDataFound variant='Seal' />
                   )}
                 </Box>
               </Box>

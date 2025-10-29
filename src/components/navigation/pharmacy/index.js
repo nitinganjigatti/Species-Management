@@ -329,6 +329,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     icon: 'tabler:report-analytics',
     title: 'Reports',
     path: '/pharmacy/reports',
+    key: 'pharmacy-reports',
     children: []
   }
 
@@ -370,6 +371,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const allRequestedItemsReport = {
     title: 'All requested Item Report',
     path: '/pharmacy/reports/all-requested-items'
+  }
+
+  const reconciliationReport = {
+    title: 'Reconciliation Report',
+    path: '/pharmacy/reports/reconciliation-report'
   }
 
   const rackAndShelves = {
@@ -429,6 +435,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     reportsParent.children.push(requestReport)
     reportsParent.children.push(returnToSupplierReport)
     reportsParent.children.push(allRequestedItemsReport)
+    reportsParent.children.push(reconciliationReport)
 
     // requestParent.children.push(requestByProductListing)
 

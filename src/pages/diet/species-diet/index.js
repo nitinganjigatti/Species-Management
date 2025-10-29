@@ -30,6 +30,7 @@ import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFil
 import { FilterButton } from '../../../views/utility/render-snippets'
 
 import { getSpeciesList } from 'src/lib/api/diet/speciesDiet'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -106,6 +107,7 @@ const SpeciesDietList = () => {
           limit: paginationModel.pageSize,
           with_diet: filterByDiet,
           sort_order: newModel?.sort?.toUpperCase(),
+
           // sort_by: newModel?.field,
           class_ids: classIds?.length > 0 ? classIds.toString() : ''
         }
@@ -194,83 +196,13 @@ const SpeciesDietList = () => {
       headerName: 'SPECIES',
       renderCell: params => (
         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Avatar
-            variant='rounded'
-            alt='Species Image'
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              background: theme.palette.customColors.tableHeaderBg,
-              padding:
-                params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
-                  ? '2px'
-                  : '0px'
-            }}
-          >
-            {params.row.default_icon ? (
-              <img
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius:
-                    params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
-                      ? ''
-                      : '50%',
-
-                  objectFit:
-                    params.row?.default_icon.includes('class_images') && params.row?.default_icon.endsWith('.svg')
-                      ? 'fill'
-                      : 'cover'
-                }}
-                src={params.row.default_icon}
-                alt='Profile'
-              />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.scientific_name ? params.row.scientific_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: 240
-                }}
-              >
-                {params.row.scientific_name ? params.row.scientific_name : '-'}
-              </Typography>
-            </Tooltip>
-            <Tooltip title={params.row?.common_name ? params.row?.common_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontStyle: 'italic',
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: 240
-                }}
-              >
-                {params.row?.common_name ? params.row?.common_name : '-'}
-              </Typography>
-            </Tooltip>
-          </Box>
+          <SpeciesCard species={params?.row} />
         </Box>
       )
     },
     {
       width: colWidths[2],
+
       // flex: 1,
       sortable: false,
       field: 'attachment_count',
@@ -318,6 +250,7 @@ const SpeciesDietList = () => {
         </Tooltip>
       )
     },
+
     // {
     //   width: colWidths[2],
     //   // flex: 1,
@@ -622,6 +555,7 @@ const SpeciesDietList = () => {
                   //   fileInputRef.current.click()
                   // }
                   setUploadDietDrawer(true)
+
                   // fileInputRef.current.click()
                 }}
                 sx={{
@@ -665,6 +599,7 @@ const SpeciesDietList = () => {
       const params = {
         // sort: sort,
         q: searchValue,
+
         // column: sortColumn,
         response_type: 'csv',
         with_diet: filterByDiet
@@ -786,6 +721,7 @@ const SpeciesDietList = () => {
                         <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                         <TextField
                           value={searchValue}
+
                           // clearSearch={() => handleSearch('')}
                           onChange={event => handleSearch(event.target.value)}
                           variant='outlined'
@@ -937,6 +873,7 @@ const SpeciesDietList = () => {
               sortModel={sortModel}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
+
               // onRowClick={() => setSpeciesDetailsDrawer(true)}
               onCellClick={onCellClick}
             />

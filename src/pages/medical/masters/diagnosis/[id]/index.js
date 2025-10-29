@@ -253,9 +253,10 @@ const DiagnosisDetails = () => {
             <CardHeader title='Diagnosis List' action={headerAction} />
 
             <DataGrid
+
               //   hideFooterPagination={true}
               sx={{
-                '.MuiDataGrid-cell:focus': {
+                '.MuiDataGrid-cell:focus-within': {
                   outline: 'none'
                 },
 
