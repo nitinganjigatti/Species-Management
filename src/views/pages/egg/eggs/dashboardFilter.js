@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react'
 
-import { useTheme } from '@mui/material/styles'
+import { useTheme, styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
@@ -14,7 +14,8 @@ import {
   IconButton,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  Badge
 } from '@mui/material'
 
 import Icon from 'src/@core/components/icon'
@@ -24,6 +25,12 @@ import { getSpecieList } from 'src/lib/api/egg/egg/createAnimal'
 import { getFilterBatchList } from 'src/lib/api/egg/dashboard'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetEggMaster } from 'src/lib/api/egg/egg'
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
 
 const leftMenu = [
   { id: 1, name: 'Species' },
@@ -60,6 +67,12 @@ const DashboardFilter = ({
   const [loading, setLoading] = useState(false)
 
   const [tempSelectedOptions, setTempSelectedOptions] = useState(selectedOptions)
+
+  const getMenuBadgeCount = menuName => {
+    const selections = tempSelectedOptions?.[menuName]
+
+    return Array.isArray(selections) ? selections.length : 0
+  }
 
   // Ref for search input to enable auto-focus
   const searchInputRef = useRef(null)
@@ -445,36 +458,44 @@ const DashboardFilter = ({
       >
         <Grid container sx={{ px: 5 }}>
           <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
-            {leftMenu.map(menu => (
-              <Box
-                key={menu.id}
-                sx={{
-                  maxWidth: '190px',
-                  bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
-                  cursor: 'pointer',
-                  p: 4,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px'
-                }}
-                onClick={() => handleMenuClick(menu)}
-              >
-                <Tooltip title={menu.name}>
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.dark,
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      lineHeight: '19.36px',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {menu.name}
-                  </Typography>
-                </Tooltip>
-              </Box>
-            ))}
+            {leftMenu.map(menu => {
+              const badgeCount = getMenuBadgeCount(menu.name)
+
+              return (
+                <Box
+                  key={menu.id}
+                  sx={{
+                    maxWidth: '190px',
+                    bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                    cursor: 'pointer',
+                    p: 4,
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }}
+                  onClick={() => handleMenuClick(menu)}
+                >
+                  <Tooltip title={menu.name}>
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.dark,
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        lineHeight: '19.36px',
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}
+                    >
+                      {menu.name}
+                      <StyledBadge badgeContent={badgeCount} color='primary' sx={{ ml: 2, flexShrink: 0 }} />
+                    </Typography>
+                  </Tooltip>
+                </Box>
+              )
+            })}
           </Grid>
           <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
