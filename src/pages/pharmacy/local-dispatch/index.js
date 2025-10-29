@@ -18,7 +18,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Icon from 'src/@core/components/icon'
@@ -446,33 +446,41 @@ const DirectDispatchList = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 2, sm: 0 },
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' }
-                },
-                mx: { xs: -2, sm: 0 }
+               flexDirection: { xs: 'column', sm: 'row',  },
+                alignItems: {xs: 'flex-start', sm: 'center'},
+                 mx: { xs: 2, sm: 0, md: 0 },
+                gap: { xs: 2, sm: 0}
+              
+                // '& .MuiCardHeader-action': {
+                //   width: { xs: '100% ', sm: 'auto' }
+                // },
+                // mx: { xs: -2, sm: 0 }
+                
+              
+                
+
               }}
               title={RenderUtility.pageTitle('Local Dispatch List')}
               action={headerAction}
             />
-            <Box
+            {/* <Box
               sx={{
                 mx: { xs: 2, sm: 3, md: 5 }
               }}
-            >
-              <Grid container spacing={3}>
-                <Grid
-                  item
-                  size={{ xs: 12, sm: 6 }}
-                  spacing={3}
-                  sx={{
-                    gap: 3
-                  }}
-                >
-                  <Box
+            > */}
+              <Grid  
+                container 
+                spacing = {4}
+                
+                sx = {{
+                    padding: '18px 22px 0 22px' ,
+                    display: 'flex',
+                    justifyContent: 'space-between'
+                            
+                  
+                }}>
+                <Grid size={{ xs: 12, sm: 5 , md: 3 }}>
+                  {/* <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -483,46 +491,64 @@ const DirectDispatchList = () => {
                       width: { xs: '100%', sm: '270px' }
                     }}
                   >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
+                      size = 'small'
                       value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
+                      
+                      // sx={{
+                      //   '& .MuiOutlinedInput-root': {
+                      //     border: 'none',
+                      //     padding: '0',
+                      //     '& fieldset': {
+                      //       border: 'none'
+                      //     }
+                      //   }
+                      // }}
+                     sx={{
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '8px',
+          alignItems: 'center',
+      
+      }, }}
+                       slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      ),
+                    
+                  },
+                  }}
+                />
+                    
+                  {/* </Box> */}
                 </Grid>
 
                 {(status === 'all' || status === 'completed') && (
-                  <Grid
-                    item
-                    size={{ xs: 12, sm: 6 }}
-                    sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
-                  >
+                   <Grid size={{ xs: 12, sm: 'auto'} }>
                     <FormControlLabel
                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
-                      sx={{ marginRight: 1 }}
+                      //sx={{ marginRight: 1 }}
+                      sx = {{margin: 0}}
+                      
                     />
-                  </Grid>
+                      </Grid>
                 )}
               </Grid>
-            </Box>
+            {/* </Box> */}
 
             <Grid
               sx={{
-                mx: { xs: 2, sm: 3, md: 5 }
+              // mx: { xs: 2, sm: 3, md: 5 }
+              margin: '0px 1.375rem 0px 1.375rem'
               }}
             >
               <CommonTable
