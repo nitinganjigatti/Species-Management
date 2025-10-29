@@ -98,6 +98,8 @@ const DietDetail = () => {
   const [applyfilterCheck, setapplyfilterCheck] = useState(false)
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
   const [selectedSections, setSelectedSections] = useState([])
+  const [taxonomyLoading, setTaxonomyLoading] = useState(false)
+  const [speciesFilterLoading, setSpeciesFilterLoading] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -166,6 +168,10 @@ const DietDetail = () => {
 
   const fetchList = async (searchQuery, type = null) => {
     try {
+      if (filterState === 'species') {
+        setSpeciesFilterLoading(true)
+      }
+
       if (pageNo === 1) {
         setLoading(true)
       } else {
@@ -303,6 +309,7 @@ const DietDetail = () => {
     } finally {
       setLoading(false)
       setIsLoadingMore(false)
+      setSpeciesFilterLoading(false)
     }
   }
 
@@ -392,6 +399,7 @@ const DietDetail = () => {
   }
 
   const fetchTaxonomyList = async (searchQuery = taxonomySearchQuery) => {
+    setTaxonomyLoading(true)
     try {
       const params = { search: searchQuery, page_no: pageNoTaxonomy, limit: 15 }
       const response = await getTaxonomyList(params)
@@ -405,6 +413,8 @@ const DietDetail = () => {
     } catch (error) {
       console.error('Error fetching taxonomy list:', error)
       setTaxonomyList([])
+    } finally {
+      setTaxonomyLoading(false)
     }
   }
 
@@ -3861,6 +3871,8 @@ const DietDetail = () => {
             selectedEnclosures={selectedEnclosures}
             setSelectedSections={setSelectedSections}
             selectedSections={selectedSections}
+            taxonomyLoading={taxonomyLoading}
+            speciesFilterLoading={speciesFilterLoading}
           />
         </>
       ) : (

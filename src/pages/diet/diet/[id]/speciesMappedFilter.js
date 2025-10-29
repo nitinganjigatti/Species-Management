@@ -3,6 +3,7 @@ import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Badge,
+  CircularProgress,
   Checkbox,
   Divider,
   Drawer,
@@ -74,7 +75,9 @@ const SpeciesMappedtoDietFilter = ({
   selectedEnclosures,
   setSelectedEnclosures,
   setSelectedSections,
-  selectedSections
+  selectedSections,
+  taxonomyLoading,
+  speciesFilterLoading
 }) => {
   const theme = useTheme()
 
@@ -736,40 +739,60 @@ const SpeciesMappedtoDietFilter = ({
                       <Box sx={{ mb: 3, width: '100%' }}>
                         <Box sx={{ maxHeight: 600, mt: 1, width: '100%' }}>
                           {speciesDataforFilter?.length > 0 ? (
-                            speciesDataforFilter.map(item => {
-                              const itemName = item.scientific_name
-                              const itemId = item.species_id
+                            <>
+                              {speciesDataforFilter.map(item => {
+                                const itemName = item.scientific_name
+                                const itemId = item.species_id
 
-                              return (
-                                <div
-                                  key={itemId}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                    paddingBottom: '8px'
-                                  }}
-                                >
-                                  <Checkbox
-                                    checked={selectedSpeciesIds.includes(itemId)}
-                                    onChange={() => handleSpeciesCheckboxChange(itemId)}
-                                  />
+                                return (
+                                  <div
+                                    key={itemId}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      width: '100%',
+                                      paddingBottom: '8px'
+                                    }}
+                                  >
+                                    <Checkbox
+                                      checked={selectedSpeciesIds.includes(itemId)}
+                                      onChange={() => handleSpeciesCheckboxChange(itemId)}
+                                    />
 
-                                  <Tooltip title={itemName}>
-                                    <span
-                                      style={{
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        width: '85%',
-                                        overflow: 'hidden'
-                                      }}
-                                    >
-                                      {itemName}
-                                    </span>
-                                  </Tooltip>
-                                </div>
-                              )
-                            })
+                                    <Tooltip title={itemName}>
+                                      <span
+                                        style={{
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          width: '85%',
+                                          overflow: 'hidden'
+                                        }}
+                                      >
+                                        {itemName}
+                                      </span>
+                                    </Tooltip>
+                                  </div>
+                                )
+                              })}
+                              {speciesFilterLoading && (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                                  <CircularProgress color='primary' size={24} />
+                                </Box>
+                              )}
+                            </>
+                          ) : speciesFilterLoading ? (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                height: '70%',
+                                textAlign: 'center'
+                              }}
+                            >
+                              <CircularProgress color='primary' />
+                            </Box>
                           ) : (
                             <Box
                               sx={{
@@ -808,39 +831,57 @@ const SpeciesMappedtoDietFilter = ({
                       <Box sx={{ mb: 3, width: '100%' }}>
                         <Box sx={{ maxHeight: 600, mt: 1, width: '100%' }}>
                           {filteredTaxonomyList?.length > 0 ? (
-                            filteredTaxonomyList.map(item => {
-                              const itemName = item.scientific_name
-                              const itemId = item.tsn
+                            <>
+                              {filteredTaxonomyList.map(item => {
+                                const itemName = item.scientific_name
+                                const itemId = item.tsn
 
-                              return (
-                                <div
-                                  key={itemId}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                    paddingBottom: '8px'
-                                  }}
-                                >
-                                  <Checkbox
-                                    checked={selectedTaxonomyIds.includes(itemId)}
-                                    onChange={() => handleTaxonomyCheckboxChange(itemId)}
-                                  />
-                                  <Tooltip title={itemName}>
-                                    <span
-                                      style={{
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        width: '85%',
-                                        overflow: 'hidden'
-                                      }}
-                                    >
-                                      {itemName}
-                                    </span>
-                                  </Tooltip>
-                                </div>
-                              )
-                            })
+                                return (
+                                  <div
+                                    key={itemId}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      width: '100%',
+                                      paddingBottom: '8px'
+                                    }}
+                                  >
+                                    <Checkbox
+                                      checked={selectedTaxonomyIds.includes(itemId)}
+                                      onChange={() => handleTaxonomyCheckboxChange(itemId)}
+                                    />
+                                    <Tooltip title={itemName}>
+                                      <span
+                                        style={{
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          width: '85%',
+                                          overflow: 'hidden'
+                                        }}
+                                      >
+                                        {itemName}
+                                      </span>
+                                    </Tooltip>
+                                  </div>
+                                )
+                              })}
+                              {taxonomyLoading && (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                                  <CircularProgress color='primary' size={24} />
+                                </Box>
+                              )}
+                            </>
+                          ) : taxonomyLoading ? (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                height: '70%'
+                              }}
+                            >
+                              <CircularProgress color='primary' />
+                            </Box>
                           ) : (
                             <Typography sx={{ textAlign: 'center', mt: 10 }}>No Taxonomy found</Typography>
                           )}
