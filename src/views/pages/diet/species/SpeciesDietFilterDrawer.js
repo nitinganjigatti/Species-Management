@@ -1,7 +1,8 @@
-import { useTheme } from '@mui/material/styles'
+import { useTheme, styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
+  Badge,
   Checkbox,
   CircularProgress,
   debounce,
@@ -16,6 +17,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Icon from 'src/@core/components/icon'
 import { getClassList } from 'src/lib/api/diet/speciesDiet'
 
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
+
 const SpeciesDietFilterDrawer = ({
   searchQuery,
   setSearchQuery,
@@ -28,7 +35,6 @@ const SpeciesDietFilterDrawer = ({
 }) => {
   const theme = useTheme()
   const leftMenu = [{ id: 1, name: 'Class' }]
-
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [loading, setLoading] = useState(false)
   const [classListData, setClassListData] = useState([])
@@ -36,6 +42,11 @@ const SpeciesDietFilterDrawer = ({
   const [page_no, setPage_no] = useState(1)
   const [limit, setLimit] = useState(10)
   const [selectAll, setSelectAll] = useState(false)
+
+  const getMenuBadgeCount = useCallback(
+    menuName => (selectedOptions?.[menuName]?.length ? selectedOptions[menuName].length : 0),
+    [selectedOptions]
+  )
 
   const getClassListData = async (q = '') => {
     try {
@@ -156,7 +167,7 @@ const SpeciesDietFilterDrawer = ({
       return sum + (Array.isArray(arr) ? arr.length : 0)
     }, 0)
 
-    setFilterCount(totalFilters) 
+    setFilterCount(totalFilters)
     setSelectedFiltersOptions(selectedOptions ?? {})
     handleCloseDrawer()
   }
@@ -212,25 +223,39 @@ const SpeciesDietFilterDrawer = ({
       >
         <Grid container sx={{ px: 5 }}>
           <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
-            {leftMenu.map(menu => (
-              <Box
-                key={menu.id}
-                sx={{
-                  width: '190px',
-                  bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
-                  cursor: 'pointer',
-                  p: 4,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px'
-                }}
+            {leftMenu.map(menu => {
+              const badgeCount = getMenuBadgeCount(menu.name)
 
-              // onClick={() => handleMenuClick(menu)}
-              >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                  {menu.name}
-                </Typography>
-              </Box>
-            ))}
+              return (
+                <Box
+                  key={menu.id}
+                  sx={{
+                    width: '190px',
+                    bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                    cursor: 'pointer',
+                    p: 4,
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px'
+                  }}
+
+                  // onClick={() => handleMenuClick(menu)}
+                >
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px'
+                    }}
+                  >
+                    {menu.name}
+                    <StyledBadge badgeContent={badgeCount} color='primary' sx={{ ml: 2 }} />
+                  </Typography>
+                </Box>
+              )
+            })}
           </Grid>
           <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
@@ -242,13 +267,13 @@ const SpeciesDietFilterDrawer = ({
                 borderRadius: '8px',
                 width: '345px',
                 height: 'calc(100vh - 185px)',
-                overflowY: 'auto', 
+                overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: 0,
                   height: 0
                 },
                 '-ms-overflow-style': 'none',
-                scrollbarWidth: 'none' 
+                scrollbarWidth: 'none'
               }}
             >
               <>
