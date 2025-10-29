@@ -307,7 +307,7 @@ const BiologistDiaryReport = () => {
     {
       minWidth: 180,
       field: 'animal_name',
-      headerName: 'ANIMAL NAME',
+      headerName: 'Entity',
       minWidth: 400,
       sortable: false,
       renderCell: params => <AnimalView data={params.row} />
