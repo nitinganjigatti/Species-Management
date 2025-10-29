@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { styled } from '@mui/material/styles'
 import {
   Box,
   Drawer,
@@ -9,12 +10,19 @@ import {
   Grid,
   Divider,
   CircularProgress,
-  FormControlLabel
+  FormControlLabel,
+  Badge
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import NoDataFound from 'src/views/utility/NoDataFound'
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
 
 const FilterSheet = ({
   open,
@@ -158,6 +166,9 @@ const FilterSheet = ({
   const isAllFilteredSelected = filteredIds.every(id => selectedIds.includes(id))
   const isSomeFilteredSelected = filteredIds.some(id => selectedIds.includes(id))
 
+  const getCategoryBadgeCount = category =>
+    Array.isArray(selectedOptions?.[category]) ? selectedOptions[category].length : 0
+
   useEffect(() => {
     if (open) {
       setTimeout(() => {
@@ -218,29 +229,43 @@ const FilterSheet = ({
       >
         <Grid container sx={{ px: 5 }}>
           <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
-            {categories.map(menu => (
-              <Box
-                key={menu}
-                sx={{
-                  width: '190px',
-                  bgcolor: activeCategory === menu ? 'white' : 'transparent',
-                  cursor: 'pointer',
-                  p: 4,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px',
-                  '&:hover': {
-                    backgroundColor: activeCategory === menu ? 'white' : '#f5f5f5'
-                  }
-                }}
-                onClick={() => {
-                  handleCategoryClick(menu)
-                }}
-              >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                  {menu}
-                </Typography>
-              </Box>
-            ))}
+            {categories.map(menu => {
+              const badgeCount = getCategoryBadgeCount(menu)
+
+              return (
+                <Box
+                  key={menu}
+                  sx={{
+                    width: '190px',
+                    bgcolor: activeCategory === menu ? 'white' : 'transparent',
+                    cursor: 'pointer',
+                    p: 4,
+                    borderTopLeftRadius: '8px',
+                    borderBottomLeftRadius: '8px',
+                    '&:hover': {
+                      backgroundColor: activeCategory === menu ? 'white' : '#f5f5f5'
+                    }
+                  }}
+                  onClick={() => {
+                    handleCategoryClick(menu)
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px'
+                    }}
+                  >
+                    {menu}
+                    <StyledBadge badgeContent={badgeCount} color='primary' sx={{ ml: 2 }} />
+                  </Typography>
+                </Box>
+              )
+            })}
           </Grid>
           <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
