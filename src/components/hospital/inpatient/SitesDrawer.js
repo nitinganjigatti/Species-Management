@@ -186,8 +186,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
         />
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-
-      {list.length > 0 && (
+        {list.length > 0 && (
           <FormControlLabel
             control={
               <Checkbox
@@ -205,9 +204,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(site => {
           // Check if site is selected by comparing site_id
-          const isSelected = selectedSites.some(selectedSite => 
-            selectedSite.site_id === site.site_id
-          )
+          const isSelected = selectedSites.some(selectedSite => selectedSite.site_id === site.site_id)
 
           return (
             <Box
@@ -250,11 +247,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
                   )}
                 </Box>
               </Box>
-              <Checkbox 
-                checked={isSelected} 
-                onChange={() => handleSiteSelect(site)} 
-                sx={{ mt: 0.5 }} 
-              />
+              <Checkbox checked={isSelected} onChange={() => handleSiteSelect(site)} sx={{ mt: 0.5 }} />
             </Box>
           )
         })}
@@ -303,13 +296,16 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
       {selectedCount > 0 && (
         <Box
           sx={{
-            position: 'sticky',
+            position: 'fixed',
             bottom: 0,
+            right: 0,
+            width: '570px', // Exact drawer width
+            maxWidth: '100vw',
+            margin: '0 auto', // Center it
             backgroundColor: theme.palette.background.paper,
             borderTop: `1px solid ${theme.palette.divider}`,
             p: 2,
-            mx: -4,
-            mb: -4
+            zIndex: theme.zIndex.drawer + 1
           }}
         >
           <Button variant='contained' onClick={handleContinue} fullWidth size='large'>

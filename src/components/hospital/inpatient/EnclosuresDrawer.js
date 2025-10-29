@@ -175,7 +175,6 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
       icon='/images/housing/enclosure-icon-colored.svg'
       iconColor={theme.palette.primary.main}
     >
-
       <Box sx={{ my: 2 }}>
         <Search
           sx={{ width: '100%' }}
@@ -194,7 +193,6 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-
         {list.length > 0 && (
           <FormControlLabel
             control={
@@ -214,10 +212,9 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
         {list.map(enclosure => {
           const enclosureId = enclosure.enclosure_id || enclosure.id
 
-
           // Check if enclosure is selected by comparing enclosure_id or id
-          const isSelected = selectedEnclosures.some(selectedEnclosure => 
-            (selectedEnclosure.enclosure_id || selectedEnclosure.id) === enclosureId
+          const isSelected = selectedEnclosures.some(
+            selectedEnclosure => (selectedEnclosure.enclosure_id || selectedEnclosure.id) === enclosureId
           )
 
           return (
@@ -272,16 +269,16 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
                   )}
                 </Box>
               </Box>
-              <Checkbox 
-                checked={isSelected} 
-                onChange={() => handleEnclosureSelect(enclosure)} 
-                sx={{ 
+              <Checkbox
+                checked={isSelected}
+                onChange={() => handleEnclosureSelect(enclosure)}
+                sx={{
                   mt: 0.5,
                   color: '#37BD69',
                   '&.Mui-checked': {
                     color: '#37BD69'
                   }
-                }} 
+                }}
               />
             </Box>
           )
@@ -331,13 +328,16 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
       {selectedCount > 0 && (
         <Box
           sx={{
-            position: 'sticky',
+            position: 'fixed',
             bottom: 0,
+            right: 0,
+            width: '570px', // Exact drawer width
+            maxWidth: '100vw',
+            margin: '0 auto', // Center it
             backgroundColor: theme.palette.background.paper,
             borderTop: `1px solid ${theme.palette.divider}`,
             p: 2,
-            mx: -4,
-            mb: -4
+            zIndex: theme.zIndex.drawer + 1
           }}
         >
           <Button variant='contained' onClick={handleContinue} fullWidth size='large'>

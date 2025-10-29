@@ -302,13 +302,16 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
       {selectedCount > 0 && (
         <Box
           sx={{
-            position: 'sticky',
+            position: 'fixed',
             bottom: 0,
+            right: 0,
+            width: '570px', // Exact drawer width
+            maxWidth: '100vw',
+            margin: '0 auto', // Center it
             backgroundColor: theme.palette.background.paper,
             borderTop: `1px solid ${theme.palette.divider}`,
             p: 2,
-            mx: -4,
-            mb: -4
+            zIndex: theme.zIndex.drawer + 1
           }}
         >
           <Button variant='contained' onClick={handleContinue} fullWidth size='large'>
