@@ -374,6 +374,7 @@ const SpeciesDietFilterDrawer = ({
           fullWidth
           variant='outlined'
           size='large'
+          disabled={classListData.length == 0}
           onClick={() => {
             handleCloseDrawer()
             setSelectedOptions([])
@@ -383,7 +384,13 @@ const SpeciesDietFilterDrawer = ({
         >
           CANCEL ALL
         </LoadingButton>
-        <LoadingButton fullWidth variant='contained' size='large' onClick={handleApplyFilter}>
+        <LoadingButton
+          disabled={classListData.length == 0}
+          fullWidth
+          variant='contained'
+          size='large'
+          onClick={handleApplyFilter}
+        >
           APPLY FILTER
         </LoadingButton>
       </Box>
