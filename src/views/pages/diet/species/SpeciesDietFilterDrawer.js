@@ -163,11 +163,15 @@ const SpeciesDietFilterDrawer = ({
   }, [selectedOptions, selectedMenu, getOptionsForMenu])
 
   const handleApplyFilter = () => {
-    const totalFilters = Object.values(selectedOptions ?? {}).reduce((sum, arr) => {
-      return sum + (Array.isArray(arr) ? arr.length : 0)
+    const tabsWithSelection = Object.values(selectedOptions ?? {}).reduce((count, value) => {
+      if (Array.isArray(value) && value.length > 0) {
+        return count + 1
+      }
+
+      return count
     }, 0)
 
-    setFilterCount(totalFilters)
+    setFilterCount(tabsWithSelection)
     setSelectedFiltersOptions(selectedOptions ?? {})
     handleCloseDrawer()
   }
