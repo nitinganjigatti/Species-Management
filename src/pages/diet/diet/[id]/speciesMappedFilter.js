@@ -1,7 +1,8 @@
-import { useTheme } from '@mui/material/styles'
+import { useTheme, styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
+  Badge,
   Checkbox,
   Divider,
   Drawer,
@@ -22,6 +23,12 @@ import SelectSiteList from 'src/components/diet/SelectSiteList'
 import SelectSectionList from 'src/components/diet/SelectSectionList'
 import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
 import { getSpeciesList } from 'src/lib/api/diet/dietList'
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
 
 const SpeciesMappedtoDietFilter = ({
   openFilterDrawer,
@@ -270,6 +277,18 @@ const SpeciesMappedtoDietFilter = ({
     }
   }
 
+  const getTabSelectionCount = tab => {
+    if (tab === 'Taxonomy') {
+      return selectedTaxonomyIds?.length || tempSelectedItems?.Taxonomy?.length || selectedItems?.Taxonomy?.length || 0
+    }
+
+    if (tab === 'Species') {
+      return selectedSpeciesIds?.length || tempSelectedItems?.Species?.length || selectedItems?.Species?.length || 0
+    }
+
+    return tempSelectedItems?.[tab]?.length || selectedItems?.[tab]?.length || 0
+  }
+
   return (
     <>
       <Drawer
@@ -323,36 +342,30 @@ const SpeciesMappedtoDietFilter = ({
                     !(selectionType === 'species' && tab === 'Species') &&
                     !(selectionType === 'animals' && tab === 'Taxonomy')
                 )
-                .map(tab => (
-                  <Box
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    sx={{
-                      padding: 1,
-                      cursor: 'pointer',
-                      backgroundColor: activeTab === tab ? theme.palette.common.white : 'transparent',
-                      fontWeight: activeTab === tab ? 'bold' : 'normal',
-                      color: theme.palette.primary.dark,
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      py: 4,
-                      pl: 4,
-                      borderTopLeftRadius: '6px',
-                      borderBottomLeftRadius: '6px'
-                    }}
-                  >
-                    {tab}{' '}
-                    {tab === 'Taxonomy' && selectedTaxonomyIds?.length > 0
-                      ? //`(${selectedItems?.Taxonomy?.length})`
-                        `(${selectedTaxonomyIds?.length})`
-                      : tab === 'Site' && selectedItems?.Site?.length > 0
-                      ? `(${selectedItems?.Site?.length})`
-                      : tab === 'Species' && selectedSpeciesIds?.length > 0
-                      ? //`(${selectedItems?.Species?.length})`
-                        `(${selectedSpeciesIds?.length})`
-                      : ''}
-                  </Box>
-                ))}
+                .map(tab => {
+                  const tabCount = getTabSelectionCount(tab)
+                  return (
+                    <Box
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      sx={{
+                        padding: 1,
+                        cursor: 'pointer',
+                        backgroundColor: activeTab === tab ? theme.palette.common.white : 'transparent',
+                        fontWeight: activeTab === tab ? 'bold' : 'normal',
+                        color: theme.palette.primary.dark,
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        py: 4,
+                        pl: 4,
+                        borderTopLeftRadius: '6px',
+                        borderBottomLeftRadius: '6px'
+                      }}
+                    >
+                      {tab} <StyledBadge badgeContent={tabCount} color='primary' sx={{ ml: 5 }} />
+                    </Box>
+                  )
+                })}
             </Grid>
             <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
               <Box
