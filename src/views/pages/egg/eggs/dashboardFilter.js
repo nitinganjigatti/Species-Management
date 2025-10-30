@@ -9,7 +9,6 @@ import {
   debounce,
   Divider,
   Drawer,
-  FormControlLabel,
   Grid,
   IconButton,
   TextField,
@@ -37,7 +36,6 @@ const leftMenu = [
   { id: 2, name: 'Batch' },
   { id: 3, name: 'Nursery' },
   { id: 4, name: 'Security status' },
-  // { id: 5, name: 'Condition' },
   { id: 6, name: 'Reason' },
   { id: 7, name: 'Site' }
 ]
@@ -64,13 +62,13 @@ const DashboardFilter = ({
   const [eggMaster, setEggMaster] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
   const [taxonomyList, setTaxonomyList] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loadingCount, setLoadingCount] = useState(0)
+  const loading = loadingCount > 0
 
   const [tempSelectedOptions, setTempSelectedOptions] = useState(selectedOptions)
 
   const getMenuBadgeCount = menuName => {
     const selections = tempSelectedOptions?.[menuName]
-
     return Array.isArray(selections) ? selections.length : 0
   }
 
@@ -78,10 +76,14 @@ const DashboardFilter = ({
   const searchInputRef = useRef(null)
 
   const [batchList, setBatchList] = useState([])
-  const [conditionList, setConditionList] = useState([])
   const [siteList, setSiteList] = useState([])
+  const speciesCacheRef = useRef(new Map())
+  const batchCacheRef = useRef(new Map())
+  const nurseryCacheRef = useRef(new Map())
 
   const handleCloseDrawer = () => {
+    if (loading) return
+
     setIsFilterOpen(false)
     setFilterList([])
     setSelectedOptions({
@@ -95,28 +97,9 @@ const DashboardFilter = ({
     })
   }
 
-  // const handleMenuClick = menu => {
-  //   // console.log('menu', menu)
-  //   setSelectedMenu(menu)
-  //   setTimeout(() => {
-  //     setSelectedOptions({
-  //       ...selectedOptions,
-  //       selecteMenu: menu
-  //     })
-  //   }, 100)
-  //   setSearchQuery('')
-  //   searchData('')
-
-  //   const allOptions = getOptionsForMenu(menu)
-  //   // console.log('selectedOptions', selectedOptions)
-
-  //   // Always update selectAll based on the new selection state
-  //   // if (allOptions?.length > 0) {
-  //   //   setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions?.length)
-  //   // }
-  // }
-
   const handleMenuClick = menu => {
+    if (loading) return
+
     setSelectedMenu(menu)
 
     setTimeout(() => {
@@ -131,21 +114,29 @@ const DashboardFilter = ({
   }
 
   const NurseryList = async q => {
+    const query = q || ''
+    const cacheKey = query.trim().toLowerCase()
+
+    if (nurseryCacheRef.current.has(cacheKey)) {
+      setNurseryList(nurseryCacheRef.current.get(cacheKey))
+
+      return
+    }
+
+    setLoadingCount(prev => prev + 1)
     try {
-      setLoading(true)
       const params = {
-        // type: ['length', 'weight'],
-        search: q ? q : ''
-        // page: 1,
-        // limit: 50
+        search: query
       }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
+      const res = await GetNurseryList({ params })
+      const result = res?.data?.result || []
+
+      setNurseryList(result)
+      nurseryCacheRef.current.set(cacheKey, result)
     } catch (e) {
       console.error(e)
     } finally {
-      setLoading(false)
+      setLoadingCount(prev => Math.max(prev - 1, 0))
     }
   }
 
@@ -154,8 +145,6 @@ const DashboardFilter = ({
       await GetEggMaster().then(res => {
         if (res.success) {
           setEggMaster(res?.data)
-
-          setConditionList(res?.data?.egg_condition)
         }
       })
     } catch (e) {
@@ -164,39 +153,52 @@ const DashboardFilter = ({
   }
 
   const getTaxonomyListFunc = async q => {
+    const query = q || ''
+    const cacheKey = query.trim().toLowerCase()
+
+    if (speciesCacheRef.current.has(cacheKey)) {
+      setTaxonomyList(speciesCacheRef.current.get(cacheKey))
+
+      return
+    }
+
+    setLoadingCount(prev => prev + 1)
     try {
-      setLoading(true)
-      const params = {
-        q: q ? q : ''
-      }
-      await getSpecieList(params).then(res => {
-        if (res?.result?.length > 0) {
-          setTaxonomyList(res?.result)
-        }
-      })
+      const params = { q: query }
+      const res = await getSpecieList(params)
+      const result = res?.result || []
+
+      setTaxonomyList(result)
+      speciesCacheRef.current.set(cacheKey, result)
     } catch (error) {
       console.error('error', error)
     } finally {
-      setLoading(false)
+      setLoadingCount(prev => Math.max(prev - 1, 0))
     }
   }
 
   const getBatchList = async q => {
-    try {
-      setLoading(true)
+    const query = q || ''
+    const cacheKey = query.trim().toLowerCase()
 
-      const params = {
-        q
-      }
-      await getFilterBatchList(params).then(res => {
-        if (res?.data?.data.success) {
-          setBatchList(res?.data?.data?.data?.result)
-        }
-      })
+    if (batchCacheRef.current.has(cacheKey)) {
+      setBatchList(batchCacheRef.current.get(cacheKey))
+
+      return
+    }
+
+    setLoadingCount(prev => prev + 1)
+    try {
+      const params = { q: query }
+      const res = await getFilterBatchList(params)
+      const result = res?.data?.data?.data?.result || []
+
+      setBatchList(result)
+      batchCacheRef.current.set(cacheKey, result)
     } catch (e) {
       console.error(e)
     } finally {
-      setLoading(false)
+      setLoadingCount(prev => Math.max(prev - 1, 0))
     }
   }
 
@@ -214,26 +216,9 @@ const DashboardFilter = ({
     }
   }, [isFilterOpen])
 
-  // const handleCheckboxChange = (id, name) => {
-  //   const currentSelectedOptions = selectedOptions[selectedMenu.name] || []
-  //   const isChecked = currentSelectedOptions.some(option => option.id === id)
-
-  //   const newSelectedOptions = isChecked
-  //     ? currentSelectedOptions.filter(option => option.id !== id)
-  //     : [...currentSelectedOptions, { id, name }]
-
-  //   const allOptions = getOptionsForMenu(selectedMenu)
-  //   const areAllSelected = newSelectedOptions.length === allOptions.length
-
-  //   setSelectedOptions({
-  //     ...selectedOptions,
-  //     [selectedMenu.name]: newSelectedOptions
-  //   })
-
-  //   // Always update selectAll based on the new selection state
-  //   setSelectAll(areAllSelected)
-  // }
   const handleCheckboxChange = (id, name) => {
+    if (loading) return
+
     const currentSelected = tempSelectedOptions[selectedMenu.name] || []
     const isChecked = currentSelected.some(option => option.id === id)
 
@@ -251,28 +236,9 @@ const DashboardFilter = ({
     setSelectAll(areAllSelected)
   }
 
-  // const handleSelectAllChange = event => {
-  //   const isChecked = event.target.checked
-  //   setSelectAll(isChecked)
-
-  //   if (isChecked) {
-  //     // Select all options for the current menu
-  //     const newSelectedOptions = {
-  //       ...selectedOptions,
-  //       [selectedMenu.name]: getOptionsForMenu(selectedMenu).map(item => ({ id: item.id, name: item.name }))
-  //     }
-  //     setSelectedOptions(newSelectedOptions)
-  //   } else {
-  //     // Deselect all options for the current menu
-  //     const newSelectedOptions = {
-  //       ...selectedOptions,
-  //       [selectedMenu.name]: []
-  //     }
-  //     setSelectedOptions(newSelectedOptions)
-  //   }
-  // }
-
   const handleSelectAllChange = event => {
+    if (loading) return
+
     const isChecked = event.target.checked
     setSelectAll(isChecked)
 
@@ -315,13 +281,6 @@ const DashboardFilter = ({
           { id: 'COMPLETED', name: 'Security Checked' }
         ]
 
-      // case 'Condition':
-      //   return (
-      //     conditionList?.map(condition => ({
-      //       id: condition.id,
-      //       name: condition.egg_condition
-      //     })) || []
-      //   )
       case 'Reason':
         const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '3')
 
@@ -350,6 +309,8 @@ const DashboardFilter = ({
   }
 
   const handleApplyFilter = () => {
+    if (loading) return
+
     setIsSearchOpen(false)
     setSearch('')
     setSearchQuery('')
@@ -392,7 +353,7 @@ const DashboardFilter = ({
         } else if (selectedMenu.name === 'Batch') {
           await getBatchList(search)
         } else if (selectedMenu.name === 'Species') {
-          getTaxonomyListFunc(search)
+          await getTaxonomyListFunc(search)
         }
       } catch (error) {
         console.error(error)
@@ -470,7 +431,9 @@ const DashboardFilter = ({
                     cursor: 'pointer',
                     p: 4,
                     borderTopLeftRadius: '8px',
-                    borderBottomLeftRadius: '8px'
+                    borderBottomLeftRadius: '8px',
+                    opacity: loading ? 0.6 : 1,
+                    pointerEvents: loading ? 'none' : 'auto'
                   }}
                   onClick={() => handleMenuClick(menu)}
                 >
@@ -558,7 +521,7 @@ const DashboardFilter = ({
 
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    disabled={getOptionsForMenu(selectedMenu)?.length === 0}
+                    disabled={loading || getOptionsForMenu(selectedMenu)?.length === 0}
                     checked={selectAll}
                     onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
@@ -580,10 +543,10 @@ const DashboardFilter = ({
                     getOptionsForMenu(selectedMenu)?.map((option, index) => (
                       <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                         <Checkbox
-                          // checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
                           checked={tempSelectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
                           onChange={() => handleCheckboxChange(option.id, option.name)}
                           inputProps={{ 'aria-label': 'controlled' }}
+                          disabled={loading}
                         />
                         <Tooltip title={option.name}>
                           <Typography
@@ -629,7 +592,7 @@ const DashboardFilter = ({
           zIndex: 123
         }}
       >
-        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer} disabled={loading}>
           CANCEL ALL
         </LoadingButton>
         <LoadingButton
@@ -638,9 +601,9 @@ const DashboardFilter = ({
           size='large'
           onClick={() => {
             handleApplyFilter()
-
             setShowFilters(true)
           }}
+          disabled={loading}
         >
           APPLY FILTER
         </LoadingButton>
