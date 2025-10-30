@@ -8,7 +8,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
   const { selectedHospital, hospitalStats, isHospitalStatsLoading } = useHospital()
 
   return (
-    <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>
+    <Box sx={{ margin: '0 auto' }}>
       <Card
         sx={{
           borderRadius: '10px',
