@@ -107,7 +107,13 @@ const SurgeryRecordForm = ({
   setOpenAddAnaesthesiaDrawer,
   richNote,
   onRichNoteChange = () => {},
-  isSubmitting = false
+  isSubmitting = false,
+  procedureOptions = [],
+  procedureLoading = false,
+  onProcedureInputChange = () => {},
+  onProcedureClear = () => {},
+  procedureGetOptionLabel = option => option?.label || '',
+  procedureIsOptionEqualToValue = (option, value) => option?.value === value?.value
 }) => {
   const theme = useTheme()
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
@@ -194,7 +200,18 @@ const SurgeryRecordForm = ({
         </Typography>
         <Grid container spacing={2}>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledAutocomplete control={control} loading={true} errors={errors} name={'procedure'} />
+            <ControlledAutocomplete
+              control={control}
+              errors={errors}
+              name={'procedure'}
+              label='Procedure'
+              options={procedureOptions}
+              loading={procedureLoading}
+              onInputChange={onProcedureInputChange}
+              onItemClear={onProcedureClear}
+              getOptionLabel={procedureGetOptionLabel}
+              isOptionEqualToValue={procedureIsOptionEqualToValue}
+            />
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
             <ControlledTextField name={'typeOfSurgery'} label='Type of surgery' control={control} />

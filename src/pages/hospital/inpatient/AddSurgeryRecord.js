@@ -1,18 +1,19 @@
 import { Breadcrumbs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import dayjs from 'dayjs'
+import { useQuery } from '@tanstack/react-query'
 import AddAnaesthesiaRecordDrawer from 'src/components/hospital/inpatient/AddAnaesthesiaRecord'
 import SurgeryRecordForm from 'src/components/hospital/inpatient/SurgeryRecordForm'
 import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplateList'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
-import { addSurgeryRecord } from 'src/lib/api/hospital/surgeryMaster'
+import { addSurgeryRecord, getSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
 
 const createEmptyRichTextValue = () => ({ ops: [{ insert: '\n' }] })
 
@@ -38,6 +39,23 @@ const extractPlainTextFromDelta = note => {
   }
 
   return ''
+}
+
+const mapSurgeryToOption = surgery => {
+  if (!surgery || typeof surgery !== 'object') return null
+
+  const id = surgery?.id ?? surgery?.surgery_id ?? surgery?.value
+  const name = surgery?.surgery_name ?? surgery?.label
+  const status = surgery?.status ?? surgery?.surgery_status
+
+  if (status && String(status).toLowerCase() !== 'active') return null
+  if (id === undefined || id === null || name === undefined || name === null) return null
+
+  return {
+    ...surgery,
+    value: String(id),
+    label: String(name).trim()
+  }
 }
 
 const getSurgeryIdentifier = value => {
@@ -154,6 +172,80 @@ const AddSurgeryRecord = () => {
   const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
   const [richNote, setRichNote] = useState(() => createEmptyRichTextValue())
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
+
+  const {
+    data: surgeryMasterResponse,
+    isFetching: isProceduresLoading
+  } = useQuery({
+    queryKey: ['hospital-surgeries', procedureSearchTerm],
+    queryFn: () => {
+      const params = {
+        page_no: 1,
+        limit: 20
+      }
+
+      const trimmed = procedureSearchTerm.trim()
+      if (trimmed) {
+        params.q = trimmed
+      }
+
+      return getSurgeryMaster({ params })
+    },
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+    onError: error => {
+      console.error('Failed to fetch surgeries:', error)
+      Toaster({ type: 'error', message: error?.message || 'Failed to load surgery list' })
+    }
+  })
+
+  const procedureOptions = useMemo(() => {
+    const rawSurgeries =
+      (Array.isArray(surgeryMasterResponse?.surgeries) && surgeryMasterResponse.surgeries) ||
+      (Array.isArray(surgeryMasterResponse?.data?.surgeries) && surgeryMasterResponse.data.surgeries) ||
+      []
+    const surgeries = Array.isArray(rawSurgeries) ? rawSurgeries : []
+    const unique = new Map()
+
+    surgeries.forEach(item => {
+      const option = mapSurgeryToOption(item)
+
+      if (option && !unique.has(option.value)) {
+        unique.set(option.value, option)
+      }
+    })
+
+    return Array.from(unique.values())
+  }, [surgeryMasterResponse])
+
+  const handleProcedureInputChange = useCallback(value => {
+    if (typeof value === 'string') {
+      setProcedureSearchTerm(value)
+    } else {
+      setProcedureSearchTerm('')
+    }
+  }, [])
+
+  const handleProcedureClear = useCallback(() => {
+    setProcedureSearchTerm('')
+  }, [])
+
+  const procedureGetOptionLabel = useCallback(option => option?.label || '', [])
+
+  const procedureIsOptionEqualToValue = useCallback((option, selected) => {
+    if (!option || !selected) return false
+
+    const optionId = getSurgeryIdentifier(option)
+    const selectedId = getSurgeryIdentifier(selected)
+
+    if (optionId !== '' && selectedId !== '') {
+      return String(optionId) === String(selectedId)
+    }
+
+    return option?.label === selected?.label
+  }, [])
 
   const onSubmit = async formValues => {
     const hospitalCaseId = resolveHospitalCaseId(router.query)
@@ -196,6 +288,7 @@ const AddSurgeryRecord = () => {
         reset()
         setRichNote(createEmptyRichTextValue())
         setActiveTemplate(templates[0])
+        setProcedureSearchTerm('')
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to add surgery record' })
       }
@@ -254,6 +347,12 @@ const AddSurgeryRecord = () => {
           richNote={richNote}
           onRichNoteChange={setRichNote}
           isSubmitting={isSubmitting}
+          procedureOptions={procedureOptions}
+          procedureLoading={isProceduresLoading}
+          onProcedureInputChange={handleProcedureInputChange}
+          onProcedureClear={handleProcedureClear}
+          procedureGetOptionLabel={procedureGetOptionLabel}
+          procedureIsOptionEqualToValue={procedureIsOptionEqualToValue}
         />
       </Box>
 
