@@ -704,6 +704,7 @@ export const GET_MASTERS_SURGERY = 'v1/hospital/list-surgery'
 export const CREATE_MASTERS_HOSPITAL = 'v1/hospital/create'
 
 export const CREATE_MASTERS_SURGERY = 'v1/hospital/create-surgery'
+export const ADD_SURGERY_RECORD = 'v1/hospital/add-surgery-record'
 
 export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
 

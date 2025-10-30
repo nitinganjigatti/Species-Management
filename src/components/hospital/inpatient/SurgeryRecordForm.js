@@ -6,7 +6,6 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 import RichTextEditor from 'src/components/RichTextEditor'
 
@@ -105,11 +104,13 @@ const SurgeryRecordForm = ({
   activeTemplate,
   setActiveTemplate,
   setOpenSurgeryTemplateDrawer,
-  setOpenAddAnaesthesiaDrawer
+  setOpenAddAnaesthesiaDrawer,
+  richNote,
+  onRichNoteChange = () => {},
+  isSubmitting = false
 }) => {
   const theme = useTheme()
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
-  const [richNote, setRichNote] = useState('')
 
   const handleSaveTemplate = templateName => {
     // Handle saving template logic here
@@ -227,7 +228,7 @@ const SurgeryRecordForm = ({
 
             {/* <ControlledTextArea placeholder={'Enter text'} control={control} name={'notes'} rows={3} errors={errors} /> */}
 
-            <RichTextEditor value={richNote} onChange={setRichNote} placeholder='Enter text...' />
+            <RichTextEditor value={richNote} onChange={onRichNoteChange} placeholder='Enter text...' />
           </Box>
 
           {showSaveTemplate ? (
@@ -464,6 +465,12 @@ const SurgeryRecordForm = ({
 
         <ControlledFileUpload name={'attachment'} control={control} errors={errors} />
       </Card>
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button type='submit' variant='contained' disabled={isSubmitting} sx={{ minWidth: 160 }}>
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </Button>
+      </Box>
     </Box>
   )
 }
