@@ -152,7 +152,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setSelectedOptions(initFilters())
     setFilterList([])
     setPage(1)
-    DiscardList(1, '', '', '')
+    // DiscardList(1, '', '', '')
   }
 
   const handleSearch = value => {
