@@ -565,11 +565,14 @@ const ListOfMedicine = () => {
                     justifyContent: 'flex-start',
                     alignItems: 'flex-start',
                     gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    },
-                    mx: { xs: -1, sm: 1 },
-                    mt: 1
+                    mx: 0,
+
+                    // marginLeft: 0,
+                    // marginRight: 0,
+                    px: { xs: '12px', sm: '14px', md: '20px' }
+
+                    // mx: { xs: -1, sm: 1 },
+                    // mt: 1
                   }}
                 />
                 {/* <Box
@@ -642,16 +645,51 @@ const ListOfMedicine = () => {
                     </FormControl>
                   </Grid> */}
                 {/* </Box> */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mx: 6 }}>
-                  <TabContext value={tabValue}>
-                    <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
-                      <Tab label='All' value='all' />
-                      <Tab label='Active' value='true' />
-                      <Tab label='In-Active' value='false' />
-                    </TabList>
-                  </TabContext>
-                  <Grid item size={{ xs: 12, sm: 8, md: 7 }}>
-                    <Box
+                <Grid
+                  container
+                  spacing={3}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    px: { xs: '12px', sm: '14px', md: '20px' }
+
+                    //   //  mb: 2, mx: 6
+                  }}
+                >
+                  {/* <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+
+                    //  mb: 2, mx: 6
+                  }}
+                > */}
+                  <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
+                    <TabContext value={tabValue} sx={{ m: 0, p: 0 }}>
+                      <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
+                        <Tab label='All' value='all' />
+                        <Tab label='Active' value='true' />
+                        <Tab label='In-Active' value='false' />
+                      </TabList>
+                    </TabContext>
+                  </Grid>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 4, md: 4 }}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+
+                      padding: '0 8px'
+
+                      // height: '40px'
+                    }}
+                  >
+                    {/* <Box
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -660,27 +698,28 @@ const ListOfMedicine = () => {
                         padding: '0 8px',
                         height: '40px'
                       }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        value={searchValue}
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
+                    > */}
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      value={searchValue}
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      size='small'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
                           }
-                        }}
-                      />
-                    </Box>
+                        }
+                      }}
+                    />
+                    {/* </Box> */}
                   </Grid>
-                </Box>
+                </Grid>
 
                 <TabContext value={tabValue}>
                   <TabPanel value='all' sx={{ p: 0 }}>
