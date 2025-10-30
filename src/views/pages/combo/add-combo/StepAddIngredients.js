@@ -313,7 +313,7 @@ const StepAddIngredients = ({
 
       return Toaster({
         type: 'error',
-        message: 'The same ingredient with the same preparation type is not allowed'
+        message: 'The same item with the same preparation type is not allowed'
       })
     }
 
@@ -348,7 +348,8 @@ const StepAddIngredients = ({
 
       return Toaster({
         type: 'error',
-        message: `Please fill in all mandatory fields at index ${firstIncompleteIndex + 1}.`
+        //message: `Please fill in all mandatory fields at index ${firstIncompleteIndex + 1}.`
+        message: `Please fill in all mandatory fields.`
       })
     }
 

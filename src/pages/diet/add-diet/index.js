@@ -1,19 +1,12 @@
-// ** React Imports
-import { useState, useEffect, useContext } from 'react'
-
-// ** MUI Imports
+import { useState, useEffect, useContext, useCallback } from 'react'
 import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
-
-// ** Step Components
 import StepBasicDetails from 'src/views/pages/diet/add-diet/StepBasicDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import Toaster from 'src/components/Toaster'
-
-// ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
 import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { addNewDiet, getDietDetails, updateDiet } from 'src/lib/api/diet/dietList'
@@ -49,7 +42,6 @@ const AddDiet = () => {
   const [dieticianList, setDieticianList] = useState([])
   const [uomprevnew, setUomprevnew] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
-  const [selectedCard, setSelectedCard] = useState([])
   const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
   const [selectedCardCombo, setSelectedCardCombo] = useState([])
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
@@ -58,6 +50,9 @@ const AddDiet = () => {
   const [cutsizelist, setcutsize] = useState([])
   const [uom, setUom] = useState([])
   const [feedType, setFeedType] = useState([])
+  const [feedtotalCount, setFeedTotalCount] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loadingfeed, setLoadingFeed] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -103,7 +98,6 @@ const AddDiet = () => {
         // page: 1
       }
       await getDietTypeList({ params: params }).then(res => {
-        console.log(res, 'res')
         setUomList(res?.data)
       })
     } catch (e) {
@@ -116,7 +110,7 @@ const AddDiet = () => {
       const params = {
         type: ['length', 'weight'],
         page: 1,
-        limit: 100
+        limit: 150
       }
       await getUnitsForRecipe({ params: params }).then(res => {
         setUomprevnew(res?.data?.result)
@@ -131,7 +125,7 @@ const AddDiet = () => {
       const params = {
         //type: ['length', 'weight'],
         page: 1,
-        limit: 100
+        limit: 200
       }
       await getCutsizeList(params).then(res => {
         setcutsize(res?.data?.result)
@@ -163,17 +157,23 @@ const AddDiet = () => {
     }
   }
 
-  // Top Feed Type
-  const fetchData = async () => {
-    const params = { page: 1, limit: 100, status: 1 }
+  const fetchData = useCallback(async (pageNum = 1) => {
+    setLoadingFeed(true)
+    const params = { page: pageNum, limit: 20, status: 1 }
+
     try {
       const response = await getFeedTypeList(params)
+      const newData = response?.data?.result || []
+      const total = response?.data?.total_count || 0
 
-      setFeedType(response?.data?.result)
+      setFeedTotalCount(total)
+      setFeedType(prev => (pageNum === 1 ? newData : [...prev, ...newData]))
     } catch (error) {
       console.log('error', error)
+    } finally {
+      setLoadingFeed(false)
     }
-  }
+  }, [])
 
   const IngredientTypeListSearch = debounce(async value => {
     try {
@@ -248,7 +248,6 @@ const AddDiet = () => {
       if (response.success === true && response.data !== null) {
         const data = response.data
 
-        // Update formData state with the values from data
         setFormData(prevFormData => ({
           ...prevFormData,
           diet_name: urlType === 'copy' ? name : data.diet_name,
@@ -262,12 +261,10 @@ const AddDiet = () => {
           remarks: data.remarks,
           meal_data: data.meal_data.map(meal => {
             const parseTime = time => {
-              // Check if time includes AM/PM (indicative of 12-hour format)
               if (time.toLowerCase().includes('am') || time.toLowerCase().includes('pm')) {
-                return dayjs(time, 'hh:mm A') // Parse 12-hour format
+                return dayjs(time, 'hh:mm A')
               }
 
-              // Otherwise, assume it's in 24-hour format
               return dayjs(time, 'HH:mm')
             }
 
@@ -281,17 +278,14 @@ const AddDiet = () => {
 
         const dietTypesData = data.child
 
-        // const convertedData = dietTypesData?.map(item => item.replace(/ /g, '_').replace(/_to/g, ''))
         const convertedData = dietTypesData?.map(item => item.replace(/(\d+) /g, '$1_'))
-        console.log(convertedData, 'convertedData')
 
         const newarr = convertedData?.map(item => {
-          // Splitting the string into minWeight, maxWeight, and unit name
           const [weight, unitName] = item.split('_')
           const matchedUom = uomprevnew.find(item => item.name === unitName)
 
           return {
-            meal_value_header: parseFloat(weight), // Convert to number
+            meal_value_header: parseFloat(weight),
             weight_uom_id: parseFloat(matchedUom?._id),
             weight_uom_label: unitName
           }
@@ -329,13 +323,14 @@ const AddDiet = () => {
   }
 
   useEffect(() => {
+    fetchData(page)
+  }, [page, fetchData])
+
+  useEffect(() => {
     getUnitsList()
     getcutsizeListFromApi()
-    fetchData()
     getUnitsListuom()
     getDieticianList()
-
-    // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
 
   const handleNext = data => {
@@ -353,13 +348,6 @@ const AddDiet = () => {
     }
   }
 
-  // const handleBasicDetailsChange = (name, value) => {
-  //   setFormData(prevData => ({
-  //     ...prevData,
-  //     [name]: value
-  //   }))
-  // }
-
   function deleteCookie(name) {
     document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   }
@@ -375,6 +363,12 @@ const AddDiet = () => {
     deleteCookie('dietTypeChildValues')
     deleteCookie('dietTypeChildVal')
   }, [])
+
+  const handleLoadMore = () => {
+    if (!loadingfeed && feedType.length < feedtotalCount) {
+      setPage(prev => prev + 1)
+    }
+  }
 
   const handleStepBillingSubmit = async () => {
     console.log(formData, 'formdata')
@@ -427,14 +421,11 @@ const AddDiet = () => {
         child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
-            // Convert string date to Date objects
             const fromTime = formatTime(item.meal_from_time)
             const toTime = formatTime(item.meal_to_time)
 
-            // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
-                // Filter out empty arrays or arrays with all null/undefined values
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
               })
             )
@@ -461,7 +452,6 @@ const AddDiet = () => {
         diet_image: numericFormData?.diet_image?.length > 0 ? numericFormData.diet_image[0] : null
       }
 
-      console.log(updatedFormData, 'updatedFormData')
       const apival = await addNewDiet(updatedFormData)
       if (apival.success === true) {
         Router.push(`/diet/diet`)
@@ -487,14 +477,11 @@ const AddDiet = () => {
         child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
-            // Convert string date to Date objects
             const fromTime = formatTime(item.meal_from_time)
             const toTime = formatTime(item.meal_to_time)
 
-            // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
-                // Filter out empty arrays or arrays with all null/undefined values
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
               })
             )
@@ -548,8 +535,6 @@ const AddDiet = () => {
         })
       }
     } else {
-      // Omitting child field from formData
-      // const { child, ...formDataWithoutChild } = formData
       setLoader(true)
 
       const numericFormData = {
@@ -558,14 +543,11 @@ const AddDiet = () => {
         child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
-            // Convert string date to Date objects
             const fromTime = formatTime(item.meal_from_time)
             const toTime = formatTime(item.meal_to_time)
 
-            // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
-                // Filter out empty arrays or arrays with all null/undefined values
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
               })
             )
@@ -644,6 +626,9 @@ const AddDiet = () => {
             cutsizelist={cutsizelist}
             uom={uom}
             feedType={feedType}
+            onLoadMore={handleLoadMore}
+            loadingfeed={loadingfeed}
+            feedtotalCount={feedtotalCount}
           />
         )
       case 1:
@@ -722,7 +707,6 @@ const AddDiet = () => {
                       }}
                     >
                       <div className='step-label'>
-                        {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
                         <div>
                           <Typography className='step-title'>{step.title}</Typography>
                           <Typography className='step-subtitle'>{step.subtitle}</Typography>

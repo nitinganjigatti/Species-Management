@@ -13,13 +13,15 @@ import {
   Collapse,
   CardHeader,
   CardContent,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
 import SelectSiteList from 'src/components/diet/SelectSiteList'
 import SelectSectionList from 'src/components/diet/SelectSectionList'
 import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
+import { getSpeciesList } from 'src/lib/api/diet/dietList'
 
 const SpeciesMappedtoDietFilter = ({
   openFilterDrawer,
@@ -67,7 +69,9 @@ const SpeciesMappedtoDietFilter = ({
   selectedEnclosures,
   setSelectedEnclosures,
   setSelectedSections,
-  selectedSections
+  selectedSections,
+  loadingTaxonomy,
+  loadingSpecies
 }) => {
   const theme = useTheme()
 
@@ -145,7 +149,7 @@ const SpeciesMappedtoDietFilter = ({
     setOpenFilterDrawer(false)
   }
 
-  const handleCancelAll = () => {
+  const handleCancelAll = async () => {
     const clearedTempSelectedItems = Object.keys(tempSelectedItems).reduce((acc, key) => {
       acc[key] = []
 
@@ -338,12 +342,14 @@ const SpeciesMappedtoDietFilter = ({
                     }}
                   >
                     {tab}{' '}
-                    {tab === 'Taxonomy' && selectedItems?.Taxonomy?.length > 0
-                      ? `(${selectedItems?.Taxonomy?.length})`
+                    {tab === 'Taxonomy' && selectedTaxonomyIds?.length > 0
+                      ? //`(${selectedItems?.Taxonomy?.length})`
+                        `(${selectedTaxonomyIds?.length})`
                       : tab === 'Site' && selectedItems?.Site?.length > 0
                       ? `(${selectedItems?.Site?.length})`
-                      : tab === 'Species' && selectedItems?.Species?.length > 0
-                      ? `(${selectedItems?.Species?.length})`
+                      : tab === 'Species' && selectedSpeciesIds?.length > 0
+                      ? //`(${selectedItems?.Species?.length})`
+                        `(${selectedSpeciesIds?.length})`
                       : ''}
                   </Box>
                 ))}
@@ -742,7 +748,7 @@ const SpeciesMappedtoDietFilter = ({
                                 </div>
                               )
                             })
-                          ) : (
+                          ) : !loadingSpecies ? (
                             <Box
                               sx={{
                                 display: 'flex',
@@ -756,9 +762,48 @@ const SpeciesMappedtoDietFilter = ({
                               <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
                               <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
                             </Box>
+                          ) : (
+                            ''
                           )}
                         </Box>
                       </Box>
+                      {loadingSpecies && speciesDataforFilter?.length > 0 ? (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: '135px',
+                            left: '70px',
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            py: 2,
+
+                            zIndex: 2
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      ) : loadingSpecies ? (
+                        <Box
+                          sx={{
+                            position: 'sticky',
+                            bottom: 0,
+                            left: 0,
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            py: 2,
+
+                            zIndex: 2
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      ) : (
+                        ''
+                      )}
                     </Box>
                   </>
                 )}
@@ -813,11 +858,50 @@ const SpeciesMappedtoDietFilter = ({
                                 </div>
                               )
                             })
-                          ) : (
+                          ) : !loadingTaxonomy ? (
                             <Typography sx={{ textAlign: 'center', mt: 10 }}>No Taxonomy found</Typography>
+                          ) : (
+                            ''
                           )}
                         </Box>
                       </Box>
+                      {loadingTaxonomy && filteredTaxonomyList?.length > 0 ? (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: '135px',
+                            left: '70px',
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            py: 2,
+
+                            zIndex: 2
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      ) : loadingTaxonomy ? (
+                        <Box
+                          sx={{
+                            position: 'sticky',
+                            bottom: 0,
+                            left: 0,
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            py: 2,
+
+                            zIndex: 2
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      ) : (
+                        ''
+                      )}
                     </Box>
                   </>
                 )}
