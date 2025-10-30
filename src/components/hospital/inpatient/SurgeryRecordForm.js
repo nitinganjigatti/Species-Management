@@ -214,10 +214,10 @@ const SurgeryRecordForm = ({
             />
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledTextField name={'typeOfSurgery'} label='Type of surgery' control={control} />
+            <ControlledTextField name={'typeOfSurgery'} label='Type of surgery' control={control} errors={errors} />
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledTextField name={'surgicalApproach'} label='Surgical approach' control={control} />
+            <ControlledTextField name={'surgicalApproach'} label='Surgical approach' control={control} errors={errors} />
           </Grid>
         </Grid>
 
