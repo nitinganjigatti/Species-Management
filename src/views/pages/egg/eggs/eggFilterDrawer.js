@@ -1,4 +1,4 @@
-import { useTheme } from '@mui/material/styles'
+import { useTheme, styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
@@ -13,7 +13,8 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  Badge
 } from '@mui/material'
 import React, { useState, useEffect, useContext, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -25,6 +26,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
 import { useRouter } from 'next/router'
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
 
 const EggFilterDrawer = ({
   openFilterDrawer,
@@ -107,6 +114,31 @@ const EggFilterDrawer = ({
   const [selectedDropdownID, setSelectedDropdownId] = useState('all')
 
   const [searchQuery, setSearchQuery] = useState('')
+  const getMenuBadgeCount = useCallback(
+    menuName => {
+      switch (menuName) {
+        case 'Stage':
+          return selectedOptions?.Stage?.length || 0
+        case 'Nursery':
+          return selectedOptions?.Nursery?.length || 0
+        case 'Site':
+          return selectedOptions?.Site?.length || 0
+        case 'Collected By':
+          return selectedOptions?.['Collected By']?.length || 0
+        case 'Discarded By':
+          return selectedOptions?.['Discarded By']?.length || 0
+        case 'Security Check':
+          return selectedOptions?.['Security Check']?.length || 0
+        case 'Collected Date':
+          return selectedOptions?.collected_date ? 1 : 0
+        case 'Discarded Date':
+          return selectedOptions?.discarded_Date ? 1 : 0
+        default:
+          return 0
+      }
+    },
+    [selectedOptions]
+  )
 
   useEffect(() => {
     // Reset states when tab_Value changes
@@ -539,42 +571,70 @@ const EggFilterDrawer = ({
         <Grid container sx={{ px: 5 }}>
           <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded'
-              ? discardMenu.map(menu => (
-                  <Box
-                    key={menu.id}
-                    sx={{
-                      width: '190px',
-                      bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
-                      cursor: 'pointer',
-                      p: 4,
-                      borderTopLeftRadius: '8px',
-                      borderBottomLeftRadius: '8px'
-                    }}
-                    onClick={() => handleMenuClick(menu)}
-                  >
-                    <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                      {menu.name}
-                    </Typography>
-                  </Box>
-                ))
-              : leftMenu.map(menu => (
-                  <Box
-                    key={menu.id}
-                    sx={{
-                      width: '190px',
-                      bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
-                      cursor: 'pointer',
-                      p: 4,
-                      borderTopLeftRadius: '8px',
-                      borderBottomLeftRadius: '8px'
-                    }}
-                    onClick={() => handleMenuClick(menu)}
-                  >
-                    <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                      {menu.name}
-                    </Typography>
-                  </Box>
-                ))}
+              ? discardMenu.map(menu => {
+                  const badgeCount = getMenuBadgeCount(menu.name)
+
+                  return (
+                    <Box
+                      key={menu.id}
+                      sx={{
+                        width: '190px',
+                        bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                        cursor: 'pointer',
+                        p: 4,
+                        borderTopLeftRadius: '8px',
+                        borderBottomLeftRadius: '8px'
+                      }}
+                      onClick={() => handleMenuClick(menu)}
+                    >
+                      <Typography
+                        sx={{
+                          color: theme.palette.primary.dark,
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}
+                      >
+                        {menu.name}
+                        <StyledBadge badgeContent={badgeCount} color='primary' sx={{ ml: 2, flexShrink: 0 }} />
+                      </Typography>
+                    </Box>
+                  )
+                })
+              : leftMenu.map(menu => {
+                  const badgeCount = getMenuBadgeCount(menu.name)
+
+                  return (
+                    <Box
+                      key={menu.id}
+                      sx={{
+                        width: '190px',
+                        bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                        cursor: 'pointer',
+                        p: 4,
+                        borderTopLeftRadius: '8px',
+                        borderBottomLeftRadius: '8px'
+                      }}
+                      onClick={() => handleMenuClick(menu)}
+                    >
+                      <Typography
+                        sx={{
+                          color: theme.palette.primary.dark,
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}
+                      >
+                        {menu.name}
+                        <StyledBadge badgeContent={badgeCount} color='primary' sx={{ ml: 2, flexShrink: 0 }} />
+                      </Typography>
+                    </Box>
+                  )
+                })}
           </Grid>
           <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
