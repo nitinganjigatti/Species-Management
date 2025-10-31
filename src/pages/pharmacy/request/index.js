@@ -35,6 +35,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import { margin, textAlign } from '@mui/system'
 import RenderUtility from 'src/utility/render'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const RequestList = () => {
   const theme = useTheme()
@@ -721,28 +722,19 @@ const RequestList = () => {
               container
               spacing={4}
               sx={{
-                padding: '18px 22px 0 22px' ,
+                padding: '18px 22px 0 22px',
                 display: 'flex',
                 justifyContent: 'space-around'
               }}
             >
               <Grid size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
-                <TextField
-                  variant='outlined'
-                  size='small'
+                <MUISearch
+                  width={'100%'}
                   placeholder='Search...'
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }
-                  }}
+                  onClear={e => handleSearch('')}
                 />
               </Grid>
               {/* Filters */}
