@@ -61,6 +61,27 @@ const getRichTextHtml = note => {
   return ''
 }
 
+const stripHtmlTags = input => {
+  if (!input) return ''
+
+  return String(input)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+const buildRichTextValueFromHtml = html => {
+  const safeHtml = typeof html === 'string' ? html : ''
+  const finalHtml = safeHtml || '<p><br></p>'
+
+  return {
+    html: finalHtml,
+    text: stripHtmlTags(finalHtml),
+    delta: undefined,
+    ops: undefined
+  }
+}
+
 const mapSurgeryToOption = surgery => {
   if (!surgery || typeof surgery !== 'object') return null
 
@@ -94,6 +115,36 @@ const mapTemplateRecord = record => {
     category: record?.category ?? record?.type ?? 'Surgery',
     raw: record
   }
+}
+
+const extractSurgeryTemplates = response => {
+  const candidates = [
+    response,
+    response?.data,
+    response?.data?.data,
+    response?.data?.templates,
+    response?.templates
+  ]
+
+  let records = []
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate) && candidate.length > 0) {
+      records = candidate
+      break
+    }
+  }
+
+  const unique = new Map()
+
+  records.forEach(item => {
+    const mapped = mapTemplateRecord(item)
+
+    if (mapped && !unique.has(mapped.id)) {
+      unique.set(mapped.id, mapped)
+    }
+  })
+
+  return Array.from(unique.values())
 }
 
 const getSurgeryIdentifier = value => {
@@ -256,53 +307,60 @@ const AddSurgeryRecord = () => {
     return Array.from(unique.values())
   }, [surgeryMasterResponse])
 
-  const surgeryTemplates = useMemo(() => {
-    const candidates = [
-      surgeryTemplatesResponse,
-      surgeryTemplatesResponse?.data,
-      surgeryTemplatesResponse?.data?.data,
-      surgeryTemplatesResponse?.data?.templates,
-      surgeryTemplatesResponse?.templates
-    ]
-
-    let records = []
-    for (const candidate of candidates) {
-      if (Array.isArray(candidate) && candidate.length > 0) {
-        records = candidate
-        break
-      }
-    }
-
-    const unique = new Map()
-
-    records.forEach(item => {
-      const mapped = mapTemplateRecord(item)
-
-      if (mapped && !unique.has(mapped.id)) {
-        unique.set(mapped.id, mapped)
-      }
-    })
-
-    return Array.from(unique.values())
-  }, [surgeryTemplatesResponse])
+  const surgeryTemplates = useMemo(() => extractSurgeryTemplates(surgeryTemplatesResponse), [surgeryTemplatesResponse])
 
   const templateNames = useMemo(() => surgeryTemplates.map(template => template.title), [surgeryTemplates])
 
   const templateNamesKey = useMemo(() => templateNames.join('|'), [templateNames])
 
   useEffect(() => {
-    if (!templateNames.length) {
-      if (activeTemplate) {
+    if (!activeTemplate) return
+
+    if (!templateNames.includes(activeTemplate)) {
+      setActiveTemplate('')
+    }
+  }, [activeTemplate, templateNames, templateNamesKey])
+
+  const applyTemplateToRichNote = useCallback(
+    template => {
+      if (!template) return
+
+      const safeTitle = template?.title ? String(template.title) : ''
+      const html = typeof template?.description === 'string' ? template.description : ''
+      const richValue = buildRichTextValueFromHtml(html)
+
+      setActiveTemplate(safeTitle)
+      setRichNote(prev => {
+        if (prev?.html === richValue.html) {
+          return prev
+        }
+
+        return richValue
+      })
+    },
+    [setRichNote, setActiveTemplate]
+  )
+
+  const handleTemplateSelect = useCallback(
+    templateName => {
+      const safeName = templateName ? String(templateName) : ''
+
+      if (!safeName) {
         setActiveTemplate('')
+
+        return
       }
 
-      return
-    }
+      const matchedTemplate = surgeryTemplates.find(template => template.title === safeName)
 
-    if (!activeTemplate || !templateNames.includes(activeTemplate)) {
-      setActiveTemplate(templateNames[0])
-    }
-  }, [templateNamesKey, activeTemplate, templateNames])
+      if (matchedTemplate) {
+        applyTemplateToRichNote(matchedTemplate)
+      } else {
+        setActiveTemplate(safeName)
+      }
+    },
+    [surgeryTemplates, applyTemplateToRichNote, setActiveTemplate]
+  )
 
   const handleProcedureInputChange = useCallback(value => {
     if (typeof value === 'string') {
@@ -355,7 +413,14 @@ const AddSurgeryRecord = () => {
         if (response?.success) {
           Toaster({ type: 'success', message: response?.message || 'Template saved successfully' })
           setActiveTemplate(trimmedName)
-          await refetchSurgeryTemplates()
+
+          const refetchResult = await refetchSurgeryTemplates()
+          const refreshedTemplates = extractSurgeryTemplates(refetchResult?.data)
+          const newTemplate = refreshedTemplates.find(template => template.title === trimmedName)
+
+          if (newTemplate) {
+            applyTemplateToRichNote(newTemplate)
+          }
 
           return true
         }
@@ -373,7 +438,7 @@ const AddSurgeryRecord = () => {
         setIsSavingTemplate(false)
       }
     },
-    [richNote, refetchSurgeryTemplates]
+    [richNote, refetchSurgeryTemplates, applyTemplateToRichNote]
   )
 
   const onSubmit = async formValues => {
@@ -421,7 +486,7 @@ const AddSurgeryRecord = () => {
         Toaster({ type: 'success', message: response?.message || 'Surgery record added successfully' })
         reset()
         setRichNote(createEmptyRichTextValue())
-        setActiveTemplate(templateNames[0] || '')
+        setActiveTemplate('')
         setProcedureSearchTerm('')
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to add surgery record' })
@@ -475,7 +540,6 @@ const AddSurgeryRecord = () => {
           errors={errors}
           templates={templateNames}
           activeTemplate={activeTemplate}
-          setActiveTemplate={setActiveTemplate}
           setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
           setOpenAddAnaesthesiaDrawer={setOpenAddAnaesthesiaDrawer}
           richNote={richNote}
@@ -490,6 +554,7 @@ const AddSurgeryRecord = () => {
           onSaveTemplate={handleSaveTemplate}
           isSavingTemplate={isSavingTemplate}
           clearFieldErrors={clearErrors}
+          onTemplateSelect={handleTemplateSelect}
         />
       </Box>
 
@@ -502,6 +567,7 @@ const AddSurgeryRecord = () => {
         openSurgeryTemplateDrawer={openSurgeryTemplateDrawer}
         templates={surgeryTemplates}
         loading={isTemplatesLoading}
+        onApplyTemplate={applyTemplateToRichNote}
       />
     </Box>
   )

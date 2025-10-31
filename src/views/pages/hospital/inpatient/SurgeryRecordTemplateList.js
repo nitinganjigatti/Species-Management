@@ -11,7 +11,8 @@ const SurgeryRecordTemplateList = ({
   openSurgeryTemplateDrawer,
   setOpenSurgeryTemplateDrawer,
   templates = [],
-  loading = false
+  loading = false,
+  onApplyTemplate = () => {}
 }) => {
   const theme = useTheme()
   const [searchValue, setSearchValue] = useState('')
@@ -61,9 +62,7 @@ const SurgeryRecordTemplateList = ({
   // Handle apply template
   const handleApplyTemplate = () => {
     if (selectedTemplate) {
-      console.log('Applied template:', selectedTemplate)
-
-      // Add your logic here to apply the template
+      onApplyTemplate(selectedTemplate)
       setOpenSurgeryTemplateDrawer(false)
     }
   }
