@@ -46,11 +46,14 @@ const SurgeryTemplateCard = ({ template, selectedTemplate, onSelect, onEdit, onD
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            lineHeight: '1.4'
+            lineHeight: '1.4',
+            '& a': {
+              color: theme.palette.primary.main
+            }
           }}
-        >
-          {template.description}
-        </Typography>
+          component='div'
+          dangerouslySetInnerHTML={{ __html: template.description || '' }}
+        />
       </Box>
 
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>

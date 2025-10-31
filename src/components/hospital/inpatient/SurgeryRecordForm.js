@@ -7,7 +7,7 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
-import RichTextEditor from 'src/components/RichTextEditor'
+import RichTextEditor from 'src/components/RichTextEditorTwo'
 
 // Save Template UI Component
 const SaveTemplateUI = ({ onClose, onSave, loading = false }) => {
@@ -119,7 +119,8 @@ const SurgeryRecordForm = ({
   procedureGetOptionLabel = option => option?.label || '',
   procedureIsOptionEqualToValue = (option, value) => option?.value === value?.value,
   onSaveTemplate = async () => false,
-  isSavingTemplate = false
+  isSavingTemplate = false,
+  clearFieldErrors
 }) => {
   const theme = useTheme()
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
@@ -219,13 +220,26 @@ const SurgeryRecordForm = ({
               onItemClear={onProcedureClear}
               getOptionLabel={procedureGetOptionLabel}
               isOptionEqualToValue={procedureIsOptionEqualToValue}
+              onChangeOverride={() => clearFieldErrors?.('procedure')}
             />
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledTextField name={'typeOfSurgery'} label='Type of surgery' control={control} errors={errors} />
+            <ControlledTextField
+              name={'typeOfSurgery'}
+              label='Type of surgery'
+              control={control}
+              errors={errors}
+              onChangeOverride={() => clearFieldErrors?.('typeOfSurgery')}
+            />
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
-            <ControlledTextField name={'surgicalApproach'} label='Surgical approach' control={control} errors={errors} />
+            <ControlledTextField
+              name={'surgicalApproach'}
+              label='Surgical approach'
+              control={control}
+              errors={errors}
+              onChangeOverride={() => clearFieldErrors?.('surgicalApproach')}
+            />
           </Grid>
         </Grid>
 

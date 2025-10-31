@@ -47,9 +47,8 @@ const ControlledTextField = ({
           error={Boolean(error)}
           helperText={helperText}
           onChange={e => {
-            const value = e?.target ? e.target.value : e
-            field.onChange(value)
-            if (onChangeOverride) onChangeOverride(e, value)
+            field.onChange(e)
+            if (onChangeOverride) onChangeOverride(e)
           }}
           onKeyDown={onKeyDown}
           onPaste={onPaste}

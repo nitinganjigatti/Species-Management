@@ -15,7 +15,16 @@ import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
 import { addSurgeryRecord, getSurgeryMaster, getSurgeryTemplates, createSurgeryTemplate } from 'src/lib/api/hospital/surgeryMaster'
 
-const createEmptyRichTextValue = () => ({ ops: [{ insert: '\n' }] })
+const createEmptyRichTextValue = () => {
+  const delta = { ops: [{ insert: '\n' }] }
+
+  return {
+    delta,
+    html: '<p><br></p>',
+    text: '',
+    ops: delta.ops
+  }
+}
 
 const DEFAULT_HOSPITAL_ID = '68'
 const TEMPLATE_LIST_LIMIT = 20
@@ -26,19 +35,22 @@ const getSafeString = value => {
   return String(value)
 }
 
-const extractPlainTextFromDelta = note => {
+const getRichTextHtml = note => {
   if (!note) return ''
   if (typeof note === 'string') return note
+  if (note?.html) return note.html
+  if (note?.text) return note.text
+  if (note?.delta?.ops) {
+    try {
+      const text = note.delta.ops
+        .map(op => (typeof op.insert === 'string' ? op.insert : ''))
+        .join('')
+        .trim()
 
-  if (Array.isArray(note?.ops)) {
-    return note.ops
-      .map(op => {
-        if (typeof op?.insert === 'string') return op.insert
-
-        return ''
-      })
-      .join('')
-      .trim()
+      return text
+    } catch {
+      return ''
+    }
   }
 
   return ''
@@ -146,6 +158,7 @@ const AddSurgeryRecord = () => {
     control,
     handleSubmit,
     reset,
+    clearErrors,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(schema),
@@ -332,7 +345,7 @@ const AddSurgeryRecord = () => {
       payload.append('template_name', trimmedName)
       payload.append('type', 'surgery')
       payload.append('hospital_id', DEFAULT_HOSPITAL_ID)
-      payload.append('description', getSafeString(extractPlainTextFromDelta(richNote)))
+      payload.append('description', getSafeString(getRichTextHtml(richNote)))
 
       setIsSavingTemplate(true)
 
@@ -384,7 +397,7 @@ const AddSurgeryRecord = () => {
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
     payload.append('surgical_approach', getSafeString(formValues.surgicalApproach))
-    payload.append('surgery_notes', getSafeString(extractPlainTextFromDelta(richNote)))
+    payload.append('surgery_notes', getSafeString(getRichTextHtml(richNote)))
     payload.append('complications', getSafeString(formValues.complication))
     payload.append('care_diet_instructions', getSafeString(formValues.dietInstructions))
     payload.append('care_activity_restrictions', getSafeString(formValues.restrictions))
@@ -471,6 +484,7 @@ const AddSurgeryRecord = () => {
           procedureIsOptionEqualToValue={procedureIsOptionEqualToValue}
           onSaveTemplate={handleSaveTemplate}
           isSavingTemplate={isSavingTemplate}
+          clearFieldErrors={clearErrors}
         />
       </Box>
 
