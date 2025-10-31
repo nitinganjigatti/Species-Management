@@ -757,6 +757,8 @@ export const GET_ACTIVITY_LIST = 'record-details'
 
 export const GET_NEW_ANIMAL_LIST_WITH_FILTERS = `v1/animal/listingv3`
 
+export const GET_SPECIES_FOR_HOSPITAL = `master/zoo/taxonomy/list`
+
 // Clinical Assessment
 
 export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/'

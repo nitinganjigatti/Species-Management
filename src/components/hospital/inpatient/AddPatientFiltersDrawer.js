@@ -7,6 +7,8 @@ import { debounce } from 'lodash'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import AddPatientSiteFilter from './AddPatientSiteFilter'
+import { getAllSpeciesListForHospital } from 'src/lib/api/hospital/inpatient'
+import { useAuth } from 'src/hooks/useAuth'
 
 const AddPatientFiltersDrawer = ({
   openFilterDrawer,
@@ -16,6 +18,8 @@ const AddPatientFiltersDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
+  const auth = useAuth()
+
   const [selectedMenu, setSelectedMenu] = useState('Gender')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
@@ -43,7 +47,7 @@ const AddPatientFiltersDrawer = ({
     Enclosures: initialSelectedOptions?.Enclosure || []
   })
 
-  console.log('selectedOptions', initialSelectedOptions)
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   const leftMenu = ['Gender', 'Species', 'Site'] // Change Items as per your requirement
 
@@ -75,61 +79,61 @@ const AddPatientFiltersDrawer = ({
             break
           case 'Species':
             params = query ? { q: query } : {}
-            const speciesRes = await getSpeciesList(params)
+            const speciesRes = await getAllSpeciesListForHospital({ zoo_id: zooId })
             data = speciesRes.success
-              ? speciesRes?.data?.data?.map(item => ({
-                  label: item?.common_name || item?.scientific_name || '',
+              ? speciesRes?.data?.taxonomy_list?.map(item => ({
+                  label: item?.complete_name || item?.default_common_name || '',
                   image: item?.default_icon || '/images/default_specie_icon.png',
-                  value: item?.taxonomy_id || ''
+                  value: Number(item?.tsn) || ''
                 }))
               : []
             break
 
-          case 'Site':
-            params = {
-              status: 1
-            }
-            if (query) params.q = query
-            const siteRes = await getDocumentTypeList(params)
-            data = siteRes.success
-              ? siteRes?.data?.records.map(item => ({
-                  label: item.name,
-                  value: item.id
-                }))
-              : []
-            break
+          // case 'Site':
+          //   params = {
+          //     status: 1
+          //   }
+          //   if (query) params.q = query
+          //   const siteRes = await getDocumentTypeList(params)
+          //   data = siteRes.success
+          //     ? siteRes?.data?.records.map(item => ({
+          //         label: item.name,
+          //         value: item.id
+          //       }))
+          //     : []
+          //   break
 
-          case 'Section':
-            // Fetch sections based on selected site
-            if (selectedOptions.Site.length === 1) {
-              const siteId = selectedOptions.Site[0]
-              params = { site_id: siteId, status: 1 }
-              if (query) params.q = query
-              const sectionRes = await getDocumentTypeList(params) // Replace with actual API
-              data = sectionRes.success
-                ? sectionRes?.data?.records.map(item => ({
-                    label: item.name,
-                    value: item.id
-                  }))
-                : []
-            }
-            break
+          // case 'Section':
+          //   // Fetch sections based on selected site
+          //   if (selectedOptions.Site.length === 1) {
+          //     const siteId = selectedOptions.Site[0]
+          //     params = { site_id: siteId, status: 1 }
+          //     if (query) params.q = query
+          //     const sectionRes = await getDocumentTypeList(params) // Replace with actual API
+          //     data = sectionRes.success
+          //       ? sectionRes?.data?.records.map(item => ({
+          //           label: item.name,
+          //           value: item.id
+          //         }))
+          //       : []
+          //   }
+          //   break
 
-          case 'Enclosure':
-            // Fetch enclosures based on selected section
-            if (selectedOptions.Section.length === 1) {
-              const sectionId = selectedOptions.Section[0]
-              params = { section_id: sectionId, status: 1 }
-              if (query) params.q = query
-              const enclosureRes = await getDocumentTypeList(params) // Replace with actual API
-              data = enclosureRes.success
-                ? enclosureRes?.data?.records.map(item => ({
-                    label: item.name,
-                    value: item.id
-                  }))
-                : []
-            }
-            break
+          // case 'Enclosure':
+          //   // Fetch enclosures based on selected section
+          //   if (selectedOptions.Section.length === 1) {
+          //     const sectionId = selectedOptions.Section[0]
+          //     params = { section_id: sectionId, status: 1 }
+          //     if (query) params.q = query
+          //     const enclosureRes = await getDocumentTypeList(params) // Replace with actual API
+          //     data = enclosureRes.success
+          //       ? enclosureRes?.data?.records.map(item => ({
+          //           label: item.name,
+          //           value: item.id
+          //         }))
+          //       : []
+          //   }
+          //   break
 
           default:
             break
@@ -284,11 +288,25 @@ const AddPatientFiltersDrawer = ({
     [menuData]
   )
 
-  const applyFilters = () => {
-    console.log('selectedOptions', selectedOptions)
+  // const applyFilters = () => {
+  //   setFilterCount(localFilterCount)
+  //   onApplyFilters({
+  //     ...selectedOptions,
+  //     Site: localSelections.Sites?.map(item => item?.site_id ?? item) || [],
+  //     Section: localSelections.Sections?.map(item => item?.section_id ?? item) || [],
+  //     Enclosure: localSelections.Enclosures?.map(item => item?.enclosure_id ?? item) || []
+  //   })
+  // }
 
+  const applyFilters = () => {
+    const convertToNumbers = arr => arr?.map(id => Number(id)) || []
     setFilterCount(localFilterCount)
-    onApplyFilters({...selectedOptions, Site: localSelections.Sites, Section: localSelections.Sections, Enclosure: localSelections.Enclosures})
+    onApplyFilters({
+      ...selectedOptions,
+      Site: convertToNumbers(localSelections.Sites?.map(item => item?.site_id ?? item)),
+      Section: convertToNumbers(localSelections.Sections?.map(item => item?.section_id ?? item)),
+      Enclosure: convertToNumbers(localSelections.Enclosures?.map(item => item?.enclosure_id ?? item))
+    })
   }
 
   const isAllSelected = menuName => {
@@ -317,7 +335,7 @@ const AddPatientFiltersDrawer = ({
     }
   }, [openFilterDrawer])
 
-  const handleCloseFilterDrawer = () => { 
+  const handleCloseFilterDrawer = () => {
     setLocalSelections({
       Sites: initialSelectedOptions?.Site || [],
       Sections: initialSelectedOptions?.Section || [],

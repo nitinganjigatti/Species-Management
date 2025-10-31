@@ -25,10 +25,11 @@ const AnimalDrawer = ({
   handleFilterClick = () => {},
   handleSortClick = () => {},
   module = 'housing',
-  selectedOptions = {}
+  filters = {}
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
+  console.log(filters, 'zzzzz')
 
   const [search, setSearch] = useState('')
   const [localSearch, setLocalSearch] = useState('')
@@ -69,7 +70,7 @@ const AnimalDrawer = ({
   }
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Observation-Report', search, activeTab],
+    queryKey: ['animal-List-Observation-Report', search, activeTab, filters],
     queryFn: async ({ pageParam = 1 }) => {
       if (module === 'housing') {
         const params = {
@@ -95,14 +96,14 @@ const AnimalDrawer = ({
           list_type: 'animals',
           type: 'single',
           animal_list_type: 'all_animals',
-
-          gender: selectedOptions?.Gender,
-          tsn_id: selectedOptions?.Species
-
-          // site_id:
-          // section_id :
-          // enclosure_id :
+          gender: filters?.Gender || [],
+          tsn_id: filters?.Species || [],
+          site_id: filters?.Site || [],
+          section_id: filters?.Section || [],
+          enclosure_id: filters?.Enclosure || []
         }
+
+        console.log(params)
 
         const res = await getNewAnimalListWithFilters(params)
 
