@@ -153,7 +153,7 @@ const SurgeryRecordForm = ({
             <ControlledDatePicker
               sx={{ width: '100%' }}
               name={'date'}
-              label='Date'
+              label='Date *'
               control={control}
               renderInput={params => (
                 <ControlledTextField {...params} fullWidth error={!!errors.date} helperText={errors.date?.message} />
@@ -162,7 +162,7 @@ const SurgeryRecordForm = ({
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
             <ControlledTimePicker
-              label='Start Time'
+              label='Start Time *'
               name={'startTime'}
               control={control}
               renderInput={params => (
@@ -179,7 +179,7 @@ const SurgeryRecordForm = ({
             <ControlledTimePicker
               name={'endTime'}
               control={control}
-              label='End Time'
+              label='End Time *'
               renderInput={params => (
                 <ControlledTextField
                   {...params}
@@ -191,7 +191,13 @@ const SurgeryRecordForm = ({
             />
           </Grid>
           <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <ControlledTextField name={'duration'} label='Duration' value='2 hours' control={control} />
+            <ControlledTextField
+              name={'duration'}
+              label='Duration *'
+              control={control}
+              errors={errors}
+              onChangeOverride={() => clearFieldErrors?.('duration')}
+            />
           </Grid>
         </Grid>
       </Card>
@@ -213,7 +219,7 @@ const SurgeryRecordForm = ({
               control={control}
               errors={errors}
               name={'procedure'}
-              label='Procedure'
+              label='Procedure *'
               options={procedureOptions}
               loading={procedureLoading}
               onInputChange={onProcedureInputChange}
@@ -226,7 +232,7 @@ const SurgeryRecordForm = ({
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
             <ControlledTextField
               name={'typeOfSurgery'}
-              label='Type of surgery'
+              label='Type of surgery *'
               control={control}
               errors={errors}
               onChangeOverride={() => clearFieldErrors?.('typeOfSurgery')}
@@ -235,7 +241,7 @@ const SurgeryRecordForm = ({
           <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
             <ControlledTextField
               name={'surgicalApproach'}
-              label='Surgical approach'
+              label='Surgical approach *'
               control={control}
               errors={errors}
               onChangeOverride={() => clearFieldErrors?.('surgicalApproach')}
@@ -364,7 +370,7 @@ const SurgeryRecordForm = ({
           </Box>
         </Box>
 
-        <ControlledTextField name={'complication'} control={control} errors={errors} label={'Complication'} />
+        <ControlledTextField name={'complication'} control={control} errors={errors} label={'Complication *'} />
       </Card>
 
       <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>

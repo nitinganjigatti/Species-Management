@@ -127,6 +127,7 @@ const schema = yup.object().shape({
     .test('procedure-required', 'Procedure is required', value => Boolean(value)),
   typeOfSurgery: yup.string().required('Type of surgery is required'),
   surgicalApproach: yup.string().required('Surgical approach is required'),
+  duration: yup.string().trim().required('Duration is required'),
   // notes: yup.string().required('Surgery notes are required'),
   complication: yup.string().required('Complication is required')
   // dietInstructions: yup.string().required('Diet instructions are required'),
@@ -171,6 +172,7 @@ const AddSurgeryRecord = () => {
       procedure: null,
       typeOfSurgery: '',
       surgicalApproach: '',
+      duration: '',
       notes: '',
       complication: 'None',
       dietInstructions: '',
@@ -402,6 +404,7 @@ const AddSurgeryRecord = () => {
     payload.append('care_diet_instructions', getSafeString(formValues.dietInstructions))
     payload.append('care_activity_restrictions', getSafeString(formValues.restrictions))
     payload.append('additional_notes', getSafeString(formValues.additionalNotes))
+    payload.append('duration', getSafeString(formValues.duration))
 
     if (formValues.attachment) {
       payload.append('attachments[]', formValues.attachment)
