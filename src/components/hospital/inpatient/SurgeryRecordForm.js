@@ -6,7 +6,7 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
+import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import RichTextEditor from 'src/components/RichTextEditorTwo'
 
 // Save Template UI Component
@@ -512,7 +512,12 @@ const SurgeryRecordForm = ({
           Attachments
         </Typography>
 
-        <ControlledFileUpload name={'attachment'} control={control} errors={errors} />
+        <ControlledMultiFileUpload
+          name='attachments'
+          control={control}
+          label='Upload files'
+          acceptedFileTypes='images,pdf,csv,audio,videos'
+        />
       </Card>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>

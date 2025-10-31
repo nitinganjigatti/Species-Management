@@ -179,7 +179,7 @@ const AddSurgeryRecord = () => {
       dietInstructions: '',
       restrictions: '',
       additionalNotes: '',
-      attachment: null
+      attachments: []
     }
   })
 
@@ -404,8 +404,12 @@ const AddSurgeryRecord = () => {
     payload.append('additional_notes', getSafeString(formValues.additionalNotes))
     payload.append('duration', getSafeString(formValues.duration))
 
-    if (formValues.attachment) {
-      payload.append('attachments[]', formValues.attachment)
+    if (Array.isArray(formValues.attachments)) {
+      formValues.attachments.forEach(file => {
+        if (file instanceof File) {
+          payload.append('attachments[]', file)
+        }
+      })
     }
 
     setIsSubmitting(true)
