@@ -752,6 +752,8 @@ export const DELETE_NOTE_SYMPTOM = 'medical/v2/delete-note/complaint'
 
 export const GET_ACTIVITY_LIST = 'record-details'
 
+export const GET_NEW_ANIMAL_LIST_WITH_FILTERS = `v1/animal/listingv3`
+
 // Clinical Assessment
 
 export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/'

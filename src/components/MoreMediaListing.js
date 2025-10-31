@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Card, CardContent, Typography, Avatar, Grid, useTheme, useMediaQuery, IconButton } from '@mui/material'
 import MediaCard from 'src/views/utility/MediaCard'
+import FilePreviewCard from 'src/views/utility/NewMediaCard'
 
 const MoreMediaListing = ({ mediaItems = [], maxVisibleItems = 2, onMoreClick = () => {} }) => {
   const theme = useTheme()
@@ -30,7 +31,7 @@ const MoreMediaListing = ({ mediaItems = [], maxVisibleItems = 2, onMoreClick = 
     <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', flexWrap: 'nowrap' }}>
       {/* Visible Media Items */}
       {visibleItems.map((item, index) => (
-        <MediaCard key={item.id || index} media={item} isBorderedCard cardSize={{ width: 140, height: 100 }} />
+        <FilePreviewCard key={item.id || index} fileUrl={item?.fileUrl} width={200} height={80} />
       ))}
       {remainingCount > 0 && (
         <Card

@@ -11,6 +11,7 @@ import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 
 const PAGE_SIZE = 10
 
@@ -22,7 +23,9 @@ const AnimalDrawer = ({
   showAnimalFilter = true,
   showFilterAndSort = false,
   handleFilterClick = () => {},
-  handleSortClick = () => {}
+  handleSortClick = () => {},
+  module = 'housing',
+  selectedOptions = {}
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -68,19 +71,46 @@ const AnimalDrawer = ({
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
     queryKey: ['animal-List-Observation-Report', search, activeTab],
     queryFn: async ({ pageParam = 1 }) => {
-      const params = {
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        q: search,
-        type: activeTab,
-        end_date: formatDate(new Date())
-      }
-      const res = await getAnimalListForObservationReport(params)
+      if (module === 'housing') {
+        const params = {
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search,
+          type: activeTab,
+          end_date: formatDate(new Date())
+        }
+        const res = await getAnimalListForObservationReport(params)
 
-      return {
-        animals: res?.data?.animals || [],
-        nextPage: res?.data?.animals?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total_animal_count: res?.data?.total_animal_count || 0
+        return {
+          animals: res?.data?.animals || [],
+          nextPage: res?.data?.animals?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+          total_animal_count: res?.data?.total_animal_count || 0
+        }
+      }
+      if (module === 'hospital') {
+        const params = {
+          page_no: pageParam,
+          q: search,
+          limit: PAGE_SIZE,
+          list_type: 'animals',
+          type: 'single',
+          animal_list_type: 'all_animals',
+
+          gender: selectedOptions?.Gender,
+          tsn_id: selectedOptions?.Species
+
+          // site_id:
+          // section_id :
+          // enclosure_id :
+        }
+
+        const res = await getNewAnimalListWithFilters(params)
+
+        return {
+          animals: res?.data || [],
+          nextPage: res?.data?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+          total_animal_count: res?.total_count || 0
+        }
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage
@@ -106,8 +136,8 @@ const AnimalDrawer = ({
       data?.pages?.flatMap(page =>
         page.animals.map(animal => ({
           animal_id: animal?.animal_id,
-          default_common_name: animal?.default_common_name,
-          scientific_name: animal?.complete_name,
+          default_common_name: animal?.default_common_name || animal?.common_name,
+          scientific_name: animal?.complete_name || animal?.scientific_name,
           user_enclosure_name: animal?.user_enclosure_name,
           section_name: animal?.section_name,
           site_name: animal?.site_name,

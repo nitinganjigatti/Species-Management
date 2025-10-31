@@ -1,4 +1,4 @@
-import { Divider, Tooltip, Typography, useTheme } from '@mui/material'
+import { Button, Divider, Tooltip, Typography, useTheme } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import MoreMediaListing from 'src/components/MoreMediaListing'
@@ -11,6 +11,110 @@ import { useQuery } from '@tanstack/react-query'
 import Utility from 'src/utility'
 import { VisitType } from '../utility/hospitalSnippets'
 import { useHospital } from 'src/context/HospitalContext'
+import OverviewMediaListingDrawer from 'src/components/hospital/drawer/OverviewMediaListingDrawer'
+
+export const sampleMediaItems = [
+  {
+    fileName: 'Wildlife Photography.jpg',
+    fileUrl: 'https://picsum.photos/400/300?random=1',
+    user: {
+      name: 'Jordan Stevenson',
+      image: 'https://i.pravatar.cc/40?img=1',
+      date: '25 Jun 2025',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Ocean Documentary.mp4',
+    fileUrl: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
+    user: {
+      name: 'Ava Mitchell',
+      image: 'https://i.pravatar.cc/40?img=2',
+      date: '25 Jun 2025',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Calm Piano Track.mp3',
+    fileUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    user: {
+      name: 'Ethan Williams',
+      image: 'https://i.pravatar.cc/40?img=3',
+      date: '25 Jun 2025 ',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Project Proposal.pdf',
+    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    user: {
+      name: 'Sophia Chen',
+      image: 'https://i.pravatar.cc/40?img=4',
+      date: '25 Jun 2025 ',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Company Profile.docx',
+    fileUrl: 'https://file-examples.com/storage/fe1a1b87cf4e6b2b1e64a7e/2017/02/file-sample_100kB.docx',
+    user: {
+      name: 'Lucas Patel',
+      image: 'https://i.pravatar.cc/40?img=5',
+      date: '25 Jun 2025',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Financial Report.xlsx',
+    fileUrl: 'https://file-examples.com/storage/fe1a1b87cf4e6b2b1e64a7e/2017/02/file_example_XLSX_10.xlsx',
+    user: {
+      name: 'Emily Davis',
+      image: 'https://i.pravatar.cc/40?img=6',
+      date: '25 Jun 2025',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Marketing Pitch.pptx',
+    fileUrl: 'https://file-examples.com/storage/fe1a1b87cf4e6b2b1e64a7e/2017/08/file_example_PPT_500kB.ppt',
+    user: {
+      name: 'Noah Johnson',
+      image: 'https://i.pravatar.cc/40?img=7',
+      date: '25 Jun 2025',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Readme Notes.txt',
+    fileUrl: 'https://file-examples.com/storage/fe1a1b87cf4e6b2b1e64a7e/2017/02/file_example_TXT_10kB.txt',
+    user: {
+      name: 'Olivia Brown',
+      image: 'https://i.pravatar.cc/40?img=8',
+      date: '25 Jun 2025',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Compressed Assets.zip',
+    fileUrl: 'https://file-examples.com/storage/fe1a1b87cf4e6b2b1e64a7e/2017/02/zip_2MB.zip',
+    user: {
+      name: 'Liam Carter',
+      image: 'https://i.pravatar.cc/40?img=9',
+      date: '25 Jun 2025',
+      time: '12:23 PM'
+    }
+  },
+  {
+    fileName: 'Broken Preview Image.png',
+    fileUrl: 'https://example.com/nonexistent-image.png',
+    user: {
+      name: 'Mia Wilson',
+      image: 'https://i.pravatar.cc/40?img=10',
+      date: '25 Jun 2025',
+      time: '12:23 PM'
+    }
+  }
+]
 
 const InpatientOverview = ({ overviewData }) => {
   const router = useRouter()
@@ -19,6 +123,8 @@ const InpatientOverview = ({ overviewData }) => {
   const { selectedHospital } = useHospital()
 
   const { id, animal_id } = router.query
+
+  const [openDrawer, setOpenDrawer] = useState(false)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -271,9 +377,12 @@ const InpatientOverview = ({ overviewData }) => {
           <HealthcareOverview data={overviewData} />
         </Box>
         <Grid container spacing={6} sx={{ borderRadius: 2, p: 4 }}>
-          <Grid size={{ xs: 12, md: 7 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Grid
+            size={{ xs: 12, md: overviewData?.reason_for_admission ? 3.5 : 7 }}
+            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+          >
             <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}>
-              Reason for Admission
+              Purpose of Visit
             </Typography>
             <Tooltip title={overviewData?.purpose_of_visit}>
               <Typography
@@ -282,7 +391,7 @@ const InpatientOverview = ({ overviewData }) => {
                   fontWeight: 400,
                   color: theme.palette.customColors.OnSurfaceVariant,
                   display: '-webkit-box',
-                  WebkitLineClamp: 4,
+                  WebkitLineClamp: 3,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -302,11 +411,49 @@ const InpatientOverview = ({ overviewData }) => {
               />
             </Box>
           </Grid>
+          {overviewData?.reason_for_admission && (
+            <Grid
+              size={{ xs: 12, md: 3.5 }}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                borderLeft: { md: `0.5px solid ${theme.palette.divider}`, xs: 'none' },
+                pl: { md: 6, xs: 0 }
+              }}
+            >
+              <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}>
+                Reason for Admission
+              </Typography>
+              <Tooltip title={overviewData?.reason_for_admission}>
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'normal'
+                  }}
+                >
+                  {overviewData?.reason_for_admission}
+                </Typography>
+              </Tooltip>
+            </Grid>
+          )}
+
           <Grid
             size={{ xs: 12, md: 5 }}
             sx={{ pl: 6, pt: 6, pr: 6, borderLeft: { md: `0.5px solid ${theme.palette.divider}`, xs: 'none' } }}
           >
-            {/* <MoreMediaListing mediaItems={sampleMediaItems} maxVisibleItems={2} /> */}
+            <MoreMediaListing
+              mediaItems={sampleMediaItems}
+              maxVisibleItems={2}
+              onMoreClick={() => setOpenDrawer(true)}
+            />
           </Grid>
           <Grid size={{ xs: 12 }}>
             <CommonTable
@@ -330,6 +477,9 @@ const InpatientOverview = ({ overviewData }) => {
           </Grid>
         </Grid>
       </Box>
+      {openDrawer && (
+        <OverviewMediaListingDrawer open={openDrawer} onClose={() => setOpenDrawer(false)} media={sampleMediaItems} />
+      )}
     </>
   )
 }

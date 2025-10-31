@@ -84,7 +84,8 @@ const InpatientDetails = () => {
         purpose_of_visit: patientResponse.data?.purpose_of_visit,
         created_by_full_name: patientResponse.data?.created_by_full_name,
         created_at: patientResponse.data?.created_at,
-        created_by_profile_pic: patientResponse.data?.created_by_profile_pic
+        created_by_profile_pic: patientResponse.data?.created_by_profile_pic,
+        reason_for_admission: patientResponse.data?.reason_for_admission
       }
     : {}
 

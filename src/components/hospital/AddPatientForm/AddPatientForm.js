@@ -699,6 +699,8 @@ const AddPatientForm = () => {
           showFilterAndSort
           handleFilterClick={handleFilterClick}
           handleSortClick={handleSortClick}
+          module='hospital'
+          filters={selectedOptions}
         />
       )}
       {doctorDrawerOpen && (
