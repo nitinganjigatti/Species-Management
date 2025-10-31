@@ -370,7 +370,13 @@ const SurgeryRecordForm = ({
           </Box>
         </Box>
 
-        <ControlledTextField name={'complication'} control={control} errors={errors} label={'Complication *'} />
+        <ControlledTextField
+          name={'complication'}
+          control={control}
+          errors={errors}
+          label={'Complication *'}
+          onChangeOverride={() => clearFieldErrors?.('complication')}
+        />
       </Card>
 
       {/* <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
