@@ -67,11 +67,10 @@ const SurgeryRecordTemplateList = ({
     }
   }
 
-  // Handle edit template
+  // Handle edit template -> now closes the drawer when a template is selected
   const handleEditTemplate = () => {
     if (selectedTemplate) {
-      setEditingTemplate(selectedTemplate)
-      setOpenEditPopup(true)
+      setOpenSurgeryTemplateDrawer(false)
     }
   }
 
@@ -241,20 +240,20 @@ const SurgeryRecordTemplateList = ({
         <LoadingButton
           variant='outlined'
           size='large'
-          disabled={loading || !selectedTemplate}
+          disabled={loading}
           onClick={handleEditTemplate}
           sx={{
             flex: 1,
             height: '56px',
-            borderColor: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
-            color: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
+            borderColor: theme.palette.customColors.OutlineVariant,
+            color: theme.palette.customColors.neutralSecondary,
             '&:hover': {
-              borderColor: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
-              backgroundColor: selectedTemplate ? 'rgba(25, 118, 210, 0.04)' : 'transparent'
+              borderColor: theme.palette.customColors.neutralSecondary,
+              backgroundColor: theme.palette.customColors.mdAntzNeutral
             }
           }}
         >
-          EDIT
+          Close
         </LoadingButton>
         <LoadingButton
           variant='contained'

@@ -162,11 +162,15 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
             sx={{
               flex: 1,
               height: '56px',
-              borderColor: theme.palette.customColors.Error,
-              color: theme.palette.customColors.Error
+              borderColor: theme.palette.customColors.OutlineVariant,
+              color: theme.palette.customColors.neutralSecondary,
+              '&:hover': {
+                borderColor: theme.palette.customColors.neutralSecondary,
+                backgroundColor: theme.palette.customColors.mdAntzNeutral
+              }
             }}
           >
-            DELETE
+            Close
           </LoadingButton>
           <LoadingButton
             type='submit'
