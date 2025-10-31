@@ -149,6 +149,8 @@ const AddSurgeryRecord = () => {
     formState: { errors }
   } = useForm({
     resolver: yupResolver(schema),
+    mode: 'onChange',
+    reValidateMode: 'onChange',
     defaultValues: {
       date: null,
       startTime: null,
