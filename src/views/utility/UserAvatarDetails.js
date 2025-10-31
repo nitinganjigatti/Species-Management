@@ -1,5 +1,5 @@
 import React from 'react'
-import { Typography, Box, Tooltip } from '@mui/material'
+import { Typography, Box, Tooltip, useTheme } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Utility from 'src/utility'
 
@@ -11,8 +11,11 @@ function UserAvatarDetails({
   description,
   role,
   size = 'large',
-  show_time = false
+  show_time = false,
+  dateType
 }) {
+  const theme = useTheme()
+
   const avatarSizes = {
     small: {
       profile_picture: { width: '24px', height: '24px' },
@@ -109,7 +112,18 @@ function UserAvatarDetails({
                     ''
                   )}
                 </span>
-                <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
+                {/* <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span> */}
+                {dateType === 'created' ? (
+                  <span style={{ color: theme.palette.customColors.neutralSecondary }}>
+                    Created on {Utility.convertUtcToLocalReadableDate(date)}
+                  </span>
+                ) : dateType === 'updated' ? (
+                  <span style={{ color: theme.palette.customColors.neutralSecondary }}>
+                    Updated on {Utility.convertUtcToLocalReadableDate(date)}
+                  </span>
+                ) : (
+                  <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
+                )}
               </Typography>
             )}
           </Box>

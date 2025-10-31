@@ -704,8 +704,11 @@ export const GET_MASTERS_SURGERY = 'v1/hospital/list-surgery'
 export const CREATE_MASTERS_HOSPITAL = 'v1/hospital/create'
 
 export const CREATE_MASTERS_SURGERY = 'v1/hospital/create-surgery'
+
 export const ADD_SURGERY_RECORD = 'v1/hospital/add-surgery-record'
+
 export const LIST_SURGERY_TEMPLATES = 'v1/hospital/list-template'
+
 export const CREATE_SURGERY_TEMPLATE = 'v1/hospital/create-template'
 
 export const UPDATE_MASTERS_HOSPITAL = 'v1/hospital/update'
@@ -794,6 +797,28 @@ export const GET_PRESCRIPTION_DETAILS = 'administer/details'
 
 export const GET_PRESCRIPTION_DETAILS_DATES = 'administer/stats'
 
-//Hospital masters
+//Hospital rooms
 
 export const GET_HOSPITAL_ROOMS = `v1/hospital/room/list`
+
+export const CREATE_HOSPITAL_ROOM = 'v1/hospital/room/create'
+
+export const UPDATE_HOSPITAL_ROOM = 'v1/hospital/room/update'
+
+export const DELETE_HOSPITAL_ROOM = 'v1/hospital/room/delete'
+
+export const HOSPITAL_STATUS_UPDATE = 'v1/hospital/status/update'
+
+//Hospital beds
+
+export const GET_HOSPITAL_BED = `v1/hospital/bed/list`
+
+export const CREATE_HOSPITAL_BED = 'v1/hospital/bed/create'
+
+export const UPDATE_HOSPITAL_BED = 'v1/hospital/bed/update'
+
+export const ROOM_STATUS_UPDATE = 'v1/hospital/room/status/update'
+
+// Hospital inpatient discharge
+
+export const ADD_DISCHARGE = 'v1/hospital/discharge'
