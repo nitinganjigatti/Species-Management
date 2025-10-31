@@ -13,7 +13,12 @@ import SurgeryRecordForm from 'src/components/hospital/inpatient/SurgeryRecordFo
 import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplateList'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
-import { addSurgeryRecord, getSurgeryMaster, getSurgeryTemplates, createSurgeryTemplate } from 'src/lib/api/hospital/surgeryMaster'
+import {
+  addSurgeryRecord,
+  getSurgeryMaster,
+  getSurgeryTemplates,
+  createSurgeryTemplate
+} from 'src/lib/api/hospital/surgeryMaster'
 
 const createEmptyRichTextValue = () => {
   const delta = { ops: [{ insert: '\n' }] }
@@ -103,7 +108,7 @@ const formatDateValue = value => (value ? dayjs(value).format('YYYY-MM-DD') : ''
 const formatTimeValue = value => (value ? dayjs(value).format('HH:mm:ss') : '')
 
 const resolveHospitalCaseId = query => {
-  const possibleKeys = ['hospital_case_id', 'hospitalCaseId', 'case_id', 'caseId', 'hospitalCaseID']
+  const possibleKeys = ['hospital_case_id', 'hospitalCaseId', 'case_id', 'caseId', 'hospitalCaseID', 'id']
 
   for (const key of possibleKeys) {
     if (query?.[key] !== undefined) {
@@ -128,11 +133,7 @@ const schema = yup.object().shape({
   typeOfSurgery: yup.string().required('Type of surgery is required'),
   surgicalApproach: yup.string().required('Surgical approach is required'),
   duration: yup.string().trim().required('Duration is required'),
-  // notes: yup.string().required('Surgery notes are required'),
   complication: yup.string().required('Complication is required')
-  // dietInstructions: yup.string().required('Diet instructions are required'),
-  // restrictions: yup.string().required('Restriction activities are required'),
-  // additionalNotes: yup.string().required('Additional notes are required')
 })
 
 const AddSurgeryRecord = () => {
@@ -212,10 +213,7 @@ const AddSurgeryRecord = () => {
     }
   })
 
-  const {
-    data: surgeryMasterResponse,
-    isFetching: isProceduresLoading
-  } = useQuery({
+  const { data: surgeryMasterResponse, isFetching: isProceduresLoading } = useQuery({
     queryKey: ['hospital-surgeries', procedureSearchTerm],
     queryFn: () => {
       const params = {

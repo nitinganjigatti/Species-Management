@@ -198,6 +198,7 @@ const InpatientDetails = () => {
       setSelectedTab,
       ...drawerState,
       patientId: id,
+      hospitalCaseId: id,
       overviewData: overviewData,
       patientData: patientData,
       loading: patientLoading

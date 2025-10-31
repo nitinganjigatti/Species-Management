@@ -146,12 +146,28 @@ const MediaScroller = () => {
   )
 }
 
-function InpatientSurgery() {
+function InpatientSurgery({ hospitalCaseId }) {
   const theme = useTheme()
   const router = useRouter()
 
   const handleAddSurgeryRecord = () => {
-    router.push(`/hospital/inpatient/AddSurgeryRecord`)
+    const { hospital_case_id, hospitalCaseId: queryHospitalCaseId, case_id, caseId, id } = router.query
+
+    const resolveValue = value => (Array.isArray(value) ? value[0] : value)
+
+    const resolvedCaseId =
+      resolveValue(hospitalCaseId) ||
+      resolveValue(hospital_case_id) ||
+      resolveValue(queryHospitalCaseId) ||
+      resolveValue(case_id) ||
+      resolveValue(caseId) ||
+      resolveValue(id)
+
+    const href = resolvedCaseId
+      ? { pathname: '/hospital/inpatient/AddSurgeryRecord', query: { hospital_case_id: resolvedCaseId } }
+      : '/hospital/inpatient/AddSurgeryRecord'
+
+    router.push(href)
   }
 
   const [activeSurgery, setActiveSurgery] = useState(surgeries[0])
