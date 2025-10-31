@@ -10,13 +10,16 @@ import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUplo
 import RichTextEditor from 'src/components/RichTextEditor'
 
 // Save Template UI Component
-const SaveTemplateUI = ({ onClose, onSave }) => {
+const SaveTemplateUI = ({ onClose, onSave, loading = false }) => {
   const theme = useTheme()
   const [templateName, setTemplateName] = useState('')
 
-  const handleSave = () => {
-    if (templateName.trim()) {
-      onSave(templateName)
+  const handleSave = async () => {
+    if (!templateName.trim() || loading) return
+
+    const success = await onSave(templateName.trim())
+
+    if (success) {
       setTemplateName('')
     }
   }
@@ -53,6 +56,7 @@ const SaveTemplateUI = ({ onClose, onSave }) => {
         <Button
           variant='contained'
           onClick={handleSave}
+          disabled={loading || !templateName.trim()}
           startIcon={
             <Avatar
               src='/icons/FloppyDisk.svg'
@@ -79,7 +83,7 @@ const SaveTemplateUI = ({ onClose, onSave }) => {
             }
           }}
         >
-          Save
+          {loading ? 'Saving...' : 'Save'}
         </Button>
         <IconButton
           onClick={onClose}
@@ -113,15 +117,19 @@ const SurgeryRecordForm = ({
   onProcedureInputChange = () => {},
   onProcedureClear = () => {},
   procedureGetOptionLabel = option => option?.label || '',
-  procedureIsOptionEqualToValue = (option, value) => option?.value === value?.value
+  procedureIsOptionEqualToValue = (option, value) => option?.value === value?.value,
+  onSaveTemplate = async () => false,
+  isSavingTemplate = false
 }) => {
   const theme = useTheme()
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
 
-  const handleSaveTemplate = templateName => {
-    // Handle saving template logic here
-    console.log('Saving template:', templateName)
-    setShowSaveTemplate(false)
+  const handleSaveTemplate = async templateName => {
+    const success = await onSaveTemplate(templateName)
+
+    if (success) {
+      setShowSaveTemplate(false)
+    }
   }
 
   return (
@@ -249,7 +257,11 @@ const SurgeryRecordForm = ({
           </Box>
 
           {showSaveTemplate ? (
-            <SaveTemplateUI onClose={() => setShowSaveTemplate(false)} onSave={handleSaveTemplate} />
+            <SaveTemplateUI
+              onClose={() => setShowSaveTemplate(false)}
+              onSave={handleSaveTemplate}
+              loading={isSavingTemplate}
+            />
           ) : (
             <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center', mb: '8px', cursor: 'pointer' }}>
               <Avatar

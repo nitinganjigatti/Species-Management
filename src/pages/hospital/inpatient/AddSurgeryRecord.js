@@ -1,7 +1,7 @@
 import { Breadcrumbs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -13,9 +13,12 @@ import SurgeryRecordForm from 'src/components/hospital/inpatient/SurgeryRecordFo
 import SurgeryRecordTemplateList from 'src/views/pages/hospital/inpatient/SurgeryRecordTemplateList'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import Toaster from 'src/components/Toaster'
-import { addSurgeryRecord, getSurgeryMaster } from 'src/lib/api/hospital/surgeryMaster'
+import { addSurgeryRecord, getSurgeryMaster, getSurgeryTemplates, createSurgeryTemplate } from 'src/lib/api/hospital/surgeryMaster'
 
 const createEmptyRichTextValue = () => ({ ops: [{ insert: '\n' }] })
+
+const DEFAULT_HOSPITAL_ID = '68'
+const TEMPLATE_LIST_LIMIT = 20
 
 const getSafeString = value => {
   if (value === undefined || value === null) return ''
@@ -55,6 +58,24 @@ const mapSurgeryToOption = surgery => {
     ...surgery,
     value: String(id),
     label: String(name).trim()
+  }
+}
+
+const mapTemplateRecord = record => {
+  if (!record || typeof record !== 'object') return null
+
+  const id = record?.id ?? record?.template_id ?? record?.hospital_template_id ?? record?.value
+  const name = record?.template_name ?? record?.name ?? record?.title
+
+  if (!id || !name) return null
+
+  return {
+    id: String(id),
+    title: String(name).trim(),
+    description: record?.description ?? '',
+    type: record?.type ?? 'Surgery',
+    category: record?.category ?? record?.type ?? 'Surgery',
+    raw: record
   }
 }
 
@@ -105,29 +126,6 @@ const AddSurgeryRecord = () => {
   const router = useRouter()
   const theme = useTheme()
 
-  const templates = [
-    'appendix surgery',
-    'ovariohysterectomy',
-    'ovariohysterectomies',
-    'ovariohysterect',
-    'hernia repair',
-    'spay surgery',
-    'neuter surgery',
-    'orthopedic surgery',
-    'soft tissue surgery',
-    'dental extraction',
-    'tumor removal',
-    'eye surgery',
-    'ear surgery',
-    'cesarean section',
-    'fracture repair',
-    'wound closure',
-    'foreign body removal',
-    'skin graft',
-    'joint surgery',
-    'biopsy'
-  ]
-
   const data = {
     animal: {
       common_name: 'Leopard',
@@ -167,12 +165,35 @@ const AddSurgeryRecord = () => {
     }
   })
 
-  const [activeTemplate, setActiveTemplate] = useState(templates[0])
+  const [activeTemplate, setActiveTemplate] = useState('')
   const [openAddAnaesthesiaDrawer, setOpenAddAnaesthesiaDrawer] = useState(false)
   const [openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer] = useState(false)
   const [richNote, setRichNote] = useState(() => createEmptyRichTextValue())
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
+
+  const {
+    data: surgeryTemplatesResponse,
+    isFetching: isTemplatesLoading,
+    refetch: refetchSurgeryTemplates
+  } = useQuery({
+    queryKey: ['hospital-surgery-templates', DEFAULT_HOSPITAL_ID],
+    queryFn: () =>
+      getSurgeryTemplates({
+        page_no: 1,
+        hospital_id: DEFAULT_HOSPITAL_ID,
+        limit: TEMPLATE_LIST_LIMIT,
+        type: 'surgery'
+      }),
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+    onError: error => {
+      console.error('Failed to fetch surgery templates:', error)
+      Toaster({ type: 'error', message: error?.message || 'Failed to load surgery templates' })
+    }
+  })
 
   const {
     data: surgeryMasterResponse,
@@ -220,6 +241,54 @@ const AddSurgeryRecord = () => {
     return Array.from(unique.values())
   }, [surgeryMasterResponse])
 
+  const surgeryTemplates = useMemo(() => {
+    const candidates = [
+      surgeryTemplatesResponse,
+      surgeryTemplatesResponse?.data,
+      surgeryTemplatesResponse?.data?.data,
+      surgeryTemplatesResponse?.data?.templates,
+      surgeryTemplatesResponse?.templates
+    ]
+
+    let records = []
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate) && candidate.length > 0) {
+        records = candidate
+        break
+      }
+    }
+
+    const unique = new Map()
+
+    records.forEach(item => {
+      const mapped = mapTemplateRecord(item)
+
+      if (mapped && !unique.has(mapped.id)) {
+        unique.set(mapped.id, mapped)
+      }
+    })
+
+    return Array.from(unique.values())
+  }, [surgeryTemplatesResponse])
+
+  const templateNames = useMemo(() => surgeryTemplates.map(template => template.title), [surgeryTemplates])
+
+  const templateNamesKey = useMemo(() => templateNames.join('|'), [templateNames])
+
+  useEffect(() => {
+    if (!templateNames.length) {
+      if (activeTemplate) {
+        setActiveTemplate('')
+      }
+
+      return
+    }
+
+    if (!activeTemplate || !templateNames.includes(activeTemplate)) {
+      setActiveTemplate(templateNames[0])
+    }
+  }, [templateNamesKey, activeTemplate, templateNames])
+
   const handleProcedureInputChange = useCallback(value => {
     if (typeof value === 'string') {
       setProcedureSearchTerm(value)
@@ -246,6 +315,51 @@ const AddSurgeryRecord = () => {
 
     return option?.label === selected?.label
   }, [])
+
+  const handleSaveTemplate = useCallback(
+    async templateName => {
+      const trimmedName = templateName?.trim()
+
+      if (!trimmedName) {
+        Toaster({ type: 'error', message: 'Template name is required' })
+
+        return false
+      }
+
+      const payload = new FormData()
+      payload.append('template_name', trimmedName)
+      payload.append('type', 'surgery')
+      payload.append('hospital_id', DEFAULT_HOSPITAL_ID)
+      payload.append('description', getSafeString(extractPlainTextFromDelta(richNote)))
+
+      setIsSavingTemplate(true)
+
+      try {
+        const response = await createSurgeryTemplate(payload)
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: response?.message || 'Template saved successfully' })
+          setActiveTemplate(trimmedName)
+          await refetchSurgeryTemplates()
+
+          return true
+        }
+
+        Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
+
+        return false
+      } catch (error) {
+        console.error('Create surgery template error:', error)
+        const message = error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+        Toaster({ type: 'error', message })
+
+        return false
+      } finally {
+        setIsSavingTemplate(false)
+      }
+    },
+    [richNote, refetchSurgeryTemplates]
+  )
 
   const onSubmit = async formValues => {
     const hospitalCaseId = resolveHospitalCaseId(router.query)
@@ -287,7 +401,7 @@ const AddSurgeryRecord = () => {
         Toaster({ type: 'success', message: response?.message || 'Surgery record added successfully' })
         reset()
         setRichNote(createEmptyRichTextValue())
-        setActiveTemplate(templates[0])
+        setActiveTemplate(templateNames[0] || '')
         setProcedureSearchTerm('')
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to add surgery record' })
@@ -339,7 +453,7 @@ const AddSurgeryRecord = () => {
         <SurgeryRecordForm
           control={control}
           errors={errors}
-          templates={templates}
+          templates={templateNames}
           activeTemplate={activeTemplate}
           setActiveTemplate={setActiveTemplate}
           setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
@@ -353,6 +467,8 @@ const AddSurgeryRecord = () => {
           onProcedureClear={handleProcedureClear}
           procedureGetOptionLabel={procedureGetOptionLabel}
           procedureIsOptionEqualToValue={procedureIsOptionEqualToValue}
+          onSaveTemplate={handleSaveTemplate}
+          isSavingTemplate={isSavingTemplate}
         />
       </Box>
 
@@ -363,6 +479,8 @@ const AddSurgeryRecord = () => {
       <SurgeryRecordTemplateList
         setOpenSurgeryTemplateDrawer={setOpenSurgeryTemplateDrawer}
         openSurgeryTemplateDrawer={openSurgeryTemplateDrawer}
+        templates={surgeryTemplates}
+        loading={isTemplatesLoading}
       />
     </Box>
   )

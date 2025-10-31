@@ -4,7 +4,9 @@ import {
   UPDATE_MASTERS_SURGERY,
   DELETE_MASTERS_SURGERY,
   ADD_SURGERY_RECORD,
-  CHANGE_MASTERS_SURGERY_STATUS
+  CHANGE_MASTERS_SURGERY_STATUS,
+  LIST_SURGERY_TEMPLATES,
+  CREATE_SURGERY_TEMPLATE
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
@@ -40,6 +42,18 @@ export const deleteSurgeryMaster = async id => {
 
 export const addSurgeryRecord = async payload => {
   const response = await axiosFormPost({ url: ADD_SURGERY_RECORD, body: payload })
+
+  return response?.data
+}
+
+export const getSurgeryTemplates = async params => {
+  const response = await axiosGet({ url: LIST_SURGERY_TEMPLATES, params })
+
+  return response?.data
+}
+
+export const createSurgeryTemplate = async payload => {
+  const response = await axiosFormPost({ url: CREATE_SURGERY_TEMPLATE, body: payload })
 
   return response?.data
 }
