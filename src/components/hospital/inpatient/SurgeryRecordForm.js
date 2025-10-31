@@ -373,7 +373,7 @@ const SurgeryRecordForm = ({
         <ControlledTextField name={'complication'} control={control} errors={errors} label={'Complication *'} />
       </Card>
 
-      <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <Typography
           sx={{
             fontWeight: 500,
@@ -430,7 +430,7 @@ const SurgeryRecordForm = ({
             Add anaesthesia record{' '}
           </Typography>
         </Box>
-      </Card>
+      </Card> */}
 
       <Card sx={{ borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <Typography
