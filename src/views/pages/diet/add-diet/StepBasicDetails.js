@@ -1501,13 +1501,22 @@ const StepBasicDetails = ({
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 5 }}>
-                                    <Typography className='w_280'>
-                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom-start'>
+                                      <Typography
+                                        className='w_280'
+                                        sx={{
+                                          display: 'inline-block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
                                         <span className='text_overflow_moduled'>
                                           {all?.remarks ? all.remarks : '-'}
                                         </span>
-                                      </Tooltip>
-                                    </Typography>
+                                      </Typography>
+                                    </Tooltip>
                                   </Grid>
                                 </Grid>
                                 <Icon
@@ -1684,13 +1693,22 @@ const StepBasicDetails = ({
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 5 }}>
-                                    <Typography className='w_280'>
-                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom-start'>
+                                      <Typography
+                                        className='w_280'
+                                        sx={{
+                                          display: 'inline-block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
                                         <span className='text_overflow_moduled'>
                                           {all?.remarks ? all.remarks : '-'}
                                         </span>
-                                      </Tooltip>
-                                    </Typography>
+                                      </Typography>
+                                    </Tooltip>
                                   </Grid>
                                 </Grid>
                                 <Icon
@@ -1769,8 +1787,8 @@ const StepBasicDetails = ({
                                   : ingredient.label === 'Item'
                                   ? 2.2
                                   : ingredient.label === 'Prep types'
-                                  ? 2.3
-                                  : 3.1
+                                  ? 2.0
+                                  : 3.3
                             }}
                             key={index}
                             sx={{ py: 4, px: 6, textAlign: 'center' }}
@@ -1851,13 +1869,22 @@ const StepBasicDetails = ({
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 8 }}>
-                                    <Typography className='w_280'>
-                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom-start'>
+                                      <Typography
+                                        className='w_280'
+                                        sx={{
+                                          display: 'inline-block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
                                         <span className='text_overflow_moduled'>
                                           {all?.remarks ? all.remarks : '-'}
                                         </span>
-                                      </Tooltip>
-                                    </Typography>
+                                      </Typography>
+                                    </Tooltip>
                                   </Grid>
                                 </Grid>
 
@@ -2004,13 +2031,22 @@ const StepBasicDetails = ({
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 3.7, md: 3.6 }}>
                                   <Grid sx={{ pl: 7 }}>
-                                    <Typography className='w_280'>
-                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom-start'>
+                                      <Typography
+                                        className='w_280'
+                                        sx={{
+                                          display: 'inline-block',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          verticalAlign: 'middle',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
                                         <span className='text_overflow_moduled'>
                                           {all?.remarks ? all.remarks : '-'}
                                         </span>
-                                      </Tooltip>
-                                    </Typography>
+                                      </Typography>
+                                    </Tooltip>
                                   </Grid>
                                 </Grid>
 

@@ -312,15 +312,13 @@ const AddIngredients = props => {
 
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
-    const remarksData = newRemarks ? newRemarks : remarks[item.id]?.remarks || ''
+    const remarksData = newRemarks !== undefined ? newRemarks : remarks[item.id]?.remarks || ''
 
     const selectedDaysForItem = selectedDays
       ?.filter(updatedDay => updatedDay.cardId === item.id)
       .flatMap(dayObj => dayObj.days.map(day => day.dayId))
 
     if (!feed_type) {
-      // toast.error('Please select a feed type.')
-
       return
     }
 
@@ -339,7 +337,7 @@ const AddIngredients = props => {
       preparation_type_id: feed_type_id,
       preparation_type: feed_type,
       days_of_week: selectedDaysForItem,
-      remarks: newRemarks ? newRemarks : remarksData,
+      remarks: remarksData,
       mealid: checkid,
       ingredient_image: item.image,
       //feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
@@ -1163,7 +1161,7 @@ const AddIngredients = props => {
                 {/* ) : null} */}
               </Box>
             ))
-          ) : sortedIngredientList?.length <= 0 ? (
+          ) : sortedIngredientList?.length <= 0 && searchValue ? (
             <Box
               sx={{
                 display: 'flex',

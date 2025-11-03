@@ -1131,7 +1131,7 @@ const AddIngredientswithChoice = props => {
                 </>
               </Box>
             ))
-          ) : sortedIngredientList?.length <= 0 ? (
+          ) : sortedIngredientList?.length <= 0 && searchValue ? (
             <Box
               sx={{
                 display: 'flex',
