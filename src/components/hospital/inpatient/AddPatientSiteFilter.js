@@ -84,7 +84,9 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }) => {
           disabled={localSelections?.Sections?.length > 0 || localSelections?.Enclosures?.length > 0}
           sx={{
             background:
-              localSelections?.Sections?.length > 0 || localSelections?.Enclosures?.length > 0 ? '#0000000D' : '#E8F4F2',
+              localSelections?.Sections?.length > 0 || localSelections?.Enclosures?.length > 0
+                ? '#0000000D'
+                : '#E8F4F2',
             p: 2,
             pl: 4,
             pr: 2,
@@ -92,7 +94,9 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }) => {
               fontWeight: '500',
               fontSize: '16px',
               color:
-                localSelections?.Sections?.length > 0 || localSelections?.Enclosures?.length > 0 ? '#44544A' : '#1F515B',
+                localSelections?.Sections?.length > 0 || localSelections?.Enclosures?.length > 0
+                  ? '#44544A'
+                  : '#1F515B',
               cursor: localSelections?.Sections?.length > 0 || localSelections?.Enclosures?.length > 0 ? '' : 'pointer'
             }
           }}
@@ -262,10 +266,9 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }) => {
           pt: 2,
           display: 'flex',
           gap: 2,
-          width: '100%',
+          width: '100%'
         }}
-      >
-      </Box>
+      ></Box>
 
       {openSiteListDrawer && (
         <SitesDrawer
@@ -310,10 +313,6 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }) => {
             image: localSelections.Sections[0]?.images?.[0]?.file,
             queryKey: 'hospital-enclosures',
             params: {
-              ref_type: 'zoo',
-              data_type: 'enclosure',
-              ref_id: zooId,
-              site_id: localSelections.Sites[0]?.site_id,
               section_id: localSelections.Sections[0]?.section_id
             }
           }}

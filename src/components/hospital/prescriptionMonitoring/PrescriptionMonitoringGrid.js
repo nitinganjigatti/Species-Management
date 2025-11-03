@@ -45,10 +45,6 @@ const FixedColumn = styled(Box)(({ theme }) => ({
   width: '266px',
   flexShrink: 0,
   marginRight: theme.spacing(2)
-
-  // [theme.breakpoints.down('md')]: {
-  //   width: '160px'
-  // }
 }))
 
 const ScrollableContainer = styled(Box)(({ theme }) => ({
@@ -61,22 +57,15 @@ const ScrollableContainer = styled(Box)(({ theme }) => ({
   },
   scrollbarWidth: 'none',
   msOverflowStyle: 'none'
-  // mt: 1,
 }))
 
 const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
   display: 'grid',
   gridTemplateColumns: `repeat(${numColumns}, minmax(160px, 1fr))`,
-  // border: '1px solid yellow',
-
   gap: theme.spacing(2),
   alignItems: 'stretch',
   width: 'max-content',
   marginBottom: theme.spacing(2)
-  // [theme.breakpoints.down('md')]: {
-  //   gridTemplateColumns: `repeat(${numColumns}, minmax(120px, 1fr))`,
-  //   gap: theme.spacing(1.5)
-  // }
 }))
 
 const HeaderContainer = styled(Box)(({ theme }) => ({
@@ -107,11 +96,7 @@ const MetricLabel = styled(Box, {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-
-  // padding: theme.spacing(2, 2.5),
   paddingLeft: '8px',
-
-  // backgroundColor: theme.palette.customColors.lightBg,
   backgroundColor: config?.backgroundColor,
   border: config?.border,
   borderRadius: 1,
@@ -119,12 +104,8 @@ const MetricLabel = styled(Box, {
   maxHeight: '74px',
   minHeight: '74px',
   cursor: 'pointer',
-
-  // marginBottom: theme.spacing(2),
   width: '230px',
   borderRadius: '8px'
-  // padding: '8px 12px '
-  // mt: 1,
 }))
 
 const MetricName = styled(Typography)(({ theme }) => ({
@@ -146,39 +127,26 @@ const TimeSlot = styled(Box, {
   alignItems: 'center',
   justifyContent: 'center',
   backgroundColor: 'white',
-  // borderRadius: '6px',
-  // border: '1px dashed',
-  // borderColor: theme.palette.customColors.OutlineVariant,
   fontSize: '13px',
   fontWeight: 500,
   cursor: 'pointer',
-  // color: theme.palette.customColors.OutlineVariant,
-  // cursor: 'pointer',
   transition: 'all 0.2s ease',
-
   position: 'relative',
   margin: 0,
   padding: 0,
   minWidth: '184px',
   height: '70px',
   marginTop: theme.spacing(0.5),
-
   backgroundColor: config?.backgroundColor,
   color: config?.color,
   border: config?.border,
   borderColor: config?.borderColor,
   padding: '8px',
   borderRadius: '8px',
-
   '&:hover': {
     backgroundColor: '#f8f9fa',
     borderColor: '#dee2e6'
   }
-
-  // [theme.breakpoints.down('md')]: {
-  //   fontSize: '11px',
-  //   minWidth: '120px'
-  // }
 }))
 
 const TimeHeader = styled(Box)(({ theme }) => ({
@@ -204,10 +172,7 @@ const TimeTooltip = styled(Box)(({ theme }) => ({
   top: '2px',
   left: '50%',
   transform: 'translateX(-50%)',
-
-  // backgroundColor: '#fff',
   backgroundColor: 'transparent',
-
   border: '1px solid',
   borderColor: theme.palette.customColors.Error,
   color: theme.palette.customColors.Error,
@@ -233,20 +198,133 @@ const TimeTooltip = styled(Box)(({ theme }) => ({
   }
 }))
 
+// Shimmer UI Components
+const ShimmerContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  width: '100%',
+  height: '100%',
+  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+}))
+
+const ShimmerMetricCard = styled(Box)(({ theme }) => ({
+  width: '230px',
+  height: '74px',
+  backgroundColor: theme.palette.action.hover,
+  borderRadius: '8px',
+  marginBottom: theme.spacing(1.3)
+}))
+
+const ShimmerTimeHeader = styled(Box)(({ theme }) => ({
+  minWidth: '160px',
+  height: '56px',
+  backgroundColor: theme.palette.action.hover,
+  borderRadius: '4px'
+}))
+
+const ShimmerTimeSlot = styled(Box)(({ theme }) => ({
+  minWidth: '184px',
+  height: '70px',
+  backgroundColor: theme.palette.action.hover,
+  borderRadius: '8px',
+  marginTop: theme.spacing(0.5)
+}))
+
+const ShimmerButton = styled(Box)(({ theme }) => ({
+  height: '48px',
+  width: '100%',
+  backgroundColor: theme.palette.action.hover,
+  borderRadius: '4px'
+}))
+
+const ShimmerCheckbox = styled(Box)(({ theme }) => ({
+  width: '100px',
+  height: '20px',
+  backgroundColor: theme.palette.action.hover,
+  borderRadius: '4px'
+}))
+
+const ShimmerSwitch = styled(Box)(({ theme }) => ({
+  width: '200px',
+  height: '20px',
+  backgroundColor: theme.palette.action.hover,
+  borderRadius: '4px'
+}))
+
+// Shimmer Loading Components
+const ShimmerHorizontalDateNav = () => (
+  <Box sx={{ display: 'flex', gap: 2 }}>
+    {Array.from({ length: 7 }).map((_, index) => (
+      <Box
+        key={index}
+        sx={{
+          width: '80px',
+          height: '40px',
+          backgroundColor: 'action.hover',
+          borderRadius: '4px'
+        }}
+      />
+    ))}
+  </Box>
+)
+
+const ShimmerMetricsGrid = () => {
+  const timeSlots = useMemo(() => {
+    const slots = []
+    for (let hour = 0; hour < 24; hour++) {
+      slots.push(getLabelForHour(hour))
+    }
+
+    return slots
+  }, [])
+
+  return (
+    <DashboardContainer>
+      <MainContainer>
+        <FixedColumn>
+          <HeaderContainer>
+            <Box sx={{ width: '120px', height: '20px', backgroundColor: 'action.hover', borderRadius: '4px' }} />
+          </HeaderContainer>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <MetricCardWrapper key={index}>
+              <ShimmerMetricCard />
+            </MetricCardWrapper>
+          ))}
+        </FixedColumn>
+
+        <ScrollableContainer>
+          <TimeSlotGrid numColumns={timeSlots.length}>
+            {timeSlots.map((time, index) => (
+              <ShimmerTimeHeader key={index} />
+            ))}
+          </TimeSlotGrid>
+          {Array.from({ length: 5 }).map((_, rowIndex) => (
+            <TimeSlotGrid key={rowIndex} numColumns={timeSlots.length}>
+              {timeSlots.map((_, colIndex) => (
+                <ShimmerTimeSlot key={colIndex} />
+              ))}
+            </TimeSlotGrid>
+          ))}
+        </ScrollableContainer>
+      </MainContainer>
+    </DashboardContainer>
+  )
+}
+
 const PrescriptionMonitoringGrid = ({
-  medications = [],
+  medications,
   dates = [],
   selectedDate,
   handleDateChange = () => {},
   onTimeSlotClick = () => {},
   onRemoveMetric = () => {},
-  onOpenPrescriptionCard = () => {}
+  onOpenPrescriptionCard = () => {},
+  isLoading
 }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id, medical_record_id } = router.query
   console.log(router.query, 'router.query')
-
+  console.log('medications in grid:', medications)
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
 
@@ -295,7 +373,7 @@ const PrescriptionMonitoringGrid = ({
     const medicationsMapped = medications?.map(med => ({ ...med, timeSlots: createTimeSlotStructure(timeSlots) }))
 
     return medicationsMapped
-  }, [timeSlots])
+  }, [timeSlots, medications])
 
   function isSameHourSlot(time1, time2) {
     if (!time1 || !time2) return false
@@ -388,7 +466,7 @@ const PrescriptionMonitoringGrid = ({
             : [] // Default to empty array if schedule is undefined/null
       }
     })
-  }, [defaultMetrics, timeSlots])
+  }, [defaultMetrics, timeSlots, medications])
 
   // Use medication data if available, otherwise use default metrics
   const displayMetrics = formatMedicationData
@@ -400,7 +478,7 @@ const PrescriptionMonitoringGrid = ({
   const handleSelectAll = event => {
     if (event.target.checked) {
       setSelectedMetrics(
-        displayMetrics.filter(
+        displayMetrics?.filter(
           metric =>
             !(
               Array.isArray(metric.schedule) &&
@@ -539,11 +617,57 @@ const PrescriptionMonitoringGrid = ({
     }
   }
 
+  // Show shimmer loading state
+  if (isLoading) {
+    return (
+      <>
+        <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
+          <Grid item size={{ xs: 10, sm: 10 }}>
+            <ShimmerHorizontalDateNav />
+          </Grid>
+          <Grid item size={{ xs: 2, sm: 2 }}>
+            <Button
+              onClick={() => {
+                router.push({
+                  pathname: `/hospital/inpatient/${id}/schedule-prescription`,
+                  query: {
+                    animal_id,
+                    medical_record_id
+                  }
+                })
+              }}
+              sx={{ height: '48px', width: '100%' }}
+              variant='contained'
+            >
+              Add new
+            </Button>
+          </Grid>
+          <Grid
+            item
+            size={{ xs: 12, sm: 12 }}
+            sx={{ display: 'flex', alignItems: 'center', my: 4, justifyContent: 'space-between' }}
+          >
+            <ShimmerCheckbox />
+            <MUISwitch label='Current medical records only' />
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 12 }}>
+            <ShimmerMetricsGrid />
+          </Grid>
+        </Grid>
+      </>
+    )
+  }
+
   return (
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid item size={{ xs: 10, sm: 10 }}>
-          <HorizontalDateNav onDateClick={handleDateChange} selectedDate={selectedDate} dates={dates} />
+          <HorizontalDateNav
+            isLoading={isLoading}
+            onDateClick={handleDateChange}
+            selectedDate={selectedDate}
+            dates={dates}
+          />
         </Grid>
         <Grid item size={{ xs: 2, sm: 2 }}>
           <Button

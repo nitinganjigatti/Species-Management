@@ -12,8 +12,16 @@ import AddIcon from '@mui/icons-material/Add'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
 import dayjs from 'dayjs'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
-export default function ScheduleMedicine({ control, errors, selectedMedicineTo, medicalMasterData, isMedicineSelected }) {
+export default function ScheduleMedicine({
+  control,
+  errors,
+  selectedMedicineTo,
+  medicalMasterData,
+  isMedicineSelected,
+  batchList = []
+}) {
   const {
     caseTypes,
     prescriptionMeasurementType,
@@ -25,45 +33,6 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
   const theme = useTheme()
 
   const now = new Date()
-
-  // Options for selects
-  const frequencyOptions = [
-    { id: 1, label: 'Everyday', value: 'everyday' },
-    { id: 2, label: 'Alternate Day', value: 'every-other-day' },
-    { id: 3, label: 'Weekly', value: 'weekly' },
-    { id: 4, label: 'Monthly', value: 'monthly' },
-    { id: 5, label: 'As Needed', value: 'as-needed' }
-  ]
-
-  const doseTypeOptions = [
-    { id: 1, label: 'Fixed Dose', value: 'fixed-dose' },
-    { id: 2, label: 'Variable Dose', value: 'variable-dose' },
-    { id: 3, label: 'As Prescribed', value: 'as-prescribed' }
-  ]
-
-  const unitOptions = [
-    { id: 1, label: 'Tablets', value: 'tablets' },
-    { id: 2, label: 'Capsules', value: 'capsules' },
-    { id: 3, label: 'ml', value: 'ml' },
-    { id: 4, label: 'mg', value: 'mg' },
-    { id: 5, label: 'Drops', value: 'drops' },
-    { id: 6, label: 'Puffs', value: 'puffs' }
-  ]
-
-  const deliveryRouteOptions = [
-    { id: 1, label: 'Oral', value: 'oral' },
-    { id: 2, label: 'Injection', value: 'injection' },
-    { id: 3, label: 'Topical', value: 'topical' },
-    { id: 4, label: 'Inhalation', value: 'inhalation' },
-    { id: 5, label: 'Sublingual', value: 'sublingual' },
-    { id: 6, label: 'Rectal', value: 'rectal' }
-  ]
-
-  const durationUnitOptions = [
-    { id: 1, label: 'Days', value: 'days' },
-    { id: 2, label: 'Weeks', value: 'weeks' },
-    { id: 3, label: 'Months', value: 'months' }
-  ]
 
   // Common styles for form fields
   const commonFieldStyles = {
@@ -111,228 +80,179 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
       }}
     >
       <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-        {isMedicineSelected ? <Box
-          container
-          sx={{
-            background: theme.palette.common.white,
-            minHeight: 'fit-content',
-            borderRadius: '4px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'stretch',
-            justifyContent: 'flex-start',
-            gap: 2,
-            padding: '24px',
-            width: '100%',
-
-            // maxWidth: '420px',
-            flex: 1,
-            overflowY: 'auto',
-
-            '& .MuiGrid-item': {
-              paddingLeft: '8px !important',
-              paddingTop: '8px !important'
-            }
-          }}
-        >
-          <Typography
+        {isMedicineSelected ? (
+          <Box
+            container
             sx={{
-              mb: 4,
-              fontSize: '20px',
-              fontWeight: '500',
-              textAlign: 'left',
-              color: theme.palette.customColors.OnSurfaceVariant
+              background: theme.palette.common.white,
+              minHeight: 'fit-content',
+              borderRadius: '4px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              justifyContent: 'flex-start',
+              gap: 2,
+              padding: '24px',
+              width: '100%',
+
+              // maxWidth: '420px',
+              flex: 1,
+              overflowY: 'auto',
+
+              '& .MuiGrid-item': {
+                paddingLeft: '8px !important',
+                paddingTop: '8px !important'
+              }
             }}
           >
-            Schedule Medicine
-          </Typography>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledSelect
-              fullWidth={true}
-              name='frequency'
-              sx={commonFieldStyles}
-              size='large'
-              label='Set Frequency'
-              control={control}
-              errors={errors}
-              options={prescriptionFrequency}
-              getOptionLabel={option => option.label}
-              getOptionValue={option => option.value}
-              required
-            />
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledSelect
-              fullWidth={true}
-              name='doseType'
-              label='Select Dose Type'
+            <Typography
               sx={{
+                mb: 4,
+                fontSize: '20px',
+                fontWeight: '500',
                 textAlign: 'left',
-                borderColor: `${theme.palette.customColors.OutlineVariant} !important`,
-                borderRadius: '4px',
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px',
-                  borderColor: `${theme.palette.customColors.OutlineVariant} !important`
-                }
-              }}
-              size='large'
-              control={control}
-              errors={errors}
-              options={prescriptionDosageMeasurementType}
-              getOptionLabel={option => option.label}
-              getOptionValue={option => option.value}
-              required
-            />
-          </Box>
-
-          {fields.map((field, idx) => (
-            <Grid
-              container
-              spacing={2}
-              key={field.fieldId}
-              sx={{
-                mb: 3,
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                '& .MuiFormControl-root': {
-                  width: '100%'
-                }
+                color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              <Grid item size={4.5}>
-                <ControlledTimePicker
-                  name={`schedules.${idx}.time`}
-                  label='Time'
-                  control={control}
-                  errors={errors}
-                  placeholder='12:30 PM'
-                  required
-                  sx={commonFieldStyles}
-                  size='large'
-                />
-              </Grid>
+              Schedule Medicine
+            </Typography>
 
-              <Grid item size={fields?.length > 1 ? 6.5 : 7.5}>
-                <ControlledSelectWithTextField
-                  textFieldName={`schedules.${idx}.quantity`}
-                  selectFieldName={`schedules.${idx}.unit`}
-                  control={control}
-                  errors={errors}
-                  options={prescriptionMeasurementType}
-                  label='Quantity'
-                  placeholder='Enter quantity'
-                  type='number'
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
-                  sx={commonFieldStyles}
-                  size='large'
-                  required
-                />
-              </Grid>
-
-              {fields?.length > 1 && (
-                <Grid
-                  item
-                  size={1}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    pt: '20px !important' // Align with input fields
-                  }}
-                >
-                  <IconButton
-                    onClick={() => remove(idx)}
-                    size='small'
-                    sx={{
-                      mt: '-4px' // Fine tune alignment with input fields
-                    }}
-                  >
-                    <CloseIcon fontSize='small' />
-                  </IconButton>
-                </Grid>
-              )}
-            </Grid>
-          ))}
-
-          <Button
-            startIcon={<AddIcon />}
-            variant='outlined'
-            fullWidth
-            sx={{
-              mb: 3,
-              height: '48px',
-              fontSize: '16px',
-              background: '#EAF8F2',
-              color: '#1A7F64',
-              borderColor: '#B6E2D3',
-              fontWeight: 500,
-              padding: '10px 12px'
-            }}
-            onClick={e => {
-              e.preventDefault()
-              append({ time: '', quantity: '', unit: '' })
-            }}
-          >
-            Add Time
-          </Button>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledSelect
-              name='deliveryRoute'
-              label='Select Delivery Route'
-              fullWidth={true}
-              sx={{
-                textAlign: 'left',
-                borderRadius: '4px'
-              }}
-              size='large'
-              control={control}
-              errors={errors}
-              options={prescriptionDeliveryRoute}
-              getOptionLabel={option => option.label}
-              getOptionValue={option => option.value}
-              required
-            />
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledDatePicker
-              fullWidth={true}
-              sx={commonFieldStyles}
-              minDate={dayjs(now)}
-              size='large'
-              name='prescriptionStartDate'
-              label='Prescription Start Date'
-              control={control}
-              errors={errors}
-              required
-            />
-          </Box>
-
-          <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
-            <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-              <ControlledTextField
-                name='dosageDuration.value'
-                label='Dosage Duration'
+            <Box sx={{ mb: 3 }}>
+              <ControlledSelect
+                fullWidth={true}
+                name='frequency'
+                sx={commonFieldStyles}
+                size='large'
+                label='Set Frequency'
                 control={control}
                 errors={errors}
-                type='number'
+                options={prescriptionFrequency}
+                getOptionLabel={option => option.label}
+                getOptionValue={option => option.value}
+                required
+              />
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <ControlledSelect
+                fullWidth={true}
+                name='doseType'
+                label='Select Dose Type'
                 sx={{
                   textAlign: 'left',
+                  borderColor: `${theme.palette.customColors.OutlineVariant} !important`,
+                  borderRadius: '4px',
                   '& .MuiOutlinedInput-root': {
-                    borderRadius: '4px'
+                    borderRadius: '4px',
+                    borderColor: `${theme.palette.customColors.OutlineVariant} !important`
                   }
                 }}
                 size='large'
+                control={control}
+                errors={errors}
+                options={prescriptionDosageMeasurementType}
+                getOptionLabel={option => option.label}
+                getOptionValue={option => option.value}
                 required
               />
-            </Grid>
-            <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+            </Box>
+
+            {fields.map((field, idx) => (
+              <Grid
+                container
+                spacing={2}
+                key={field.fieldId}
+                sx={{
+                  mb: 3,
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  '& .MuiFormControl-root': {
+                    width: '100%'
+                  }
+                }}
+              >
+                <Grid item size={4.5}>
+                  <ControlledTimePicker
+                    name={`schedules.${idx}.time`}
+                    label='Time'
+                    control={control}
+                    errors={errors}
+                    placeholder='12:30 PM'
+                    required
+                    sx={commonFieldStyles}
+                    size='large'
+                  />
+                </Grid>
+
+                <Grid item size={fields?.length > 1 ? 6.5 : 7.5}>
+                  <ControlledSelectWithTextField
+                    textFieldName={`schedules.${idx}.quantity`}
+                    selectFieldName={`schedules.${idx}.unit`}
+                    control={control}
+                    errors={errors}
+                    options={prescriptionMeasurementType}
+                    label='Quantity'
+                    placeholder='Enter quantity'
+                    type='number'
+                    getOptionLabel={option => option.label}
+                    getOptionValue={option => option.value}
+                    sx={commonFieldStyles}
+                    size='large'
+                    required
+                  />
+                </Grid>
+
+                {fields?.length > 1 && (
+                  <Grid
+                    item
+                    size={1}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      pt: '20px !important' // Align with input fields
+                    }}
+                  >
+                    <IconButton
+                      onClick={() => remove(idx)}
+                      size='small'
+                      sx={{
+                        mt: '-4px' // Fine tune alignment with input fields
+                      }}
+                    >
+                      <CloseIcon fontSize='small' />
+                    </IconButton>
+                  </Grid>
+                )}
+              </Grid>
+            ))}
+
+            <Button
+              startIcon={<AddIcon />}
+              variant='outlined'
+              fullWidth
+              sx={{
+                mb: 3,
+                height: '48px',
+                fontSize: '16px',
+                background: '#EAF8F2',
+                color: '#1A7F64',
+                borderColor: '#B6E2D3',
+                fontWeight: 500,
+                padding: '10px 12px'
+              }}
+              onClick={e => {
+                e.preventDefault()
+                append({ time: '', quantity: '', unit: '' })
+              }}
+            >
+              Add Time
+            </Button>
+
+            <Box sx={{ mb: 3 }}>
               <ControlledSelect
-                name='dosageDuration.unit'
-                label='Dosage Unit'
+                name='deliveryRoute'
+                label='Select Delivery Route'
+                fullWidth={true}
                 sx={{
                   textAlign: 'left',
                   borderRadius: '4px'
@@ -340,123 +260,187 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                 size='large'
                 control={control}
                 errors={errors}
-                options={prescriptionDuration}
-                required
+                options={prescriptionDeliveryRoute}
                 getOptionLabel={option => option.label}
                 getOptionValue={option => option.value}
+                required
               />
-            </Grid>
-          </Grid>
+            </Box>
 
-          <Box sx={{ mb: 3 }}>
-            <ControlledTextArea
-              fullWidth={true}
-              sx={{
-                textAlign: 'left',
-                background: '#FFF9E5',
-                borderRadius: '4px',
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px'
-                }
-              }}
-              name='notes'
-              label='Enter Notes'
-              control={control}
-              errors={errors}
-              rows={4}
-            />
-          </Box>
-          {selectedMedicineTo === 'Direct Administer' && (
-            <>
-              <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
-                <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
-                  <Typography
-                    sx={{
-                      mb: 1,
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      textAlign: 'left',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    Add Wastage & Batch Number
-                    <span
-                      style={{
-                        color: theme.palette.customColors.neutralSecondary,
-                        fontSize: '14px',
-                        fontWeight: '500'
-                      }}
-                    >
-                      (Optional)
-                    </span>
-                  </Typography>
-                </Grid>
-                <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-                  <ControlledTextField
-                    name='wastageQuantity'
-                    label='Quantity'
-                    control={control}
-                    errors={errors}
-                    type='number'
-                    sx={{
-                      textAlign: 'left',
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '4px'
-                      }
-                    }}
-                    size='large'
-                  />
-                </Grid>
-                <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-                  <ControlledSelect
-                    name='wastageUnit'
-                    label={'UOM'}
-                    sx={{
-                      textAlign: 'left',
-                      borderRadius: '4px'
-                    }}
-                    size='large'
-                    control={control}
-                    errors={errors}
-                    options={prescriptionMeasurementType}
-                    getOptionLabel={option => option.label}
-                    getOptionValue={option => option.value}
-                  />
-                </Grid>
-              </Grid>
-              <Box sx={{ mb: 3 }}>
-                <ControlledTextArea
-                  fullWidth={true}
+            <Box sx={{ mb: 3 }}>
+              <ControlledDatePicker
+                fullWidth={true}
+                sx={commonFieldStyles}
+                minDate={dayjs(now)}
+                size='large'
+                name='prescriptionStartDate'
+                label='Prescription Start Date'
+                control={control}
+                errors={errors}
+                required
+              />
+            </Box>
+
+            <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
+              <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                <ControlledTextField
+                  name='dosageDuration.value'
+                  label='Dosage Duration'
+                  control={control}
+                  errors={errors}
+                  type='number'
                   sx={{
                     textAlign: 'left',
-                    borderRadius: '4px',
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '4px'
                     }
                   }}
-                  name='wastageNotes'
-                  label='Enter Notes'
+                  size='large'
+                  required
+                />
+              </Grid>
+              <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                <ControlledSelect
+                  name='dosageDuration.unit'
+                  label='Dosage Unit'
+                  sx={{
+                    textAlign: 'left',
+                    borderRadius: '4px'
+                  }}
+                  size='large'
                   control={control}
                   errors={errors}
-                  rows={2}
+                  options={prescriptionDuration}
+                  required
+                  getOptionLabel={option => option.label}
+                  getOptionValue={option => option.value}
                 />
-              </Box>
-              <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
-                <Typography
-                  sx={{
-                    mb: 1,
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    textAlign: 'left',
-                    my: 2,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  ! Batch Number is Mandatory for controlled substances
-                </Typography>
               </Grid>
-              <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
-                <ControlledTextField
+            </Grid>
+
+            <Box sx={{ mb: 3 }}>
+              <ControlledTextArea
+                fullWidth={true}
+                sx={{
+                  textAlign: 'left',
+                  background: '#FFF9E5',
+                  borderRadius: '4px',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '4px'
+                  }
+                }}
+                name='notes'
+                label='Enter Notes'
+                control={control}
+                errors={errors}
+                rows={4}
+              />
+            </Box>
+            {selectedMedicineTo === 'Direct Administer' && (
+              <>
+                <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
+                  <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                    <Typography
+                      sx={{
+                        mb: 1,
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        textAlign: 'left',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      Add Wastage & Batch Number
+                      <span
+                        style={{
+                          color: theme.palette.customColors.neutralSecondary,
+                          fontSize: '14px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        (Optional)
+                      </span>
+                    </Typography>
+                  </Grid>
+                  <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                    <ControlledTextField
+                      name='wastageQuantity'
+                      label='Quantity'
+                      control={control}
+                      errors={errors}
+                      type='number'
+                      sx={{
+                        textAlign: 'left',
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '4px'
+                        }
+                      }}
+                      size='large'
+                    />
+                  </Grid>
+                  <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                    <ControlledSelect
+                      name='wastageUnit'
+                      label={'UOM'}
+                      sx={{
+                        textAlign: 'left',
+                        borderRadius: '4px'
+                      }}
+                      size='large'
+                      control={control}
+                      errors={errors}
+                      options={prescriptionMeasurementType}
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                    />
+                  </Grid>
+                </Grid>
+                <Box sx={{ mb: 3 }}>
+                  <ControlledTextArea
+                    fullWidth={true}
+                    sx={{
+                      textAlign: 'left',
+                      borderRadius: '4px',
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '4px'
+                      }
+                    }}
+                    name='wastageNotes'
+                    label='Enter Notes'
+                    control={control}
+                    errors={errors}
+                    rows={2}
+                  />
+                </Box>
+                <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      textAlign: 'left',
+                      my: 2,
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    ! Batch Number is Mandatory for controlled substances
+                  </Typography>
+                </Grid>
+                <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                  <ControlledAutocomplete
+                    name='batchNumber'
+                    control={control}
+                    errors={errors}
+                    label='Enter batch number if any (optional)'
+                    options={batchList}
+                    getOptionLabel={option => option.batchNumber}
+                    getOptionValue={option => option.batchNumber}
+                    sx={{
+                      textAlign: 'left'
+                    }}
+
+                    // size='large'
+                  />
+                  {/* <ControlledTextField
                   name='batchNumber'
                   label='Enter batch number if any (optional)'
                   control={control}
@@ -468,43 +452,48 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo, 
                     }
                   }}
                   size='large'
-                />
-              </Grid>
-              <ControlledFileUpload name='batchImage' label='Batch Image' control={control} />
-            </>
-          )}
-        </Box> : <Box container
-          sx={{
-            background: theme.palette.common.white,
-
-            // minHeight: 'fit-content',
-            borderRadius: '4px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'stretch',
-            justifyContent: 'flex-start',
-            gap: 2,
-            padding: '24px',
-            width: '100%',
-            flex: 1,
-            overflowY: 'auto',
-
-            '& .MuiGrid-item': {
-              paddingLeft: '8px !important',
-              paddingTop: '8px !important'
-            }
-          }}>
-          <Typography
+                /> */}
+                </Grid>
+                <ControlledFileUpload name='batchImage' label='Batch Image' control={control} />
+              </>
+            )}
+          </Box>
+        ) : (
+          <Box
+            container
             sx={{
-              fontSize: '16px',
-              fontWeight: '500',
-              textAlign: 'center',
-              color: theme.palette.customColors.neutralSecondary
+              background: theme.palette.common.white,
+
+              // minHeight: 'fit-content',
+              borderRadius: '4px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              justifyContent: 'flex-start',
+              gap: 2,
+              padding: '24px',
+              width: '100%',
+              flex: 1,
+              overflowY: 'auto',
+
+              '& .MuiGrid-item': {
+                paddingLeft: '8px !important',
+                paddingTop: '8px !important'
+              }
             }}
           >
-            Please select a medicine to schedule.
-          </Typography>
-        </Box>}
+            <Typography
+              sx={{
+                fontSize: '16px',
+                fontWeight: '500',
+                textAlign: 'center',
+                color: theme.palette.customColors.neutralSecondary
+              }}
+            >
+              Please select a medicine to schedule.
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   )

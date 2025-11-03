@@ -6,7 +6,7 @@ import { useInView } from 'react-intersection-observer'
 
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
 import Search from 'src/views/utility/Search'
-import { getAllEnclosures } from 'src/lib/api/housing'
+import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
 const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
@@ -40,16 +40,16 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
   } = useInfiniteQuery({
     queryKey: ['hospital-enclosures', data?.id, search, open],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await getAllEnclosures({
+      const res = await getEnclosureListSectionWise({
         ...data?.params,
         page_no: pageParam,
         limit: PAGE_SIZE,
-        search
+        q: search
       })
 
       return {
-        result: res?.data?.result || [],
-        nextPage: res?.data?.result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        result: res?.data?.list_items || [],
+        nextPage: res?.data?.list_items?.length === PAGE_SIZE ? pageParam + 1 : undefined,
         total: res?.data?.total_count || 0
       }
     },
@@ -114,13 +114,13 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
     setSelectedEnclosures(prev => {
       const enclosureId = enclosure.enclosure_id || enclosure.id
 
-      const isAlreadySelected = prev.some(selectedEnclosure => 
-        (selectedEnclosure.enclosure_id || selectedEnclosure.id) === enclosureId
+      const isAlreadySelected = prev.some(
+        selectedEnclosure => (selectedEnclosure.enclosure_id || selectedEnclosure.id) === enclosureId
       )
-      
+
       if (isAlreadySelected) {
-        return prev.filter(selectedEnclosure => 
-          (selectedEnclosure.enclosure_id || selectedEnclosure.id) !== enclosureId
+        return prev.filter(
+          selectedEnclosure => (selectedEnclosure.enclosure_id || selectedEnclosure.id) !== enclosureId
         )
       } else {
         return [...prev, enclosure]
@@ -141,9 +141,10 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
   // Update select all state when selection changes
   useEffect(() => {
     if (list.length > 0) {
-      const allSelected = list.every(enclosure => 
-        selectedEnclosures.some(selectedEnclosure => 
-          (selectedEnclosure.enclosure_id || selectedEnclosure.id) === (enclosure.enclosure_id || enclosure.id)
+      const allSelected = list.every(enclosure =>
+        selectedEnclosures.some(
+          selectedEnclosure =>
+            (selectedEnclosure.enclosure_id || selectedEnclosure.id) === (enclosure.enclosure_id || enclosure.id)
         )
       )
       setIsAllSelected(allSelected)

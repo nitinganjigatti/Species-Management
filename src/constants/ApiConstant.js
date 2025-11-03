@@ -757,6 +757,8 @@ export const GET_ACTIVITY_LIST = 'record-details'
 
 export const GET_NEW_ANIMAL_LIST_WITH_FILTERS = `v1/animal/listingv3`
 
+export const GET_SPECIES_FOR_HOSPITAL = `master/zoo/taxonomy/list`
+
 // Clinical Assessment
 
 export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/'
@@ -797,7 +799,13 @@ export const GET_PRESCRIPTION_DETAILS = 'administer/details'
 
 export const GET_PRESCRIPTION_DETAILS_DATES = 'administer/stats'
 
+export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'
+
 //Hospital rooms
+
+export const GET_FREQUENCY = 'medical/frequency'
+
+//Hospital masters
 
 export const GET_HOSPITAL_ROOMS = `v1/hospital/room/list`
 

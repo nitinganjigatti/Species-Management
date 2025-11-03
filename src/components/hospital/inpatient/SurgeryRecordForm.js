@@ -106,7 +106,6 @@ const SurgeryRecordForm = ({
   errors,
   templates,
   activeTemplate,
-  setActiveTemplate,
   setOpenSurgeryTemplateDrawer,
   setOpenAddAnaesthesiaDrawer,
   richNote,
@@ -120,7 +119,8 @@ const SurgeryRecordForm = ({
   procedureIsOptionEqualToValue = (option, value) => option?.value === value?.value,
   onSaveTemplate = async () => false,
   isSavingTemplate = false,
-  clearFieldErrors
+  clearFieldErrors,
+  onTemplateSelect = () => {}
 }) => {
   const theme = useTheme()
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
@@ -333,38 +333,44 @@ const SurgeryRecordForm = ({
               }}
             >
               <Box sx={{ display: 'inline-flex', gap: '10px', pr: 1 }}>
-                {templates.map(template => (
-                  <Box
-                    key={template}
-                    onClick={() => setActiveTemplate(template)}
-                    sx={{
-                      flexShrink: 0,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      px: '16px',
-                      height: '48px',
-                      borderRadius: '8px',
-                      backgroundColor:
-                        activeTemplate === template
-                          ? theme.palette.secondary.dark
-                          : theme.palette.customColors.mdAntzNeutral,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Typography
+                {templates.map(template => {
+                  const templateLabel = typeof template === 'string' ? template : String(template || '')
+                  if (!templateLabel) {
+                    return null
+                  }
+                  return (
+                    <Box
+                      key={templateLabel}
+                      onClick={() => onTemplateSelect(templateLabel)}
                       sx={{
-                        color:
-                          activeTemplate === template
-                            ? theme.palette.primary.contrastText
-                            : theme.palette.customColors.neutralPrimary,
-                        whiteSpace: 'nowrap'
+                        flexShrink: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        px: '16px',
+                        height: '48px',
+                        borderRadius: '8px',
+                        backgroundColor:
+                          activeTemplate === templateLabel
+                            ? theme.palette.secondary.dark
+                            : theme.palette.customColors.mdAntzNeutral,
+                        cursor: 'pointer'
                       }}
                     >
-                      {template}
-                    </Typography>
-                  </Box>
-                ))}
+                      <Typography
+                        sx={{
+                          color:
+                            activeTemplate === templateLabel
+                              ? theme.palette.primary.contrastText
+                              : theme.palette.customColors.neutralPrimary,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {templateLabel}
+                      </Typography>
+                    </Box>
+                  )
+                })}
               </Box>
             </Box>
           </Box>

@@ -11,6 +11,7 @@ const SurgeryTemplateCard = ({ template, selectedTemplate, onSelect, onEdit, onD
       key={template.id}
       sx={{
         display: 'flex',
+        justifyContent: 'space-between',
         gap: '12px',
         border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
         backgroundColor:
