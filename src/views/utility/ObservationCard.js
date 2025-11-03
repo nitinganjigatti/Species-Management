@@ -31,25 +31,29 @@ const ObservationCard = ({ title, description, dateTime, containerStyle }) => {
 
       <Tooltip title={description} arrow>
         <Box sx={{ maxWidth: 300, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {`${description}`.split(',').map((item, index) => (
-            <Typography
-              key={index}
-              sx={{
-                fontSize: '14px',
-                fontFamily: 'Inter',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 1,
-                WebkitBoxOrient: 'vertical',
-                whiteSpace: 'normal',
-                mb: 0.5
-              }}
-            >
-              • {item.trim()}
-            </Typography>
-          ))}
+          {`${description}`
+            .split(',')
+            .join(' • ')
+            .split(' ')
+            .map((item, index) => (
+              <Typography
+                key={index}
+                sx={{
+                  fontSize: '14px',
+                  fontFamily: 'Inter',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  whiteSpace: 'normal',
+                  mb: 0.5
+                }}
+              >
+                {item.trim()}
+              </Typography>
+            ))}
         </Box>
       </Tooltip>
       {dateTime && (
