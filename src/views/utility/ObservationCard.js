@@ -1,7 +1,6 @@
 import React from 'react'
 import { Box, Typography, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
-import moment from 'moment'
 import Utility from 'src/utility'
 
 const ObservationCard = ({ title, description, dateTime, containerStyle }) => {
@@ -10,10 +9,7 @@ const ObservationCard = ({ title, description, dateTime, containerStyle }) => {
   const formatDateTime = dateTime => {
     const formattedDateStr = Utility.convertUTCToLocalDateTime(dateTime)
 
-    // Split into date and time
-    const [date, time] = formattedDateStr.split(/(?<=^.{11})\s/) // Split after the first 11 chars (date part)
-
-    // Convert to IST using Intl.DateTimeFormat
+    const [date = '', time = ''] = formattedDateStr.split('|').map(part => part.trim())
 
     return { date, time }
   }

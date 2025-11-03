@@ -762,7 +762,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    {registerStats?.section_name ? 'Section' : 'Total Sections Count'}:{' '}
+                    {registerStats?.section_name ? 'Section' : 'Total Section Count'}:{' '}
                     <span style={{ fontWeight: 500 }}>
                       {registerStats?.section_name || registerStats?.total_sections || '-'}
                     </span>
@@ -806,7 +806,7 @@ const EnclosureCountRegister = () => {
                         fontFamily: 'Inter'
                       }}
                     >
-                      Total Enclosures Count:{' '}
+                      Total Enclosure Count:{' '}
                       <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
                     </Typography>
                   )}
