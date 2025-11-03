@@ -718,8 +718,8 @@ const RequestList = () => {
               <Grid
                 size={{
                   xs: 12,
-                  sm: 2,
-                  md: 2
+                  sm: 2.5,
+                  md: 2.5
                 }}
                 sx={{
                   ...(selectedPharmacy.type === 'local' && {
