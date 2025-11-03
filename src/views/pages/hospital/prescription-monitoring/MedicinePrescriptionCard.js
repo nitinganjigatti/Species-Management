@@ -19,6 +19,7 @@ import {
 import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
+import MedicationTimeCard from './MedicationTimeCard'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -124,6 +125,8 @@ const MedicinePrescriptionCard = ({
   onAddNewDosage,
   onRefreshEntry,
   handleDateChange,
+  isDetailLoading,
+  isDatesLoading,
   selectedDate
 }) => {
   const theme = useTheme()
@@ -151,57 +154,6 @@ const MedicinePrescriptionCard = ({
     ...medicineData
   }
 
-  const defaultDosageEntries = [
-    {
-      id: 1,
-      time: '07:00 AM',
-      status: 'Administered',
-      variant: 'administered',
-      dosage: '10 mg/kg',
-      amount: '310 mg',
-      wastage: 'Wastage - 200 mg',
-      wastageNote: 'Lorem impsum doal sit amet sit lip alu lorem ipsum dolar',
-      batchNumber: 'BTC2345',
-      administeredBy: 'Jordan Stevenson',
-      administeredAt: '02 Jan 2025 • 12 : 35 PM',
-
-      icon: 'mdi:check-circle'
-    },
-    {
-      id: 2,
-      time: '11:00 AM',
-      status: 'Skipped',
-      variant: 'skipped',
-      dosage: '10 mg/kg',
-      amount: '310 mg',
-      administeredBy: 'Jordan Stevenson',
-      administeredAt: '02 Jan 2025 • 12 : 35 PM',
-      icon: 'jam:stop-sign'
-    },
-    {
-      id: 3,
-      time: '04:00 PM',
-      status: 'Stoppedddd',
-      variant: 'stopped',
-      dosage: '10 mg/kg',
-      amount: '310 mg',
-      administeredBy: 'Jordan Stevenson',
-      administeredAt: '02 Jan 2025 • 12 : 35 PM',
-
-      icon: 'jam:stop-sign',
-      isStrikethrough: true
-    }
-  ]
-
-  const defaultDateOptions = [
-    { label: '2025', value: 0, isYear: true },
-    { label: 'Sun 01 Jan', value: 1 },
-    { label: 'Mon 02 Jan', value: 2, hasStatus: true },
-    { label: 'Tue 03 Jan', value: 3 },
-    { label: 'Wed 04 Jan', value: 4 }
-  ]
-
-  const entries = dosageEntries?.length > 0 ? dosageEntries : defaultDosageEntries
   const tabs = dateOptions?.length > 0 ? dateOptions : []
 
   const handleTabChange = (event, newValue) => {
@@ -651,7 +603,15 @@ const MedicinePrescriptionCard = ({
           }}
         >
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {entries.map(renderDosageEntry)}
+            <MedicationTimeCard
+              key={1}
+              time={'07:00 AM'}
+              dosage={'10 mg/kg'}
+              amount={'310 mg'}
+              checked={false}
+              onChange={checked => console.log(1, checked)}
+            />
+            {dosageEntries?.map(item => renderDosageEntry(item))}
           </Box>
 
           {/* Action Buttons */}

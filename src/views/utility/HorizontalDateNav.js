@@ -14,7 +14,8 @@ const HorizontalDateNav = ({
   disabledDates = [],
   indicatorColor = '#ff5722',
   containerStyle = {},
-  dateButtonStyle = {}
+  dateButtonStyle = {},
+  isLoading = false
 }) => {
   const [internalSelectedDate, setInternalSelectedDate] = useState(selectedDate)
   const scrollAreaRef = useRef(null)
@@ -117,6 +118,20 @@ const HorizontalDateNav = ({
 
     return () => clearTimeout(timeoutId)
   }, [selectedDate, dateItems])
+
+  // Render shimmer UI when loading
+  if (isLoading) {
+    return (
+      <ScrollContainer style={containerStyle}>
+        <ShimmerYearLabel />
+        <DateScrollArea ref={scrollAreaRef}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <ShimmerDateButton key={index} />
+          ))}
+        </DateScrollArea>
+      </ScrollContainer>
+    )
+  }
 
   return (
     <ScrollContainer style={containerStyle}>
@@ -301,3 +316,57 @@ const DateButton = styled(Button, {
 
   return baseStyles
 })
+
+// Shimmer UI Components
+const ShimmerYearLabel = styled(Box)(({ theme }) => ({
+  fontSize: '20px',
+  fontWeight: 500,
+  backgroundColor: theme.palette.grey[300],
+  color: 'transparent',
+  height: '100%',
+  borderRadius: theme.spacing(0.75),
+  minWidth: '82px',
+  flexShrink: 0,
+  position: 'absolute',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  zIndex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  animation: 'shimmer 1.5s infinite linear',
+  background: `linear-gradient(90deg, ${theme.palette.grey[300]} 25%, ${theme.palette.grey[200]} 50%, ${theme.palette.grey[300]} 75%)`,
+  backgroundSize: '200% 100%'
+}))
+
+const ShimmerDateButton = styled(Box)(({ theme }) => ({
+  width: 120,
+  minWidth: 120,
+  height: '16px',
+  borderRadius: '4px',
+  marginLeft: '4px',
+  backgroundColor: theme.palette.grey[300],
+  animation: 'shimmer 1.5s infinite linear',
+  background: `linear-gradient(90deg, ${theme.palette.grey[300]} 25%, ${theme.palette.grey[200]} 50%, ${theme.palette.grey[300]} 75%)`,
+  backgroundSize: '200% 100%',
+  flexShrink: 0
+}))
+
+// Add shimmer animation keyframes
+const styles = `
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+`
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style')
+  styleSheet.innerText = styles
+  document.head.appendChild(styleSheet)
+}

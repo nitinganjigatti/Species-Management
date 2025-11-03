@@ -1,6 +1,8 @@
 import {
   ADD_DIRECT_ADMINISTER_PRESCRIPTION,
   ADD_PRESCRIPTION,
+  GET_BATCH_LIST,
+  GET_FREQUENCY,
   GET_PRESCRIPTION_DETAILS,
   GET_PRESCRIPTION_DETAILS_DATES,
   GET_PRESCRIPTION_LIST
@@ -57,5 +59,29 @@ export async function getDates(params) {
     return response?.data
   } catch (error) {
     console.error('Error fetching clinical notes:', error.message)
+  }
+}
+
+export async function getFrequency(params) {
+  try {
+    const url = `${GET_FREQUENCY}`
+
+    const response = await axiosGet({ url, params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching medical master data:', error.message)
+  }
+}
+
+export async function getMedicineBatches(params) {
+  try {
+    const url = `${GET_BATCH_LIST}`
+
+    const response = await axiosGet({ url, params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching medical master data:', error.message)
   }
 }

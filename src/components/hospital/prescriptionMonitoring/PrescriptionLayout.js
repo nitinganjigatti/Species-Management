@@ -1,7 +1,7 @@
 import { Grid, Box } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import PrescriptionMonitoringGrid from './PrescriptionMonitoringGrid'
-import { MedicineScheduleView } from 'src/views/pages/hospital/prescription-monitoring'
+import { AdministerMedicineModal, MedicineScheduleView } from 'src/views/pages/hospital/prescription-monitoring'
 import { Button } from '@mui/material'
 import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-monitoring/MedicinePrescriptionCard'
 import { Router, useRouter } from 'next/router'
@@ -9,6 +9,14 @@ import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
 import { getDates, getPrescriptionDetails, getPrescriptions } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
+import ScheduleDosage from 'src/views/pages/hospital/prescription-monitoring/ScheduleDosage'
+
+const dummyMedicationData = {
+  name: 'Levothyroxine',
+  date: new Date('2025-01-02'),
+  time: new Date('2025-01-02T12:00:00'),
+  quantity: '310 mg'
+}
 
 function PrescriptionLayout({ drawerType }) {
   // const { drawerType } = drawerType
@@ -28,12 +36,16 @@ function PrescriptionLayout({ drawerType }) {
 
   const [openSchedule, setOpenSchedule] = useState(false)
   const [prescriptionCardOpen, setPrescriptionCardOpen] = useState(false)
-  const [medicationData, setMedicationData] = useState(null)
+  const [medicationData, setMedicationData] = useState([])
   const [dates, setDates] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
   const [medicineDetails, setMedicineDetails] = useState(null)
   const [detailDates, setDetailDates] = useState(null)
   const [detailSelectedDate, setDetailSelectedDate] = useState(null)
+  const [isDetailLoading, setIsDetailLoading] = useState(false)
+  const [isDatesLoading, setIsDatesLoading] = useState(false)
+  const [isAdministerFormOpen, setIsAdministerFormOpen] = useState(true)
+  const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
 
   const router = useRouter()
   const { selectedHospital: hospital } = useHospital()
@@ -74,6 +86,7 @@ function PrescriptionLayout({ drawerType }) {
 
   const getPrescriptionList = async () => {
     try {
+      setIsPrescriptionListLoading(true)
       const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
 
       const payload = {
@@ -91,17 +104,23 @@ function PrescriptionLayout({ drawerType }) {
         setDates(response?.data?.schedulded_date)
         const dates = response?.data?.schedulded_date
         if (dates?.length > 0) setSelectedDate(dates[dates?.length - 1])
-        setMedicationData(response?.data?.prescriptions)
+
+        const prescriptions = response?.data?.prescriptions
+        setMedicationData(prescriptions)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
       Toaster({ type: 'error', message: error || 'Something went wrong' })
+    } finally {
+      setIsPrescriptionListLoading(false)
     }
   }
 
   const getDetails = async (data, date) => {
     try {
+      setIsDetailLoading(true)
+
       const payload = {
         prescription_id: data?.prescription_id || '30176', // TODO: Upgrade after listing integration
         date: date || '2025-10-07',
@@ -111,17 +130,53 @@ function PrescriptionLayout({ drawerType }) {
       const response = await getPrescriptionDetails(payload)
 
       if (response?.success) {
-        setMedicineDetails(response?.data)
+        const data = {
+          ...response?.data,
+          medicine_timings:
+            response?.data?.medicine_timings?.map(item => ({
+              ...item,
+              id: item?.administritive_id,
+              time: item?.administritive_time || item?.scheduled_time,
+
+              status: item?.status,
+
+              // status: 'Administered',
+
+              variant: item?.status?.toLowerCase(),
+
+              // variant: 'administered',
+              dosage: `${item?.scheduled_unit_id} ${item?.scheduled_unit_name}`,
+              amount: item?.scheduled_quantity,
+              wastage: item?.wastage_quantity,
+              wastageNote: item?.wastage_note,
+              batchNumber: item?.batch_details[0]?.batch_number,
+              administeredBy: item?.user_full_name,
+              administeredAt: item?.administritive_time,
+              icon:
+                item?.status === 'Administered'
+                  ? 'mdi:check-circle'
+                  : item?.status === 'Skipped'
+                  ? 'jam:stop-sign'
+                  : item?.status === 'Stopped'
+                  ? 'jam:stop-sign'
+                  : 'mdi:clock-outline'
+            })) || []
+        }
+        setMedicineDetails(data)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
       Toaster({ type: 'error', message: error || 'Something went wrong' })
+    } finally {
+      setIsDetailLoading(false)
     }
   }
 
   const getPrescriptionDates = async data => {
     try {
+      setIsDatesLoading(true)
+
       const payload = {
         from_date: data?.from_date || '2025-10-01', // TODO: Upgrade after listing integration
         to_date: data?.to_date || '2025-10-31',
@@ -136,268 +191,36 @@ function PrescriptionLayout({ drawerType }) {
         const mappedDates = response?.data?.map(item => item?.date)
         setDetailDates(mappedDates)
         const lastDate = (response?.data?.length > 0 && response?.data[response?.data?.length - 1]?.date) || ''
+        setDetailSelectedDate(lastDate)
         getDetails(data, lastDate)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
       Toaster({ type: 'error', message: error || 'Something went wrong' })
+    } finally {
+      setIsDatesLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (detailDates?.length) {
+      getDetails(medicineDetails, detailSelectedDate)
+    }
+  }, [detailSelectedDate])
 
   useEffect(() => {
     if (hospital?.id) getPrescriptionList()
   }, [hospital?.id])
 
-  const medication = [
-    {
-      id: 'Levothyroxine',
-      name: 'Levothyroxine',
-      frequency: '1 times',
-      progress: '1/1',
-      status: 'completed',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '12 AM',
-          dosage: '50 mcg',
-          status: 'administered',
-          administered_time: '12 AM',
-          compliance_note: 'Taken correctly on empty stomach'
-        },
-        {
-          schedule_id: 2,
-          time: '1 PM',
-          dosage: '310 mg',
-          status: 'pending',
-          administered_time: '1 PM',
-          compliance_note: 'Taken correctly on empty stomach'
-        },
-        {
-          schedule_id: 3,
-          time: '5 PM',
-          dosage: '310 mg',
-          status: 'administered',
-          administered_time: '5 PM',
-          compliance_note: 'Taken correctly on empty stomach'
-        },
-        {
-          schedule_id: 4,
-          time: '5 PM',
-          dosage: '310 mg',
-          status: 'pending',
-          administered_time: '5 PM',
-          compliance_note: 'Taken correctly on empty stomach'
-        }
-      ]
-    },
+  const handleAdministerSubmit = formData => {
+    console.log('Administer Medicine Form Submitted:', formData)
 
-    {
-      id: 'crt',
-      name: 'CRT',
-      frequency: '1 time',
-      progress: '1/1',
-      status: 'administered',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '3 AM',
-          dosage: '50 mcg',
-          status: 'administered',
-          administered_time: '3 AM',
-          compliance_note: 'Medication discontinued by doctor'
-        },
-        {
-          schedule_id: 1,
-          time: '2 AM',
-          dosage: '50 mcg',
-          status: 'administered',
-          administered_time: '2 AM',
-          compliance_note: 'Medication discontinued by doctor'
-        },
-        {
-          schedule_id: 1,
-          time: '1 AM',
-          dosage: '50 mcg',
-          status: 'administered',
-          administered_time: '1 AM',
-          compliance_note: 'Medication discontinued by doctor'
-        }
-      ]
-    },
-    {
-      id: 'urination',
-      name: 'Urination',
-      frequency: '1 time',
-      progress: '1/1',
-      status: 'skipped',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '12 AM',
-          dosage: '50 mcg',
-          status: 'skipped',
-          administered_time: '',
-          compliance_note: 'Patient forgot to take'
-        }
-      ]
-    },
-    {
-      id: 'defecation',
-      name: 'Defecation',
-      frequency: '1 time',
-      progress: '1/1',
-      status: 'stopped',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '7:00 AM',
-          dosage: '50 mcg',
-          status: 'stopped',
-          administered_time: '',
-          compliance_note: 'Treatment stopped due to side effects'
-        }
-      ]
-    },
-    {
-      id: 'appetite',
-      name: 'Appetite',
-      frequency: '1 time',
-      progress: '1/1',
-      status: 'skipped',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '7:00 AM',
-          dosage: '50 mcg',
-          status: 'skipped',
-          administered_time: '',
-          compliance_note: 'Missed dose - patient was sleeping'
-        }
-      ]
-    },
-    {
-      id: 'defecation2',
-      name: 'Defecation',
-      frequency: '1 time',
-      progress: '1/1',
-      status: 'completed',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '7:00 AM',
-          dosage: '50 mcg',
-          status: 'administered',
-          administered_time: '7:00 AM',
-          compliance_note: 'Taken correctly on empty stomach'
-        }
-      ]
-    },
-    {
-      id: 'appetite2',
-      name: 'Appetite',
-      frequency: '1 time',
-      progress: '1/1',
-      status: 'completed',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '7:00 AM',
-          dosage: '50 mcg',
-          status: 'administered',
-          administered_time: '7:00 AM',
-          compliance_note: 'Taken correctly on empty stomach'
-        }
-      ]
-    },
-    {
-      id: 'paracetamol',
-      name: 'Paracetamol',
-      frequency: '3 times',
-      progress: '2/3',
-      status: 'in-progress',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '8:00 AM',
-          dosage: '500 mg',
-          status: 'administered',
-          administered_time: '8:05 AM',
-          compliance_note: 'Taken with water'
-        },
-        {
-          schedule_id: 2,
-          time: '2:00 PM',
-          dosage: '500 mg',
-          status: 'skipped',
-          administered_time: '',
-          compliance_note: 'Patient was in meeting'
-        },
-        {
-          schedule_id: 3,
-          time: '8:00 PM',
-          dosage: '500 mg',
-          status: 'administered',
-          administered_time: '8:15 PM',
-          compliance_note: 'Taken with dinner'
-        }
-      ]
-    },
-    {
-      id: 'amoxicillin',
-      name: 'Amoxicillin',
-      frequency: '2 times',
-      progress: '1/2',
-      status: 'in-progress',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '9:00 AM',
-          dosage: '250 mg',
-          status: 'administered',
-          administered_time: '9:10 AM',
-          compliance_note: 'Taken after food'
-        },
-        {
-          schedule_id: 2,
-          time: '9:00 PM',
-          dosage: '280 mg',
-          status: 'stopped',
-          administered_time: '',
-          compliance_note: 'Stopped due to allergic reaction'
-        }
-      ]
-    },
-    {
-      id: 'vitamind',
-      name: 'Vitamin D',
-      frequency: '1 time',
-      progress: '0/1',
-      status: 'pending',
-      canEdit: true,
-      schedule: [
-        {
-          schedule_id: 1,
-          time: '6:00 AM',
-          dosage: '1000 IU',
-          status: 'skipped',
-          administered_time: '',
-          compliance_note: 'Patient forgot to take with milk'
-        }
-      ]
-    }
-  ]
+    // Add your logic here
+  }
 
   const handleDetailDateChange = date => {
+    console.log('Detail date changed to:', date)
     setDetailSelectedDate(date)
   }
 
@@ -408,9 +231,9 @@ function PrescriptionLayout({ drawerType }) {
         <Grid xs={12}>
           <PrescriptionMonitoringGrid
             onOpenPrescriptionCard={handleOpenPrescriptionCard}
-
-            // medications={medicationData}
-            medications={medication}
+            medications={medicationData}
+            isLoading={isPrescriptionListLoading}
+            // medications={medication}
             dates={dates}
             selectedDate={selectedDate}
             handleDateChange={handleDateChange}
@@ -436,11 +259,32 @@ function PrescriptionLayout({ drawerType }) {
         onStopMedicine={() => setOpenSchedule(false)}
         onAddDosage={() => {}}
       />
+
+      {/* <MedicationAdministerForm
+        open={isAdministerFormOpen}
+        onClose={() => setIsAdministerFormOpen(false)}
+        medicationData={dummyMedicationData}
+      /> */}
       {/* Medicine Prescription Card Drawer */}
+
+      {/* <AdministerMedicineModal
+              isSidebarOpen={isAdministerFormOpen}
+              handleSidebarClose={() => setIsAdministerFormOpen(false)}
+              scheduleDosage={dummyMedicationData}
+              onSubmit={handleAdministerSubmit}
+            /> */}
+      {/* <ScheduleDosage
+              isOpen={isAdministerFormOpen}
+              handleSidebarClose={() => setIsAdministerFormOpen(false)}
+              scheduleDosage={dummyMedicationData}
+              onSubmit={handleAdministerSubmit}
+            /> */}
 
       <MedicinePrescriptionCard
         open={prescriptionCardOpen}
         onClose={handleClosePrescriptionCard}
+        isDetailLoading={isDetailLoading}
+        isDatesLoading={isDatesLoading}
         medicineData={{
           name: medicineDetails?.medicine_name || '-',
           medId: medicineDetails?.medical_record_code || '-',
@@ -459,45 +303,7 @@ function PrescriptionLayout({ drawerType }) {
               : '-',
           defaultTab: 2
         }}
-        dosageEntries={[
-          {
-            id: 1,
-            time: '07:00 AM',
-            status: 'Administered',
-            variant: 'administered',
-            dosage: '10 mg/kg',
-            amount: '310 mg',
-            wastage: 'Wastage - 200 mg',
-            wastageNote: 'Lorem impsum doal sit amet sit lip alu lorem ipsum dolar',
-            batchNumber: 'BTC2345',
-            administeredBy: 'Jordan Stevenson',
-            administeredAt: '02 Jan 2025 • 12 : 35 PM',
-            icon: 'mdi:check-circle'
-          },
-          {
-            id: 2,
-            time: '11:00 AM',
-            status: 'Skipped',
-            variant: 'skipped',
-            dosage: '10 mg/kg',
-            amount: '310 mg',
-            administeredBy: 'Jordan Stevenson',
-            administeredAt: '02 Jan 2025 • 12 : 35 PM',
-            icon: 'jam:stop-sign'
-          },
-          {
-            id: 3,
-            time: '04:00 PM',
-            status: 'Stopped',
-            variant: 'stopped',
-            dosage: '10 mg/kg',
-            amount: '310 mg',
-            administeredBy: 'Jordan Stevenson',
-            administeredAt: '02 Jan 2025 • 12 : 35 PM',
-            icon: 'jam:stop-sign',
-            isStrikethrough: true
-          }
-        ]}
+        dosageEntries={medicineDetails?.medicine_timings || []}
         dateOptions={detailDates}
         onStopMedicine={handleStopMedicine}
         onAddNewDosage={handleAddNewDosage}

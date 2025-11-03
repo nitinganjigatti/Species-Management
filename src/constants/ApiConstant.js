@@ -799,7 +799,13 @@ export const GET_PRESCRIPTION_DETAILS = 'administer/details'
 
 export const GET_PRESCRIPTION_DETAILS_DATES = 'administer/stats'
 
+export const GET_BATCH_LIST = 'vaccination/get-batch-list-by-medicine'
+
 //Hospital rooms
+
+export const GET_FREQUENCY = 'medical/frequency'
+
+//Hospital masters
 
 export const GET_HOSPITAL_ROOMS = `v1/hospital/room/list`
 
