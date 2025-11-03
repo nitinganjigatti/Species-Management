@@ -1,121 +1,176 @@
-import React from 'react'
-
-// ** MUI Imports
-import { Box, Button, Divider, Grid, Typography, useTheme, IconButton } from '@mui/material'
+import React, { useEffect } from 'react'
+import { Box, Button, Divider, Grid, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
 
 // ** Custom Form Components
+import Icon from 'src/@core/components/icon'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
-
-// ** Custom Core Components
-import Icon from 'src/@core/components/icon'
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { SaveTemplateButton } from 'src/views/utility/render-snippets'
 import RichTextEditor from 'src/components/RichTextEditor'
 
-// ** Utility Components
-import { SaveTemplateButton } from 'src/views/utility/render-snippets'
-
-// ** Table Component
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-
-// ** React Hook Form
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
+import { useRouter } from 'next/router'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+
+const transferHospitalSchema = yup.object({
+  discharge_type: yup.string().oneOf(['TransferHospital']).required('Discharge type is required'),
+
+  // transfer_hospital_id: yup
+  //   .object({
+  //     value: yup.string().required(),
+  //     label: yup.string().required()
+  //   })
+  //   .required('Hospital is required'),
+  transfer_hospital_id: yup.object().required('Hospital is required'),
+  reason_for_transfer: yup.string().trim().required('Reason for transferring is required'),
+  discharge_date: yup.date().nullable().required('Date of discharge is required'),
+
+  // .min(new Date(), 'Discharge date cannot be in the past'),
+  discharge_time: yup.date().nullable().required('Time of discharge is required'),
+
+  // reason: yup.string().required('Transfer Hospital summary is required'),
+  care_diet_instruction: yup.string().trim().required('Care Diet Instructions is required'),
+  care_restriction: yup.string().trim().required('Care Restriction activities is required'),
+  care_notes: yup.string().trim().required('Care notes is required'),
+  attachments: yup.array().min(1, 'At least one attachment is required').required('Attachments are required')
+})
+
+const defaultValues = {
+  discharge_type: 'TransferHospital',
+  transfer_hospital_id: null,
+  reason_for_transfer: '',
+  discharge_date: null,
+  discharge_time: null,
+  reason: '',
+  care_diet_instruction: '',
+  care_restriction: '',
+  care_notes: '',
+  attachments: []
+}
 
 const TransferDischargeForm = props => {
   const {
-    control,
-    errors,
-    onSubmit,
-    watch,
-    templates,
-    activeTemplate,
-    setActiveTemplate,
+    hospitalList,
     content,
     setContent,
+    handleSubmitData,
     loading,
-    hospitals,
     medicationsData,
+    prescriptionsColumns,
     medicationColumns,
-    setValue
+    watchDischargeType,
+    resetForm,
+    submitLoader,
+    handleHospitalSearch,
+    fetchLoading,
+    activeTemplate,
+    setActiveTemplate,
+    templates
   } = props
 
   const theme = useTheme()
-  const images = watch('images') || []
-  const fileInputRef = React.useRef()
+  const router = useRouter()
+  const { animal_id, id } = router.query
 
-  // Remove image from preview
-  const handleRemoveImage = index => {
-    const updatedImages = images.filter((_, i) => i !== index)
-    setValue('images', updatedImages, { shouldValidate: true })
-  }
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    clearErrors,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(transferHospitalSchema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
 
-  // Handle file selection
-  const handleFilesChange = files => {
-    if (!files || files.length === 0) return
+  // Handle form submission
+  const onSubmit = async formData => {
+    console.log('payload', formData)
 
-    const validFiles = Array.from(files).filter(file => {
-      if (!file.type.startsWith('image/')) {
-        alert('Please select only image files')
+    const payload = {
+      hospital_case_id: id,
+      animal_id: animal_id,
+      discharge_type: watchDischargeType,
+      transfer_hospital_id: formData.transfer_hospital_id.value,
+      discharge_date: formData.discharge_date,
+      discharge_time: formData.discharge_time,
+      reason: formData.reason,
+      reason_for_transfer: formData.reason_for_transfer,
+      care_diet_instruction: formData.care_diet_instruction,
+      care_restriction: formData.care_restriction,
+      care_notes: formData.care_notes,
+      attachments: formData.attachments || [],
+      request_from: 'web'
+    }
 
-        return false
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size should be less than 5MB')
-
-        return false
-      }
-
-      return true
-    })
-    const newImages = validFiles.map(file => URL.createObjectURL(file))
-    if (newImages.length > 0) {
-      setValue('images', [...images, ...newImages], { shouldValidate: true })
+    try {
+      await handleSubmitData(payload)
+    } catch (error) {
+      console.error('Error submitting form:', error)
     }
   }
 
+  // Reset form when resetForm prop changes
+  useEffect(() => {
+    if (resetForm) {
+      reset(defaultValues)
+    }
+  }, [resetForm, reset])
+
   return (
-    <form noValidate autoComplete='off' onSubmit={onSubmit}>
+    <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 6 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 8, mb: 4 }}>
           <Grid container spacing={6}>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <ControlledSelect
+              <ControlledAutocomplete
                 control={control}
-                name='hospital'
+                name='transfer_hospital_id'
                 errors={errors}
                 label='Select Hospital'
-                options={hospitals}
-                getOptionLabel={option => option.label}
-                getOptionValue={option => option.value}
+                options={hospitalList}
+                getOptionLabel={option => option?.label || ''}
+                getOptionValue={option => option?.value || ''}
+                isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                onInputChange={value => handleHospitalSearch(value)}
+                onItemClear={() => handleHospitalSearch('')}
+                loading={fetchLoading}
+                required
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <ControlledTextField
+              <ControlledDatePicker control={control} name={'discharge_date'} label='Date' errors={errors} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <ControlledTimePicker control={control} name={'discharge_time'} label='Time' errors={errors} />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <ControlledTextArea
                 control={control}
                 errors={errors}
                 label='Reason for Transferring'
-                name='transferReason'
+                name='reason_for_transfer'
                 placeholder='Enter Reason'
                 fullWidth
+                rows={2}
               />
             </Grid>
           </Grid>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column' }} gap={4}>
-            <StyledTypography>Discharge Date & Time</StyledTypography>
-            <Grid container spacing={6}>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledDatePicker control={control} name={'dischargeDate'} label='Date' errors={errors} />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTimePicker control={control} name={'dischargeTime'} label='Time' errors={errors} />
-              </Grid>
-            </Grid>
-          </Box>
         </Box>
 
         {/* Summary Section */}
@@ -132,7 +187,25 @@ const TransferDischargeForm = props => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <StyledTypography>Enter summary</StyledTypography>
-              <RichTextEditor value={content} onChange={setContent} placeholder='Write something amazing...' />
+              {/* <RichTextEditor
+                name={'reason'}
+                value={content}
+                onChange={setContent}
+                placeholder='Write something amazing...'
+              /> */}
+              <Controller
+                name='reason'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <RichTextEditor
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder='Write something amazing...'
+                    errors={!!fieldState.error}
+                    helperText={fieldState.error?.message}
+                  />
+                )}
+              />
             </Box>
             <SaveTemplateButton sx={{ pl: 1 }} />
           </Box>
@@ -148,7 +221,6 @@ const TransferDischargeForm = props => {
               </Box>
             </Box>
 
-            {/* Template */}
             <Box
               sx={{
                 flex: '1 1 auto',
@@ -159,7 +231,7 @@ const TransferDischargeForm = props => {
               }}
             >
               <Box sx={{ display: 'inline-flex', gap: 3, pr: 1 }}>
-                {templates.map(template => (
+                {templates?.map(template => (
                   <Box
                     key={template}
                     onClick={() => setActiveTemplate(template)}
@@ -199,6 +271,65 @@ const TransferDischargeForm = props => {
         </Box>
 
         <Divider />
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: {
+                xs: 'flex-start',
+                md: 'center'
+              },
+              flexDirection: {
+                xs: 'column',
+                sm: 'row'
+              },
+              justifyContent: {
+                xs: 'flex-start',
+                sm: 'space-between'
+              },
+              gap: {
+                xs: 3,
+                md: 0
+              }
+            }}
+          >
+            <Box>
+              <StyledTypography fontSize='1.25rem'>Active Prescriptions - 2</StyledTypography>
+              <StyledTypography fontSize='0.875rem'>
+                You can stop the below prescriptions if its not needed after discharge
+              </StyledTypography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 4 }}>
+              <Button
+                variant='outlined'
+                sx={{
+                  color: theme.palette.customColors.OnPrimaryContainer,
+                  fontSize: '0.875rem',
+                  py: 2,
+                  border: `1px solid ${theme.palette.customColors.OnPrimaryContainer}`
+                }}
+              >
+                Stop All
+              </Button>
+            </Box>
+          </Box>
+          {console.log('medicationsDatamedicationsData', medicationsData)}
+          <CommonTable
+            columns={prescriptionsColumns}
+            loading={loading}
+            indexedRows={medicationsData}
+            rowHeight={64}
+            total={medicationsData?.length || 0}
+            externalTableStyle={{
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: theme.palette.customColors.neutral05,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }
+            }}
+          />
+        </Box>
 
         {/* Medications */}
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -226,9 +357,9 @@ const TransferDischargeForm = props => {
             <StyledTypography fontSize='1.25rem'>Medications</StyledTypography>
             <Box sx={{ display: 'flex', gap: 4 }}>
               <Button variant='contained'>Add New Prescription</Button>
-              <Button variant='outlined' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+              {/* <Button variant='outlined' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                 Continue Prescriptions
-              </Button>
+              </Button> */}
             </Box>
           </Box>
           <CommonTable
@@ -236,6 +367,7 @@ const TransferDischargeForm = props => {
             loading={loading}
             indexedRows={medicationsData}
             rowHeight={64}
+            total={medicationsData?.length || 0}
             externalTableStyle={{
               '& .MuiDataGrid-columnHeaders': {
                 backgroundColor: theme.palette.customColors.neutral05,
@@ -255,23 +387,23 @@ const TransferDischargeForm = props => {
 
           <ControlledTextField
             control={control}
-            name={'dietInstructions'}
+            name={'care_diet_instruction'}
             errors={errors}
             placeholder={'Enter text'}
             label='Enter diet instructions'
           />
           <ControlledTextField
             control={control}
-            name={'restrictions'}
+            name={'care_restriction'}
             errors={errors}
             placeholder={'Enter text'}
             label='Enter restriction activities with duration'
           />
           <ControlledTextField
-            sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6) }}
+            inputBackgroundColor={alpha(theme.palette.customColors.antzNotes, 0.6)}
             placeholder={'Enter text'}
             control={control}
-            name={'additionalNotes'}
+            name={'care_notes'}
             errors={errors}
             label=' Additional notes'
           />
@@ -282,126 +414,7 @@ const TransferDischargeForm = props => {
         {/* Attachments */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <StyledTypography>Attachments</StyledTypography>
-          {/* <ControlledFileUpload name='attachment' control={control} errors={errors} label='Upload attachment' /> */}
-          {images.length > 0 && (
-            <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              {images.map((img, index) => {
-                const previewUrl = typeof img === 'string' ? img : URL.createObjectURL(img)
-
-                return (
-                  <Box
-                    key={index}
-                    sx={{
-                      position: 'relative',
-                      width: 100,
-                      height: 100,
-                      borderRadius: 1,
-                      backgroundColor: '#eaf6f6',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <img
-                      src={previewUrl}
-                      alt={`img-${index}`}
-                      style={{
-                        width: 80,
-                        height: 80,
-                        objectFit: 'cover',
-                        borderRadius: '50%',
-                        display: 'block'
-                      }}
-                    />
-                    <IconButton
-                      size='small'
-                      sx={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 6,
-                        backgroundColor: '#979797',
-                        color: '#fff',
-                        width: 24,
-                        height: 24,
-                        zIndex: 1,
-                        '&:hover': {
-                          backgroundColor: '#757575'
-                        }
-                      }}
-                      onClick={e => {
-                        e.stopPropagation()
-                        handleRemoveImage(index)
-                      }}
-                    >
-                      <Icon icon='mdi:close' fontSize={18} />
-                    </IconButton>
-                  </Box>
-                )
-              })}
-            </Box>
-          )}
-
-          <Controller
-            name='images'
-            control={control}
-            render={({ fieldState: { error } }) => (
-              <Box>
-                <Box
-                  sx={{
-                    border: `2px dashed ${error ? theme.palette.error.main : '#E0E0E0'}`,
-                    borderRadius: 1,
-                    p: 4,
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 2,
-                    '&:hover': {
-                      backgroundColor: '#F5F5F5',
-                      borderColor: error ? theme.palette.error.main : '#BDBDBD'
-                    }
-                  }}
-                  onClick={() => fileInputRef.current.click()}
-                  onDrop={e => {
-                    e.preventDefault()
-                    handleFilesChange(e.dataTransfer.files)
-                  }}
-                  onDragOver={e => e.preventDefault()}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: 0.6,
-                      gap: 2
-                    }}
-                  >
-                    <img src='/images/housing/gallery-add.svg' alt='Add Image Icon' width='30px' />
-                    <StyledTypography fontWeight={400} color={theme.palette.customColors.OnSurfaceVariant60}>
-                      Drop your images here
-                    </StyledTypography>
-                  </Box>
-
-                  <input
-                    type='file'
-                    accept='image/*'
-                    multiple
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    onChange={e => handleFilesChange(e.target.files)}
-                  />
-                </Box>
-                {error && (
-                  <Typography variant='caption' color='error' sx={{ mt: 1, display: 'block' }}>
-                    {error.message}
-                  </Typography>
-                )}
-              </Box>
-            )}
-          />
+          <ControlledMultiFileUpload name={'attachments'} control={control} errors={errors} label='Upload attachment' />
         </Box>
       </Box>
       <Box
@@ -422,13 +435,7 @@ const TransferDischargeForm = props => {
           zIndex: 1200
         }}
       >
-        <LoadingButton
-          variant='contained'
-          sx={{ backgroundColor: theme.palette.primary.main, px: 6.5, py: 2, borderRadius: 0.5, fontWeight: 400 }}
-          disabled={loading}
-          loading={loading}
-          type='submit'
-        >
+        <LoadingButton variant='contained' type='submit' loading={submitLoader} sx={{ px: 12, py: 3 }}>
           Discharge Animal
         </LoadingButton>
       </Box>
