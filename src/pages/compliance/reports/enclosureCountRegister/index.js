@@ -280,7 +280,20 @@ const EnclosureCountRegister = () => {
       headerName: 'ENCLOSURE NAME',
       sortable: false,
       renderCell: params => (
-        <Tooltip title={params.row.enclosureName} placement='top'>
+        <Tooltip
+          title={params.row.enclosureName}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             variant='body2'
             sx={{
@@ -311,7 +324,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.male} placement='top'>
+        <Tooltip
+          title={params.row.male}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -341,7 +367,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.female} placement='top'>
+        <Tooltip
+          title={params.row.female}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -371,7 +410,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.others} placement='top'>
+        <Tooltip
+          title={params.row.others}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -401,7 +453,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.total} placement='top'>
+        <Tooltip
+          title={params.row.total}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -442,7 +507,20 @@ const EnclosureCountRegister = () => {
       headerName: 'ENCLOSURE NAME',
       sortable: false,
       renderCell: params => (
-        <Tooltip title={params.row.enclosureName} placement='top'>
+        <Tooltip
+          title={params.row.enclosureName}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               fontSize: '16px',
@@ -471,7 +549,20 @@ const EnclosureCountRegister = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Tooltip title={params.row.gender || params.row.sex} placement='top'>
+        <Tooltip
+          title={params.row.gender || params.row.sex}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               fontSize: '16px',
