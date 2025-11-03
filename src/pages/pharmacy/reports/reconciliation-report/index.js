@@ -184,7 +184,6 @@ const ReconciliationReport = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -218,8 +217,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.opening_balance ? Utility.formatNumber(params.row.opening_balance) : 0}
@@ -247,8 +245,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.current_balance ? Utility.formatNumber(params.row.current_balance) : 0}
@@ -277,8 +274,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.purchase_qty_curr ? Utility.formatNumber(params.row.purchase_qty_curr) : 0}
@@ -307,8 +303,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.request_qty_curr ? Utility.formatNumber(params.row.request_qty_curr) : 0}
@@ -337,8 +332,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.dispatch_qty_curr ? Utility.formatNumber(params.row.dispatch_qty_curr) : 0}
@@ -367,8 +361,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.dispatch_dispute_qty_curr ? Utility.formatNumber(params.row.dispatch_dispute_qty_curr) : 0}
@@ -397,8 +390,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.return_qty_curr ? Utility.formatNumber(params.row.return_qty_curr) : 0}
@@ -427,8 +419,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.return_dispute_qty_curr ? Utility.formatNumber(params.row.return_dispute_qty_curr) : 0}
@@ -457,8 +448,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.dispatch_shipment_qty_curr ? Utility.formatNumber(params.row.dispatch_shipment_qty_curr) : 0}
@@ -487,8 +477,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.return_shipment_qty_curr ? Utility.formatNumber(params.row.return_shipment_qty_curr) : 0}
@@ -517,8 +506,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.escrow_qty_curr ? Utility.formatNumber(params.row.escrow_qty_curr) : 0}
@@ -547,8 +535,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.dispense_qty_curr ? Utility.formatNumber(params.row.dispense_qty_curr) : 0}
@@ -577,8 +564,7 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.adjustment_qty_curr ? Utility.formatNumber(params.row.adjustment_qty_curr) : 0}
@@ -607,43 +593,43 @@ const ReconciliationReport = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.discard_qty_curr ? Utility.formatNumber(params.row.discard_qty_curr) : 0}
         </Typography>
       )
-    },
-    {
-      minWidth: 20,
-      width: 190,
-      field: 'available_qty',
-      headerName: '',
-      sortable: false,
-      align: 'center',
-      headerAlign: 'center',
-      renderHeader: () => (
-        <Typography sx={{ ...columnHeaderStyle }}>
-          CURRENT STOCK
-          <br />
-          AVAILABLE
-        </Typography>
-      ),
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.available_qty ? Utility.formatNumber(params.row.available_qty) : 0}
-        </Typography>
-      )
     }
+
+    // {
+    //   minWidth: 20,
+    //   width: 190,
+    //   field: 'available_qty',
+    //   headerName: '',
+    //   sortable: false,
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   renderHeader: () => (
+    //     <Typography sx={{ ...columnHeaderStyle }}>
+    //       CURRENT STOCK
+    //       <br />
+    //       AVAILABLE
+    //     </Typography>
+    //   ),
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {params.row.available_qty ? Utility.formatNumber(params.row.available_qty) : 0}
+    //     </Typography>
+    //   )
+    // }
 
     // Current Balance
   ]

@@ -10,3 +10,11 @@ export const visitTypeOptions = [
   { value: 'follow_up', label: 'Follow-up' },
   { value: 'planned', label: 'Planned' }
 ]
+
+export const dateRangeOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Last 3 Days', value: '3' },
+  { label: '3–7 Days', value: '7' },
+  { label: '7–15 Days', value: '15' },
+  { label: '15+ Days', value: '16' }
+]
