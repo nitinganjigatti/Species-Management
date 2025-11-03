@@ -57,11 +57,12 @@ const SelectSites = ({
     }
   }, [openSiteListDrawer])
 
-  const filteredSites = useMemo(
-    () =>
-      siteData.filter(site => site.site_name?.toLowerCase().includes((searchTerm || '').toLowerCase())),
-    [siteData, searchTerm]
-  )
+  const filteredSites = useMemo(() => {
+    const normalizedSiteData = Array.isArray(siteData) ? siteData : []
+    const normalizedSearchTerm = (searchTerm || '').toLowerCase()
+
+    return normalizedSiteData.filter(site => site.site_name?.toLowerCase().includes(normalizedSearchTerm))
+  }, [siteData, searchTerm])
 
   const filteredSiteIds = useMemo(() => filteredSites.map(site => site.site_id), [filteredSites])
   const filteredSelectedCount = useMemo(
@@ -180,7 +181,7 @@ const SelectSites = ({
 
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
-            Selected {pendingSelections?.Site?.length} / {siteData?.length}
+            Selected {filteredSelectedCount} / {filteredSites.length}
           </Typography>
           <Box
             sx={{
