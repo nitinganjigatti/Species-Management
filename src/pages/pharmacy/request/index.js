@@ -718,8 +718,8 @@ const RequestList = () => {
               <Grid
                 size={{
                   xs: 12,
-                  sm: 2.7,
-                  md: 3
+                  sm: 2,
+                  md: 2
                 }}
                 sx={{
                   ...(selectedPharmacy.type === 'local' && {
@@ -742,13 +742,11 @@ const RequestList = () => {
               {/* Completed Switch */}
               {(status === 'all' || status === 'completed') && (
                 <Grid
-                  size={{ xs: 12, sm: 2.3, md: 2 }}
+                  size={{ xs: 12, sm: 2.5, md: 2 }}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-
                     justifyContent: { sm: 'flex-end', xs: 'flex-start', md: 'flex-end' },
-
                     mx: { xs: 4, sm: '0px' }
 
                     // marginLeft: 'auto'
