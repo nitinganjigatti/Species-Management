@@ -33,6 +33,9 @@ import Utility from 'src/utility'
 import RequestDetailsScreen from './RequestDetailsScreen'
 import RequestByProduct from 'src/pages/pharmacy/requests-by-product'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import { height } from '@mui/system'
+import { all } from 'axios'
 
 const AllStoresRequestList = () => {
   const theme = useTheme()
@@ -65,8 +68,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.neutralSecondary,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {parseInt(params.row.id) + '.'}
@@ -82,8 +84,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.store_name}
@@ -102,8 +103,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.Tertiary,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.pending_items}
@@ -122,8 +122,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.Error,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.emergency_items}
@@ -141,8 +140,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.available_product_count}
@@ -160,8 +158,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.not_available_product_count}
@@ -197,6 +194,7 @@ const AllStoresRequestList = () => {
   const [totalUniqueItems, setTotalUniqueItems] = useState(0)
   const [noMoreData, setNoMoreData] = useState(false)
   const [drawerSearchValue, setDrawerSearchValue] = useState('')
+  const [exportStoresListLoader, setExportStoresListLoader] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -239,6 +237,29 @@ const AllStoresRequestList = () => {
     },
     [paginationModel]
   )
+
+  const handleExport = async () => {
+    try {
+      setExportStoresListLoader(true)
+
+      const params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        page: 1,
+        limit: total,
+        response_type: 'csv'
+      }
+      const response = await getRequestListsOfAllStores({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response.data)
+      }
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
+    } finally {
+      setExportStoresListLoader(false)
+    }
+  }
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
@@ -297,7 +318,6 @@ const AllStoresRequestList = () => {
     setActiveTab('Available')
     setDrawerSearchValue('')
 
-    
     setPage(1)
     setTotalUniqueItems(0)
     setHasMore(true)
@@ -395,7 +415,7 @@ const AllStoresRequestList = () => {
         limit: 10,
         q
       })
-    }, 500), 
+    }, 500),
     [resetStates, fetchUniquePendingData]
   )
 
@@ -451,7 +471,6 @@ const AllStoresRequestList = () => {
     })
   }, [resetStates, fetchUniquePendingData, activeTab])
 
-  
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0
@@ -477,7 +496,6 @@ const AllStoresRequestList = () => {
     }
   }
 
-  
   const renderHeader = title => (
     <Box
       sx={{
@@ -577,7 +595,6 @@ const AllStoresRequestList = () => {
                     color: theme.palette.primary.main,
                     fontSize: '14px',
                     fontWeight: 400,
-                    fontFamily: 'Inter',
                     mt: 1,
                     ml: 1,
                     borderBottom: `1px solid ${theme.palette.primary.main}`,
@@ -591,27 +608,23 @@ const AllStoresRequestList = () => {
               </>
             }
             action={
-              <TextField
-                variant='outlined'
-                size='small'
-                placeholder='Search...'
-                value={searchValue}
-                onChange={e => handleSearch(e.target.value)}
-                fullWidth
+              <Box
                 sx={{
-                  borderRadius: '8px',
-                  width: { xs: '100%', md: '290px' }
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'flex-start',
+                  alignItems: 'flex-start',
+                  gap: { xs: 3, sm: 2 }
                 }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-              />
+              >
+                <MUISearch
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  placeholder='Search...'
+                  onClear={() => handleSearch('')}
+                />
+                <ExportButton sx={{ height: '35px' }} loading={exportStoresListLoader} onClick={() => handleExport()} />
+              </Box>
             }
             sx={{
               display: 'flex',
@@ -628,7 +641,6 @@ const AllStoresRequestList = () => {
             }}
           />
 
-        
           <Grid sx={{ mx: { xs: 3, md: 5 } }}>
             <CommonTable
               onRowClick={handleRowClick}
@@ -652,7 +664,7 @@ const AllStoresRequestList = () => {
               paper: {
                 sx: {
                   width: {
-                    xs: '80%', 
+                    xs: '80%',
                     sm: '80%',
                     md: 560
                   },
@@ -664,7 +676,6 @@ const AllStoresRequestList = () => {
               }
             }}
           >
-          
             <Box
               sx={{
                 p: 3,
@@ -703,7 +714,6 @@ const AllStoresRequestList = () => {
               </Box>
             </Box>
 
-          
             <Box
               sx={{
                 position: 'sticky',
@@ -712,7 +722,6 @@ const AllStoresRequestList = () => {
                 backgroundColor: 'customColors.OnPrimary'
               }}
             >
-            
               <TabContext value={activeTab}>
                 <TabList
                   variant='scrollable'
@@ -782,7 +791,6 @@ const AllStoresRequestList = () => {
                 </Box>
               </Box>
             </Box>
-
 
             <Box
               ref={scrollContainerRef}
