@@ -4,8 +4,10 @@ import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import Box from '@mui/material/Box'
+import { useTheme } from '@mui/material'
 
-const MenuWithDots = ({ options, disabled = false }) => {
+const MenuWithDots = ({ options, disabled = false, showBorder = false, borderColor, menuSx, menuItemSx }) => {
+  const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleClick = event => {
@@ -29,7 +31,13 @@ const MenuWithDots = ({ options, disabled = false }) => {
           display: 'flex',
           flexDirection: 'column',
           flexWrap: 'wrap',
-          gap: '8px'
+          gap: '8px',
+          '& .MuiPaper-root': {
+            ...(showBorder && {
+              border: `2px solid ${theme.palette.customColors.Outline || borderColor}`
+            })
+          },
+          ...menuSx
         }}
         keepMounted
         id='long-menu'
@@ -39,25 +47,32 @@ const MenuWithDots = ({ options, disabled = false }) => {
       >
         {options?.length > 0
           ? options?.map((option, index) => (
-              <MenuItem
-                sx={{
-                  color: 'customColors.neutralSecondary',
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  padding: '12px',
-                  '&:hover': {
-                    backgroundColor: 'customColors.displaybgPrimary'
-                  }
-                }}
-                disabled={disabled}
-                key={index}
-                onClick={() => {
-                  option.action()
-                  handleClose()
-                }}
-              >
-                {option.label}
-              </MenuItem>
+              <Box key={index}>
+                <MenuItem
+                  sx={{
+                    color: 'customColors.neutralSecondary',
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    padding: '12px',
+                    '&:hover': {
+                      backgroundColor: 'customColors.displaybgPrimary'
+                    },
+                    borderBottom:
+                      showBorder && index < options.length - 1
+                        ? `1px solid ${borderColor || theme.palette.customColors?.OutlineVariant}`
+                        : 'none',
+
+                    ...menuItemSx
+                  }}
+                  disabled={disabled}
+                  onClick={() => {
+                    option.action()
+                    handleClose()
+                  }}
+                >
+                  {option.label}
+                </MenuItem>
+              </Box>
             ))
           : null}
       </Menu>
