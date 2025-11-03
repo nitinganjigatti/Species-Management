@@ -19,6 +19,7 @@ import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const StockOut = () => {
   const theme = useTheme()
@@ -367,29 +368,13 @@ const StockOut = () => {
               size={{ xs: 12, sm: 5, md: 3.5 }}
               sx={{
                 display: 'flex',
-                alignItems: 'center',
-                borderRadius: '8px',
-                padding: '0 8px',
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                alignItems: 'center'
               }}
             >
-              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-              <TextField
-                variant='outlined'
-                value={searchValue}
-                placeholder='Search...'
+              <MUISearch
                 onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                size='small'
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    border: 'none',
-                    padding: '0',
-                    '& fieldset': {
-                      border: 'none'
-                    }
-                  }
-                }}
+                onClear={() => handleSearch('')}
+                value={searchValue}
               />
             </Grid>
 

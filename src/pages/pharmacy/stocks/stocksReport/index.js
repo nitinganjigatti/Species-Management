@@ -55,6 +55,7 @@ import MenuWithDots from 'src/components/MenuWithDots'
 import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
 import StockConfigDetails from 'src/views/pages/pharmacy/stock/StockConfigDetails'
 import { flex } from '@mui/system'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -1011,7 +1012,6 @@ const ListOfStocks = () => {
               <Tab value='3' label='Low stock' />
               <Tab value='4' label='Expired Products' />
               <Tab value='6' label='About To Expire Products' />
-
               <Tab value='5' label='Escrow' />
             </TabList>
           </Box>
@@ -1064,42 +1064,23 @@ const ListOfStocks = () => {
                     justifyContent={{ xs: 'start', sm: 'space-between' }}
                     sx={{ px: { xs: 2, sm: 3, md: 5.5 } }}
                   >
-                    <Grid
-                      item
-                      size={{ xs: 12, sm: 3, md: 3 }}
-                      sx={{
-                        display: 'flex'
-                      }}
-                    >
-                      <TextField
-                        variant='outlined'
-                        size='small'
-                        placeholder='Search...'
+                    <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
+                      <MUISearch
+                        s
                         inputRef={textFieldRef}
                         onChange={e => {
                           changeSwitch
                             ? handleBatchSearch(e.target.value, stockId, stockType, batchPaginationModel)
                             : handleSearch(e.target.value, stockId, stockType, paginationModel)
                         }}
-                        fullWidth
-                        slotProps={{
-                          input: {
-                            startAdornment: (
-                              <InputAdornment position='start'>
-                                <Icon
-                                  icon='mi:search'
-                                  fontSize={24}
-                                  color={theme.palette.customColors.neutralSecondary}
-                                />
-                              </InputAdornment>
-                            )
-                          }
-                        }}
-                      />
+                        onClear={() => handleSearch('')}
+
+                        // value={searchValue}
+                      ></MUISearch>
                     </Grid>
                     <Grid
                       item
-                      size={{ xs: 12, sm: 9, md: 9 }}
+                      size={{ xs: 12, sm: 8, md: 9 }}
                       sx={{
                         display: 'flex',
                         justifyContent: { xs: 'start', sm: 'end ' },
@@ -1109,7 +1090,7 @@ const ListOfStocks = () => {
                     >
                       <Grid
                         container
-                        spacing={2}
+                        spacing={3}
                         alignItems={'center'}
                         mt={{ xs: '0px', sm: '4px' }}
                         sx={{
@@ -1118,11 +1099,12 @@ const ListOfStocks = () => {
                         }}
                       >
                         {selectedPharmacy.type === 'central' && (
-                          <Grid item size={{ xs: 6, sm: 6, md: 'auto' }}>
+                          <Grid item size={{ xs: 12, sm: 5, md: 'auto' }}>
                             <FormControl
                               sx={{
                                 display: 'flex',
-                                alignItems: 'center'
+                                alignItems: 'center',
+                                justifyContent: { sx: 'start', sm: 'flex-end' }
                               }}
                             >
                               <InputLabel id='controlled-select-label'>Stores</InputLabel>
@@ -1194,14 +1176,14 @@ const ListOfStocks = () => {
                           item
                           size={
                             selectedPharmacy.type === 'central'
-                              ? { xs: 6, sm: 4, md: 3, lg: 3 }
-                              : { xs: 12, sm: 4, md: 3, lg: 3 }
+                              ? { xs: 12, sm: 5, md: 4, lg: 3 }
+                              : { xs: 12, sm: 5, md: 4, lg: 3 }
                           }
                           sx={{
                             display: 'flex',
 
                             justifyContent: {
-                              xs: selectedPharmacy.type === 'central' ? 'flex-end' : 'space-between',
+                              xs: selectedPharmacy.type === 'central' ? 'space-between' : 'space-between',
                               sm: 'flex-end'
                             },
                             alignItems: 'center',
