@@ -28,6 +28,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -486,95 +487,87 @@ const ExpiringMedicine = () => {
               }}
             >
               <Grid item size={{ xs: 12, sm: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                <TextField
-                  variant='outlined'
-                  size='small'
-                  placeholder='Search...'
-                  value={searchValue}
+                <MUISearch
                   onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    borderRadius: '8px'
-                  }}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }
-                  }}
-                />
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
+                ></MUISearch>
               </Grid>
 
-              <Grid
-                item
-                size={{ xs: 12, sm: 9, md: 9 }}
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row', md: 'row' },
-                  justifyContent: { xs: 'space-between', sm: 'flex-end' },
-                  gap: '10px'
-                }}
-              >
-                {selectedPharmacy.type === 'central' && (
-                  <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                    <FormControl
-                      sx={{
-                        width: { xs: 'stretch' },
-                        mt: '3px'
-                      }}
-                    >
-                      <InputLabel id='controlled-select-label'>Stores</InputLabel>
-                      <Select
-                        onChange={e => {
-                          let id = e.target.value
-                          setStoreId(id)
-                        }}
-                        label='Stores'
-                        value={storeId}
-                        id='controlled-select'
-                        labelId='controlled-select-label'
-                        size='small'
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        {stores.length > 0
-                          ? stores.map(el => {
-                              return (
-                                <MenuItem key={el.id} value={el.id}>
-                                  {el.name}
-                                </MenuItem>
-                              )
-                            })
-                          : null}
-                      </Select>
-                      <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                    </FormControl>
-                  </Grid>
-                )}
+              <Grid item size={{ xs: 12, sm: 9, md: 9 }}>
                 <Grid
-                  item
-                  size={{
-                    xs: 12,
-                    sm: selectedPharmacy.type === 'central' ? 8 : 12,
-                    md: selectedPharmacy.type === 'central' ? 10 : 8
-                  }}
+                  container
+                  spacing={3}
                   sx={{
                     display: 'flex',
-                    gap: { xs: '6px', sm: '6px', md: '16px' },
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
+                    flexDirection: { xs: 'column', sm: 'row', md: 'row' },
+                    justifyContent: { xs: 'space-between', sm: 'flex-end' }
+
+                    // gap: '10px'
                   }}
                 >
-                  <CommonDateRangePickers
-                    onChange={handleDateRangeChange}
-                    filterDates={filterDates}
-                    showFutureDates={true}
-                    useCustomText={true}
-                    customText='Select Near Expiry'
-                  />
-                  <ExportButton loading={excelLoader} onClick={getDataToExport} disabled={total === 0 ? true : false} />
+                  {selectedPharmacy.type === 'central' && (
+                    <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                      <FormControl
+                        sx={{
+                          width: { xs: 'stretch' },
+                          mt: '3px'
+                        }}
+                      >
+                        <InputLabel id='controlled-select-label'>Stores</InputLabel>
+                        <Select
+                          onChange={e => {
+                            let id = e.target.value
+                            setStoreId(id)
+                          }}
+                          label='Stores'
+                          value={storeId}
+                          id='controlled-select'
+                          labelId='controlled-select-label'
+                          size='small'
+                        >
+                          <MenuItem value='all'>All</MenuItem>
+                          {stores.length > 0
+                            ? stores.map(el => {
+                                return (
+                                  <MenuItem key={el.id} value={el.id}>
+                                    {el.name}
+                                  </MenuItem>
+                                )
+                              })
+                            : null}
+                        </Select>
+                        <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
+                      </FormControl>
+                    </Grid>
+                  )}
+                  <Grid
+                    item
+                    size={{
+                      xs: 12,
+                      sm: selectedPharmacy.type === 'central' ? 8 : 12,
+                      md: selectedPharmacy.type === 'central' ? 8 : 10
+                    }}
+                    sx={{
+                      display: 'flex',
+                      gap: { xs: '6px', sm: '6px', md: '16px' },
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <CommonDateRangePickers
+                      onChange={handleDateRangeChange}
+                      filterDates={filterDates}
+                      showFutureDates={true}
+                      useCustomText={true}
+                      customText='Select Near Expiry'
+                    />
+                    <ExportButton
+                      loading={excelLoader}
+                      onClick={getDataToExport}
+                      disabled={total === 0 ? true : false}
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>

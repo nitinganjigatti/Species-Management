@@ -15,6 +15,7 @@ import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 function Escrow({ value }) {
   const router = useRouter()
@@ -459,31 +460,14 @@ function Escrow({ value }) {
                 size={{ xs: 12, sm: 5, md: 3.5 }}
                 sx={{
                   display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px'
+                  alignItems: 'center'
                 }}
               >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                <TextField
-                  variant='outlined'
-                  value={searchValue}
-                  placeholder='Search...'
+                <MUISearch
                   onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  size='small'
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
+                ></MUISearch>
               </Grid>
               <Grid
                 item

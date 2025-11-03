@@ -28,6 +28,7 @@ import {
   Box
 } from '@mui/material'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
@@ -357,23 +358,11 @@ const ExpiredMedicine = () => {
                   borderRadius: '8px'
                 }}
               >
-                <TextField
-                  variant='outlined'
-                  size='small'
-                  placeholder='Search...'
-                  value={searchValue}
+                <MUISearch
                   onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }
-                  }}
-                />
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
+                ></MUISearch>
               </Grid>
 
               <Grid
@@ -385,52 +374,76 @@ const ExpiredMedicine = () => {
                   gap: '16px'
                 }}
               >
-                {selectedPharmacy.type === 'central' && (
-                  <Grid item>
-                    <FormControl>
-                      <InputLabel id='controlled-select-label'>Stores</InputLabel>
-                      <Select
-                        onChange={e => {
-                          let id = e.target.value
-
-                          // const store = id === 'all' ? '' : id
-
-                          // const type = stores.find(el => el.id === id)?.type || ''
-
-                          // setStockType(type)
-                          setStoreId(id)
-
-                          // let storeId = id === 'all' ? 'all' : id
-                        }}
-                        label='Stores'
-                        value={storeId}
-                        id='controlled-select'
-                        labelId='controlled-select-label'
-                        size='small'
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        {stores.length > 0
-                          ? stores.map(el => {
-                              return (
-                                <MenuItem key={el.id} value={el.id}>
-                                  {el.name}
-                                </MenuItem>
-                              )
-                            })
-                          : null}
-                      </Select>
-                      <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
-                    </FormControl>
-                  </Grid>
-                )}
-
                 <Grid
-                  item
+                  container
+                  spacing={3}
                   sx={{
-                    my: selectedPharmacy.type === 'central' ? 0 : 2
+                    display: 'flex',
+                    justifyContent: {
+                      xs: 'flex-start',
+                      sm: selectedPharmacy.type === 'central' ? 'space-between' : 'flex-end'
+                    },
+                    alignItems: 'center'
                   }}
                 >
-                  <ExportButton loading={excelLoader} onClick={getDataToExport} disabled={total === 0 ? true : false} />
+                  {selectedPharmacy.type === 'central' && (
+                    <Grid item size={{ xs: 10, sm: 10, md: 10 }}>
+                      <FormControl sx={{ width: '100%' }}>
+                        <InputLabel id='controlled-select-label'>Stores</InputLabel>
+                        <Select
+                          onChange={e => {
+                            let id = e.target.value
+
+                            // const store = id === 'all' ? '' : id
+
+                            // const type = stores.find(el => el.id === id)?.type || ''
+
+                            // setStockType(type)
+                            setStoreId(id)
+
+                            // let storeId = id === 'all' ? 'all' : id
+                          }}
+                          label='Stores'
+                          value={storeId}
+                          id='controlled-select'
+                          labelId='controlled-select-label'
+                          size='small'
+                        >
+                          <MenuItem value='all'>All</MenuItem>
+                          {stores.length > 0
+                            ? stores.map(el => {
+                                return (
+                                  <MenuItem key={el.id} value={el.id}>
+                                    {el.name}
+                                  </MenuItem>
+                                )
+                              })
+                            : null}
+                        </Select>
+                        <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
+                      </FormControl>
+                    </Grid>
+                  )}
+
+                  <Grid
+                    item
+                    size={{ xs: 2, sm: 2, md: 2 }}
+                    sx={{
+                      my: selectedPharmacy.type === 'central' ? 0 : 2,
+                      display: 'flex',
+                      justifyContent: {
+                        xs: selectedPharmacy.type === 'central' ? 'flex-end' : 'flex-start',
+                        sm: 'flex-end'
+                      },
+                      alignItems: 'center'
+                    }}
+                  >
+                    <ExportButton
+                      loading={excelLoader}
+                      onClick={getDataToExport}
+                      disabled={total === 0 ? true : false}
+                    />
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
