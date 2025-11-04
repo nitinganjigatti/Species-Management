@@ -36,6 +36,26 @@ const htmlToPlainText = value => {
     .trim()
 }
 
+const getRichTextHtmlValue = value => {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  if (value?.html) return value.html
+  if (value?.text) return value.text
+  if (value?.delta?.ops) {
+    try {
+      const text = value.delta.ops
+        .map(op => (typeof op.insert === 'string' ? op.insert : ''))
+        .join('')
+
+      return text
+    } catch {
+      return ''
+    }
+  }
+
+  return ''
+}
+
 const formatDateValue = value => {
   if (!value) return '--'
 
@@ -308,11 +328,20 @@ function InpatientSurgery({ hospitalCaseId }) {
     ]
   }, [activeDetail])
 
-  const surgeryNotesText = useMemo(() => htmlToPlainText(activeDetail?.surgery_notes) || '--', [activeDetail])
   const findingsText = useMemo(() => htmlToPlainText(activeDetail?.findings), [activeDetail])
   const hemostasisText = useMemo(() => htmlToPlainText(activeDetail?.hemostasis), [activeDetail])
   const closureText = useMemo(() => htmlToPlainText(activeDetail?.closure), [activeDetail])
   const complicationText = useMemo(() => htmlToPlainText(activeDetail?.complications) || '--', [activeDetail])
+
+  const surgeryNotesContent = useMemo(() => {
+    const html = getRichTextHtmlValue(activeDetail?.surgery_notes)
+    const text = html ? htmlToPlainText(html) : ''
+
+    return {
+      html,
+      text: text || '--'
+    }
+  }, [activeDetail])
 
   const procedurePerformedList = useMemo(
     () => parseProcedurePerformed(activeDetail?.procedure_performed),
@@ -600,23 +629,23 @@ function InpatientSurgery({ hospitalCaseId }) {
                 >
                   Surgery notes
                 </Typography>
-                <FieldTooltip title={surgeryNotesText}>
-                  <Typography
+                <FieldTooltip title={surgeryNotesContent.text}>
+                  <Box
                     sx={{
                       fontWeight: 400,
                       fontSize: '16px',
                       letterSpacing: 0,
                       color: theme.palette.customColors.OnSurfaceVariant,
                       mb: 1.5,
-                      display: '-webkit-box',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      WebkitLineClamp: 5,
-                      WebkitBoxOrient: 'vertical'
+                      lineHeight: 1.5,
+                      '& p': { margin: 0 },
+                      '& ul': { paddingLeft: '1.5rem', margin: '8px 0' },
+                      '& ol': { paddingLeft: '1.5rem', margin: '8px 0' }
                     }}
-                  >
-                    {surgeryNotesText}
-                  </Typography>
+                    dangerouslySetInnerHTML={{
+                      __html: surgeryNotesContent.html || '<span>--</span>'
+                    }}
+                  />
                 </FieldTooltip>
 
                 {findingsText && (
