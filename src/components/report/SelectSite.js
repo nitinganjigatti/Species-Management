@@ -245,22 +245,35 @@ const SelectSites = ({
             [...filteredSites]
               .sort((a, b) => a.site_name.localeCompare(b.site_name))
               .map(site => {
+                const isSelected = pendingSelections?.Site?.includes(site.site_id)
+
+                const handleToggleSite = () => {
+                  handleSiteCheckboxChange(site)
+                }
+
                 return (
                   <ListItem
                     key={site.site_id}
+                    onClick={handleToggleSite}
+                    onKeyDown={event => {
+                      if (event.target !== event.currentTarget) return
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleToggleSite()
+                      }
+                    }}
+                    tabIndex={0}
+                    role='button'
                     sx={{
                       pr: 1.5,
                       pl: 3,
                       mb: 4,
                       border: '1px solid',
-                      borderColor: pendingSelections?.Site?.includes(site.site_id)
-                        ? theme.palette.primary.main
-                        : theme.palette.customColors.OutlineVariant,
+                      borderColor: isSelected ? theme.palette.primary.main : theme.palette.customColors.OutlineVariant,
                       borderRadius: '8px',
-                      bgcolor: pendingSelections?.Site?.includes(site.site_id)
-                        ? theme.palette.customColors.OnBackground
-                        : 'transparent',
-                      height: '70px'
+                      bgcolor: isSelected ? theme.palette.customColors.OnBackground : 'transparent',
+                      height: '70px',
+                      cursor: 'pointer'
                     }}
                   >
                     <ListItemAvatar>
@@ -290,8 +303,12 @@ const SelectSites = ({
                       }}
                     />
                     <Checkbox
-                      checked={pendingSelections?.Site?.includes(site.site_id)}
-                      onChange={() => handleSiteCheckboxChange(site)}
+                      checked={isSelected}
+                      onClick={event => {
+                        event.stopPropagation()
+                        handleToggleSite()
+                      }}
+                      inputProps={{ 'aria-label': 'Select site' }}
                     />
                   </ListItem>
                 )
