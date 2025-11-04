@@ -1,22 +1,10 @@
 import { useTheme } from '@emotion/react'
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Grid,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Card, CardContent, CardHeader, Grid, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import Utility from 'src/utility'
-import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -25,6 +13,9 @@ import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import { getReconciliationReport } from 'src/lib/api/pharmacy/reports'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import dayjs from 'dayjs'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 
 const ReconciliationReport = () => {
   const router = useRouter()
@@ -37,6 +28,12 @@ const ReconciliationReport = () => {
     router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
+  const statusOptions = [
+    { id: 'all', label: 'All' },
+    { id: 'active', label: 'Active' },
+    { id: 'inactive', label: 'Inactive' }
+  ]
+
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -45,6 +42,9 @@ const ReconciliationReport = () => {
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [monthAndYear, setMonthAndYear] = useState(router.query.monthAndYear || dayjs())
   const [exportLoading, setExportLoading] = useState(false)
+  const [activeStatus, setActiveStatus] = useState('all')
+  const [filterSwitch, setFilterSwitch] = useState(false)
+  const [excelExportLoader, setExcelExportLoader] = useState(false)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -55,38 +55,42 @@ const ReconciliationReport = () => {
     return data
   }
 
-  const fetchTableData = useCallback(async ({ sort, q, column, page, limit }) => {
-    try {
-      setLoading(true)
+  const fetchTableData = useCallback(
+    async ({ sort, q, column, page, limit }) => {
+      try {
+        setLoading(true)
 
-      const params = {
-        page: page + 1,
-        limit: limit,
-        sort: sort,
-        q: q,
-        column: column,
-        month: monthAndYear.month() + 1,
-        year: monthAndYear.year()
-      }
-
-      await getReconciliationReport({ params: params }).then(res => {
-        console.log(res)
-
-        if (res?.success === true && res?.data?.length > 0) {
-          setTotal(parseInt(res?.count))
-          setRows(loadServerRows(paginationModel?.page, res?.data))
-        } else {
-          setTotal(parseInt(res?.count) || 0)
-          setRows([])
+        const params = {
+          page: page + 1,
+          limit: limit,
+          sort: sort,
+          q: q,
+          column: column,
+          month: monthAndYear.month() + 1,
+          year: monthAndYear.year(),
+          group_by: filterSwitch ? 'batch' : 'stock',
+          ...(activeStatus && activeStatus !== 'all' ? { active: activeStatus === 'active' ? '1' : '0' } : {})
         }
-      })
-      setLoading(false)
-    } catch (e) {
-      console.log(e)
-      setTotal(parseInt(0))
-      setLoading(false)
-    }
-  }, [])
+        await getReconciliationReport({ params: params }).then(res => {
+          console.log(res)
+
+          if (res?.success === true && res?.data?.length > 0) {
+            setTotal(parseInt(res?.count))
+            setRows(loadServerRows(paginationModel?.page, res?.data))
+          } else {
+            setTotal(parseInt(res?.count) || 0)
+            setRows([])
+          }
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setTotal(parseInt(0))
+        setLoading(false)
+      }
+    },
+    [monthAndYear, filterSwitch, activeStatus, paginationModel?.page]
+  )
 
   useEffect(() => {
     fetchTableData({
@@ -105,12 +109,24 @@ const ReconciliationReport = () => {
       column: sortColumn,
       page: paginationModel?.page,
       limit: paginationModel?.pageSize,
-      monthAndYear: monthAndYear
+      monthAndYear: monthAndYear,
+      filterSwitch: filterSwitch,
+      activeStatus: activeStatus
 
       // month: monthAndYear.month(),
       // year: monthAndYear.year()
     })
-  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, selectedPharmacy?.id, monthAndYear])
+  }, [
+    paginationModel?.page,
+    paginationModel?.pageSize,
+    sort,
+    sortColumn,
+    selectedPharmacy.id,
+    monthAndYear,
+    filterSwitch,
+    activeStatus,
+    searchValue
+  ])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -166,7 +182,6 @@ const ReconciliationReport = () => {
         </>
       )
     },
-
     {
       minWidth: 20,
       width: 140,
@@ -195,7 +210,6 @@ const ReconciliationReport = () => {
         </Tooltip>
       )
     },
-
     {
       minWidth: 20,
       width: 160,
@@ -695,6 +709,56 @@ const ReconciliationReport = () => {
   }
 
   // }, [])
+  const handleSwitchChange = event => {
+    setTotal(0)
+    setSearchValue('')
+    setPaginationModel({ page: 0, pageSize: 50 })
+    setFilterSwitch(event.target.checked)
+
+    // setFilterSwitch(event.target.checked)
+    // updateUrlParams({
+    //   sort,
+    //   q: searchValue,
+    //   column: sortColumn,
+
+    //   // status: status,
+    //   // startDate: filterDates.startDate,
+    //   // endDate: filterDates.endDate,
+    //   // store: filterByStoreId,
+    //   page: 0,
+    //   limit: 10
+
+    //   // days: selectDays
+    // })
+  }
+
+  const handleExport = async () => {
+    try {
+      setExcelExportLoader(true)
+
+      const params = {
+        page: 1,
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        month: monthAndYear.month() + 1,
+        year: monthAndYear.year(),
+        group_by: filterSwitch ? 'batch' : 'stock',
+        ...(activeStatus && activeStatus !== 'all' ? { active: activeStatus === 'active' ? '1' : '0' } : {}),
+        response_type: 'csv'
+      }
+      await getReconciliationReport({ params: params }).then(res => {
+        debugger
+        if (res?.success && res?.data) {
+          Utility.downloadFileFromURL(res.data)
+          setExcelExportLoader(false)
+        }
+      })
+    } catch (e) {
+      console.log(e)
+      setExcelExportLoader(false)
+    }
+  }
 
   return (
     <>
@@ -714,8 +778,18 @@ const ReconciliationReport = () => {
           title={RenderUtility.pageTitle('Reconciliation Report')}
         />
         <CardContent sx={{ paddingTop: '4px' }}>
-          <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Grid item size={{ xs: 12, sm: 4 }}>
+          <Grid
+            container
+            spacing={4}
+            sx={
+              {
+                // display: 'flex',
+                // alignItems: 'center'
+                // justifyContent: 'space-between'
+              }
+            }
+          >
+            <Grid item size={{ xs: 12, sm: 3 }}>
               <MUIDatePicker
                 size='small'
                 format='MMM YYYY'
@@ -727,27 +801,73 @@ const ReconciliationReport = () => {
                 onAccept={datePickerHandleChange}
               />
             </Grid>
-            <Grid item size={{ xs: 12, sm: 4 }} sx={{ flex: 1 }}>
-              <TextField
-                variant='outlined'
-                size='small'
+            <Grid item size={{ xs: 12, sm: 3 }} sx={{ ml: 'auto' }}>
+              <MUISearch
+                size='medium'
                 placeholder='Search...'
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                sx={{
-                  borderRadius: '8px'
-                }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
+                onClear={() => {
+                  handleSearch('')
                 }}
               />
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 2.5, md: 2, lg: 2 }}>
+              <MUIAutocomplete
+                value={activeStatus}
+                label='Filter by Status'
+                valueType='id'
+                onChange={newValue => {
+                  setTotal(0)
+                  setPaginationModel({ page: 0, pageSize: 50 })
+                  debugger
+                  setActiveStatus(newValue)
+                  setSearchValue('')
+                }}
+                options={statusOptions}
+              />
+            </Grid>
+            <Grid
+              item
+              size={{ xs: 6, sm: 2.5, md: 1.6, lg: 1.6 }}
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+
+                // justifyContent: { xs: 'flex-start', sm: 'flex-end', md: 'flex-end', lg: 'flex-end' },
+
+                alignItems: 'center'
+
+                // ml: 'auto',
+
+                // gap: { xs: 3, sm: 1 },
+              }}
+            >
+              <MUISwitch
+                label='Batch Wise'
+                labelStyle={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400
+                }}
+                labelPlacement='end'
+                value={filterSwitch}
+                defaultChecked={filterSwitch}
+                onChange={e => {
+                  console.log('switch checked', e.target.checked)
+                  handleSwitchChange(e)
+                }}
+              />
+            </Grid>
+            <Grid
+              size={{ xs: 6, sm: 'auto', md: 'auto', lg: 'auto' }}
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'flex-end'
+              }}
+            >
+              <ExportButton sx={{ height: '35px' }} loading={excelExportLoader} onClick={() => handleExport()} />
             </Grid>
           </Grid>
           <Grid>
