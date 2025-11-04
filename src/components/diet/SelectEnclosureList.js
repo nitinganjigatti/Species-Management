@@ -296,9 +296,22 @@ const SelectEnclosureList = ({
               [...enclosuresData]
                 .sort((a, b) => a.user_enclosure_name.localeCompare(b.user_enclosure_name))
                 .map(enclosure => {
+                  const isSelected = selectedEnclosures.includes(enclosure.enclosure_id)
+                  const handleToggleEnclosure = () => handleSiteCheckboxChange(enclosure.enclosure_id)
+
                   return (
                     <ListItem
                       key={enclosure.enclosure_id}
+                      onClick={handleToggleEnclosure}
+                      onKeyDown={event => {
+                        if (event.target !== event.currentTarget) return
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          handleToggleEnclosure()
+                        }
+                      }}
+                      tabIndex={0}
+                      role='button'
                       sx={{
                         pr: 1.5,
                         pl: 3,
@@ -306,13 +319,9 @@ const SelectEnclosureList = ({
                         height: '70px',
                         cursor: 'pointer',
                         border: '1px solid',
-                        borderColor: selectedEnclosures.includes(enclosure.enclosure_id)
-                          ? '#80E0A3'
-                          : theme.palette.customColors.OutlineVariant,
+                        borderColor: isSelected ? '#80E0A3' : theme.palette.customColors.OutlineVariant,
                         borderRadius: '8px',
-                        bgcolor: selectedEnclosures.includes(enclosure.enclosure_id)
-                          ? theme.palette.customColors.OnBackground
-                          : 'transparent'
+                        bgcolor: isSelected ? theme.palette.customColors.OnBackground : 'transparent'
                       }}
                     >
                       <ListItemAvatar>
@@ -355,8 +364,12 @@ const SelectEnclosureList = ({
                         // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                       />
                       <Checkbox
-                        checked={selectedEnclosures.includes(enclosure.enclosure_id)}
-                        onChange={() => handleSiteCheckboxChange(enclosure.enclosure_id)}
+                        checked={isSelected}
+                        onClick={event => {
+                          event.stopPropagation()
+                          handleToggleEnclosure()
+                        }}
+                        inputProps={{ 'aria-label': 'Select enclosure' }}
                       />
                     </ListItem>
                   )
