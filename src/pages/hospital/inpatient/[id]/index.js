@@ -148,7 +148,7 @@ const InpatientDetails = () => {
       router.replace(
         {
           pathname: router.pathname,
-          query: { ...queryWithoutTab, id: router.query.id }
+          query: { ...queryWithoutTab, id: router.query.id, tab: newValue }
         },
         undefined,
         { shallow: true }

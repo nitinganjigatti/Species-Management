@@ -137,50 +137,49 @@ const HorizontalDateNav = ({
     <ScrollContainer style={containerStyle}>
       <YearLabel>{displayYear}</YearLabel>
       <DateScrollArea ref={scrollAreaRef}>
-        {dateItems?.map((dateItem, index) => (
-          <DateButton
-            key={dateItem}
-            ref={el => (dateButtonRefs.current[dateItem] = el)}
-            isSelected={selectedDate === dateItem}
-
-            // hasIndicator={dateItem.hasIndicator}
-            indicatorColor={indicatorColor}
-
-            // disabled={dateItem.isDisabled}
-            onClick={() => handleDateClick(dateItem)}
-            style={dateButtonStyle}
-            sx={{
-              '&:hover':
-                selectedDate === dateItem
-                  ? {}
-                  : {
-                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                      transform: 'translateY(-1px)'
-                    }
-            }}
-          >
-            <Box display='flex' alignItems='center' gap={2}>
-              {dateItem === selectedDate && (
-                <Box
+        {dateItems?.length > 0 ? (
+          dateItems?.map((dateItem, index) => (
+            <DateButton
+              key={dateItem}
+              ref={el => (dateButtonRefs.current[dateItem] = el)}
+              isSelected={selectedDate === dateItem}
+              // hasIndicator={dateItem.hasIndicator}
+              indicatorColor={indicatorColor}
+              // disabled={dateItem.isDisabled}
+              onClick={() => handleDateClick(dateItem)}
+              style={dateButtonStyle}
+              sx={{
+                '&:hover':
+                  selectedDate === dateItem
+                    ? {}
+                    : {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        transform: 'translateY(-1px)'
+                      }
+              }}
+            >
+              <Box display='flex' alignItems='center' gap={2}>
+                {dateItem === selectedDate && (
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: indicatorColor
+                    }}
+                  />
+                )}
+                <Typography
+                  variant='body2'
+                  fontWeight={400}
                   sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: indicatorColor
+                    color: selectedDate === dateItem ? '#FFF' : '#44544A'
                   }}
-                />
-              )}
-              <Typography
-                variant='body2'
-                fontWeight={400}
-                sx={{
-                  color: selectedDate === dateItem ? '#FFF' : '#44544A'
-                }}
-              >
-                {Utility.formatDisplayDate(dateItem)}
-              </Typography>
-            </Box>
-            {/* <Typography
+                >
+                  {Utility.formatDisplayDate(dateItem)}
+                </Typography>
+              </Box>
+              {/* <Typography
               variant='body2'
               fontWeight={400}
               sx={{
@@ -189,8 +188,11 @@ const HorizontalDateNav = ({
             >
               {dateItem}
             </Typography> */}
-          </DateButton>
-        ))}
+            </DateButton>
+          ))
+        ) : (
+          <Typography>No dates found</Typography>
+        )}
       </DateScrollArea>
     </ScrollContainer>
   )
@@ -288,6 +290,10 @@ const DateButton = styled(Button, {
     minHeight: 0, // Override MUI button default minHeight
     '&.MuiButton-root': {
       minHeight: 0 // Ensure MUI doesn't override
+    },
+    '&:hover': {
+      backgroundColor: isSelected ? theme.palette.customColors.OnPrimaryContainer : 'rgba(0, 0, 0, 0.04)',
+      color: isSelected ? theme.palette.customColors.OnSurfaceVariant : theme.palette.customColors.OnSurfaceVariant
     },
     '&:disabled': {
       backgroundColor: 'transparent',

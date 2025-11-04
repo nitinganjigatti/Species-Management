@@ -10,6 +10,7 @@ import Toaster from 'src/components/Toaster'
 import { getDates, getPrescriptionDetails, getPrescriptions } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import ScheduleDosage from 'src/views/pages/hospital/prescription-monitoring/ScheduleDosage'
+import { status } from 'nprogress'
 
 const dummyMedicationData = {
   name: 'Levothyroxine',
@@ -38,7 +39,6 @@ function PrescriptionLayout({ drawerType }) {
   const [prescriptionCardOpen, setPrescriptionCardOpen] = useState(false)
   const [medicationData, setMedicationData] = useState([])
   const [dates, setDates] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(null)
   const [medicineDetails, setMedicineDetails] = useState(null)
   const [detailDates, setDetailDates] = useState(null)
   const [detailSelectedDate, setDetailSelectedDate] = useState(null)
@@ -47,6 +47,8 @@ function PrescriptionLayout({ drawerType }) {
   const [isAdministerFormOpen, setIsAdministerFormOpen] = useState(true)
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
 
+  const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
+  const [selectedDate, setSelectedDate] = useState(today)
   const router = useRouter()
   const { selectedHospital: hospital } = useHospital()
 
@@ -87,7 +89,6 @@ function PrescriptionLayout({ drawerType }) {
   const getPrescriptionList = async () => {
     try {
       setIsPrescriptionListLoading(true)
-      const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
 
       const payload = {
         hospital_id: hospital?.id || '',
@@ -95,7 +96,7 @@ function PrescriptionLayout({ drawerType }) {
         medical_type: 'prescription',
         type: 'active',
         medical_record_id: medical_record_id || '',
-        generate_for_date: today || ''
+        generate_for_date: selectedDate
       }
 
       const response = await getPrescriptions(payload)
@@ -103,9 +104,12 @@ function PrescriptionLayout({ drawerType }) {
       if (response?.success) {
         setDates(response?.data?.schedulded_date)
         const dates = response?.data?.schedulded_date
-        if (dates?.length > 0) setSelectedDate(dates[dates?.length - 1])
+        if (dates?.length && !selectedDate) setSelectedDate(selectedDate)
 
-        const prescriptions = response?.data?.prescriptions
+        const prescriptions = response?.data?.prescriptions?.map(item => ({
+          ...item,
+          status: status?.toLowerCase()
+        }))
         setMedicationData(prescriptions)
       } else {
         Toaster({ type: 'error', message: response?.message })
@@ -211,7 +215,7 @@ function PrescriptionLayout({ drawerType }) {
 
   useEffect(() => {
     if (hospital?.id) getPrescriptionList()
-  }, [hospital?.id])
+  }, [hospital?.id, selectedDate])
 
   const handleAdministerSubmit = formData => {
     console.log('Administer Medicine Form Submitted:', formData)
@@ -233,6 +237,7 @@ function PrescriptionLayout({ drawerType }) {
             onOpenPrescriptionCard={handleOpenPrescriptionCard}
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
+
             // medications={medication}
             dates={dates}
             selectedDate={selectedDate}
