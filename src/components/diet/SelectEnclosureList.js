@@ -304,6 +304,7 @@ const SelectEnclosureList = ({
                         pl: 3,
                         mb: 4,
                         height: '70px',
+                        cursor: 'pointer',
                         border: '1px solid',
                         borderColor: selectedEnclosures.includes(enclosure.enclosure_id)
                           ? '#80E0A3'

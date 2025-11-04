@@ -257,6 +257,7 @@ const SingleSelectSectionList = ({
                         pl: 3,
                         mb: 4,
                         height: '70px',
+                        cursor: 'pointer',
                         border: '1px solid',
                         borderColor: isSelected ? '#80E0A3' : theme.palette.customColors.OutlineVariant,
                         borderRadius: '8px',
