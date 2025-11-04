@@ -288,7 +288,6 @@ const RequestList = () => {
   }
 
   const handleSwitchChange = event => {
-    debugger
     setTotal(0)
     setSearchValue('')
     setPaginationModel({ page: 0, pageSize: 50 })
@@ -745,11 +744,7 @@ const RequestList = () => {
                   size={{ xs: 12, sm: 2.5, md: 2 }}
                   sx={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: { sm: 'flex-end', xs: 'flex-start', md: 'flex-end' },
-                    mx: { xs: 4, sm: '0px' }
-
-                    // marginLeft: 'auto'
+                    alignItems: 'center'
                   }}
                 >
                   <MUISwitch
@@ -757,8 +752,7 @@ const RequestList = () => {
                     labelStyle={{
                       color: theme.palette.customColors.customHeadingTextColor,
                       fontSize: '14px',
-                      fontWeight: 400,
-                      margin: '0px'
+                      fontWeight: 400
                     }}
                     labelPlacement='end'
                     defaultChecked={filterSwitch}

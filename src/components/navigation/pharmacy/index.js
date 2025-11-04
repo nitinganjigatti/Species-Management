@@ -418,6 +418,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   reportsParent.children.push(returnReport)
   reportsParent.children.push(shipmentReport)
   reportsParent.children.push(dispenseReport)
+  reportsParent.children.push(reconciliationReport)
 
   const pharmacyNavigationArray = []
 
