@@ -1,4 +1,4 @@
-import { Button, Tooltip, Typography } from '@mui/material'
+import { Button, Tooltip, Typography, Skeleton } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -24,6 +24,19 @@ const FieldTooltip = ({ title, placement = 'top-start', children }) => (
   >
     {children}
   </Tooltip>
+)
+
+const TabSkeletons = () => (
+  <>
+    {Array.from({ length: 5 }).map((_, index) => (
+      <Skeleton
+        key={`surgery-tab-skeleton-${index}`}
+        variant='rounded'
+        width={110 + (index % 3) * 12}
+        height={48}
+      />
+    ))}
+  </>
 )
 
 const htmlToPlainText = value => {
@@ -365,16 +378,7 @@ function InpatientSurgery({ hospitalCaseId }) {
 
   const renderTabContent = () => {
     if (loading) {
-      return (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            whiteSpace: 'nowrap'
-          }}
-        >
-          Loading surgery records...
-        </Typography>
-      )
+      return <TabSkeletons />
     }
 
     if (error) {
@@ -452,6 +456,101 @@ function InpatientSurgery({ hospitalCaseId }) {
     </Box>
   )
 
+  const renderSkeletonLayout = () => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <Skeleton variant='text' width={220} height={32} />
+        <Skeleton variant='text' width={140} height={20} />
+      </Box>
+
+      <Typography
+        sx={{
+          fontWeight: 400,
+          fontSize: '16px',
+          color: theme.palette.customColors.neutralSecondary,
+          textAlign: 'center'
+        }}
+      >
+        Fetching surgery records...
+      </Typography>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+          <Skeleton variant='text' width={160} height={24} />
+        </Box>
+        <Grid sx={{ px: '8px' }} container spacing={4}>
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <Grid item size={{ xs: 6, md: 3 }} key={`basic-skeleton-${idx}`}>
+              <Skeleton variant='text' width='60%' height={16} />
+              <Skeleton variant='text' width='80%' height={22} />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+          <Skeleton variant='text' width={180} height={24} />
+        </Box>
+        <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Grid container spacing={4}>
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={`surgery-skeleton-${idx}`}>
+                <Skeleton variant='text' width='50%' height={16} />
+                <Skeleton variant='text' width='70%' height={24} />
+              </Grid>
+            ))}
+          </Grid>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <Skeleton key={`notes-skeleton-${idx}`} variant='text' height={20} />
+            ))}
+            <Skeleton variant='text' width='40%' height={20} />
+          </Box>
+          <Skeleton variant='text' width='35%' height={20} />
+        </Box>
+      </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+          <Skeleton variant='text' width={200} height={24} />
+        </Box>
+        <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }} key={`care-skeleton-${idx}`}>
+              <Skeleton variant='text' width='30%' height={18} />
+              <Skeleton variant='text' height={60} />
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <Box sx={{ backgroundColor: '#E8F4F299', padding: '8px', borderRadius: '4px' }}>
+          <Skeleton variant='text' width={180} height={24} />
+        </Box>
+        <Box
+          sx={{
+            width: '100%',
+            overflowX: 'auto',
+            py: 2,
+            '&::-webkit-scrollbar': { height: '2px !important' },
+            '&::-webkit-scrollbar-track': { background: 'transparent' },
+            '&::-webkit-scrollbar-thumb': { background: '#BDBDBD', borderRadius: '6px' },
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#BDBDBD transparent'
+          }}
+        >
+          <Box sx={{ display: 'inline-flex', gap: 2, px: 2 }}>
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <Skeleton key={`attachment-skeleton-${idx}`} variant='rounded' width={240} height={200} />
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  )
+
   const shouldShowDetails = Boolean(activeRecord)
 
   return (
@@ -486,21 +585,25 @@ function InpatientSurgery({ hospitalCaseId }) {
       </Box>
 
       {!shouldShowDetails ? (
-        <Box
-          sx={{
-            py: 6,
-            display: 'flex',
-            justifyContent: 'center'
-          }}
-        >
-          <Typography
+        loading ? (
+          renderSkeletonLayout()
+        ) : (
+          <Box
             sx={{
-              color: error ? theme.palette.error.main : theme.palette.customColors.neutralSecondary
+              py: 6,
+              display: 'flex',
+              justifyContent: 'center'
             }}
           >
-            {error || (loading ? 'Fetching surgery records...' : 'No surgery record selected.')}
-          </Typography>
-        </Box>
+            <Typography
+              sx={{
+                color: error ? theme.palette.error.main : theme.palette.customColors.neutralSecondary
+              }}
+            >
+              {error || 'No surgery record selected.'}
+            </Typography>
+          </Box>
+        )
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
