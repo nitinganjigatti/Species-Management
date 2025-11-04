@@ -6,6 +6,7 @@ import MediaCard from 'src/views/utility/MediaCard'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import { getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
+import Utility from 'src/utility'
 
 const htmlToPlainText = value => {
   if (!value) return ''
@@ -19,21 +20,34 @@ const htmlToPlainText = value => {
 
 const formatDateValue = value => {
   if (!value) return '--'
-  const parsed = dayjs(value)
 
-  if (!parsed.isValid()) return String(value)
+  try {
+    const converted = Utility.convertUtcToLocalReadableDate(value)
 
-  return parsed.format('DD MMM YYYY')
+    if (converted && converted !== 'Invalid date') {
+      return converted
+    }
+
+    const fallback = Utility.convertUTCToLocalDate(value)
+
+    return fallback && fallback !== 'Invalid date' ? fallback : String(value)
+  } catch {
+    return String(value)
+  }
 }
 
-const formatTimeValue = value => {
-  if (!value) return '--'
-  const candidate = typeof value === 'string' && !value.includes('T') ? `1970-01-01T${value}` : value
-  const parsed = dayjs(candidate)
+const formatTimeValue = (time, date) => {
+  if (!time) return '--'
 
-  if (!parsed.isValid()) return String(value)
+  const source = date ? `${date} ${time}` : time
 
-  return parsed.format('hh:mm A')
+  try {
+    const converted = Utility.convertUTCToLocaltime(source)
+
+    return converted && converted !== 'Invalid date' ? converted : String(time)
+  } catch {
+    return String(time)
+  }
 }
 
 const getDurationLabel = detail => {
@@ -261,8 +275,8 @@ function InpatientSurgery({ hospitalCaseId }) {
     return [
       { label: 'Date', value: formatDateValue(detail.surgery_date) },
       { label: 'Surgery Duration', value: getDurationLabel(detail) },
-      { label: 'Start Time', value: formatTimeValue(detail.start_time) },
-      { label: 'End Time', value: formatTimeValue(detail.end_time) }
+      { label: 'Start Time', value: formatTimeValue(detail.start_time, detail.surgery_date) },
+      { label: 'End Time', value: formatTimeValue(detail.end_time, detail.surgery_date) }
     ]
   }, [activeDetail])
 
