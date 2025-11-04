@@ -57,11 +57,12 @@ const SelectSites = ({
     }
   }, [openSiteListDrawer])
 
-  const filteredSites = useMemo(
-    () =>
-      siteData.filter(site => site.site_name?.toLowerCase().includes((searchTerm || '').toLowerCase())),
-    [siteData, searchTerm]
-  )
+  const filteredSites = useMemo(() => {
+    const normalizedSiteData = Array.isArray(siteData) ? siteData : []
+    const normalizedSearchTerm = (searchTerm || '').toLowerCase()
+
+    return normalizedSiteData.filter(site => site.site_name?.toLowerCase().includes(normalizedSearchTerm))
+  }, [siteData, searchTerm])
 
   const filteredSiteIds = useMemo(() => filteredSites.map(site => site.site_id), [filteredSites])
   const filteredSelectedCount = useMemo(
@@ -180,7 +181,7 @@ const SelectSites = ({
 
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
-            Selected {pendingSelections?.Site?.length} / {siteData?.length}
+            Selected {filteredSelectedCount} / {filteredSites.length}
           </Typography>
           <Box
             sx={{
@@ -244,22 +245,35 @@ const SelectSites = ({
             [...filteredSites]
               .sort((a, b) => a.site_name.localeCompare(b.site_name))
               .map(site => {
+                const isSelected = pendingSelections?.Site?.includes(site.site_id)
+
+                const handleToggleSite = () => {
+                  handleSiteCheckboxChange(site)
+                }
+
                 return (
                   <ListItem
                     key={site.site_id}
+                    onClick={handleToggleSite}
+                    onKeyDown={event => {
+                      if (event.target !== event.currentTarget) return
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleToggleSite()
+                      }
+                    }}
+                    tabIndex={0}
+                    role='button'
                     sx={{
                       pr: 1.5,
                       pl: 3,
                       mb: 4,
                       border: '1px solid',
-                      borderColor: pendingSelections?.Site?.includes(site.site_id)
-                        ? theme.palette.primary.main
-                        : theme.palette.customColors.OutlineVariant,
+                      borderColor: isSelected ? theme.palette.primary.main : theme.palette.customColors.OutlineVariant,
                       borderRadius: '8px',
-                      bgcolor: pendingSelections?.Site?.includes(site.site_id)
-                        ? theme.palette.customColors.OnBackground
-                        : 'transparent',
-                      height: '70px'
+                      bgcolor: isSelected ? theme.palette.customColors.OnBackground : 'transparent',
+                      height: '70px',
+                      cursor: 'pointer'
                     }}
                   >
                     <ListItemAvatar>
@@ -289,8 +303,12 @@ const SelectSites = ({
                       }}
                     />
                     <Checkbox
-                      checked={pendingSelections?.Site?.includes(site.site_id)}
-                      onChange={() => handleSiteCheckboxChange(site)}
+                      checked={isSelected}
+                      onClick={event => {
+                        event.stopPropagation()
+                        handleToggleSite()
+                      }}
+                      inputProps={{ 'aria-label': 'Select site' }}
                     />
                   </ListItem>
                 )
