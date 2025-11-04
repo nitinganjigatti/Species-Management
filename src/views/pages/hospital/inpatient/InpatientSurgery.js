@@ -8,6 +8,24 @@ import dayjs from 'dayjs'
 import { getPatientSurgeryList } from 'src/lib/api/hospital/surgeryMaster'
 import Utility from 'src/utility'
 
+const FieldTooltip = ({ title, placement = 'top-start', children }) => (
+  <Tooltip
+    title={title}
+    placement={placement}
+    arrow
+    PopperProps={{
+      modifiers: [
+        {
+          name: 'offset',
+          options: { offset: [0, 6] }
+        }
+      ]
+    }}
+  >
+    {children}
+  </Tooltip>
+)
+
 const htmlToPlainText = value => {
   if (!value) return ''
   if (typeof value !== 'string') return String(value)
@@ -492,7 +510,7 @@ function InpatientSurgery({ hospitalCaseId }) {
             <Grid sx={{ px: '8px' }} container spacing={4}>
               {basicDetails.map(detail => (
                 <Grid item size={{ xs: 6, md: 3 }} key={detail.label}>
-                  <Tooltip title={detail.label}>
+                  <FieldTooltip title={detail.label}>
                     <Typography
                       sx={{
                         mb: '4px',
@@ -508,8 +526,8 @@ function InpatientSurgery({ hospitalCaseId }) {
                     >
                       {detail.label}
                     </Typography>
-                  </Tooltip>
-                  <Tooltip title={detail.value}>
+                  </FieldTooltip>
+                  <FieldTooltip title={detail.value}>
                     <Typography
                       sx={{
                         fontWeight: 400,
@@ -523,7 +541,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                     >
                       {detail.value}
                     </Typography>
-                  </Tooltip>
+                  </FieldTooltip>
                 </Grid>
               ))}
             </Grid>
@@ -535,7 +553,7 @@ function InpatientSurgery({ hospitalCaseId }) {
               <Grid container spacing={4}>
                 {surgeryDetailItems.map(item => (
                   <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={item.label}>
-                    <Tooltip title={item.label}>
+                    <FieldTooltip title={item.label}>
                       <Typography
                         sx={{
                           mb: '4px',
@@ -551,8 +569,8 @@ function InpatientSurgery({ hospitalCaseId }) {
                       >
                         {item.label}
                       </Typography>
-                    </Tooltip>
-                    <Tooltip title={item.value}>
+                    </FieldTooltip>
+                    <FieldTooltip title={item.value}>
                       <Typography
                         sx={{
                           fontWeight: 400,
@@ -566,7 +584,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                       >
                         {item.value}
                       </Typography>
-                    </Tooltip>
+                    </FieldTooltip>
                   </Grid>
                 ))}
               </Grid>
@@ -582,7 +600,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                 >
                   Surgery notes
                 </Typography>
-                <Tooltip title={surgeryNotesText}>
+                <FieldTooltip title={surgeryNotesText}>
                   <Typography
                     sx={{
                       fontWeight: 400,
@@ -599,10 +617,10 @@ function InpatientSurgery({ hospitalCaseId }) {
                   >
                     {surgeryNotesText}
                   </Typography>
-                </Tooltip>
+                </FieldTooltip>
 
                 {findingsText && (
-                  <Tooltip title={`Findings: ${findingsText}`}>
+                  <FieldTooltip title={`Findings: ${findingsText}`}>
                     <Typography
                       sx={{
                         fontWeight: 400,
@@ -619,7 +637,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                     >
                       <strong>Findings:</strong> {findingsText}
                     </Typography>
-                  </Tooltip>
+                  </FieldTooltip>
                 )}
 
                 {procedurePerformedList.length > 0 && (
@@ -638,7 +656,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                     <Box component='ul' sx={{ ml: '-8px', mt: 0, mb: 1 }}>
                       {procedurePerformedList.map((item, idx) => (
                         <li key={`${item}-${idx}`}>
-                          <Tooltip title={item}>
+                          <FieldTooltip title={item}>
                             <Typography
                               component='span'
                               sx={{
@@ -655,7 +673,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                             >
                               {item}
                             </Typography>
-                          </Tooltip>
+                          </FieldTooltip>
                         </li>
                       ))}
                     </Box>
@@ -705,7 +723,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                 >
                   Complication
                 </Typography>
-                <Tooltip title={complicationText}>
+                <FieldTooltip title={complicationText}>
                   <Typography
                     sx={{
                       fontWeight: 400,
@@ -719,7 +737,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                   >
                     {complicationText}
                   </Typography>
-                </Tooltip>
+                </FieldTooltip>
               </Box>
             </Box>
           </Box>
@@ -729,7 +747,7 @@ function InpatientSurgery({ hospitalCaseId }) {
             <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {careInstructionItems.map(item => (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }} key={item.label}>
-                  <Tooltip title={item.label}>
+                  <FieldTooltip title={item.label}>
                     <Typography
                       sx={{
                         mb: '4px',
@@ -745,8 +763,8 @@ function InpatientSurgery({ hospitalCaseId }) {
                     >
                       {item.label}
                     </Typography>
-                  </Tooltip>
-                  <Tooltip title={item.value}>
+                  </FieldTooltip>
+                  <FieldTooltip title={item.value}>
                     <Typography
                       sx={{
                         fontWeight: 400,
@@ -763,7 +781,7 @@ function InpatientSurgery({ hospitalCaseId }) {
                     >
                       {item.value}
                     </Typography>
-                  </Tooltip>
+                  </FieldTooltip>
                 </Box>
               ))}
             </Box>
