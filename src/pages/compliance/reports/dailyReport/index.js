@@ -61,7 +61,6 @@ const DailyReport = () => {
   const [tempSelectedItems, setTempSelectedItems] = useState({ Site: [] })
   const [filterCount, setFilterCount] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: ''
@@ -88,7 +87,6 @@ const DailyReport = () => {
   const loadSitesFromAuth = useCallback(() => {
     try {
       const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
-
       const mapped = sites.map(s => ({
         site_id: String(s.id ?? s.site_id ?? ''),
         site_name: s.site_name,
@@ -180,6 +178,9 @@ const DailyReport = () => {
         counter += 1
         const child = Array.isArray(d.child_observation) ? d.child_observation.join('• ') : ''
 
+        const reporterName = d.created_by || block?.created_by || ''
+        const reportedAt = d.created_at || block?.created_at || ''
+
         rows.push({
           id: d.observation_id || `${ref_type}-${ref_id}-${counter}`,
           sl_no: String(counter).padStart(2, '0'),
@@ -201,7 +202,9 @@ const DailyReport = () => {
           observation: d.details || d.observation || '',
           site_name: site || '',
           sex: sex || '',
-          ref_type: ref_type || (animal_id ? 'animal' : '')
+          ref_type: ref_type || (animal_id ? 'animal' : ''),
+          created_by: reporterName,
+          created_at: reportedAt
         })
       }
     }
@@ -312,7 +315,6 @@ const DailyReport = () => {
       if (!siteIds.length) {
         setIndexedRows([])
         setTotal(0)
-
         return
       }
 
@@ -377,7 +379,6 @@ const DailyReport = () => {
     fetchObservationMasterType()
   }, [
     fetchDailyReport,
-
     // explicit deps to trigger once per change:
     selectedSiteIds.join(','), // array -> string to avoid ref churn
     dateRange.startDate,
@@ -403,7 +404,6 @@ const DailyReport = () => {
     }
     try {
       setIsDownloading(true)
-
       // If you already have a util to download PDF, call it here:
       await downloadPDF({
         apiCall: getComplianceDailyReport,
@@ -504,10 +504,10 @@ const DailyReport = () => {
       )
     },
     {
-      minWidth: 400,
+      minWidth: 370,
       width: 500,
       field: 'observation',
-      headerName: 'OBSERVATION',
+      headerName: 'Treatment',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -521,6 +521,40 @@ const DailyReport = () => {
         >
           {params.row.observation}
         </Typography>
+      )
+    },
+    {
+      width: 170,
+      field: 'created_by',
+      headerName: 'REPORTED BY',
+      sortable: false,
+      renderCell: params => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 400,
+              letterSpacing: 0,
+              lineHeight: 1
+            }}
+          >
+            {params.row.created_by || '-'}
+          </Typography>
+          {params.row.created_at && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '14px',
+                fontWeight: 400,
+                letterSpacing: 0,
+                lineHeight: 1
+              }}
+            >
+              {Utility.convertUTCToLocaltime(params.row.created_at)}
+            </Typography>
+          )}
+        </Box>
       )
     }
   ]

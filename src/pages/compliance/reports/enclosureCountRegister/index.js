@@ -82,7 +82,6 @@ const EnclosureCountRegister = () => {
       : []
   ).map(String)
   const siteKey = siteIdsArr.join(',')
-
   const typeKey =
     selectedItems?.reportType === 'individual' ? 'individual' : selectedItems?.reportType ? 'species-wise' : ''
   const sectionKey = (selectedItems?.Section || []).join(',')
@@ -157,7 +156,6 @@ const EnclosureCountRegister = () => {
     if (enclosureKey) params.enclosure_id = enclosureKey
 
     let canceled = false
-
     const statKeyChanged =
       prevStatKeyRef.current.siteKey !== siteKey ||
       prevStatKeyRef.current.type !== typeKey ||
@@ -174,22 +172,23 @@ const EnclosureCountRegister = () => {
         if (canceled) return
         if (res?.success) {
           const animals = res?.data?.animals || []
-
           const rows = animals.map((item, idx) => {
             if (selectedItems?.reportType === 'individual') {
               return {
                 id: item.animal_id || idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
                 sl_no: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
                 animal_id: item.animal_id || null,
-                common_name: item['Common Name'] || item.common_name || '-',
-                scientific_name: item['Scientific Name'] || item.scientific_name || '-',
-                default_icon: item.default_icon || '-',
-                enclosureName: item.user_enclosure_name || '-',
-                user_enclosure_name: item.user_enclosure_name || '-',
+                common_name: item['Common Name'] || item.common_name || '',
+                scientific_name: item['Scientific Name'] || item.scientific_name || '',
+                default_icon: item.default_icon || '',
+                enclosureName: item.user_enclosure_name || '',
+                user_enclosure_name: item.user_enclosure_name || '',
+                breed_name: item.breed_name || '',
+                morph_name: item.morph_name || '',
+                type: item.type || '',
                 sex: item.sex || '-',
                 primary_identifier_type: item.primary_identifier_type || null,
                 primary_identifier_value: item.primary_identifier_value || null,
-
                 // Map to AnimalCard expected keys
                 local_identifier_name: item.primary_identifier_type || null,
                 local_identifier_value: item.primary_identifier_value || null
@@ -200,12 +199,13 @@ const EnclosureCountRegister = () => {
             return {
               id: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
               sl_no: idx + 1 + (paginationModel.page || 0) * (paginationModel.pageSize || 50),
-              common_name: item['Common Name'] || item.common_name || '-',
-              scientific_name: item['Scientific Name'] || item.scientific_name || '-',
+              common_name: item['Common Name'] || item.common_name || '',
+              scientific_name: item['Scientific Name'] || item.scientific_name || '',
               default_icon: item.default_icon,
-              enclosureName: item.user_enclosure_name || '-',
-              user_enclosure_name: item.user_enclosure_name || '-',
+              enclosureName: item.user_enclosure_name || '',
+              user_enclosure_name: item.user_enclosure_name || '',
               male: Number(item.male_count || 0),
+
               female: Number(item.female_count || 0),
               others: Number(item.other_count || 0),
               total: Number(item.total_count || 0),
@@ -280,7 +280,20 @@ const EnclosureCountRegister = () => {
       headerName: 'ENCLOSURE NAME',
       sortable: false,
       renderCell: params => (
-        <Tooltip title={params.row.enclosureName} placement='top'>
+        <Tooltip
+          title={params.row.enclosureName}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             variant='body2'
             sx={{
@@ -311,7 +324,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.male} placement='top'>
+        <Tooltip
+          title={params.row.male}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -341,7 +367,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.female} placement='top'>
+        <Tooltip
+          title={params.row.female}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -371,7 +410,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.others} placement='top'>
+        <Tooltip
+          title={params.row.others}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -401,7 +453,20 @@ const EnclosureCountRegister = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Tooltip title={params.row.total} placement='top'>
+        <Tooltip
+          title={params.row.total}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -442,7 +507,20 @@ const EnclosureCountRegister = () => {
       headerName: 'ENCLOSURE NAME',
       sortable: false,
       renderCell: params => (
-        <Tooltip title={params.row.enclosureName} placement='top'>
+        <Tooltip
+          title={params.row.enclosureName}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               fontSize: '16px',
@@ -471,7 +549,20 @@ const EnclosureCountRegister = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Tooltip title={params.row.gender || params.row.sex} placement='top'>
+        <Tooltip
+          title={params.row.gender || params.row.sex}
+          placement='top-start'
+          slotProps={{
+            popper: {
+              modifiers: [
+                {
+                  name: 'offset',
+                  options: { offset: [0, 2] }
+                }
+              ]
+            }
+          }}
+        >
           <Typography
             sx={{
               fontSize: '16px',
@@ -648,7 +739,6 @@ const EnclosureCountRegister = () => {
   const applySearchDebounced = useCallback(
     debounce(val => {
       setSearchValue(val)
-
       // Reset page after settling search
       setPaginationModel(prev => ({ ...prev, page: 0 }))
     }, 600),
@@ -767,7 +857,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    {registerStats?.section_name ? 'Section' : 'Total Sections Count'}:{' '}
+                    {registerStats?.section_name ? 'Section' : 'Total Section Count'}:{' '}
                     <span style={{ fontWeight: 500 }}>
                       {registerStats?.section_name || registerStats?.total_sections || '-'}
                     </span>
@@ -811,7 +901,7 @@ const EnclosureCountRegister = () => {
                         fontFamily: 'Inter'
                       }}
                     >
-                      Total Enclosures Count:{' '}
+                      Total Enclosure Count:{' '}
                       <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
                     </Typography>
                   )}
