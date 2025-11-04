@@ -263,6 +263,7 @@ const UserDrawer = ({
 
             {list.map(user => (
               <UserCard
+                key={user?.user_id || user?.uid}
                 name={user?.user_name}
                 uid={user?.user_id}
                 role={user?.role_name}
