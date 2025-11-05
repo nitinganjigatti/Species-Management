@@ -1,7 +1,8 @@
-import { useTheme } from '@mui/material/styles'
+import { useTheme, styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
+  Badge,
   Checkbox,
   Divider,
   Drawer,
@@ -13,13 +14,21 @@ import {
   Collapse,
   CardHeader,
   CardContent,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
 import SelectSiteList from 'src/components/diet/SelectSiteList'
 import SelectSectionList from 'src/components/diet/SelectSectionList'
 import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
+import { getSpeciesList } from 'src/lib/api/diet/dietList'
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
 
 const SpeciesMappedtoDietFilter = ({
   openFilterDrawer,
@@ -67,7 +76,9 @@ const SpeciesMappedtoDietFilter = ({
   selectedEnclosures,
   setSelectedEnclosures,
   setSelectedSections,
-  selectedSections
+  selectedSections,
+  loadingTaxonomy,
+  loadingSpecies
 }) => {
   const theme = useTheme()
 
@@ -145,7 +156,7 @@ const SpeciesMappedtoDietFilter = ({
     setOpenFilterDrawer(false)
   }
 
-  const handleCancelAll = () => {
+  const handleCancelAll = async () => {
     const clearedTempSelectedItems = Object.keys(tempSelectedItems).reduce((acc, key) => {
       acc[key] = []
 
@@ -266,6 +277,18 @@ const SpeciesMappedtoDietFilter = ({
     }
   }
 
+  const getTabSelectionCount = tab => {
+    if (tab === 'Taxonomy') {
+      return selectedTaxonomyIds?.length || tempSelectedItems?.Taxonomy?.length || selectedItems?.Taxonomy?.length || 0
+    }
+
+    if (tab === 'Species') {
+      return selectedSpeciesIds?.length || tempSelectedItems?.Species?.length || selectedItems?.Species?.length || 0
+    }
+
+    return tempSelectedItems?.[tab]?.length || selectedItems?.[tab]?.length || 0
+  }
+
   return (
     <>
       <Drawer
@@ -319,34 +342,30 @@ const SpeciesMappedtoDietFilter = ({
                     !(selectionType === 'species' && tab === 'Species') &&
                     !(selectionType === 'animals' && tab === 'Taxonomy')
                 )
-                .map(tab => (
-                  <Box
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    sx={{
-                      padding: 1,
-                      cursor: 'pointer',
-                      backgroundColor: activeTab === tab ? theme.palette.common.white : 'transparent',
-                      fontWeight: activeTab === tab ? 'bold' : 'normal',
-                      color: theme.palette.primary.dark,
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      py: 4,
-                      pl: 4,
-                      borderTopLeftRadius: '6px',
-                      borderBottomLeftRadius: '6px'
-                    }}
-                  >
-                    {tab}{' '}
-                    {tab === 'Taxonomy' && selectedItems?.Taxonomy?.length > 0
-                      ? `(${selectedItems?.Taxonomy?.length})`
-                      : tab === 'Site' && selectedItems?.Site?.length > 0
-                      ? `(${selectedItems?.Site?.length})`
-                      : tab === 'Species' && selectedItems?.Species?.length > 0
-                      ? `(${selectedItems?.Species?.length})`
-                      : ''}
-                  </Box>
-                ))}
+                .map(tab => {
+                  const tabCount = getTabSelectionCount(tab)
+                  return (
+                    <Box
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      sx={{
+                        padding: 1,
+                        cursor: 'pointer',
+                        backgroundColor: activeTab === tab ? theme.palette.common.white : 'transparent',
+                        fontWeight: activeTab === tab ? 'bold' : 'normal',
+                        color: theme.palette.primary.dark,
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        py: 4,
+                        pl: 4,
+                        borderTopLeftRadius: '6px',
+                        borderBottomLeftRadius: '6px'
+                      }}
+                    >
+                      {tab} <StyledBadge badgeContent={tabCount} color='primary' sx={{ ml: 5 }} />
+                    </Box>
+                  )
+                })}
             </Grid>
             <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
               <Box
@@ -742,7 +761,7 @@ const SpeciesMappedtoDietFilter = ({
                                 </div>
                               )
                             })
-                          ) : (
+                          ) : !loadingSpecies ? (
                             <Box
                               sx={{
                                 display: 'flex',
@@ -756,9 +775,48 @@ const SpeciesMappedtoDietFilter = ({
                               <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
                               <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
                             </Box>
+                          ) : (
+                            ''
                           )}
                         </Box>
                       </Box>
+                      {loadingSpecies && speciesDataforFilter?.length > 0 ? (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: '135px',
+                            left: '70px',
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            py: 2,
+
+                            zIndex: 2
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      ) : loadingSpecies ? (
+                        <Box
+                          sx={{
+                            position: 'sticky',
+                            bottom: 0,
+                            left: 0,
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            py: 2,
+
+                            zIndex: 2
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      ) : (
+                        ''
+                      )}
                     </Box>
                   </>
                 )}
@@ -813,11 +871,50 @@ const SpeciesMappedtoDietFilter = ({
                                 </div>
                               )
                             })
-                          ) : (
+                          ) : !loadingTaxonomy ? (
                             <Typography sx={{ textAlign: 'center', mt: 10 }}>No Taxonomy found</Typography>
+                          ) : (
+                            ''
                           )}
                         </Box>
                       </Box>
+                      {loadingTaxonomy && filteredTaxonomyList?.length > 0 ? (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: '135px',
+                            left: '70px',
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            py: 2,
+
+                            zIndex: 2
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      ) : loadingTaxonomy ? (
+                        <Box
+                          sx={{
+                            position: 'sticky',
+                            bottom: 0,
+                            left: 0,
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            py: 2,
+
+                            zIndex: 2
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      ) : (
+                        ''
+                      )}
                     </Box>
                   </>
                 )}

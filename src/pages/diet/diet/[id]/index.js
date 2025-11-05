@@ -67,7 +67,8 @@ const DietDetail = () => {
   const [primaryStatus, setPrimaryStatus] = useState({})
   const [allFetchedData, setAllFetchedData] = useState([])
   const [hasMoreData, setHasMoreData] = useState(true)
-
+  const [loadingTaxonomy, setLoadingTaxonomy] = useState(false)
+  const [loadingSpecies, setLoadingSpecies] = useState(false)
   const [selectedItems, setSelectedItems] = useState({
     Site: [],
     Section: [],
@@ -98,6 +99,8 @@ const DietDetail = () => {
   const [applyfilterCheck, setapplyfilterCheck] = useState(false)
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
   const [selectedSections, setSelectedSections] = useState([])
+  const [taxonomyLoading, setTaxonomyLoading] = useState(false)
+  const [speciesFilterLoading, setSpeciesFilterLoading] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -166,6 +169,10 @@ const DietDetail = () => {
 
   const fetchList = async (searchQuery, type = null) => {
     try {
+      if (filterState === 'species') {
+        setSpeciesFilterLoading(true)
+      }
+
       if (pageNo === 1) {
         setLoading(true)
       } else {
@@ -185,6 +192,7 @@ const DietDetail = () => {
 
       let res
       if (selectionType === 'animals' && filterState === 'species') {
+        setLoadingSpecies(true)
         const params = {
           page_no: pageNo,
           limit: 15,
@@ -193,8 +201,12 @@ const DietDetail = () => {
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
         }
         res = await getSpeciesList(params)
+        if (res) {
+          setLoadingSpecies(false)
+        }
       } else if (selectionType === 'species') {
         // Params for species list with taxonomy_ids
+
         const params = {
           ...commonParams,
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
@@ -202,6 +214,7 @@ const DietDetail = () => {
         res = await getSpeciesList(params)
       } else if (selectionType === 'animals') {
         // Params for animals list
+
         const params = {
           ...commonParams,
           ...(selectedItems?.Species?.length > 0 && { species_ids: `[${selectedItems?.Species.join(',')}]` })
@@ -303,6 +316,7 @@ const DietDetail = () => {
     } finally {
       setLoading(false)
       setIsLoadingMore(false)
+      setSpeciesFilterLoading(false)
     }
   }
 
@@ -392,7 +406,9 @@ const DietDetail = () => {
   }
 
   const fetchTaxonomyList = async (searchQuery = taxonomySearchQuery) => {
+    setTaxonomyLoading(true)
     try {
+      setLoadingTaxonomy(true)
       const params = { search: searchQuery, page_no: pageNoTaxonomy, limit: 15 }
       const response = await getTaxonomyList(params)
       if (response?.data) {
@@ -405,6 +421,8 @@ const DietDetail = () => {
     } catch (error) {
       console.error('Error fetching taxonomy list:', error)
       setTaxonomyList([])
+    } finally {
+      setLoadingTaxonomy(false)
     }
   }
 
@@ -447,9 +465,10 @@ const DietDetail = () => {
     isOpentab,
     isOpentabEdit,
     selectionType,
-    filterState,
-    openFilterDrawer,
-    tempSelectedItems,
+    activeTab === 'Species',
+    //filterState,
+    openFilterDrawer === false,
+    //tempSelectedItems,
     applyfilterCheck
   ])
 
@@ -3861,6 +3880,8 @@ const DietDetail = () => {
             selectedEnclosures={selectedEnclosures}
             setSelectedSections={setSelectedSections}
             selectedSections={selectedSections}
+            loadingTaxonomy={loadingTaxonomy}
+            loadingSpecies={loadingSpecies}
           />
         </>
       ) : (
