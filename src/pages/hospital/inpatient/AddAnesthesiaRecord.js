@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
+import { useRouter } from 'next/router'
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
 import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
@@ -30,7 +31,8 @@ const sections = [
 ]
 
 export default function AddAnesthesiaRecord() {
-  const [expanded, setExpanded] = React.useState('Basic Detail')
+  const router = useRouter()
+  const [expanded, setExpanded] = React.useState('basicDetails')
   const [formData, setFormData] = useState({
     basicDetails: {
       location: '',
@@ -237,7 +239,7 @@ export default function AddAnesthesiaRecord() {
             </span>
           </Box>
         }
-        onCancel={() => router.push(`/hospital/inpatient/${id}/?animal_id=${animal_id}&tab=symptoms`)}
+        //onCancel={() => router.push(`/hospital/inpatient/${id}/?animal_id=${animal_id}&tab=symptoms`)}
         // onAdd={handleAddClick}
         width={200}
         height={50}
