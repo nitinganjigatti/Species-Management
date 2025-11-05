@@ -719,6 +719,8 @@ export const CHANGE_MASTERS_SURGERY_STATUS = 'v1/hospital/change-surgery-status/
 
 export const DELETE_MASTERS_SURGERY = 'v1/hospital/delete-surgery/'
 
+export const GET_PATIENT_SURGERY_LIST = 'v1/hospital/patient-surgery-list'
+
 export const GET_HOSPITAL_PATIENTS_LISTS = `v1/hospital/get-hospital-patients`
 
 export const GET_PATIENTS_DETAILS = `v1/hospital/patient-details/`
@@ -790,6 +792,8 @@ export const MEDICINE_LIST = 'medical/medicine-search'
 export const MEDICAL_MASTER_DATA = 'medical/masterdata'
 
 export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
+
+export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
 export const ADD_DIRECT_ADMINISTER_PRESCRIPTION = 'administer/v2/create-direct-adminster-record'
 

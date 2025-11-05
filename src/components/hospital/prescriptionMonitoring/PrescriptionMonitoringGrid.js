@@ -12,6 +12,16 @@ import TimeSlotCell from 'src/views/pages/hospital/prescription-monitoring/TimeS
 import MetricCard from 'src/views/pages/hospital/prescription-monitoring/MetricCard'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
+import NoDataFound from 'src/views/utility/NoDataFound'
+import ActionButtonsWithSelection from '../ActionButtonsWithSelection'
+import AdministerOrSkipModal from 'src/views/pages/hospital/prescription-monitoring/AdministerOrSkipModal'
+
+const medicineData = {
+  name: 'Levothyroxine',
+  date: '2 Jan 2025',
+  time: '12:00 PM',
+  calculatedDosage: '310 mg'
+}
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -318,21 +328,25 @@ const PrescriptionMonitoringGrid = ({
   onTimeSlotClick = () => {},
   onRemoveMetric = () => {},
   onOpenPrescriptionCard = () => {},
-  isLoading
+  isLoading,
+  isCurrentMedicalRecord,
+  setIsCurrentMedicalRecord
 }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id, animal_id, medical_record_id } = router.query
-  console.log(router.query, 'router.query')
-  console.log('medications in grid:', medications)
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
 
   const [hoveredSlot, setHoveredSlot] = useState(null)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [didInitialScroll, setDidInitialScroll] = useState(false)
+  const [isAdministerOrSkipPopupOpen, setIsAdministerOrSkipPopupOpen] = useState(false)
+  const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
   // Array of selected metric objects
   const [selectedMetrics, setSelectedMetrics] = useState([])
+  const [isAdminstrationLoading, setIsAdminstrationLoading] = useState(false)
+  const [selectedMedicine, setSelectedMedicine] = useState(null)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -446,7 +460,7 @@ const PrescriptionMonitoringGrid = ({
       })
 
       return {
-        id: medication.id,
+        id: medication.prescription_id,
         name: medication.name,
         frequency: medication.frequency,
         progress: medication.progress,
@@ -617,6 +631,68 @@ const PrescriptionMonitoringGrid = ({
     }
   }
 
+  const handleSkip = () => {
+    console.log('Skipped clicked for selected metrics:', selectedMetrics)
+    // Implement skip logic here
+  }
+
+  const handleAdminister = () => {
+    console.log('Administer clicked for selected metrics:', selectedMetrics)
+    // Implement administer logic here
+  }
+
+  const handleMedicineNameClick = data => {
+    onOpenPrescriptionCard(data)
+  }
+
+  const handleAdministerOrSkipOpen = data => {
+    setSelectedMedicine(data)
+    console.log('data in handleAdministerOrSkipOpen:', data)
+    setIsAdministerOrSkipPopupOpen(true)
+  }
+
+  const handleAdministerOrSkipClose = () => setIsAdministerOrSkipPopupOpen(false)
+
+  const handleSubmit = async data => {
+    setIsAdministerOrSkipPopupLoading(true)
+
+    try {
+      // Process the form data based on action type
+      if (data.action === 'administer') {
+        console.log('Administering medicine with data:', {
+          time: data.time,
+          quantity: data.quantity,
+          quantityUnit: data.quantityUnit,
+          wastageQuantity: data.wastageQuantity,
+          wastageUnit: data.wastageUnit,
+          notes: data.notes,
+          batchNumber: data.batchNumber,
+          attachment: data.attachment
+        })
+        // Your API call for administering medicine
+        // await administerMedicine(data)
+      } else if (data.action === 'skipped') {
+        console.log('Skipping medicine with data:', {
+          time: data.time,
+          quantity: data.quantity,
+          quantityUnit: data.quantityUnit,
+          skipReason: data.skipReason
+        })
+        // Your API call for skipping medicine
+        // await skipMedicine(data)
+      }
+
+      // Success handling
+      alert('Action completed successfully!')
+      handleClose()
+    } catch (error) {
+      console.error('Error:', error)
+      alert('An error occurred')
+    } finally {
+      setIsAdministerOrSkipPopupLoading(false)
+    }
+  }
+
   // Show shimmer loading state
   if (isLoading) {
     return (
@@ -664,7 +740,7 @@ const PrescriptionMonitoringGrid = ({
         <Grid item size={{ xs: 10, sm: 10 }}>
           <HorizontalDateNav
             isLoading={isLoading}
-            onDateClick={handleDateChange}
+            onDateSelect={handleDateChange}
             selectedDate={selectedDate}
             dates={dates}
           />
@@ -696,123 +772,166 @@ const PrescriptionMonitoringGrid = ({
             labelStyle={isAllSelected && { color: 'green' }}
             checked={isAllSelected}
             indeterminate={isIndeterminate}
+            disabled={displayMetrics?.length === 0}
             onChange={handleSelectAll}
           />
-          <MUISwitch label='Current medical records only' />
+          <MUISwitch
+            checked={isCurrentMedicalRecord}
+            onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+            label='Current medical records only'
+          />
         </Grid>
         <Grid item size={{ xs: 12, sm: 12 }}>
-          <DashboardContainer>
-            <MainContainer>
-              <FixedColumn>
-                <HeaderContainer>
-                  <Typography>Medications</Typography>
-                </HeaderContainer>
+          {displayMetrics.length > 0 ? (
+            <DashboardContainer>
+              <MainContainer>
+                <FixedColumn>
+                  <HeaderContainer>
+                    <Typography>Medications</Typography>
+                  </HeaderContainer>
 
-                {displayMetrics?.map(metric => (
-                  <MetricCardWrapper key={metric.id}>
-                    <MetricCard
-                      metric={metric}
-                      selected={selectedMetrics.some(m => m.id === metric.id)}
-                      onSelect={() => handleSelectMetric(metric)}
-                      disabled={
-                        Array.isArray(metric.schedule) &&
-                        metric.schedule.length > 0 &&
-                        metric.schedule.every(s => s.status === 'administered')
-                      }
-                      theme={theme}
-                      MetricLabel={MetricLabel}
-                      prescriptionCardColorsConfig={prescriptionCardColorsConfig}
-                    />
-                  </MetricCardWrapper>
-                ))}
-              </FixedColumn>
+                  {displayMetrics?.map(metric => (
+                    <MetricCardWrapper key={metric.id}>
+                      <MetricCard
+                        metric={metric}
+                        onMedicineNameClick={() => handleMedicineNameClick(metric)}
+                        selected={selectedMetrics.some(m => m.id === metric.id)}
+                        onSelect={() => handleSelectMetric(metric)}
+                        disabled={
+                          Array.isArray(metric.schedule) &&
+                          metric.schedule.length > 0 &&
+                          metric.schedule.every(s => s.status === 'administered')
+                        }
+                        theme={theme}
+                        MetricLabel={MetricLabel}
+                        prescriptionCardColorsConfig={prescriptionCardColorsConfig}
+                      />
+                    </MetricCardWrapper>
+                  ))}
+                </FixedColumn>
 
-              <ScrollableContainer ref={scrollContainerRef}>
-                <TimeSlotGrid numColumns={timeSlots.length}>
-                  {timeSlots.map(time => {
-                    const currentHour24 = currentTime.getHours()
-                    const slotHour24 = convertLabelToHour24(time)
-                    const isCurrentHour = slotHour24 === currentHour24
+                <ScrollableContainer ref={scrollContainerRef}>
+                  <TimeSlotGrid numColumns={timeSlots.length}>
+                    {timeSlots.map(time => {
+                      const currentHour24 = currentTime.getHours()
+                      const slotHour24 = convertLabelToHour24(time)
+                      const isCurrentHour = slotHour24 === currentHour24
 
-                    const currentMinutes = currentTime.getMinutes()
-                    const positionPercentage = (currentMinutes / 60) * 100
-
-                    return (
-                      <TimeHeader
-                        onClick={() => {
-                          console.log('onclick of time slots', time)
-                        }}
-                        key={time}
-                        sx={{
-                          position: 'relative',
-                          width: '184px'
-                        }}
-                        ref={el => (hourRefs.current[time] = el)}
-                      >
-                        {time}
-                        {isCurrentHour && (
-                          <TimeTooltip sx={{ left: `${positionPercentage}%` }}>
-                            {currentTime.toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true
-                            })}
-                          </TimeTooltip>
-                        )}
-                      </TimeHeader>
-                    )
-                  })}
-                </TimeSlotGrid>
-                {displayMetrics?.map(metric => (
-                  <TimeSlotGrid
-                    onClick={() => {
-                      console.log('onclick of time slot grid', metric)
-                    }}
-                    key={metric.id}
-                    numColumns={timeSlots.length}
-                  >
-                    {metric.timeSlots.map((timeSlot, index) => {
-                      const slotKey = `${metric.id}-${index}`
-                      const hasSchedule = timeSlot.isActive
-                      const status = timeSlot?.value?.status
-                      const scheduledTime = timeSlot?.value?.scheduledTime
-                      const dosage = timeSlot?.value?.dosage
+                      const currentMinutes = currentTime.getMinutes()
+                      const positionPercentage = (currentMinutes / 60) * 100
 
                       return (
-                        <TimeSlot
-                          config={timeSlotGridConfig(status)}
-                          key={slotKey}
+                        <TimeHeader
                           onClick={() => {
-                            handleTimeSlotClick(metric.id, timeSlot)
+                            console.log('onclick of time slots', time)
                           }}
+                          key={time}
+                          sx={{
+                            position: 'relative',
+                            width: '184px'
+                          }}
+                          ref={el => (hourRefs.current[time] = el)}
                         >
-                          <TimeSlotCell
-                            hasSchedule={hasSchedule}
-                            status={status}
-                            scheduledTime={scheduledTime}
-                            dosage={dosage}
-                            onClick={() => {
-                              console.log('medicine scheduledTime', timeSlot?.value?.scheduledTime)
-                              console.log('slot time', timeSlot?.value)
-                              console.log('status', status)
-                              if (status === 'pending') {
-                                onOpenPrescriptionCard(timeSlot)
-                              }
-                            }}
-                            config={timeSlotGridConfig(status)}
-                            theme={theme}
-                          />
-                        </TimeSlot>
+                          {time}
+                          {isCurrentHour && (
+                            <TimeTooltip sx={{ left: `${positionPercentage}%` }}>
+                              {currentTime.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </TimeTooltip>
+                          )}
+                        </TimeHeader>
                       )
                     })}
                   </TimeSlotGrid>
-                ))}
-              </ScrollableContainer>
-            </MainContainer>
-          </DashboardContainer>
+                  {displayMetrics?.map(metric => (
+                    <TimeSlotGrid
+                      onClick={() => {
+                        console.log('onclick of time slot grid', metric)
+                      }}
+                      key={metric.id}
+                      numColumns={timeSlots.length}
+                    >
+                      {metric.timeSlots.map((timeSlot, index) => {
+                        const slotKey = `${metric.id}-${index}`
+                        const hasSchedule = timeSlot.isActive
+
+                        const status = timeSlot?.value?.status?.toLowerCase()
+                        const scheduledTime = timeSlot?.value?.scheduledTime
+                        const dosage = timeSlot?.value?.dosage
+
+                        return (
+                          <TimeSlot
+                            config={timeSlotGridConfig(status)}
+                            key={slotKey}
+                            onClick={() => {
+                              handleTimeSlotClick(metric.id, timeSlot)
+                            }}
+                          >
+                            <TimeSlotCell
+                              hasSchedule={hasSchedule}
+                              status={status}
+                              scheduledTime={scheduledTime}
+                              dosage={dosage}
+                              onClick={() => {
+                                console.log('medicine scheduledTime', timeSlot?.value?.scheduledTime)
+                                console.log('slot time', timeSlot?.value)
+                                console.log('status', status)
+                                if (status === 'pending') {
+                                  // Open administer/skip modal
+                                  const data = {
+                                    scheduledTime: timeSlot?.value?.scheduledTime,
+                                    timeSlot: timeSlot?.value,
+                                    staus: status
+                                  }
+                                  handleAdministerOrSkipOpen(data)
+                                  // onOpenPrescriptionCard(timeSlot)
+                                }
+                              }}
+                              config={timeSlotGridConfig(status)}
+                              theme={theme}
+                            />
+                          </TimeSlot>
+                        )
+                      })}
+                    </TimeSlotGrid>
+                  ))}
+                </ScrollableContainer>
+              </MainContainer>
+            </DashboardContainer>
+          ) : (
+            <Typography>No Medications Scheduled for this date.</Typography>
+            // <NoDataFound />
+          )}
         </Grid>
       </Grid>
-      {/* <ActionButtons cancelLabel='Skipped' addLabel='Administer' /> */}
+      <AdministerOrSkipModal
+        open={isAdministerOrSkipPopupOpen}
+        handleClose={handleAdministerOrSkipClose}
+        onSubmit={handleSubmit}
+        submitLoader={isAdministerOrSkipPopupLoading}
+        medicineData={{
+          ...selectedMedicine,
+          name: selectedMedicine?.name,
+          time: selectedMedicine?.scheduledTime,
+          date: selectedMedicine?.date,
+          calculatedDosage: selectedMedicine?.dosage
+        }}
+      />
+      {selectedMetrics?.length ? (
+        <ActionButtonsWithSelection
+          selectedCount={selectedMetrics?.length}
+          cancelLabel='SKIPPED'
+          addLabel='ADMINISTER'
+          onCancel={handleSkip}
+          onAdd={handleAdminister}
+          width='140px'
+          height='42px'
+          isSubmitLoading={isAdminstrationLoading}
+        />
+      ) : null}
     </>
   )
 }

@@ -14,12 +14,15 @@ import {
   Button,
   Drawer,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  CircularProgress,
+  Skeleton
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import MedicationTimeCard from './MedicationTimeCard'
+import StopMedicine from './StopMedicine'
 
 // Custom styled components for drawer content
 const DrawerContent = styled(Box)(({ theme }) => ({
@@ -33,16 +36,9 @@ const DrawerContent = styled(Box)(({ theme }) => ({
 const HeaderSection = styled(Box)(({ theme }) => ({
   display: 'flex',
   width: '100%',
-
-  // padding: '24px',
   padding: '24px 0px',
   flexDirection: 'column',
-
-  // borderBottom: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
-
   backgroundColor: theme.palette.background.paper
-
-  // backgroundColor: 'red'
 }))
 
 const InfoGroupContainer = styled(Box)(({ theme }) => ({
@@ -86,8 +82,6 @@ const DateTab = styled(Tab)(({ theme, selected }) => ({
 
 const DosageSection = styled(Box)(({ theme, variant }) => ({
   display: 'flex',
-
-  // padding: '0 16px 16px 16px',
   flexDirection: 'column',
   gap: '16px',
   width: '100%',
@@ -115,6 +109,14 @@ const DosageHeader = styled(Box)(({ theme, variant }) => ({
       : theme.palette.customColors.neutral05
 }))
 
+const LoadingOverlay = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '40px',
+  width: '100%'
+}))
+
 const MedicinePrescriptionCard = ({
   open,
   onClose,
@@ -125,8 +127,8 @@ const MedicinePrescriptionCard = ({
   onAddNewDosage,
   onRefreshEntry,
   handleDateChange,
-  isDetailLoading,
-  isDatesLoading,
+  isDetailLoading = false,
+  isDatesLoading = false,
   selectedDate
 }) => {
   const theme = useTheme()
@@ -137,20 +139,11 @@ const MedicinePrescriptionCard = ({
     handleSubmit,
     formState: { errors }
   } = useForm()
-  const [activeTab, setActiveTab] = useState(medicineData?.defaultTab || 1)
 
-  // Default data fallbacks
+  const [activeTab, setActiveTab] = useState(medicineData?.defaultTab || 1)
+  const [stopMedicineModalOpen, setStopMedicineModalOpen] = useState(false)
+
   const medicine = {
-    name: 'Dolo 650 tablet',
-    medId: 'MED - 12345/25',
-    startDate: '1 Jan 2025',
-    endDate: '04 Jan 2025',
-    dosage: '3 Times',
-    frequency: 'Everyday',
-    duration: '3 days',
-    deliveryRoute: 'Oral',
-    notes: 'Lorem ipsum dolor sit amet consectetur adipiscin ipsum dolor...',
-    lastEdited: 'Last edited on 10:34 AM • 02 Jan 2025',
     ...medicineData
   }
 
@@ -165,9 +158,14 @@ const MedicinePrescriptionCard = ({
   }
 
   const handleStopMedicine = () => {
+    setStopMedicineModalOpen(true)
+  }
+
+  const handleStopMedicineConfirm = data => {
     if (onStopMedicine) {
-      onStopMedicine(medicine)
+      onStopMedicine(data)
     }
+    setStopMedicineModalOpen(false)
   }
 
   const handleAddNewDosage = () => {
@@ -183,6 +181,35 @@ const MedicinePrescriptionCard = ({
   }
 
   if (!open) return null
+
+  const renderLoadingSkeleton = () => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+      {[1, 2, 3].map(item => (
+        <Box
+          key={item}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            width: '100%',
+            borderRadius: '8px',
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            padding: '16px'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Skeleton variant='circular' width={24} height={24} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+              <Skeleton variant='text' width='40%' height={24} />
+              <Skeleton variant='text' width='30%' height={20} />
+            </Box>
+            <Skeleton variant='text' width='15%' height={20} />
+            <Skeleton variant='text' width='10%' height={20} />
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  )
 
   const renderDosageEntry = entry => (
     <DosageSection key={entry.id} variant={entry.variant}>
@@ -330,337 +357,326 @@ const MedicinePrescriptionCard = ({
   )
 
   return (
-    <Drawer
-      anchor='right'
-      open={open}
-      onClose={onClose}
-      slotProps={{
-        paper: {
-          sx: {
-            width: isMobile ? '100vw' : 562,
-            maxWidth: '100vw',
-            height: '100vh',
-
-            // padding: '24px'
-            px: '24px',
-            py: '0px'
+    <>
+      <Drawer
+        anchor='right'
+        open={open}
+        onClose={onClose}
+        slotProps={{
+          paper: {
+            sx: {
+              width: isMobile ? '100vw' : 562,
+              maxWidth: '100vw',
+              height: '100vh',
+              px: '24px',
+              py: '0px'
+            }
           }
-        }
-      }}
-    >
-      <DrawerContent>
-        {/* Header Section */}
-        <HeaderSection>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 0 0' }}>
-              <Typography
-                variant='h5'
-                sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-              >
-                {medicine.name}
-              </Typography>
-            </Box>
-            <IconButton onClick={onClose}>
-              <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
-            </IconButton>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
-              <Box
-                sx={{
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '30px',
-                  backgroundColor: theme.palette.customColors.OnSurface,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Icon icon='material-symbols:ecg-heart-outline-sharp' fontSize='10px' color='white' />
-              </Box>
-              <Typography
-                variant='body2'
-                sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurface }}
-              >
-                {medicine.medId}
-              </Typography>
-              <Box
-                sx={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '10px',
-                  backgroundColor: theme.palette.primary.main
-                }}
-              />
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Icon icon='material-symbols:line-start-circle' fontSize='20px' color={theme.palette.primary.main} />
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  {medicine.startDate}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Icon
-                  icon='material-symbols:line-end-square'
-                  fontSize='20px'
-                  color={theme.palette.customColors.Error}
-                />
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  {medicine.endDate}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </HeaderSection>
-
-        {/* Info Section */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          <InfoGroupContainer>
-            <InfoItem>
-              <Icon
-                icon='material-symbols:timer-outline'
-                fontSize='32px'
-                color={theme.palette.customColors.OnSurfaceVariant}
-              />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  {medicine.dosage}
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  Dosage
-                </Typography>
-              </Box>
-            </InfoItem>
-            <InfoItem>
-              <Icon icon='majesticons:pulse-line' fontSize='32px' color={theme.palette.customColors.OnSurfaceVariant} />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  {medicine.frequency}
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  Frequency
-                </Typography>
-              </Box>
-            </InfoItem>
-          </InfoGroupContainer>
-
-          <InfoGroupContainer sx={{ borderRadius: '0' }}>
-            <InfoItem>
-              <Icon icon='uil:calender' fontSize='32px' color={theme.palette.customColors.OnSurfaceVariant} />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  {medicine.duration}
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  Duration
-                </Typography>
-              </Box>
-            </InfoItem>
-            <InfoItem>
-              <Icon
-                icon='icon-park-outline:medicine-bottle-one'
-                fontSize='32px'
-                color={theme.palette.customColors.OnSurfaceVariant}
-              />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
-                <Typography
-                  variant='body1'
-                  sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  {medicine.deliveryRoute}
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
-                >
-                  Delivery route
-                </Typography>
-              </Box>
-            </InfoItem>
-          </InfoGroupContainer>
-
-          <NotesContainer>
-            <Icon icon='mdi:note-text' fontSize='24px' color={theme.palette.warning.main} />
-            <Typography
-              variant='body2'
-              sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, flex: '1 0 0' }}
-            >
-              {medicine.notes}
-            </Typography>
-          </NotesContainer>
-
-          <Typography
-            variant='caption'
-            sx={{
-              fontSize: '12px',
-              fontStyle: 'italic',
-              color: theme.palette.customColors.neutralSecondary,
-              padding: '8px 20px 0'
-            }}
-          >
-            {medicine.lastEdited}
-          </Typography>
-        </Box>
-
-        {/* Date Tabs */}
-        <Box
-          sx={{
-            display: 'flex',
-            width: '100%',
-            backgroundColor: theme.palette.background.paper,
-            my: '16px',
-            padding: 0,
-            mx: '-24px', // negative margin to counter parent padding
-            width: 'calc(100% + 48px)' // increase width to account for negative margins
-          }}
-        >
-          <HorizontalDateNav
-            dates={dateOptions}
-            onDateSelect={handleDateChange}
-            selectedDate={selectedDate}
-            showYear={true}
-            containerStyle={{
-              backgroundColor: theme.palette.background.paper,
-              borderBottom: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderTop: `0.5px solid ${theme.palette.customColors.OutlineVariant}`
-            }}
-          />
-          {/* {tabs.map((option, index) => (
-            <DateTab
-              key={option.value}
-              selected={activeTab === option.value}
-              onClick={() => handleTabChange(null, option.value)}
+        }}
+      >
+        <DrawerContent>
+          {/* Header Section */}
+          <HeaderSection>
+            <Box
               sx={{
-                borderRight:
-                  index < tabs.length - 1 ? `0.5px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
-                position: 'relative'
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between'
               }}
             >
-              {option.hasStatus && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 0 0' }}>
+                <Typography
+                  variant='h5'
+                  sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  {medicine.name}
+                </Typography>
+              </Box>
+              <IconButton onClick={onClose}>
+                <Icon icon='mdi:close' fontSize='24px' color={theme.palette.customColors.OnPrimaryContainer} />
+              </IconButton>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 0 0' }}>
+                <Box
+                  sx={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '30px',
+                    backgroundColor: theme.palette.customColors.OnSurface,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Icon icon='material-symbols:ecg-heart-outline-sharp' fontSize='10px' color='white' />
+                </Box>
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurface }}
+                >
+                  {medicine.medId}
+                </Typography>
                 <Box
                   sx={{
                     width: '8px',
                     height: '8px',
-                    borderRadius: '50%',
-                    backgroundColor: theme.palette.customColors.Tertiary,
-                    position: 'absolute',
-                    top: '15px',
-                    left: '24px'
+                    borderRadius: '10px',
+                    backgroundColor: theme.palette.primary.main
                   }}
                 />
-              )}
-              {option.label}
-            </DateTab>
-          ))} */}
-        </Box>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Icon icon='material-symbols:line-start-circle' fontSize='20px' color={theme.palette.primary.main} />
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    {medicine.startDate}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Icon
+                    icon='material-symbols:line-end-square'
+                    fontSize='20px'
+                    color={theme.palette.customColors.Error}
+                  />
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    {medicine.endDate}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </HeaderSection>
 
-        {/* Bottom Container */}
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
+          {/* Info Section */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <InfoGroupContainer>
+              <InfoItem>
+                <Icon
+                  icon='material-symbols:timer-outline'
+                  fontSize='32px'
+                  color={theme.palette.customColors.OnSurfaceVariant}
+                />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
+                  <Typography
+                    variant='body1'
+                    sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    {medicine.dosage}
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Dosage
+                  </Typography>
+                </Box>
+              </InfoItem>
+              <InfoItem>
+                <Icon
+                  icon='majesticons:pulse-line'
+                  fontSize='32px'
+                  color={theme.palette.customColors.OnSurfaceVariant}
+                />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
+                  <Typography
+                    variant='body1'
+                    sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    {medicine.frequency}
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Frequency
+                  </Typography>
+                </Box>
+              </InfoItem>
+            </InfoGroupContainer>
 
-            // padding: '24px',
-            flexDirection: 'column',
-            gap: '16px',
-            flex: 1
+            <InfoGroupContainer sx={{ borderRadius: '0' }}>
+              <InfoItem>
+                <Icon icon='uil:calender' fontSize='32px' color={theme.palette.customColors.OnSurfaceVariant} />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
+                  <Typography
+                    variant='body1'
+                    sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    {medicine.duration}
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Duration
+                  </Typography>
+                </Box>
+              </InfoItem>
+              <InfoItem>
+                <Icon
+                  icon='icon-park-outline:medicine-bottle-one'
+                  fontSize='32px'
+                  color={theme.palette.customColors.OnSurfaceVariant}
+                />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 0 0' }}>
+                  <Typography
+                    variant='body1'
+                    sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    {medicine.deliveryRoute}
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Delivery route
+                  </Typography>
+                </Box>
+              </InfoItem>
+            </InfoGroupContainer>
 
-            // overflowY: 'auto'
+            <NotesContainer>
+              <Icon icon='mdi:note-text' fontSize='24px' color={theme.palette.warning.main} />
+              <Typography
+                variant='body2'
+                sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, flex: '1 0 0' }}
+              >
+                {medicine.notes}
+              </Typography>
+            </NotesContainer>
 
-            // border: '1px solid red'
-          }}
-        >
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <MedicationTimeCard
-              key={1}
-              time={'07:00 AM'}
-              dosage={'10 mg/kg'}
-              amount={'310 mg'}
-              checked={false}
-              onChange={checked => console.log(1, checked)}
-            />
-            {dosageEntries?.map(item => renderDosageEntry(item))}
+            <Typography
+              variant='caption'
+              sx={{
+                fontSize: '12px',
+                fontStyle: 'italic',
+                color: theme.palette.customColors.neutralSecondary,
+                padding: '8px 20px 0'
+              }}
+            >
+              {medicine.lastEdited}
+            </Typography>
           </Box>
 
-          {/* Action Buttons */}
+          {/* Date Tabs */}
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: '16px',
-              marginTop: 'auto',
-
-              mt: 2,
-              mb: 12
+              width: '100%',
+              backgroundColor: theme.palette.background.paper,
+              my: '16px',
+              padding: 0,
+              mx: '-24px',
+              width: 'calc(100% + 48px)'
             }}
           >
-            <Button
-              variant='text'
-              startIcon={<Icon icon='jam:stop-sign' />}
-              onClick={handleStopMedicine}
-              sx={{
-                color: theme.palette.customColors.OnTertiaryContainer,
-                fontSize: '16px',
-                fontWeight: 500,
-                justifyContent: 'left',
-                transform: 'none',
-                textTransform: 'none',
-                width: 'auto'
-              }}
-            >
-              Stop Medicine
-            </Button>
-            <Button
-              variant='text'
-              startIcon={<Icon icon='mdi:plus' />}
-              onClick={handleAddNewDosage}
-              sx={{
-                color: theme.palette.customColors.OnSurface,
-                fontSize: '16px',
-                fontWeight: 500,
-                transform: 'none',
-                textTransform: 'none'
-              }}
-            >
-              Add New Dosage
-            </Button>
+            {isDatesLoading ? (
+              <Box sx={{ width: '100%', padding: '16px', display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : (
+              <HorizontalDateNav
+                dates={dateOptions}
+                onDateSelect={handleDateChange}
+                selectedDate={selectedDate}
+                showYear={true}
+                containerStyle={{
+                  backgroundColor: theme.palette.background.paper,
+                  borderBottom: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderTop: `0.5px solid ${theme.palette.customColors.OutlineVariant}`
+                }}
+              />
+            )}
           </Box>
-        </Box>
-      </DrawerContent>
-    </Drawer>
+
+          {/* Bottom Container */}
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              flex: 1,
+              overflowY: 'auto'
+            }}
+          >
+            {isDetailLoading ? (
+              renderLoadingSkeleton()
+            ) : (
+              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <MedicationTimeCard
+                  key={1}
+                  time={'07:00 AM'}
+                  dosage={'10 mg/kg'}
+                  amount={'310 mg'}
+                  checked={false}
+                  onChange={checked => console.log(1, checked)}
+                />
+                {dosageEntries?.map(item => renderDosageEntry(item))}
+                {stopMedicineModalOpen ? (
+                  <StopMedicine
+                    onClose={() => setStopMedicineModalOpen(false)}
+                    onConfirm={handleStopMedicineConfirm}
+                    medicineData={medicineData}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '16px',
+                      marginTop: 'auto',
+                      mt: 2,
+                      mb: 12
+                    }}
+                  >
+                    <Button
+                      variant='text'
+                      startIcon={<Icon icon='jam:stop-sign' />}
+                      onClick={handleStopMedicine}
+                      disabled={isDetailLoading}
+                      sx={{
+                        color: theme.palette.customColors.OnTertiaryContainer,
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        justifyContent: 'left',
+                        transform: 'none',
+                        textTransform: 'none',
+                        width: 'auto'
+                      }}
+                    >
+                      Stop Medicine
+                    </Button>
+                    <Button
+                      variant='text'
+                      startIcon={<Icon icon='mdi:plus' />}
+                      onClick={handleAddNewDosage}
+                      disabled={isDetailLoading}
+                      sx={{
+                        color: theme.palette.customColors.OnSurface,
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        transform: 'none',
+                        textTransform: 'none'
+                      }}
+                    >
+                      Add New Dosage
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </Box>
+        </DrawerContent>
+      </Drawer>
+    </>
   )
 }
 

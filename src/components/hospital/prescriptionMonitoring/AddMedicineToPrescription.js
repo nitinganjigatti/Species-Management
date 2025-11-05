@@ -109,7 +109,12 @@ export default function AddMedicineToPrescription() {
       otherwise: schema => schema.notRequired()
     }),
 
-    batchNumber: yup.string().nullable().notRequired(),
+    batchNumber: yup.mixed().when(['selectedMedicine', 'selectMedicineType'], {
+      is: (selectedMedicine, selectMedicineType) =>
+        selectMedicineType === 'Direct Administer' && selectedMedicine?.controlled_substance === 1,
+      then: schema => schema.required('Batch number is required for controlled substances'),
+      otherwise: schema => schema.nullable().notRequired()
+    }),
 
     batchImage: yup.mixed().nullable().notRequired(),
 
@@ -178,8 +183,51 @@ export default function AddMedicineToPrescription() {
   const [medicalMasterData, setMedicalMasterData] = useState([])
   const [frequencyData, setFrequencyData] = useState([])
   const [batchList, setBatchList] = useState([])
+  const [batchSearchQuery, setBatchSearchQuery] = useState('')
+  const [batchLoading, setBatchLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Select a medicine to add details (single-select)
+  const debouncedBatchSearch = useCallback(
+    debounce(async (medicineId, query = '') => {
+      if (!medicineId) {
+        console.log('No medicineId provided, skipping batch fetch')
+        setBatchList([])
+
+        return
+      }
+
+      try {
+        setBatchLoading(true)
+
+        const params = {
+          medicine_id: medicineId,
+          q: query
+        }
+
+        const response = await getMedicineBatches(medicineId, params)
+        if (response?.success) {
+          setBatchList(response?.data || [])
+        } else {
+          setBatchList([])
+        }
+      } catch (error) {
+        console.error('Error fetching medicine batches:', error.message)
+        setBatchList([])
+      } finally {
+        setBatchLoading(false)
+      }
+    }, 500),
+    []
+  )
+
+  const fetchMedicineBatches = useCallback(
+    (medicineId, query = '') => {
+      console.log('Fetching batches for medicineId:', medicineId, 'with query:', query)
+      debouncedBatchSearch(medicineId, query)
+    },
+    [debouncedBatchSearch]
+  )
+
   const handleMedicineSelect = medicine => {
     if (medicine) {
       setValue('selectedMedicineId', medicine.id, { shouldValidate: true })
@@ -187,22 +235,49 @@ export default function AddMedicineToPrescription() {
       setTemporarilySelectedMedicine({ ...medicine })
       setSelectedMedicine({ ...medicine })
 
-      // setMedicineDrawerOpen(true)
+      // Reset batch number when medicine changes
+      setValue('batchNumber', null)
+      setBatchSearchQuery('')
+
+      // Fetch batches for the selected medicine
+      fetchMedicineBatches(medicine.id, '')
     }
   }
 
-  const fetchMedicineBatches = useCallback(async medicineId => {
-    try {
-      const response = await getMedicineBatches(medicineId)
-      if (response?.success) {
-        setBatchList(response?.data || [])
-      } else {
-        setBatchList([])
+  // Add this after the cleanup useEffect
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'selectMedicineType') {
+        if (value.selectMedicineType !== 'Direct Administer') {
+          // Clear batches when switching away from Direct Administer
+          setBatchList([])
+          setValue('batchNumber', null)
+          setBatchSearchQuery('')
+        } else if (temporarilySelectedMedicine?.id) {
+          // Fetch batches when switching to Direct Administer
+          debouncedBatchSearch(temporarilySelectedMedicine.id, '')
+        }
       }
-    } catch (error) {
-      console.error('Error fetching medicine batches:', error.message)
-    }
-  }, [])
+    })
+
+    return () => subscription.unsubscribe()
+  }, [watch, temporarilySelectedMedicine?.id, debouncedBatchSearch, setValue])
+
+  // Add batch search handler
+  // Add batch search handler - wrap in useCallback to maintain debounce
+  const handleBatchSearch = useCallback(
+    value => {
+      console.log('Batch search triggered with value:', value)
+      setBatchSearchQuery(value)
+      if (temporarilySelectedMedicine?.id) {
+        console.log('Calling fetchMedicineBatches for medicine:', temporarilySelectedMedicine.id)
+        fetchMedicineBatches(temporarilySelectedMedicine.id, value)
+      } else {
+        console.log('No medicine selected, skipping batch search')
+      }
+    },
+    [temporarilySelectedMedicine?.id, fetchMedicineBatches]
+  )
 
   const fetchMedicalMasterData = useCallback(async () => {
     try {
@@ -342,6 +417,10 @@ export default function AddMedicineToPrescription() {
     }
   }
 
+  const handleCancel = () => {
+    router.back() // goes to previous page
+  }
+
   // Load more medicines for pagination
   // const loadMoreMedicines = useCallback(async () => {
   //   if (!medicineLoading && hasMoreData) {
@@ -378,6 +457,14 @@ export default function AddMedicineToPrescription() {
     getPatientInfo()
   }, [id])
 
+  // Add this after the existing useEffect for getPatientInfo
+  useEffect(() => {
+    return () => {
+      debouncedBatchSearch.cancel()
+      debouncedSearch.cancel()
+    }
+  }, [debouncedBatchSearch, debouncedSearch])
+
   function toISTISOString(date) {
     if (!date) return ''
 
@@ -393,6 +480,16 @@ export default function AddMedicineToPrescription() {
     return local
   }
 
+  const resetForm = useCallback(() => {
+    Object.keys(defaultValues).forEach(key => {
+      setValue(key, defaultValues[key])
+    })
+    setSelectedMedicine(null)
+    setTemporarilySelectedMedicine(null)
+  }, [setValue])
+
+  // Then call resetForm() after successful submission
+
   const handleScheduledPrescription = async (
     data,
     medicalMasterData,
@@ -400,6 +497,7 @@ export default function AddMedicineToPrescription() {
     temporarilySelectedMedicine
   ) => {
     try {
+      setIsSubmitting(true)
       const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
       const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
@@ -454,8 +552,8 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate), // TODO: Check for proper date format
-            end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration), // TODO: Check for proper date format
+            start_date: toISTISOString(data.prescriptionStartDate),
+            end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
 
             restart_reason: '',
             stop_reason: '',
@@ -463,7 +561,7 @@ export default function AddMedicineToPrescription() {
             side_effect: false,
             created_for: 'SINGLE',
 
-            administer_date: toISTISOString(data.prescriptionStartDate), // TODO: Check for proper date format
+            administer_date: toISTISOString(data.prescriptionStartDate),
 
             batch_list: [],
             dose_type: data.doseType
@@ -486,6 +584,9 @@ export default function AddMedicineToPrescription() {
 
       // For now, just log the payload
       if (response?.success) {
+        // Reset form values to default after successful submission
+        resetForm()
+
         return response
       } else {
         console.error('Failed to add scheduled prescription:')
@@ -496,12 +597,15 @@ export default function AddMedicineToPrescription() {
       console.error('Error in handleScheduledPrescription:', error)
 
       return null
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleDirectAdminister = async (data, medicalMasterData, medical_record_id, temporarilySelectedMedicine) => {
     try {
-      const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.key === data.frequency)
+      setIsSubmitting(true)
+      const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
       const deliveryRoute = medicalMasterData?.prescriptionDeliveryRoute?.find(
         item => item?.route_abbr === data.deliveryRoute
@@ -510,21 +614,20 @@ export default function AddMedicineToPrescription() {
       const interval = medicalMasterData?.prescriptionDuration?.find(item => item?.value === data?.dosageDuration?.unit)
 
       // Map schedule doses from form data
-      const scheduleDoses =
-        data.schedules?.map((schedule, index) => ({
-          id: '',
-          time: schedule.time,
-          quantity: schedule.quantity,
-          unit_id: getUnitIdFromName(schedule.unit, medicalMasterData),
-          unit_name: schedule.unit,
-          string_id: getStringIdFromUnitName(schedule.unit, medicalMasterData)
-        })) || []
+      const scheduleDoses = data.schedules.map((schedule, index) => ({
+        id: '',
+        time: schedule?.time ? convertUTCToLocaltime(schedule.time) : '',
+        quantity: schedule.quantity,
+        unit_id: getUnitIdFromName(schedule?.unit, medicalMasterData),
+        unit_name: schedule.unit,
+        string_id: getStringIdFromUnitName(schedule?.unit, medicalMasterData)
+      }))
 
       // Construct batch list
       const batchList = [
         {
-          id: '', // or generate dynamically if needed
-          label: 'A', // optional, can come from form
+          id: '',
+          label: 'A',
           selectedAnimal:
             [
               {
@@ -543,44 +646,65 @@ export default function AddMedicineToPrescription() {
       ]
 
       const payload = {
-        record_date: data.administeredDate || new Date().toISOString(),
+        record_date:
+          toISTISOString(data.administeredDate).replace('T', ' ').slice(0, 19) ||
+          toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
         case_type: 1,
         medical_record_type: 'SINGLE',
-        animal_id: animal_id || [],
+        animal_id: animal_id ? JSON.stringify([animal_id]) : JSON.stringify([]),
         created_for: 'DIRECT_ADMINISTER',
-        prescription: [
+        note: data.notes || '',
+        request_from: 'hospital_module',
+        medical_record_id: medical_record_id,
+        prescription: JSON.stringify([
           {
             id: temporarilySelectedMedicine?.id,
             label: temporarilySelectedMedicine?.label,
             name: temporarilySelectedMedicine?.name,
-            frequency_key: data.frequency || '',
+            total_qty: temporarilySelectedMedicine?.total_qty || 0,
+            total_central_store_qty: temporarilySelectedMedicine?.total_central_store_qty || 0,
+            total_local_store_qty: temporarilySelectedMedicine?.total_local_store_qty || 0,
+
+            frequency_key: frequency?.string_id || '',
             frequency_id: frequency?.id || '',
-            frequency_string_id: frequency?.string_id || '',
-            frequency: frequency?.value || '',
-            schedule_doses: scheduleDoses, // TODO: Check
+            frequency: data?.frequency,
+            frequency_string_id: frequency?.translation_string_id || '',
+
+            schedule_doses: scheduleDoses,
+
             interval: interval?.value || '',
             interval_id: interval?.id || '',
             interval_string_id: interval?.string_id || '',
-            duration_qty: data.dosageDuration?.value || '',
+
+            duration_qty: data.dosageDuration?.value?.toString(),
             duration_id: interval?.id || '',
+            duration: `${data?.dosageDuration?.value} ${data?.dosageDuration?.unit}`,
             duration_string_id: interval?.string_id || '',
-            duration_type: data.dosageDuration?.unit || '',
-            notes: data.wastageNotes || '', // TODO: check with backend for notes
-            delivery_route_name: data.deliveryRoute || '',
+            duration_type: data.dosageDuration.unit.charAt(0).toUpperCase() + data.dosageDuration.unit.slice(1),
+
+            notes: data.wastageNotes || '',
+
+            delivery_route_name: data?.deliveryRoute || '',
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
-            start_date: data.prescriptionStartDate || new Date().toISOString(),
+
+            start_date: toISTISOString(data.prescriptionStartDate),
             end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
+
+            restart_reason: false,
+            stop_reason: '',
             will_restart: false,
             side_effect: false,
             created_for: 'DIRECT_ADMINISTER',
-            administer_date: data.administeredDate || new Date().toISOString(), // TODO: Check with backend, get back
+            administer_date: toISTISOString(data.prescriptionStartDate)?.slice(0, 10) || '',
+
             batch_list: batchList,
-            dose_type: 'fixed_dose', // TODO: Check with backend
-            controlled_substance: data.controlledSubstance ? 1 : 0, // TODO: Check with Irayya for controlled substance stuff
-            files: [data.batchImage] || []
+
+            // batch_list: [],
+            dose_type: 'fixed_dose',
+            files: data.batchImage ? [data.batchImage] : []
           }
-        ]
+        ])
       }
 
       console.log(' Direct Administer Payload:', payload)
@@ -591,7 +715,7 @@ export default function AddMedicineToPrescription() {
 
         return response
       } else {
-        console.error(' Failed to add direct administer record:', response)
+        console.error(' Failed to add direct administer record')
 
         return null
       }
@@ -599,6 +723,8 @@ export default function AddMedicineToPrescription() {
       console.error(' Error in handleDirectAdminister:', error)
 
       return null
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -608,9 +734,10 @@ export default function AddMedicineToPrescription() {
 
       const isDirectAdminister = data.selectMedicineType === 'Direct Administer'
       let response = null
-
+      console.log('isDirectAdminister:', isDirectAdminister)
       if (isDirectAdminister) {
         response = await handleDirectAdminister(data, medicalMasterData, medical_record_id, temporarilySelectedMedicine)
+        console.log('Direct Administer Response:', response)
       } else {
         response = await handleScheduledPrescription(
           data,
@@ -621,7 +748,10 @@ export default function AddMedicineToPrescription() {
       }
 
       if (response?.success) {
-        // router.back() or show success message
+        if (response?.success) {
+          // Reset form values to default after successful submission
+          resetForm()
+        }
       }
     } catch (error) {
       console.error('🚨 Error in submitHandler:', error)
@@ -743,6 +873,9 @@ export default function AddMedicineToPrescription() {
             isMedicineSelected={temporarilySelectedMedicine?.id}
             selectedMedicineTo={watch('selectMedicineType')}
             batchList={batchList}
+            batchLoading={batchLoading}
+            handleBatchSearch={handleBatchSearch}
+            isControlledSubstance={temporarilySelectedMedicine?.controlled_substance === 1}
           />
         </Grid>
       </Grid>
@@ -750,7 +883,8 @@ export default function AddMedicineToPrescription() {
       <ActionButtons
         cancelLabel='CANCEL'
         addLabel={watch('selectMedicineType') === 'Direct Administer' ? 'Administer' : 'Schedule'}
-        onCancel={() => console.log('Cancelled')}
+        onCancel={handleCancel}
+        isSubmitLoading={isSubmitting}
         onAdd={submitHandler}
         width={200}
         height={50}

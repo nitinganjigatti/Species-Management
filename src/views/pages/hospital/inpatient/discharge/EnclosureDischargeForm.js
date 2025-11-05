@@ -1,84 +1,145 @@
-import React from 'react'
-
-// ** MUI Imports
-import { Box, Button, Divider, Grid, Typography, useTheme, IconButton } from '@mui/material'
+import React, { useEffect } from 'react'
+import { Box, Button, Divider, Grid, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
 
-// ** Custom Core Components
-import Icon from 'src/@core/components/icon'
-import RichTextEditor from 'src/components/RichTextEditor'
-
 // ** Custom Form Components
+import Icon from 'src/@core/components/icon'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
-
-// ** Table Component
+import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import RichTextEditor from 'src/components/RichTextEditor'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-
-// ** Utility Components
 import { SaveTemplateButton } from 'src/views/utility/render-snippets'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm } from 'react-hook-form'
+import { Controller } from 'react-hook-form' // If RichTextEditor needs it
+import { useRouter } from 'next/router'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
-// ** React Hook Form
-import { Controller } from 'react-hook-form'
+const defaultValues = {
+  discharge_type: 'TransferEnclosure',
+  transferSite: '',
+  transferSection: '',
+  transferEnclosure: '',
+  enclosure_id: '',
+  returnToOriginal: false,
+  discharge_date: null,
+  discharge_time: null,
+  reason: '',
+  follow_up_required: false,
+  follow_up_date: null,
+  care_diet_instruction: '',
+  care_restriction: '',
+  care_notes: '',
+  attachments: []
+}
 
-const EnclosureDischargeForm = ({
-  control,
-  errors,
-  templates,
-  activeTemplate,
-  setActiveTemplate,
-  content,
-  setContent,
-  medicationsData,
-  medicationColumns,
-  loading,
-  onSubmit,
-  watch,
-  setValue
-}) => {
+const transferEnclosureSchema = yup.object({
+  discharge_type: yup.string().oneOf(['TransferEnclosure']).required('Discharge type is required'),
+
+  transferSite: yup.string().required('Site is required'),
+  transferSection: yup.string().required('Section is required'),
+  transferEnclosure: yup.string().required('Enclosure is required'),
+  returnToOriginal: yup.boolean().required('Return to original is required'),
+  discharge_date: yup.date().nullable().required('Date of discharge is required'),
+  discharge_time: yup.date().nullable().required('Time of discharge is required'),
+  reason: yup.string().required('Discharge enclosure summary is required'),
+  follow_up_required: yup.boolean().required('Follow up required is required'),
+  follow_up_date: yup.date().nullable().required('Follow up date is required'),
+  reason: yup.string().required('Transfer Hospital summary is required'),
+  care_diet_instruction: yup.string().trim().required('Care Diet Instructions is required'),
+  care_restriction: yup.string().trim().required('Care Restriction activities is required'),
+  care_notes: yup.string().trim().required('Care notes is required'),
+  attachments: yup.array().min(1, 'At least one attachment is required').required('Attachments are required')
+
+  // follow_up_date: yup
+  // .date()
+  // .nullable()
+  // .when('follow_up_required', {
+  //   is: true,
+  //   then: schema => schema
+  //     .required('Follow up date is required')
+  //     .min(new Date(), 'Follow up date must be in the future'),
+  //   otherwise: schema => schema.nullable()
+  // }),
+})
+
+const EnclosureDischargeForm = props => {
+  const {
+    templates,
+    activeTemplate,
+    setActiveTemplate,
+    content,
+    setContent,
+    medicationsData,
+    medicationColumns,
+    loading,
+    handleSubmitData,
+    watchDischargeType,
+    resetForm,
+    submitLoader,
+    fetchLoading
+  } = props
+
   const theme = useTheme()
+  const router = useRouter()
+  const { animal_id, id } = router.query
 
-  const images = watch('images') || []
-  const fileInputRef = React.useRef()
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(transferEnclosureSchema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
 
-  // Remove image from preview
-  const handleRemoveImage = index => {
-    const updatedImages = images.filter((_, i) => i !== index)
-    setValue('images', updatedImages, { shouldValidate: true })
-  }
+  // Handle form submission
+  const onSubmit = async formData => {
+    console.log('payload', formData)
 
-  // Handle file selection
-  const handleFilesChange = files => {
-    if (!files || files.length === 0) return
+    const payload = {
+      hospital_case_id: id,
+      animal_id: animal_id,
+      discharge_type: watchDischargeType,
+      transfer_hospital_id: formData.transfer_hospital_id.value,
+      discharge_date: formData.discharge_date,
+      discharge_time: formData.discharge_time,
+      reason: formData.reason,
+      reason_for_transfer: formData.reason_for_transfer,
+      care_diet_instruction: formData.care_diet_instruction,
+      care_restriction: formData.care_restriction,
+      care_notes: formData.care_notes,
+      attachments: formData.attachments || [],
+      request_from: 'web'
+    }
 
-    const validFiles = Array.from(files).filter(file => {
-      if (!file.type.startsWith('image/')) {
-        alert('Please select only image files')
-
-        return false
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size should be less than 5MB')
-
-        return false
-      }
-
-      return true
-    })
-    const newImages = validFiles.map(file => URL.createObjectURL(file))
-    if (newImages.length > 0) {
-      setValue('images', [...images, ...newImages], { shouldValidate: true })
+    try {
+      await handleSubmitData(payload)
+    } catch (error) {
+      console.error('Error submitting form:', error)
     }
   }
 
+  // Reset form when resetForm prop changes
+  useEffect(() => {
+    if (resetForm) {
+      reset(defaultValues)
+    }
+  }, [resetForm, reset])
+
   return (
-    <form noValidate autoComplete='off' onSubmit={onSubmit}>
+    <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 6 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <StyledTypography>Select location to transfer</StyledTypography>
@@ -133,10 +194,10 @@ const EnclosureDischargeForm = ({
             <StyledTypography>Discharge Date & Time</StyledTypography>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledDatePicker control={control} name='dischargeDate' label='Date' errors={errors} />
+                <ControlledDatePicker control={control} name='discharge_date' label='Date' errors={errors} />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTimePicker control={control} name='dischargeTime' label='Time' errors={errors} />
+                <ControlledTimePicker control={control} name='discharge_time' label='Time' errors={errors} />
               </Grid>
             </Grid>
           </Box>
@@ -156,7 +217,12 @@ const EnclosureDischargeForm = ({
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <StyledTypography>Enter summary</StyledTypography>
-              <RichTextEditor value={content} onChange={setContent} placeholder='Write something amazing...' />
+              <RichTextEditor
+                name={'reason'}
+                value={content}
+                onChange={setContent}
+                placeholder='Write something amazing...'
+              />
             </Box>
             <SaveTemplateButton sx={{ pl: 1 }} />
           </Box>
@@ -182,7 +248,7 @@ const EnclosureDischargeForm = ({
               }}
             >
               <Box sx={{ display: 'inline-flex', gap: 3, pr: 1 }}>
-                {templates.map(template => (
+                {templates?.map(template => (
                   <Box
                     key={template}
                     onClick={() => setActiveTemplate(template)}
@@ -227,11 +293,13 @@ const EnclosureDischargeForm = ({
         <Grid container alignItems='center' spacing={2} justifyContent='space-between'>
           <Grid size={{ xs: 12, sm: 6 }}>
             <ControlledSwitch
-              name='followUpRequired'
+              name='follow_up_required'
               label={<StyledTypography fontSize='1.25rem'>Is any follow up required?</StyledTypography>}
               labelPosition='start'
               control={control}
               errors={errors}
+              size='large'
+              gap={4}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -251,7 +319,7 @@ const EnclosureDischargeForm = ({
                   }
                 }}
               >
-                <ControlledDatePicker control={control} name='followUpDate' label='Date' errors={errors} />
+                <ControlledDatePicker control={control} name='follow_up_date' label='Date' errors={errors} />
               </Grid>
             </Grid>
           </Grid>
@@ -314,23 +382,23 @@ const EnclosureDischargeForm = ({
 
           <ControlledTextField
             control={control}
-            name={'dietInstructions'}
+            name={'care_diet_instruction'}
             errors={errors}
             placeholder={'Enter text'}
             label='Enter diet instructions'
           />
           <ControlledTextField
             control={control}
-            name={'restrictions'}
+            name={'care_restriction'}
             errors={errors}
             placeholder={'Enter text'}
             label='Enter restriction activities with duration'
           />
           <ControlledTextField
-            sx={{ backgroundColor: alpha(theme.palette.customColors.antzNotes, 0.6) }}
+            inputBackgroundColor={alpha(theme.palette.customColors.antzNotes, 0.6)}
             placeholder={'Enter text'}
             control={control}
-            name={'additionalNotes'}
+            name={'care_notes'}
             errors={errors}
             label=' Additional notes'
           />
@@ -341,128 +409,7 @@ const EnclosureDischargeForm = ({
         {/* Attachments */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <StyledTypography>Attachments</StyledTypography>
-          {/* <ControlledFileUpload name='attachment' control={control} errors={errors} label='Upload attachment' /> */}
-          <Box>
-            {images.length > 0 && (
-              <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                {images.map((img, index) => {
-                  const previewUrl = typeof img === 'string' ? img : URL.createObjectURL(img)
-
-                  return (
-                    <Box
-                      key={index}
-                      sx={{
-                        position: 'relative',
-                        width: 100,
-                        height: 100,
-                        borderRadius: 1,
-                        backgroundColor: '#eaf6f6',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <img
-                        src={previewUrl}
-                        alt={`img-${index}`}
-                        style={{
-                          width: 80,
-                          height: 80,
-                          objectFit: 'cover',
-                          borderRadius: '50%',
-                          display: 'block'
-                        }}
-                      />
-                      <IconButton
-                        size='small'
-                        sx={{
-                          position: 'absolute',
-                          top: 6,
-                          right: 6,
-                          backgroundColor: '#979797',
-                          color: '#fff',
-                          width: 24,
-                          height: 24,
-                          zIndex: 1,
-                          '&:hover': {
-                            backgroundColor: '#757575'
-                          }
-                        }}
-                        onClick={e => {
-                          e.stopPropagation()
-                          handleRemoveImage(index)
-                        }}
-                      >
-                        <Icon icon='mdi:close' fontSize={18} />
-                      </IconButton>
-                    </Box>
-                  )
-                })}
-              </Box>
-            )}
-
-            <Controller
-              name='images'
-              control={control}
-              render={({ fieldState: { error } }) => (
-                <Box>
-                  <Box
-                    sx={{
-                      border: `2px dashed ${error ? theme.palette.error.main : '#E0E0E0'}`,
-                      borderRadius: 1,
-                      p: 4,
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 2,
-                      '&:hover': {
-                        backgroundColor: '#F5F5F5',
-                        borderColor: error ? theme.palette.error.main : '#BDBDBD'
-                      }
-                    }}
-                    onClick={() => fileInputRef.current.click()}
-                    onDrop={e => {
-                      e.preventDefault()
-                      handleFilesChange(e.dataTransfer.files)
-                    }}
-                    onDragOver={e => e.preventDefault()}
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: 0.6,
-                        gap: 2
-                      }}
-                    >
-                      <img src='/images/housing/gallery-add.svg' alt='Add Image Icon' width='30px' />
-                      <StyledTypography fontWeight={400} color={theme.palette.customColors.OnSurfaceVariant60}>
-                        Drop your images here
-                      </StyledTypography>
-                    </Box>
-
-                    <input
-                      type='file'
-                      accept='image/*'
-                      multiple
-                      ref={fileInputRef}
-                      style={{ display: 'none' }}
-                      onChange={e => handleFilesChange(e.target.files)}
-                    />
-                  </Box>
-                  {error && (
-                    <Typography variant='caption' color='error' sx={{ mt: 1, display: 'block' }}>
-                      {error.message}
-                    </Typography>
-                  )}
-                </Box>
-              )}
-            />
-          </Box>
+          <ControlledMultiFileUpload name='attachments' control={control} errors={errors} label='Upload attachment' />
         </Box>
       </Box>
 
@@ -484,13 +431,7 @@ const EnclosureDischargeForm = ({
           zIndex: 1200
         }}
       >
-        <LoadingButton
-          variant='contained'
-          sx={{ backgroundColor: theme.palette.primary.main, px: 6.5, py: 2, borderRadius: 0.5, fontWeight: 400 }}
-          disabled={loading}
-          loading={loading}
-          type='submit'
-        >
+        <LoadingButton variant='contained' sx={{ px: 12, py: 3 }} disabled={loading} loading={loading} type='submit'>
           Discharge Animal
         </LoadingButton>
       </Box>

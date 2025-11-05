@@ -20,7 +20,10 @@ export default function ScheduleMedicine({
   selectedMedicineTo,
   medicalMasterData,
   isMedicineSelected,
-  batchList = []
+  batchList = [],
+  batchLoading,
+  handleBatchSearch,
+  isControlledSubstance = false
 }) {
   const {
     caseTypes,
@@ -419,10 +422,14 @@ export default function ScheduleMedicine({
                       fontWeight: '500',
                       textAlign: 'left',
                       my: 2,
-                      color: theme.palette.customColors.OnSurfaceVariant
+                      color: isControlledSubstance
+                        ? theme.palette.error.main
+                        : theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    ! Batch Number is Mandatory for controlled substances
+                    {isControlledSubstance
+                      ? '! Batch Number is Mandatory for controlled substances'
+                      : '! Batch Number is Mandatory for controlled substances'}
                   </Typography>
                 </Grid>
                 <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
@@ -430,29 +437,37 @@ export default function ScheduleMedicine({
                     name='batchNumber'
                     control={control}
                     errors={errors}
-                    label='Enter batch number if any (optional)'
-                    options={batchList}
-                    getOptionLabel={option => option.batchNumber}
-                    getOptionValue={option => option.batchNumber}
-                    sx={{
-                      textAlign: 'left'
-                    }}
-
-                    // size='large'
-                  />
-                  {/* <ControlledTextField
-                  name='batchNumber'
-                  label='Enter batch number if any (optional)'
-                  control={control}
-                  errors={errors}
-                  sx={{
-                    textAlign: 'left',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px'
+                    label={
+                      isControlledSubstance ? 'Enter batch number (required)' : 'Enter batch number if any (optional)'
                     }
-                  }}
-                  size='large'
-                /> */}
+                    options={batchList}
+                    getOptionLabel={option => {
+                      if (typeof option === 'string') return option
+
+                      return option?.batchNumber || option?.batch_number || ''
+                    }}
+                    getOptionValue={option => {
+                      if (typeof option === 'string') return option
+
+                      return option?.batchNumber || option?.batch_number || ''
+                    }}
+                    isOptionEqualToValue={(option, value) => {
+                      if (!option || !value) return false
+
+                      const optionVal =
+                        typeof option === 'string' ? option : option?.batchNumber || option?.batch_number
+                      const valueVal = typeof value === 'string' ? value : value?.batchNumber || value?.batch_number
+
+                      return optionVal === valueVal
+                    }}
+                    loading={batchLoading}
+                    onInputChange={handleBatchSearch}
+                    required={isControlledSubstance}
+                    autocompleteProps={{
+                      filterOptions: x => x, // Disable client-side filtering
+                      noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                    }}
+                  />
                 </Grid>
                 <ControlledFileUpload name='batchImage' label='Batch Image' control={control} />
               </>

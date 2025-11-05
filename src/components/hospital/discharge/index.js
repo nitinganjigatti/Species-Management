@@ -1,199 +1,22 @@
-import React, { useState } from 'react'
-
-// ** MUI Imports
-import { Box, Grid, Tooltip, Typography, useTheme, IconButton } from '@mui/material'
-import { alpha, styled } from '@mui/system'
-
-// ** Custom Core Components
+import React from 'react'
+import { Box, Button, Grid, IconButton, Tooltip, alpha, useTheme } from '@mui/material'
+import { Controller, useForm } from 'react-hook-form'
+import { styled, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
-// ** Form & Validation Setup
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
-import { Controller, useForm } from 'react-hook-form'
-
-// ** Discharge Forms
+// Import the business logic hook
+import MortalityDischarge from './MortalityDischarge'
 import MortalityDischargeForm from 'src/views/pages/hospital/inpatient/discharge/MortalityDischargeForm'
 import TransferDischargeForm from 'src/views/pages/hospital/inpatient/discharge/TransferDischargeForm'
 import EnclosureDischargeForm from 'src/views/pages/hospital/inpatient/discharge/EnclosureDischargeForm'
-
-// ** Custom Form Components
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
+import TransferHospitalDischarge from './TransferHospitalDischarge'
+import TransferEnclosureDischarge from './TransferEnclosureDischarge'
 
-/* -------------------- Constants -------------------- */
 const dischargeTypeOptions = [
-  { label: 'Mortality', value: 'mortality' },
-  { label: 'Transfer to another hospital', value: 'transfer' },
-  { label: 'Discharge to enclosure', value: 'discharge' }
-]
-
-const defaultValues = {
-  dischargeType: 'mortality',
-
-  // Mortality
-  dateOfDeath: null,
-  timeOfDeath: null,
-  causeOfDeath: '',
-  carcassCondition: '',
-  carcassDeposition: '',
-  requestNecropsy: true,
-  necropsyPriority: 'high',
-  noNecropsyReason: '',
-  images: [],
-
-  // Transfer
-  hospital: '',
-  transferReason: '',
-  dischargeDate: null,
-  dischargeTime: null,
-  dietInstructions: '',
-  restrictionActivities: '',
-  additionalNotes: '',
-  transferSite: '',
-  transferSection: '',
-  transferEnclosure: '',
-  images: [],
-
-  // Enclosure discharge specific
-  transferSite: '',
-  transferSection: '',
-  transferEnclosure: '',
-
-  dischargeDate: null,
-  dischargeTime: null,
-  ietInstructions: '',
-  restrictionActivities: '',
-  additionalNotes: ''
-}
-
-const schema = yup.object().shape({
-  dischargeType: yup.string().required('Discharge type is required'),
-
-  // Mortality validations
-  dateOfDeath: yup.date().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.nullable().required('Date of death is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  timeOfDeath: yup.date().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.nullable().required('Time of death is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  causeOfDeath: yup.string().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.required('Cause of death is required'),
-    otherwise: schema => schema
-  }),
-  carcassCondition: yup.string().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.required('Carcass condition is required'),
-    otherwise: schema => schema
-  }),
-  carcassDeposition: yup.string().when('dischargeType', {
-    is: 'mortality',
-    then: schema => schema.required('Carcass deposition is required'),
-    otherwise: schema => schema
-  }),
-  noNecropsyReason: yup.string().when(['dischargeType', 'requestNecropsy'], {
-    is: (dischargeType, requestNecropsy) => dischargeType === 'mortality' && !requestNecropsy,
-    then: schema => schema.required('Reason for not performing necropsy is required'),
-    otherwise: schema => schema
-  }),
-  images: yup.array().of(yup.string()).max(5, 'Max 5 images'),
-
-  // Transfer validations
-  hospital: yup.string().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.required('Hospital is required'),
-    otherwise: schema => schema
-  }),
-  transferReason: yup.string().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.required('Reason for transferring is required'),
-    otherwise: schema => schema
-  }),
-  dischargeDate: yup.date().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.nullable().required('Date of discharge is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  dischargeTime: yup.date().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.nullable().required('Time of discharge is required'),
-    otherwise: schema => schema.nullable()
-  }),
-
-  dietInstructions: yup.string().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.required('Diet Instructions is required'),
-    otherwise: schema => schema
-  }),
-  restrictions: yup.string().when('dischargeType', {
-    is: 'transfer',
-    then: schema => schema.required('Restriction activities  is required'),
-    otherwise: schema => schema
-  }),
-
-  // additionalNotes: yup.string().when('dischargeType', {
-  //   is: 'transfer',
-  //   then: schema => schema.required('additional Notes is required'),
-  //   otherwise: schema => schema
-  // }),
-
-  // Enclosure discharge validations
-  transferSite: yup.string().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.required('Site is required'),
-    otherwise: schema => schema
-  }),
-  transferSection: yup.string().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.required('Section is required'),
-    otherwise: schema => schema
-  }),
-  transferEnclosure: yup.string().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.required('Enclosure is required'),
-    otherwise: schema => schema
-  }),
-  dischargeDate: yup.date().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.nullable().required('Date of discharge is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  dischargeTime: yup.date().when('dischargeType', {
-    is: 'discharge',
-    then: schema => schema.nullable().required('Time of discharge is required'),
-    otherwise: schema => schema.nullable()
-  })
-})
-const templates = ['Avian summary', 'Feline summary', 'Reptilian summary']
-
-const necropsyPriorityList = [
-  { label: 'High', value: 'high' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Low', value: 'low' }
-]
-
-const deathCauses = [
-  { label: 'Infection', value: 'infection' },
-  { label: 'Trauma', value: 'trauma' }
-]
-
-const carcassCondition = [
-  { label: 'Good', value: 'good' },
-  { label: 'Decomposed', value: 'decomposed' }
-]
-
-const carcassDeposition = [
-  { label: 'Buried', value: 'buried' },
-  { label: 'Incinerated', value: 'incinerated' }
-]
-
-const hospitals = [
-  { label: 'Wildlife Rescue Center', value: 'rescue_center' },
-  { label: 'Animal Care Hospital', value: 'animal_care' }
+  { label: 'Mortality', value: 'Mortality' },
+  { label: 'Transfer to Hospital', value: 'TransferHospital' },
+  { label: 'Transfer to Enclosure', value: 'TransferEnclosure' }
 ]
 
 const medicationsData = [
@@ -219,39 +42,175 @@ const medicationsData = [
   }
 ]
 
-/* -------------------- Styles -------------------- */
-const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, color }) => ({
-  fontSize: fontSize || '1rem',
-  fontWeight: fontWeight || 500,
-  color: color || theme.palette.customColors.OnSurfaceVariant
-}))
-
-const InpatientDischarge = () => {
+const InpatientDischarge = ({ patientData }) => {
   const theme = useTheme()
 
-  const medicationColumns = [
+  // Initialize the mortality business logic hook
+  const {
+    causeOfDeath,
+    carcassCondition,
+    carcassDeposition,
+    handleMannerSearch,
+    handleConditionSearch,
+    handleDispositionSearch,
+    submitLoader: mortalitySubmitLoader,
+    fetchLoading: mortalityFetchLoading,
+    error: mortalityError,
+    handleSubmitData: handleMortalitySubmitData,
+    resetForm: resetMortalityForm
+  } = MortalityDischarge()
+
+  const {
+    hospital,
+    handleHospitalSearch,
+    submitLoader: transferHospitalSubmitLoader,
+    fetchLoading: transferHospitalFetchLoading,
+    error: transferHospitalError,
+    handleSubmitData: handleTransferHospitalSubmitData,
+    resetForm: resetTransferHospitalForm
+  } = TransferHospitalDischarge()
+
+  const {
+    submitLoader: transferEnclosureSubmitLoader,
+    fetchLoading: transferEnclosureFetchLoading,
+    error: transferEnclosureError,
+    handleSubmitData: handleTransferEnclosureSubmitData,
+    resetForm: resetTransferEnclosureForm
+  } = TransferEnclosureDischarge()
+
+  const prescriptionsColumns = [
     {
-      field: 'No',
-      headerName: 'NO',
-      width: 80,
-      align: 'center',
-      headerAlign: 'center',
+      field: 'id',
+      headerName: 'Sl.NO',
+      minWidth: 50,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params.row.id}
-        </Typography>
+        </StyledTypography>
       )
     },
     {
       field: 'MedicineName',
-      headerName: 'MEDICINE NAME',
+      headerName: 'Medicine Name',
+      minWidth: 180,
+      flex: 1,
+      sortable: false,
+      renderCell: params => (
+        <Tooltip title={params.row.MedicineName}>
+          <StyledTypography
+            sx={{ pl: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            fontWeight={600}
+          >
+            {params.row.MedicineName}
+          </StyledTypography>
+        </Tooltip>
+      )
+    },
+    {
+      field: 'DosageTimesFrequency',
+      headerName: 'Dosage Times & Frequency',
+      minWidth: 200,
+      flex: 1,
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography
+          sx={{ pl: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+          fontWeight={400}
+        >
+          {params.row.DosageTimesFrequency}
+        </StyledTypography>
+      )
+    },
+    {
+      field: 'StartingDate',
+      headerName: 'Starting Date',
+      minWidth: 140,
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+          {params.row.StartingDate}
+        </StyledTypography>
+      )
+    },
+    {
+      field: 'EndingDate',
+      headerName: 'Ending Date',
+      minWidth: 180,
+      sortable: false,
+      renderCell: params => (
+        <Button
+          variant='outlined'
+          // sx={{ pl: 2, border: `1px solid ${theme.palette.customColors.OnSurface}`, borderRadius: '4px' }}
+          sx={{
+            border: `1px solid ${theme.palette.customColors.OnSurface}`,
+            borderRadius: '4px',
+
+            // padding: '0 10px',
+            color: theme.palette.customColors.OnSurface
+          }}
+          startIcon={
+            <Icon
+              icon='mdi:calendar-blank'
+              style={{
+                fontSize: 18
+              }}
+            />
+          }
+        >
+          <StyledTypography color={theme.palette.customColors.OnSurface}>{params.row.EndingDate}</StyledTypography>
+        </Button>
+
+        // <ControlledDatePicker control={control} name='discharge_date' label='Date' errors={errors} />
+      )
+    },
+    {
+      field: 'Duration',
+      headerName: 'Duration',
+      minWidth: 120,
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+          {params.row.Duration}
+        </StyledTypography>
+      )
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      headerAlign: 'center',
+      align: 'center',
+      minWidth: 180,
+      sortable: false,
+      renderCell: params => (
+        <Button>
+          <StyledTypography
+            sx={{ textTransform: 'capitalize' }}
+            fontWeight={600}
+            color={theme.palette.customColors.OnSurface}
+          >
+            Stop Medicine
+          </StyledTypography>
+        </Button>
+      )
+    }
+  ]
+
+  const medicationColumns = [
+    {
+      field: 'id',
+      headerName: 'Sl.NO',
+      minWidth: 50,
+      sortable: false,
+      renderCell: params => (
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
+          {params.row.id}
+        </StyledTypography>
+      )
+    },
+    {
+      field: 'MedicineName',
+      headerName: 'Medicine Name',
       minWidth: 180,
       flex: 1,
       sortable: false,
@@ -263,126 +222,86 @@ const InpatientDischarge = () => {
           }}
         >
           <Tooltip title={params.row.MedicineName}>
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
+            <StyledTypography
+              sx={{ pl: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+              fontWeight={600}
             >
               {params.row.MedicineName}
-            </Typography>
+            </StyledTypography>
           </Tooltip>
           <Tooltip title={params.row.BrandName}>
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: theme.palette.customColors.OnSurfaceVariant,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                fontStyle: 'italic'
-              }}
+            <StyledTypography
+              sx={{ pl: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+              fontSize={'0.875rem'}
             >
               {params.row.BrandName}
-            </Typography>
+            </StyledTypography>
           </Tooltip>
         </Box>
       )
     },
     {
       field: 'DosageTimesFrequency',
-      headerName: 'DOSAGE TIMES & FREQUENCY',
+      headerName: 'Dosage Times & Frequency',
       minWidth: 200,
       flex: 1,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
+        <StyledTypography
+          sx={{ pl: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+          fontWeight={400}
         >
           {params.row.DosageTimesFrequency}
-        </Typography>
+        </StyledTypography>
       )
     },
     {
       field: 'StartingDate',
-      headerName: 'STARTING DATE',
+      headerName: 'Starting Date',
       minWidth: 140,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params.row.StartingDate}
-        </Typography>
+        </StyledTypography>
       )
     },
     {
       field: 'EndingDate',
-      headerName: 'ENDING DATE',
+      headerName: 'Ending Date',
       minWidth: 140,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params.row.EndingDate}
-        </Typography>
+        </StyledTypography>
       )
     },
     {
       field: 'Duration',
-      headerName: 'DURATION',
+      headerName: 'Duration',
       minWidth: 120,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params.row.Duration}
-        </Typography>
+        </StyledTypography>
       )
     },
     {
       field: 'DeliveryRoute',
-      headerName: 'DELIVERY ROUTE',
+      headerName: 'Delivery Route',
       minWidth: 140,
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant
-          }}
-        >
+        <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
           {params.row.DeliveryRoute}
-        </Typography>
+        </StyledTypography>
       )
     },
     {
       field: 'actions',
-      headerName: 'ACTIONS',
+      headerName: 'Actions',
       headerAlign: 'center',
       align: 'center',
       width: 120,
@@ -405,100 +324,14 @@ const InpatientDischarge = () => {
     }
   ]
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-    reset
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onChange',
-    reValidateMode: 'onChange'
+  // Form for discharge type selection
+  const { control, watch } = useForm({
+    defaultValues: {
+      discharge_type: 'Mortality'
+    }
   })
 
-  const [activeTemplate, setActiveTemplate] = useState(templates[0])
-  const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const watchDischargeType = watch('dischargeType')
-
-  const onSubmit = async data => {
-    console.log('data submitted', data)
-
-    setLoading(true)
-    try {
-      console.log('Form Submitted Data:', { ...data, summary: content })
-
-      // TODO: API integration
-      //
-      reset(defaultValues)
-      setContent('')
-
-      // setActiveTemplate(templates[0])
-    } catch (error) {
-      console.error('Submit error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Reset dependent fields when discharge type changes
-  React.useEffect(() => {
-    const subscription = watch((value, { name }) => {
-      if (name === 'dischargeType') {
-        // Reset form fields that are specific to other discharge types
-        const fieldsToReset = {
-          // Mortality fields
-          dateOfDeath: null,
-          timeOfDeath: null,
-          causeOfDeath: '',
-          carcassCondition: '',
-          carcassDeposition: '',
-          requestNecropsy: true,
-          necropsyPriority: 'high',
-          noNecropsyReason: '',
-          images: [],
-
-          // Transfer fields
-          hospital: '',
-          transferReason: '',
-          dischargeDate: null,
-          dischargeTime: null,
-          dietInstructions: '',
-          restrictionActivities: '',
-          additionalNotes: '',
-          transferSite: '',
-          transferSection: '',
-          transferEnclosure: '',
-          followUpDate: null,
-          followUpRequired: true,
-          images: [],
-
-          // Enclosure fields
-          transferSite: '',
-          transferSection: '',
-          transferEnclosure: '',
-          dischargeDate: null,
-          dischargeTime: null,
-          ietInstructions: '',
-          restrictionActivities: '',
-          additionalNotes: '',
-          images: []
-        }
-
-        // Only reset fields that don't belong to the current discharge type
-        Object.keys(fieldsToReset).forEach(field => {
-          reset(prev => ({ ...prev, [field]: fieldsToReset[field] }))
-        })
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [watch, reset])
+  const watchDischargeType = watch('discharge_type')
 
   return (
     <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -515,7 +348,7 @@ const InpatientDischarge = () => {
       >
         <StyledTypography color={theme.palette.customColors.neutralPrimary}>Reason of Admission</StyledTypography>
         <StyledTypography color={theme.palette.customColors.neutralPrimary} fontSize={'0.875rem'} fontWeight={400}>
-          Leopard was observed with reduced mobility and swelling in the right forelimb, suspected fracture due to fall
+          {patientData?.purpose_of_visit}
         </StyledTypography>
       </Box>
 
@@ -523,7 +356,7 @@ const InpatientDischarge = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <StyledTypography>Discharge Type</StyledTypography>
         <Controller
-          name='dischargeType'
+          name='discharge_type'
           control={control}
           render={({ field }) => (
             <Grid container spacing={6}>
@@ -546,61 +379,52 @@ const InpatientDischarge = () => {
       </Box>
 
       {/* Conditional Forms */}
-      {watchDischargeType === 'mortality' && (
+      {watchDischargeType === 'Mortality' && (
         <MortalityDischargeForm
-          control={control}
-          watch={watch}
-          errors={errors}
-          templates={templates}
-          activeTemplate={activeTemplate}
-          setActiveTemplate={setActiveTemplate}
-          necropsyPriorityList={necropsyPriorityList}
-          deathCauses={deathCauses}
+          causeOfDeath={causeOfDeath}
           carcassCondition={carcassCondition}
           carcassDeposition={carcassDeposition}
-          content={content}
-          setContent={setContent}
-          loading={loading}
-          onSubmit={handleSubmit(onSubmit)}
-          setValue={setValue}
+          fetchLoading={mortalityFetchLoading}
+          error={mortalityError}
+          submitLoader={mortalitySubmitLoader}
+          handleSubmitData={handleMortalitySubmitData}
+          resetForm={resetMortalityForm}
+          patientData={patientData}
+          watchDischargeType={watchDischargeType}
+          handleMannerSearch={handleMannerSearch}
+          handleConditionSearch={handleConditionSearch}
+          handleDispositionSearch={handleDispositionSearch}
         />
       )}
 
-      {watchDischargeType === 'transfer' && (
+      {watchDischargeType === 'TransferHospital' && (
         <TransferDischargeForm
-          control={control}
-          watch={watch}
-          errors={errors}
-          templates={templates}
-          activeTemplate={activeTemplate}
-          setActiveTemplate={setActiveTemplate}
-          content={content}
-          setContent={setContent}
-          loading={loading}
-          hospitals={hospitals}
-          medicationsData={medicationsData}
+          fetchLoading={transferHospitalFetchLoading}
+          error={transferHospitalError}
+          submitLoader={transferHospitalSubmitLoader}
+          handleSubmitData={handleTransferHospitalSubmitData}
+          resetForm={resetTransferHospitalForm}
+          patientData={patientData}
+          watchDischargeType={watchDischargeType}
+          hospitalList={hospital}
+          handleHospitalSearch={handleHospitalSearch}
           medicationColumns={medicationColumns}
-          onSubmit={handleSubmit(onSubmit)}
-          setValue={setValue}
+          prescriptionsColumns={prescriptionsColumns}
+          medicationsData={medicationsData}
         />
       )}
 
-      {watchDischargeType === 'discharge' && (
+      {watchDischargeType === 'TransferEnclosure' && (
         <EnclosureDischargeForm
-          control={control}
-          watch={watch}
-          errors={errors}
-          templates={templates}
-          activeTemplate={activeTemplate}
-          setActiveTemplate={setActiveTemplate}
-          content={content}
-          setContent={setContent}
-          loading={loading}
-          hospitals={hospitals}
-          medicationsData={medicationsData}
+          fetchLoading={transferEnclosureFetchLoading}
+          error={transferEnclosureError}
+          submitLoader={transferEnclosureSubmitLoader}
+          handleSubmitData={handleTransferEnclosureSubmitData}
+          resetForm={resetTransferEnclosureForm}
+          patientData={patientData}
+          watchDischargeType={watchDischargeType}
           medicationColumns={medicationColumns}
-          onSubmit={handleSubmit(onSubmit)}
-          setValue={setValue}
+          medicationsData={medicationsData}
         />
       )}
     </Box>
@@ -608,3 +432,9 @@ const InpatientDischarge = () => {
 }
 
 export default InpatientDischarge
+
+const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, color }) => ({
+  fontSize: fontSize || '1rem',
+  fontWeight: fontWeight || 500,
+  color: color || theme.palette.customColors.OnSurfaceVariant
+}))
