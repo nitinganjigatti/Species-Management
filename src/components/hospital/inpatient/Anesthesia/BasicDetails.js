@@ -7,6 +7,7 @@ import {
   Chip,
   Grid,
   InputAdornment,
+  Radio,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -32,6 +33,7 @@ const monitoringOptions = [
 ]
 
 const ventilationOptions = ['No', 'Vetronics', 'Manual']
+const catheterOptions = ['IV', 'IO']
 
 const textFieldStyles = {
   '& .MuiOutlinedInput-root': {
@@ -69,34 +71,7 @@ const textFieldStyles = {
   }
 }
 
-const toggleButtonGroupStyles = {
-  flexWrap: 'wrap',
-  gap: '12px',
-  '& .MuiToggleButtonGroup-grouped': {
-    margin: 0,
-    borderRadius: '4px !important',
-    border: '1px solid #B5D3C0 !important',
-    padding: '10px 18px',
-    textTransform: 'none',
-    backgroundColor: '#EFF5F2',
-    fontFamily: 'Inter',
-    fontWeight: 500,
-    fontSize: '16px',
-    lineHeight: 1,
-    letterSpacing: 0,
-    color: '#44544A',
-    '&:hover': {
-      backgroundColor: '#E8F4F2'
-    },
-    '&.Mui-selected': {
-      backgroundColor: '#E8F4F2',
-      borderColor: '#37BD69 !important',
-      color: '#006D35'
-    }
-  }
-}
-
-const ventilationToggleGroupStyles = {
+const radioTileGroupStyles = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: '16px',
@@ -105,7 +80,7 @@ const ventilationToggleGroupStyles = {
   }
 }
 
-const ventilationToggleButtonStyles = {
+const radioTileButtonStyles = {
   width: '257.3333435058594px',
   height: '56px',
   padding: '0 12px',
@@ -113,36 +88,30 @@ const ventilationToggleButtonStyles = {
   alignItems: 'center',
   borderRadius: '4px !important',
   border: '1px solid #C3CEC7 !important',
-  backgroundColor: '#FFFFFF',
+  backgroundColor: '#FFFFFF !important',
   textTransform: 'none',
-  color: '#839D8D',
+  color: '#44544A',
   fontFamily: 'Inter',
-  fontWeight: 400,
+  fontWeight: 500,
   fontSize: '16px',
   lineHeight: 1,
   letterSpacing: 0,
   '&:hover': {
     backgroundColor: '#FFFFFF'
   },
-  '& .ventilation-radio-circle': {
-    width: '20px',
-    height: '20px',
-    borderRadius: '50%',
-    border: '1.5px solid #839D8D'
-  },
   '&.Mui-selected': {
     borderColor: '#37BD69 !important',
-    color: '#006D35'
+    color: '#006D35',
+    backgroundColor: '#FFFFFF !important'
   },
-  '&.Mui-selected .ventilation-radio-circle': {
-    borderColor: '#37BD69',
-    boxShadow: 'inset 0 0 0 4px #37BD69'
+  '&.Mui-selected:hover': {
+    backgroundColor: '#FFFFFF'
   }
 }
 
-const ventilationLabelStyles = {
+const radioTileLabelStyles = {
   fontFamily: 'Inter',
-  fontWeight: 400,
+  fontWeight: 500,
   fontSize: '16px',
   lineHeight: 1,
   letterSpacing: 0,
@@ -384,13 +353,31 @@ const AnesthesiaBasicDetails = () => {
             exclusive
             value={formState.catheterSetup.method}
             onChange={handleExclusiveToggle('catheterSetup', 'method')}
-            sx={toggleButtonGroupStyles}
+            sx={radioTileGroupStyles}
           >
-            {['IV', 'IO'].map(option => (
-              <ToggleButton key={option} value={option}>
-                {option}
-              </ToggleButton>
-            ))}
+            {catheterOptions.map(option => {
+              const isSelected = formState.catheterSetup.method === option
+
+              return (
+                <ToggleButton key={option} value={option} sx={radioTileButtonStyles}>
+                  <Typography component='span' sx={radioTileLabelStyles}>
+                    {option}
+                  </Typography>
+                  <Radio
+                    checked={isSelected}
+                    disableRipple
+                    inputProps={{ readOnly: true }}
+                    sx={{
+                      pointerEvents: 'none',
+                      color: '#C3CEC7',
+                      '&.Mui-checked': {
+                        color: '#37BD69'
+                      }
+                    }}
+                  />
+                </ToggleButton>
+              )
+            })}
           </ToggleButtonGroup>
         )
       case 'syringePump':
@@ -472,16 +459,31 @@ const AnesthesiaBasicDetails = () => {
             exclusive
             value={formState.ventilation.mode}
             onChange={handleExclusiveToggle('ventilation', 'mode')}
-            sx={ventilationToggleGroupStyles}
+            sx={radioTileGroupStyles}
           >
-            {ventilationOptions.map(option => (
-              <ToggleButton key={option} value={option} sx={ventilationToggleButtonStyles}>
-                <Typography component='span' sx={ventilationLabelStyles}>
-                  {option}
-                </Typography>
-                <Box className='ventilation-radio-circle' />
-              </ToggleButton>
-            ))}
+            {ventilationOptions.map(option => {
+              const isSelected = formState.ventilation.mode === option
+
+              return (
+                <ToggleButton key={option} value={option} sx={radioTileButtonStyles}>
+                  <Typography component='span' sx={radioTileLabelStyles}>
+                    {option}
+                  </Typography>
+                  <Radio
+                    checked={isSelected}
+                    disableRipple
+                    inputProps={{ readOnly: true }}
+                    sx={{
+                      pointerEvents: 'none',
+                      color: '#C3CEC7',
+                      '&.Mui-checked': {
+                        color: '#37BD69'
+                      }
+                    }}
+                  />
+                </ToggleButton>
+              )
+            })}
           </ToggleButtonGroup>
         )
       case 'monitoring':
@@ -558,7 +560,7 @@ const AnesthesiaBasicDetails = () => {
               <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <TextField
                   fullWidth
-                  placeholder='Enter item'
+                  placeholder='New Monitoring'
                   value={newMonitoringItem}
                   onChange={event => setNewMonitoringItem(event.target.value)}
                   onKeyDown={handleNewItemKeyDown}
