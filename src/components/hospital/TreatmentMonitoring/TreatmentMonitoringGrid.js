@@ -5,6 +5,8 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import AddScheduleDrawer from 'src/views/pages/hospital/treatment-monitoring/AddScheduleDrawer'
+import AddParameterDrawer from 'src/views/pages/hospital/treatment-monitoring/AddParameterDrawer'
+import { useRouter } from 'next/router'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -145,10 +147,14 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
   const theme = useTheme()
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
+  const router = useRouter()
+
+  const { id } = router.query
 
   const [hoveredSlot, setHoveredSlot] = useState(null)
   const [didInitialScroll, setDidInitialScroll] = useState(false)
   const [openScheduleDrawer, setOpenScheduleDrawer] = useState(false)
+  const [addParameterDrawerOpen, setAddParameterDrawerOpen] = useState(false)
 
   const timeSlots = useMemo(() => {
     const slots = []
@@ -279,9 +285,13 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
             <MainContainer>
               <FixedColumn>
                 <HeaderContainer>
-                  <Typography>Monitoring</Typography>
-                  <IconButton size='small'>
-                    <Icon icon={'mdi-plus'} fontSize={20} />
+                  <Typography
+                    sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}
+                  >
+                    Monitoring
+                  </Typography>
+                  <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
+                    <Icon icon={'ei:plus'} fontSize={30} color={theme.palette.primary.main} fontWeight={600} />
                   </IconButton>
                 </HeaderContainer>
 
@@ -346,7 +356,15 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
         </Grid>
       </Grid>
       {openScheduleDrawer && (
-        <AddScheduleDrawer open={openScheduleDrawer} setOpen={setOpenScheduleDrawer} monitoring={defaultMetrics} />
+        <AddScheduleDrawer
+          open={openScheduleDrawer}
+          setOpen={setOpenScheduleDrawer}
+          monitoring={defaultMetrics}
+          hospitalCaseId={id}
+        />
+      )}
+      {addParameterDrawerOpen && (
+        <AddParameterDrawer open={addParameterDrawerOpen} setOpen={setAddParameterDrawerOpen} hospitalCaseId={id} />
       )}
     </>
   )

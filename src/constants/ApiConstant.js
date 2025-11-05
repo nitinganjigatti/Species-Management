@@ -834,3 +834,21 @@ export const ROOM_STATUS_UPDATE = 'v1/hospital/room/status/update'
 // Hospital inpatient discharge
 
 export const ADD_DISCHARGE = 'v1/hospital/discharge'
+
+//  Inpatient Treatment Monitoring
+
+export const GET_TREATMENT_PARAMETERS_INTERVALS = `v1/hospital/get-assessment-intervals`
+
+export const SCHEDULE_INTERVALS_FOR_PARAMETERS = `v1/hospital/schedule-monitoring`
+
+export const GET_PARAMS_FILER_OPTIONS = `v1/assessment/category/list`
+
+export const GET_PARAMETERS_ON_FILTERS = `v1/assessment/type/list`
+
+export const GET_HOSPITAL_PARAMS_TEMPLATE = `v1/assessment/templates/list`
+
+export const GET_PARAMS_OF_TEMPLATE = `v1/assessment/templates/types`
+
+export const SAVE_HOSPITAL_TEMPLATE = `/v1/hospital/create-monitoring-parameters-template`
+
+export const APPLY_PARAMS_TO_CASE_ID = `v1/hospital/add-monitoring-parameters`

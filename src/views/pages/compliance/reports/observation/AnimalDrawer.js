@@ -29,7 +29,6 @@ const AnimalDrawer = ({
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
-  console.log(filters, 'zzzzz')
 
   const [search, setSearch] = useState('')
   const [localSearch, setLocalSearch] = useState('')
