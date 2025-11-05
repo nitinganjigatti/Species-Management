@@ -13,7 +13,6 @@ import {
   Typography
 } from '@mui/material'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 
 const monitoringOptions = [
   'Pulse ox',
@@ -179,25 +178,19 @@ const monitoringToggleButtonStyles = {
     backgroundColor: '#FFFFFF'
   },
   '&.Mui-selected': {
-    borderColor: '#37BD69 !important'
+    borderColor: '#37BD69 !important',
+    backgroundColor: '#FFFFFF !important'
   },
-  '&.Mui-selected .monitoring-checkbox-indicator': {
-    backgroundColor: '#37BD69',
-    borderColor: '#37BD69',
-    color: '#FFFFFF'
+  '&.Mui-selected:hover': {
+    backgroundColor: '#FFFFFF'
+  },
+  '& .MuiCheckbox-root': {
+    padding: 0,
+    color: '#C3CEC7'
+  },
+  '& .MuiCheckbox-root.Mui-checked': {
+    color: '#37BD69'
   }
-}
-
-const monitoringIndicatorStyles = {
-  width: '28px',
-  height: '28px',
-  borderRadius: '8px',
-  border: '1.5px solid #C3CEC7',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: 'transparent',
-  color: '#FFFFFF'
 }
 
 const sectionTitleStyles = {
@@ -520,15 +513,12 @@ const AnesthesiaBasicDetails = () => {
                     <Typography component='span' sx={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '16px' }}>
                       {option}
                     </Typography>
-                    <Box
-                      className='monitoring-checkbox-indicator'
-                      sx={{
-                        ...monitoringIndicatorStyles,
-                        ...(isSelected ? { backgroundColor: '#37BD69', borderColor: '#37BD69', color: '#FFFFFF' } : {})
-                      }}
-                    >
-                      {isSelected && <CheckRoundedIcon sx={{ fontSize: '18px', color: '#FFFFFF' }} />}
-                    </Box>
+                    <Checkbox
+                      checked={isSelected}
+                      disableRipple
+                      inputProps={{ readOnly: true }}
+                      sx={{ pointerEvents: 'none' }}
+                    />
                   </ToggleButton>
                 )
               })}
