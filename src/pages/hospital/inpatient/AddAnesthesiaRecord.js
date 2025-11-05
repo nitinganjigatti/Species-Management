@@ -1,5 +1,5 @@
-'use client'
 import * as React from 'react'
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -24,17 +24,36 @@ import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 // import RecoveryReversalSection from 'src/components/hospital/inpatient/Anesthesia/RecoveryReversalSection'
 
 const sections = [
-  { id: 'Basic Detail', component: BasicDetails },
-  //   { id: 'Medications & Gas', component: MedicationsGasSection },
-  //   { id: 'Anesthesia Set-Up', component: AnesthesiaSetupSection },
-  //   { id: 'Pre Anesthesia', component: PreAnesthesiaSection },
-  //   { id: 'Vital Monitoring', component: VitalMonitoringSection },
-  //   { id: 'Recovery and Reversal', component: RecoveryReversalSection },
-  { id: 'Attachments', component: AttachmentsSection }
+  { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
+  //   { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
+  { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
 export default function AddAnesthesiaRecord() {
   const [expanded, setExpanded] = React.useState('Basic Detail')
+  const [formData, setFormData] = useState({
+    basicDetails: {
+      location: '',
+      dateTime: '',
+      estimatedTime: '',
+      veterinarian: '',
+      anesthetist: '',
+      purpose: [],
+      otherPurpose: '',
+      notes: ''
+    },
+    attachments: {
+      files: [],
+      comments: ''
+    },
+    medicationsGas: {
+      drugs: [],
+      gasType: '',
+      dosage: ''
+    }
+    // Add others as needed
+  })
+
   const sectionRefs = React.useRef({})
   const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
@@ -53,6 +72,16 @@ export default function AddAnesthesiaRecord() {
         behavior: 'smooth'
       })
     }
+  }
+
+  const handleSectionChange = (sectionId, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        [field]: value
+      }
+    }))
   }
 
   return (
@@ -149,7 +178,7 @@ export default function AddAnesthesiaRecord() {
             {sections.map(sec => (
               <Tab
                 key={sec.id}
-                label={sec.id}
+                label={sec.label}
                 value={sec.id}
                 sx={{
                   color: theme.palette.customColors.secondaryBg,
@@ -163,7 +192,7 @@ export default function AddAnesthesiaRecord() {
 
         {/* Scrollable Body */}
         <Box ref={scrollContainerRef} flex={1} overflow='auto' p={0} mt={4}>
-          {sections.map(({ id, component: SectionComponent }) => (
+          {sections.map(({ id, label, component: SectionComponent }) => (
             <Accordion
               key={id}
               expanded={expanded === id}
@@ -185,11 +214,14 @@ export default function AddAnesthesiaRecord() {
                   )
                 }
               >
-                <Typography fontWeight={600}>{id}</Typography>
+                <Typography fontWeight={600}>{label}</Typography>
               </AccordionSummary>
 
               <AccordionDetails>
-                <SectionComponent />
+                <SectionComponent
+                  data={formData[id]}
+                  onChange={(field, value) => handleSectionChange(id, field, value)}
+                />
               </AccordionDetails>
             </Accordion>
           ))}

@@ -1,31 +1,47 @@
 import React from 'react'
-import { Box, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  TextField,
+  Typography,
+  Grid,
+  MenuItem,
+  Button,
+  ToggleButtonGroup,
+  ToggleButton,
+  Paper
+} from '@mui/material'
+//import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+import { useTheme } from '@mui/material/styles'
 
-export default function BasicDetails() {
+export default function BasicDetails({ data, onChange }) {
+  const theme = useTheme()
+
+  const purposeOptions = [
+    'Detailed physical examination',
+    'Ultrasonography',
+    'CT',
+    'MRI',
+    'Blood draw',
+    'Wing/beak/nail trim',
+    'Endoscopy',
+    'Dentistry, print dental sheet',
+    'Wound management/bandaging',
+    'Feeding tube (esophagostomy tube)',
+    'E-collar placement',
+    'OR surgery, submit request'
+  ]
+
+  const handlePurposeToggle = (event, newValues) => {
+    onChange('purpose', newValues)
+  }
+
   return (
-    <Box display='grid' gap={2} gridTemplateColumns={{ xs: '1fr', sm: 'repeat(2, 1fr)' }}>
-      {/* <TextField label='Location' size='small' />
-      <TextField
-        label='Date & Time of Anesthesia'
-        size='small'
-        type='datetime-local'
-        InputLabelProps={{ shrink: true }}
-      />
-      <TextField label='Veterinarian' select SelectProps={{ native: true }} size='small'>
-        <option>Select</option>
-        <option>Dr. A</option>
-        <option>Dr. B</option>
-      </TextField>
-      <TextField label='Anesthetist' select SelectProps={{ native: true }} size='small'>
-        <option>Select</option>
-        <option>Dr. X</option>
-        <option>Dr. Y</option>
-      </TextField>
+    <Paper variant='outlined' sx={{ p: 3, borderRadius: 3 }}>
+      <Typography variant='h6' fontWeight={600} mb={3}>
+        Basic Details*
+      </Typography>
 
-      <Box gridColumn='1 / -1'>
-        <TextField label='Notes' size='small' fullWidth multiline rows={3} placeholder='Enter notes' />
-      </Box> */}
-      <Typography>Basic details ui here</Typography>
-    </Box>
+      {/* Basic Fields */}
+    </Paper>
   )
 }
