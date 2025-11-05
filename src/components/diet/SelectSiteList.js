@@ -16,6 +16,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search'
 import React, { useState, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
+import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 
 const SelectSiteList = ({
   openSiteListDrawer,
@@ -264,7 +265,19 @@ const SelectSiteList = ({
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' />
+                  {/* <Avatar src={site?.site_image || '/icons/antz.svg'} variant='rounded' /> */}
+                  <FallbackAvatar
+                    src={site?.site_image}
+                    fallback='/images/housing/site-icon-colored.svg'
+                    variant='rounded'
+                    sx={{
+                      backgroundColor: theme.palette.customColors.displaybgPrimary,
+                      p: site?.site_image ? 0 : 2,
+                      height: '40px',
+                      width: '40px',
+                      borderRadius: '8px'
+                    }}
+                  />
                 </ListItemAvatar>
                 <ListItemText
                   primary={site?.site_name}

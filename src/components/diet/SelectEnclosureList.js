@@ -358,12 +358,6 @@ const SelectEnclosureList = ({
                             }
                           }
                         }}
-
-                        // primaryTypographyProps={{
-                        //   fontWeight: 'bold',
-                        //   color: theme.palette.customColors.OnPrimaryContainer
-                        // }}
-                        // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                       />
                       <Checkbox
                         checked={isSelected}
