@@ -13,10 +13,10 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
 import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
+import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 // import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
 // import AnesthesiaSetupSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetupSection'
 // import PreAnesthesiaSection from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesiaSection'
@@ -56,8 +56,7 @@ export default function AddAnesthesiaRecord() {
   }
 
   return (
-    <Box display='flex' flexDirection='column' gap={3}>
-      {/* Breadcrumbs */}
+    <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
       <Breadcrumbs aria-label='breadcrumb'>
         <Typography color={theme.palette.text.secondary}>Hospital</Typography>
         <Typography color={theme.palette.text.secondary}>Patients</Typography>
@@ -73,9 +72,7 @@ export default function AddAnesthesiaRecord() {
         <Typography color={theme.palette.text.primary}>Add Anesthesia </Typography>
       </Breadcrumbs>
 
-      {/* Main Container */}
       <Box position='relative' height='80vh' display='flex' flexDirection='column' borderRadius='8px' overflow='hidden'>
-        {/* Sticky Header */}
         <Paper
           elevation={3}
           sx={{
@@ -198,6 +195,22 @@ export default function AddAnesthesiaRecord() {
           ))}
         </Box>
       </Box>
+      <ActionButtons
+        cancelLabel='CANCEL'
+        addLabel={
+          <Box display='flex' alignItems='center' gap={1}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+              ADD
+              {/* {addLoading && <CircularProgress size={20} sx={{ color: '#ccc' }} />} */}
+            </span>
+          </Box>
+        }
+        onCancel={() => router.push(`/hospital/inpatient/${id}/?animal_id=${animal_id}&tab=symptoms`)}
+        // onAdd={handleAddClick}
+        width={200}
+        height={50}
+        //isSubmitLoading={addLoading}
+      />
     </Box>
   )
 }
