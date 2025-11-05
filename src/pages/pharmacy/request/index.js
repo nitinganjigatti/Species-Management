@@ -705,7 +705,12 @@ const RequestList = () => {
                     onChange={newValue => {
                       setTotal(0)
                       setPaginationModel({ page: 0, pageSize: 50 })
-                      setFilterByStoreId(newValue)
+
+                      if (newValue === null) {
+                        setFilterByStoreId('all')
+                      } else {
+                        setFilterByStoreId(newValue)
+                      }
                       setSearchValue('')
                     }}
                     options={stores}
@@ -731,8 +736,13 @@ const RequestList = () => {
                   value={selectDays}
                   label='Filter by days'
                   onChange={newValue => {
-                    filterByDays(newValue)
-                    setSelectDays(newValue)
+                    if (newValue === null) {
+                      setSelectDays('all')
+                      filterByDays('all')
+                    } else {
+                      filterByDays(newValue)
+                      setSelectDays(newValue)
+                    }
                   }}
                   options={dateRangeOptions}
                 />
