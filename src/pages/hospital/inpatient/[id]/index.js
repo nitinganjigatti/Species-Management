@@ -48,6 +48,7 @@ const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/I
 const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
 const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
 const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMonitoring/TreatmentLayout'))
+const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
 
 const InpatientDetails = () => {
   const router = useRouter()
@@ -116,6 +117,7 @@ const InpatientDetails = () => {
       { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
       { label: 'Discharge', value: 'discharge', component: InpatientDischarge },
       { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout }
+      // { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
