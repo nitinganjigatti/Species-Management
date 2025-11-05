@@ -1109,7 +1109,7 @@ function Anesthesia({ hospitalCaseId }) {
         </Box>
 
         <Grid xs={12}>
-          <PrescriptionMonitoringGrid
+          {/* <PrescriptionMonitoringGrid
           // onOpenPrescriptionCard={handleOpenPrescriptionCard}
           // medications={medicationData}
           // isLoading={isPrescriptionListLoading}
@@ -1117,7 +1117,7 @@ function Anesthesia({ hospitalCaseId }) {
           // dates={dates}
           // selectedDate={selectedDate}
           // handleDateChange={handleDateChange}
-          />
+          /> */}
         </Grid>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

@@ -116,8 +116,8 @@ const InpatientDetails = () => {
       { label: 'Symptoms', value: 'symptoms', component: Symptoms },
       { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
       { label: 'Discharge', value: 'discharge', component: InpatientDischarge },
-      { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout }
-      // { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia }
+      { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout },
+      { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -150,7 +150,7 @@ const InpatientDetails = () => {
       router.replace(
         {
           pathname: router.pathname,
-          query: { ...queryWithoutTab, id: router.query.id, tab: newValue }
+          query: { ...queryWithoutTab, id: router.query.id }
         },
         undefined,
         { shallow: true }
@@ -218,7 +218,7 @@ const InpatientDetails = () => {
           loading={patientLoading}
           refetch={refetchPatient}
         />
-        <Card sx={{ mt: 6, p: { xs: 3, md: 6 }, mb: 9 }}>
+        <Card sx={{ mt: 6, p: { xs: 3, md: 6 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <IconButton size='large' edge='start' color='inherit' aria-label='menu' onClick={handleMenuOpen}>

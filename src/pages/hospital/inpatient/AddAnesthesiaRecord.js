@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react'
+'use client'
+import * as React from 'react'
 import {
   Box,
   Typography,
@@ -7,40 +8,46 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  TextField,
-  Button,
   Paper,
   Breadcrumbs
 } from '@mui/material'
+import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-// import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
+import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
+import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
+import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
+// import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
+// import AnesthesiaSetupSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetupSection'
+// import PreAnesthesiaSection from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesiaSection'
+// import VitalMonitoringSection from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoringSection'
+// import RecoveryReversalSection from 'src/components/hospital/inpatient/Anesthesia/RecoveryReversalSection'
 
 const sections = [
-  'Basic Detail',
-  'Medications & Gas',
-  'Anesthesia Set-Up',
-  'Pre Anesthesia',
-  'Vital Monitoring',
-  'Recovery and Reversal',
-  'Attachments'
+  { id: 'Basic Detail', component: BasicDetails },
+  //   { id: 'Medications & Gas', component: MedicationsGasSection },
+  //   { id: 'Anesthesia Set-Up', component: AnesthesiaSetupSection },
+  //   { id: 'Pre Anesthesia', component: PreAnesthesiaSection },
+  //   { id: 'Vital Monitoring', component: VitalMonitoringSection },
+  //   { id: 'Recovery and Reversal', component: RecoveryReversalSection },
+  { id: 'Attachments', component: AttachmentsSection }
 ]
 
 export default function AddAnesthesiaRecord() {
-  const [expanded, setExpanded] = useState('Basic Detail')
-  const sectionRefs = useRef({})
+  const [expanded, setExpanded] = React.useState('Basic Detail')
+  const sectionRefs = React.useRef({})
+  const scrollContainerRef = React.useRef(null)
   const theme = useTheme()
-  const scrollContainerRef = useRef(null)
 
-  const handleChange = section => {
-    setExpanded(section)
-    const target = sectionRefs.current[section]
+  const HEADER_HEIGHT = 120
+
+  const handleChange = sectionId => {
+    setExpanded(sectionId)
+    const target = sectionRefs.current[sectionId]
     const scrollContainer = scrollContainerRef.current
 
     if (target && scrollContainer) {
-      const headerHeight = 120 // Adjust for your header + tabs height
-      const targetTop = target.offsetTop - headerHeight
-
+      const targetTop = target.offsetTop - HEADER_HEIGHT
       scrollContainer.scrollTo({
         top: targetTop,
         behavior: 'smooth'
@@ -49,65 +56,85 @@ export default function AddAnesthesiaRecord() {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <Box display='flex' flexDirection='column' gap={3}>
+      {/* Breadcrumbs */}
       <Breadcrumbs aria-label='breadcrumb'>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Hospital</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Patients</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Inpatient</Typography>
+        <Typography color={theme.palette.text.secondary}>Hospital</Typography>
+        <Typography color={theme.palette.text.secondary}>Patients</Typography>
+        <Typography color={theme.palette.text.secondary}>Inpatient</Typography>
         <Typography
-          color={theme.palette.customColors.neutralSecondary}
+          color={theme.palette.text.secondary}
           sx={{ cursor: 'pointer' }}
           onClick={() => window.history.back()}
         >
           Details
         </Typography>
-        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Add Surgery</Typography>
+
+        <Typography color={theme.palette.text.primary}>Add Anesthesia </Typography>
       </Breadcrumbs>
 
-      <Typography
-        sx={{
-          fontWeight: 500,
-          fontSize: '24px',
-          letterSpacing: 0,
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        Add Anesthesia Record Page
-      </Typography>
-
-      {/* <AnimalInfoCard data={data} /> */}
-
-      {/* Outer Container */}
-      <Box
-        sx={{
-          position: 'relative',
-          height: '80vh', // define scrollable area height
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: 2,
-          overflow: 'hidden',
-          boxShadow: 2
-        }}
-      >
-        {/* Sticky Header inside scrollable box */}
+      {/* Main Container */}
+      <Box position='relative' height='80vh' display='flex' flexDirection='column' borderRadius='8px' overflow='hidden'>
+        {/* Sticky Header */}
         <Paper
           elevation={3}
           sx={{
             position: 'sticky',
             top: 0,
             zIndex: 10,
-            backgroundColor: '#fff',
+            bgcolor: 'background.paper',
             borderBottom: 1,
-            borderColor: 'divider'
+            borderColor: 'divider',
+            boxShadow: 'none',
+            borderRadius: '8px'
           }}
         >
-          <Box sx={{ px: 3, pt: 2 }}>
-            <Typography variant='h6' sx={{ fontWeight: 600, mb: 1 }}>
-              Add Anesthesia
+          <Box
+            px={3}
+            pt={2}
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 0,
+              flexDirection: 'column',
+              pl: 7
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+              <Icon
+                style={{ cursor: 'pointer' }}
+                color={theme.palette.customColors.OnSurfaceVariant}
+                icon='material-symbols:arrow-back'
+              />
+              <Typography variant='h6' fontWeight={600}>
+                Anesthesia Record - AN2345/25
+              </Typography>
+            </Box>
+
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '12px',
+                fontWeight: 400,
+                ml: 6
+              }}
+            >
+              Last Saved : 12 Aug 2025 · 12:00 PM
             </Typography>
           </Box>
 
-          {/* Tabs */}
+          <AnimalDetails
+            image='/icons/Activity.svg'
+            name='Luna'
+            scientificName='Felis catus'
+            identifierValue='CAT-202'
+            identifierName='Microchip'
+            admittedDays='2'
+            location='Zoo'
+            vet='test'
+            ageGender='24 || Male'
+          />
+
           <Tabs
             value={expanded}
             onChange={(e, val) => handleChange(val)}
@@ -123,95 +150,49 @@ export default function AddAnesthesiaRecord() {
             }}
           >
             {sections.map(sec => (
-              <Tab key={sec} label={sec} value={sec} />
+              <Tab
+                key={sec.id}
+                label={sec.id}
+                value={sec.id}
+                sx={{
+                  color: theme.palette.customColors.secondaryBg,
+                  fontSize: '14px',
+                  fontWeight: '600!important'
+                }}
+              />
             ))}
           </Tabs>
         </Paper>
 
-        {/* Scrollable Content */}
-        <Box
-          ref={scrollContainerRef}
-          sx={{
-            flex: 1,
-            overflowY: 'auto',
-            backgroundColor: '#fafafa',
-            p: 3
-          }}
-        >
-          {sections.map(section => (
+        {/* Scrollable Body */}
+        <Box ref={scrollContainerRef} flex={1} overflow='auto' p={0} mt={4}>
+          {sections.map(({ id, component: SectionComponent }) => (
             <Accordion
-              key={section}
-              expanded={expanded === section}
-              onChange={() => handleChange(section)}
-              ref={el => (sectionRefs.current[section] = el)}
+              key={id}
+              expanded={expanded === id}
+              onChange={() => handleChange(id)}
+              ref={el => (sectionRefs.current[id] = el)}
               sx={{
-                mb: 1.5,
-                borderRadius: 2,
-                '&:before': { display: 'none' },
-                boxShadow: expanded === section ? 3 : 1
+                mb: 2,
+                borderRadius: '8px',
+                boxShadow: 0,
+                '&:before': { display: 'none' }
               }}
             >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography sx={{ fontWeight: 600 }}>{section}</Typography>
+              <AccordionSummary
+                expandIcon={
+                  expanded === id ? (
+                    <Typography sx={{ fontWeight: 'bold', fontSize: 24 }}>−</Typography>
+                  ) : (
+                    <Typography sx={{ fontWeight: 'bold', fontSize: 24 }}>+</Typography>
+                  )
+                }
+              >
+                <Typography fontWeight={600}>{id}</Typography>
               </AccordionSummary>
 
               <AccordionDetails>
-                {section === 'Basic Detail' ? (
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gap: 2,
-                      gridTemplateColumns: {
-                        xs: '1fr',
-                        sm: 'repeat(2, 1fr)'
-                      }
-                    }}
-                  >
-                    <TextField label='Location' size='small' />
-                    <TextField
-                      label='Date & Time of Anesthesia'
-                      size='small'
-                      type='datetime-local'
-                      InputLabelProps={{ shrink: true }}
-                    />
-                    <TextField label='Veterinarian' select SelectProps={{ native: true }} size='small'>
-                      <option>Select</option>
-                      <option>Dr. A</option>
-                      <option>Dr. B</option>
-                    </TextField>
-                    <TextField label='Anesthetist' select SelectProps={{ native: true }} size='small'>
-                      <option>Select</option>
-                      <option>Dr. X</option>
-                      <option>Dr. Y</option>
-                    </TextField>
-
-                    <Box sx={{ gridColumn: '1 / -1' }}>
-                      <TextField label='Notes' size='small' fullWidth multiline rows={3} placeholder='Enter notes' />
-                    </Box>
-                  </Box>
-                ) : section === 'Attachments' ? (
-                  <Box
-                    sx={{
-                      border: '1px dashed #ccc',
-                      p: 3,
-                      textAlign: 'center',
-                      borderRadius: 2
-                    }}
-                  >
-                    <Typography color='text.secondary'>Upload attachment</Typography>
-                    <Button variant='contained' sx={{ mt: 1 }}>
-                      Browse
-                    </Button>
-                  </Box>
-                ) : (
-                  <Typography color='text.secondary'>
-                    Content for <b>{section}</b> goes here. Content for <b>{section}</b> goes here. Content for{' '}
-                    <b>{section}</b> goes here. Content for <b>{section}</b> goes here. Content for <b>{section}</b>{' '}
-                    goes here. Content for <b>{section}</b> goes here. Content for <b>{section}</b> goes here. Content
-                    for <b>{section}</b> goes here. Content for <b>{section}</b> goes here. Content for <b>{section}</b>{' '}
-                    goes here. Content for <b>{section}</b> goes here.
-                  </Typography>
-                )}
+                <SectionComponent />
               </AccordionDetails>
             </Accordion>
           ))}
