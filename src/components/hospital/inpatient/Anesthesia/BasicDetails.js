@@ -10,6 +10,7 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography
 } from '@mui/material'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
@@ -212,48 +213,34 @@ const firstColumnTextStyles = {
 }
 
 const chipStyles = {
-  backgroundColor: '#52F99033',
-  border: '1px solid #37BD69',
+  width: '174px',
+  minWidth: '174px',
+  height: '48px',
+  padding: '0 12px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
   borderRadius: '8px',
+  border: '1px solid #37BD69',
+  backgroundColor: '#52F99033',
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '16px',
-  lineHeight: 1,
   letterSpacing: 0,
   color: '#006D35',
   '& .MuiChip-label': {
-    paddingInline: '12px'
-  }
-}
-
-const addButtonStyles = {
-  minWidth: '120px',
-  height: '48px',
-  backgroundColor: '#0B8A46',
-  color: '#FFFFFF',
-  textTransform: 'none',
-  fontFamily: 'Inter',
-  fontWeight: 600,
-  fontSize: '16px',
-  lineHeight: 1,
-  letterSpacing: 0,
-  borderRadius: '12px',
-  '&:hover': {
-    backgroundColor: '#0A7A3F'
+    paddingInline: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
   },
-  '&.Mui-disabled': {
-    backgroundColor: '#C7D9CF',
-    color: '#F5F9F7'
+  '& .MuiChip-deleteIcon': {
+    width: '16px',
+    height: '16px',
+    fontSize: '16px',
+    color: '#839D8D',
+    marginLeft: '8px'
   }
-}
-
-const addItemLabelStyles = {
-  fontFamily: 'Inter',
-  fontWeight: 500,
-  fontSize: '16px',
-  lineHeight: 1,
-  letterSpacing: 0,
-  color: '#44544A'
 }
 
 const AnesthesiaBasicDetails = () => {
@@ -499,7 +486,7 @@ const AnesthesiaBasicDetails = () => {
         )
       case 'monitoring':
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <ToggleButtonGroup
               value={formState.monitoring.selected}
               onChange={handleMonitoringToggle}
@@ -524,57 +511,111 @@ const AnesthesiaBasicDetails = () => {
               })}
             </ToggleButtonGroup>
 
-            <Box>
-              <Typography sx={firstColumnTextStyles}>Other Monitoring Items Added</Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', mt: 2 }}>
-                {formState.monitoring.otherItems.length ? (
-                  formState.monitoring.otherItems.map(item => (
-                    <Chip
-                      key={item}
-                      label={item}
-                      onDelete={() => handleRemoveOtherItem(item)}
-                      deleteIcon={<CloseRoundedIcon sx={{ color: '#839D8D', width: '11.67px', height: '11.67px' }} />}
-                      sx={chipStyles}
-                    />
-                  ))
-                ) : (
-                  <Typography sx={{ ...firstColumnTextStyles, fontSize: '14px', color: '#839D8D' }}>
-                    No additional items added yet.
-                  </Typography>
-                )}
+            {formState.monitoring.otherItems.length > 0 && (
+              <Box>
+                <Typography sx={{ ...firstColumnTextStyles, mb: '10px' }}>Other Monitoring Items Added</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '12px', mt: '10px', mb: '10px' }}>
+                  {formState.monitoring.otherItems.map(item => (
+                    <Tooltip key={item} title={item} arrow placement='top'>
+                      <Chip
+                        label={item}
+                        onDelete={() => handleRemoveOtherItem(item)}
+                        deleteIcon={<CloseRoundedIcon />}
+                        sx={chipStyles}
+                      />
+                    </Tooltip>
+                  ))}
+                </Box>
               </Box>
-            </Box>
+            )}
 
             <Box
               sx={{
-                backgroundColor: '#E8F4F2',
-                borderRadius: '16px',
-                padding: { xs: '16px', sm: '20px' },
+                width: '430px',
+                height: '115px',
+                gap: '10px',
+                borderRadius: '8px',
+                padding: '16px',
+                border: '0.5px solid #C3CEC7',
+                backgroundColor: '#DDEBE9',
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                alignItems: { xs: 'stretch', sm: 'flex-end' },
-                gap: { xs: 2, sm: 3 }
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}
             >
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography sx={addItemLabelStyles}>Add New Other Item</Typography>
+              <Typography
+                sx={{
+                  fontFamily: 'Inter',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  lineHeight: 1,
+                  letterSpacing: 0,
+                  color: '#44544A'
+                }}
+              >
+                Add New Other Item
+              </Typography>
+              <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <TextField
                   fullWidth
                   placeholder='Enter item'
                   value={newMonitoringItem}
                   onChange={event => setNewMonitoringItem(event.target.value)}
                   onKeyDown={handleNewItemKeyDown}
-                  sx={textFieldStyles}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                      backgroundColor: '#FFFFFF',
+                      '& fieldset': {
+                        borderColor: '#D5E8E0'
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#37BD69'
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#37BD69'
+                      }
+                    },
+                    '& .MuiInputBase-input': {
+                      fontFamily: 'Inter',
+                      fontWeight: 400,
+                      fontSize: '16px',
+                      lineHeight: 1,
+                      letterSpacing: 0,
+                      color: '#44544A'
+                    },
+                    '& .MuiInputBase-input::placeholder': {
+                      color: '#44544A',
+                      opacity: 1,
+                      fontWeight: 400
+                    }
+                  }}
                 />
+                <Button
+                  variant='contained'
+                  onClick={handleAddOtherItem}
+                  disabled={!newMonitoringItem.trim()}
+                  sx={{
+                    width: '108px',
+                    height: '56px',
+                    borderRadius: '4px',
+                    padding: '9px 16px',
+                    fontFamily: 'Inter',
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    lineHeight: 1,
+                    letterSpacing: 0,
+                    textTransform: 'none',
+                    backgroundColor: newMonitoringItem.trim() ? '#006D35' : '#C3CEC7',
+                    color: '#FFFFFF',
+                    '&:hover': {
+                      backgroundColor: newMonitoringItem.trim() ? '#00592A' : '#C3CEC7'
+                    }
+                  }}
+                >
+                  ADD
+                </Button>
               </Box>
-              <Button
-                variant='contained'
-                onClick={handleAddOtherItem}
-                sx={addButtonStyles}
-                disabled={!newMonitoringItem.trim()}
-              >
-                ADD
-              </Button>
             </Box>
           </Box>
         )
