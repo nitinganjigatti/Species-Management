@@ -5,7 +5,8 @@ import {
   GET_FREQUENCY,
   GET_PRESCRIPTION_DETAILS,
   GET_PRESCRIPTION_DETAILS_DATES,
-  GET_PRESCRIPTION_LIST
+  GET_PRESCRIPTION_LIST,
+  STOP_PRESCRIPTION
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -83,5 +84,15 @@ export async function getMedicineBatches(params) {
     return response?.data
   } catch (error) {
     console.error('Error fetching medical master data:', error.message)
+  }
+}
+
+export async function stopPrescription(payLoad) {
+  try {
+    const response = await axiosPost({ url: `${STOP_PRESCRIPTION}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding prescription:', error.message)
   }
 }

@@ -8,6 +8,7 @@ const MetricCard = ({
   selected,
   onSelect,
   disabled,
+  onMedicineNameClick,
   children,
   MetricLabel,
   theme,
@@ -16,7 +17,7 @@ const MetricCard = ({
   <>
     <MUICheckbox checked={selected} onChange={onSelect} disabled={disabled} />
     <MetricLabel
-      onClick={onSelect}
+      onClick={onMedicineNameClick}
       disabled={disabled}
       config={prescriptionCardColorsConfig(metric)}
       sx={{

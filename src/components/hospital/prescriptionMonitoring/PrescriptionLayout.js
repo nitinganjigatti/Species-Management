@@ -2,38 +2,15 @@ import { Grid, Box } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import PrescriptionMonitoringGrid from './PrescriptionMonitoringGrid'
 import { AdministerMedicineModal, MedicineScheduleView } from 'src/views/pages/hospital/prescription-monitoring'
-import { Button } from '@mui/material'
 import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-monitoring/MedicinePrescriptionCard'
-import { Router, useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
-import { getDates, getPrescriptionDetails, getPrescriptions } from 'src/lib/api/hospital/prescription'
+import { getDates, getPrescriptionDetails, getPrescriptions, stopPrescription } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
-import ScheduleDosage from 'src/views/pages/hospital/prescription-monitoring/ScheduleDosage'
 import { status } from 'nprogress'
 
-const dummyMedicationData = {
-  name: 'Levothyroxine',
-  date: new Date('2025-01-02'),
-  time: new Date('2025-01-02T12:00:00'),
-  quantity: '310 mg'
-}
-
 function PrescriptionLayout({ drawerType }) {
-  // const { drawerType } = drawerType
-
-  const exampleMedicine = {
-    name: 'Dolo 650 tablet',
-    medId: 'MED - 12345/25',
-    startDate: '1 Jan 2025',
-    endDate: '04 Jan 2025',
-    dosageCount: '3 Times',
-    frequency: 'Everyday',
-    duration: '3 days',
-    deliveryRoute: 'Oral',
-    notes: 'Lorem ipsum dolor sit amet consectetur adipiscin ipsum dolor...',
-    lastEdited: 'Last edited on 10:34 AM • 02 Jan 2025'
-  }
 
   const [openSchedule, setOpenSchedule] = useState(false)
   const [prescriptionCardOpen, setPrescriptionCardOpen] = useState(false)
@@ -41,11 +18,12 @@ function PrescriptionLayout({ drawerType }) {
   const [dates, setDates] = useState(null)
   const [medicineDetails, setMedicineDetails] = useState(null)
   const [detailDates, setDetailDates] = useState(null)
-  const [detailSelectedDate, setDetailSelectedDate] = useState(null)
+  const [detailSelectedDate, setDetailSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [isDetailLoading, setIsDetailLoading] = useState(false)
   const [isDatesLoading, setIsDatesLoading] = useState(false)
   const [isAdministerFormOpen, setIsAdministerFormOpen] = useState(true)
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
+  const [isCurrentMedicalRecord, setIsCurrentMedicalRecord] = useState(false)
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   const [selectedDate, setSelectedDate] = useState(today)
@@ -68,22 +46,65 @@ function PrescriptionLayout({ drawerType }) {
     setPrescriptionCardOpen(false)
   }
 
-  const handleStopMedicine = medicineData => {
-    console.log('Stop medicine:', medicineData)
+  const handleStopMedicine = async data => {
+    console.log('Stop medicine confirmed:', data)
+    console.log('medicineData:', data.medicineData)
+    try {
+      const payload = {
+        medical_record_id: medical_record_id,
+        prescription_id: medicineDetails?.medicine_id, // medicine_id
+        type: 'prescription',
+        status: 'stop',
+        note: data.note,
+        side_effect: data.hasAdverseEffects === 'yes',
+        case: 'single',
+        main_prescription_id: medicineDetails?.prescription_id // prescription_id
+      }
 
-    // Add your logic here
+      const response = await stopPrescription(payload)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: 'Medicine stopped successfully' })
+
+        // Refresh the prescription list
+        getPrescriptionList()
+
+        // Refresh the details if the card is still open
+        if (prescriptionCardOpen) {
+          getDetails(medicineDetails, detailSelectedDate)
+        }
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+
+      // For now, just show a success message
+      Toaster({
+        type: 'success',
+        message: `Medicine stopped. Reason: ${data.reason}. Adverse effects: ${data.hasAdverseEffects}`
+      })
+
+      // Optionally refresh the data
+      // getPrescriptionList()
+      // if (prescriptionCardOpen && medicineDetails) {
+      //   getDetails(medicineDetails, detailSelectedDate)
+      // }
+    } catch (error) {
+      console.error('Error stopping medicine:', error)
+      Toaster({ type: 'error', message: error?.message || 'Failed to stop medicine' })
+    }
   }
 
   const handleAddNewDosage = medicineData => {
     console.log('Add new dosage:', medicineData)
 
-    // Add your logic here
   }
 
   const handleRefreshEntry = (entryId, medicineData) => {
     console.log('Refresh entry:', entryId, medicineData)
 
-    // Add your logic here
+    if (medicineData && detailSelectedDate) {
+      getDetails(medicineData, detailSelectedDate)
+    }
   }
 
   const getPrescriptionList = async () => {
@@ -96,7 +117,8 @@ function PrescriptionLayout({ drawerType }) {
         medical_type: 'prescription',
         type: 'active',
         medical_record_id: medical_record_id || '',
-        generate_for_date: selectedDate
+        generate_for_date: selectedDate,
+        medical_record_id: isCurrentMedicalRecord ? medical_record_id : ''
       }
 
       const response = await getPrescriptions(payload)
@@ -126,9 +148,9 @@ function PrescriptionLayout({ drawerType }) {
       setIsDetailLoading(true)
 
       const payload = {
-        prescription_id: data?.prescription_id || '30176', // TODO: Upgrade after listing integration
-        date: date || '2025-10-07',
-        group_prescription_id: data?.group_prescription_id || '30176'
+        prescription_id: data?.id,
+        date: detailSelectedDate,
+        group_prescription_id: data?.id
       }
 
       const response = await getPrescriptionDetails(payload)
@@ -182,11 +204,11 @@ function PrescriptionLayout({ drawerType }) {
       setIsDatesLoading(true)
 
       const payload = {
-        from_date: data?.from_date || '2025-10-01', // TODO: Upgrade after listing integration
-        to_date: data?.to_date || '2025-10-31',
+        from_date: dates?.length && dates[0],
+        to_date: new Date().toISOString().slice(0, 10),
         type: 'all',
-        prescription_id: data?.prescription_id || '30176',
-        group_prescription_id: data?.group_prescription_id || '30176'
+        prescription_id: data?.id,
+        group_prescription_id: data?.group_prescription_id || data?.id
       }
 
       const response = await getDates(payload)
@@ -194,9 +216,7 @@ function PrescriptionLayout({ drawerType }) {
       if (response?.success) {
         const mappedDates = response?.data?.map(item => item?.date)
         setDetailDates(mappedDates)
-        const lastDate = (response?.data?.length > 0 && response?.data[response?.data?.length - 1]?.date) || ''
-        setDetailSelectedDate(lastDate)
-        getDetails(data, lastDate)
+        getDetails(data)
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
@@ -215,7 +235,7 @@ function PrescriptionLayout({ drawerType }) {
 
   useEffect(() => {
     if (hospital?.id) getPrescriptionList()
-  }, [hospital?.id, selectedDate])
+  }, [hospital?.id, selectedDate, isCurrentMedicalRecord])
 
   const handleAdministerSubmit = formData => {
     console.log('Administer Medicine Form Submitted:', formData)
@@ -239,6 +259,8 @@ function PrescriptionLayout({ drawerType }) {
             isLoading={isPrescriptionListLoading}
 
             // medications={medication}
+            setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
+            isCurrentMedicalRecord={isCurrentMedicalRecord}
             dates={dates}
             selectedDate={selectedDate}
             handleDateChange={handleDateChange}
@@ -257,13 +279,13 @@ function PrescriptionLayout({ drawerType }) {
           View Medicine Prescription Details
         </Button>
       </Grid> */}
-      <MedicineScheduleView
+      {/* <MedicineScheduleView
         open={openSchedule}
         onClose={() => setOpenSchedule(false)}
-        medicineData={exampleMedicine}
+        medicineData={medicineDetails}
         onStopMedicine={() => setOpenSchedule(false)}
         onAddDosage={() => {}}
-      />
+      /> */}
 
       {/* <MedicationAdministerForm
         open={isAdministerFormOpen}
@@ -291,6 +313,7 @@ function PrescriptionLayout({ drawerType }) {
         isDetailLoading={isDetailLoading}
         isDatesLoading={isDatesLoading}
         medicineData={{
+          ...medicineDetails,
           name: medicineDetails?.medicine_name || '-',
           medId: medicineDetails?.medical_record_code || '-',
           startDate: medicineDetails?.start_date || '-',
@@ -306,7 +329,11 @@ function PrescriptionLayout({ drawerType }) {
                   medicineDetails?.updated_at || medicineDetails?.created_at
                 )} • ${Utility.formatDisplayDate(medicineDetails?.updated_at || medicineDetails?.created_at)}`
               : '-',
-          defaultTab: 2
+          defaultTab: 2,
+
+          // Pass additional data needed for API calls
+          prescription_id: medicineDetails?.prescription_id,
+          group_prescription_id: medicineDetails?.group_prescription_id
         }}
         dosageEntries={medicineDetails?.medicine_timings || []}
         dateOptions={detailDates}

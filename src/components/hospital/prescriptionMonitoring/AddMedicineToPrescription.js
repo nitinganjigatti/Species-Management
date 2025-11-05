@@ -198,7 +198,13 @@ export default function AddMedicineToPrescription() {
 
       try {
         setBatchLoading(true)
-        const response = await getMedicineBatches(medicineId, query)
+
+        const params = {
+          medicine_id: medicineId,
+          q: query
+        }
+
+        const response = await getMedicineBatches(medicineId, params)
         if (response?.success) {
           setBatchList(response?.data || [])
         } else {

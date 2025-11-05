@@ -328,7 +328,9 @@ const PrescriptionMonitoringGrid = ({
   onTimeSlotClick = () => {},
   onRemoveMetric = () => {},
   onOpenPrescriptionCard = () => {},
-  isLoading
+  isLoading,
+  isCurrentMedicalRecord,
+  setIsCurrentMedicalRecord
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -458,7 +460,7 @@ const PrescriptionMonitoringGrid = ({
       })
 
       return {
-        id: medication.id,
+        id: medication.prescription_id,
         name: medication.name,
         frequency: medication.frequency,
         progress: medication.progress,
@@ -639,6 +641,10 @@ const PrescriptionMonitoringGrid = ({
     // Implement administer logic here
   }
 
+  const handleMedicineNameClick = data => {
+    onOpenPrescriptionCard(data)
+  }
+
   const handleAdministerOrSkipOpen = data => {
     setSelectedMedicine(data)
     console.log('data in handleAdministerOrSkipOpen:', data)
@@ -769,7 +775,11 @@ const PrescriptionMonitoringGrid = ({
             disabled={displayMetrics?.length === 0}
             onChange={handleSelectAll}
           />
-          <MUISwitch label='Current medical records only' />
+          <MUISwitch
+            checked={isCurrentMedicalRecord}
+            onChange={() => setIsCurrentMedicalRecord(!isCurrentMedicalRecord)}
+            label='Current medical records only'
+          />
         </Grid>
         <Grid item size={{ xs: 12, sm: 12 }}>
           {displayMetrics.length > 0 ? (
@@ -784,6 +794,7 @@ const PrescriptionMonitoringGrid = ({
                     <MetricCardWrapper key={metric.id}>
                       <MetricCard
                         metric={metric}
+                        onMedicineNameClick={() => handleMedicineNameClick(metric)}
                         selected={selectedMetrics.some(m => m.id === metric.id)}
                         onSelect={() => handleSelectMetric(metric)}
                         disabled={
@@ -903,10 +914,10 @@ const PrescriptionMonitoringGrid = ({
         submitLoader={isAdministerOrSkipPopupLoading}
         medicineData={{
           ...selectedMedicine,
-          name: selectedMedicine?.name || medicineData.name,
-          time: selectedMedicine?.scheduledTime || medicineData.time,
-          date: selectedMedicine?.date || medicineData.date,
-          calculatedDosage: selectedMedicine?.dosage || medicineData.calculatedDosage
+          name: selectedMedicine?.name,
+          time: selectedMedicine?.scheduledTime,
+          date: selectedMedicine?.date,
+          calculatedDosage: selectedMedicine?.dosage
         }}
       />
       {selectedMetrics?.length ? (
