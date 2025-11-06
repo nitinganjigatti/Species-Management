@@ -132,7 +132,8 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
         width: '293px',
         maxWidth: '293px',
         minWidth: '293px',
-        height: '233px'
+        height: '233px',
+        borderWidth: '1px'
       }}
       maxWidth='xs'
     >

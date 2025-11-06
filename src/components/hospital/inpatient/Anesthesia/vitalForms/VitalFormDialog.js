@@ -111,8 +111,16 @@ export default function VitalFormDialog({
   actionsSx,
   cancelButtonSx,
   submitButtonSx,
-  paperSx
+  paperSx,
+  renderHeader
 }) {
+  const headerContent =
+    renderHeader !== undefined
+      ? typeof renderHeader === 'function'
+        ? renderHeader({ onClose, timeLabel })
+        : renderHeader
+      : null
+
   return (
     <Dialog
       open={open}
@@ -129,22 +137,26 @@ export default function VitalFormDialog({
         }
       }}
     >
-      <DialogTitle sx={{ ...defaultHeaderSx, ...headerSx }}>
-        <Typography sx={{ ...defaultTitleSx, ...titleTypographySx }}>{title}</Typography>
+      {headerContent ? (
+        headerContent
+      ) : (
+        <DialogTitle sx={{ ...defaultHeaderSx, ...headerSx }}>
+          <Typography sx={{ ...defaultTitleSx, ...titleTypographySx }}>{title}</Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {timeLabel ? (
-            <Box sx={timeChipStyles}>
-              <AccessTimeRoundedIcon sx={{ fontSize: '18px' }} />
-              <span>{timeLabel}</span>
-            </Box>
-          ) : null}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {timeLabel ? (
+              <Box sx={timeChipStyles}>
+                <AccessTimeRoundedIcon sx={{ fontSize: '18px' }} />
+                <span>{timeLabel}</span>
+              </Box>
+            ) : null}
 
-          <IconButton edge='end' onClick={onClose} sx={{ ...defaultCloseButtonSx, ...closeButtonSx }}>
-            <CloseRoundedIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
+            <IconButton edge='end' onClick={onClose} sx={{ ...defaultCloseButtonSx, ...closeButtonSx }}>
+              <CloseRoundedIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+      )}
 
       <DialogContent sx={{ ...defaultContentSx, ...contentSx }}>{children}</DialogContent>
 
@@ -181,5 +193,6 @@ VitalFormDialog.propTypes = {
   actionsSx: PropTypes.object,
   cancelButtonSx: PropTypes.object,
   submitButtonSx: PropTypes.object,
-  paperSx: PropTypes.object
+  paperSx: PropTypes.object,
+  renderHeader: PropTypes.oneOfType([PropTypes.node, PropTypes.func])
 }
