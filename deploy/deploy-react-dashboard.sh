@@ -85,7 +85,7 @@ echo "📋 Environment file: $REACT_ENV_FILE"
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-npm install --production
+npm install
 
 # Build
 echo "🔨 Building React dashboard..."
