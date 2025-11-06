@@ -727,10 +727,9 @@ const AnesthesiaSetUpSection = () => {
                   width: { xs: '100%', md: checked ? '100%' : 0 },
                   maxWidth: { xs: '100%', md: checked ? '100%' : 0 },
                   overflow: checked ? 'visible' : 'hidden',
-                  maxHeight: checked ? '420px' : 0,
+                  maxHeight: checked ? 'none' : 0,
                   opacity: checked ? 1 : 0,
-                  transition:
-                    'max-height 0.24s ease, opacity 0.24s ease, max-width 0.24s ease, width 0.24s ease, flex 0.24s ease',
+                  transition: 'opacity 0.24s ease, max-width 0.24s ease, width 0.24s ease, flex 0.24s ease',
                   mt: { xs: checked ? 2 : 0, md: 0 }
                 }}
                 aria-hidden={!checked}
