@@ -36,6 +36,13 @@ const ComposeReportNavigation = ({
     icon: 'mdi:rabbit-variant-outline'
   }
 
+  const keyinsights = {
+    title: 'Key Insights',
+    path: '/reports/keyinsights/',
+    icon: 'mdi:chart-bar',
+    openInNewTab: true
+  }
+
   const reportNavigationArray = []
   if (enable_specie_report || enable_daily_report || enable_animal_report) {
     reportNavigationArray.push(reportTitle)
@@ -54,6 +61,9 @@ const ComposeReportNavigation = ({
 
   if (enable_animal_assessment_report) {
     reportNavigationArray.push(animalAssessment)
+  }
+  if (enable_specie_report) {
+    reportNavigationArray.push(keyinsights)
   }
 
   return reportNavigationArray
