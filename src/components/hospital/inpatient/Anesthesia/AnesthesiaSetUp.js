@@ -429,10 +429,17 @@ const AnesthesiaSetUpSection = () => {
       case 'etIntubation':
         return (
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid
+              item
+              xs={12}
+              md={6}
+              sx={{
+                width: '270px'
+              }}
+            >
               <TextField
                 fullWidth
-                label='Tube Size(s) Ex: 1mm, 2mm, 3mm'
+                label='Tube Size(s) Ex: 1mm, 2mm, 3mm &nbsp;&nbsp;&nbsp;&nbsp;'
                 placeholder='Enter'
                 value={formState.etIntubation.tubeSizes}
                 onChange={handleFieldChange('etIntubation', 'tubeSizes')}
