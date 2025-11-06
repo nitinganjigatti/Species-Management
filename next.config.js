@@ -18,6 +18,18 @@ module.exports = {
   images: {
     domains: ['api.dev.antzsystems.com']
   },
+  async rewrites() {
+    return [
+      {
+        source: '/reports/keyinsights',
+        destination: '/reports/keyinsights/index.html'
+      },
+      {
+        source: '/reports/keyinsights/',
+        destination: '/reports/keyinsights/index.html'
+      }
+    ]
+  },
   webpack: config => {
     config.resolve.alias = {
       ...config.resolve.alias,
