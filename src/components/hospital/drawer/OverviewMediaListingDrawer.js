@@ -3,10 +3,8 @@ import React from 'react'
 import Icon from 'src/@core/components/icon'
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 
-const OverviewMediaListingDrawer = ({ open, onClose, media }) => {
+const OverviewMediaListingDrawer = ({ open, onClose, media = [] }) => {
   const theme = useTheme()
-
-  console.log(media)
 
   return (
     <Drawer
@@ -16,22 +14,17 @@ const OverviewMediaListingDrawer = ({ open, onClose, media }) => {
       slotProps={{
         paper: {
           sx: {
-            width: { xs: '100%', sm: '80%', md: 560 },
+            width: { xs: '75%', sm: '560px' },
             height: '100vh',
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: theme.palette.customColors.OnPrimary,
-            p: 0
+            backgroundColor: theme.palette.customColors.OnPrimary
           }
         }
       }}
     >
       <Box
         sx={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 1,
-          pb: 0,
           p: 6,
           display: 'flex',
           justifyContent: 'space-between',
@@ -41,37 +34,45 @@ const OverviewMediaListingDrawer = ({ open, onClose, media }) => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
           <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
-          <Typography sx={{ fontWeight: 500, fontSize: '24px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          <Typography sx={{ fontWeight: 500, fontSize: '1.5rem', color: theme.palette.customColors.OnSurfaceVariant }}>
             Attachments
           </Typography>
         </Box>
         <IconButton onClick={onClose}>
-          <Icon icon='mdi:close' />
+          <Icon icon='mdi:close' color={theme.palette.customColors.OnPrimaryContainer} />
         </IconButton>
       </Box>
       <Box
         sx={{
-          flex: 1,
-          overflowY: 'auto',
-          background: theme.palette.customColors.OnPrimary,
-          minHeight: 0,
           p: 6
         }}
       >
         <Grid container spacing={4}>
-          {media?.map((item, index) => {
-            return (
-              <Grid key={index} size={{ xs: 12, sm: 6 }}>
+          {media.length > 0 ? (
+            media.map(item => (
+              <Grid
+                key={item.id}
+                size={{ xs: 12, sm: 6 }}
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
                 <FilePreviewCard
-                  fileUrl={item?.fileUrl}
-                  fileName={item?.fileName}
-                  width={250}
-                  height={180}
-                  user={item?.user}
+                  fileUrl={item?.file}
+                  fileName={item?.file_original_name}
+                  fileType={item?.file_type}
+                  width={'250px'}
+                  height={'220px'}
+                  user={item}
+                  showTitle={true}
                 />
               </Grid>
-            )
-          })}
+            ))
+          ) : (
+            <Grid size={{ xs: 12 }}>
+              <Typography variant='body2' color='text.secondary' sx={{ textAlign: 'center', mt: 4 }}>
+                No attachments available
+              </Typography>
+            </Grid>
+          )}
         </Grid>
       </Box>
     </Drawer>

@@ -3,6 +3,7 @@ import {
   EDIT_PATIENT_DETAILS,
   GET_ANIMAL_TOTAL_HOSPITAL_VISIT,
   GET_NEW_ANIMAL_LIST_WITH_FILTERS,
+  GET_OVERVIEW_MEDIA_FILES,
   GET_SPECIES_FOR_HOSPITAL
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
@@ -33,6 +34,12 @@ export const getNewAnimalListWithFilters = async params => {
 
 export const getAllSpeciesListForHospital = async params => {
   const response = await axiosPost({ url: `${GET_SPECIES_FOR_HOSPITAL}`, body: params })
+
+  return response?.data
+}
+
+export async function getOverviewMediaItems({ id }) {
+  const response = await axiosGet({ url: `${GET_OVERVIEW_MEDIA_FILES}/${id}` })
 
   return response?.data
 }

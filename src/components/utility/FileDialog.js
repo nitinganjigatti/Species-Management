@@ -36,7 +36,7 @@ const FileDialog = ({ open, onClose, src, title, type }) => {
               style={{
                 width: '100%',
                 maxHeight: '70vh',
-                objectFit: 'contain'
+                objectFit: 'cover'
               }}
             />
           </Box>
@@ -51,7 +51,7 @@ const FileDialog = ({ open, onClose, src, title, type }) => {
               style={{
                 width: '100%',
                 maxHeight: '70vh',
-                objectFit: 'contain'
+                objectFit: 'cover'
               }}
             />
           </Box>
