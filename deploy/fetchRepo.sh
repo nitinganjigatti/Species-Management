@@ -128,7 +128,7 @@ curl -L -H "Authorization: Bearer $ANTZ_DEPLOYMENT_TOKEN" \
     $ARTIFACT_URL
 
 # Unzip the artifact
-unzip $ARTIFACT_NAME.zip -d .next
+unzip -q $ARTIFACT_NAME.zip -d .next
 rm -rf $ARTIFACT_NAME.zip
 ls -la
 

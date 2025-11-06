@@ -41,7 +41,7 @@ echo "========================================="
 REACT_REPO="git@github.com:Antz-Ai-Dashboards/antz-key-insights.git"
 
 # Target directory (inside Next.js public folder)
-REACT_WEB_DIR="$NEXTJS_APP_DIR/current/public/reports/keyinsights"
+REACT_WEB_DIR="$NEXTJS_APP_DIR/public/reports/keyinsights"
 
 echo "📍 Target: $REACT_WEB_DIR"
 
@@ -52,7 +52,7 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
 fi
 
 # Create temporary build directory
-TEMP_BUILD_DIR="/tmp/react-dashboard-build-$(date +%s)"
+TEMP_BUILD_DIR="/tmp/ai-dashboard/react-dashboard-build-$(date +%s)"
 echo "📁 Creating temporary build directory: $TEMP_BUILD_DIR"
 mkdir -p "$TEMP_BUILD_DIR"
 
