@@ -3,6 +3,25 @@ import { Box, Card, CardContent, Typography, Avatar, Grid, useTheme, CircularPro
 import { useHospital } from 'src/context/HospitalContext'
 import HospitalDropdown from 'src/components/hospital/inpatient/HospitalDropdown'
 
+// Reusable ShimmerBox Component
+const ShimmerBox = ({ width = '100%', height = '20px', mb = 0, borderRadius = '4px' }) => (
+  <Box
+    sx={{
+      width,
+      height,
+      mb,
+      backgroundColor: theme => theme.palette.grey[300],
+      borderRadius,
+      animation: 'pulse 1.5s ease-in-out infinite',
+      '@keyframes pulse': {
+        '0%': { opacity: 0.6 },
+        '50%': { opacity: 0.8 },
+        '100%': { opacity: 0.6 }
+      }
+    }}
+  />
+)
+
 const HospitalAnalytics = ({ disabled = false }) => {
   const theme = useTheme()
   const { selectedHospital, hospitalStats, isHospitalStatsLoading } = useHospital()
@@ -57,7 +76,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
             <Grid item xs={4} md={2}>
               <Box>
                 {isHospitalStatsLoading ? (
-                  <CircularProgress size={20} />
+                  <ShimmerBox width='60px' height='24px' mb={1} />
                 ) : (
                   <Typography
                     sx={{
@@ -85,7 +104,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
             <Grid item xs={4} md={2}>
               <Box>
                 {isHospitalStatsLoading ? (
-                  <CircularProgress size={20} />
+                  <ShimmerBox width='60px' height='24px' mb={1} />
                 ) : (
                   <Typography
                     sx={{
@@ -114,7 +133,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
             <Grid item xs={4} md={2}>
               <Box>
                 {isHospitalStatsLoading ? (
-                  <CircularProgress size={20} />
+                  <ShimmerBox width='60px' height='24px' mb={1} />
                 ) : (
                   <Typography
                     sx={{
@@ -143,7 +162,7 @@ const HospitalAnalytics = ({ disabled = false }) => {
             <Grid item xs={12} md={3}>
               <Box>
                 {isHospitalStatsLoading ? (
-                  <CircularProgress size={20} />
+                  <ShimmerBox width='100px' height='24px' mb={1} />
                 ) : (
                   <Typography
                     sx={{
