@@ -131,7 +131,7 @@ curl -L -H "Authorization: Bearer $ANTZ_DEPLOYMENT_TOKEN" \
 unzip -q $ARTIFACT_NAME.zip -d .next
 rm -rf $ARTIFACT_NAME.zip
 ls -la
-
+./deploy/deploy-react-dashboard.sh $ENV_TO_LOAD $NEW_RELEASE_DIR
 
 process_name="antz-web"
 
@@ -149,8 +149,6 @@ fi
 pm2 start npm --name "$process_name" -- start
 sudo ln -nfs $NEW_RELEASE_DIR $CURRENT_RELEASE
 echo "Deployed. DONE!!!"
-
-./deploy/deploy-react-dashboard.sh $ENV_TO_LOAD $NEW_RELEASE_DIR
 
 #  DELETE ALL FOLDERS EXCEPT LAST 5 releases
 if [ -n "$(ls -dt $RELEASES_DIR/*/ | tail -n +6)" ]; then
