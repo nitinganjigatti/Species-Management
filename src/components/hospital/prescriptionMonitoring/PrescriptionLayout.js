@@ -9,9 +9,9 @@ import Toaster from 'src/components/Toaster'
 import { getDates, getPrescriptionDetails, getPrescriptions, stopPrescription } from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import { status } from 'nprogress'
+import AdministerOrSkipModal from 'src/views/pages/hospital/prescription-monitoring/AdministerOrSkipModal'
 
 function PrescriptionLayout({ drawerType }) {
-
   const [openSchedule, setOpenSchedule] = useState(false)
   const [prescriptionCardOpen, setPrescriptionCardOpen] = useState(false)
   const [medicationData, setMedicationData] = useState([])
@@ -24,6 +24,9 @@ function PrescriptionLayout({ drawerType }) {
   const [isAdministerFormOpen, setIsAdministerFormOpen] = useState(true)
   const [isPrescriptionListLoading, setIsPrescriptionListLoading] = useState(false)
   const [isCurrentMedicalRecord, setIsCurrentMedicalRecord] = useState(false)
+  const [isAdministerOrSkipPopupOpen, setIsAdministerOrSkipPopupOpen] = useState(false)
+  const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
+  const [selectedMedicine, setSelectedMedicine] = useState(null)
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   const [selectedDate, setSelectedDate] = useState(today)
@@ -96,7 +99,6 @@ function PrescriptionLayout({ drawerType }) {
 
   const handleAddNewDosage = medicineData => {
     console.log('Add new dosage:', medicineData)
-
   }
 
   const handleRefreshEntry = (entryId, medicineData) => {
@@ -227,6 +229,51 @@ function PrescriptionLayout({ drawerType }) {
     }
   }
 
+  const handleAdministerOrSkipClose = () => setIsAdministerOrSkipPopupOpen(false)
+
+  const handleSubmit = async data => {
+    setIsAdministerOrSkipPopupLoading(true)
+
+    try {
+      // Process the form data based on action type
+      if (data.action === 'administer') {
+        console.log('Administering medicine with data:', {
+          time: data.time,
+          quantity: data.quantity,
+          quantityUnit: data.quantityUnit,
+          wastageQuantity: data.wastageQuantity,
+          wastageUnit: data.wastageUnit,
+          notes: data.notes,
+          batchNumber: data.batchNumber,
+          attachment: data.attachment
+        })
+
+        // Your API call for administering medicine
+        // await administerMedicine(data)
+      } else if (data.action === 'skipped') {
+        console.log('Skipping medicine with data:', {
+          time: data.time,
+          quantity: data.quantity,
+          quantityUnit: data.quantityUnit,
+          skipReason: data.skipReason
+        })
+
+        // Your API call for skipping medicine
+        // await skipMedicine(data)
+      }
+
+      // Success handling
+      alert('Action completed successfully!')
+
+      // handleClose()
+    } catch (error) {
+      console.error('Error:', error)
+      alert('An error occurred')
+    } finally {
+      setIsAdministerOrSkipPopupLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (detailDates?.length) {
       getDetails(medicineDetails, detailSelectedDate)
@@ -257,13 +304,14 @@ function PrescriptionLayout({ drawerType }) {
             onOpenPrescriptionCard={handleOpenPrescriptionCard}
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
             dates={dates}
             selectedDate={selectedDate}
             handleDateChange={handleDateChange}
+            selectedMedicine={selectedMedicine}
+            setSelectedMedicine={setSelectedMedicine}
           />
         </Grid>
       </Grid>
@@ -342,6 +390,19 @@ function PrescriptionLayout({ drawerType }) {
         onRefreshEntry={handleRefreshEntry}
         handleDateChange={handleDetailDateChange}
         selectedDate={detailSelectedDate}
+      />
+      <AdministerOrSkipModal
+        open={isAdministerOrSkipPopupOpen}
+        handleClose={handleAdministerOrSkipClose}
+        onSubmit={handleSubmit}
+        submitLoader={isAdministerOrSkipPopupLoading}
+        medicineData={{
+          ...selectedMedicine,
+          name: selectedMedicine?.name,
+          time: selectedMedicine?.scheduledTime,
+          date: selectedMedicine?.date,
+          calculatedDosage: selectedMedicine?.dosage
+        }}
       />
     </Box>
   )

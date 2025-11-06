@@ -330,7 +330,8 @@ const PrescriptionMonitoringGrid = ({
   onOpenPrescriptionCard = () => {},
   isLoading,
   isCurrentMedicalRecord,
-  setIsCurrentMedicalRecord
+  setIsCurrentMedicalRecord,
+  setSelectedMedicine
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -346,7 +347,7 @@ const PrescriptionMonitoringGrid = ({
   // Array of selected metric objects
   const [selectedMetrics, setSelectedMetrics] = useState([])
   const [isAdminstrationLoading, setIsAdminstrationLoading] = useState(false)
-  const [selectedMedicine, setSelectedMedicine] = useState(null)
+  // const [selectedMedicine, setSelectedMedicine] = useState(null)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -651,47 +652,6 @@ const PrescriptionMonitoringGrid = ({
     setIsAdministerOrSkipPopupOpen(true)
   }
 
-  const handleAdministerOrSkipClose = () => setIsAdministerOrSkipPopupOpen(false)
-
-  const handleSubmit = async data => {
-    setIsAdministerOrSkipPopupLoading(true)
-
-    try {
-      // Process the form data based on action type
-      if (data.action === 'administer') {
-        console.log('Administering medicine with data:', {
-          time: data.time,
-          quantity: data.quantity,
-          quantityUnit: data.quantityUnit,
-          wastageQuantity: data.wastageQuantity,
-          wastageUnit: data.wastageUnit,
-          notes: data.notes,
-          batchNumber: data.batchNumber,
-          attachment: data.attachment
-        })
-        // Your API call for administering medicine
-        // await administerMedicine(data)
-      } else if (data.action === 'skipped') {
-        console.log('Skipping medicine with data:', {
-          time: data.time,
-          quantity: data.quantity,
-          quantityUnit: data.quantityUnit,
-          skipReason: data.skipReason
-        })
-        // Your API call for skipping medicine
-        // await skipMedicine(data)
-      }
-
-      // Success handling
-      alert('Action completed successfully!')
-      handleClose()
-    } catch (error) {
-      console.error('Error:', error)
-      alert('An error occurred')
-    } finally {
-      setIsAdministerOrSkipPopupLoading(false)
-    }
-  }
 
   // Show shimmer loading state
   if (isLoading) {
@@ -907,19 +867,6 @@ const PrescriptionMonitoringGrid = ({
           )}
         </Grid>
       </Grid>
-      <AdministerOrSkipModal
-        open={isAdministerOrSkipPopupOpen}
-        handleClose={handleAdministerOrSkipClose}
-        onSubmit={handleSubmit}
-        submitLoader={isAdministerOrSkipPopupLoading}
-        medicineData={{
-          ...selectedMedicine,
-          name: selectedMedicine?.name,
-          time: selectedMedicine?.scheduledTime,
-          date: selectedMedicine?.date,
-          calculatedDosage: selectedMedicine?.dosage
-        }}
-      />
       {selectedMetrics?.length ? (
         <ActionButtonsWithSelection
           selectedCount={selectedMetrics?.length}
