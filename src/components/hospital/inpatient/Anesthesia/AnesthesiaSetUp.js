@@ -56,11 +56,11 @@ const textFieldStyles = {
     fontSize: '14px',
     letterSpacing: 0,
     color: '#839D8D',
-    transform: 'translate(16px, 10px)',
+    transform: 'translate(12px, 10px)',
     opacity: 0,
     transition: 'opacity 0.2s ease, transform 0.2s ease',
     '&.MuiInputLabel-shrink': {
-      transform: 'translate(16px, -10px) scale(1)',
+      transform: 'translate(12px, -10px) scale(1)',
       backgroundColor: 'transparent',
       padding: 0,
       opacity: 1
@@ -439,7 +439,7 @@ const AnesthesiaSetUpSection = () => {
             >
               <TextField
                 fullWidth
-                label='Tube Size(s) Ex: 1mm, 2mm, 3mm &nbsp;&nbsp;&nbsp;&nbsp;'
+                label='Tube Size(s) Ex: 1mm, 2mm, 3mm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
                 placeholder='Enter'
                 value={formState.etIntubation.tubeSizes}
                 onChange={handleFieldChange('etIntubation', 'tubeSizes')}
