@@ -363,7 +363,9 @@ const InpatientOverview = ({ overviewData }) => {
             sx={{
               pl: { lg: 3 },
               pt: { lg: 3 },
-              borderLeft: { xs: 'none', lg: `0.5px solid ${theme.palette.divider}` }
+              borderLeft: { xs: 'none', lg: `0.5px solid ${theme.palette.divider}` },
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
             {isLoadingMedia ? (
