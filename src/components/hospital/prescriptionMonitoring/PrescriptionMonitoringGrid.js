@@ -331,7 +331,10 @@ const PrescriptionMonitoringGrid = ({
   isLoading,
   isCurrentMedicalRecord,
   setIsCurrentMedicalRecord,
-  setSelectedMedicine
+  setSelectedMedicine,
+  handleAdminister,
+  handleSkip,
+  handleAdministerOrSkipOpen
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -424,7 +427,7 @@ const PrescriptionMonitoringGrid = ({
       // console.log('Schedule property:', medication.schedule)
       // console.log('Schedule type:', typeof medication.schedule)
 
-      const medicationTimeSlots = timeSlots?.map(timeLabel => {
+      const medicationTimeSlots = timeSlots?.map((timeLabel, index) => {
         // Handle time format differences - normalize both formats
         // Add safety check for schedule array
 
@@ -454,7 +457,8 @@ const PrescriptionMonitoringGrid = ({
                 status: schedule.status,
                 administered_time: schedule.administered_time,
                 compliance_note: schedule.compliance_note,
-                scheduledTime: schedule?.time
+                scheduledTime: schedule?.time,
+                medicine_id: schedule?.medicine_id
               }
             : undefined
         }
@@ -462,12 +466,14 @@ const PrescriptionMonitoringGrid = ({
 
       return {
         id: medication.prescription_id,
+        prescription_id: medication.prescription_id,
+        medicine_id: medication?.schedule?.[0]?.medicine_id,
         name: medication.name,
         frequency: medication.frequency,
         progress: medication.progress,
         status: medication.status,
         timeSlots: medicationTimeSlots,
-        canEdit: true,
+        canEdit: medication.can_edit,
         schedule:
           medication.schedule && Array.isArray(medication.schedule)
             ? medication.schedule.map(schedule => ({
@@ -632,25 +638,15 @@ const PrescriptionMonitoringGrid = ({
     }
   }
 
-  const handleSkip = () => {
-    console.log('Skipped clicked for selected metrics:', selectedMetrics)
-    // Implement skip logic here
-  }
-
-  const handleAdminister = () => {
-    console.log('Administer clicked for selected metrics:', selectedMetrics)
-    // Implement administer logic here
-  }
-
   const handleMedicineNameClick = data => {
     onOpenPrescriptionCard(data)
   }
 
-  const handleAdministerOrSkipOpen = data => {
-    setSelectedMedicine(data)
-    console.log('data in handleAdministerOrSkipOpen:', data)
-    setIsAdministerOrSkipPopupOpen(true)
-  }
+  // const handleAdministerOrSkipOpen = data => {
+  //   setSelectedMedicine(data)
+  //   console.log('data in handleAdministerOrSkipOpen:', data)
+  //   setIsAdministerOrSkipPopupOpen(true)
+  // }
 
 
   // Show shimmer loading state
@@ -872,8 +868,8 @@ const PrescriptionMonitoringGrid = ({
           selectedCount={selectedMetrics?.length}
           cancelLabel='SKIPPED'
           addLabel='ADMINISTER'
-          onCancel={handleSkip}
-          onAdd={handleAdminister}
+          onCancel={() => handleSkip(selectedMetrics)}
+          onAdd={() => handleAdminister(selectedMetrics)}
           width='140px'
           height='42px'
           isSubmitLoading={isAdminstrationLoading}
