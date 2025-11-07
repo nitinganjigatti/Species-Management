@@ -241,6 +241,8 @@ const PrescriptionMonitoringGrid = ({
   setSelectedMedicine,
   handleAdminister,
   handleSkip,
+  isAdministerLoading,
+  isSkipLoading,
   handleAdministerOrSkipOpen
 }) => {
   const theme = useTheme()
@@ -784,7 +786,8 @@ const PrescriptionMonitoringGrid = ({
           onAdd={() => handleAdminister(selectedMetrics)}
           width='140px'
           height='42px'
-          isSubmitLoading={isAdminstrationLoading}
+          isSubmitLoading={isAdministerLoading}
+          isCancelLoading={isSkipLoading}
         />
       ) : null}
     </>
