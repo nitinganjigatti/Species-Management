@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
-import { Box, Typography, IconButton, Grid, Button } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import { Box, Typography, IconButton, Grid, Button, Skeleton } from '@mui/material'
+import { alpha, styled, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@emotion/react'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import AddScheduleDrawer from 'src/views/pages/hospital/treatment-monitoring/AddScheduleDrawer'
 import AddParameterDrawer from 'src/views/pages/hospital/treatment-monitoring/AddParameterDrawer'
 import { useRouter } from 'next/router'
+import { getTreatmentMonitoringData } from 'src/lib/api/hospital/treatmentMonitoring'
+import AddParameterDataEntry from 'src/views/pages/hospital/treatment-monitoring/AddParameterDataEntry'
+import { useQuery } from '@tanstack/react-query'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -15,13 +17,6 @@ const getLabelForHour = hour => {
   const ampm = normalizedHour < 12 ? 'AM' : 'PM'
 
   return `${h} ${ampm}`
-}
-
-const convertLabelToHour24 = label => {
-  const [hourStr, meridian] = label.split(' ')
-  let hour = parseInt(hourStr, 10)
-  if (meridian === 'AM') return hour === 12 ? 0 : hour
-  else return hour === 12 ? 12 : hour + 12
 }
 
 const useRealtimeTooltip = (scrollContainerRef, timeSlots) => {
@@ -143,18 +138,47 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots) => {
   }, [scrollContainerRef, timeSlots])
 }
 
-const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}, onRemoveMetric = () => {} }) => {
+const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const theme = useTheme()
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
   const router = useRouter()
 
-  const { id } = router.query
+  const { id, medical_record_id, animal_id } = router.query
+  const today = new Date().toISOString().split('T')[0]
 
   const [hoveredSlot, setHoveredSlot] = useState(null)
   const [didInitialScroll, setDidInitialScroll] = useState(false)
   const [openScheduleDrawer, setOpenScheduleDrawer] = useState(false)
   const [addParameterDrawerOpen, setAddParameterDrawerOpen] = useState(false)
+  const [openParamsEntryDrawer, setOpenParamsEntryDrawer] = useState(false)
+  const [parametersLoading, setParametersLoading] = useState(false)
+  const [dates, setDates] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(today)
+
+  // const [monitoringData, setMonitoringData] = useState([])
+
+  const [paramsDetails, setParamsDetails] = useState({
+    interval: '',
+    date: '',
+    parameter: null
+  })
+
+  useEffect(() => {
+    if (patientData?.admitted_at) {
+      const admittedDate = new Date(patientData.admitted_at)
+      const currentDate = new Date()
+
+      const datesArray = []
+      let tempDate = new Date(admittedDate)
+      while (tempDate <= currentDate) {
+        datesArray.push(tempDate.toISOString().split('T')[0])
+        tempDate.setDate(tempDate.getDate() + 1)
+      }
+
+      setDates(datesArray)
+    }
+  }, [patientData])
 
   const timeSlots = useMemo(() => {
     const slots = []
@@ -167,78 +191,40 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
 
   useRealtimeTooltip(scrollContainerRef, timeSlots)
 
-  const createTimeSlotStructure = useCallback(timeSlots => {
-    return timeSlots.map(time => ({
-      time,
-      isActive: false,
-      value: undefined
-    }))
-  }, [])
+  const createTimeSlotStructure = useCallback(slots => slots.map(time => ({ time, isActive: false })), [])
 
-  const defaultMetrics = useMemo(() => {
-    return [
-      {
-        id: 'temperature',
-        name: 'Temperature',
-        subtext: 'Custom',
+  const {
+    data: monitoringDataListings,
+    isLoading: monitoringLoading,
+    refetch: monitoringRefetch
+  } = useQuery({
+    queryKey: ['hospital-treatment-monitoring-listings', id, selectedDate],
+    queryFn: () =>
+      getTreatmentMonitoringData({
+        date: selectedDate,
+        hospital_case_id: id
+      })
+  })
+
+  const monitoringData = useMemo(() => {
+    return (
+      monitoringDataListings?.data?.map(item => ({
+        ...item,
         timeSlots: createTimeSlotStructure(timeSlots),
         canEdit: true
-      },
-      {
-        id: 'heartRate',
-        name: 'Heart Rate',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'respirationRate',
-        name: 'Respiration Rate',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'appetite',
-        name: 'Appetite',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'crt',
-        name: 'CRT',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'urination',
-        name: 'Urination',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      },
-      {
-        id: 'defecation',
-        name: 'Defecation',
-        subtext: 'Custom',
-        timeSlots: createTimeSlotStructure(timeSlots),
-        canEdit: true
-      }
-    ]
-  }, [timeSlots, createTimeSlotStructure])
+      })) || []
+    )
+  }, [monitoringDataListings, createTimeSlotStructure, timeSlots])
+
+  const defaultMetrics = useMemo(() => monitoringData, [monitoringData])
 
   const displayMetrics = metrics?.length > 0 ? metrics : defaultMetrics
 
-  const handleTimeSlotClick = useCallback(
-    (metricId, timeValue) => {
-      onTimeSlotClick(metricId, timeValue)
-    },
-    [onTimeSlotClick]
-  )
+  const handleTimeSlotClick = ({ interval, date, parameter }) => {
+    setOpenParamsEntryDrawer(true)
+    setParamsDetails({ interval: interval, date: date, parameter: parameter })
+  }
 
-  // One-time initial scroll - no re-renders after this
   useEffect(() => {
     if (!didInitialScroll && scrollContainerRef.current) {
       const now = new Date()
@@ -263,12 +249,64 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
     }
   }, [didInitialScroll])
 
+  const handleDateChange = date => {
+    setSelectedDate(date)
+  }
+
+  const renderedMetrics = useMemo(() => {
+    return displayMetrics?.map(metric => (
+      <TimeSlotGrid key={metric?.id} numColumns={timeSlots.length}>
+        {metric?.timeSlots.map((timeSlot, index) => {
+          const slotKey = `${metric.assessment_type_id}-${index}`
+          const durationMinutes = metric?.duration_minutes
+          const [h, ampm] = timeSlot.time.split(' ')
+          let hour = parseInt(h)
+          if (ampm === 'PM' && hour !== 12) hour += 12
+          if (ampm === 'AM' && hour === 12) hour = 0
+
+          const currentHour = new Date().getHours()
+          let bgColor = theme.palette.customColors.OnPrimary
+          let isDisabled = hour > currentHour
+          let showPlus = !isDisabled
+
+          if (durationMinutes) {
+            const intervalHours = durationMinutes / 60
+            if (hour % intervalHours === 0) {
+              bgColor = alpha(theme.palette.customColors.antzNotes, 0.64)
+            }
+          }
+
+          return (
+            <TimeSlot
+              key={slotKey}
+              sx={{
+                backgroundColor: bgColor,
+                opacity: isDisabled ? 0.5 : 1,
+                cursor: isDisabled ? 'not-allowed' : 'pointer'
+              }}
+              onClick={() => {
+                if (!isDisabled)
+                  handleTimeSlotClick({
+                    interval: timeSlot.time,
+                    date: selectedDate,
+                    parameter: metric
+                  })
+              }}
+            >
+              {!isDisabled && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />}
+            </TimeSlot>
+          )
+        })}
+      </TimeSlotGrid>
+    ))
+  }, [displayMetrics, timeSlots, selectedDate])
+
   return (
     <>
       <Grid container spacing={2} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
         <Grid container spacing={6}>
           <Grid item size={{ xs: 12, sm: 12, md: 10 }}>
-            <HorizontalDateNav numberOfDays={7} />
+            <HorizontalDateNav onDateSelect={handleDateChange} selectedDate={selectedDate} dates={dates} />
           </Grid>
           <Grid item size={{ xs: 12, sm: 12, md: 2 }}>
             <Button
@@ -281,78 +319,91 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
           </Grid>
         </Grid>
         <Grid size={{ xs: 12 }} sx={{ mt: 6 }}>
-          <DashboardContainer>
-            <MainContainer>
-              <FixedColumn>
-                <HeaderContainer>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}
-                  >
-                    Monitoring
-                  </Typography>
-                  <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
-                    <Icon icon={'ei:plus'} fontSize={30} color={theme.palette.primary.main} fontWeight={600} />
-                  </IconButton>
-                </HeaderContainer>
-
-                {displayMetrics?.map(metric => (
-                  <MetricLabel key={metric.id}>
-                    <Box>
-                      <MetricName>{metric.name}</MetricName>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Icon />
-                        <MetricSubtext>{metric.subtext}</MetricSubtext>
-                      </Box>
-                    </Box>
-
-                    {metric.canEdit && (
-                      <IconButton
-                        size='small'
-                        onClick={() => onRemoveMetric(metric.id)}
-                        sx={{ color: '#6c757d', ml: 1 }}
-                      >
-                        <Icon icon={'mdi-close'} fontSize={20} />
-                      </IconButton>
-                    )}
-                  </MetricLabel>
+          {monitoringLoading ? (
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
+              <Box sx={{ width: '180px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Skeleton variant='rectangular' height={56} sx={{ borderRadius: 2 }} animation='wave' />
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} variant='rectangular' height={72} sx={{ borderRadius: 2 }} animation='wave' />
                 ))}
-              </FixedColumn>
-
-              <ScrollableContainer ref={scrollContainerRef}>
-                {/* Time headers with NO tooltip logic - just static rendering */}
-                <TimeSlotGrid numColumns={timeSlots.length}>
-                  {timeSlots.map(time => (
-                    <TimeHeader key={time} data-hour={time} ref={el => (hourRefs.current[time] = el)}>
-                      {time}
-                    </TimeHeader>
+              </Box>
+              <Box sx={{ flex: 1, overflowX: 'auto' }}>
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton
+                      key={i}
+                      variant='rectangular'
+                      height={56}
+                      width={160}
+                      sx={{ borderRadius: 2 }}
+                      animation='wave'
+                    />
                   ))}
-                  {/* Tooltip is added here dynamically by useRealtimeTooltip hook */}
-                </TimeSlotGrid>
-
-                {displayMetrics?.map(metric => (
-                  <TimeSlotGrid key={metric?.id} numColumns={timeSlots.length}>
-                    {metric?.timeSlots.map((timeSlot, index) => {
-                      const slotKey = `${metric.id}-${index}`
-
-                      return (
-                        <TimeSlot
-                          key={slotKey}
-                          onClick={() => handleTimeSlotClick(metric.id, timeSlot)}
-                          onMouseEnter={() => setHoveredSlot(slotKey)}
-                          onMouseLeave={() => setHoveredSlot(null)}
-                          sx={{
-                            transform: hoveredSlot === slotKey ? 'translateY(-1px)' : 'none'
-                          }}
-                        >
-                          <Icon icon={'mdi-plus'} fontSize={20} />
-                        </TimeSlot>
-                      )
-                    })}
-                  </TimeSlotGrid>
+                </Box>
+                {[...Array(4)].map((_, rowIndex) => (
+                  <Box key={rowIndex} sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                    {[...Array(6)].map((_, colIndex) => (
+                      <Skeleton
+                        key={colIndex}
+                        variant='rectangular'
+                        height={72}
+                        width={160}
+                        sx={{ borderRadius: 2 }}
+                        animation='wave'
+                      />
+                    ))}
+                  </Box>
                 ))}
-              </ScrollableContainer>
-            </MainContainer>
-          </DashboardContainer>
+              </Box>
+            </Box>
+          ) : (
+            <DashboardContainer>
+              <MainContainer>
+                <FixedColumn>
+                  <HeaderContainer>
+                    <Typography
+                      sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}
+                    >
+                      Monitoring
+                    </Typography>
+                    <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
+                      <Icon icon={'ei:plus'} fontSize={30} color={theme.palette.primary.main} fontWeight={600} />
+                    </IconButton>
+                  </HeaderContainer>
+
+                  {displayMetrics?.map(metric => (
+                    <MetricLabel key={metric.assessment_type_id}>
+                      <Box>
+                        <MetricName>{metric.label}</MetricName>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Icon />
+                          <MetricSubtext>{metric.frequency_label}</MetricSubtext>
+                        </Box>
+                      </Box>
+
+                      {metric.canEdit && (
+                        <IconButton size='small' onClick={() => console.log(metric)} sx={{ color: '#6c757d', ml: 1 }}>
+                          <Icon icon={'mdi-close'} fontSize={20} />
+                        </IconButton>
+                      )}
+                    </MetricLabel>
+                  ))}
+                </FixedColumn>
+
+                <ScrollableContainer ref={scrollContainerRef}>
+                  <TimeSlotGrid numColumns={timeSlots.length}>
+                    {timeSlots.map(time => (
+                      <TimeHeader key={time} data-hour={time} ref={el => (hourRefs.current[time] = el)}>
+                        {time}
+                      </TimeHeader>
+                    ))}
+                  </TimeSlotGrid>
+
+                  {renderedMetrics}
+                </ScrollableContainer>
+              </MainContainer>
+            </DashboardContainer>
+          )}
         </Grid>
       </Grid>
       {openScheduleDrawer && (
@@ -361,10 +412,27 @@ const PatientMonitoring = React.memo(({ metrics = [], onTimeSlotClick = () => {}
           setOpen={setOpenScheduleDrawer}
           monitoring={defaultMetrics}
           hospitalCaseId={id}
+          refetchMonitoringData={monitoringRefetch}
         />
       )}
       {addParameterDrawerOpen && (
-        <AddParameterDrawer open={addParameterDrawerOpen} setOpen={setAddParameterDrawerOpen} hospitalCaseId={id} />
+        <AddParameterDrawer
+          open={addParameterDrawerOpen}
+          setOpen={setAddParameterDrawerOpen}
+          hospitalCaseId={id}
+          refetchMonitoringData={monitoringRefetch}
+        />
+      )}
+      {openParamsEntryDrawer && (
+        <AddParameterDataEntry
+          open={openParamsEntryDrawer}
+          setOpen={setOpenParamsEntryDrawer}
+          data={paramsDetails}
+          hospitalCaseId={id}
+          medicalRecordId={medical_record_id}
+          animalId={animal_id}
+          refetchMonitoringData={monitoringRefetch}
+        />
       )}
     </>
   )

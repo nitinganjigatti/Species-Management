@@ -23,7 +23,7 @@ const ControlledTextField = ({
   formHelperTextBackgroundColor = 'inherit',
   inputBackgroundColor = 'inherit',
   borderRadius = '10px',
-  placeholder,
+  placeholder = '',
   sx = {},
   size = 'large'
 }) => {
@@ -42,6 +42,7 @@ const ControlledTextField = ({
           value={dateReader && field.value ? Utility?.formatDisplayDate(field.value) : field.value}
           type={type}
           label={label}
+          placeholder={placeholder}
           onWheel={event => event.target.blur()}
           disabled={disabled}
           error={Boolean(error)}

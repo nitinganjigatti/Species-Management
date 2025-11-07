@@ -1,9 +1,14 @@
 import {
+  ADD_ASSESSMENT_VALUE_TO_PARAMS,
   APPLY_PARAMS_TO_CASE_ID,
+  GET_HOSPITAL_PARAMETERS_UNIT,
   GET_HOSPITAL_PARAMS_TEMPLATE,
+  GET_MONITORING_HISTORY,
+  GET_MONITORING_PARAMETERS,
   GET_PARAMETERS_ON_FILTERS,
   GET_PARAMS_FILER_OPTIONS,
   GET_PARAMS_OF_TEMPLATE,
+  GET_TREATMENT_MONITORING_DATA,
   GET_TREATMENT_PARAMETERS_INTERVALS,
   SAVE_HOSPITAL_TEMPLATE,
   SCHEDULE_INTERVALS_FOR_PARAMETERS
@@ -54,6 +59,36 @@ export const saveHospitalTemplate = async params => {
 
 export const applyParamsToHospitalCaseId = async params => {
   const response = await axiosFormPost({ url: `${APPLY_PARAMS_TO_CASE_ID}`, body: params })
+
+  return response?.data
+}
+
+export const getTreatmentMonitoringData = async params => {
+  const response = await axiosGet({ url: `${GET_TREATMENT_MONITORING_DATA}`, params })
+
+  return response?.data
+}
+
+export const getMonitoringParameters = async id => {
+  const response = await axiosGet({ url: `${GET_MONITORING_PARAMETERS}/${id}` })
+
+  return response?.data
+}
+
+export const getMonitoringParamsHistory = async params => {
+  const response = await axiosGet({ url: `${GET_MONITORING_HISTORY}`, params })
+
+  return response?.data
+}
+
+export const addAssessmentToParams = async (animalId, params) => {
+  const response = await axiosPost({ url: `${ADD_ASSESSMENT_VALUE_TO_PARAMS}/${animalId}`, body: params })
+
+  return response?.data
+}
+
+export const getHospitalParametersUnitListing = async id => {
+  const response = await axiosGet({ url: `${GET_HOSPITAL_PARAMETERS_UNIT}/${id}` })
 
   return response?.data
 }

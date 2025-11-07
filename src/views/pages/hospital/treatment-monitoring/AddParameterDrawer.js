@@ -9,20 +9,21 @@ import {
   Typography,
   useTheme
 } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import SelectParameterDrawer from './SelectParameterDrawer'
 import { useQuery } from '@tanstack/react-query'
 import {
   applyParamsToHospitalCaseId,
   getHospitalParamsTemplatesList,
+  getMonitoringParameters,
   getParametersBasedOnTemplates,
   saveHospitalTemplate
 } from 'src/lib/api/hospital/treatmentMonitoring'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
 
-const AddParameterDrawer = ({ open, setOpen, hospitalCaseId }) => {
+const AddParameterDrawer = ({ open, setOpen, hospitalCaseId, refetchMonitoringData }) => {
   const theme = useTheme()
   const { selectedHospital } = useHospital()
 
@@ -35,6 +36,40 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId }) => {
   const [loadingParams, setLoadingParams] = useState(false)
   const [saveLoading, setSaveLoading] = useState(false)
   const [applyLoading, setApplyLoading] = useState(false)
+  const [monitoringLoading, setMonitoringLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchMonitoringParameters = async () => {
+      setMonitoringLoading(true)
+      try {
+        await getMonitoringParameters(hospitalCaseId).then(res => {
+          if (res?.status === true) {
+            const apiParams =
+              res?.data?.assessments?.map(item => ({
+                id: String(item?.assessment_type_id),
+                label: item?.label
+              })) || []
+            setParameters(prev => {
+              const combined = [...prev, ...apiParams]
+
+              return combined.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
+            })
+            setSelectedAssessments(prev => {
+              const combined = [...prev, ...apiParams]
+
+              return combined.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
+            })
+            setMonitoringLoading(false)
+          }
+        })
+      } catch (error) {
+        console.error('Cannot Fetch Monitoring Parameters', error)
+        setMonitoringLoading(false)
+      }
+    }
+
+    fetchMonitoringParameters()
+  }, [open, hospitalCaseId])
 
   const {
     data: templateData,
@@ -110,7 +145,7 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId }) => {
 
   const handleAddParameters = params => {
     setParameters(prev => {
-      const combined = [...prev, ...params.map(p => ({ ...p, id: String(p.id) }))] // normalize ids
+      const combined = [...prev, ...params.map(p => ({ ...p, id: String(p.id) }))]
       const unique = combined.filter((param, index, self) => index === self.findIndex(p => p.id === param.id))
 
       return unique
@@ -172,10 +207,10 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId }) => {
       })
 
       await applyParamsToHospitalCaseId(payload).then(res => {
-        console.log(res)
         if (res?.status === true) {
           Toaster({ type: 'success', message: res?.message })
           handleDrawerClose()
+          refetchMonitoringData()
           setApplyLoading(false)
         } else {
           setApplyLoading(false)
@@ -254,7 +289,7 @@ const AddParameterDrawer = ({ open, setOpen, hospitalCaseId }) => {
                 Add Parameter
               </Button>
             </Box>
-            {loadingParams && (
+            {(loadingParams || monitoringLoading) && (
               <Box display='flex' justifyContent='center' alignItems='center' py={2}>
                 <CircularProgress size={28} />
               </Box>
