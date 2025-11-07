@@ -740,7 +740,8 @@ const ListOfStocks = () => {
     setChangeSwitch(event.target.checked)
     setSearchValue('')
     setBatchSearchValue('')
-    textFieldRef.current.value = ''
+
+    // textFieldRef.current.value = ''
     if (event.target.checked) {
       getStocksReportBatchWise({
         batchSort: batchSort,
@@ -1066,8 +1067,7 @@ const ListOfStocks = () => {
                   >
                     <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
                       <MUISearch
-                        s
-                        inputRef={textFieldRef}
+                        // inputRef={textFieldRef}
                         onChange={e => {
                           changeSwitch
                             ? handleBatchSearch(e.target.value, stockId, stockType, batchPaginationModel)
@@ -1126,7 +1126,7 @@ const ListOfStocks = () => {
                                   setSort('asc')
                                   setSortColumn('stock_items_name')
 
-                                  textFieldRef.current.value = ''
+                                  // textFieldRef.current.value = ''
                                   let storeId = id === 'all' ? 'all' : id
 
                                   // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
@@ -1181,7 +1181,6 @@ const ListOfStocks = () => {
                           }
                           sx={{
                             display: 'flex',
-
                             justifyContent: {
                               xs: selectedPharmacy.type === 'central' ? 'space-between' : 'space-between',
                               sm: 'flex-end'

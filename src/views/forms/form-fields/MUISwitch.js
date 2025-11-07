@@ -60,7 +60,6 @@ function MUISwitch(props) {
   if (label) {
     return (
       <FormControlLabel
-        sx={{ margin: 0 }}
         control={<StyledSwitch switchColor={switchColor} size={size} {...rest} />}
         label={
           <Typography
