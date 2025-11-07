@@ -797,6 +797,12 @@ export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
 
+export const SKIP_PRESCRIPTION = 'administer/manage/medicine'
+
+export const ADMINISTER_PRESCRIPTION = 'administer/manage/medicine'
+
+export const ADMINISTER_ALL_MEDICINES = 'administer/manage/medicine/selectAll'
+
 export const ADD_DIRECT_ADMINISTER_PRESCRIPTION = 'administer/v2/create-direct-adminster-record'
 
 export const GET_PRESCRIPTION_LIST = 'v1/hospital/list-prescription'

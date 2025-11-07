@@ -14,6 +14,18 @@ import { useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 
+import { keyframes } from '@emotion/react'
+
+// Shimmer animation
+const shimmerAnimation = keyframes`
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+`
+
 export default function PrescriptionMedicineList({
   medicineList,
   temporarilySelectedMedicine,
@@ -88,9 +100,7 @@ export default function PrescriptionMedicineList({
 
       <Box sx={{ maxHeight: 650, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
         {searching ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-            <CircularProgress />
-          </Box>
+          <MedicineShimmer count={8} />
         ) : medicineList.length === 0 && !loading ? (
           <Box
             sx={{
@@ -169,12 +179,86 @@ export default function PrescriptionMedicineList({
           })
         )}
 
-        {loading && !searching && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-            <CircularProgress size={24} />
-          </Box>
-        )}
+        {loading && !searching && <MedicineShimmer count={8} />}
       </Box>
     </Box>
+  )
+}
+
+// Shimmer Loading Component (alternative version)
+const MedicineShimmer = ({ count = 8 }) => {
+  const theme = useTheme()
+
+  return (
+    <>
+      {Array.from({ length: count }).map((_, index) => (
+        <Box
+          key={index}
+          sx={{
+            background: 'transparent',
+            borderRadius: '1px',
+            px: 1,
+            py: 3.7,
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          }}
+        >
+          {/* Radio shimmer */}
+          <Box
+            sx={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+              backgroundSize: '200% 100%',
+              animation: `${shimmerAnimation} 1.5s infinite`,
+              marginRight: '8px'
+            }}
+          />
+
+          {/* Medicine name shimmer */}
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                width: `${Math.random() * 40 + 60}%`,
+                height: '16px',
+                background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+                backgroundSize: '200% 100%',
+                animation: `${shimmerAnimation} 1.5s infinite`,
+                borderRadius: '4px'
+              }}
+            />
+          </Box>
+
+          {/* Generic name shimmer */}
+          <Box
+            sx={{
+              width: '200px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                width: `${Math.random() * 30 + 50}%`,
+                height: '14px',
+                background: `linear-gradient(90deg, ${theme.palette.customColors.OutlineVariant} 25%, ${theme.palette.customColors.mdAntzNeutral} 50%, ${theme.palette.customColors.OutlineVariant} 75%)`,
+                backgroundSize: '200% 100%',
+                animation: `${shimmerAnimation} 1.5s infinite`,
+                borderRadius: '4px',
+                opacity: 0.7
+              }}
+            />
+          </Box>
+        </Box>
+      ))}
+    </>
   )
 }

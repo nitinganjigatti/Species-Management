@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import { v4 as uuidv4 } from 'uuid'
@@ -145,6 +145,37 @@ const ADD_ICON_STYLES = {
   color: '#37BD69'
 }
 
+const STICKY_ADD_WRAPPER_STYLES = {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'flex-end',
+  pointerEvents: 'none',
+  zIndex: 2
+}
+
+const STICKY_ADD_BUTTON_STYLES = {
+  width: '48px',
+  height: HEADER_CELL_HEIGHT,
+  minHeight: HEADER_CELL_HEIGHT,
+  borderRadius: '4px',
+  padding: '8px 12px',
+  backgroundColor: '#37BD69',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '10px',
+  cursor: 'pointer',
+  pointerEvents: 'auto'
+}
+
+const STICKY_ADD_ICON_STYLES = {
+  fontSize: '20px',
+  color: '#FFFFFF'
+}
+
 const FORM_COMPONENTS = {
   temperature: TemperatureForm,
   heartRate: HeartRateForm,
@@ -198,6 +229,10 @@ export default function VitalMonitoring() {
   const [isTimeFormOpen, setIsTimeFormOpen] = useState(false)
   const [formState, setFormState] = useState(null)
   const [activeCell, setActiveCell] = useState(null)
+  const [hasOverflow, setHasOverflow] = useState(false)
+  const [isScrolledToEnd, setIsScrolledToEnd] = useState(true)
+
+  const scrollContainerRef = useRef(null)
 
   const handleAddColumn = ({ timeLabel }) => {
     const newColumn = {
@@ -268,6 +303,32 @@ export default function VitalMonitoring() {
 
   const ActiveFormComponent = activeFormConfig?.FormComponent
 
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) {
+      return undefined
+    }
+
+    const updateOverflowState = () => {
+      const overflow = container.scrollWidth > container.clientWidth + 1
+      setHasOverflow(overflow)
+      setIsScrolledToEnd(container.scrollLeft + container.clientWidth >= container.scrollWidth - 2)
+    }
+
+    const handleScroll = () => {
+      setIsScrolledToEnd(container.scrollLeft + container.clientWidth >= container.scrollWidth - 2)
+    }
+
+    updateOverflowState()
+    window.addEventListener('resize', updateOverflowState)
+    container.addEventListener('scroll', handleScroll)
+
+    return () => {
+      window.removeEventListener('resize', updateOverflowState)
+      container.removeEventListener('scroll', handleScroll)
+    }
+  }, [columns])
+
   return (
     <>
       <Box
@@ -276,7 +337,8 @@ export default function VitalMonitoring() {
           display: 'flex',
           alignItems: 'flex-start',
           gap: '8px',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          position: 'relative'
         }}
       >
         <Box sx={{ flex: '0 0 auto', display: 'grid', rowGap: '8px' }}>
@@ -293,7 +355,7 @@ export default function VitalMonitoring() {
           ))}
         </Box>
 
-        <Box sx={{ flex: 1, overflowX: 'auto', paddingBottom: '8px' }}>
+        <Box sx={{ flex: 1, overflowX: 'auto', paddingBottom: '8px' }} ref={scrollContainerRef}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
             {columns.map(column => (
               <Box key={column.id} sx={{ display: 'grid', rowGap: '8px' }}>
@@ -372,6 +434,18 @@ export default function VitalMonitoring() {
             </Box>
           </Box>
         </Box>
+
+        {hasOverflow && !isScrolledToEnd ? (
+          <Box sx={STICKY_ADD_WRAPPER_STYLES}>
+            <Box
+              sx={STICKY_ADD_BUTTON_STYLES}
+              onClick={() => setIsTimeFormOpen(true)}
+              onMouseDown={event => event.preventDefault()}
+            >
+              <AddRoundedIcon sx={STICKY_ADD_ICON_STYLES} />
+            </Box>
+          </Box>
+        ) : null}
       </Box>
 
       <AddTimeForm open={isTimeFormOpen} onClose={() => setIsTimeFormOpen(false)} onSubmit={handleAddColumn} />

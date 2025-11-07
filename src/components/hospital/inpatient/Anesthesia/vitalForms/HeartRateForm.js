@@ -1,51 +1,49 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { MenuItem, Stack, TextField } from '@mui/material'
+import { Box, TextField, Typography } from '@mui/material'
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 
 import VitalFormDialog from './VitalFormDialog'
+import {
+  measurementActionsSx,
+  measurementCancelButtonSx,
+  measurementContentSx,
+  measurementDialogPaperSx,
+  measurementFieldLabelSx,
+  measurementFieldsContainerSx,
+  measurementHeaderContainerSx,
+  measurementHeaderTimeContainerSx,
+  measurementHeaderTimeIconSx,
+  measurementHeaderTitleSx,
+  measurementPrimaryFieldColumnSx,
+  measurementSecondaryFieldColumnSx,
+  measurementSubmitButtonSx,
+  createMeasurementFieldSx
+} from './sharedStyles'
 
-const textFieldStyles = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    height: '56px',
-    backgroundColor: '#FFFFFF',
-    '& fieldset': {
-      borderColor: '#C3CEC7'
-    },
-    '&:hover fieldset': {
-      borderColor: '#37BD69'
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#37BD69'
-    }
-  },
-  '& .MuiInputBase-input': {
-    fontFamily: 'Inter',
-    fontWeight: 500,
-    fontSize: '16px',
-    lineHeight: 1,
-    letterSpacing: 0,
-    color: '#133020'
-  },
-  '& .MuiInputLabel-root': {
-    fontFamily: 'Inter',
-    fontWeight: 500,
-    fontSize: '14px',
-    letterSpacing: 0,
-    color: '#839D8D'
-  }
+const unitValue = 'bpm'
+
+const headerRenderer = (title, timeLabel) => {
+  const displayTime = timeLabel || '--'
+
+  return (
+    <Box sx={measurementHeaderContainerSx}>
+      <Typography sx={measurementHeaderTitleSx}>{title}</Typography>
+      <Box sx={measurementHeaderTimeContainerSx}>
+        <AccessTimeRoundedIcon sx={measurementHeaderTimeIconSx} />
+        <Typography sx={measurementHeaderTitleSx}>{displayTime}</Typography>
+      </Box>
+    </Box>
+  )
 }
-
-const unitOptions = ['bpm']
 
 export default function HeartRateForm({ open, onClose, onSubmit, timeLabel, initialData }) {
   const [value, setValue] = useState(initialData?.value || '')
-  const [unit, setUnit] = useState(initialData?.unit || unitOptions[0])
+  const [unit] = useState(unitValue)
 
   useEffect(() => {
     if (open) {
       setValue(initialData?.value || '')
-      setUnit(initialData?.unit || unitOptions[0])
     }
   }, [open, initialData])
 
@@ -57,41 +55,47 @@ export default function HeartRateForm({ open, onClose, onSubmit, timeLabel, init
     onSubmit({ value: value.trim(), unit })
   }
 
+  const disableSubmit = useMemo(() => !value.trim(), [value])
+
   return (
     <VitalFormDialog
       open={open}
       onClose={onClose}
       onSubmit={handleSubmit}
-      title='Add Heart Rate'
-      timeLabel={timeLabel}
-      disableSubmit={!value.trim()}
-      maxWidth='sm'
+      title='Heart Rate (HR)'
+      renderHeader={() => headerRenderer('Heart Rate (HR)', timeLabel)}
+      contentSx={measurementContentSx}
+      actionsSx={measurementActionsSx}
+      cancelButtonSx={measurementCancelButtonSx}
+      submitButtonSx={measurementSubmitButtonSx}
+      paperSx={measurementDialogPaperSx}
+      disableSubmit={disableSubmit}
+      submitLabel='Add Entry'
     >
-      <Stack spacing={3}>
-        <TextField
-          fullWidth
-          label='Enter Value'
-          placeholder='Enter Value'
-          value={value}
-          onChange={event => setValue(event.target.value)}
-          sx={textFieldStyles}
-        />
+      <Box sx={measurementFieldsContainerSx}>
+        <Box sx={measurementPrimaryFieldColumnSx}>
+          <Typography sx={measurementFieldLabelSx}>Enter Value</Typography>
+          <TextField
+            fullWidth
+            placeholder='Enter Value'
+            value={value}
+            onChange={event => setValue(event.target.value)}
+            type='number'
+            inputProps={{ min: 0, inputMode: 'numeric' }}
+            sx={createMeasurementFieldSx('#F2FFF8')}
+          />
+        </Box>
 
-        <TextField
-          select
-          fullWidth
-          label='UOM'
-          value={unit}
-          onChange={event => setUnit(event.target.value)}
-          sx={textFieldStyles}
-        >
-          {unitOptions.map(option => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Stack>
+        <Box sx={measurementSecondaryFieldColumnSx}>
+          <Typography sx={measurementFieldLabelSx}>UOM</Typography>
+          <TextField
+            fullWidth
+            value={unit}
+            InputProps={{ readOnly: true }}
+            sx={createMeasurementFieldSx('rgba(0, 0, 0, 0.05)', '#7A8684')}
+          />
+        </Box>
+      </Box>
     </VitalFormDialog>
   )
 }
@@ -102,7 +106,6 @@ HeartRateForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   timeLabel: PropTypes.string.isRequired,
   initialData: PropTypes.shape({
-    value: PropTypes.string,
-    unit: PropTypes.string
+    value: PropTypes.string
   })
 }

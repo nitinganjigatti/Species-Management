@@ -6,10 +6,20 @@ import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-moni
 import { useRouter } from 'next/router'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
-import { getDates, getPrescriptionDetails, getPrescriptions, stopPrescription } from 'src/lib/api/hospital/prescription'
+import {
+  administerAllMedicines,
+  administerDose,
+  administerPrescription,
+  getDates,
+  getPrescriptionDetails,
+  getPrescriptions,
+  skipPrescription,
+  stopPrescription
+} from 'src/lib/api/hospital/prescription'
 import Utility from 'src/utility'
 import { status } from 'nprogress'
 import AdministerOrSkipModal from 'src/views/pages/hospital/prescription-monitoring/AdministerOrSkipModal'
+import { SelectAll } from '@mui/icons-material'
 
 function PrescriptionLayout({ drawerType }) {
   const [openSchedule, setOpenSchedule] = useState(false)
@@ -27,6 +37,8 @@ function PrescriptionLayout({ drawerType }) {
   const [isAdministerOrSkipPopupOpen, setIsAdministerOrSkipPopupOpen] = useState(false)
   const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
   const [selectedMedicine, setSelectedMedicine] = useState(null)
+  const [isSelectedAll, setIsSelectedAll] = useState(false)
+  const [isAdministerLoading, setISAdministerLoading] = useState(false)
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   const [selectedDate, setSelectedDate] = useState(today)
@@ -295,6 +307,100 @@ function PrescriptionLayout({ drawerType }) {
     setDetailSelectedDate(date)
   }
 
+  const handleSelectAllAdministerrOrSkip = async purpose => {
+    try {
+      const payload = {
+        administer_date: Utility.convertUTCToLocalDate(new Date().toISOString().slice(0, 10)),
+        type: 'single',
+        purpose: purpose,
+        administritive_time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
+        select_all: 1,
+        q: '',
+        ignored_ids: [],
+        animal_id: animal_id,
+        medical_record_id: JSON.stringify([medical_record_id])
+      }
+
+      setIsPrescriptionListLoading(true)
+      const response = await administerAllMedicines(payload)
+      if (response?.success) {
+        getPrescriptionList()
+      } else {
+        Toaster({ type: 'error', message: 'Something went wrong' }) // TODO: Update to error message
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: 'Something went wrong' })
+    } finally {
+      setIsPrescriptionListLoading(false)
+    }
+  }
+
+  const handleSingleOrMultipleDoseAdministerOrSkip = async (data, purpose) => {
+    try {
+      const medicineIds = data?.map(item => item?.medicine_id).filter(Boolean)
+
+      const administerIds = JSON.stringify(
+        data
+          ?.flatMap(item => item?.timeSlots || []) // merge all timeSlots from all items
+          .map(slot => {
+            if (slot?.value?.schedule_id && (!slot?.value?.status || slot?.value?.status?.toLowerCase() === 'pending'))
+              return slot?.value?.schedule_id
+          }) // extract schedule_id
+          .filter(Boolean) // remove null/undefined
+      )
+
+      const payload = {
+        medical_record_id: JSON.stringify([medical_record_id]),
+        medicine_id: data?.length > 1 ? JSON.stringify(medicineIds) : JSON.stringify([data[0]?.medicine_id]),
+        type: 'single',
+        purpose: purpose,
+        side_effect: 0,
+        administer_id: administerIds,
+        batch_details: [],
+        administritive_time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
+        group_prescription_id: data?.group_prescription_id || data?.id
+      }
+
+      setIsPrescriptionListLoading(true)
+      const response = await administerDose(payload)
+      if (response?.success) {
+        getPrescriptionList()
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error || 'Something went wrong' })
+    } finally {
+      setIsPrescriptionListLoading(false)
+    }
+  }
+
+  const handleAdminister = async data => {
+    console.log('Administer clicked for selected metrics:', data)
+    console.log('SelectAll', SelectAll, data?.length, medicationData?.length)
+    if (SelectAll && data?.length === medicationData?.length) {
+      handleSelectAllAdministerrOrSkip('administer')
+    } else {
+      handleSingleOrMultipleDoseAdministerOrSkip(data, 'administer')
+    }
+  }
+
+  const handleSkip = async data => {
+    console.log('Administer clicked for selected metrics:', data)
+    console.log('SelectAll', SelectAll, data?.length, medicationData?.length)
+    if (SelectAll && data?.length === medicationData?.length) {
+      handleSelectAllAdministerrOrSkip('withheld')
+    } else {
+      handleSingleOrMultipleDoseAdministerOrSkip(data, 'withheld')
+    }
+  }
+
+  const handleAdministerOrSkipOpen = data => {
+    setSelectedMedicine(data)
+    console.log('data in handleAdministerOrSkipOpen:', data)
+    setIsAdministerOrSkipPopupOpen(true)
+  }
+
   return (
     <Box>
       <Grid container spacing={2} sx={{ alignItems: 'center' }}>
@@ -304,6 +410,8 @@ function PrescriptionLayout({ drawerType }) {
             onOpenPrescriptionCard={handleOpenPrescriptionCard}
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
+            setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
+
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -312,6 +420,9 @@ function PrescriptionLayout({ drawerType }) {
             handleDateChange={handleDateChange}
             selectedMedicine={selectedMedicine}
             setSelectedMedicine={setSelectedMedicine}
+            handleAdminister={handleAdminister}
+            handleSkip={handleSkip}
+            handleAdministerOrSkipOpen={handleAdministerOrSkipOpen}
           />
         </Grid>
       </Grid>

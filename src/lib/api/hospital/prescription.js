@@ -1,11 +1,14 @@
 import {
   ADD_DIRECT_ADMINISTER_PRESCRIPTION,
   ADD_PRESCRIPTION,
+  ADMINISTER_ALL_MEDICINES,
+  ADMINISTER_PRESCRIPTION,
   GET_BATCH_LIST,
   GET_FREQUENCY,
   GET_PRESCRIPTION_DETAILS,
   GET_PRESCRIPTION_DETAILS_DATES,
   GET_PRESCRIPTION_LIST,
+  SKIP_PRESCRIPTION,
   STOP_PRESCRIPTION
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
@@ -90,6 +93,36 @@ export async function getMedicineBatches(params) {
 export async function stopPrescription(payLoad) {
   try {
     const response = await axiosPost({ url: `${STOP_PRESCRIPTION}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding prescription:', error.message)
+  }
+}
+
+export async function skipPrescription(payLoad) {
+  try {
+    const response = await axiosFormPost({ url: `${SKIP_PRESCRIPTION}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding prescription:', error.message)
+  }
+}
+
+export async function administerDose(payLoad) {
+  try {
+    const response = await axiosFormPost({ url: `${ADMINISTER_PRESCRIPTION}`, body: payLoad })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error adding prescription:', error.message)
+  }
+}
+
+export async function administerAllMedicines(payLoad) {
+  try {
+    const response = await axiosFormPost({ url: `${ADMINISTER_ALL_MEDICINES}`, body: payLoad })
 
     return response?.data
   } catch (error) {

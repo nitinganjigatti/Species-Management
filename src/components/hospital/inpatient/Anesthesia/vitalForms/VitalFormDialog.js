@@ -13,14 +13,28 @@ import {
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 
-const titleStyles = {
+const defaultHeaderSx = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '16px',
   padding: '16px 24px',
-  borderBottom: '1px solid #DAE7DF',
   backgroundColor: '#EFF5F2'
+}
+
+const defaultTitleSx = {
+  fontFamily: 'Inter',
+  fontWeight: 600,
+  fontSize: '18px',
+  letterSpacing: 0,
+  color: '#133020'
+}
+
+const defaultCloseButtonSx = {
+  border: '1px solid #DAE7DF',
+  color: '#839D8D',
+  width: 36,
+  height: 36
 }
 
 const timeChipStyles = {
@@ -38,14 +52,21 @@ const timeChipStyles = {
   letterSpacing: 0
 }
 
-const actionsStyles = {
+const defaultContentSx = {
+  padding: '24px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px'
+}
+
+const defaultActionsSx = {
   display: 'flex',
   justifyContent: 'flex-end',
   gap: '12px',
   padding: '16px 24px 24px'
 }
 
-const cancelButtonStyles = {
+const defaultCancelButtonSx = {
   minWidth: '128px',
   height: '48px',
   borderRadius: '8px',
@@ -57,7 +78,7 @@ const cancelButtonStyles = {
   letterSpacing: 0
 }
 
-const submitButtonStyles = {
+const defaultSubmitButtonSx = {
   minWidth: '140px',
   height: '48px',
   borderRadius: '8px',
@@ -82,8 +103,24 @@ export default function VitalFormDialog({
   cancelLabel = 'Cancel',
   hideCancel = false,
   disableSubmit = false,
-  maxWidth = 'xs'
+  maxWidth = 'xs',
+  headerSx,
+  titleTypographySx,
+  closeButtonSx,
+  contentSx,
+  actionsSx,
+  cancelButtonSx,
+  submitButtonSx,
+  paperSx,
+  renderHeader
 }) {
+  const headerContent =
+    renderHeader !== undefined
+      ? typeof renderHeader === 'function'
+        ? renderHeader({ onClose, timeLabel })
+        : renderHeader
+      : null
+
   return (
     <Dialog
       open={open}
@@ -92,47 +129,44 @@ export default function VitalFormDialog({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '12px',
-          boxShadow: '0px 16px 32px rgba(12, 74, 40, 0.16)',
-          overflow: 'hidden'
+          borderRadius: '8px',
+          border: '1px solid #37BD69',
+          boxShadow: '0px 0px 14px 0px #00000040',
+          overflow: 'hidden',
+          ...paperSx
         }
       }}
     >
-      <DialogTitle sx={titleStyles}>
-        <Typography
-          variant='h6'
-          sx={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '18px', letterSpacing: 0, color: '#133020' }}
-        >
-          {title}
-        </Typography>
+      {headerContent ? (
+        headerContent
+      ) : (
+        <DialogTitle sx={{ ...defaultHeaderSx, ...headerSx }}>
+          <Typography sx={{ ...defaultTitleSx, ...titleTypographySx }}>{title}</Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {timeLabel ? (
-            <Box sx={timeChipStyles}>
-              <AccessTimeRoundedIcon sx={{ fontSize: '18px' }} />
-              <span>{timeLabel}</span>
-            </Box>
-          ) : null}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {timeLabel ? (
+              <Box sx={timeChipStyles}>
+                <AccessTimeRoundedIcon sx={{ fontSize: '18px' }} />
+                <span>{timeLabel}</span>
+              </Box>
+            ) : null}
 
-          <IconButton
-            edge='end'
-            onClick={onClose}
-            sx={{ border: '1px solid #DAE7DF', color: '#839D8D', width: 36, height: 36 }}
-          >
-            <CloseRoundedIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
+            <IconButton edge='end' onClick={onClose} sx={{ ...defaultCloseButtonSx, ...closeButtonSx }}>
+              <CloseRoundedIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+      )}
 
-      <DialogContent sx={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>{children}</DialogContent>
+      <DialogContent sx={{ ...defaultContentSx, ...contentSx }}>{children}</DialogContent>
 
-      <DialogActions sx={actionsStyles}>
+      <DialogActions sx={{ ...defaultActionsSx, ...actionsSx }}>
         {!hideCancel ? (
-          <Button variant='outlined' onClick={onClose} sx={cancelButtonStyles}>
+          <Button variant='outlined' onClick={onClose} sx={{ ...defaultCancelButtonSx, ...cancelButtonSx }}>
             {cancelLabel}
           </Button>
         ) : null}
-        <Button variant='contained' onClick={onSubmit} disabled={disableSubmit} sx={submitButtonStyles}>
+        <Button variant='contained' onClick={onSubmit} disabled={disableSubmit} sx={{ ...defaultSubmitButtonSx, ...submitButtonSx }}>
           {submitLabel}
         </Button>
       </DialogActions>
@@ -151,5 +185,14 @@ VitalFormDialog.propTypes = {
   cancelLabel: PropTypes.string,
   hideCancel: PropTypes.bool,
   disableSubmit: PropTypes.bool,
-  maxWidth: PropTypes.oneOfType([PropTypes.string, PropTypes.bool])
+  maxWidth: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+  headerSx: PropTypes.object,
+  titleTypographySx: PropTypes.object,
+  closeButtonSx: PropTypes.object,
+  contentSx: PropTypes.object,
+  actionsSx: PropTypes.object,
+  cancelButtonSx: PropTypes.object,
+  submitButtonSx: PropTypes.object,
+  paperSx: PropTypes.object,
+  renderHeader: PropTypes.oneOfType([PropTypes.node, PropTypes.func])
 }
