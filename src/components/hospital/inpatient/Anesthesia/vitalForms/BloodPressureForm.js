@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box, TextField, Typography } from '@mui/material'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
@@ -25,6 +25,7 @@ export default function BloodPressureForm({ open, onClose, onSubmit, timeLabel, 
   const theme = useTheme()
   const [systolic, setSystolic] = useState(initialData?.systolic || '')
   const [mean, setMean] = useState(initialData?.mean || '')
+  const firstFieldRef = useRef(null)
 
   useEffect(() => {
     if (open) {
@@ -42,6 +43,18 @@ export default function BloodPressureForm({ open, onClose, onSubmit, timeLabel, 
   }
 
   const disableSubmit = useMemo(() => !systolic.trim() || !mean.trim(), [systolic, mean])
+  const handleFormSubmit = event => {
+    event.preventDefault()
+    handleSubmit()
+  }
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        firstFieldRef.current?.focus()
+      }, 0)
+    }
+  }, [open])
 
   const renderHeader = () => {
     const displayTime = timeLabel || '--'
@@ -73,6 +86,8 @@ export default function BloodPressureForm({ open, onClose, onSubmit, timeLabel, 
       submitLabel='Add Entry'
     >
       <Box
+        component='form'
+        onSubmit={handleFormSubmit}
         sx={{
           display: 'grid',
           gridTemplateColumns: '1fr auto 1fr 132px',
@@ -95,6 +110,7 @@ export default function BloodPressureForm({ open, onClose, onSubmit, timeLabel, 
               theme.palette.customColors?.customHeadingTextColor
             )}
             fullWidth
+            inputRef={firstFieldRef}
           />
         </Box>
 

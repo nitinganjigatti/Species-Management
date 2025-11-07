@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box, ToggleButton, ToggleButtonGroup, Typography, Radio } from '@mui/material'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
@@ -61,6 +61,7 @@ const getRadioStyles = theme => ({
 export default function CornealReflexForm({ open, onClose, onSubmit, timeLabel, initialData }) {
   const theme = useTheme()
   const [selection, setSelection] = useState(initialData?.selection || '')
+  const firstToggleRef = useRef(null)
 
   useEffect(() => {
     if (open) {
@@ -94,6 +95,18 @@ export default function CornealReflexForm({ open, onClose, onSubmit, timeLabel, 
 
   const toggleButtonStyles = getToggleButtonStyles(theme)
   const radioStyles = getRadioStyles(theme)
+  const handleFormSubmit = event => {
+    event.preventDefault()
+    handleSubmit()
+  }
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        firstToggleRef.current?.focus()
+      }, 0)
+    }
+  }, [open])
 
   return (
     <VitalFormDialog
@@ -112,26 +125,42 @@ export default function CornealReflexForm({ open, onClose, onSubmit, timeLabel, 
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
         <Typography sx={measurementFieldLabelSx(theme)}>Select Reflex</Typography>
-        <ToggleButtonGroup
-          value={selection}
-          exclusive
-          onChange={(event, value) => value && setSelection(value)}
-          sx={{ display: 'flex', gap: '12px' }}
+        <Box
+          component='form'
+          onSubmit={handleFormSubmit}
+          onKeyDown={event => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              handleSubmit()
+            }
+          }}
         >
-          {options.map(option => (
-            <ToggleButton key={option} value={option} sx={toggleButtonStyles}>
-              <Typography sx={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '16px', color: 'inherit' }}>
-                {option}
-              </Typography>
-              <Radio
-                checked={selection === option}
-                tabIndex={-1}
-                disableRipple
-                sx={radioStyles}
-              />
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+          <ToggleButtonGroup
+            value={selection}
+            exclusive
+            onChange={(event, value) => value && setSelection(value)}
+            sx={{ display: 'flex', gap: '12px' }}
+          >
+            {options.map((option, index) => (
+              <ToggleButton
+                key={option}
+                value={option}
+                sx={toggleButtonStyles}
+                ref={index === 0 ? firstToggleRef : null}
+              >
+                <Typography sx={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '16px', color: 'inherit' }}>
+                  {option}
+                </Typography>
+                <Radio
+                  checked={selection === option}
+                  tabIndex={-1}
+                  disableRipple
+                  sx={radioStyles}
+                />
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
       </Box>
     </VitalFormDialog>
   )

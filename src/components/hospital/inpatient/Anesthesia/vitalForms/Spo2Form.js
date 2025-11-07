@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box, TextField, Typography } from '@mui/material'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
@@ -28,6 +28,7 @@ export default function Spo2Form({ open, onClose, onSubmit, timeLabel, initialDa
   const theme = useTheme()
   const [value, setValue] = useState(initialData?.value || '')
   const [unit] = useState(unitValue)
+  const firstFieldRef = useRef(null)
 
   useEffect(() => {
     if (open) {
@@ -44,6 +45,18 @@ export default function Spo2Form({ open, onClose, onSubmit, timeLabel, initialDa
   }
 
   const disableSubmit = useMemo(() => !value.trim(), [value])
+  const handleFormSubmit = event => {
+    event.preventDefault()
+    handleSubmit()
+  }
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        firstFieldRef.current?.focus()
+      }, 0)
+    }
+  }, [open])
 
   const renderHeader = () => {
     const displayTime = timeLabel || '--'
@@ -74,7 +87,7 @@ export default function Spo2Form({ open, onClose, onSubmit, timeLabel, initialDa
       disableSubmit={disableSubmit}
       submitLabel='Add Entry'
     >
-      <Box sx={measurementFieldsContainerSx}>
+      <Box component='form' onSubmit={handleFormSubmit} sx={measurementFieldsContainerSx}>
         <Box sx={measurementPrimaryFieldColumnSx}>
           <Typography sx={measurementFieldLabelSx(theme)}>Enter Value</Typography>
           <TextField
@@ -89,6 +102,7 @@ export default function Spo2Form({ open, onClose, onSubmit, timeLabel, initialDa
               theme.palette.customColors?.Surface,
               theme.palette.customColors?.customHeadingTextColor
             )}
+            inputRef={firstFieldRef}
           />
         </Box>
 

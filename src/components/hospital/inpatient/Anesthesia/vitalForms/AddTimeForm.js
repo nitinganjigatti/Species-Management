@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Typography } from '@mui/material'
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
@@ -29,10 +29,14 @@ const parseInitialValue = initialValue => {
 export default function AddTimeForm({ open, onClose, onSubmit, initialValue = '' }) {
   const theme = useTheme()
   const [timeValue, setTimeValue] = useState(() => parseInitialValue(initialValue))
+  const timeInputRef = useRef(null)
 
   useEffect(() => {
     if (open) {
       setTimeValue(parseInitialValue(initialValue))
+      setTimeout(() => {
+        timeInputRef.current?.focus()
+      }, 0)
     }
   }, [open, initialValue])
 
@@ -45,6 +49,11 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
   }
 
   const disableSubmit = useMemo(() => !timeValue || !timeValue.isValid(), [timeValue])
+
+  const handleFormSubmit = event => {
+    event.preventDefault()
+    handleSubmit()
+  }
 
   const timePickerTextFieldStyles = {
     '& .MuiOutlinedInput-root': {
@@ -140,7 +149,7 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
       maxWidth='xs'
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <Box component='form' onSubmit={handleFormSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <Typography sx={labelStyles}>Recorded Time</Typography>
 
           <TimePicker
@@ -152,6 +161,7 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
                 fullWidth: true,
                 placeholder: '01:00 PM',
                 sx: timePickerTextFieldStyles,
+                inputRef: timeInputRef,
                 inputProps: {
                   placeholder: '01:00 PM'
                 }
