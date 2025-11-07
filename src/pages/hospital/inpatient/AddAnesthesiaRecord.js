@@ -242,7 +242,7 @@ export default function AddAnesthesiaRecord() {
                 <AccordionSummary
                   expandIcon={
                     expanded === id ? (
-                      <Typography sx={{ fontWeight: 'bold', fontSize: 24 }}>−</Typography>
+                      <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: '#4c4e646e' }}>−</Typography>
                     ) : (
                       <Typography sx={{ fontWeight: 'bold', fontSize: 24 }}>+</Typography>
                     )
