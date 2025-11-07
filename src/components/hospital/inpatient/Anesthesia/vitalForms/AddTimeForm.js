@@ -5,45 +5,11 @@ import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import { useTheme } from '@mui/material/styles'
 
 import VitalFormDialog from './VitalFormDialog'
 
 dayjs.extend(customParseFormat)
-
-const timePickerTextFieldStyles = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    height: '56px',
-    backgroundColor: '#FFFFFF',
-    '& fieldset': {
-      borderColor: '#C3CEC7'
-    },
-    '&:hover fieldset': {
-      borderColor: '#37BD69'
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#37BD69'
-    }
-  },
-  '& .MuiOutlinedInput-input': {
-    fontFamily: 'Inter',
-    fontWeight: 500,
-    fontSize: '18px',
-    letterSpacing: 0,
-    color: '#133020'
-  },
-  '& .MuiInputAdornment-root': {
-    color: '#44544A'
-  }
-}
-
-const labelStyles = {
-  fontFamily: 'Inter',
-  fontWeight: 400,
-  fontSize: '16px',
-  letterSpacing: 0,
-  color: '#44544A'
-}
 
 const SUBMIT_BUTTON_STYLES = {
   height: '42px',
@@ -61,6 +27,7 @@ const parseInitialValue = initialValue => {
 }
 
 export default function AddTimeForm({ open, onClose, onSubmit, initialValue = '' }) {
+  const theme = useTheme()
   const [timeValue, setTimeValue] = useState(() => parseInitialValue(initialValue))
 
   useEffect(() => {
@@ -79,6 +46,41 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
 
   const disableSubmit = useMemo(() => !timeValue || !timeValue.isValid(), [timeValue])
 
+  const timePickerTextFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '8px',
+      height: '56px',
+      backgroundColor: theme.palette.primary.contrastText,
+      '& fieldset': {
+        borderColor: theme.palette.customColors?.OutlineVariant || theme.palette.divider
+      },
+      '&:hover fieldset': {
+        borderColor: theme.palette.primary.main
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: theme.palette.primary.main
+      }
+    },
+    '& .MuiOutlinedInput-input': {
+      fontFamily: 'Inter',
+      fontWeight: 500,
+      fontSize: '18px',
+      letterSpacing: 0,
+      color: theme.palette.customColors?.customHeadingTextColor || theme.palette.text.primary
+    },
+    '& .MuiInputAdornment-root': {
+      color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
+    }
+  }
+
+  const labelStyles = {
+    fontFamily: 'Inter',
+    fontWeight: 400,
+    fontSize: '16px',
+    letterSpacing: 0,
+    color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+  }
+
   return (
     <VitalFormDialog
       open={open}
@@ -91,20 +93,20 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
       headerSx={{
         height: '52px',
         padding: '16px',
-        backgroundColor: '#E8F4F2',
+        backgroundColor: theme.palette.customColors?.displaybgPrimary || theme.palette.background.default,
         gap: '10px'
       }}
       titleTypographySx={{
         fontWeight: 500,
         fontSize: '16px',
-        color: '#000000'
+        color: theme.palette.customColors?.neutralPrimary || theme.palette.text.primary
       }}
       closeButtonSx={{
         width: '20px',
         height: '20px',
         padding: '4.17px',
         border: 'none',
-        color: '#839D8D',
+        color: theme.palette.customColors?.Outline || theme.palette.text.secondary,
         marginRight: '0px'
       }}
       contentSx={{
@@ -114,12 +116,12 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
         paddingBottom: '24px',
         paddingLeft: '16px',
         gap: '20px',
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.palette.primary.contrastText,
         display: 'flex',
         flexDirection: 'column'
       }}
       actionsSx={{
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.palette.primary.contrastText,
         justifyContent: 'center',
         padding: '0 16px 16px',
         width: '100%'
@@ -156,7 +158,7 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
               },
               openPickerButton: {
                 sx: {
-                  color: '#44544A'
+                  color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
                 }
               }
             }}
