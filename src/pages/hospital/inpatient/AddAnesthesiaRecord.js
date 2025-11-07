@@ -23,6 +23,8 @@ import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
+import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesia'
 
 export const anesthesiaSchema = yup.object({
   basicDetails: yup.object({
@@ -46,8 +48,10 @@ export const anesthesiaSchema = yup.object({
 
 const sections = [
   { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
+  { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
   { id: 'attachments', label: 'Attachments', component: AttachmentsSection },
   { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection },
+  { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
   { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring }
 ]
 
