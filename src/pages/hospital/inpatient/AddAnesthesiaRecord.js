@@ -18,21 +18,25 @@ import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDeta
 import AttachmentsSection from 'src/components/hospital/inpatient/Anesthesia/AttachmentsSection'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
 import ActionButtons from 'src/components/hospital/FooterActionbuttons'
-// import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
+import MedicationsGasSection from 'src/components/hospital/inpatient/Anesthesia/MedicationsGasSection'
+import PreAnesthesia from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesia'
+
 // import AnesthesiaSetupSection from 'src/components/hospital/inpatient/Anesthesia/AnesthesiaSetupSection'
 // import PreAnesthesiaSection from 'src/components/hospital/inpatient/Anesthesia/PreAnesthesiaSection'
 // import VitalMonitoringSection from 'src/components/hospital/inpatient/Anesthesia/VitalMonitoringSection'
 // import RecoveryReversalSection from 'src/components/hospital/inpatient/Anesthesia/RecoveryReversalSection'
 
 const sections = [
-  { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
-  //   { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
+  // { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
+  { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
+  { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
   { id: 'attachments', label: 'Attachments', component: AttachmentsSection }
 ]
 
 export default function AddAnesthesiaRecord() {
   const router = useRouter()
   const [expanded, setExpanded] = React.useState('basicDetails')
+
   const [formData, setFormData] = useState({
     basicDetails: {
       location: '',
@@ -53,6 +57,7 @@ export default function AddAnesthesiaRecord() {
       gasType: '',
       dosage: ''
     }
+
     // Add others as needed
   })
 
@@ -219,7 +224,7 @@ export default function AddAnesthesiaRecord() {
                 <Typography fontWeight={600}>{label}</Typography>
               </AccordionSummary>
 
-              <AccordionDetails>
+              <AccordionDetails sx={{ p: 0 }}>
                 <SectionComponent
                   data={formData[id]}
                   onChange={(field, value) => handleSectionChange(id, field, value)}
@@ -243,6 +248,7 @@ export default function AddAnesthesiaRecord() {
         // onAdd={handleAddClick}
         width={200}
         height={50}
+
         //isSubmitLoading={addLoading}
       />
     </Box>
