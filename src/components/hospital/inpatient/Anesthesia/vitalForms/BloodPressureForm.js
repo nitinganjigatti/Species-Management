@@ -1,53 +1,47 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { MenuItem, Stack, TextField } from '@mui/material'
+import { Box, TextField, Typography } from '@mui/material'
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 
 import VitalFormDialog from './VitalFormDialog'
+import {
+  measurementActionsSx,
+  measurementCancelButtonSx,
+  measurementContentSx,
+  measurementDialogPaperSx,
+  measurementFieldLabelSx,
+  measurementHeaderContainerSx,
+  measurementHeaderTimeContainerSx,
+  measurementHeaderTimeIconSx,
+  measurementHeaderTitleSx,
+  measurementSubmitButtonSx,
+  createMeasurementFieldSx
+} from './sharedStyles'
 
-const textFieldStyles = {
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    height: '56px',
-    backgroundColor: '#FFFFFF',
-    '& fieldset': {
-      borderColor: '#C3CEC7'
-    },
-    '&:hover fieldset': {
-      borderColor: '#37BD69'
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#37BD69'
-    }
-  },
-  '& .MuiInputBase-input': {
-    fontFamily: 'Inter',
-    fontWeight: 500,
-    fontSize: '16px',
-    lineHeight: 1,
-    letterSpacing: 0,
-    color: '#133020'
-  },
-  '& .MuiInputLabel-root': {
-    fontFamily: 'Inter',
-    fontWeight: 500,
-    fontSize: '14px',
-    letterSpacing: 0,
-    color: '#839D8D'
-  }
+const headerRenderer = (title, timeLabel) => {
+  const displayTime = timeLabel || '--'
+
+  return (
+    <Box sx={measurementHeaderContainerSx}>
+      <Typography sx={measurementHeaderTitleSx}>{title}</Typography>
+      <Box sx={measurementHeaderTimeContainerSx}>
+        <AccessTimeRoundedIcon sx={measurementHeaderTimeIconSx} />
+        <Typography sx={measurementHeaderTitleSx}>{displayTime}</Typography>
+      </Box>
+    </Box>
+  )
 }
 
-const unitOptions = ['mmHg']
+const unitValue = 'mmHg'
 
 export default function BloodPressureForm({ open, onClose, onSubmit, timeLabel, initialData }) {
   const [systolic, setSystolic] = useState(initialData?.systolic || '')
   const [mean, setMean] = useState(initialData?.mean || '')
-  const [unit, setUnit] = useState(initialData?.unit || unitOptions[0])
 
   useEffect(() => {
     if (open) {
       setSystolic(initialData?.systolic || '')
       setMean(initialData?.mean || '')
-      setUnit(initialData?.unit || unitOptions[0])
     }
   }, [open, initialData])
 
@@ -56,54 +50,86 @@ export default function BloodPressureForm({ open, onClose, onSubmit, timeLabel, 
       return
     }
 
-    onSubmit({ systolic: systolic.trim(), mean: mean.trim(), unit })
+    onSubmit({ systolic: systolic.trim(), mean: mean.trim(), unit: unitValue })
   }
+
+  const disableSubmit = useMemo(() => !systolic.trim() || !mean.trim(), [systolic, mean])
 
   return (
     <VitalFormDialog
       open={open}
       onClose={onClose}
       onSubmit={handleSubmit}
-      title='Add Blood Pressure'
-      timeLabel={timeLabel}
-      disableSubmit={!systolic.trim() || !mean.trim()}
-      maxWidth='sm'
+      title='Blood Pressure (BP)'
+      renderHeader={() => headerRenderer('Blood Pressure (BP)', timeLabel)}
+      contentSx={measurementContentSx}
+      actionsSx={measurementActionsSx}
+      cancelButtonSx={measurementCancelButtonSx}
+      submitButtonSx={measurementSubmitButtonSx}
+      paperSx={measurementDialogPaperSx}
+      disableSubmit={disableSubmit}
+      submitLabel='Add Entry'
     >
-      <Stack spacing={3}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr 132px',
+          gap: '12px',
+          alignItems: 'end',
+          padding: '16px'
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Typography sx={measurementFieldLabelSx}>Systolic</Typography>
           <TextField
-            fullWidth
-            label='Systolic'
+            type='number'
             placeholder='Enter Value'
             value={systolic}
             onChange={event => setSystolic(event.target.value)}
-            sx={textFieldStyles}
-          />
-          <TextField
+            inputProps={{ min: 0, inputMode: 'numeric' }}
+            sx={createMeasurementFieldSx('#F2FFF8')}
             fullWidth
-            label='Mean'
+          />
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px' }}>
+          <Typography sx={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '16px', letterSpacing: 0, color: '#44544A' }}>
+            /
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Typography sx={measurementFieldLabelSx}>Mean</Typography>
+          <TextField
+            type='number'
             placeholder='Enter Value'
             value={mean}
             onChange={event => setMean(event.target.value)}
-            sx={textFieldStyles}
+            inputProps={{ min: 0, inputMode: 'numeric' }}
+            sx={createMeasurementFieldSx('#F2FFF8')}
+            fullWidth
           />
-        </Stack>
+        </Box>
 
-        <TextField
-          select
-          fullWidth
-          label='UOM'
-          value={unit}
-          onChange={event => setUnit(event.target.value)}
-          sx={textFieldStyles}
-        >
-          {unitOptions.map(option => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Stack>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Typography sx={measurementFieldLabelSx}>UOM</Typography>
+          <TextField
+            value={unitValue}
+            InputProps={{
+              readOnly: true,
+              sx: {
+                '& .MuiOutlinedInput-input': {
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  letterSpacing: 0
+                }
+              }
+            }}
+            sx={createMeasurementFieldSx('#0000000D', '#7A8684')}
+            fullWidth
+          />
+        </Box>
+      </Box>
     </VitalFormDialog>
   )
 }
@@ -115,7 +141,6 @@ BloodPressureForm.propTypes = {
   timeLabel: PropTypes.string.isRequired,
   initialData: PropTypes.shape({
     systolic: PropTypes.string,
-    mean: PropTypes.string,
-    unit: PropTypes.string
+    mean: PropTypes.string
   })
 }

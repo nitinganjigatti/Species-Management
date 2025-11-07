@@ -38,7 +38,8 @@ function PrescriptionLayout({ drawerType }) {
   const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
   const [selectedMedicine, setSelectedMedicine] = useState(null)
   const [isSelectedAll, setIsSelectedAll] = useState(false)
-  const [isAdministerLoading, setISAdministerLoading] = useState(false)
+  const [isSkipLoading, setIsSkipLoading] = useState(false)
+  const [isAdministerLoading, setIsAdministerLoading] = useState(false)
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   const [selectedDate, setSelectedDate] = useState(today)
@@ -321,9 +322,9 @@ function PrescriptionLayout({ drawerType }) {
         medical_record_id: JSON.stringify([medical_record_id])
       }
 
-      setIsPrescriptionListLoading(true)
       const response = await administerAllMedicines(payload)
       if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Medicines administered successfully' })
         getPrescriptionList()
       } else {
         Toaster({ type: 'error', message: 'Something went wrong' }) // TODO: Update to error message
@@ -331,7 +332,8 @@ function PrescriptionLayout({ drawerType }) {
     } catch (error) {
       Toaster({ type: 'error', message: 'Something went wrong' })
     } finally {
-      setIsPrescriptionListLoading(false)
+      setIsAdministerLoading(false)
+      setIsSkipLoading(false)
     }
   }
 
@@ -361,9 +363,9 @@ function PrescriptionLayout({ drawerType }) {
         group_prescription_id: data?.group_prescription_id || data?.id
       }
 
-      setIsPrescriptionListLoading(true)
       const response = await administerDose(payload)
       if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
         getPrescriptionList()
       } else {
         Toaster({ type: 'error', message: response?.message })
@@ -371,13 +373,15 @@ function PrescriptionLayout({ drawerType }) {
     } catch (error) {
       Toaster({ type: 'error', message: error || 'Something went wrong' })
     } finally {
-      setIsPrescriptionListLoading(false)
+      setIsAdministerLoading(false)
+      setIsSkipLoading(false)
     }
   }
 
   const handleAdminister = async data => {
     console.log('Administer clicked for selected metrics:', data)
     console.log('SelectAll', SelectAll, data?.length, medicationData?.length)
+    setIsAdministerLoading(true)
     if (SelectAll && data?.length === medicationData?.length) {
       handleSelectAllAdministerrOrSkip('administer')
     } else {
@@ -388,6 +392,7 @@ function PrescriptionLayout({ drawerType }) {
   const handleSkip = async data => {
     console.log('Administer clicked for selected metrics:', data)
     console.log('SelectAll', SelectAll, data?.length, medicationData?.length)
+    setIsSkipLoading(true)
     if (SelectAll && data?.length === medicationData?.length) {
       handleSelectAllAdministerrOrSkip('withheld')
     } else {
@@ -411,7 +416,6 @@ function PrescriptionLayout({ drawerType }) {
             medications={medicationData}
             isLoading={isPrescriptionListLoading}
             setIsSelectedAll={() => setIsSelectedAll(!isSelectedAll)}
-
             // medications={medication}
             setIsCurrentMedicalRecord={setIsCurrentMedicalRecord}
             isCurrentMedicalRecord={isCurrentMedicalRecord}
@@ -420,6 +424,8 @@ function PrescriptionLayout({ drawerType }) {
             handleDateChange={handleDateChange}
             selectedMedicine={selectedMedicine}
             setSelectedMedicine={setSelectedMedicine}
+            isAdministerLoading={isAdministerLoading}
+            isSkipLoading={isSkipLoading}
             handleAdminister={handleAdminister}
             handleSkip={handleSkip}
             handleAdministerOrSkipOpen={handleAdministerOrSkipOpen}

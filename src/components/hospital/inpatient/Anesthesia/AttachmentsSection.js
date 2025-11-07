@@ -1,13 +1,27 @@
 import React from 'react'
-import { Box, Typography, Button } from '@mui/material'
+import { Box, Typography } from '@mui/material'
+import { styled } from '@mui/system'
+import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import { useFormContext } from 'react-hook-form'
 
-export default function AttachmentsSection() {
+export default function AttachmentsSection({ sectionId }) {
+  const { control, setValue, watch } = useFormContext()
+  const files = watch(`${sectionId}.files`) || []
+
+  const handleFileChange = newFiles => {
+    setValue(`${sectionId}.files`, newFiles)
+  }
+
   return (
-    <Box border='1px dashed #ccc' p={3} textAlign='center' borderRadius={2}>
-      <Typography color='text.secondary'>Upload attachment</Typography>
-      <Button variant='contained' sx={{ mt: 1 }}>
-        Browse
-      </Button>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <ControlledMultiFileUpload
+        name={`${sectionId}.files`}
+        control={control}
+        value={files}
+        onChange={handleFileChange}
+        label='Upload attachment'
+        acceptedFileTypes={'images,pdf,document'}
+      />
     </Box>
   )
 }
