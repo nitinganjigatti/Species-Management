@@ -1,39 +1,75 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { Box, ToggleButton, ToggleButtonGroup, Typography, Radio } from '@mui/material'
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 
 import VitalFormDialog from './VitalFormDialog'
+import {
+  measurementActionsSx,
+  measurementCancelButtonSx,
+  measurementContentSx,
+  measurementDialogPaperSx,
+  measurementFieldLabelSx,
+  measurementHeaderContainerSx,
+  measurementHeaderTimeContainerSx,
+  measurementHeaderTimeIconSx,
+  measurementHeaderTitleSx,
+  measurementSubmitButtonSx
+} from './sharedStyles'
 
-const toggleGroupStyles = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '12px'
+const options = ['No Reflex', 'Normal', 'Reduced']
+
+const headerRenderer = (title, timeLabel) => {
+  const displayTime = timeLabel || '--'
+
+  return (
+    <Box sx={measurementHeaderContainerSx}>
+      <Typography sx={measurementHeaderTitleSx}>{title}</Typography>
+      <Box sx={measurementHeaderTimeContainerSx}>
+        <AccessTimeRoundedIcon sx={measurementHeaderTimeIconSx} />
+        <Typography sx={measurementHeaderTitleSx}>{displayTime}</Typography>
+      </Box>
+    </Box>
+  )
 }
 
 const toggleButtonStyles = {
-  flex: '1 1 160px',
-  minWidth: '148px',
+  flex: 1,
+  minWidth: 0,
   height: '56px',
-  borderRadius: '8px !important',
-  border: '1px solid #C3CEC7 !important',
-  backgroundColor: '#FFFFFF !important',
+  borderRadius: '4px !important',
+  border: '1px solid #839D8D !important',
   textTransform: 'none',
-  color: '#44544A',
+  color: '#7A8684',
   fontFamily: 'Inter',
-  fontWeight: 500,
+  fontWeight: 400,
   fontSize: '16px',
   letterSpacing: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '6px 12px',
   '&:hover': {
     backgroundColor: '#FFFFFF'
   },
   '&.Mui-selected': {
+    backgroundColor: '#E1F9ED',
     borderColor: '#37BD69 !important',
-    backgroundColor: '#E6F8ED !important',
-    color: '#006D35'
+    color: '#133020'
   }
 }
 
-const options = ['No Reflex', 'Normal', 'Reduced']
+const radioStyles = {
+  padding: 0,
+  pointerEvents: 'none',
+  '& .MuiSvgIcon-root': {
+    fontSize: '20px',
+    color: '#7A8684'
+  },
+  '&.Mui-checked .MuiSvgIcon-root': {
+    color: '#37BD69'
+  }
+}
 
 export default function PainReflexForm({ open, onClose, onSubmit, timeLabel, initialData }) {
   const [selection, setSelection] = useState(initialData?.selection || '')
@@ -52,38 +88,41 @@ export default function PainReflexForm({ open, onClose, onSubmit, timeLabel, ini
     onSubmit({ selection })
   }
 
+  const disableSubmit = useMemo(() => !selection, [selection])
+
   return (
     <VitalFormDialog
       open={open}
       onClose={onClose}
       onSubmit={handleSubmit}
-      title='Add Pain Reflex'
-      timeLabel={timeLabel}
-      disableSubmit={!selection}
-      maxWidth='sm'
+      title='Pain Reflex'
+      renderHeader={() => headerRenderer('Pain Reflex', timeLabel)}
+      contentSx={measurementContentSx}
+      actionsSx={measurementActionsSx}
+      cancelButtonSx={measurementCancelButtonSx}
+      submitButtonSx={measurementSubmitButtonSx}
+      paperSx={measurementDialogPaperSx}
+      disableSubmit={disableSubmit}
+      submitLabel='Add Entry'
     >
-      <Stack spacing={2}>
-        <Typography sx={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#44544A' }}>
-          Select Reflex
-        </Typography>
-
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
+        <Typography sx={measurementFieldLabelSx}>Select Reflex</Typography>
         <ToggleButtonGroup
           value={selection}
           exclusive
-          onChange={(event, newValue) => {
-            if (newValue !== null) {
-              setSelection(newValue)
-            }
-          }}
-          sx={toggleGroupStyles}
+          onChange={(event, value) => value && setSelection(value)}
+          sx={{ display: 'flex', gap: '12px' }}
         >
           {options.map(option => (
             <ToggleButton key={option} value={option} sx={toggleButtonStyles}>
-              {option}
+              <Typography sx={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '16px', color: 'inherit' }}>
+                {option}
+              </Typography>
+              <Radio checked={selection === option} tabIndex={-1} disableRipple sx={radioStyles} />
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-      </Stack>
+      </Box>
     </VitalFormDialog>
   )
 }
