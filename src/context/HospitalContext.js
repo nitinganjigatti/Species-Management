@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { read, write } from 'src/lib/windows/utils'
 
 const HospitalContext = createContext()
 
@@ -8,9 +9,16 @@ export const HospitalProvider = ({ children }) => {
   const [hospitalStats, setHospitalStats] = useState(null)
   const [isHospitalStatsLoading, setHospitalStatsLoading] = useState(false)
 
-  const updateSelectedHospital = (hospital) => {
+  const updateSelectedHospital = hospital => {
     setSelectedHospital(hospital)
+    write('selectedHospital', hospital)
   }
+
+  useEffect(() => {
+    if (!selectedHospital && read('selectedHospital')) {
+      setSelectedHospital(read('selectedHospital'))
+    }
+  }, [])
 
   const updateHospitals = (newHospitals, append = false) => {
     if (append) {
@@ -20,7 +28,7 @@ export const HospitalProvider = ({ children }) => {
     }
   }
 
-  const updateHospitalStats = (stats) => {
+  const updateHospitalStats = stats => {
     setHospitalStats(stats)
   }
 
@@ -50,7 +58,7 @@ export const useHospital = () => {
   if (!context) {
     throw new Error('useHospital must be used within a HospitalProvider')
   }
-  
+
   return context
 }
 

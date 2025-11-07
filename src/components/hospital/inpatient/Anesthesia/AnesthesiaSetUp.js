@@ -5,7 +5,6 @@ import {
   Button,
   Checkbox,
   Chip,
-  Collapse,
   Grid,
   InputAdornment,
   Radio,
@@ -52,11 +51,22 @@ const textFieldStyles = {
   },
   '& .MuiInputLabel-root': {
     fontFamily: 'Inter',
-    fontWeight: 500,
+    fontWeight: 400,
     fontSize: '14px',
-    lineHeight: 1,
     letterSpacing: 0,
-    color: '#839D8D'
+    color: '#839D8D',
+    transform: 'translate(12px, 10px)',
+    opacity: 0,
+    transition: 'opacity 0.2s ease, transform 0.2s ease',
+    '&.MuiInputLabel-shrink': {
+      transform: 'translate(12px, -10px) scale(1)',
+      backgroundColor: 'transparent',
+      padding: 0,
+      opacity: 1
+    }
+  },
+  '& .MuiFormLabel-root.MuiInputLabel-shrink': {
+    opacity: 1
   },
   '& .MuiInputBase-input': {
     fontFamily: 'Inter',
@@ -418,10 +428,17 @@ const AnesthesiaSetUpSection = () => {
       case 'etIntubation':
         return (
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid
+              item
+              xs={12}
+              md={6}
+              sx={{
+                width: '270px'
+              }}
+            >
               <TextField
                 fullWidth
-                label='Tube Size(s) Ex: 1mm, 2mm, 3mm'
+                label='Tube Size(s) Ex: 1mm, 2mm, 3mm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
                 placeholder='Enter'
                 value={formState.etIntubation.tubeSizes}
                 onChange={handleFieldChange('etIntubation', 'tubeSizes')}
@@ -653,12 +670,15 @@ const AnesthesiaSetUpSection = () => {
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', md: 'row' },
-                gap: { xs: 2, md: 3 },
+                gap: { xs: 2, md: checked ? 3 : 0 },
                 padding: { xs: '16px', md: '20px' },
                 borderRadius: '8px',
                 border: `0.5px solid ${borderColor}`,
                 backgroundColor,
-                transition: 'background-color 0.2s ease'
+                transition: 'background-color 0.2s ease, width 0.24s ease, max-width 0.24s ease',
+                width: { xs: '100%', md: checked ? '100%' : '240px' },
+                maxWidth: { xs: '100%', md: checked ? '100%' : '240px' },
+                alignSelf: { md: checked ? 'stretch' : 'flex-start' }
               }}
             >
               <Box
@@ -666,11 +686,12 @@ const AnesthesiaSetUpSection = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
-                  width: '100%',
+                  width: { xs: '100%', md: '240px' },
                   maxWidth: { md: '240px' },
                   flexBasis: { md: '240px' },
                   flexShrink: 0,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'max-width 0.24s ease, flex-basis 0.24s ease, width 0.24s ease'
                 }}
                 role='button'
                 tabIndex={0}
@@ -699,9 +720,21 @@ const AnesthesiaSetUpSection = () => {
                 />
                 <Typography sx={firstColumnTextStyles}>{label}</Typography>
               </Box>
-              <Collapse in={checked} timeout={300} unmountOnExit sx={{ flex: 1, width: '100%', display: 'flex' }}>
-                <Box sx={{ width: '100%' }}>{renderRowContent(key)}</Box>
-              </Collapse>
+              <Box
+                sx={{
+                  flex: checked ? '1 1 auto' : '0 0 0px',
+                  width: { xs: '100%', md: checked ? '100%' : 0 },
+                  maxWidth: { xs: '100%', md: checked ? '100%' : 0 },
+                  overflow: checked ? 'visible' : 'hidden',
+                  maxHeight: checked ? 'none' : 0,
+                  opacity: checked ? 1 : 0,
+                  transition: 'opacity 0.24s ease, max-width 0.24s ease, width 0.24s ease, flex 0.24s ease',
+                  mt: { xs: checked ? 2 : 0, md: 0 }
+                }}
+                aria-hidden={!checked}
+              >
+                {checked && <Box sx={{ width: '100%' }}>{renderRowContent(key)}</Box>}
+              </Box>
             </Box>
           )
         })}

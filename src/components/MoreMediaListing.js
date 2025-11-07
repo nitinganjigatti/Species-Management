@@ -1,25 +1,38 @@
 import React from 'react'
-import { Box, Card, CardContent, Typography, Avatar, Grid, useTheme, useMediaQuery, IconButton } from '@mui/material'
-import MediaCard from 'src/views/utility/MediaCard'
+import { Box, Card, CardContent, Typography, useTheme, useMediaQuery, alpha } from '@mui/material'
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 
-const MoreMediaListing = ({ mediaItems = [], maxVisibleItems = 2, onMoreClick = () => {} }) => {
+// Responsive prop resolver (handles breakpoint-based props)
+function useResponsivePropValue(prop, fallback) {
   const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
 
-  const getMaxVisibleItems = () => {
-    if (isMobile) return Math.min(maxVisibleItems, 1)
-    if (isTablet) return Math.min(maxVisibleItems, 2)
+  const isXs = useMediaQuery(theme.breakpoints.only('xs'))
+  const isSm = useMediaQuery(theme.breakpoints.only('sm'))
+  const isMd = useMediaQuery(theme.breakpoints.only('md'))
+  const isLg = useMediaQuery(theme.breakpoints.only('lg'))
+  const isXl = useMediaQuery(theme.breakpoints.only('xl'))
 
-    return maxVisibleItems
-  }
+  // Early return for static values
+  if (prop == null || typeof prop !== 'object') return prop ?? fallback
 
-  const visibleItemsCount = getMaxVisibleItems()
-  const visibleItems = mediaItems.slice(0, visibleItemsCount)
-  const remainingCount = Math.max(0, mediaItems.length - visibleItemsCount)
+  if (isXl && prop.xl !== undefined) return prop.xl
+  if (isLg && prop.lg !== undefined) return prop.lg
+  if (isMd && prop.md !== undefined) return prop.md
+  if (isSm && prop.sm !== undefined) return prop.sm
+  if (isXs && prop.xs !== undefined) return prop.xs
 
-  if (!mediaItems.length) {
+  return fallback
+}
+
+const MoreMediaListing = ({
+  mediaItems = [],
+  maxVisibleItems = { xs: 1, sm: 4, md: 5, lg: 2 },
+  onMoreClick = () => {}
+}) => {
+  const theme = useTheme()
+  const maxVisible = useResponsivePropValue(maxVisibleItems, 2)
+
+  if (mediaItems.length === 0) {
     return (
       <Typography variant='body2' color='text.secondary'>
         No media items to display
@@ -27,32 +40,56 @@ const MoreMediaListing = ({ mediaItems = [], maxVisibleItems = 2, onMoreClick = 
     )
   }
 
+  const visibleItems = mediaItems.slice(0, maxVisible)
+  const remainingCount = Math.max(0, mediaItems.length - maxVisible)
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', flexWrap: 'nowrap' }}>
-      {/* Visible Media Items */}
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'nowrap',
+        gap: '12px'
+      }}
+    >
       {visibleItems.map((item, index) => (
-        <FilePreviewCard key={item.id || index} fileUrl={item?.fileUrl} width={200} height={80} />
+        <FilePreviewCard
+          key={item.id}
+          fileUrl={item?.file}
+          fileType={item?.file_type}
+          width={'133px'}
+          height={'100px'}
+          showTitle={false}
+        />
       ))}
       {remainingCount > 0 && (
         <Card
+          onClick={() => onMoreClick(mediaItems.slice(maxVisible))}
           sx={{
-            width: 90,
-            height: 100,
+            width: '66px',
+            height: '100px',
+            minWidth: '66px',
+            minHeight: '100px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 1,
-            background: '#E8F4F299'
+            background: alpha(theme.palette.customColors.displaybgPrimary, 0.6)
           }}
-          onClick={() => onMoreClick(mediaItems.slice(visibleItemsCount))}
         >
-          <CardContent sx={{ p: 1 }}>
-            <Typography sx={{ fontWeight: 500, fontSize: '14px', color: '#1F515B', textAlign: 'center' }}>
+          <Box sx={{ textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               +{remainingCount} <br />
               more
             </Typography>
-          </CardContent>
+          </Box>
         </Card>
       )}
     </Box>

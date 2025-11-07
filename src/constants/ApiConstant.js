@@ -761,6 +761,8 @@ export const GET_NEW_ANIMAL_LIST_WITH_FILTERS = `v1/animal/listingv3`
 
 export const GET_SPECIES_FOR_HOSPITAL = `master/zoo/taxonomy/list`
 
+export const GET_OVERVIEW_MEDIA_FILES = 'v1/hospital/get-hospital-case-overview'
+
 // Clinical Assessment
 
 export const GET_CLINICAL_ASSESSMENTS = 'medical/v2/'
@@ -794,6 +796,12 @@ export const MEDICAL_MASTER_DATA = 'medical/masterdata'
 export const ADD_PRESCRIPTION = 'medical/v2/prescription-update'
 
 export const STOP_PRESCRIPTION = 'medical/v2/restart-stop-medicine'
+
+export const SKIP_PRESCRIPTION = 'administer/manage/medicine'
+
+export const ADMINISTER_PRESCRIPTION = 'administer/manage/medicine'
+
+export const ADMINISTER_ALL_MEDICINES = 'administer/manage/medicine/selectAll'
 
 export const ADD_DIRECT_ADMINISTER_PRESCRIPTION = 'administer/v2/create-direct-adminster-record'
 

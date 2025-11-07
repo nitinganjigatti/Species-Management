@@ -1,166 +1,262 @@
 import React, { useState } from 'react'
-import { CardMedia, Typography, Box, useTheme, alpha } from '@mui/material'
-import {
-  Description,
-  InsertDriveFile,
-  Image as ImageIcon,
-  AudioFile,
-  VideoFile,
-  PictureAsPdf,
-  Article,
-  TableChart,
-  Slideshow
-} from '@mui/icons-material'
+import { Box, IconButton, useTheme } from '@mui/material'
+import Icon from 'src/@core/components/icon'
 import UserAvatarDetails from './UserAvatarDetails'
+import FileDialog from 'src/components/utility/FileDialog'
+import { useAuth } from 'src/hooks/useAuth'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
-const FilePreviewCard = ({ fileUrl, fileName, user, width = 200, height = 200, cardStyle }) => {
-  const theme = useTheme()
+// --- File type configuration ---
+const EXT_ICON_MAP = {
+  image: ['jpeg', 'jpg', 'png', 'svg', 'gif', 'webp'],
+  pdf: ['pdf'],
+  xls: ['xls', 'xlsx'],
+  document: ['doc', 'docx'],
+  audio: ['mp3', 'wav', 'ogg'],
+  video: ['mp4', 'mov', 'avi', 'webm', 'mkv'],
+  ppt: ['ppt', 'pptx'],
+  text: ['txt'],
+  csv: ['csv'],
+  zip: ['zip', 'rar', '7z']
+}
 
-  const defaultIcons = theme => ({
-    image: <ImageIcon sx={{ fontSize: 60, color: theme.palette.customColors.Outline }} />,
-    video: <VideoFile sx={{ fontSize: 60, color: theme.palette.customColors.Tertiary }} />,
-    audio: <AudioFile sx={{ fontSize: 60, color: theme.palette.customColors.moderateSecondary }} />,
-    pdf: <PictureAsPdf sx={{ fontSize: 60, color: theme.palette.customColors.Tertiary }} />,
-    doc: <Article sx={{ fontSize: 60, color: theme.palette.customColors.addPrimary }} />,
-    xls: <TableChart sx={{ fontSize: 60, color: '#2E7D32' }} />,
-    ppt: <Slideshow sx={{ fontSize: 60, color: '#EF6C00' }} />,
-    document: <Description sx={{ fontSize: 60, color: theme.palette.customColors.OnSurfaceVariant }} />,
-    other: <InsertDriveFile sx={{ fontSize: 60, color: '#757575' }} />
-  })
+// --- Helper to determine file type based on extension or MIME ---
+const getFileType = (fileName, fileTypeFromApi) => {
+  if (fileTypeFromApi) {
+    const mimeType = fileTypeFromApi.toLowerCase()
 
-  const bgColors = theme => ({
-    image: theme.palette.customColors.Background,
-    video: theme.palette.customColors.Tertiary20,
-    audio: alpha(theme.palette.customColors.antzNotes, 0.4),
-    pdf: theme.palette.customColors.Tertiary20,
-    doc: alpha(theme.palette.customColors.addPrimary, 0.1),
-    xls: '#E8F5E9',
-    ppt: '#FFF3E0',
-    document: '#F5F5F5',
-    other: '#F5F5F5'
-  })
-
-  const getFileType = (url = '') => {
-    const ext = url.split('.').pop()?.toLowerCase()
-    if (!ext) return 'other'
-    if (['mp4', 'mov', 'avi', 'webm'].includes(ext)) return 'video'
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext)) return 'image'
-    if (['mp3', 'wav', 'ogg'].includes(ext)) return 'audio'
-    if (['pdf'].includes(ext)) return 'pdf'
-    if (['doc', 'docx'].includes(ext)) return 'doc'
-    if (['xls', 'xlsx'].includes(ext)) return 'xls'
-    if (['ppt', 'pptx'].includes(ext)) return 'ppt'
-    if (['txt'].includes(ext)) return 'document'
-
-    return 'other'
+    if (mimeType.includes('image')) return 'image'
+    if (mimeType.includes('video')) return 'video'
+    if (mimeType.includes('audio')) return 'audio'
+    if (mimeType.includes('pdf')) return 'pdf'
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'xls'
+    if (mimeType.includes('word')) return 'document'
   }
 
-  const type = getFileType(fileUrl)
-  const [loadError, setLoadError] = useState(false)
+  if (!fileName) return 'unknown'
+  const ext = fileName.split('.').pop()?.toLowerCase() || ''
 
-  const renderMedia = () => {
-    if (loadError || ['pdf', 'doc', 'xls', 'ppt', 'audio', 'other'].includes(type)) {
+  return Object.entries(EXT_ICON_MAP).find(([_, exts]) => exts.includes(ext))?.[0] || 'unknown'
+}
+
+// --- Get fallback icon if not image/video/audio ---
+const getFileIcon = (fileType, imgPath) => {
+  return imgPath?.[fileType] || imgPath?.default || {}
+}
+
+// --- Main Component ---
+const FilePreviewCard = ({
+  fileUrl,
+  fileName,
+  fileType: fileTypeFromApi,
+  user,
+  width = 200,
+  height = 200,
+  showTitle = false,
+  showTitleIcon = false,
+  onTitleIconClick,
+  cardStyle = {}
+}) => {
+  const theme = useTheme()
+  const { userData } = useAuth()
+  const imgPath = userData?.settings?.DEFAULT_IMAGE_MASTER || {}
+  const [previewFile, setPreviewFile] = useState(null)
+  const [isImageError, setIsImageError] = useState(false)
+
+  // --- Derive file name safely ---
+  let derivedFileName = ''
+  if (fileName && typeof fileName === 'string') {
+    derivedFileName = fileName.trim()
+  } else if (typeof fileUrl === 'string' && fileUrl.length > 0) {
+    try {
+      const parts = fileUrl.split('/')
+      const lastPart = parts.pop() || ''
+      derivedFileName = decodeURIComponent(lastPart.split('?')[0] || '')
+    } catch {
+      derivedFileName = 'unknown_file'
+    }
+  } else {
+    derivedFileName = 'unknown_file'
+  }
+
+  // --- Determine type and icon ---
+  const fileType = getFileType(derivedFileName, fileTypeFromApi)
+  const fileIcon = getFileIcon(fileType, imgPath)
+
+  // --- Handle preview click ---
+  const handlePreviewClick = () => {
+    if (!fileUrl || typeof fileUrl !== 'string') return
+    const typeMap = { image: 'image', video: 'video', pdf: 'pdf', audio: 'audio' }
+    setPreviewFile({
+      src: fileUrl,
+      type: typeMap[fileType] || 'other',
+      name: derivedFileName
+    })
+  }
+
+  // --- Render preview ---
+  const renderPreview = () => {
+    const commonProps = {
+      sx: {
+        width: '100%',
+        display: 'flex',
+        flex: 1,
+        borderRadius: showTitle ? '8px' : '4px',
+        overflow: 'hidden',
+        cursor: 'pointer'
+      },
+      onClick: handlePreviewClick
+    }
+
+    if (fileType === 'image') {
+      if (isImageError || !fileUrl) {
+        // Show fallback icon when broken or missing
+        return (
+          <Box
+            {...commonProps}
+            sx={{
+              ...commonProps.sx,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: fileIcon?.bg_color || theme.palette.action.hover
+            }}
+          >
+            <Icon icon='mdi:image-off-outline' fontSize={50} color={theme.palette.text.secondary} />
+          </Box>
+        )
+      }
+
       return (
-        <Box
-          sx={{
-            height,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: bgColors[type] || bgColors.other,
-            borderRadius: 1
-          }}
-        >
-          {defaultIcons[type] || defaultIcons.other}
+        <Box {...commonProps}>
+          <img
+            src={fileUrl}
+            alt={derivedFileName}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={() => setIsImageError(true)} // fallback when broken
+          />
         </Box>
       )
     }
 
-    switch (type) {
-      case 'image':
-        return (
-          <CardMedia
+    if (fileType === 'video')
+      return (
+        <Box {...commonProps}>
+          <video src={fileUrl} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </Box>
+      )
+
+    // if (fileType === 'audio')
+    //   return (
+    //     <Box
+    //       {...commonProps}
+    //       sx={{
+    //         ...commonProps.sx,
+    //         alignItems: 'center',
+    //         justifyContent: 'center',
+    //         backgroundColor: theme.palette.background.paper
+    //       }}
+    //     >
+    //       <audio controls src={fileUrl} style={{ width: '90%' }} />
+    //     </Box>
+    //   )
+
+    // fallback icon for other/unknown types
+    return (
+      <Box
+        {...commonProps}
+        sx={{
+          ...commonProps.sx,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: fileIcon?.bg_color || theme.palette.action.hover
+        }}
+      >
+        {fileIcon?.image_path ? (
+          <Box
             component='img'
-            height={height}
-            image={fileUrl}
-            alt={fileName || 'File preview'}
-            sx={{ objectFit: 'cover', borderRadius: 1 }}
-            onError={() => setLoadError(true)}
+            src={fileIcon.image_path}
+            alt='file icon'
+            sx={{ width: showTitle ? 60 : 32, height: showTitle ? 60 : 32, objectFit: 'contain' }}
           />
-        )
-
-      case 'video':
-        return (
-          <Box
-            sx={{
-              position: 'relative',
-              height,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 1,
-              overflow: 'hidden',
-              bgcolor: '#000'
-            }}
-          >
-            <video
-              src={fileUrl}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              muted
-              controls
-              onError={() => setLoadError(true)}
-            />
-          </Box>
-        )
-
-      default:
-        return (
-          <Box
-            sx={{
-              height,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: bgColors.other,
-              borderRadius: 1
-            }}
-          >
-            {defaultIcons.other}
-          </Box>
-        )
-    }
+        ) : (
+          <Icon
+            icon={fileIcon?.icon || 'mdi:file'}
+            fontSize={50}
+            color={fileIcon?.icon_color || theme.palette.primary.main}
+          />
+        )}
+      </Box>
+    )
   }
 
   return (
-    <Box
-      sx={{
-        width,
-        borderRadius: 1,
-        overflow: 'hidden',
-        border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
-        p: fileName || user ? 3 : 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        ...cardStyle
-      }}
-    >
-      {fileName && (
-        <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {fileName}
-        </Typography>
-      )}
-      {renderMedia()}
-      {user && (
-        <UserAvatarDetails
-          date={user?.date}
-          user_name={user?.name}
-          profile_image={user?.image}
-          size='medium'
-          show_time
+    <>
+      {previewFile && (
+        <FileDialog
+          open={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+          src={previewFile.src}
+          type={previewFile.type}
+          title={previewFile.name}
         />
       )}
-    </Box>
+
+      <Box
+        sx={{
+          width,
+          height,
+          borderRadius: '8px',
+          border: `1px solid ${theme.palette?.customColors?.OutlineVariant}`,
+          p: showTitle ? '8px' : '4px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: showTitle ? '8px' : '4px',
+          backgroundColor: theme.palette?.customColors?.OnPrimary,
+          ...cardStyle
+        }}
+      >
+        {/* Title & optional close icon */}
+        {(showTitle || showTitleIcon) && (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {showTitle && (
+              <TextEllipsisWithModal
+                enableDialog={false}
+                text={derivedFileName}
+                style={{
+                  color: theme.palette?.customColors?.OnSurfaceVariant,
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  maxWidth: '220px'
+                }}
+              />
+            )}
+
+            {showTitleIcon && (
+              <IconButton
+                onClick={e => {
+                  onTitleIconClick?.()
+                }}
+                sx={{ padding: 0, color: theme.palette.customColors?.neutralSecondary }}
+              >
+                <Icon icon='mdi:close-circle' fontSize={22} />
+              </IconButton>
+            )}
+          </Box>
+        )}
+
+        {renderPreview()}
+
+        {user && (
+          <UserAvatarDetails
+            date={user?.modified_at || user?.created_at}
+            user_name={user?.user_profile?.user_full_name}
+            profile_image={user?.user_profile?.user_profile_pic}
+            size='medium'
+            show_time
+          />
+        )}
+      </Box>
+    </>
   )
 }
 

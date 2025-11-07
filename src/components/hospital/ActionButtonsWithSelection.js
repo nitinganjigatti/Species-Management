@@ -2,15 +2,16 @@ import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box, Button, CircularProgress, Typography, useMediaQuery } from '@mui/material'
 
-export default function ActionButtonsWithSelection({ 
+export default function ActionButtonsWithSelection({
   selectedCount = 0,
-  cancelLabel, 
-  addLabel, 
-  onCancel, 
-  onAdd, 
-  width, 
-  height, 
-  isSubmitLoading 
+  cancelLabel,
+  addLabel,
+  onCancel,
+  onAdd,
+  width,
+  height,
+  isSubmitLoading,
+  isCancelLoading
 }) {
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('lg'))
@@ -40,7 +41,7 @@ export default function ActionButtonsWithSelection({
         sx={{
           fontSize: '20px',
           fontWeight: 500,
-          color: theme.palette.customColors.OnSurface,
+          color: theme.palette.customColors.OnSurface
         }}
       >
         Selected - {selectedCount}
@@ -50,6 +51,7 @@ export default function ActionButtonsWithSelection({
       <Box sx={{ display: 'flex', gap: 4 }}>
         <Button
           variant='outlined'
+          disabled={isSubmitLoading || isCancelLoading}
           onClick={onCancel}
           sx={{
             borderRadius: '8px',
@@ -62,13 +64,13 @@ export default function ActionButtonsWithSelection({
             height
           }}
         >
-          {cancelLabel}
+          {isCancelLoading ? <CircularProgress size={20} color='inherit' /> : cancelLabel}
         </Button>
 
         <Button
           variant='contained'
           onClick={onAdd}
-          disabled={isSubmitLoading}
+          disabled={isSubmitLoading || isCancelLoading}
           sx={{
             borderRadius: '8px',
             textTransform: 'uppercase',

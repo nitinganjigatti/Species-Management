@@ -271,17 +271,20 @@ export default function ScheduleMedicine({
             </Box>
 
             <Box sx={{ mb: 3 }}>
-              <ControlledDatePicker
-                fullWidth={true}
-                sx={commonFieldStyles}
-                minDate={dayjs(now)}
-                size='large'
-                name='prescriptionStartDate'
-                label='Prescription Start Date'
-                control={control}
-                errors={errors}
-                required
-              />
+              <Box sx={{ mb: 3 }}>
+                <ControlledDatePicker
+                  fullWidth={true}
+                  sx={commonFieldStyles}
+                  minDate={selectedMedicineTo === 'Direct Administer' ? undefined : dayjs(now)}
+                  maxDate={selectedMedicineTo === 'Direct Administer' ? dayjs(now) : undefined}
+                  size='large'
+                  name='prescriptionStartDate'
+                  label='Prescription Start Date'
+                  control={control}
+                  errors={errors}
+                  required
+                />
+              </Box>
             </Box>
 
             <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
@@ -382,7 +385,7 @@ export default function ScheduleMedicine({
                   </Grid>
                   <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
-                      name='wastageUnit'
+                      name='wastageUOM'
                       label={'UOM'}
                       sx={{
                         textAlign: 'left',
@@ -444,19 +447,20 @@ export default function ScheduleMedicine({
                     getOptionLabel={option => {
                       if (typeof option === 'string') return option
 
-                      return option?.batchNumber || option?.batch_number || ''
+                      // API returns batch_no
+                      return option?.batch_no || ''
                     }}
                     getOptionValue={option => {
                       if (typeof option === 'string') return option
 
-                      return option?.batchNumber || option?.batch_number || ''
+                      // API returns batch_no
+                      return option?.batch_no || ''
                     }}
                     isOptionEqualToValue={(option, value) => {
                       if (!option || !value) return false
 
-                      const optionVal =
-                        typeof option === 'string' ? option : option?.batchNumber || option?.batch_number
-                      const valueVal = typeof value === 'string' ? value : value?.batchNumber || value?.batch_number
+                      const optionVal = typeof option === 'string' ? option : option?.batch_no
+                      const valueVal = typeof value === 'string' ? value : value?.batch_no
 
                       return optionVal === valueVal
                     }}
@@ -464,7 +468,7 @@ export default function ScheduleMedicine({
                     onInputChange={handleBatchSearch}
                     required={isControlledSubstance}
                     autocompleteProps={{
-                      filterOptions: x => x, // Disable client-side filtering
+                      filterOptions: x => x,
                       noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
                     }}
                   />

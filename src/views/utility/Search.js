@@ -15,7 +15,8 @@ const Search = ({
   backgroundColor,
   borderRadius,
   inputStyle,
-  disabled = false
+  disabled = false,
+  ref = null
 }) => {
   const theme = useTheme()
   const iconColor = theme.palette.customColors.neutralSecondary
@@ -32,6 +33,7 @@ const Search = ({
       }}
     >
       <TextField
+        ref={ref} // Pass ref directly to TextField
         variant='outlined'
         size='small'
         value={value}

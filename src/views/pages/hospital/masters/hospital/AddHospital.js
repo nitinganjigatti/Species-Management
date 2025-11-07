@@ -85,7 +85,6 @@ const AddHospital = ({ handleSidebarOpen, handleSidebarClose, handleSubmitData, 
     <Drawer
       anchor='right'
       open={handleSidebarOpen}
-      onClose={handleClose}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] } }}
     >
