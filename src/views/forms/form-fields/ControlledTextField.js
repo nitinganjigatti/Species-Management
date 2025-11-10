@@ -15,6 +15,7 @@ const ControlledTextField = ({
   disabled = false,
   readOnly = false,
   onChangeOverride,
+  inputSlotProps = {},
   inputProps = {},
   onKeyDown,
   onPaste,
@@ -56,7 +57,10 @@ const ControlledTextField = ({
           onPaste={onPaste}
           onInput={onInput}
           slotProps={{
-            input: { readOnly },
+            input: {
+              readOnly,
+              ...inputSlotProps
+            },
             htmlInput: inputProps,
             formHelperText: {
               sx: {
