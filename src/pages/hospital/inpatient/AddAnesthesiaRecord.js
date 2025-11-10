@@ -40,6 +40,16 @@ export const anesthesiaSchema = yup.object({
     purpose: yup.array().of(yup.string()).min(1, 'Select at least one purpose'),
     notes: yup.string().trim().required('Notes are required')
   }),
+  vitalMonitoring: yup
+    .array()
+    .of(
+      yup.object({
+        id: yup.string().required(),
+        timeLabel: yup.string().trim().required(),
+        entries: yup.object().default({})
+      })
+    )
+    .default([]),
   attachments: yup.object({
     files: yup.array().of(yup.mixed()).optional(),
     comments: yup.string().optional()
@@ -130,6 +140,7 @@ export default function AddAnesthesiaRecord() {
         medications: [],
         gases: []
       },
+      vitalMonitoring: [],
       attachments: {
         files: [],
         comments: ''

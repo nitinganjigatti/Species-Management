@@ -870,3 +870,9 @@ export const GET_MONITORING_HISTORY = `v1/hospital/get-assessment-history`
 export const ADD_ASSESSMENT_VALUE_TO_PARAMS = `v1/assessment/animal/add`
 
 export const GET_HOSPITAL_PARAMETERS_UNIT = `v1/hospital/get-assessment-details`
+
+export const GET_PARAMETER_ASSESSMENT_HISTORY = `v1/hospital/get-assessment-history`
+
+export const UPDATE_PARAMETER_ASSESSMENT_HISTORY = `/v1/assessment/animal/update`
+
+export const DELETE_PARAMETER_ASSESSMENT_HISTORY = `v1/hospital/delete-assessment-record`

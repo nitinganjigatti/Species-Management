@@ -1,17 +1,20 @@
 import {
   ADD_ASSESSMENT_VALUE_TO_PARAMS,
   APPLY_PARAMS_TO_CASE_ID,
+  DELETE_PARAMETER_ASSESSMENT_HISTORY,
   GET_HOSPITAL_PARAMETERS_UNIT,
   GET_HOSPITAL_PARAMS_TEMPLATE,
   GET_MONITORING_HISTORY,
   GET_MONITORING_PARAMETERS,
+  GET_PARAMETER_ASSESSMENT_HISTORY,
   GET_PARAMETERS_ON_FILTERS,
   GET_PARAMS_FILER_OPTIONS,
   GET_PARAMS_OF_TEMPLATE,
   GET_TREATMENT_MONITORING_DATA,
   GET_TREATMENT_PARAMETERS_INTERVALS,
   SAVE_HOSPITAL_TEMPLATE,
-  SCHEDULE_INTERVALS_FOR_PARAMETERS
+  SCHEDULE_INTERVALS_FOR_PARAMETERS,
+  UPDATE_PARAMETER_ASSESSMENT_HISTORY
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -89,6 +92,24 @@ export const addAssessmentToParams = async (animalId, params) => {
 
 export const getHospitalParametersUnitListing = async id => {
   const response = await axiosGet({ url: `${GET_HOSPITAL_PARAMETERS_UNIT}/${id}` })
+
+  return response?.data
+}
+
+export const getHospitalAssessmentHistory = async params => {
+  const response = await axiosGet({ url: `${GET_PARAMETER_ASSESSMENT_HISTORY}`, params })
+
+  return response?.data
+}
+
+export const updateHospitalAssessmentHistory = async (id, params) => {
+  const response = await axiosPost({ url: `${UPDATE_PARAMETER_ASSESSMENT_HISTORY}/${id}`, body: params })
+
+  return response?.data
+}
+
+export const deleteAssessmentHistory = async id => {
+  const response = await axiosGet({ url: `${DELETE_PARAMETER_ASSESSMENT_HISTORY}/${id}` })
 
   return response?.data
 }

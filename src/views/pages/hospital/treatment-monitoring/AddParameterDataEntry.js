@@ -23,8 +23,14 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import EditParamsHistory from './EditParamsHistory'
 import { useQuery } from '@tanstack/react-query'
-import { addAssessmentToParams, getHospitalParametersUnitListing } from 'src/lib/api/hospital/treatmentMonitoring'
+import {
+  addAssessmentToParams,
+  getHospitalAssessmentHistory,
+  getHospitalParametersUnitListing
+} from 'src/lib/api/hospital/treatmentMonitoring'
 import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const defaultValues = {
   observation_time: dayjs(),
@@ -53,6 +59,7 @@ const AddParameterDataEntry = ({
   const [addLoading, setAddLoading] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
   const [openEditHistoryDrawer, setOpenEditHistoryDrawer] = useState(false)
+  const [editHistoryData, setEditHistoryData] = useState(null)
 
   const {
     control,
@@ -67,7 +74,7 @@ const AddParameterDataEntry = ({
   })
 
   const { data: parameterUnit, isLoading: unitLoading } = useQuery({
-    queryKey: ['hospital-parameters-units-listing', data?.parameter?.assessment_type_id],
+    queryKey: ['hospital-parameters-units-listing', data?.parameter?.assessment_type_id, open],
     queryFn: () => getHospitalParametersUnitListing(data?.parameter?.assessment_type_id),
     enabled: !!data?.parameter?.assessment_type_id
   })
@@ -93,6 +100,23 @@ const AddParameterDataEntry = ({
 
     return { resType: responseType, unitsData: formattedUnits }
   }, [parameterUnit])
+
+  const {
+    data: historyData,
+    isLoading: historyLoading,
+    refetch: refetchHistory
+  } = useQuery({
+    queryKey: ['hospital-assessment-history', data?.parameter?.assessment_type_id, open, activeTab === 1],
+    queryFn: () =>
+      getHospitalAssessmentHistory({
+        date: data?.date,
+        hospital_case_id: hospitalCaseId,
+        assessment_type_id: data?.parameter?.assessment_type_id
+      }),
+    enabled: open && activeTab === 1 && !!data?.parameter?.assessment_type_id
+  })
+
+  const historyList = historyData?.data || []
 
   const formatInterval = interval => {
     if (!interval) return ''
@@ -125,7 +149,6 @@ const AddParameterDataEntry = ({
       }
 
       await addAssessmentToParams(animalId, payload).then(res => {
-        console.log(res)
         if (res?.success === true) {
           setAddLoading(false)
           Toaster({ type: 'success', message: res?.message })
@@ -438,8 +461,112 @@ const AddParameterDataEntry = ({
                       </Typography>
                     </Box>
                   </Box>
-                  <Box sx={{ py: 6, px: 4, display: ' flex', flexDirection: 'column', gap: 4 }}>
-                    <Button onClick={() => setOpenEditHistoryDrawer(true)}>Open</Button>
+                  <Box sx={{ py: 6, px: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {historyLoading
+                      ? Array.from(new Array(3)).map((_, index) => (
+                          <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Skeleton variant='text' width={60} height={24} sx={{ flexShrink: 0 }} />
+                            <Box
+                              sx={{
+                                flexGrow: 1,
+                                p: 4,
+                                borderRadius: 1,
+                                backgroundColor: theme.palette.customColors.displaybgPrimary,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 3
+                              }}
+                            >
+                              <Skeleton variant='text' width='40%' height={24} />
+                              <Skeleton variant='text' width='60%' height={20} />
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
+                                <Skeleton variant='circular' width={32} height={32} />
+                                <Skeleton variant='text' width='30%' height={20} />
+                              </Box>
+                            </Box>
+                          </Box>
+                        ))
+                      : historyList?.map(item => (
+                          <Box key={item?.id} sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Typography
+                              sx={{
+                                flexShrink: 0,
+                                whiteSpace: 'nowrap',
+                                fontWeight: 600,
+                                fontSize: '14px',
+                                color: theme.palette.customColors.OnSurfaceVariant,
+                                minWidth: '80px',
+                                textAlign: 'right'
+                              }}
+                            >
+                              {Utility.convertUTCToLocaltime(item?.recorded_date_time)}
+                            </Typography>
+
+                            <Box
+                              sx={{
+                                flexGrow: 1,
+                                p: 4,
+                                borderRadius: 1,
+                                backgroundColor: theme.palette.customColors.displaybgPrimary,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 4
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '1rem',
+                                      fontWeight: 600,
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >{`${item?.assessment_value} ${item?.base_uom_name}`}</Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    {item?.comments}
+                                  </Typography>
+                                </Box>
+                                <IconButton
+                                  onClick={() => {
+                                    setEditHistoryData({
+                                      ...item,
+                                      unitsData
+                                    })
+                                    setOpenEditHistoryDrawer(true)
+                                  }}
+                                >
+                                  <Icon icon={'material-symbols:edit-outline-rounded'} />
+                                </IconButton>
+                              </Box>
+
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <UserAvatarDetails
+                                  user_name={`${item?.user_first_name} ${item?.user_last_name}`}
+                                  date={item?.created_at}
+                                  show_time
+                                  profile_image={item?.user_profile_full_url}
+                                />
+                                {item?.modified_by !== null ? (
+                                  <Typography
+                                    sx={{
+                                      fontSize: '12px',
+                                      fontWeight: 400,
+                                      color: theme.palette.customColors.neutralSecondary
+                                    }}
+                                  >
+                                    Edited
+                                  </Typography>
+                                ) : null}
+                              </Box>
+                            </Box>
+                          </Box>
+                        ))}
                   </Box>
                 </Box>
               </>
@@ -481,7 +608,15 @@ const AddParameterDataEntry = ({
           )}
         </Box>
       </Drawer>
-      {openEditHistoryDrawer && <EditParamsHistory open={openEditHistoryDrawer} setOpen={setOpenEditHistoryDrawer} />}
+      {openEditHistoryDrawer && (
+        <EditParamsHistory
+          open={openEditHistoryDrawer}
+          setOpen={setOpenEditHistoryDrawer}
+          data={editHistoryData}
+          refetch={refetchHistory}
+          resType={resType}
+        />
+      )}
     </>
   )
 }
