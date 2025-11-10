@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import { v4 as uuidv4 } from 'uuid'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useFormContext, useWatch } from 'react-hook-form'
 
 import AddTimeForm from './vitalForms/AddTimeForm'
 import TemperatureForm from './vitalForms/TemperatureForm'
@@ -239,7 +240,8 @@ function getCellDisplay(rowKey, entry, timeLabel) {
 export default function VitalMonitoring() {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
-  const [columns, setColumns] = useState([])
+  const { control, setValue } = useFormContext()
+  const columns = useWatch({ control, name: 'vitalMonitoring.columns' }) || []
   const [isTimeFormOpen, setIsTimeFormOpen] = useState(false)
   const [formState, setFormState] = useState(null)
   const [activeCell, setActiveCell] = useState(null)
@@ -247,6 +249,10 @@ export default function VitalMonitoring() {
   const [isScrolledToEnd, setIsScrolledToEnd] = useState(true)
 
   const scrollContainerRef = useRef(null)
+
+  const updateColumns = newColumns => {
+    setValue('vitalMonitoring.columns', newColumns, { shouldDirty: true })
+  }
 
   const handleAddColumn = ({ timeLabel }) => {
     const normalizedTime = timeLabel.trim().toUpperCase()
@@ -263,7 +269,7 @@ export default function VitalMonitoring() {
       entries: {}
     }
 
-    setColumns(prev => [...prev, newColumn])
+    updateColumns([...columns, newColumn])
     setIsTimeFormOpen(false)
   }
 
@@ -282,21 +288,21 @@ export default function VitalMonitoring() {
       return
     }
 
-    setColumns(prev =>
-      prev.map(column => {
-        if (column.id !== formState.columnId) {
-          return column
-        }
+    const updatedColumns = columns.map(column => {
+      if (column.id !== formState.columnId) {
+        return column
+      }
 
-        return {
-          ...column,
-          entries: {
-            ...column.entries,
-            [formState.rowKey]: data
-          }
+      return {
+        ...column,
+        entries: {
+          ...column.entries,
+          [formState.rowKey]: data
         }
-      })
-    )
+      }
+    })
+
+    updateColumns(updatedColumns)
 
     handleCloseForm()
   }
