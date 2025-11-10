@@ -9,12 +9,13 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   InputAdornment,
-  Divider
+  Divider,
+  Autocomplete
 } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import { useFormContext, Controller, useFieldArray } from 'react-hook-form'
 
-export default function BasicDetails() {
+export default function BasicDetails({ vetOptions = [], anesthetistOptions = [] }) {
   const {
     control,
     watch,
@@ -84,7 +85,8 @@ export default function BasicDetails() {
             )}
           />
         </Grid>
-
+        {console.log('vetOptions:', vetOptions)}
+        {console.log('anesthetistOptions:', anesthetistOptions)}
         <Grid size={{ xs: 12, md: 4 }}>
           <Controller
             name='basicDetails.dateTime'
@@ -171,48 +173,59 @@ export default function BasicDetails() {
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
-            name='basicDetails.veterinarian'
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                select
-                fullWidth
-                label='Veterinarian'
-                error={!!errors.basicDetails?.veterinarian}
-                helperText={errors.basicDetails?.veterinarian?.message}
-                sx={commonTextFieldSx}
-                slotProps={{ select: { 'data-field': 'veterinarian' } }}
-              >
-                <MenuItem value='Dr. John D Sam'>Dr. John D Sam</MenuItem>
-                <MenuItem value='Dr. Jane M Doe'>Dr. Jane M Doe</MenuItem>
-              </TextField>
-            )}
-          />
-        </Grid>
+        <Grid container spacing={2}>
+          {/* Veterinarian Field */}
+          <Grid item size={{ xs: 12, md: 4 }}>
+            <Controller
+              name='basicDetails.veterinarian'
+              control={control}
+              render={({ field }) => (
+                <Autocomplete
+                  openOnFocus
+                  options={vetOptions}
+                  getOptionLabel={option => option?.name || ''}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  value={vetOptions.find(opt => opt.id === field.value) || null}
+                  onChange={(_, newValue) => field.onChange(newValue?.id || '')}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Veterinarian'
+                      fullWidth
+                      error={!!errors?.basicDetails?.veterinarian}
+                      helperText={errors?.basicDetails?.veterinarian?.message}
+                    />
+                  )}
+                />
+              )}
+            />
+          </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
-            name='basicDetails.anesthetist'
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                select
-                fullWidth
-                label='Anesthetist'
-                error={!!errors.basicDetails?.anesthetist}
-                helperText={errors.basicDetails?.anesthetist?.message}
-                sx={commonTextFieldSx}
-                slotProps={{ select: { 'data-field': 'anesthetist' } }}
-              >
-                <MenuItem value='Dr. John D Sam'>Dr. John D Sam</MenuItem>
-                <MenuItem value='Dr. Lisa Ray'>Dr. Lisa Ray</MenuItem>
-              </TextField>
-            )}
-          />
+          <Grid item size={{ xs: 12, md: 4 }}>
+            <Controller
+              name='basicDetails.anesthetist'
+              control={control}
+              render={({ field }) => (
+                <Autocomplete
+                  openOnFocus
+                  options={anesthetistOptions}
+                  getOptionLabel={option => option?.name || ''}
+                  isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                  value={anesthetistOptions.find(opt => opt.id === field.value) || null}
+                  onChange={(_, newValue) => field.onChange(newValue?.id || '')}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Anesthetist'
+                      fullWidth
+                      error={!!errors?.basicDetails?.anesthetist}
+                      helperText={errors?.basicDetails?.anesthetist?.message}
+                    />
+                  )}
+                />
+              )}
+            />
+          </Grid>
         </Grid>
       </Grid>
 

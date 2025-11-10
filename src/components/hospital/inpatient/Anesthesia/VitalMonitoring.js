@@ -249,9 +249,17 @@ export default function VitalMonitoring() {
   const scrollContainerRef = useRef(null)
 
   const handleAddColumn = ({ timeLabel }) => {
+    const normalizedTime = timeLabel.trim().toUpperCase()
+
+    const exists = columns.some(column => column.timeLabel.toUpperCase() === normalizedTime)
+    if (exists) {
+      setIsTimeFormOpen(false)
+      return
+    }
+
     const newColumn = {
       id: uuidv4(),
-      timeLabel,
+      timeLabel: normalizedTime,
       entries: {}
     }
 

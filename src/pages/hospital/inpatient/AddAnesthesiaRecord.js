@@ -63,6 +63,18 @@ export default function AddAnesthesiaRecord() {
   const theme = useTheme()
   const HEADER_HEIGHT = 120
 
+  const vetOptions = [
+    { id: 1, name: 'Dr. John D Sam' },
+    { id: 2, name: 'Dr. Jane M Doe' },
+    { id: 3, name: 'Dr. Vineet R' }
+  ]
+
+  const anesthetistOptions = [
+    { id: 1, name: 'Dr. John D Sam' },
+    { id: 2, name: 'Dr. Jane M Doe' },
+    { id: 3, name: 'Dr. Vineet R' }
+  ]
+
   const methods = useForm({
     defaultValues: {
       basicDetails: {
@@ -73,6 +85,15 @@ export default function AddAnesthesiaRecord() {
         anesthetist: '',
         purpose: [],
         notes: ''
+      },
+      anesthesiaSetup: {
+        fluids: { checked: false, fluidType: '', quantity: '' },
+        catheterSetup: { checked: false, method: '' },
+        syringePump: { checked: false, rate: '' },
+        etIntubation: { checked: false, tubeSizes: '' },
+        nasalIntubation: { checked: false, fluidType: '', quantity: '' },
+        ventilation: { checked: false, mode: '' },
+        monitoring: { checked: false, selected: [], otherItems: [] }
       },
       attachments: {
         files: [],
@@ -104,6 +125,7 @@ export default function AddAnesthesiaRecord() {
   const onValid = data => {
     console.log(' basicdetails:', data.basicDetails)
     console.log('Files:', data.attachments.files)
+    console.log(data, 'data')
 
     //  API here
   }
@@ -250,7 +272,7 @@ export default function AddAnesthesiaRecord() {
                 <AccordionSummary
                   expandIcon={
                     expanded === id ? (
-                      <Typography sx={{ fontWeight: 'bold', fontSize: 24 }}>−</Typography>
+                      <Typography sx={{ fontWeight: 'bold', fontSize: 24, color: '#4c4e646e' }}>−</Typography>
                     ) : (
                       <Typography sx={{ fontWeight: 'bold', fontSize: 24 }}>+</Typography>
                     )
@@ -260,7 +282,7 @@ export default function AddAnesthesiaRecord() {
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 0 }}>
-                  <SectionComponent sectionId={id} />
+                  <SectionComponent sectionId={id} vetOptions={vetOptions} anesthetistOptions={anesthetistOptions} />
                 </AccordionDetails>
               </Accordion>
             ))}
